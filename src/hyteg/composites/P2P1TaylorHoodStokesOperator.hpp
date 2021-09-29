@@ -38,15 +38,8 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
@@ -69,48 +62,16 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      divT_x.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[0].getVertexDoFFunction(), level, flag );
-      divT_x.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[0].getEdgeDoFFunction(), level, flag );
-
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-      divT_y.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[1].getVertexDoFFunction(), level, flag );
-      divT_y.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[1].getEdgeDoFFunction(), level, flag );
-
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
-      {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
-         divT_z.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[2].getVertexDoFFunction(), level, flag );
-         divT_z.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[2].getEdgeDoFFunction(), level, flag );
-      }
-
-      div_x.getVertexToVertexOpr().toMatrix( mat, src.uvw[0].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
-      div_x.getEdgeToVertexOpr().toMatrix( mat, src.uvw[0].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
-
-      div_y.getVertexToVertexOpr().toMatrix( mat, src.uvw[1].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
-      div_y.getEdgeToVertexOpr().toMatrix( mat, src.uvw[1].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
-
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
-      {
-         div_z.getVertexToVertexOpr().toMatrix( mat, src.uvw[2].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
-         div_z.getEdgeToVertexOpr().toMatrix( mat, src.uvw[2].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
-      }
+      Lapl.toMatrix( mat, src.uvw, dst.uvw, level, flag );
+      divT.toMatrix( mat, src.p, dst.uvw, level, flag );
+      div.toMatrix( mat, src.uvw, dst.p, level, flag );
    }
 
    P2ConstantVectorLaplaceOperator Lapl;
    P2ToP1ConstantDivOperator       div;
    P1ToP2ConstantDivTOperator      divT;
 
-   // currently need these for being able to call createMatrix()
-   P2ConstantLaplaceOperator   A;
-   P2ToP1ConstantDivxOperator  div_x;
-   P2ToP1ConstantDivyOperator  div_y;
-   P2ToP1ConstantDivzOperator  div_z;
-   P1ToP2ConstantDivTxOperator divT_x;
-   P1ToP2ConstantDivTyOperator divT_y;
-   P1ToP2ConstantDivTzOperator divT_z;
-
-   /// this operator is need in the uzawa smoother
+   // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
    bool                  hasGlobalCells_;

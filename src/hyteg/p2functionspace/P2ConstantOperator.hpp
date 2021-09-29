@@ -29,11 +29,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
-// This include can be removed once the implementation of createMatrix() was moved into toMatrix()
-#ifdef HYTEG_BUILD_WITH_PETSC
-#include "hyteg/p2functionspace/P2Petsc.hpp"
-#endif
-
 namespace hyteg {
 
 using walberla::real_t;

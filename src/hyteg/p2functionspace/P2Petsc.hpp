@@ -97,23 +97,6 @@ inline void applyDirichletBC( const P2VectorFunction< PetscInt >& numerator, std
    }
 }
 
-// =============
-//  P2Operators
-// =============
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P2Function< PetscInt >&               src,
-                          const P2Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          uint_t                                      level,
-                          DoFType                                     flag )
-{
-   createMatrix( opr.getVertexToVertexOpr(), src.getVertexDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   createMatrix( opr.getEdgeToVertexOpr(), src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   createMatrix( opr.getVertexToEdgeOpr(), src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
-   createMatrix( opr.getEdgeToEdgeOpr(), src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
-}
-
 } // namespace petsc
 } // namespace hyteg
 
