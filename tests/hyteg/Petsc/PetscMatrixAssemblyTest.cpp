@@ -317,10 +317,10 @@ int main( int argc, char* argv[] )
 
    typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
        E2VMassOperator;
-   testAssembly< E2VMassOperator >( storage, level, "EdgeDoFToVertexDoFOperator", false );
+   testAssembly< E2VMassOperator >( storage, level, "EdgeDoFToVertexDoFOperator" );
    typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
        V2EMassOperator;
-   testAssembly< V2EMassOperator >( storage, level, "VertexDoFToEdgeDoFOperator", false );
+   testAssembly< V2EMassOperator >( storage, level, "VertexDoFToEdgeDoFOperator" );
 
    // -----------------------
    //  Elementwise Operators
@@ -358,7 +358,7 @@ int main( int argc, char* argv[] )
 
    testAssembly< P1StokesBlockLaplaceOperator >( storage, level, "P1StokesBlockLaplaceOperator" );
    testAssembly< P1BlendingStokesOperator >( storage, level, "P1BlendingStokesOperator", false );
-   testAssembly< P1EpsilonStokesOperator >( storage, level, "P1EpsilonStokesOperator", false );
+   testAssembly< P1EpsilonStokesOperator >( storage, level, "P1EpsilonStokesOperator" );
    testAssembly< P2P2UnstableStokesOperator >( storage, level, "P2P2UnstableStokesOperator" );
    testAssembly< P2P1BlendingTaylorHoodStokesOperator >( storage, level, "P2P1BlendingTaylorHoodStokesOperator", false );
    testAssembly< P2P1SurrogateTaylorHoodStokesOperator >( storage, level, level, "P2P1SurrogateTaylorHoodStokesOperator", false );
@@ -368,24 +368,24 @@ int main( int argc, char* argv[] )
    // ----------------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  SCALAR TO VECTOR OPERATORS\n" << rule );
 
-   testAssembly< P1ToP2ElementwiseBlendingDivTOperator >( storage, level, "P1ScalarToP2VectorOperator", false );
-   testAssembly< P1ToP2ConstantDivTxOperator >( storage, level, "P1ToP2ConstantOperator", false );
+   testAssembly< P1ToP2ElementwiseBlendingDivTOperator >( storage, level, "P1ScalarToP2VectorOperator" );
+   testAssembly< P1ToP2ConstantDivTxOperator >( storage, level, "P1ToP2ConstantOperator" );
 
    // ----------------------------
    //  Vector To Scalar Operators
    // ----------------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  VECTOR TO SCALAR OPERATORS\n" << rule );
 
-   testAssembly< P2ToP1ElementwiseBlendingDivOperator >( storage, level, "P2ScalarToP1VectorOperator", false );
-   testAssembly< P2ToP1ConstantDivxOperator >( storage, level, "P2ToP1ConstantOperator", false );
+   testAssembly< P2ToP1ElementwiseBlendingDivOperator >( storage, level, "P2ScalarToP1VectorOperator" );
+   testAssembly< P2ToP1ConstantDivxOperator >( storage, level, "P2ToP1ConstantOperator" );
 
    // ------------------
    //  Vector Operators
    // ------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  VECTOR TO VECTOR OPERATORS\n" << rule );
-   testAssembly< P1ConstantVectorMassOperator >( storage, level, "P1ConstantVectorMassOperator", false );
-   testAssembly< P2ConstantVectorMassOperator >( storage, level, "P2ConstantVectorMassOperator", false );
-   testAssembly< P2ElementwiseBlendingVectorMassOperator >( storage, level, "P2ElementwiseBlendingVectorMassOperator", false );
+   testAssembly< P1ConstantVectorMassOperator >( storage, level, "P1ConstantVectorMassOperator" );
+   testAssembly< P2ConstantVectorMassOperator >( storage, level, "P2ConstantVectorMassOperator" );
+   testAssembly< P2ElementwiseBlendingVectorMassOperator >( storage, level, "P2ElementwiseBlendingVectorMassOperator" );
 
    // WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
    // WALBERLA_LOG_INFO_ON_ROOT( " * [all of this kind]" );

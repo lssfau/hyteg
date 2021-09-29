@@ -19,18 +19,18 @@
  */
 #pragma once
 
-#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 
 #ifdef _MSC_VER
-#  pragma warning(push, 0)
+#pragma warning( push, 0 )
 #endif
 
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
-#  pragma warning(pop)
+#pragma warning( pop )
 #endif
 
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
@@ -40,24 +40,19 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template< class P1ToP2Form >
-class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<real_t> > {
+template < class P1ToP2Form >
+class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function< real_t > >
+{
  public:
+   P1ToP2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , vertexToVertex( storage, minLevel, maxLevel )
+   , vertexToEdge( storage, minLevel, maxLevel )
+   {}
 
-  P1ToP2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-      : Operator(storage, minLevel, maxLevel), vertexToVertex(storage, minLevel, maxLevel),
-        vertexToEdge(storage, minLevel, maxLevel)
-  {
-  }
+   P1ConstantOperator< P1ToP2Form > const& getVertexToVertexOpr() const { return vertexToVertex; }
 
-
-  P1ConstantOperator< P1ToP2Form > const & getVertexToVertexOpr() const {
-    return vertexToVertex;
-  }
-
-  VertexDoFToEdgeDoFOperator< P1ToP2Form > const & getVertexToEdgeOpr() const {
-    return vertexToEdge;
-  }
+   VertexDoFToEdgeDoFOperator< P1ToP2Form > const& getVertexToEdgeOpr() const { return vertexToEdge; }
 
    void apply( const P1Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -67,22 +62,35 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
    {
       vertexToVertex.apply( src, dst.getVertexDoFFunction(), level, flag, updateType );
       vertexToEdge.apply( src, dst.getEdgeDoFFunction(), level, flag, updateType );
-  }
+   }
 
-  void smooth_gs(P1Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)
-  {
-    WALBERLA_ABORT("not implemented");
-  }
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< matIdx_t >&               src,
+                  const P2Function< matIdx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      vertexToVertex.toMatrix( mat, src, dst.getVertexDoFFunction(), level, flag );
+      vertexToEdge.toMatrix( mat, src, dst.getEdgeDoFFunction(), level, flag );
+   }
 
-private:
+   void smooth_gs( P1Function< real_t >& dst, P2Function< real_t >& rhs, size_t level, DoFType flag )
+   {
+      WALBERLA_ABORT( "not implemented" );
+   }
 
-  P1ConstantOperator< P1ToP2Form > vertexToVertex;
-  VertexDoFToEdgeDoFOperator< P1ToP2Form > vertexToEdge;
-
+ private:
+   P1ConstantOperator< P1ToP2Form >         vertexToVertex;
+   VertexDoFToEdgeDoFOperator< P1ToP2Form > vertexToEdge;
 };
 
-typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > > P1ToP2ConstantDivTxOperator;
-typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > > P1ToP2ConstantDivTyOperator;
-typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > > P1ToP2ConstantDivTzOperator;
+typedef P1ToP2ConstantOperator<
+    P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >
+    P1ToP2ConstantDivTxOperator;
+typedef P1ToP2ConstantOperator<
+    P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >
+    P1ToP2ConstantDivTyOperator;
+typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
+    P1ToP2ConstantDivTzOperator;
 
-}
+} // namespace hyteg
