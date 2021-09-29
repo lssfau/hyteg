@@ -79,8 +79,6 @@ namespace hyteg {
     return radius;
   }
 
-#ifdef HYTEG_BUILD_WITH_EIGEN
-
   // =================================================================================================
 
   /// \brief Computes estimates for the smallest and largest eigenvalue of a symmetric
@@ -128,8 +126,6 @@ namespace hyteg {
     lowerBound = ev[0];
     upperBound = ev[numIts-1];
   }
-
-#endif // HYTEG_BUILD_WITH_EIGEN
 
 } // namespace hyteg
 

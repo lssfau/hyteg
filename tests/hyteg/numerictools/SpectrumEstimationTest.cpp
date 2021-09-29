@@ -30,10 +30,6 @@
 
 #include "hyteg/HytegDefinitions.hpp"
 
-#ifndef HYTEG_BUILD_WITH_EIGEN
-#error "This test only works with Eigen enabled. Please enable it via -DHYTEG_BUILD_WITH_EIGEN=ON"
-#endif
-
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
