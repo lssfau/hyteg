@@ -55,7 +55,11 @@ class PETScSparseMatrix
    {
       MatCreate( petscCommunicator, &mat );
       MatSetType( mat, MATMPIAIJ );
-      MatSetSizes( mat, (idx_t) localSize, (idx_t) localSize, (idx_t) globalSize, (idx_t) globalSize );
+      MatSetSizes( mat,
+                   static_cast< PetscInt >( localSize ),
+                   static_cast< PetscInt >( localSize ),
+                   static_cast< PetscInt >( globalSize ),
+                   static_cast< PetscInt >( globalSize ) );
       // Roughly overestimate number of non-zero entries for faster assembly of matrix
       MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
       setName( name );
@@ -114,26 +118,31 @@ class PETScSparseMatrix
       PetscViewerDestroy( &viewer );
    }
 
-   void applyDirichletBC( const FunctionType< idx_t >& numerator, uint_t level )
+   template < typename PETSCINT >
+   std::vector< PETSCINT > convertToPetscVector( std::vector< idx_t > idx_vector )
    {
-      std::unique_ptr< std::vector< idx_t > > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, *bcIndices, level );
-      std::unique_ptr< std::vector< PetscInt > > PetscIntBcIndices;
-      if constexpr ( std::is_same_v< idx_t, PetscInt > )
+      if constexpr ( std::is_same_v< idx_t, PETSCINT > )
       {
-         PetscIntBcIndices = std::move( bcIndices );
+         return idx_vector;
       }
       else
       {
-         PetscIntBcIndices = std::make_unique< std::vector< PetscInt > >( bcIndices->begin(), bcIndices->end() );
+         return std::vector< PETSCINT >( idx_vector.begin(), idx_vector.end() );
       }
+   }
+
+   void applyDirichletBC( const FunctionType< idx_t >& numerator, uint_t level )
+   {
+      std::vector< idx_t > bcIndices;
+      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices->size() ), PetscIntBcIndices->data(), 1.0, nullptr, nullptr );
+      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -161,17 +170,9 @@ class PETScSparseMatrix
                                        PETScVector< real_t, FunctionType >& rhsVec,
                                        const uint_t&                        level )
    {
-      std::unique_ptr< std::vector< idx_t > > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, *bcIndices, level );
-      std::unique_ptr< std::vector< PetscInt > > PetscIntBcIndices;
-      if constexpr ( std::is_same_v< idx_t, PetscInt > )
-      {
-         PetscIntBcIndices = std::move( bcIndices );
-      }
-      else
-      {
-         PetscIntBcIndices = std::make_unique< std::vector< PetscInt > >( bcIndices->begin(), bcIndices->end() );
-      }
+      std::vector< idx_t > bcIndices;
+      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       PETScVector< real_t, FunctionType > dirichletSolutionVec(
           dirichletSolution, numerator, level, All, "dirichletSolutionVec", rhsVec.getCommunicator() );
@@ -182,7 +183,7 @@ class PETScSparseMatrix
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns(
-          mat, PetscIntBcIndices->size(), PetscIntBcIndices->data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
+          mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
@@ -190,17 +191,9 @@ class PETScSparseMatrix
    /// \return Vector with global indices of the Dirichlet DoFs
    std::vector< idx_t > applyDirichletBCSymmetrically( const FunctionType< idx_t >& numerator, const uint_t& level )
    {
-      std::shared_ptr< std::vector< idx_t > > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, *bcIndices, level );
-      std::shared_ptr< std::vector< PetscInt > > PetscIntBcIndices;
-      if constexpr ( std::is_same_v< idx_t, PetscInt > )
-      {
-         PetscIntBcIndices = bcIndices;
-      }
-      else
-      {
-         PetscIntBcIndices = std::make_shared< std::vector< PetscInt > >( bcIndices->begin(), bcIndices->end() );
-      }
+      std::vector< idx_t > bcIndices;
+      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
@@ -208,9 +201,9 @@ class PETScSparseMatrix
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns(
-          mat, static_cast< PetscInt >( PetscIntBcIndices->size() ), PetscIntBcIndices->data(), 1.0, nullptr, nullptr );
+          mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
-      return *bcIndices;
+      return bcIndices;
    }
 
    inline void reset() { assembled_ = false; }
