@@ -107,6 +107,33 @@ void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, s
    matrix.createMatrixFromOperator( oper, level, enumeratorSrc, enumeratorDst, All );
 }
 
+template < template < class > class fKind >
+void testAssembly( BlockOperator< fKind< real_t >, fKind< real_t > >& oper,
+                   std::shared_ptr< PrimitiveStorage >&               storage,
+                   uint_t                                             level,
+                   std::string                                        tag,
+                   bool                                               actuallyTest = true )
+{
+   if ( actuallyTest )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * ~ SKIPPING (BUT COMPILES): " << tag );
+      return;
+   }
+
+   typedef BlockOperator< fKind< real_t >, fKind< real_t > > operType;
+   fKind< PetscInt >                                         enumerator( "enumerator", storage, level, level );
+   enumerator.enumerate( level );
+
+   PETScManager                  petscManager;
+   PETScSparseMatrix< operType > matrix( enumerator, level, tag.c_str() );
+
+   matrix.createMatrixFromOperator( oper, level, enumerator, All );
+}
+
 // Version for operators the require a form in their ctors
 template < class operType, class formType >
 void testAssembly( std::shared_ptr< PrimitiveStorage >& storage,
@@ -366,26 +393,18 @@ int main( int argc, char* argv[] )
    // ------------------
    //  Block Operators
    // ------------------
-// #define FUTURE_OR_WIP
-#ifdef FUTURE_OR_WIP
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n BLOCK OPERATORS\n" << rule );
 
-   // setup empty block operator
+   // setup an artificial block operator
    typedef BlockOperator< P2P1TaylorHoodBlockFunction< real_t >, P2P1TaylorHoodBlockFunction< real_t > > myBlockOper;
-   auto oper = std::make_shared< myBlockOper >( storage, level, level, 3, 3 );
-   oper->setSubOperator( 0, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 1, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 2, 0, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
 
-   oper->setSubOperator( 0, 1, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 1, 1, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 2, 1, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
+   myBlockOper oper( storage, level, level, 2, 2 );
+   oper.setSubOperator( 0, 0, std::make_shared< OperatorWrapper< P2ConstantVectorLaplaceOperator > >( storage, level, level ) );
+   oper.setSubOperator( 1, 0, nullptr );
+   oper.setSubOperator( 0, 1, nullptr );
+   oper.setSubOperator( 1, 1, std::make_shared< OperatorWrapper< P1ConstantMassOperator > >( storage, level, level ) );
 
-   oper->setSubOperator( 0, 2, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 1, 2, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
-   oper->setSubOperator( 2, 2, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
-   testAssembly_newAPI< myBlockOper >( storage, level, "myBlockOper" );
-#endif
+   testAssembly< P2P1TaylorHoodBlockFunction >( oper, storage, level, "artificial diagonal BlockOperator" );
 
    return 0;
 }

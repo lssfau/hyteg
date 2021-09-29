@@ -39,7 +39,7 @@ template < typename value_t >
 class BlockFunction
 {
  public:
-   typedef value_t ValueType;
+   typedef value_t valueType;
 
    template < typename VType >
    using FunctionType = BlockFunction< VType >;
@@ -267,11 +267,11 @@ class BlockFunction
 
       std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
 
-      ValueType offset = 0;
+      valueType offset = 0;
 
       for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
       {
-         offset += static_cast< ValueType >( doFsPerRank[i] );
+         offset += static_cast< valueType >( doFsPerRank[i] );
       }
 
       for ( uint_t k = 0; k < subFunc_.size(); k++ )
@@ -295,23 +295,5 @@ class BlockFunction
       return subFuncVec;
    }
 };
-
-// Special version of numberOfLocalDoFs for BlockFunctions
-template < typename value_t >
-inline uint_t numberOfLocalDoFs( const BlockFunction< value_t >& func, const uint_t& level )
-{
-   return func.getNumberOfLocalDoFs( level );
-}
-
-// Special version of numberOfGlobalDoFs for BlockFunctions
-template < typename value_t >
-inline uint_t numberOfGlobalDoFs( const BlockFunction< value_t >& func,
-                                  const uint_t&                   level,
-                                  const MPI_Comm&                 communicator = walberla::mpi::MPIManager::instance()->comm(),
-                                  const bool&                     onRootOnly   = false )
-
-{
-   return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
-}
 
 } // namespace hyteg
