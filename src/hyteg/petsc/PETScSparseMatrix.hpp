@@ -197,10 +197,10 @@ class PETScSparseMatrix
    /// \param rhsVec RHS of the system as PETSc vector - NOTE THAT THIS IS MODIFIED IN PLACE
    /// \param level the refinement level
    ///
-   void applyDirichletBCSymmetrically( const FunctionTypeSrc< real_t >&        dirichletSolution,
-                                       const FunctionTypeSrc< PetscInt >&      numerator,
-                                       PETScVector< real_t, FunctionTypeSrc >& rhsVec,
-                                       const uint_t&                           level )
+   void applyDirichletBCSymmetrically( const FunctionTypeSrc< real_t >&                                     dirichletSolution,
+                                       const FunctionTypeSrc< PetscInt >&                                   numerator,
+                                       PETScVector< real_t, OperatorType::dstType::template FunctionType >& rhsVec,
+                                       const uint_t&                                                        level )
    {
       std::vector< PetscInt > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );

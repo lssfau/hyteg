@@ -269,11 +269,11 @@ class PETScLUSolver : public Solver< OperatorType >
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatUnsymmetric;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatTmp;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
+   PETScSparseMatrix< OperatorType >                                                             AmatTmp;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
 #if 0
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
 #endif

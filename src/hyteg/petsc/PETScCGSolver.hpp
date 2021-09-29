@@ -128,8 +128,8 @@ class PETScCGSolver : public Solver< OperatorType >
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
