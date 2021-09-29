@@ -91,12 +91,11 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
    // assemble matrices
-   PETScSparseMatrix< opType, funcType > lapMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< opType > lapMat( localDoFs, globalDoFs );
 
    switch ( verbosity )
    {
-   case 2:
-   {
+   case 2: {
       lapMat.createMatrixFromOperator( lapOp, level, enumerator, All );
       lapMat.applyDirichletBC( enumerator, level );
 
@@ -116,17 +115,16 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
       //                             << globalDoFCount );
       // break;
    }
-   [[fallthrough]];
-   case 1:
-   {
+      [[fallthrough]];
+   case 1: {
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of global DoFs (HyTeG) ............. " << globalDoFs );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of local DoFs (HyTeG) .............. " << localDoFs );
       uint_t globalDoFCount = numberOfGlobalInnerDoFs< enumTag >( *storage, level );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... " << globalDoFCount );
       break;
    }
-   default:
-   {}
+   default: {
+   }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( " Entering PETSc solve " );
@@ -137,7 +135,7 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
 
    // check size of error
    funcType< real_t > error( "error", storage, level, level );
-   error.assign( {1.0, -1.0}, {u_exact, u}, level, All );
+   error.assign( { 1.0, -1.0 }, { u_exact, u }, level, All );
 
    VTKOutput vtkOutput( "../output", fileName, storage );
    // VTKOutput vtkOutput( "../output", "annulus", storage );

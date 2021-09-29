@@ -162,7 +162,7 @@ int main( int argc, char* argv[] )
    numerator.enumerate( level );
 
    LIKWID_MARKER_START( "PETSc-setup" );
-   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator, hyteg::P1Function > matPetsc( localDoFs, totalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
    hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
