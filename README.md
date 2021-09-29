@@ -81,10 +81,7 @@ Optional:
 
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
   
-  Eigen is, (like waLBerla) automatically cloned as a git submodule, but disabled by default. 
-  To activate Eigen, simply set the cmake variable `HYTEG_BUILD_WITH_EIGEN` to `ON`, e.g. via:
-    
-  `$ cmake ../hyteg -DHYTEG_BUILD_WITH_EIGEN=ON`
+  Eigen is, (like waLBerla) automatically cloned as a git submodule.
   
   CMake will automatically find the Eigen submodule, there is no need to specify a path
   or to download Eigen at all.
