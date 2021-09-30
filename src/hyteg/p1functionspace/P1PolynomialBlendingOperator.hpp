@@ -37,12 +37,10 @@
 #pragma warning( pop )
 #endif
 
-#include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
 
@@ -611,17 +609,17 @@ typedef P1PolynomialBlendingOperator< forms::p1_mass_blending_q4, OperatorType::
 // typedef P1PolynomialBlendingOperator< P1Form_epsilon_21, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
 // typedef P1PolynomialBlendingOperator< P1Form_epsilon_22, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
 
-typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
-typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
-typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
-typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
+// typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
+// typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
+// typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
+// typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
 
-typedef P1PolynomialBlendingOperator< P1Form_divT_1, OperatorType::ODD > P1PolynomialBlendingDivTOperator_1;
-typedef P1PolynomialBlendingOperator< P1Form_divT_2, OperatorType::ODD > P1PolynomialBlendingDivTOperator_2;
+// typedef P1PolynomialBlendingOperator< P1Form_divT_1, OperatorType::ODD > P1PolynomialBlendingDivTOperator_1;
+// typedef P1PolynomialBlendingOperator< P1Form_divT_2, OperatorType::ODD > P1PolynomialBlendingDivTOperator_2;
 
-typedef P1PolynomialBlendingOperator< P1Form_div_1, OperatorType::ODD > P1PolynomialBlendingDivOperator_1;
-typedef P1PolynomialBlendingOperator< P1Form_div_2, OperatorType::ODD > P1PolynomialBlendingDivOperator_2;
+// typedef P1PolynomialBlendingOperator< P1Form_div_1, OperatorType::ODD > P1PolynomialBlendingDivOperator_1;
+// typedef P1PolynomialBlendingOperator< P1Form_div_2, OperatorType::ODD > P1PolynomialBlendingDivOperator_2;
 
-typedef P1PolynomialBlendingOperator< P1Form_pspg, OperatorType::EVEN > P1PolynomialBlendingPSPGOperator;
+// typedef P1PolynomialBlendingOperator< P1Form_pspg, OperatorType::EVEN > P1PolynomialBlendingPSPGOperator;
 
 } // namespace hyteg

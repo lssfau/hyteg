@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2021 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,251 +20,112 @@
 
 #pragma once
 
-#include <array>
-#include <hyteg/operators/Operator.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
-#include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
-
-
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_0_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_1_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divt_0_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divt_1_blending_q1.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
-#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-#include "hyteg/solvers/Smoothables.hpp"
-#include "hyteg/types/pointnd.hpp"
-
-#include "P1DataHandling.hpp"
+#include "hyteg/p1functionspace/P1Operator.hpp"
 
 namespace hyteg {
 
 template < class P1Form >
-class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
-                           public GSSmoothable< P1Function< real_t > >,
-                           public ConstantJacobiSmoothable< P1Function< real_t > >
+class P1VariableOperator : public P1Operator< P1Form >
 {
+   using P1Operator< P1Form >::P1Operator;
+   using P1Operator< P1Form >::storage_;
+   using P1Operator< P1Form >::assemble_variableStencil_edge_init;
+   using P1Operator< P1Form >::assemble_variableStencil_face_init;
+   using P1Operator< P1Form >::assemble_variableStencil_cell_init;
+   using P1Operator< P1Form >::assemble_variableStencil_edge;
+   using P1Operator< P1Form >::assemble_variableStencil_edge3D;
+   using P1Operator< P1Form >::assemble_variableStencil_face;
+   using P1Operator< P1Form >::assemble_variableStencil_face3D;
+   using P1Operator< P1Form >::assemble_variableStencil_cell;
+
  public:
    P1VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : Operator( storage, minLevel, maxLevel )
+   : P1VariableOperator( storage, minLevel, maxLevel, P1Form() )
    {}
 
-   ~P1VariableOperator() override = default;
+   P1VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form )
+   : P1Operator< P1Form >( storage, minLevel, maxLevel, form )
+   {}
 
-   void apply( const P1Function< real_t >& src,
-               const P1Function< real_t >& dst,
-               size_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType = Replace ) const override final
+ protected:
+   /// stencil assembly ///////////
+
+   /* Initialize assembly of variable edge stencil.
+      Will be called before iterating over edge whenever the stencil is applied.
+   */
+   inline void assemble_stencil_edge_init( Edge& edge, const uint_t level ) const
    {
-      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
-
-      src.communicate< Vertex, Edge >( level );
-      src.communicate< Edge, Face >( level );
-      src.communicate< Face, Edge >( level );
-      src.communicate< Edge, Vertex >( level );
-
-      for ( auto& it : storage_->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if ( testFlag( vertexBC, flag ) )
-         {
-            vertexdof::variablestencil::macrovertex::applyVariableStencil< real_t, P1Form >(
-                level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
-         }
-      }
-
-      for ( auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            vertexdof::variablestencil::macroedge::applyVariableStencil< real_t, P1Form >(
-                level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
-         }
-      }
-
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            vertexdof::variablestencil::macroface::applyVariableStencil< real_t, P1Form >(
-                level, face, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-         }
-      }
+      assemble_variableStencil_edge_init( edge, level );
    }
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
+   /* Assembly of edge stencil.
+      Will be called before stencil is applied to a particuar edge-DoF.
+   */
+   inline void assemble_stencil_edge( real_t* edge_stencil, const uint_t i ) const
    {
-      dst.communicate< Vertex, Edge >( level );
-      dst.communicate< Edge, Face >( level );
-
-      dst.communicate< Face, Edge >( level );
-      dst.communicate< Edge, Vertex >( level );
-
-      for ( auto& it : storage_->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if ( testFlag( vertexBC, flag ) )
-         {
-            vertexdof::variablestencil::macrovertex::smoothGSVariableStencil< real_t, P1Form >(
-                level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID() );
-         }
-      }
-
-      dst.communicate< Vertex, Edge >( level );
-
-      for ( auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            vertexdof::variablestencil::macroedge::smoothGSVariableStencil< real_t, P1Form >(
-                level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID() );
-         }
-      }
-
-      dst.communicate< Edge, Face >( level );
-
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            vertexdof::variablestencil::macroface::smoothGSVariableStencil< real_t, P1Form >(
-                level, face, dst.getFaceDataID(), rhs.getFaceDataID() );
-         }
-      }
-      if ( storage_->hasGlobalCells() )
-      {
-         WALBERLA_ABORT( "P1VariableOperator not implemented for 3D" )
-      }
+      assemble_variableStencil_edge( edge_stencil, i );
    }
 
-   void smooth_jac( const P1Function< real_t >& dst,
-                    const P1Function< real_t >& rhs,
-                    const P1Function< real_t >& tmp,
-                    size_t                      level,
-                    DoFType                     flag ) const override
+   /* Initialize assembly of face stencil.
+      Will be called before iterating over face whenever the stencil is applied.
+   */
+   inline void assemble_stencil_face_init( Face& face, const uint_t level ) const
    {
-      // start pulling vertex halos
-      tmp.startCommunication< Edge, Vertex >( level );
-
-      // start pulling edge halos
-      tmp.startCommunication< Face, Edge >( level );
-
-      // end pulling vertex halos
-      tmp.endCommunication< Edge, Vertex >( level );
-
-      for ( auto& it : storage_->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if ( testFlag( vertexBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Vertex::smooth_jac(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
-         }
-      }
-
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      tmp.endCommunication< Face, Edge >( level );
-
-      for ( auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Edge::smooth_jac(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
-         }
-      }
-
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Face::smooth_jac(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
-         }
-      }
-
-      dst.endCommunication< Edge, Face >( level );
+      assemble_variableStencil_face_init( face, level );
    }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   void createMatrix_impl( P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag )
+   /* Assembly of face stencil.
+      Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
+   */
+   inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const
    {
-      for ( auto& it : storage_->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if ( testFlag( vertexBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Vertex::saveOperator(vertex, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
-         }
-      }
-
-      for ( auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Edge::saveOperator(level, edge, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-         }
-      }
-
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            WALBERLA_ABORT( "To be implemented" )
-            //        P1Face::saveOperator(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
-         }
-      }
+      assemble_variableStencil_face( face_stencil, i, j );
    }
-#endif
+
+   /* Assembly of face stencil.
+      Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
+   */
+   inline void assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const
+   {
+      assemble_variableStencil_face3D( face_stencil, i, j );
+   }
+
+   /* Initialize assembly of cell stencil.
+      Will be called before iterating over cell whenever the stencil is applied.
+   */
+   inline void assemble_stencil_cell_init( Cell& cell, const uint_t level ) const
+   {
+      assemble_variableStencil_cell_init( cell, level );
+   }
+
+   /* Assembly of cell stencil.
+      Will be called before stencil is applied to a particuar cell-DoF.
+   */
+   inline void assemble_stencil_cell( vertexdof::macrocell::StencilMap_T& cell_stencil,
+                                      const uint_t                        i,
+                                      const uint_t                        j,
+                                      const uint_t                        k ) const
+   {
+      assemble_variableStencil_cell( cell_stencil, i, j, k );
+   }
+
+   inline bool backwards_sor_available() const { return false; }
+   inline bool variableStencil() const { return true; }
 };
 
-typedef P1VariableOperator< forms::p1_diffusion_blending_q3 > P1BlendingLaplaceOperator;
+typedef P1VariableOperator< forms::p1_diffusion_blending_q1 > P1BlendingLaplaceOperator;
 typedef P1VariableOperator< forms::p1_mass_blending_q4 >      P1BlendingMassOperator;
 
 typedef P1VariableOperator< forms::p1_epsiloncc_0_0_blending_q2 > P1BlendingEpsilonOperator_11;
@@ -278,6 +139,9 @@ typedef P1VariableOperator< forms::p1_divt_1_blending_q1 > P1BlendingDivTOperato
 typedef P1VariableOperator< forms::p1_div_0_blending_q1 > P1BlendingDivOperator_1;
 typedef P1VariableOperator< forms::p1_div_1_blending_q1 > P1BlendingDivOperator_2;
 
-typedef P1VariableOperator< P1Form_pspg > P1BlendingPSPGOperator;
+// typedef P1VariableOperator</*todo*/ > P1BlendingPSPGOperator; // todo
+
+typedef P1VariableOperator< forms::p1_div_k_grad_blending_q3 > P1BlendingDivkGradOperator;
+typedef P1VariableOperator< forms::p1_div_k_grad_affine_q3 >   P1AffineDivkGradOperator;
 
 } // namespace hyteg

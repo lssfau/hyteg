@@ -24,7 +24,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -53,7 +53,7 @@ void P1SurrogateOperatorTest( std::shared_ptr< PrimitiveStorage >               
 
    // operators
    forms::p1_div_k_grad_affine_q3    form( k, k );
-   P1AffineDivkGradOperator_new      A( storage, level, level, form );
+   P1AffineDivkGradOperator          A( storage, level, level, form );
    P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
 
    A_q.interpolateStencils( q, level );
