@@ -27,7 +27,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -354,7 +354,7 @@ typedef P2ElementwiseOperator<
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
 
-typedef P2ElementwiseOperator< forms::p2_mass_blending_q4 >    P2ElementwiseBlendingMassOperator;
+typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 >    P2ElementwiseBlendingMassOperator;
 typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
