@@ -78,6 +78,7 @@ int main( int argc, char** argv )
    p1ElOp.computeInverseDiagonalOperatorValues();
    P1ConstOp p1ConstOp(storage, minLevel, maxLevel);
    P1VarOp p1VarOp(storage, minLevel, maxLevel);
+   p1VarOp.computeInverseDiagonalOperatorValues();
 
    GaussSeidelSmoother< P1ElOp > gsEl;
    WeightedJacobiSmoother< P1ElOp > wJacEl(storage, minLevel, maxLevel, maxLevel);
@@ -102,9 +103,9 @@ int main( int argc, char** argv )
    SymmetricSORSmoother< P1VarOp > ssorVar(1.);
    SORSmoother< P1VarOp > sorVar(1.);
    WeightedJacobiSmoother< P1VarOp > wJacVar(storage, minLevel, maxLevel, maxLevel);
-   WALBERLA_CHECK( smootherThrowsException(chebVar, p1VarOp, p1Src, p1Dst, minLevel) );
+   WALBERLA_CHECK( !smootherThrowsException(chebVar, p1VarOp, p1Src, p1Dst, minLevel) );
    WALBERLA_CHECK( smootherThrowsException(sgsVar, p1VarOp, p1Src, p1Dst, minLevel) );
    WALBERLA_CHECK( smootherThrowsException(ssorVar, p1VarOp, p1Src, p1Dst, minLevel) );
-   WALBERLA_CHECK( smootherThrowsException(sorVar, p1VarOp, p1Src, p1Dst, minLevel) );
-   WALBERLA_CHECK( smootherThrowsException(wJacVar, p1VarOp, p1Src, p1Dst, minLevel) );
+   WALBERLA_CHECK( !smootherThrowsException(sorVar, p1VarOp, p1Src, p1Dst, minLevel) );
+   WALBERLA_CHECK( !smootherThrowsException(wJacVar, p1VarOp, p1Src, p1Dst, minLevel) );
 }
