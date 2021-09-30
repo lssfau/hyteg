@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/forms/Form.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
