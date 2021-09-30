@@ -125,7 +125,7 @@ void testAssembly( BlockOperator< fKind< real_t >, fKind< real_t > >& oper,
    }
 
    typedef BlockOperator< fKind< real_t >, fKind< real_t > > operType;
-   fKind< PetscInt >                                         enumerator( "enumerator", storage, level, level );
+   fKind< idx_t >                                            enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
    PETScManager                  petscManager;

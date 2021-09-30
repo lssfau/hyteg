@@ -50,10 +50,8 @@ template < class P1Form >
 using P1ConstOp = P1ConstantOperator< P1Form, false, false, false >;
 
 template < typename rowSumFormType,
-           template < class >
-           class funcType,
-           template < class >
-           class opType,
+           template < class > class funcType,
+           template < class > class opType,
            typename opTypeLap,
            typename opTypeMass >
 bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormType rowSumLaplace, rowSumFormType rowSumMass )
@@ -95,11 +93,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 
    // compare
    real_t maxError;
-   error.assign( { 1.0, -1.0 }, { dstVerificationLaplace, dstRowSumLaplace }, level, All );
+   error.assign( {1.0, -1.0}, {dstVerificationLaplace, dstRowSumLaplace}, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude Laplace: " << maxError << ", eps: " << eps );
 
-   error.assign( { 1.0, -1.0 }, { dstVerificationMass, dstRowSumMass }, level, All );
+   error.assign( {1.0, -1.0}, {dstVerificationMass, dstRowSumMass}, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude mass: " << maxError << ", eps: " << eps );
 
@@ -108,11 +106,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 #ifdef HYTEG_BUILD_WITH_PETSC
    // check if matrices diagonal
 
-   PETScManager                                                manager;
-   typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
-   const auto                                                  localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
-   const auto                                                  globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
-   funcType< PetscInt >                                        numerator( "numerator", storage, level, level );
+   PETScManager                                             manager;
+   typedef typename FunctionTrait< funcType< idx_t > >::Tag enumTag;
+   const auto                                               localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
+   const auto                                               globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
+   funcType< idx_t >                                        numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
 

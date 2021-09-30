@@ -92,21 +92,21 @@ class PETScSparseMatrix
                         petscCommunicator )
    {}
 
-   PETScSparseMatrix( const FunctionTypeSrc< PetscInt >& enumerator,
-                      const uint_t&                      level,
-                      const char                         name[]            = "Mat",
-                      const MPI_Comm&                    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   PETScSparseMatrix( const FunctionTypeSrc< idx_t >& enumerator,
+                      const uint_t&                   level,
+                      const char                      name[]            = "Mat",
+                      const MPI_Comm&                 petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : PETScSparseMatrix( numberOfLocalDoFs( enumerator, level ),
                         numberOfGlobalDoFs( enumerator, level, petscCommunicator ),
                         name,
                         petscCommunicator )
    {}
 
-   PETScSparseMatrix( const FunctionTypeSrc< PetscInt >& enumeratorSrc,
-                      const FunctionTypeDst< PetscInt >& enumeratorDst,
-                      const uint_t&                      level,
-                      const char                         name[]            = "Mat",
-                      const MPI_Comm&                    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   PETScSparseMatrix( const FunctionTypeSrc< idx_t >& enumeratorSrc,
+                      const FunctionTypeDst< idx_t >& enumeratorDst,
+                      const uint_t&                   level,
+                      const char                      name[]            = "Mat",
+                      const MPI_Comm&                 petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : PETScSparseMatrix( numberOfLocalDoFs( enumeratorDst, level ),
                         numberOfGlobalDoFs( enumeratorDst, level, petscCommunicator ),
                         numberOfGlobalDoFs( enumeratorSrc, level, petscCommunicator ),
@@ -217,10 +217,10 @@ class PETScSparseMatrix
    /// \param rhsVec RHS of the system as PETSc vector - NOTE THAT THIS IS MODIFIED IN PLACE
    /// \param level the refinement level
    ///
-   void applyDirichletBCSymmetrically( const FunctionTypeSrc< real_t >&        dirichletSolution,
-                                       const FunctionTypeSrc< idx_t >&         numerator,
+   void applyDirichletBCSymmetrically( const FunctionTypeSrc< real_t >&                                     dirichletSolution,
+                                       const FunctionTypeSrc< idx_t >&                                      numerator,
                                        PETScVector< real_t, OperatorType::dstType::template FunctionType >& rhsVec,
-                                       const uint_t&                        level )
+                                       const uint_t&                                                        level )
    {
       std::vector< idx_t > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
