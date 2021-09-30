@@ -472,11 +472,7 @@ void runBenchmark( real_t      cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      outwardNormal.uvw.interpolate( { normalX, normalY }, l );
-      if ( storage->hasGlobalCells() )
-      {
-         outwardNormal.uvw.interpolate( { normalX, normalY, normalZ }, l );
-      }
+      outwardNormal.uvw.interpolate( { normalX, normalY, normalZ }, l );
    }
 
    if ( verbose )

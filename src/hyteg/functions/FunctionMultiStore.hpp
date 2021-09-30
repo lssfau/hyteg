@@ -63,6 +63,10 @@ class FunctionMultiStore
       {
          i64Funcs.push_back( function );
       }
+      else if constexpr ( std::is_same< value_t, long long >::value )
+      {
+         i64Funcs.push_back( function );
+      }
       else
       {
          WALBERLA_ABORT( "FunctionMultiStore::add() detected unsupported datatype '" << typeid( function ).name() << "'" );
@@ -87,6 +91,10 @@ class FunctionMultiStore
          return i32Funcs;
       }
       else if constexpr ( std::is_same< value_t, long >::value )
+      {
+         return i64Funcs;
+      }
+      else if constexpr ( std::is_same< value_t, long long >::value )
       {
          return i64Funcs;
       }
