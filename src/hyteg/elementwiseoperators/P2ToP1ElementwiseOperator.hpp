@@ -63,8 +63,8 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    ///
    /// \note src and dst are legal to and often will be the same function object
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2Function< matIdx_t >&               src,
-                  const P1Function< matIdx_t >&               dst,
+                  const P2Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const;
 
@@ -113,18 +113,18 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P2Elements::P2Element&                element,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       srcEdgeIdx,
-                               const PetscInt* const                       dstVertexIdx ) const;
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          srcEdgeIdx,
+                               const idx_t* const                          dstVertexIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       srcEdgeIdx,
-                               const PetscInt* const                       dstVertexIdx ) const;
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          srcEdgeIdx,
+                               const idx_t* const                          dstVertexIdx ) const;
 #endif
 
    void assembleLocalElementMatrix2D( const Face&            face,

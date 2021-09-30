@@ -82,8 +82,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    ///
    /// \note src and dst are legal to and often will be the same function object
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< matIdx_t >&               src,
-                  const P1Function< matIdx_t >&               dst,
+                  const P1Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const override;
 
@@ -186,16 +186,16 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
-                               const matIdx_t* const                       srcIdx,
-                               const matIdx_t* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const matIdx_t* const                       srcIdx,
-                               const matIdx_t* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.

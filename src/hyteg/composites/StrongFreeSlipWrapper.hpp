@@ -79,7 +79,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
       if ( PreProjection && projFlag_ != None )
       {
-         tmp_->assign( { 1 }, { src }, level, All );
+         tmp_->assign( {1}, {src}, level, All );
          projOp_->project( *tmp_, level, projFlag_ );
          op_->apply( *tmp_, dst, level, flag );
       }
@@ -100,11 +100,11 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
    ///
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                        mat,
-                  const typename OpType::srcType::template FunctionType< matIdx_t >& numeratorSrc,
-                  const typename OpType::dstType::template FunctionType< matIdx_t >& numeratorDst,
-                  uint_t                                                             level,
-                  DoFType                                                            flag ) const
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                     mat,
+                  const typename OpType::srcType::template FunctionType< idx_t >& numeratorSrc,
+                  const typename OpType::dstType::template FunctionType< idx_t >& numeratorDst,
+                  uint_t                                                          level,
+                  DoFType                                                         flag ) const
    {
       auto matProxyOp = mat->createCopy();
       op_->toMatrix( matProxyOp, numeratorSrc, numeratorDst, level, flag );

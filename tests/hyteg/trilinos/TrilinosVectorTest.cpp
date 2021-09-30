@@ -53,7 +53,7 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t >   xTrilinos( "xTrilinos", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   xOriginal( "xOriginal", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   error( "error", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };

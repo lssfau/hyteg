@@ -83,10 +83,10 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
    opType lapOp( storage, level, level );
 
    // determine indices and dimensions
-   funcType< PetscInt > enumerator( "enumerator", storage, level, level );
+   funcType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
+   typedef typename FunctionTrait< funcType< idx_t > >::Tag    enumTag;
    uint_t                                                      globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 

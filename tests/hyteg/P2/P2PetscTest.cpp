@@ -29,6 +29,7 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/types/types.hpp"
 
 using walberla::real_t;
 
@@ -51,9 +52,9 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-   hyteg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
-   hyteg::P2Function< real_t >   ones( "ones", storage, level, level );
-   hyteg::P2Function< real_t >   dst( "dst", storage, level, level );
+   hyteg::P2Function< hyteg::idx_t > numerator( "numerator", storage, level, level );
+   hyteg::P2Function< real_t >       ones( "ones", storage, level, level );
+   hyteg::P2Function< real_t >       dst( "dst", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
    std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D& ) {

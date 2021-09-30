@@ -20,8 +20,8 @@ class P2P1TaylorHoodStokesBlockPreconditioner
    {}
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P1TaylorHoodFunction< matIdx_t >&   src,
-                  const P2P1TaylorHoodFunction< matIdx_t >&   dst,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

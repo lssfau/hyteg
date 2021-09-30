@@ -55,8 +55,8 @@ class P1ScalarToP2VectorOperator : public Operator< P1Function< real_t >, P2Vect
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< matIdx_t >&               src,
-                  const P2VectorFunction< matIdx_t >&         dst,
+                  const P1Function< idx_t >&                  src,
+                  const P2VectorFunction< idx_t >&            dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

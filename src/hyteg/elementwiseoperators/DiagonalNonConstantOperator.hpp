@@ -40,11 +40,11 @@ using walberla::real_t;
 namespace workaround {
 
 template < typename func_T >
-void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&               mat,
-                               const func_T&                                             diagVals,
-                               const typename func_T::template FunctionType< PetscInt >& numerator,
-                               uint_t                                                    level,
-                               DoFType                                                   flag );
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&            mat,
+                               const func_T&                                          diagVals,
+                               const typename func_T::template FunctionType< idx_t >& numerator,
+                               uint_t                                                 level,
+                               DoFType                                                flag );
 
 } // namespace workaround
 
@@ -114,7 +114,7 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
       if ( updateType == Replace )
       {
-         dst.multElementwise( { *opVals, src }, level, flag );
+         dst.multElementwise( {*opVals, src}, level, flag );
       }
       else
       {
@@ -122,11 +122,11 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       }
    }
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                    mat,
-                  const typename opType< formType >::srcType::template FunctionType< matIdx_t >& src,
-                  const typename opType< formType >::srcType::template FunctionType< matIdx_t >& dst,
-                  size_t                                                                         level,
-                  DoFType                                                                        flag ) const override
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                 mat,
+                  const typename opType< formType >::srcType::template FunctionType< idx_t >& src,
+                  const typename opType< formType >::srcType::template FunctionType< idx_t >& dst,
+                  size_t                                                                      level,
+                  DoFType                                                                     flag ) const override
    {
       WALBERLA_UNUSED( dst );
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();

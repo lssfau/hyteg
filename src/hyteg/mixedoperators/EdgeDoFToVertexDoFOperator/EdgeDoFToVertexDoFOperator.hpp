@@ -61,8 +61,8 @@ class EdgeDoFToVertexDoFOperator final : public Operator< hyteg::EdgeDoFFunction
                UpdateType                       updateType ) const;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const EdgeDoFFunction< matIdx_t >&          src,
-                  const P1Function< matIdx_t >&               dst,
+                  const EdgeDoFFunction< idx_t >&             src,
+                  const P1Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const;
 
@@ -115,10 +115,10 @@ void assembleEdgeToVertexStencils(
             const auto& cell = *( storage->getCell( vertex.neighborCells().at( neighborCellID ) ) );
 
             const uint_t cellLocalVertexID = cell.getLocalVertexID( vertex.getID() );
-            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
+            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( {cellLocalVertexID} );
 
             const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                indexing::Index( 0, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
+                indexing::Index( 0, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
 
             auto& edgeToVertexStencilMemory = vertex.getData( macroVertexStencilID )->getData( level );
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
@@ -148,11 +148,11 @@ void assembleEdgeToVertexStencils(
 
                const uint_t cellLocalEdgeID = cell.getLocalEdgeID( edge.getID() );
                const auto   basisInCell     = algorithms::getMissingIntegersAscending< 2, 4 >(
-                   { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                     cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
+                   {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+                    cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
 
                const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                   indexing::Index( 1, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
+                   indexing::Index( 1, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = edge.getData( macroEdgeStencilID )->getData( level );
                for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
@@ -188,10 +188,10 @@ void assembleEdgeToVertexStencils(
                    cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ),
                    6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ) -
                        cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ) -
-                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) };
+                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )};
                const auto vertexAssemblyIndexInCell = indexing::basisConversion( indexing::Index( 1, 1, 0 ),
                                                                                  localVertexIDsAtCell,
-                                                                                 { 0, 1, 2, 3 },
+                                                                                 {0, 1, 2, 3},
                                                                                  levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = face.getData( macroFaceStencilID )->getData( level );

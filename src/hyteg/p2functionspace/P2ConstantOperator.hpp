@@ -102,8 +102,8 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     DoFType                     flag ) const override;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2Function< matIdx_t >&               src,
-                  const P2Function< matIdx_t >&               dst,
+                  const P2Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {

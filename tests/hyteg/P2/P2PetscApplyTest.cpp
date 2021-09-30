@@ -61,7 +61,7 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    P2Function< real_t >   petscDst( "petscDst", storage, level, level );
    P2Function< real_t >   err( "error", storage, level, level );
    P2Function< real_t >   ones( "ones", storage, level, level );
-   P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   P2Function< idx_t >    numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };

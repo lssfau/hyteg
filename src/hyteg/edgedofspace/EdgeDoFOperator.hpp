@@ -51,8 +51,8 @@ class EdgeDoFOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >,
                UpdateType                       updateType ) const;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const EdgeDoFFunction< matIdx_t >&          src,
-                  const EdgeDoFFunction< matIdx_t >&          dst,
+                  const EdgeDoFFunction< idx_t >&             src,
+                  const EdgeDoFFunction< idx_t >&             dst,
                   size_t                                      level,
                   DoFType                                     flag ) const;
 
@@ -109,11 +109,11 @@ void assembleEdgeToEdgeStencils(
 
             const uint_t cellLocalEdgeID = cell.getLocalEdgeID( edge.getID() );
             const auto   basisInCell     = algorithms::getMissingIntegersAscending< 2, 4 >(
-                { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                  cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
+                {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+                 cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
 
             const auto edgeAssemblyIndexInCell = indexing::basisConversion(
-                indexing::Index( 0, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microedges_per_edge( level ) );
+                indexing::Index( 0, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
 
             auto& edgeToEdgeStencilMemory = edge.getData( macroEdgeStencilID )->getData( level );
 
@@ -145,7 +145,7 @@ void assembleEdgeToEdgeStencils(
                const auto& cell = *( storage->getCell( face.neighborCells().at( neighborCellID ) ) );
 
                const std::array< edgedof::EdgeDoFOrientation, 3 > faceOrientations = {
-                   edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY };
+                   edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY};
 
                const uint_t                  localFaceID          = cell.getLocalFaceID( face.getID() );
                const std::array< uint_t, 4 > localVertexIDsAtCell = {
@@ -154,12 +154,12 @@ void assembleEdgeToEdgeStencils(
                    cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ),
                    6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ) -
                        cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ) -
-                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) };
+                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )};
 
                const std::map< edgedof::EdgeDoFOrientation, indexing::Index > edgeAssemblyIndexInFace = {
-                   { edgedof::EdgeDoFOrientation::X, indexing::Index( 0, 1, 0 ) },
-                   { edgedof::EdgeDoFOrientation::XY, indexing::Index( 0, 0, 0 ) },
-                   { edgedof::EdgeDoFOrientation::Y, indexing::Index( 1, 0, 0 ) },
+                   {edgedof::EdgeDoFOrientation::X, indexing::Index( 0, 1, 0 )},
+                   {edgedof::EdgeDoFOrientation::XY, indexing::Index( 0, 0, 0 )},
+                   {edgedof::EdgeDoFOrientation::Y, indexing::Index( 1, 0, 0 )},
                };
 
                auto& edgeToEdgeStencilMemory = face.getData( macroFaceStencilID )->getData( level );
@@ -170,7 +170,7 @@ void assembleEdgeToEdgeStencils(
                      const auto edgeAssemblyIndexInCell =
                          indexing::basisConversion( edgeAssemblyIndexInFace.at( centerOrientation ),
                                                     localVertexIDsAtCell,
-                                                    { 0, 1, 2, 3 },
+                                                    {0, 1, 2, 3},
                                                     levelinfo::num_microedges_per_edge( level ) );
                      const auto convertedCenterOrientation =
                          edgedof::convertEdgeDoFOrientationFaceToCell( centerOrientation,

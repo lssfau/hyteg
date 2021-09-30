@@ -24,11 +24,12 @@
 
 #pragma once
 
-#include "hyteg/eigen/EigenWrapper.hpp"
 #include "core/Abort.h"
-#include "hyteg/solvers/CGSolver.hpp"
+
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

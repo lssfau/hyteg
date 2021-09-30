@@ -127,7 +127,7 @@ class PETScMinResSolver : public Solver< OperatorType >
  private:
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
    PETScSparseMatrix< OperatorType >                                                             Amat;
    PETScSparseMatrix< OperatorType >                                                             AmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;

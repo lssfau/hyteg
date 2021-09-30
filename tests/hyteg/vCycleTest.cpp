@@ -20,20 +20,20 @@
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
+#include "core/Format.hpp"
 #include "core/logging/Logging.h"
 
-#include "core/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

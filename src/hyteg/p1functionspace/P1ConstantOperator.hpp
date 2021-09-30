@@ -29,15 +29,14 @@
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/solvers/Smoothables.hpp"
-#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -154,8 +153,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< matIdx_t >&               src,
-                  const P1Function< matIdx_t >&               dst,
+                  const P1Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {

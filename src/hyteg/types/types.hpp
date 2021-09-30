@@ -24,6 +24,8 @@
 
 namespace hyteg {
 
+using idx_t = int64_t;
+
 enum UpdateType
 {
   Replace = 0,
@@ -83,9 +85,6 @@ enum class CycleType
    VCYCLE,
    WCYCLE
 };
-
-
-typedef int32_t matIdx_t;
 
 } // namespace hyteg
 

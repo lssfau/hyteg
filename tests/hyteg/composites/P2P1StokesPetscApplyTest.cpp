@@ -61,7 +61,7 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    P2P1TaylorHoodFunction< real_t >   petscDst( "petscDst", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   err( "error", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   ones( "ones", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };

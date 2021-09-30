@@ -107,11 +107,13 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    // check if matrices diagonal
+
    PETScManager                                                manager;
    typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
    const auto                                                  localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
    const auto                                                  globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
    funcType< PetscInt >                                        numerator( "numerator", storage, level, level );
+
    numerator.enumerate( level );
 
    PETScSparseMatrix< opType< rowSumFormType > > massLumpedPetsc( localSize, globalSize );

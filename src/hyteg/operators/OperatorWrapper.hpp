@@ -105,14 +105,14 @@ class OperatorWrapper final
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const GenericFunction< matIdx_t >&          src,
-                  const GenericFunction< matIdx_t >&          dst,
+                  const GenericFunction< idx_t >&             src,
+                  const GenericFunction< idx_t >&             dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
       wrappedOper_->toMatrix( mat,
-                              src.template unwrap< typename oper_t::srcType::template FunctionType< matIdx_t > >(),
-                              dst.template unwrap< typename oper_t::dstType::template FunctionType< matIdx_t > >(),
+                              src.template unwrap< typename oper_t::srcType::template FunctionType< idx_t > >(),
+                              dst.template unwrap< typename oper_t::dstType::template FunctionType< idx_t > >(),
                               level,
                               flag );
    };

@@ -231,7 +231,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "RHS vector setup" );
 
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+      b.assign( {1.0}, {x}, level, DirichletBoundary );
       bVec.createVectorFromFunction( b, num, level, All );
 
       if ( assumeSymmetry_ )
@@ -268,7 +268,7 @@ class PETScLUSolver : public Solver< OperatorType >
    std::shared_ptr< PrimitiveStorage >                                                           storage_;
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
    PETScSparseMatrix< OperatorType >                                                             Amat;
    PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
    PETScSparseMatrix< OperatorType >                                                             AmatTmp;

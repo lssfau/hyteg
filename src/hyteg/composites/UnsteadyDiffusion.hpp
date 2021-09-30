@@ -201,14 +201,14 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
           storage_,
           minLevel_,
           maxLevel_,
-          LinearCombinationForm_T( { 1.0, dtScaling() * dt * diffusionCoefficient_ }, { massForm_.get(), laplaceForm_.get() } ) );
+          LinearCombinationForm_T( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
    }
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                                       mat,
-                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< matIdx_t >& src,
-                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< matIdx_t >& dst,
-                  size_t                                                                                            level,
-                  DoFType                                                                                           flag ) const
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                                    mat,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& src,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& dst,
+                  size_t                                                                                         level,
+                  DoFType                                                                                        flag ) const
    {
       unsteadyDiffusionOperator_->toMatrix( mat, src, dst, level, flag );
    }
@@ -344,7 +344,7 @@ class UnsteadyDiffusion
          // implicit Euler
          M.apply( f, fWeak_, level, flag );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0, A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
@@ -353,9 +353,9 @@ class UnsteadyDiffusion
          M.apply( f, fWeak_, level, flag );
          M.apply( fOld, fWeak_, level, flag, Add );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0, 0.5 * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { 1.0, -0.5 * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -375,16 +375,16 @@ class UnsteadyDiffusion
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0 }, { uOld_ }, level, flag );
+         uOld_.assign( {1.0}, {uOld_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
       {
          // Crank-Nicholson
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0 }, { uOld_ }, level, flag );
+         uOld_.assign( {1.0}, {uOld_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { 1.0, -0.5 * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -408,19 +408,19 @@ class UnsteadyDiffusion
       {
          M.apply( f, fWeak_, level, flag );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0, A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
       {
          M.apply( f, fWeak_, level, flag );
          M.apply( fOld, fWeak_, level, flag, Add );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( { 1.0, 0.5 * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { 1.0, -0.5 * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
       }
       A.apply( u, fWeak_, level, flag );
-      r.assign( { 1.0, -1.0 }, { uOld_, fWeak_ }, level, flag );
+      r.assign( {1.0, -1.0}, {uOld_, fWeak_}, level, flag );
    }
 
  private:

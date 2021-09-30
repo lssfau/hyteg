@@ -52,9 +52,9 @@ void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& d
 }
 
 void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                        const P2Function< matIdx_t >&               numU,
-                                        const P2Function< matIdx_t >&               numV,
-                                        const P2Function< matIdx_t >&               numW,
+                                        const P2Function< idx_t >&                  numU,
+                                        const P2Function< idx_t >&                  numV,
+                                        const P2Function< idx_t >&                  numW,
                                         uint_t                                      level,
                                         DoFType                                     flag ) const
 {
@@ -64,7 +64,7 @@ void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
 }
 
 void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                        const P2VectorFunction< matIdx_t >&         num,
+                                        const P2VectorFunction< idx_t >&            num,
                                         uint_t                                      level,
                                         DoFType                                     flag ) const
 {

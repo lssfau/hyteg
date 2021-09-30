@@ -73,8 +73,8 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P2StokesFunction< matIdx_t >&       src,
-                  const P2P2StokesFunction< matIdx_t >&       dst,
+                  const P2P2StokesFunction< idx_t >&          src,
+                  const P2P2StokesFunction< idx_t >&          dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

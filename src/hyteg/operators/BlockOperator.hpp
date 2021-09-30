@@ -163,11 +163,11 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
          throw std::runtime_error( "For GaussSeidel src and dst functions must coincide" );
    }
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                       mat,
-                  const typename srcBlockFunc_t::template FunctionType< matIdx_t >& src,
-                  const typename dstBlockFunc_t::template FunctionType< matIdx_t >& dst,
-                  size_t                                                            level,
-                  DoFType                                                           flag ) const override
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                    mat,
+                  const typename srcBlockFunc_t::template FunctionType< idx_t >& src,
+                  const typename dstBlockFunc_t::template FunctionType< idx_t >& dst,
+                  size_t                                                         level,
+                  DoFType                                                        flag ) const override
    {
       for ( uint_t i = 0; i < nRows_; i++ )
       {

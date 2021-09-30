@@ -30,7 +30,6 @@ template < typename value_t >
 class P2P1TaylorHoodBlockFunction : public BlockFunction< value_t >
 {
  public:
-
    template < typename VType >
    using FunctionType = P2P1TaylorHoodBlockFunction< VType >;
 

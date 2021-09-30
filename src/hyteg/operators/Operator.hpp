@@ -79,11 +79,11 @@ class Operator
       WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
    };
 
-   virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                mat,
-                          const typename srcType::template FunctionType< matIdx_t >& src,
-                          const typename dstType::template FunctionType< matIdx_t >& dst,
-                          size_t                                                     level,
-                          DoFType                                                    flag ) const
+   virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >&             mat,
+                          const typename srcType::template FunctionType< idx_t >& src,
+                          const typename dstType::template FunctionType< idx_t >& dst,
+                          size_t                                                  level,
+                          DoFType                                                 flag ) const
    {
       WALBERLA_ABORT( "toMatrix() not implemented in derived class!" );
    }

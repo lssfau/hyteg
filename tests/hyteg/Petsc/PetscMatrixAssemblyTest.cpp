@@ -95,8 +95,8 @@ void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, s
       return;
    }
 
-   typename operType::srcType::template FunctionType< matIdx_t > enumeratorSrc( "enumeratorSrc", storage, level, level );
-   typename operType::dstType::template FunctionType< matIdx_t > enumeratorDst( "enumeratorDst", storage, level, level );
+   typename operType::srcType::template FunctionType< idx_t > enumeratorSrc( "enumeratorSrc", storage, level, level );
+   typename operType::dstType::template FunctionType< idx_t > enumeratorDst( "enumeratorDst", storage, level, level );
    enumeratorSrc.enumerate( level );
    enumeratorDst.enumerate( level );
 
@@ -152,8 +152,8 @@ void testAssembly( std::shared_ptr< PrimitiveStorage >& storage,
       return;
    }
 
-   typename operType::srcType::template FunctionType< matIdx_t > enumeratorSrc( "enumeratorSrc", storage, level, level );
-   typename operType::dstType::template FunctionType< matIdx_t > enumeratorDst( "enumeratorDst", storage, level, level );
+   typename operType::srcType::template FunctionType< idx_t > enumeratorSrc( "enumeratorSrc", storage, level, level );
+   typename operType::dstType::template FunctionType< idx_t > enumeratorDst( "enumeratorDst", storage, level, level );
    enumeratorSrc.enumerate( level );
    enumeratorDst.enumerate( level );
 
@@ -185,7 +185,7 @@ void testAssembly( std::shared_ptr< PrimitiveStorage >& storage,
    PETScManager                  petscManager;
    PETScSparseMatrix< operType > matrix( storage, level, tag.c_str() );
 
-   typename operType::srcType::template FunctionType< matIdx_t > enumerator( "enumerator", storage, level, level );
+   typename operType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
    operType oper( storage, level, level, ipLevel );
@@ -226,7 +226,7 @@ void testAssembly( uint_t level, std::string tag, bool actuallyTest = true )
    PETScManager                  petscManager;
    PETScSparseMatrix< operType > matrix( storage, level, tag.c_str() );
 
-   typename operType::srcType::template FunctionType< matIdx_t > enumerator( "enumerator", storage, level, level );
+   typename operType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
    operType projectNormalOperator( storage, level, level, normalFunction );
@@ -255,7 +255,7 @@ void testAssembly< P1ConstantUnsteadyDiffusionOperator >( std::shared_ptr< Primi
    PETScManager                                             petscManager;
    PETScSparseMatrix< P1ConstantUnsteadyDiffusionOperator > matrix( storage, level, tag.c_str() );
 
-   typename P1ConstantUnsteadyDiffusionOperator::srcType::template FunctionType< matIdx_t > enumerator(
+   typename P1ConstantUnsteadyDiffusionOperator::srcType::template FunctionType< idx_t > enumerator(
        "enumerator", storage, level, level );
    enumerator.enumerate( level );
 

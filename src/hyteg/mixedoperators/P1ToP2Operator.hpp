@@ -65,8 +65,8 @@ class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< matIdx_t >&               src,
-                  const P2Function< matIdx_t >&               dst,
+                  const P1Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

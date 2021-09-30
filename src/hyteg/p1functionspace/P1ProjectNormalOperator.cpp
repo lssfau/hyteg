@@ -267,9 +267,9 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
 }
 
 void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                        const P1Function< matIdx_t >&               numU,
-                                        const P1Function< matIdx_t >&               numV,
-                                        const P1Function< matIdx_t >&               numW,
+                                        const P1Function< idx_t >&                  numU,
+                                        const P1Function< idx_t >&                  numV,
+                                        const P1Function< idx_t >&                  numW,
                                         uint_t                                      level,
                                         DoFType                                     flag ) const
 {

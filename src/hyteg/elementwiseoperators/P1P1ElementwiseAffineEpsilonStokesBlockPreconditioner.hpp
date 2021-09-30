@@ -46,16 +46,13 @@ class P1P1ElementwiseAffineEpsilonStokesBlockPreconditioner
    , A_2_0( storage, minLevel, maxLevel )
    , A_2_1( storage, minLevel, maxLevel )
    , A_2_2( storage, minLevel, maxLevel )
-   , P( storage,
-        minLevel,
-        maxLevel,
-        std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ) )
+   , P( storage, minLevel, maxLevel, std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
-   
+
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1StokesFunction< matIdx_t >&   src,
-                  const P1StokesFunction< matIdx_t >&   dst,
+                  const P1StokesFunction< idx_t >&            src,
+                  const P1StokesFunction< idx_t >&            dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -65,7 +62,7 @@ class P1P1ElementwiseAffineEpsilonStokesBlockPreconditioner
       {
          A_0_2.toMatrix( mat, src.uvw[2], dst.uvw[0], level, flag );
       }
-      
+
       A_1_0.toMatrix( mat, src.uvw[0], dst.uvw[1], level, flag );
       A_1_1.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
       if ( src.getStorage()->hasGlobalCells() )

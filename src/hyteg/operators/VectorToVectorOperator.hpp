@@ -87,8 +87,8 @@ class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, Dst
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const SrcVecFuncKind< matIdx_t >&           src,
-                  const DstVecFuncKind< matIdx_t >&           dst,
+                  const SrcVecFuncKind< idx_t >&              src,
+                  const DstVecFuncKind< idx_t >&              dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

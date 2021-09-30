@@ -87,8 +87,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P1TaylorHoodFunction< matIdx_t >&   src,
-                  const P2P1TaylorHoodFunction< matIdx_t >&   dst,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const
    {

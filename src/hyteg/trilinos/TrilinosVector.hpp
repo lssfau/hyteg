@@ -69,7 +69,7 @@ class TrilinosVector
    }
 
    void fillFromFunction( const FunctionType< FunctionScalarType >& function,
-                          const FunctionType< PetscInt >&           numerator,
+                          const FunctionType< idx_t >&              numerator,
                           DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
@@ -79,7 +79,7 @@ class TrilinosVector
    RCP< VectorType > getTpetraVector() const { return vector_; }
 
    void writeToFunction( const FunctionType< FunctionScalarType >& function,
-                         const FunctionType< PetscInt >&           numerator,
+                         const FunctionType< idx_t >&              numerator,
                          DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );

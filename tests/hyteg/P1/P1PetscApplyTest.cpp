@@ -54,12 +54,12 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 
    writeDomainPartitioningVTK( storage, "../../output", "P1PetscApplyTestDomain" );
 
-   P1Function< real_t >   src( "src", storage, level, level );
-   P1Function< real_t >   hhgDst( "hhgDst", storage, level, level );
-   P1Function< real_t >   petscDst( "petscDst", storage, level, level );
-   P1Function< real_t >   err( "error", storage, level, level );
-   P1Function< real_t >   ones( "ones", storage, level, level );
-   P1Function< PetscInt > numerator( "numerator", storage, level, level );
+   P1Function< real_t > src( "src", storage, level, level );
+   P1Function< real_t > hhgDst( "hhgDst", storage, level, level );
+   P1Function< real_t > petscDst( "petscDst", storage, level, level );
+   P1Function< real_t > err( "error", storage, level, level );
+   P1Function< real_t > ones( "ones", storage, level, level );
+   P1Function< idx_t >  numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
@@ -103,7 +103,7 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
+   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
    const auto absScalarProd = std::abs( err.dotGlobal( ones, level, location ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );

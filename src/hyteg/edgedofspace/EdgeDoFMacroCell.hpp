@@ -993,7 +993,7 @@ template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Cell&                                                       cell,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = cell.getData( srcId )->getPointer( Level );
@@ -1049,7 +1049,7 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Cell&                                                       cell,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto dst       = cell.getData( dstId )->getPointer( Level );

@@ -67,7 +67,7 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    P2Function< real_t >   err( "err", storage, level, level );
    P2Function< real_t >   residuum( "res", storage, level, level );
    P2Function< real_t >   nullspace( "nullspace", storage, level, level );
-   P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   P2Function< idx_t >    numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
 
@@ -162,7 +162,7 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    P2P1TaylorHoodFunction< real_t >   err( "err", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   residuum( "res", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   nullspace( "nullspace", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
 

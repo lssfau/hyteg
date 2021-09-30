@@ -112,8 +112,8 @@ class P1P1ElementwiseAffineEpsilonStokesOperator : public Operator< P1StokesFunc
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1StokesFunction< matIdx_t >&         src,
-                  const P1StokesFunction< matIdx_t >&         dst,
+                  const P1StokesFunction< idx_t >&            src,
+                  const P1StokesFunction< idx_t >&            dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const
    {

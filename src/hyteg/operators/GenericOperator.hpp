@@ -25,7 +25,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -67,8 +67,8 @@ class GenericOperator
                            DoFType                           flag ) const = 0;
 
    virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                          const GenericFunction< matIdx_t >&          src,
-                          const GenericFunction< matIdx_t >&          dst,
+                          const GenericFunction< idx_t >&             src,
+                          const GenericFunction< idx_t >&             dst,
                           size_t                                      level,
                           DoFType                                     flag ) const = 0;
 };

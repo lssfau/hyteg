@@ -258,13 +258,13 @@ inline void projectNormal3D( uint_t                                             
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void saveProjectNormalOperator2D( uint_t                                                     level,
-                                         const Edge&                                                edge,
-                                         const std::shared_ptr< PrimitiveStorage >&                 storage,
-                                         const std::function< void( const Point3D&, Point3D& ) >&   normal_function,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdU,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdV,
-                                         const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveProjectNormalOperator2D( uint_t                                                   level,
+                                         const Edge&                                              edge,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
 {
    auto dstU = edge.getData( dstIdU )->getPointer( level );
    auto dstV = edge.getData( dstIdV )->getPointer( level );

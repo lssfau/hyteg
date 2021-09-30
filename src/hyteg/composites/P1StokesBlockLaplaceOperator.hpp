@@ -45,8 +45,8 @@ class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1StokesFunction< matIdx_t >&         src,
-                  const P1StokesFunction< matIdx_t >&         dst,
+                  const P1StokesFunction< idx_t >&            src,
+                  const P1StokesFunction< idx_t >&            dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {

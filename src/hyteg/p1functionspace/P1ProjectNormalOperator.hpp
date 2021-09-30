@@ -50,9 +50,9 @@ class P1ProjectNormalOperator : public Operator< P1VectorFunction< real_t >, P1V
    void project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< matIdx_t >&               numU,
-                  const P1Function< matIdx_t >&               numV,
-                  const P1Function< matIdx_t >&               numW,
+                  const P1Function< idx_t >&                  numU,
+                  const P1Function< idx_t >&                  numV,
+                  const P1Function< idx_t >&                  numW,
                   uint_t                                      level,
                   DoFType                                     flag ) const;
 
@@ -66,8 +66,8 @@ class P1ProjectNormalOperator : public Operator< P1VectorFunction< real_t >, P1V
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1VectorFunction< matIdx_t >&         src,
-                  const P1VectorFunction< matIdx_t >&         dst,
+                  const P1VectorFunction< idx_t >&            src,
+                  const P1VectorFunction< idx_t >&            dst,
                   uint_t                                      level,
                   DoFType                                     flag ) const override
    {

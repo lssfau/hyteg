@@ -281,7 +281,7 @@ int main( int argc, char* argv[] )
    }
 
 #if 0
-  auto numerator = std::make_shared< hyteg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
+  auto numerator = std::make_shared< hyteg::P1StokesFunction< idx_t > >( "numerator", storage, level, level );
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager( &argc, &argv );
