@@ -247,10 +247,10 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    P2ElementwiseMassOperator L_elementwise_otf_cc( storage, level, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
-   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, forms::p2_mass_blending_q4(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, forms::p2_mass_blending_q5(), false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_id ..." );
-   P2ElementwiseBlendingMassOperator L_elementwise_stored_blending_id( storage, level, level, forms::p2_mass_blending_q4(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_stored_blending_id( storage, level, level, forms::p2_mass_blending_q5(), false );
    L_elementwise_stored_blending_id.computeAndStoreLocalElementMatrices();
 
    if ( running3D )
@@ -261,7 +261,7 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    {
       WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_annulus ..." );
    }
-   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_shell( storage, level, level, forms::p2_mass_blending_q4(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_shell( storage, level, level, forms::p2_mass_blending_q5(), false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Done." );
 
