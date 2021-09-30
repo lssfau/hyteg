@@ -381,6 +381,7 @@ void runBenchmark( real_t      cflMax,
 
    FixedSizeSQLDB db( outputDirectory + "/" + outputBaseName + ".db" );
 
+   db.setConstantEntry( "ra", rayleighNumber );
    db.setConstantEntry( "fixed_time_step", fixedTimeStep );
    db.setConstantEntry( "cfl_max", cflMax );
    db.setConstantEntry( "dt_constant", dtConstant );
