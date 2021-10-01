@@ -101,7 +101,7 @@ void exportLinearSystem( OperatorType                        op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting RHS to PETSc vector" );
    }
-   PETScVector< real_t, FunctionType > petscRHS( rhs, numerator, level, All, nameRHS );
+   PETScVector< real_t, OperatorType::dstType::template FunctionType > petscRHS( rhs, numerator, level, All, nameRHS );
 
    // Zero rows and columns of "Dirichlet DoFs"
    if ( elimDirichletBC )
