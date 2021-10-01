@@ -23,6 +23,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/P1WrapperForm.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -45,7 +46,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P2Form& form );
 
-   const P1ConstantOperator< P2Form >& getVertexToVertexOpr() const { return vertexToVertex; }
+   const P1ConstantOperator< P1WrapperForm<P2Form> >& getVertexToVertexOpr() const { return vertexToVertex; }
 
    const EdgeDoFToVertexDoFOperator< P2Form >& getEdgeToVertexOpr() const { return edgeToVertex; }
 
@@ -130,7 +131,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                                 DoFType                     flag,
                                 const bool&                 backwards = false ) const;
 
-   P1ConstantOperator< P2Form >         vertexToVertex;
+   P1ConstantOperator< P1WrapperForm<P2Form> >         vertexToVertex;
    EdgeDoFToVertexDoFOperator< P2Form > edgeToVertex;
    VertexDoFToEdgeDoFOperator< P2Form > vertexToEdge;
    EdgeDoFOperator< P2Form >            edgeToEdge;

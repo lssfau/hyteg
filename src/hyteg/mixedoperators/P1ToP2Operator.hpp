@@ -28,6 +28,7 @@
 
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/forms/P1WrapperForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -51,7 +52,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   }
 
 
-  P1ConstantOperator< P1ToP2Form > const & getVertexToVertexOpr() const {
+  P1ConstantOperator< P1WrapperForm<P1ToP2Form> > const & getVertexToVertexOpr() const {
     return vertexToVertex;
   }
 
@@ -76,7 +77,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
 
 private:
 
-  P1ConstantOperator< P1ToP2Form > vertexToVertex;
+  P1ConstantOperator< P1WrapperForm<P1ToP2Form> > vertexToVertex;
   VertexDoFToEdgeDoFOperator< P1ToP2Form > vertexToEdge;
 
 };

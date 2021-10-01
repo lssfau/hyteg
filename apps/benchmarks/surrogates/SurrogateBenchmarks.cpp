@@ -27,7 +27,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
@@ -65,7 +65,7 @@ class OperatorWrapper : public Op
    using Op::smooth_sor_face_generated;
 };
 
-using LaplaceConst         = OperatorWrapper< P1ConstantLaplaceOperator_new >;
+using LaplaceConst         = OperatorWrapper< P1ConstantLaplaceOperator >;
 using LaplaceBlending      = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_blending_q1 > >;
 using LaplaceAffine        = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_affine_q1 > >;
 using LaplaceSurrogate     = OperatorWrapper< P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false > >;
