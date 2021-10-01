@@ -54,6 +54,7 @@ class PETScSparseMatrix
    PETScSparseMatrix() = delete;
 
    PETScSparseMatrix( uint_t          localRows,
+                      uint_t          localCols,
                       uint_t          globalRows,
                       uint_t          globalCols,
                       const char      name[]            = "Mat",
@@ -65,7 +66,7 @@ class PETScSparseMatrix
       MatSetType( mat, MATMPIAIJ );
       MatSetSizes( mat,
                    static_cast< PetscInt >( localRows ),
-                   static_cast< PetscInt >( globalCols ),
+                   static_cast< PetscInt >( localCols ),
                    static_cast< PetscInt >( globalRows ),
                    static_cast< PetscInt >( globalCols ) );
 
@@ -79,7 +80,7 @@ class PETScSparseMatrix
                       uint_t          globalSize,
                       const char      name[]            = "Mat",
                       const MPI_Comm& petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : PETScSparseMatrix( localSize, globalSize, globalSize, name, petscCommunicator )
+   : PETScSparseMatrix( localSize, localSize, globalSize, globalSize, name, petscCommunicator )
    {}
 
    PETScSparseMatrix( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -108,6 +109,7 @@ class PETScSparseMatrix
                       const char                      name[]            = "Mat",
                       const MPI_Comm&                 petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : PETScSparseMatrix( numberOfLocalDoFs( enumeratorDst, level ),
+                        numberOfLocalDoFs( enumeratorSrc, level ),
                         numberOfGlobalDoFs( enumeratorDst, level, petscCommunicator ),
                         numberOfGlobalDoFs( enumeratorSrc, level, petscCommunicator ),
                         name,
