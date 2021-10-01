@@ -63,7 +63,7 @@ class P2VectorToP1ScalarOperator : public Operator< P2VectorFunction< real_t >, 
    {
       operX.toMatrix( mat, src[0], dst, level, flag );
       operY.toMatrix( mat, src[1], dst, level, flag );
-      if ( dst.getDimension() == 3 )
+      if ( src.getDimension() == 3 )
          operZ.toMatrix( mat, src[2], dst, level, flag );
    }
 
