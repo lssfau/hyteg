@@ -404,6 +404,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       return cellStencilID_;
    }
 
+ protected:
    // assemble stencils for all macro-vertices
    void assemble_stencil_vertices3D()
    {
