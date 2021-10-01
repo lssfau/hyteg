@@ -551,7 +551,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       {
          const auto relativeResidualToleranceCoarseGrid = 1e-30;
          const auto absoluteResidualToleranceCoarseGrid = 1e-12;
-         const auto maxIterationsCoarseGrid             = static_cast< PetscInt >( solverSettings.maxCoarseGridSolverIterations );
+         const auto maxIterationsCoarseGrid             = static_cast< idx_t >( solverSettings.maxCoarseGridSolverIterations );
          auto       actualCoarseGridSolver =
              std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
                                                                      minLevel,

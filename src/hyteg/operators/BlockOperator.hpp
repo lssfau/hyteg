@@ -27,6 +27,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -35,11 +36,11 @@ using walberla::real_t;
 template < class srcBlockFunc_t, class dstBlockFunc_t >
 class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
                       public GSSmoothable< srcBlockFunc_t >,
-                      public GSSmoothable< GenericFunction< typename srcBlockFunc_t::ValueType > >
+                      public GSSmoothable< GenericFunction< typename srcBlockFunc_t::valueType > >
 {
  public:
    // temporary, need to add corresponding FunctionTrait?
-   typedef typename srcBlockFunc_t::ValueType value_t;
+   typedef typename srcBlockFunc_t::valueType value_t;
 
    BlockOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                   size_t                                     minLevel,
@@ -96,7 +97,7 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
                            ConstructorArguments... args )
    {
       const auto op = std::make_shared< OperatorWrapper< OperatorType > >( storage, minLevel, maxLevel, args... );
-      setSubOperator(i, j, op);
+      setSubOperator( i, j, op );
    }
 
    const std::shared_ptr< GenericOperator< value_t > > getSubOperator( uint_t i, uint_t j )
@@ -134,16 +135,16 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
             if ( colIdx == rowIdx )
                continue;
 
-            subOper_[rowIdx][colIdx]->apply( x[colIdx], (*tmp_)[rowIdx], level, flag, Add );
+            subOper_[rowIdx][colIdx]->apply( x[colIdx], ( *tmp_ )[rowIdx], level, flag, Add );
          }
          // calculate new rhs: tmp1_[r] = b_r - sum_{c != r} A_rc x_c
-         (*tmp_)[rowIdx].assign( { +1, -1 }, { b[rowIdx], (*tmp_)[rowIdx] }, level, flag );
+         ( *tmp_ )[rowIdx].assign( {+1, -1}, {b[rowIdx], ( *tmp_ )[rowIdx]}, level, flag );
 
          // diagonal part:
          auto D_rr = subOper_[rowIdx][rowIdx];
          if ( auto* op_diag = dynamic_cast< GSSmoothable< GenericFunction< value_t > >* >( D_rr.get() ) )
          {
-            op_diag->smooth_gs( x[rowIdx], (*tmp_)[rowIdx], level, flag );
+            op_diag->smooth_gs( x[rowIdx], ( *tmp_ )[rowIdx], level, flag );
          }
       }
    }
@@ -160,6 +161,24 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
          smooth_gs( dst_unwrapped, rhs_unwrapped, level, flag );
       else
          throw std::runtime_error( "For GaussSeidel src and dst functions must coincide" );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                    mat,
+                  const typename srcBlockFunc_t::template FunctionType< idx_t >& src,
+                  const typename dstBlockFunc_t::template FunctionType< idx_t >& dst,
+                  size_t                                                         level,
+                  DoFType                                                        flag ) const override
+   {
+      for ( uint_t i = 0; i < nRows_; i++ )
+      {
+         for ( uint_t j = 0; j < nCols_; j++ )
+         {
+            if ( subOper_[i][j] != nullptr )
+            {
+               subOper_[i][j]->toMatrix( mat, src[j], dst[i], level, flag );
+            }
+         }
+      }
    }
 
  protected:

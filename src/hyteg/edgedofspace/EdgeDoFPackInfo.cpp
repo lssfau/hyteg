@@ -1260,5 +1260,6 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* sende
 template class EdgeDoFPackInfo< double >;
 template class EdgeDoFPackInfo< int >;
 template class EdgeDoFPackInfo< long >;
+template class EdgeDoFPackInfo< long long >;
 
 } // namespace hyteg

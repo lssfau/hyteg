@@ -343,13 +343,12 @@ inline ValueType
    return src[0];
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-inline void saveOperator( Vertex&                                                      vertex,
-                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                         mat,
-                          uint_t                                                       level )
+inline void saveOperator( Vertex&                                                   vertex,
+                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&               mat,
+                          uint_t                                                    level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );
@@ -361,24 +360,26 @@ inline void saveOperator( Vertex&                                               
    }
 }
 
-inline void saveIdentityOperator( Vertex&                                                      vertex,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                                  const std::shared_ptr< SparseMatrixProxy >&                  mat,
-                                  uint_t                                                       level )
+inline void saveIdentityOperator( Vertex&                                                   vertex,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&               mat,
+                                  uint_t                                                    level )
 {
    auto dst = vertex.getData( dstId )->getPointer( level );
    mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
    auto     src       = vertex.getData( srcId )->getPointer( level );
-   PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
+   idx_t    numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
    vec->setValue( uint_c( numerator ), src[0] );
 }
@@ -386,18 +387,18 @@ inline void createVectorFromFunction( const Vertex&                             
 template < typename ValueType >
 inline void createFunctionFromVector( Vertex&                                                       vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   PetscInt numerator                              = vertex.getData( numeratorId )->getPointer( level )[0];
+   idx_t numerator                                 = vertex.getData( numeratorId )->getPointer( level )[0];
    vertex.getData( srcId )->getPointer( level )[0] = vec->getValue( uint_c( numerator ) );
 }
 
-inline void applyDirichletBC( Vertex&                                                      vertex,
-                              std::vector< PetscInt >&                                     mat,
-                              uint_t                                                       level,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& numeratorId )
+inline void applyDirichletBC( Vertex&                                                   vertex,
+                              std::vector< idx_t >&                                     mat,
+                              uint_t                                                    level,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& numeratorId )
 {
    mat.push_back( vertex.getData( numeratorId )->getPointer( level )[0] );
 }

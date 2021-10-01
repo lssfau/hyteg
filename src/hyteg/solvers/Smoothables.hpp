@@ -21,6 +21,8 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/types/types.hpp"
+
 namespace hyteg {
 
 using walberla::real_t;

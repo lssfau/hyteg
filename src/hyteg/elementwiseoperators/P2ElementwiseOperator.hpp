@@ -34,8 +34,8 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -113,7 +113,6 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
       WALBERLA_ABORT( "SOR not implemented for P2ElementwiseOperator." )
    }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix.
    ///
    /// \param mat   a sparse matrix proxy
@@ -123,12 +122,11 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2Function< PetscInt >&               src,
-                             const P2Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override;
 
    P2Form getForm() const;
 
@@ -186,28 +184,26 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                              real_t* const           vertexData,
                                              real_t* const           edgeData );
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P2Elements::P2Element&                element,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       srcEdgeIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          srcEdgeIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       srcEdgeIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
-#endif
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          srcEdgeIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.

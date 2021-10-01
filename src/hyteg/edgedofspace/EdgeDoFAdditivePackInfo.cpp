@@ -445,5 +445,6 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const Ce
 template class EdgeDoFAdditivePackInfo< double >;
 template class EdgeDoFAdditivePackInfo< int >;
 template class EdgeDoFAdditivePackInfo< long >;
+template class EdgeDoFAdditivePackInfo< long long >;
 
 } // namespace hyteg

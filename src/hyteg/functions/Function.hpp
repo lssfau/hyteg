@@ -27,12 +27,12 @@
 
 #include "core/mpi/Gather.h"
 
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/communication/BufferedCommunication.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

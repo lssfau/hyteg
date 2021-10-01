@@ -28,8 +28,8 @@
 #include "core/Abort.h"
 #include "core/debug/Debug.h"
 
-#include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
