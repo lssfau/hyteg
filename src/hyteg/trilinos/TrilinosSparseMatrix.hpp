@@ -92,7 +92,8 @@ class TrilinosSparseMatrix
       {
          proxy->addValue( idx, idx, 0 );
       }
-      hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
+      // hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
+      op.toMatrix( proxy, numerator, numerator, level_, All );
       crsMatrix_->fillComplete();
    }
 
