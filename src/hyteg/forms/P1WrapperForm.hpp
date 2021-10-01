@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Benjamin Mann
+ *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
  *
@@ -22,10 +23,22 @@ namespace hyteg {
 
 // wrapper to enable combining P1 operators with higher order forms
 template < class WrappedForm >
-class P1Form : public WrappedForm
+class P1WrapperForm : public WrappedForm
 {
  public:
-   void integrateRow( const uint_t& row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const;
+   // use Ctor from WrappedForm
+   using WrappedForm::WrappedForm;
+
+   // conversion WrappedForm -> P1Wrapper
+   P1WrapperForm( const WrappedForm& wf )
+   : WrappedForm( wf )
+   {}
+   // conversion WrappedForm -> P1Wrapper
+   P1WrapperForm( WrappedForm&& wf )
+   : WrappedForm( wf )
+   {}
+
+   void integrateRow( const uint_t& row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
    {
       switch ( row )
       {
@@ -37,7 +50,7 @@ class P1Form : public WrappedForm
       }
    }
 
-   void integrateRow( const uint_t& row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const;
+   void integrateRow( const uint_t& row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
    {
       switch ( row )
       {
@@ -50,6 +63,7 @@ class P1Form : public WrappedForm
    }
 
  private:
+   // extract vertex to vertex DoF part of WrappedForm
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
    {
       Point3D row;
@@ -60,6 +74,7 @@ class P1Form : public WrappedForm
       }
    }
 
+   // extract vertex to vertex DoF part of WrappedForm
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
    {
       Point4D row;

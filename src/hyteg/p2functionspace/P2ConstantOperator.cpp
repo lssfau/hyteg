@@ -88,7 +88,7 @@ P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< Primiti
                                                   size_t                                     maxLevel,
                                                   const P2Form&                              form )
 : Operator( storage, minLevel, maxLevel )
-, vertexToVertex( storage, minLevel, maxLevel, static_cast<const P1WrapperForm<P2Form>&>(form) )
+, vertexToVertex( storage, minLevel, maxLevel, form )
 , edgeToVertex( storage, minLevel, maxLevel, form )
 , vertexToEdge( storage, minLevel, maxLevel, form )
 , edgeToEdge( storage, minLevel, maxLevel, form )

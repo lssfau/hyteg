@@ -19,29 +19,23 @@
  */
 #pragma once
 
-#include "hyteg/p1functionspace/P1Operator.hpp"
-
 #ifdef _MSC_VER
 #pragma warning( push, 0 )
 #endif
-
-#include "hyteg/fenics/fenics.hpp"
-// #include "hyteg/forms/form_fenics_generated/p1_diffusion.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif
 
-#include "hyteg/forms/P1RowSumForm.hpp"
+#include "hyteg/fenics/fenics.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
+#include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
-// #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-// #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
-// #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/p1functionspace/P1Operator.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
@@ -98,10 +92,9 @@ class P1ConstantOperator : public P1Operator< P1Form >
       assembleStencils();
    }
 
-   void scale(real_t scalar){};// todo implement
+   void scale( real_t scalar ){}; // todo implement
 
-   private:
-
+ protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
 
    /* Initialize assembly of variable edge stencil.
@@ -538,9 +531,6 @@ class P1ConstantOperator : public P1Operator< P1Form >
    }
 };
 
-// todo test other forms
-// todo maybe replace old P1ConstantOperator. This requires new implementation of P2ConstantOperator s.th. integrateRow() can be used.
-
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoAssemble > > P1ZeroOperator;
 
 typedef P1ConstantOperator< forms::p1_diffusion_affine_q2 > P1ConstantLaplaceOperator;
@@ -552,8 +542,8 @@ typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_1_othe
 typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_2_otherwise > > P1ConstantEpsilonOperator_21;
 typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_3_otherwise > > P1ConstantEpsilonOperator_22;
 
-typedef P1ConstantOperator <
-    P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > P1DivxOperator;
+typedef P1ConstantOperator< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >
+    P1DivxOperator;
 typedef P1ConstantOperator< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >
                                                                                                            P1DivyOperator;
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > > P1DivzOperator;
