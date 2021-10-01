@@ -227,6 +227,13 @@ inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::v
    }
 }
 
+} // namespace petsc
+} // namespace hyteg
+
+#endif
+
+namespace hyteg {
+
 // =============
 //  P1Operators
 // =============
@@ -285,7 +292,4 @@ inline void saveIdentityOperator( const P1Function< idx_t >&                  ds
    }
 }
 
-} // namespace petsc
 } // namespace hyteg
-
-#endif

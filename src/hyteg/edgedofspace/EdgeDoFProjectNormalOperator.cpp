@@ -124,8 +124,6 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
    this->stopTiming( "Project" );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                         const EdgeDoFFunction< idx_t >&             numU,
                                                         const EdgeDoFFunction< idx_t >&             numV,
@@ -203,7 +201,5 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
       }
    }
 }
-
-#endif
 
 } // namespace hyteg

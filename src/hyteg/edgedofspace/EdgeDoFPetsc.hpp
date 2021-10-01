@@ -35,8 +35,6 @@ namespace edgedof {
 using walberla::real_t;
 using walberla::uint_t;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveEdgeOperator( const uint_t&                                           Level,
                               const Edge&                                             edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
@@ -47,9 +45,9 @@ inline void saveEdgeOperator( const uint_t&                                     
    using namespace hyteg::edgedof::macroedge;
    size_t rowsize = levelinfo::num_microedges_per_edge( Level );
 
-   real_t*   opr_data = edge.getData( operatorId )->getPointer( Level );
-   idx_t*    src      = edge.getData( srcId )->getPointer( Level );
-   idx_t*    dst      = edge.getData( dstId )->getPointer( Level );
+   real_t* opr_data = edge.getData( operatorId )->getPointer( Level );
+   idx_t*  src      = edge.getData( srcId )->getPointer( Level );
+   idx_t*  dst      = edge.getData( dstId )->getPointer( Level );
 
    idx_t srcInt;
    idx_t dstInt;
@@ -232,9 +230,9 @@ inline void saveFaceOperator( const uint_t&                                     
                               const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
                               const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
-   real_t*   opr_data = face.getData( operatorId )->getPointer( Level );
-   idx_t*    src      = face.getData( srcId )->getPointer( Level );
-   idx_t*    dst      = face.getData( dstId )->getPointer( Level );
+   real_t* opr_data = face.getData( operatorId )->getPointer( Level );
+   idx_t*  src      = face.getData( srcId )->getPointer( Level );
+   idx_t*  dst      = face.getData( dstId )->getPointer( Level );
 
    idx_t srcInt;
    idx_t dstInt;
@@ -507,6 +505,8 @@ inline void saveCellIdentityOperator( const uint_t&                             
 
 } // namespace edgedof
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 namespace petsc {
 
 inline void createVectorFromFunction( const EdgeDoFFunction< PetscReal >&   function,
@@ -626,8 +626,8 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
    }
 }
 
-#endif
+} // namespace petsc
 
-} // namespace edgedof
+#endif
 
 } // namespace hyteg

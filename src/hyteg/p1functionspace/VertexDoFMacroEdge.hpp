@@ -693,9 +693,6 @@ inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveD
   return localMin;
 }
 
-
-
-#ifdef HYTEG_BUILD_WITH_PETSC
 inline void saveOperator( const uint_t&                                           level,
                           Edge&                                                   edge,
                           const PrimitiveStorage&                                 storage,
@@ -771,6 +768,8 @@ inline void saveIdentityOperator( const uint_t&                                 
       mat->addValue( uint_c( dstint ), uint_c( dstint ), 1.0 );
    }
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,

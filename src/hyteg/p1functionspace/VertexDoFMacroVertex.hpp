@@ -343,7 +343,6 @@ inline ValueType
    return src[0];
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
 inline void saveOperator( Vertex&                                                   vertex,
                           const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& srcId,
@@ -369,6 +368,8 @@ inline void saveIdentityOperator( Vertex&                                       
    auto dst = vertex.getData( dstId )->getPointer( level );
    mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,

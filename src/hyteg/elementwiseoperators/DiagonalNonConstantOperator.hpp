@@ -34,8 +34,6 @@ namespace hyteg {
 
 using walberla::real_t;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 // As long as we cannot use FunctionIterator< P2Function > we use a specialised external template function
 namespace workaround {
 
@@ -47,8 +45,6 @@ void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&      
                                DoFType                                                flag );
 
 } // namespace workaround
-
-#endif
 
 /// Provides an operator with only "diagonal" values that may change from DoF to DoF
 ///

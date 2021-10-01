@@ -31,8 +31,6 @@ namespace EdgeDoFToVertexDoF {
 using walberla::real_t;
 using walberla::uint_t;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveVertexOperator( const uint_t&                                             level,
                                 const Vertex&                                             vertex,
                                 const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
@@ -432,8 +430,6 @@ inline void
       }
    }
 }
-
-#endif
 
 } // namespace EdgeDoFToVertexDoF
 } // namespace hyteg

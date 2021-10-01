@@ -205,8 +205,6 @@ inline void projectNormal3D( uint_t                                             
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveProjectNormalOperator2D( uint_t                                                   level,
                                          const Edge&                                              edge,
                                          const std::shared_ptr< PrimitiveStorage >&               storage,
@@ -248,8 +246,6 @@ inline void saveProjectNormalOperator2D( uint_t                                 
       x += dx;
    }
 }
-
-#endif
 
 } // namespace macroedge
 
@@ -336,8 +332,6 @@ inline void projectNormal3D( uint_t                                             
    dstW[0] = out[2];
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveProjectNormalOperator2D( uint_t                                                    level,
                                          const Vertex&                                             vertex,
                                          const std::shared_ptr< PrimitiveStorage >&                storage,
@@ -367,8 +361,6 @@ inline void saveProjectNormalOperator2D( uint_t                                 
    mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
    mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
 }
-
-#endif
 
 } // namespace macrovertex
 

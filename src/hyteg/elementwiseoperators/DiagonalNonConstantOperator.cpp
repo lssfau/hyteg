@@ -20,8 +20,6 @@
 
 #include "DiagonalNonConstantOperator.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
 namespace workaround {
 
@@ -93,5 +91,3 @@ void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< Sp
 } // namespace workaround
 
 } // namespace hyteg
-
-#endif

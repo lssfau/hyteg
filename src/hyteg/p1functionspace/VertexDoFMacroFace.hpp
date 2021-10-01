@@ -1088,8 +1088,6 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
    return localMin;
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveOperator( const uint_t&                                           Level,
                           Face&                                                   face,
                           const PrimitiveDataID< StencilMemory< real_t >, Face >& operatorId,
@@ -1210,6 +1208,8 @@ inline void saveOperator3D( const uint_t&                                       
       }
    }
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,

@@ -700,9 +700,6 @@ inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const Primit
   return localMax;
 }
 
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveOperator( const uint_t&                                                                         Level,
                           Cell&                                                                                 cell,
                           const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& operatorId,
@@ -744,6 +741,8 @@ inline void saveIdentityOperator( const uint_t&                                 
       mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
    }
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,

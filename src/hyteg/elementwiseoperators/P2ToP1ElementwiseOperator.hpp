@@ -106,7 +106,6 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
                                      real_t* const           dstVertexData,
                                      const Matrixr< 4, 10 >& elMat ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
@@ -125,7 +124,6 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstVertexIdx ) const;
-#endif
 
    void assembleLocalElementMatrix2D( const Face&            face,
                                       uint_t                 level,
