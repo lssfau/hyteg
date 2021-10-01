@@ -40,7 +40,6 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -86,14 +85,11 @@ enum StencilType
    VARIABLE  = 1,
    LSQP      = 2,
    CONST_NEW = 3,
-   LSQP_NEW  = 5
 };
 
 template < StencilType T >
 struct OperatorHandler
 {
-   static uint_t interpolationLevel;
-
    template < class OP >
    static std::shared_ptr< OP >
        make_shared( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel )
@@ -109,33 +105,10 @@ struct OperatorHandler
 };
 
 template <>
-uint_t OperatorHandler< StencilType::LSQP >::interpolationLevel = 0;
-
-template <>
 template < class OP >
-std::shared_ptr< OP > OperatorHandler< StencilType::LSQP >::make_shared( std::shared_ptr< PrimitiveStorage > storage,
-                                                                         const uint_t                        minLevel,
-                                                                         const uint_t                        maxLevel )
-{
-   return std::make_shared< OP >( storage, minLevel, maxLevel, interpolationLevel );
-}
-
-template <>
-template < class OP >
-real_t OperatorHandler< StencilType::LSQP >::setup( std::shared_ptr< OP > op, const uint_t polyDegree, const uint_t )
-{
-   auto start = walberla::timing::getWcTime();
-   op->interpolateStencils( polyDegree );
-   auto end = walberla::timing::getWcTime();
-   op->useDegree( polyDegree );
-   return ( end - start );
-}
-
-template <>
-template < class OP >
-real_t OperatorHandler< StencilType::LSQP_NEW >::setup( std::shared_ptr< OP > op,
-                                                        const uint_t          polyDegree,
-                                                        const uint_t          interpolationlvl )
+real_t OperatorHandler< StencilType::LSQP >::setup( std::shared_ptr< OP > op,
+                                                    const uint_t          polyDegree,
+                                                    const uint_t          interpolationlvl )
 {
    auto start = walberla::timing::getWcTime();
    op->interpolateStencils( polyDegree, interpolationlvl );
@@ -159,10 +132,8 @@ struct FE_Space< ElementType::P1, StencilType::NONE >
 
    using LaplaceCONST     = hyteg::P1ConstantLaplaceOperator;
    using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
-   // using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
-   using LaplaceVAR      = hyteg::P1BlendingLaplaceOperator;
-   using LaplaceLSQP     = hyteg::P1PolynomialBlendingLaplaceOperator;
-   using LaplaceLSQP_NEW = hyteg::P1SurrogateLaplaceOperator;
+   using LaplaceVAR       = hyteg::P1BlendingLaplaceOperator;
+   using LaplaceLSQP      = hyteg::P1SurrogateLaplaceOperator;
 };
 
 template <>
@@ -177,9 +148,7 @@ struct FE_Space< ElementType::P2, StencilType::NONE >
    using LaplaceCONST     = hyteg::P2ConstantLaplaceOperator;
    using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; //todo new p2 operator not implemented yet
    using LaplaceVAR       = hyteg::P2BlendingLaplaceOperator;
-   using LaplaceVAR_NEW   = hyteg::P2BlendingLaplaceOperator; //todo new p2 operator not implemented yet
    using LaplaceLSQP      = hyteg::P2SurrogateLaplaceOperator;
-   using LaplaceLSQP_NEW  = hyteg::P2BlendingLaplaceOperator; //todo new p2 operator not implemented yet
 };
 
 template < ElementType P >
@@ -205,19 +174,6 @@ struct FE_Space< P, StencilType::LSQP > : public P_Space< P >, public OperatorHa
 
    using typename P_Space< P >::Mass;
    using Laplace = typename P_Space< P >::LaplaceLSQP;
-
-   static void setInterpolationLevel( uint_t level ) { interpolationLevel = level; };
-};
-
-template < ElementType P >
-struct FE_Space< P, StencilType::LSQP_NEW > : public P_Space< P >, public OperatorHandler< StencilType::LSQP_NEW >
-{
-   using typename P_Space< P >::Function;
-   using typename P_Space< P >::Restriction;
-   using typename P_Space< P >::Prolongation;
-
-   using typename P_Space< P >::Mass;
-   using Laplace = typename P_Space< P >::LaplaceLSQP_NEW;
 };
 
 template < ElementType P >
@@ -419,10 +375,6 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
       case StencilType::LSQP:
          name += "poly" + std::to_string( polyDegree );
          break;
-
-      case StencilType::LSQP_NEW:
-         name += "poly_NEW" + std::to_string( polyDegree );
-         break;
       }
 
       hyteg::VTKOutput vtkOutput( "output", name, storage );
@@ -509,7 +461,6 @@ void solve( const StencilType                   T,
       WALBERLA_LOG_INFO_ON_ROOT( "Operatortype: Surrogate Polynomial Stencil" );
       WALBERLA_LOG_INFO_ON_ROOT( "Interpolation level: " << interpolationLevel << ", polynomial degree: " << polyDegree );
 
-      FE_Space< P, LSQP >::setInterpolationLevel( interpolationLevel );
       solveTmpl< P, LSQP >( storage,
                             minLevel,
                             maxLevel,
@@ -524,26 +475,6 @@ void solve( const StencilType                   T,
                             coeff,
                             polyDegree,
                             interpolationLevel );
-      break;
-
-   case LSQP_NEW:
-      WALBERLA_LOG_INFO_ON_ROOT( "Operatortype: NEW Surrogate Polynomial Stencil" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Interpolation level: " << interpolationLevel << ", polynomial degree: " << polyDegree );
-
-      solveTmpl< P, LSQP_NEW >( storage,
-                                minLevel,
-                                maxLevel,
-                                max_outer_iter,
-                                max_cg_iter,
-                                mg_tolerance,
-                                coarse_tolerance,
-                                vtk,
-                                exact,
-                                boundary,
-                                rhs,
-                                coeff,
-                                polyDegree,
-                                interpolationLevel );
       break;
 
    default:

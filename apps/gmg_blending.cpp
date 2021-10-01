@@ -31,7 +31,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
+#include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
   typedef hyteg::P1BlendingMassOperator MassOperator;
   typedef hyteg::P1BlendingLaplaceOperator SolveOperatorNodal;
-  typedef hyteg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
+  typedef hyteg::P1SurrogateLaplaceOperator SolveOperatorPoly;
 
   std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   // std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
@@ -166,17 +166,15 @@ int main(int argc, char* argv[])
   MassOperator M(storage, minLevel, maxMemoryLevel);
   std::shared_ptr<SolveOperatorPoly> Lpoly;
   std::shared_ptr<SolveOperatorNodal> L;
-  uint_t useDegree;
+  uint_t useDegree = maxPolyDegree;
 
   auto start = walberla::timing::getWcTime();
   L = std::make_shared<SolveOperatorNodal>(storage, minLevel, maxMemoryLevel);
 
   if (polynomialOperator) {
-    Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel, interpolationLevel);
+    Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel);
 
-    Lpoly->interpolateStencils(maxPolyDegree);
-    useDegree = maxPolyDegree;
-    Lpoly->useDegree(useDegree);
+    Lpoly->interpolateStencils(useDegree, interpolationLevel);
 
 //    real_t polyError34 = Lpoly->lInfinityError(3, 4, 5);
 //    real_t polyError45 = Lpoly->lInfinityError(4, 5, 5);
@@ -310,8 +308,7 @@ int main(int argc, char* argv[])
 
         WALBERLA_LOG_INFO_ON_ROOT("Increasing polynomial degree to " << useDegree + 1);
         ++useDegree;
-        Lpoly->interpolateStencils(maxLevel, useDegree);
-        Lpoly->useDegree(useDegree);
+        Lpoly->interpolateStencils(useDegree, interpolationLevel);
         updatedDegree = true;
       } else {
         updatedDegree = false;
