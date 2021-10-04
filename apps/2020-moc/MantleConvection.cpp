@@ -37,6 +37,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/SphereTools.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
@@ -191,122 +192,6 @@ real_t normL2Squared( const FunctionType& u,
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
    return u.dotGlobal( tmp, level, flag );
-}
-
-/// \brief Evaluates the passed function at the vertices of an 'UV-type' spherical slice.
-///        The sphere is sliced by meridians and equator-parallel lines.
-///
-///        Each parallel corresponds to an entire slice through the sphere. This number should
-///        include both poles.
-///
-///        Outputs numMeridians * numParallels data points, although those at the poles overlap.
-///
-///        The data is written in CSV format. The following data is written (in that order):
-///
-///          meridian_idx, parallel_idx, x_cartesian, y_cartesian, z_cartesian, function_value
-///
-///        Must be called collectively. Performs communication after evaluation and writes to the
-///        specified file from root.
-///
-/// \param radius       radius of the slice around the origin
-/// \param numMeridians number of meridians
-/// \param numParallels number of parallels (to the equator)
-/// \param outputFile   path to the output file
-template < typename FunctionType >
-void evaluateSphericalSliceUV( real_t              radius,
-                               int                 numMeridians,
-                               int                 numParallels,
-                               const FunctionType& f,
-                               uint_t              level,
-                               std::string         outputFile )
-{
-   WALBERLA_CHECK_GREATER( radius, 0, "Radius should be positive." );
-   WALBERLA_CHECK_GREATER( numMeridians, 0, "numMeridians should be at least 1." );
-   WALBERLA_CHECK_GREATER_EQUAL( numParallels, 2, "numParallels should at least include both poles." );
-
-   const auto numPoints = numMeridians * numParallels;
-
-   real_t phiInc   = 2 * pi / real_c( numMeridians );
-   real_t thetaInc = pi / real_c( numParallels - 1 );
-
-   // We build a process-local map of the ID of the evaluation point to the value.
-   // The map is only filled at points that could be evaluated.
-   std::map< int, real_t > samples;
-
-   for ( int meridian_idx = 0; meridian_idx < numMeridians; meridian_idx++ )
-   {
-      for ( int parallel_idx = 0; parallel_idx < numParallels; parallel_idx++ )
-      {
-         const int p_idx = meridian_idx * numParallels + parallel_idx;
-
-         const auto phi   = phiInc * real_c( meridian_idx );
-         const auto theta = thetaInc * real_c( parallel_idx );
-         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
-
-         real_t value     = 0;
-         bool   onProcess = f.evaluate( coords, level, value, 1e-12 );
-
-         if ( onProcess )
-         {
-            samples[p_idx] = value;
-         }
-      }
-   }
-
-   // The maps are gathered on the root process.
-
-   walberla::mpi::SendBuffer sendbuffer;
-   walberla::mpi::RecvBuffer recvbuffer;
-
-   sendbuffer << samples;
-
-   walberla::mpi::gathervBuffer( sendbuffer, recvbuffer );
-
-   // On the root process, all samples are collected into a single map.
-   // Possible duplicate entries are removed.
-   // This map should then contain exactly the number of samples that have been requested.
-
-   std::map< int, real_t > samplesGlobal;
-
-   WALBERLA_ROOT_SECTION()
-   {
-      for ( uint_t rank = 0; rank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ); rank++ )
-      {
-         std::map< int, real_t > recvSamples;
-         recvbuffer >> recvSamples;
-
-         for ( auto s : recvSamples )
-         {
-            const auto p_idx = s.first;
-            const auto value = s.second;
-
-            samplesGlobal[p_idx] = value;
-         }
-      }
-
-      WALBERLA_CHECK_EQUAL( samplesGlobal.size(), numPoints, "Could not successfully evaluate at all points." );
-
-      std::ofstream filestream;
-      filestream.open( outputFile );
-
-      for ( auto s : samplesGlobal )
-      {
-         const auto p_idx = s.first;
-         const auto value = s.second;
-
-         const auto meridian_idx = p_idx / numParallels;
-         const auto parallel_idx = p_idx % numParallels;
-
-         const auto phi   = phiInc * real_c( meridian_idx );
-         const auto theta = thetaInc * real_c( parallel_idx );
-         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
-
-         filestream << meridian_idx << "," << parallel_idx << "," << coords[0] << "," << coords[1] << "," << coords[2] << ","
-                    << value << "\n";
-      }
-
-      filestream.close();
-   }
 }
 
 template < typename StokesFunction, typename StokesOperator, typename MassOperatorVelocity, typename MassOperatorPressure >

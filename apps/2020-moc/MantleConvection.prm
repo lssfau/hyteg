@@ -10,8 +10,8 @@ Parameters
     // nRad 2;
     // threeDim false;
 
-    nTan 2;
-    nRad 2;
+    nTan 5;
+    nRad 4;
     threeDim true;
 
     // PETSC_MUMPS         = 0,
