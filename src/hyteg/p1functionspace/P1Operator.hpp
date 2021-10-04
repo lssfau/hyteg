@@ -1651,8 +1651,16 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    */
    inline void assemble_variableStencil_edge3D( vertexdof::macroedge::StencilMap_T& edge_stencil, const uint_t i ) const
    {
-      // todo // new map not yet used -> use old linear stencil memory
-      WALBERLA_ABORT( "Assembly with new stencil map not yet implemented for edge-stencils!" )
+      WALBERLA_ASSERT( storage_->hasGlobalCells() );
+
+      for ( uint_t neighborCellID = 0; neighborCellID < edge_->getNumNeighborCells(); ++neighborCellID )
+      {
+         auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
+         auto vertexAssemblyIndexInCell =
+             vertexdof::macroedge::getIndexInNeighboringMacroCell( { i, 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+         edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
+             storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
+      }
    }
 
    /* Initialize assembly of variable face stencil.

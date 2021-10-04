@@ -485,47 +485,52 @@ class P1ConstantOperator : public P1Operator< P1Form >
    {
       for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
       {
-         for ( const auto& it : storage_->getCells() )
+         if ( level >= 2 )
          {
-            auto  cell          = it.second;
-            auto& stencilMemory = cell->getData( cellStencilID_ )->getData( level );
-            assemble_variableStencil_cell_init( *cell, level );
-            assemble_variableStencil_cell( stencilMemory, 1, 1, 1 );
-         }
-
-         for ( auto& it : storage_->getFaces() )
-         {
-            Face& face          = *it.second;
-            auto  stencilMemory = face.getData( faceStencilID_ )->getPointer( level );
-            auto& stencilMap    = face.getData( faceStencil3DID_ )->getData( level );
-
-            assemble_variableStencil_face_init( face, level );
-
-            if ( storage_->hasGlobalCells() )
+            for ( const auto& it : storage_->getCells() )
             {
-               assemble_variableStencil_face3D( stencilMap, 1, 1 );
-               WALBERLA_ASSERT_GREATER( face.getNumNeighborCells(), 0 );
+               auto  cell          = it.second;
+               auto& stencilMemory = cell->getData( cellStencilID_ )->getData( level );
+               assemble_variableStencil_cell_init( *cell, level );
+               assemble_variableStencil_cell( stencilMemory, 1, 1, 1 );
             }
-            else
+
+            for ( auto& it : storage_->getFaces() )
             {
-               assemble_variableStencil_face( stencilMemory, 0, 0 );
+               Face& face          = *it.second;
+               auto  stencilMemory = face.getData( faceStencilID_ )->getPointer( level );
+               auto& stencilMap    = face.getData( faceStencil3DID_ )->getData( level );
+
+               assemble_variableStencil_face_init( face, level );
+
+               if ( storage_->hasGlobalCells() )
+               {
+                  assemble_variableStencil_face3D( stencilMap, 1, 1 );
+                  WALBERLA_ASSERT_GREATER( face.getNumNeighborCells(), 0 );
+               }
+               else
+               {
+                  assemble_variableStencil_face( stencilMemory, 0, 0 );
+               }
             }
          }
-
-         for ( auto& it : storage_->getEdges() )
+         if ( level >= 1 )
          {
-            Edge& edge          = *it.second;
-            auto  stencilMemory = edge.getData( edgeStencilID_ )->getPointer( level );
-            // auto& stencilMap    = edge.getData(edgeStencil3DID_)->getData(level);
+            for ( auto& it : storage_->getEdges() )
+            {
+               Edge& edge          = *it.second;
+               auto  stencilMemory = edge.getData( edgeStencilID_ )->getPointer( level );
+               auto& stencilMap    = edge.getData(edgeStencil3DID_)->getData(level);
 
-            assemble_variableStencil_edge_init( edge, level );
+               assemble_variableStencil_edge_init( edge, level );
 
-            // if (storage_->hasGlobalCells()) //! not implemented yet
-            // {
-            //    assemble_variableStencil_edge3D(stencilMap, 1);
-            // }
+               if (storage_->hasGlobalCells())
+               {
+                  assemble_variableStencil_edge3D(stencilMap, 1);
+               }
 
-            assemble_variableStencil_edge( stencilMemory, 1 ); // also assemble old version of 3D stencil
+               assemble_variableStencil_edge( stencilMemory, 1 ); // assemble both new and old version of 3D stencil
+            }
          }
       }
    }
