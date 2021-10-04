@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <core/Environment.h>
 #include <core/math/Constants.h>
@@ -41,6 +42,7 @@
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
+#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -152,6 +154,21 @@ struct SolverInfo
    real_t uzawaOmega = 0.3;
 };
 
+struct OutputInfo
+{
+   bool        vtk;
+   bool        vtkOutputVelocity;
+   bool        sphericalTemperatureSlice;
+   int         sphericalTemperatureSliceNumMeridians;
+   int         sphericalTemperatureSliceNumParallels;
+   uint_t      printInterval;
+   uint_t      vtkInterval;
+   uint_t      sphericalTemperatureSliceInterval;
+   bool        vtkOutputVertexDoFs;
+   std::string outputDirectory;
+   std::string outputBaseName;
+};
+
 /// Calculates and returns
 ///
 ///     ||u||_L2 = sqrt( u^T M u )
@@ -174,6 +191,122 @@ real_t normL2Squared( const FunctionType& u,
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
    return u.dotGlobal( tmp, level, flag );
+}
+
+/// \brief Evaluates the passed function at the vertices of an 'UV-type' spherical slice.
+///        The sphere is sliced by meridians and equator-parallel lines.
+///
+///        Each parallel corresponds to an entire slice through the sphere. This number should
+///        include both poles.
+///
+///        Outputs numMeridians * numParallels data points, although those at the poles overlap.
+///
+///        The data is written in CSV format. The following data is written (in that order):
+///
+///          meridian_idx, parallel_idx, x_cartesian, y_cartesian, z_cartesian, function_value
+///
+///        Must be called collectively. Performs communication after evaluation and writes to the
+///        specified file from root.
+///
+/// \param radius       radius of the slice around the origin
+/// \param numMeridians number of meridians
+/// \param numParallels number of parallels (to the equator)
+/// \param outputFile   path to the output file
+template < typename FunctionType >
+void evaluateSphericalSliceUV( real_t              radius,
+                               int                 numMeridians,
+                               int                 numParallels,
+                               const FunctionType& f,
+                               uint_t              level,
+                               std::string         outputFile )
+{
+   WALBERLA_CHECK_GREATER( radius, 0, "Radius should be positive." );
+   WALBERLA_CHECK_GREATER( numMeridians, 0, "numMeridians should be at least 1." );
+   WALBERLA_CHECK_GREATER_EQUAL( numParallels, 2, "numParallels should at least include both poles." );
+
+   const auto numPoints = numMeridians * numParallels;
+
+   real_t phiInc   = 2 * pi / real_c( numMeridians );
+   real_t thetaInc = pi / real_c( numParallels - 1 );
+
+   // We build a process-local map of the ID of the evaluation point to the value.
+   // The map is only filled at points that could be evaluated.
+   std::map< int, real_t > samples;
+
+   for ( int meridian_idx = 0; meridian_idx < numMeridians; meridian_idx++ )
+   {
+      for ( int parallel_idx = 0; parallel_idx < numParallels; parallel_idx++ )
+      {
+         const int p_idx = meridian_idx * numParallels + parallel_idx;
+
+         const auto phi   = phiInc * real_c( meridian_idx );
+         const auto theta = thetaInc * real_c( parallel_idx );
+         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
+
+         real_t value     = 0;
+         bool   onProcess = f.evaluate( coords, level, value, 1e-12 );
+
+         if ( onProcess )
+         {
+            samples[p_idx] = value;
+         }
+      }
+   }
+
+   // The maps are gathered on the root process.
+
+   walberla::mpi::SendBuffer sendbuffer;
+   walberla::mpi::RecvBuffer recvbuffer;
+
+   sendbuffer << samples;
+
+   walberla::mpi::gathervBuffer( sendbuffer, recvbuffer );
+
+   // On the root process, all samples are collected into a single map.
+   // Possible duplicate entries are removed.
+   // This map should then contain exactly the number of samples that have been requested.
+
+   std::map< int, real_t > samplesGlobal;
+
+   WALBERLA_ROOT_SECTION()
+   {
+      for ( uint_t rank = 0; rank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ); rank++ )
+      {
+         std::map< int, real_t > recvSamples;
+         recvbuffer >> recvSamples;
+
+         for ( auto s : recvSamples )
+         {
+            const auto p_idx = s.first;
+            const auto value = s.second;
+
+            samplesGlobal[p_idx] = value;
+         }
+      }
+
+      WALBERLA_CHECK_EQUAL( samplesGlobal.size(), numPoints, "Could not successfully evaluate at all points." );
+
+      std::ofstream filestream;
+      filestream.open( outputFile );
+
+      for ( auto s : samplesGlobal )
+      {
+         const auto p_idx = s.first;
+         const auto value = s.second;
+
+         const auto meridian_idx = p_idx / numParallels;
+         const auto parallel_idx = p_idx % numParallels;
+
+         const auto phi   = phiInc * real_c( meridian_idx );
+         const auto theta = thetaInc * real_c( parallel_idx );
+         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
+
+         filestream << meridian_idx << "," << parallel_idx << "," << coords[0] << "," << coords[1] << "," << coords[2] << ","
+                    << value << "\n";
+      }
+
+      filestream.close();
+   }
 }
 
 template < typename StokesFunction, typename StokesOperator, typename MassOperatorVelocity, typename MassOperatorPressure >
@@ -268,25 +401,19 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( DomainInfo domainIn
    return setupStorage;
 }
 
-void runBenchmark( real_t      cflMax,
-                   real_t      rayleighNumber,
-                   bool        fixedTimeStep,
-                   real_t      dtConstant,
-                   uint_t      maxNumTimeSteps,
-                   uint_t      minLevel,
-                   uint_t      level,
-                   SolverInfo  solverInfo,
-                   DomainInfo  domainInfo,
-                   bool        predictorCorrector,
-                   real_t      simulationTime,
-                   bool        vtk,
-                   bool        vtkOutputVelocity,
-                   uint_t      printInterval,
-                   uint_t      vtkInterval,
-                   bool        vtkOutputVertexDoFs,
-                   std::string outputDirectory,
-                   std::string outputBaseName,
-                   bool        verbose )
+void runBenchmark( real_t     cflMax,
+                   real_t     rayleighNumber,
+                   bool       fixedTimeStep,
+                   real_t     dtConstant,
+                   uint_t     maxNumTimeSteps,
+                   uint_t     minLevel,
+                   uint_t     level,
+                   SolverInfo solverInfo,
+                   DomainInfo domainInfo,
+                   bool       predictorCorrector,
+                   real_t     simulationTime,
+                   OutputInfo outputInfo,
+                   bool       verbose )
 {
    walberla::WcTimer localTimer;
 
@@ -306,14 +433,14 @@ void runBenchmark( real_t      cflMax,
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Writing domain partitioning VTK ..." );
       }
 
-      writeDomainPartitioningVTK( storage, outputDirectory, outputBaseName + "_domain" );
+      writeDomainPartitioningVTK( storage, outputInfo.outputDirectory, outputInfo.outputBaseName + "_domain" );
    }
 
    auto timer = storage->getTimingTree();
@@ -335,7 +462,7 @@ void runBenchmark( real_t      cflMax,
    const real_t initialTemperatureSteepness = 10.0;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputBaseName )
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputInfo.outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + fixed time step:                              " << fixedTimeStep )
    if ( fixedTimeStep )
@@ -366,20 +493,25 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + Uzawa omega:                                  " << solverInfo.uzawaOmega )
    WALBERLA_LOG_INFO_ON_ROOT( "   + diffusion solver:                             " << int_c( solverInfo.diffusionSolverType ) )
 
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
+      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << outputInfo.vtkInterval )
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + output directory:                             " << outputDirectory )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + output base name:                             " << outputBaseName )
+   if ( outputInfo.sphericalTemperatureSlice )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "   + spherical slice output interval:              " << outputInfo.sphericalTemperatureSliceInterval )
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << outputInfo.printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + output directory:                             " << outputInfo.outputDirectory )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + output base name:                             " << outputInfo.outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    auto storageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   FixedSizeSQLDB db( outputDirectory + "/" + outputBaseName + ".db" );
+   FixedSizeSQLDB db( outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + ".db" );
 
    db.setConstantEntry( "ra", rayleighNumber );
    db.setConstantEntry( "fixed_time_step", fixedTimeStep );
@@ -446,9 +578,21 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp( "uTmp", storage, minLevel, level, bcVelocity );
    ScalarFunction uTmp2( "uTmp2", storage, minLevel, level, bcVelocity );
 
+   SphericalHarmonicsTool sphTool( 6 );
+
    std::function< real_t( const Point3D& ) > initialTemperature = [&]( const Point3D& x ) {
       auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      return std::exp( -initialTemperatureSteepness * ( ( radius - domainInfo.rMin ) / ( domainInfo.rMax - domainInfo.rMin ) ) );
+
+      const auto linearSlope =
+          std::max( real_c( 0 ), 1 - ( ( radius - domainInfo.rMin ) / ( domainInfo.rMax - domainInfo.rMin ) ) );
+
+      const auto xn = x / x.norm();
+
+      // sph ~ in (-2, 2)
+      const auto powerPertubation = sphTool.shconvert_eval( 4, 3, xn[0], xn[1], xn[2] );
+
+      const auto powerSlope = std::pow( linearSlope, 4 + powerPertubation );
+      return powerSlope;
    };
 
    if ( verbose )
@@ -755,10 +899,10 @@ void runBenchmark( real_t      cflMax,
    real_t timeDiffusion = 0;
    real_t timeVTK       = 0;
 
-   hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
+   hyteg::VTKOutput vtkOutput( outputInfo.outputDirectory, outputInfo.outputBaseName, storage, outputInfo.vtkInterval );
    vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
 
-   if ( vtkOutputVertexDoFs )
+   if ( outputInfo.vtkOutputVertexDoFs )
    {
       vtkOutput.add( c.getVertexDoFFunction() );
    }
@@ -767,9 +911,9 @@ void runBenchmark( real_t      cflMax,
       vtkOutput.add( c );
    }
 
-   if ( vtkOutputVelocity )
+   if ( outputInfo.vtkOutputVelocity )
    {
-      if ( vtkOutputVertexDoFs )
+      if ( outputInfo.vtkOutputVertexDoFs )
       {
          vtkOutput.add( u.uvw[0].getVertexDoFFunction() );
          vtkOutput.add( u.uvw[1].getVertexDoFFunction() );
@@ -782,7 +926,7 @@ void runBenchmark( real_t      cflMax,
    }
    else
    {
-      if ( vtkOutputVertexDoFs )
+      if ( outputInfo.vtkOutputVertexDoFs )
       {
          vtkOutput.add( uMagnitudeSquared.getVertexDoFFunction() );
       }
@@ -847,12 +991,31 @@ void runBenchmark( real_t      cflMax,
    }
 
    localTimer.start();
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
       vtkOutput.write( level );
    }
    localTimer.end();
    timeVTK = localTimer.last();
+
+   if ( outputInfo.sphericalTemperatureSlice && timeStep % outputInfo.sphericalTemperatureSliceInterval == 0 )
+   {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slice ..." );
+      }
+      evaluateSphericalSliceUV( domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin ),
+                                outputInfo.sphericalTemperatureSliceNumMeridians,
+                                outputInfo.sphericalTemperatureSliceNumParallels,
+                                c,
+                                level,
+                                outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_" +
+                                    std::to_string( timeStep ) + ".csv" );
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+      }
+   }
 
    timeStepTimer.end();
    timeStepTotal = timeStepTimer.last();
@@ -1113,12 +1276,23 @@ void runBenchmark( real_t      cflMax,
       }
 
       localTimer.start();
-      if ( vtk )
+      if ( outputInfo.vtk )
       {
          vtkOutput.write( level, timeStep );
       }
       localTimer.end();
       timeVTK = localTimer.last();
+
+      if ( outputInfo.sphericalTemperatureSlice && timeStep % outputInfo.sphericalTemperatureSliceInterval == 0 )
+      {
+         evaluateSphericalSliceUV( domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin ),
+                                   outputInfo.sphericalTemperatureSliceNumMeridians,
+                                   outputInfo.sphericalTemperatureSliceNumParallels,
+                                   c,
+                                   level,
+                                   outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_" +
+                                       std::to_string( timeStep ) + ".csv" );
+      }
 
       timeStepTimer.end();
       timeStepTotal = timeStepTimer.last();
@@ -1136,7 +1310,7 @@ void runBenchmark( real_t      cflMax,
 
       db.writeRowOnRoot();
 
-      if ( printInterval > 0 && timeStep % printInterval == 0 )
+      if ( outputInfo.printInterval > 0 && timeStep % outputInfo.printInterval == 0 )
       {
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
@@ -1162,8 +1336,9 @@ void runBenchmark( real_t      cflMax,
             WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
          }
 
-         writeTimingTreeJSON(
-             *timer, outputDirectory + "/" + outputBaseName + "_up_to_ts_" + std::to_string( timeStep ) + "_timing.json" );
+         writeTimingTreeJSON( *timer,
+                              outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_up_to_ts_" +
+                                  std::to_string( timeStep ) + "_timing.json" );
       }
    }
 }
@@ -1195,6 +1370,7 @@ int main( int argc, char** argv )
 
    hyteg::DomainInfo domainInfo;
    hyteg::SolverInfo solverInfo;
+   hyteg::OutputInfo outputInfo;
 
    domainInfo.threeDim = mainConf.getParameter< bool >( "threeDim" );
    domainInfo.rMin     = mainConf.getParameter< hyteg::real_t >( "rMin" );
@@ -1227,12 +1403,17 @@ int main( int argc, char** argv )
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverInfo.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
-   const std::string outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
-   const std::string outputBaseName      = mainConf.getParameter< std::string >( "outputBaseName" );
-   const bool        vtk                 = mainConf.getParameter< bool >( "vtk" );
-   const bool        vtkOutputVelocity   = mainConf.getParameter< bool >( "vtkOutputVelocity" );
-   const uint_t      vtkOutputInterval   = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
-   const bool        vtkOutputVertexDoFs = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
+   outputInfo.outputDirectory                       = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputInfo.outputBaseName                        = mainConf.getParameter< std::string >( "outputBaseName" );
+   outputInfo.vtk                                   = mainConf.getParameter< bool >( "vtk" );
+   outputInfo.vtkOutputVelocity                     = mainConf.getParameter< bool >( "vtkOutputVelocity" );
+   outputInfo.vtkInterval                           = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
+   outputInfo.vtkOutputVertexDoFs                   = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
+   outputInfo.printInterval                         = 1;
+   outputInfo.sphericalTemperatureSlice             = mainConf.getParameter< bool >( "sphericalTemperatureSlice" );
+   outputInfo.sphericalTemperatureSliceInterval     = mainConf.getParameter< uint_t >( "sphericalTemperatureSliceInterval" );
+   outputInfo.sphericalTemperatureSliceNumMeridians = mainConf.getParameter< int >( "sphericalTemperatureSliceNumMeridians" );
+   outputInfo.sphericalTemperatureSliceNumParallels = mainConf.getParameter< int >( "sphericalTemperatureSliceNumParallels" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -1247,12 +1428,6 @@ int main( int argc, char** argv )
                         domainInfo,
                         true,
                         simulationTime,
-                        vtk,
-                        vtkOutputVelocity,
-                        1,
-                        vtkOutputInterval,
-                        vtkOutputVertexDoFs,
-                        outputDirectory,
-                        outputBaseName,
+                        outputInfo,
                         verbose );
 }
