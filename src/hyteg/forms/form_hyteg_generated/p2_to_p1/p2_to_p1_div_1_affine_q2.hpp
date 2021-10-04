@@ -60,7 +60,7 @@ class p2_to_p1_div_1_affine_q2 : public P2ToP1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               77     103       1       0      1             95                 0
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 6 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -72,7 +72,7 @@ class p2_to_p1_div_1_affine_q2 : public P2ToP1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               53      58       1       0      1             44                 0
    ///
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -84,7 +84,7 @@ class p2_to_p1_div_1_affine_q2 : public P2ToP1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              256     295       1       0      1            242                 0
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 10 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 10 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -96,7 +96,7 @@ class p2_to_p1_div_1_affine_q2 : public P2ToP1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              166     159       1       0      1            126                 0
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
    bool assemble2D() const override { return true; }
 

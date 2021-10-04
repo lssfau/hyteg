@@ -23,7 +23,7 @@
  * 
  * Software:
  *
- * - quadpy version: 0.16.6
+ * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -31,7 +31,6 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
@@ -52,34 +51,42 @@ class p2_epsiloncc_2_2_blending_q3 : public P2FormHyTeG
  public:
 
    /// \brief Not implemented - does nothing.
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
    /// \brief Not implemented - does nothing.
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 4 | points: 11, degree: 4, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             4481    6572      12     12           2423                11
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                             2421    3612       7       0      7           1438                 6
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 4 | points: 11, degree: 4, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1400    2018      12     12           1052                11
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              780    1128       7       0      7            607                 6
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
+
+   bool assemble2D() const override { return false; }
+
+   bool assembly2DDefined() const override { return false; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
  private:
 

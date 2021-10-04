@@ -31,7 +31,6 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
@@ -57,11 +56,11 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (6, 6)
    /// - quadrature rule:                        Hillion 7 | points: 4, degree: 3, test tolerance: 2.22e-16
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              251     440       5      5            261                 4
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              251     440       5       0      5            261                 4
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -69,11 +68,11 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (6, 6)
    /// - quadrature rule:                        Hillion 7 | points: 4, degree: 3, test tolerance: 2.22e-16
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              146     236       5      5            138                 4
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              146     236       5       0      5            138                 4
    ///
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -81,11 +80,11 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (10, 10)
    /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1665    2424       7      7           1060                 6
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                             1665    2424       7       0      7           1060                 6
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -93,11 +92,19 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (10, 10)
    /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              738    1020       7      7            493                 6
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              738    1020       7       0      7            493                 6
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
+
+   bool assemble2D() const override { return true; }
+
+   bool assembly2DDefined() const override { return true; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
  private:
 
