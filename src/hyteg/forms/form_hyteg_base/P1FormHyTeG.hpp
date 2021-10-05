@@ -86,22 +86,22 @@ class P1FormHyTeG : public P1Form
 
    // We'd need to implement that in each child as we partially have separate 2D and 3D forms for P1 elements
    // at the moment; although the P1ElementwiseOperator does not make use of these anyway
-   virtual bool assemble2D() const
+   bool assemble2D() const override
    {
       WALBERLA_ABORT( "Don't call assemble2D on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assemble3D() const
+   bool assemble3D() const override
    {
       WALBERLA_ABORT( "Don't call assemble3D on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assembly2DDefined() const
+   bool assembly2DDefined() const override
    {
       WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assembly3DDefined() const
+   bool assembly3DDefined() const override
    {
       WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
       return false;
