@@ -12,7 +12,7 @@ def create_files(args, args_dict):
     # parameter file
     binary_name = 'MantleConvection'
 
-    base_name = '_'.join(['mc', datestamp, f'ra_{args.ra}', f'nodes_{args.num_nodes}'])
+    base_name = '_'.join(['mc', datestamp, f'nodes_{args.num_nodes}'])
     parameter_file_name = base_name + '.prm'
     args_dict['base_name'] = base_name
     args_dict['output_directory'] = args.out_dir
@@ -21,14 +21,11 @@ def create_files(args, args_dict):
 
     # job file
     if args.machine == 'hawk':
-        raise Exception('Hawk untested')
         job_file_name = base_name + '.job'
-        args_dict['out_dir'] = '../hawk'
-        args_dict['path'] = os.getcwd().rstrip('scriptGeneration')
+        args_dict['out_dir'] = '.'
         args_dict['binary_name'] = binary_name
         args_dict['job_name'] = base_name
         args_dict['paramfile_name'] = parameter_file_name
-        args_dict['total_num_procs'] = args.num_cores * args.num_nodes
         job_file = job_file_hawk(**args_dict)
     elif args.machine == 'supermuc':
         job_file_name = base_name + '.job'
@@ -63,7 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--ntan', default=5, help='parameter for spherical shell mesh', type=int)
     parser.add_argument('--nrad', default=4, help='parameter for spherical shell mesh', type=int)
 
-    parser.add_argument('--max_level', default=5, help='max level for multigrid', type=int)
+    parser.add_argument('--max_level', default=4, help='max level for multigrid', type=int)
     parser.add_argument('--ra', default=1e8, help='Rayleigh number')
     parser.add_argument('--cfl', default=1.0, help='CFL number')
     parser.add_argument('--out_dir', default='.', help='output directory')
@@ -74,8 +71,8 @@ if __name__ == '__main__':
     parser.add_argument('--uzawa_post', default=10, type=int)
     parser.add_argument('--uzawa_inner', default=6, type=int)
 
-    parser.add_argument('--stokes_abs_tol', default=1e-6, type=float)
-    parser.add_argument('--stokes_rel_tol', default=1e-6, type=float)
+    parser.add_argument('--stokes_abs_tol', default=1e-8, type=float)
+    parser.add_argument('--stokes_rel_tol', default=1e-8, type=float)
 
     parser.add_argument('--vtk_interval', default=10, type=int)
     parser.add_argument('--vtk_vertex_dofs', default=False, type=bool)

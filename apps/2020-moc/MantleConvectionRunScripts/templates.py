@@ -1,13 +1,13 @@
-
-
-def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int,
-                          stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int, vtk_vertex_dofs: bool, **kwargs):
+def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int,
+                          uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int,
+                          stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int,
+                          vtk_vertex_dofs: bool, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
     minLevel 0;
 
-    rMin 0.5;
+    rMin 0.55;
     rMax 1.0;
 
     // nTan 12;
@@ -49,7 +49,7 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     cflMax {cfl};
     fixedTimeStep false;
     dtConstant 1e-4;
-    rayleighNumber 1e8;
+    rayleighNumber {ra};
     vtk true;
     vtkOutputVelocity false;
     vtkOutputInterval {vtk_interval};
@@ -63,35 +63,33 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
 """
 
 
+def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_mpi_procs_per_node: int, walltime: str,
+                  paramfile_name: str, **kwargs):
+    petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
 
-def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_omp_threads_per_mpi_proc: int, walltime: str, total_num_procs: int, paramfile_name: str,
-                  path: str, **kwargs):
     return f"""#!/bin/bash
 #PBS -N {job_name}
-#PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_omp_threads_per_mpi_proc}
+#PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_mpi_procs_per_node}
 #PBS -l walltime={walltime}
 #PBS -m abe
-#PBS -M dominik.thoennes@fau.de
+#PBS -M nils.kohl@fau.de
 
 export MPI_LAUNCH_TIMEOUT=1000
 export MPI_IB_CONGESTED=1
 
-module load gcc
-module load mpt
-module load cmake
-module load petsc
-module list
+source load_modules_hawk.sh
 
 cd $PBS_O_WORKDIR
 cd ..
 pwd
 ls -lha
 
-mpirun -np {total_num_procs} omplace -c 0-128:st={int(128 / num_omp_threads_per_mpi_proc)} {path}{binary_name} {path}hawk/{paramfile_name}
+mpirun -np {num_nodes*num_mpi_procs_per_node} omplace -c 0-128:st={int(128 / num_mpi_procs_per_node)} ./{binary_name} MantleConvectionRunScripts/{paramfile_name} {petsc_detail_string}
 """
 
 
-def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_mpi_procs_per_node: int, walltime: str, paramfile_name: str, **kwargs):
+def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_mpi_procs_per_node: int, walltime: str,
+                      paramfile_name: str, **kwargs):
     petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
 
     def partition(num_nodes):
