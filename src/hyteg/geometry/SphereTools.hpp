@@ -35,6 +35,8 @@ void pointwiseScalarFunctionEvaluation( const std::vector< Point3D >& points,
                                         uint_t                        level,
                                         std::vector< real_t >&        data )
 {
+   data.clear();
+
    // We build a process-local map of the ID of the evaluation point to the value.
    // The map is only filled at points that could be evaluated.
    std::map< uint_t, real_t > samples;
@@ -82,6 +84,8 @@ void pointwiseScalarFunctionEvaluation( const std::vector< Point3D >& points,
       }
 
       WALBERLA_CHECK_EQUAL( samplesGlobal.size(), points.size(), "Could not successfully evaluate at all points." );
+
+      data.resize( points.size() );
 
       for ( uint_t idx = 0; idx < points.size(); idx++ )
       {
@@ -328,18 +332,18 @@ void evaluateSphericalSliceUV( real_t              radius,
    const auto numPoints = numMeridians * numParallels;
 
    std::vector< Point3D > points;
-   std::vector< int > meridians;
-   std::vector< int > parallels;
+   std::vector< int >     meridians;
+   std::vector< int >     parallels;
 
    uvSphereSurfaceVertices( radius, numMeridians, numParallels, points, meridians, parallels );
 
    std::vector< real_t > data;
    pointwiseScalarFunctionEvaluation( points, f, level, data );
 
-   WALBERLA_CHECK_EQUAL( numPoints, data.size(), "Data points should match requested size." );
-
    WALBERLA_ROOT_SECTION()
    {
+      WALBERLA_CHECK_EQUAL( numPoints, data.size(), "Data points should match requested size." );
+
       std::ofstream filestream;
       filestream.open( outputFile );
 

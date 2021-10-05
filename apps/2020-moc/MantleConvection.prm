@@ -1,6 +1,6 @@
 Parameters
 {
-    level 3;
+    level 2;
     minLevel 0;
 
     rMin 0.55;
@@ -10,8 +10,8 @@ Parameters
     // nRad 2;
     // threeDim false;
 
-    nTan 5;
-    nRad 4;
+    nTan 3;
+    nRad 3;
     threeDim true;
 
     // PETSC_MUMPS         = 0,
@@ -56,6 +56,7 @@ Parameters
     sphericalTemperatureSliceInterval 1;
     sphericalTemperatureSliceNumMeridians 360;
     sphericalTemperatureSliceNumParallels 360;
+    sphericalTemperatureSliceIcoRefinements 6;
 
     outputDirectory review;
     outputBaseName review_test;

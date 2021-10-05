@@ -162,6 +162,7 @@ struct OutputInfo
    bool        sphericalTemperatureSlice;
    int         sphericalTemperatureSliceNumMeridians;
    int         sphericalTemperatureSliceNumParallels;
+   int         sphericalTemperatureSliceIcoRefinements;
    uint_t      printInterval;
    uint_t      vtkInterval;
    uint_t      sphericalTemperatureSliceInterval;
@@ -344,7 +345,8 @@ void runBenchmark( real_t     cflMax,
 
    const real_t diffusivity                 = 1.0;
    const real_t internalHeating             = 0.0;
-   const real_t initialTemperatureSteepness = 10.0;
+
+   const real_t sliceEvaluationRadius = domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputInfo.outputBaseName )
@@ -892,15 +894,23 @@ void runBenchmark( real_t     cflMax,
    {
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slice ..." );
+         WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slices ..." );
       }
-      evaluateSphericalSliceUV( domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin ),
+
+      evaluateSphericalSliceUV( sliceEvaluationRadius,
                                 outputInfo.sphericalTemperatureSliceNumMeridians,
                                 outputInfo.sphericalTemperatureSliceNumParallels,
                                 c,
                                 level,
-                                outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_" +
+                                outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_uv_" +
                                     std::to_string( timeStep ) + ".csv" );
+
+      evaluateSphericalSliceIco( sliceEvaluationRadius,
+                                 outputInfo.sphericalTemperatureSliceIcoRefinements,
+                                 c,
+                                 level,
+                                 outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_ico_" +
+                                     std::to_string( timeStep ) + ".csv" );
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Done." );
@@ -1175,13 +1185,29 @@ void runBenchmark( real_t     cflMax,
 
       if ( outputInfo.sphericalTemperatureSlice && timeStep % outputInfo.sphericalTemperatureSliceInterval == 0 )
       {
-         evaluateSphericalSliceUV( domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin ),
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slices ..." );
+         }
+
+         evaluateSphericalSliceUV( sliceEvaluationRadius,
                                    outputInfo.sphericalTemperatureSliceNumMeridians,
                                    outputInfo.sphericalTemperatureSliceNumParallels,
                                    c,
                                    level,
-                                   outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_" +
+                                   outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_uv_" +
                                        std::to_string( timeStep ) + ".csv" );
+
+         evaluateSphericalSliceIco( sliceEvaluationRadius,
+                                    outputInfo.sphericalTemperatureSliceIcoRefinements,
+                                    c,
+                                    level,
+                                    outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_ico_" +
+                                        std::to_string( timeStep ) + ".csv" );
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+         }
       }
 
       timeStepTimer.end();
@@ -1293,17 +1319,18 @@ int main( int argc, char** argv )
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverInfo.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
-   outputInfo.outputDirectory                       = mainConf.getParameter< std::string >( "outputDirectory" );
-   outputInfo.outputBaseName                        = mainConf.getParameter< std::string >( "outputBaseName" );
-   outputInfo.vtk                                   = mainConf.getParameter< bool >( "vtk" );
-   outputInfo.vtkOutputVelocity                     = mainConf.getParameter< bool >( "vtkOutputVelocity" );
-   outputInfo.vtkInterval                           = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
-   outputInfo.vtkOutputVertexDoFs                   = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
-   outputInfo.printInterval                         = 1;
-   outputInfo.sphericalTemperatureSlice             = mainConf.getParameter< bool >( "sphericalTemperatureSlice" );
-   outputInfo.sphericalTemperatureSliceInterval     = mainConf.getParameter< uint_t >( "sphericalTemperatureSliceInterval" );
-   outputInfo.sphericalTemperatureSliceNumMeridians = mainConf.getParameter< int >( "sphericalTemperatureSliceNumMeridians" );
-   outputInfo.sphericalTemperatureSliceNumParallels = mainConf.getParameter< int >( "sphericalTemperatureSliceNumParallels" );
+   outputInfo.outputDirectory                         = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputInfo.outputBaseName                          = mainConf.getParameter< std::string >( "outputBaseName" );
+   outputInfo.vtk                                     = mainConf.getParameter< bool >( "vtk" );
+   outputInfo.vtkOutputVelocity                       = mainConf.getParameter< bool >( "vtkOutputVelocity" );
+   outputInfo.vtkInterval                             = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
+   outputInfo.vtkOutputVertexDoFs                     = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
+   outputInfo.printInterval                           = 1;
+   outputInfo.sphericalTemperatureSlice               = mainConf.getParameter< bool >( "sphericalTemperatureSlice" );
+   outputInfo.sphericalTemperatureSliceInterval       = mainConf.getParameter< uint_t >( "sphericalTemperatureSliceInterval" );
+   outputInfo.sphericalTemperatureSliceNumMeridians   = mainConf.getParameter< int >( "sphericalTemperatureSliceNumMeridians" );
+   outputInfo.sphericalTemperatureSliceNumParallels   = mainConf.getParameter< int >( "sphericalTemperatureSliceNumParallels" );
+   outputInfo.sphericalTemperatureSliceIcoRefinements = mainConf.getParameter< int >( "sphericalTemperatureSliceIcoRefinements" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 

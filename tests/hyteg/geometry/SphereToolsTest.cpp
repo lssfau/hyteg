@@ -71,7 +71,7 @@ void writeSimpleVTKFile( const std::vector< Point3D >& points, std::string filen
    fstream.close();
 }
 
-void referenceDomain( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax )
+std::shared_ptr< PrimitiveStorage > referenceDomain( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, bool vtk )
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
@@ -88,7 +88,10 @@ void referenceDomain( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax )
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   writeDomainPartitioningVTK( *storage, "../../output", "SphereToolsTest_Domain" );
+   if ( vtk )
+   {
+      writeDomainPartitioningVTK( *storage, "../../output", "SphereToolsTest_Domain" );
+   }
 
    const uint_t level = 2;
 
@@ -97,9 +100,11 @@ void referenceDomain( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax )
    auto f = []( const Point3D& p ) { return p[0] * p[1] * p[2]; };
    someFunction.interpolate( f, level );
 
-   VTKOutput vtk( "../../output", "SphereToolsTest_Function", storage );
-   vtk.add( someFunction );
-   vtk.write( level );
+   VTKOutput vtkout( "../../output", "SphereToolsTest_Function", storage );
+   vtkout.add( someFunction );
+   vtkout.write( level );
+
+   return storage;
 }
 
 void testEvaluateUV()
@@ -110,6 +115,15 @@ void testEvaluateUV()
 
    uvSphereSurfaceVertices( 1, 16, 16, vertices, meridians, parallels );
    writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_UV_m16_p16.vtu" );
+
+   const auto           level   = 3;
+   auto                 storage = referenceDomain( 3, 3, 0.55, 1, false );
+   P1Function< real_t > someFunction( "someFunction", storage, level, level );
+
+   auto f = []( const Point3D& p ) { return p[0] * p[1] * p[2]; };
+   someFunction.interpolate( f, level );
+
+   evaluateSphericalSliceUV( 0.8, 16, 16, someFunction, level, "../../output/SphereToolsTest_UV.csv" );
 }
 
 void testEvaluateIco()
@@ -117,14 +131,23 @@ void testEvaluateIco()
    std::vector< Point3D >                 vertices;
    std::vector< std::array< uint_t, 3 > > triangles;
 
-   icosahedralSurfaceTriangles( 1, 0, vertices, triangles );
-   writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_Ico_0_Refinements.vtu" );
+   for ( int i = 0; i < 7; i++ )
+   {
+      vertices.clear();
+      triangles.clear();
+      icosahedralSurfaceTriangles( 1, i, vertices, triangles );
+      WALBERLA_LOG_INFO_ON_ROOT( "Ico refinements: " << i << " | vertices: " << vertices.size() );
+      writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_Ico_" + std::to_string( i ) + "_Refinements.vtu" );
+   }
 
-   icosahedralSurfaceTriangles( 1, 1, vertices, triangles );
-   writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_Ico_1_Refinements.vtu" );
+   const auto           level   = 3;
+   auto                 storage = referenceDomain( 3, 3, 0.55, 1, false );
+   P1Function< real_t > someFunction( "someFunction", storage, level, level );
 
-   icosahedralSurfaceTriangles( 1, 2, vertices, triangles );
-   writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_Ico_2_Refinements.vtu" );
+   auto f = []( const Point3D& p ) { return p[0] * p[1] * p[2]; };
+   someFunction.interpolate( f, level );
+
+   evaluateSphericalSliceIco( 0.8, 4, someFunction, level, "../../output/SphereToolsTest_Ico.csv" );
 }
 } // namespace hyteg
 
@@ -136,7 +159,7 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::referenceDomain( 3, 3, 0.55, 1 );
+   hyteg::referenceDomain( 3, 3, 0.55, 1, true );
    hyteg::testEvaluateUV();
    hyteg::testEvaluateIco();
 
