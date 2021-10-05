@@ -1,7 +1,7 @@
 def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int,
                           uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int,
                           stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int,
-                          vtk_vertex_dofs: bool, **kwargs):
+                          vtk_vertex_dofs: bool, sph_tmp_interval: int, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -52,8 +52,15 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     rayleighNumber {ra};
     vtk true;
     vtkOutputVelocity false;
+    
     vtkOutputInterval {vtk_interval};
     vtkOutputVertexDoFs {vtk_vertex_dofs};
+
+    sphericalTemperatureSlice true;
+    sphericalTemperatureSliceInterval {sph_tmp_interval};
+    sphericalTemperatureSliceNumMeridians 360;
+    sphericalTemperatureSliceNumParallels 360;
+    sphericalTemperatureSliceIcoRefinements 6;
 
     outputDirectory {output_directory};
     outputBaseName {base_name};
@@ -74,15 +81,16 @@ def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_mpi_procs
 #PBS -m abe
 #PBS -M nils.kohl@fau.de
 
-export MPI_LAUNCH_TIMEOUT=1000
-export MPI_IB_CONGESTED=1
-
+cd $PBS_O_WORKDIR
 source load_modules_hawk.sh
 
-cd $PBS_O_WORKDIR
 cd ..
+
 pwd
 ls -lha
+
+export MPI_LAUNCH_TIMEOUT=1000
+export MPI_IB_CONGESTED=1
 
 mpirun -np {num_nodes*num_mpi_procs_per_node} omplace -c 0-128:st={int(128 / num_mpi_procs_per_node)} ./{binary_name} MantleConvectionRunScripts/{paramfile_name} {petsc_detail_string}
 """
