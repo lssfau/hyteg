@@ -38,7 +38,7 @@ void writeSimpleVTKFile( const std::vector< Point3D >& points, std::string filen
          "        <Cells>\n"
          "          <DataArray type=\"Int32\" Name=\"connectivity\">\n";
 
-   for ( int i = 0; i < points.size(); i++ )
+   for ( uint_t i = 0; i < points.size(); i++ )
    {
       ss << i << "\n";
    }
@@ -46,7 +46,7 @@ void writeSimpleVTKFile( const std::vector< Point3D >& points, std::string filen
    ss << "          </DataArray>\n"
          "          <DataArray type=\"Int32\" Name=\"offsets\">\n";
 
-   for ( int i = 0; i < points.size(); i++ )
+   for ( uint_t i = 0; i < points.size(); i++ )
    {
       ss << i + 1 << "\n";
    }
@@ -54,7 +54,7 @@ void writeSimpleVTKFile( const std::vector< Point3D >& points, std::string filen
    ss << "          </DataArray>\n"
          "          <DataArray type=\"UInt8\" Name=\"types\">\n";
 
-   for ( int i = 0; i < points.size(); i++ )
+   for ( uint_t i = 0; i < points.size(); i++ )
    {
       ss << 1 << "\n";
    }
