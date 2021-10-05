@@ -520,13 +520,13 @@ class P1ConstantOperator : public P1Operator< P1Form >
             {
                Edge& edge          = *it.second;
                auto  stencilMemory = edge.getData( edgeStencilID_ )->getPointer( level );
-               auto& stencilMap    = edge.getData(edgeStencil3DID_)->getData(level);
+               auto& stencilMap    = edge.getData( edgeStencil3DID_ )->getData( level );
 
                assemble_variableStencil_edge_init( edge, level );
 
-               if (storage_->hasGlobalCells())
+               if ( storage_->hasGlobalCells() )
                {
-                  assemble_variableStencil_edge3D(stencilMap, 1);
+                  assemble_variableStencil_edge3D( stencilMap, 1 );
                }
 
                assemble_variableStencil_edge( stencilMemory, 1 ); // assemble both new and old version of 3D stencil
@@ -538,7 +538,9 @@ class P1ConstantOperator : public P1Operator< P1Form >
 
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoAssemble > > P1ZeroOperator;
 
-typedef P1ConstantOperator< forms::p1_diffusion_affine_q2 > P1ConstantLaplaceOperator;
+typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
+    P1ConstantLaplaceOperator;
+// typedef P1ConstantOperator< forms::p1_diffusion_affine_q2 > P1ConstantLaplaceOperator;
 typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly >, true >
     P1DiagonalLaplaceOperator;
 
