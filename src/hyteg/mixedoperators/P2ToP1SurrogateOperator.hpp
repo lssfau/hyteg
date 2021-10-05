@@ -31,7 +31,6 @@
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_0_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_1_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
