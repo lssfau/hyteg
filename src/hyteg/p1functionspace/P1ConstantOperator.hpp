@@ -56,29 +56,28 @@ namespace hyteg {
 
 using walberla::real_t;
 
-// todo add lumped, diagonal and inverse template flags and corresponding implementations
 template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
-class P1ConstantOperator : public P1Operator< P1Form >
+class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >
 {
-   using P1Operator< P1Form >::P1Operator;
-   using P1Operator< P1Form >::storage_;
-   using P1Operator< P1Form >::form_;
-   using P1Operator< P1Form >::minLevel_;
-   using P1Operator< P1Form >::maxLevel_;
-   using P1Operator< P1Form >::vertexStencilID_;
-   using P1Operator< P1Form >::edgeStencilID_;
-   using P1Operator< P1Form >::faceStencilID_;
-   using P1Operator< P1Form >::edgeStencil3DID_;
-   using P1Operator< P1Form >::faceStencil3DID_;
-   using P1Operator< P1Form >::cellStencilID_;
-   using P1Operator< P1Form >::assemble_variableStencil_edge_init;
-   using P1Operator< P1Form >::assemble_variableStencil_face_init;
-   using P1Operator< P1Form >::assemble_variableStencil_cell_init;
-   using P1Operator< P1Form >::assemble_variableStencil_edge;
-   using P1Operator< P1Form >::assemble_variableStencil_edge3D;
-   using P1Operator< P1Form >::assemble_variableStencil_face;
-   using P1Operator< P1Form >::assemble_variableStencil_face3D;
-   using P1Operator< P1Form >::assemble_variableStencil_cell;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1Operator;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::storage_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::form_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::minLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::maxLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::vertexStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::cellStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell;
 
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -86,7 +85,7 @@ class P1ConstantOperator : public P1Operator< P1Form >
    {}
 
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form )
-   : P1Operator< P1Form >( storage, minLevel, maxLevel, form )
+   : P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >( storage, minLevel, maxLevel, form )
    {
       // pre-assemble edge, face and cell stencils
       assembleStencils();

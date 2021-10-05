@@ -43,7 +43,8 @@ namespace hyteg {
 using walberla::int_c;
 using walberla::real_t;
 
-template < class P1Form >
+// todo: incorporate bool template params into assemble_variable_stencil...()
+template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >,
                    public GSSmoothable< P1Function< real_t > >,
                    public GSBackwardsSmoothable< P1Function< real_t > >,
