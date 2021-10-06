@@ -633,7 +633,7 @@ void runBenchmark( real_t     cflMax,
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, 10000, 1 );
+          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, 1000, 1 );
       petscSolverInternalTmp->setVerbose( verbose );
       auto coarseGridSolver = petscSolverInternalTmp;
 
