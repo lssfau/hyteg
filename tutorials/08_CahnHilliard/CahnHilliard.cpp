@@ -552,16 +552,6 @@ class P1CahnHilliardFunction : public BlockFunction< value_t >
    {
       return this->getSubFunction( 1 ).template unwrap< P1Function< value_t > >();
    }
-
-   // TODO: Move this into BlockFunction
-   template < typename OtherFunctionValueType >
-   void copyBoundaryConditionFromFunction( const P1CahnHilliardFunction< OtherFunctionValueType >& other )
-   {
-      for ( uint_t k = 0; k < BlockFunction< value_t >::getNumberOfBlocks(); ++k )
-      {
-         BlockFunction< value_t >::getSubFunction( k ).setBoundaryCondition( other.getSubFunction( k ).getBoundaryCondition() );
-      }
-   }
 };
 /// [CahnHilliardFunction definition]
 
