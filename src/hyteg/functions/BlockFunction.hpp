@@ -280,6 +280,16 @@ class BlockFunction
       }
    }
 
+   template < typename OtherType >
+   void copyBoundaryConditionFromFunction( const BlockFunction< OtherType >& other )
+   {
+      WALBERLA_ASSERT_EQUAL( subFunc_.size(), other.getNumberOfBlocks() );
+      for ( uint_t k = 0; k < subFunc_.size(); k++ )
+      {
+         subFunc_[k]->setBoundaryCondition( other.getSubFunction( k ).getBoundaryCondition() );
+      }
+   }
+
  protected:
    const std::string                                            functionName_;
    std::vector< std::shared_ptr< GenericFunction< value_t > > > subFunc_;
