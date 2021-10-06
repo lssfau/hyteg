@@ -27,7 +27,7 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 
 waLBerla_compile_test(FILES convergence/P2GMGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMGConvergenceTest)
-waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG3DConvergenceTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
