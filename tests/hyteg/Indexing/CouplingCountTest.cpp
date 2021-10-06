@@ -25,7 +25,6 @@
 
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
@@ -63,9 +62,9 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
    for ( uint_t level = 0; level <= maxLevel; level++ )
    {
       // determine indices and dimensions
-      fType< PetscInt > enumerator( "enumerator", storage, level, level );
+      fType< idx_t > enumerator( "enumerator", storage, level, level );
       enumerator.enumerate( level );
-      typedef typename FunctionTrait< fType< PetscInt > >::Tag enumTag;
+      typedef typename FunctionTrait< fType< idx_t > >::Tag enumTag;
 
       uint_t globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
       uint_t localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
@@ -81,7 +80,7 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       uint_t nnzHyTeG = indexing::getNumberOfGlobalDoFCouplings( oper, level );
 
       // assemble matrix
-      PETScSparseMatrix< opType, fType > petscMat( localDoFs, globalDoFs );
+      PETScSparseMatrix< opType > petscMat( localDoFs, globalDoFs );
       petscMat.createMatrixFromOperator( oper, level, enumerator, All );
       uint_t nnzPETSc = petscMat.getInfo().getNNZ();
 

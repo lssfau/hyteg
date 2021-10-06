@@ -38,7 +38,7 @@ namespace petsc {
 //  P1Function
 // ============
 inline void createVectorFromFunction( const P1Function< PetscReal >&        function,
-                                      const P1Function< PetscInt >&         numerator,
+                                      const P1Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -93,7 +93,7 @@ inline void createVectorFromFunction( const P1Function< PetscReal >&        func
 }
 
 inline void createFunctionFromVector( const P1Function< PetscReal >&        function,
-                                      const P1Function< PetscInt >&         numerator,
+                                      const P1Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -156,7 +156,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
    }
 }
 
-inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getVertices() )
    {
@@ -196,7 +196,7 @@ inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vect
 //  P1VectorFunction
 // ==================
 inline void createVectorFromFunction( const P1VectorFunction< PetscReal >&  function,
-                                      const P1VectorFunction< PetscInt >&   numerator,
+                                      const P1VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -208,7 +208,7 @@ inline void createVectorFromFunction( const P1VectorFunction< PetscReal >&  func
 }
 
 inline void createFunctionFromVector( const P1VectorFunction< PetscReal >&  function,
-                                      const P1VectorFunction< PetscInt >&   numerator,
+                                      const P1VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -219,7 +219,7 @@ inline void createFunctionFromVector( const P1VectorFunction< PetscReal >&  func
    }
 }
 
-inline void applyDirichletBC( const P1VectorFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
    {
@@ -227,10 +227,17 @@ inline void applyDirichletBC( const P1VectorFunction< PetscInt >& numerator, std
    }
 }
 
+} // namespace petsc
+} // namespace hyteg
+
+#endif
+
+namespace hyteg {
+
 // =============
 //  P1Operators
 // =============
-inline void saveIdentityOperator( const P1Function< PetscInt >&               dst,
+inline void saveIdentityOperator( const P1Function< idx_t >&                  dst,
                                   const std::shared_ptr< SparseMatrixProxy >& mat,
                                   size_t                                      level,
                                   DoFType                                     flag )
@@ -285,77 +292,4 @@ inline void saveIdentityOperator( const P1Function< PetscInt >&               ds
    }
 }
 
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P1Function< PetscInt >&               src,
-                          const P1Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   const auto storage = src.getStorage();
-
-   for ( auto& it : opr.getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         vertexdof::macrovertex::saveOperator(
-             vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
-      }
-   }
-
-   for ( auto& it : opr.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         vertexdof::macroedge::saveOperator(
-             level, edge, *storage, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-      }
-   }
-
-   if ( level >= 2 )
-   {
-      for ( auto& it : opr.getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               vertexdof::macroface::saveOperator3D(
-                   level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-            else
-            {
-               vertexdof::macroface::saveOperator(
-                   level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-         }
-      }
-
-      for ( auto& it : opr.getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if ( testFlag( cellBC, flag ) )
-         {
-            vertexdof::macrocell::saveOperator(
-                level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-         }
-      }
-   }
-}
-
-} // namespace petsc
 } // namespace hyteg
-
-#endif

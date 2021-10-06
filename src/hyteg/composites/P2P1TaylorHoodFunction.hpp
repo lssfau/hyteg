@@ -56,7 +56,7 @@ class P2P1TaylorHoodFunction
    : uvw( _name + "_vector", storage, minLevel, maxLevel )
    , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
    {
-     uvw.setBoundaryCondition( velocityBC );
+      uvw.setBoundaryCondition( velocityBC );
    }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
@@ -211,14 +211,11 @@ class P2P1TaylorHoodFunction
 
    BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
 
-   void setVelocityBoundaryCondition( BoundaryCondition bc )
-   {
-      uvw.setBoundaryCondition( bc );
-   }
+   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw.setBoundaryCondition( bc ); }
 
    void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
 
-   template< typename OtherFunctionValueType >
+   template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const P2P1TaylorHoodFunction< OtherFunctionValueType >& other )
    {
       setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
@@ -229,23 +226,23 @@ class P2P1TaylorHoodFunction
    PressureFunction_T p;
 };
 
-inline unsigned long long p2p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long p2p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
    if ( storage->hasGlobalCells() )
    {
-      return 3 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+      return 3 * p2function::localFunctionMemorySize( level, storage ) + vertexDoFLocalFunctionMemorySize( level, storage );
    }
    else
    {
-      return 2 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+      return 2 * p2function::localFunctionMemorySize( level, storage ) + vertexDoFLocalFunctionMemorySize( level, storage );
    }
 }
 
-inline unsigned long long p2p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long p2p1globalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const auto memLocal = p2p1localFunctionMemorySize( level, storage );
+   const auto memLocal  = p2p1localFunctionMemorySize( level, storage );
    const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
    return memGlobal;
 }
 
-}
+} // namespace hyteg

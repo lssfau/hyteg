@@ -20,7 +20,8 @@
 #pragma once
 
 #include "core/DataTypes.h"
-#include "hyteg/types/flags.hpp"
+
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

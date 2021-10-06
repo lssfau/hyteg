@@ -25,14 +25,14 @@
 #include "hyteg/functions/GenericFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const GenericFunction< PetscReal >&   function,
-                                      const GenericFunction< PetscInt >&    numerator,
+                                      const GenericFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -41,7 +41,7 @@ inline void createVectorFromFunction( const GenericFunction< PetscReal >&   func
 }
 
 inline void createFunctionFromVector( const GenericFunction< PetscReal >&   function,
-                                      const GenericFunction< PetscInt >&    numerator,
+                                      const GenericFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )

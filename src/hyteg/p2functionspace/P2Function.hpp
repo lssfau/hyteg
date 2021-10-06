@@ -244,6 +244,7 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 
 extern template class P2Function< double >;
 extern template class P2Function< int >;
+extern template class P2Function< idx_t >;
 
 namespace p2function {
 

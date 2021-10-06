@@ -46,15 +46,13 @@ waLBerla_add_executable( NAME refCellCouplingCount
         FILES refCellCouplingCount.cpp
         DEPENDS hyteg)
 
-if( HYTEG_BUILD_WITH_EIGEN )
-    waLBerla_add_executable( NAME cg_P1_blending
-            FILES cg_P1_blending.cpp
-            DEPENDS hyteg)
+waLBerla_add_executable(NAME cg_P1_blending
+      FILES cg_P1_blending.cpp
+      DEPENDS hyteg)
 
-    waLBerla_add_executable( NAME gmg_blending
-            FILES gmg_blending.cpp
-            DEPENDS hyteg)
-endif()
+waLBerla_add_executable(NAME gmg_blending
+      FILES gmg_blending.cpp
+      DEPENDS hyteg)
 
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix

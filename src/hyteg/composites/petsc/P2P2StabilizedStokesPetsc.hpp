@@ -28,7 +28,7 @@ namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const P2P2StokesFunction< PetscReal >& function,
-                                      const P2P2StokesFunction< PetscInt >&  numerator,
+                                      const P2P2StokesFunction< idx_t >&     numerator,
                                       const std::shared_ptr< VectorProxy >&  vec,
                                       uint_t                                 level,
                                       DoFType                                flag )
@@ -43,7 +43,7 @@ inline void createVectorFromFunction( const P2P2StokesFunction< PetscReal >& fun
 }
 
 inline void createFunctionFromVector( const P2P2StokesFunction< PetscReal >& function,
-                                      const P2P2StokesFunction< PetscInt >&  numerator,
+                                      const P2P2StokesFunction< idx_t >&     numerator,
                                       const std::shared_ptr< VectorProxy >&  vec,
                                       uint_t                                 level,
                                       DoFType                                flag )
@@ -57,7 +57,7 @@ inline void createFunctionFromVector( const P2P2StokesFunction< PetscReal >& fun
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
-inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2P2StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );
    applyDirichletBC( numerator.uvw[1], mat, level );
@@ -66,35 +66,6 @@ inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, s
       applyDirichletBC( numerator.uvw[2], mat, level );
    }
    //  applyDirichletBC(numerator.p, mat, level);
-}
-
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P2P2StokesFunction< PetscInt >&       src,
-                          const P2P2StokesFunction< PetscInt >&       dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   createMatrix( opr.A, src.uvw[0], dst.uvw[0], mat, level, flag );
-   createMatrix( opr.divT_x, src.p, dst.uvw[0], mat, level, flag );
-
-   createMatrix( opr.A, src.uvw[1], dst.uvw[1], mat, level, flag );
-   createMatrix( opr.divT_y, src.p, dst.uvw[1], mat, level, flag );
-
-   if ( src.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createMatrix( opr.A, src.uvw[2], dst.uvw[2], mat, level, flag );
-      createMatrix( opr.divT_z, src.p, dst.uvw[2], mat, level, flag );
-   }
-
-   createMatrix( opr.div_x, src.uvw[0], dst.p, mat, level, flag | DirichletBoundary );
-   createMatrix( opr.div_y, src.uvw[1], dst.p, mat, level, flag | DirichletBoundary );
-   if ( src.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createMatrix( opr.div_z, src.uvw[2], dst.p, mat, level, flag | DirichletBoundary );
-   }
-   createMatrix( opr.pspg, src.p, dst.p, mat, level, flag | DirichletBoundary );
 }
 
 } // namespace petsc

@@ -26,6 +26,19 @@ class P2P1ElementwiseBlendingStokesBlockPreconditioner
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      for ( uint_t dim = 0; dim < src.uvw.getDimension(); dim++ )
+      {
+         A.toMatrix( mat, src.uvw[dim], dst.uvw[dim], level, flag );
+      }
+      P.toMatrix( mat, src.p, dst.p, level, flag );
+   }
+
    P2ElementwiseBlendingLaplaceOperator A;
    P1BlendingLumpedDiagonalOperator     P;
 

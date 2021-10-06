@@ -33,6 +33,7 @@ namespace hyteg {
 class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
+   typedef P2ConstantVectorLaplaceOperator         VelocityBlockOperator_T;
    typedef P2ConstantLaplaceOperator               VelocityOperator_T;
    typedef P2P1TaylorHoodStokesBlockPreconditioner BlockPreconditioner_T;
 
@@ -63,20 +64,31 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
       div.apply( src.uvw, dst.p, level, flag, Replace );
    }
 
-   P2ConstantVectorLaplaceOperator Lapl;
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      Lapl.toMatrix( mat, src.uvw, dst.uvw, level, flag );
+      divT.toMatrix( mat, src.p, dst.uvw, level, flag );
+      div.toMatrix( mat, src.uvw, dst.p, level, flag );
+   }
+
+   VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
 
-   // currently need these for being able to call createMatrix()
-   P2ConstantLaplaceOperator A;
-   P2ToP1ConstantDivxOperator      div_x;
-   P2ToP1ConstantDivyOperator      div_y;
-   P2ToP1ConstantDivzOperator      div_z;
-   P1ToP2ConstantDivTxOperator     divT_x;
-   P1ToP2ConstantDivTyOperator     divT_y;
-   P1ToP2ConstantDivTzOperator     divT_z;
+   // currently, need these for being able to integrate into the framework until the block operator is completed
+   P2ConstantLaplaceOperator   A;
+   P2ToP1ConstantDivxOperator  div_x;
+   P2ToP1ConstantDivyOperator  div_y;
+   P2ToP1ConstantDivzOperator  div_z;
+   P1ToP2ConstantDivTxOperator divT_x;
+   P1ToP2ConstantDivTyOperator divT_y;
+   P1ToP2ConstantDivTzOperator divT_z;
 
-   /// this operator is need in the uzawa smoother
+   // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
    bool                  hasGlobalCells_;

@@ -22,7 +22,7 @@
 #include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #include "PETScWrapper.hpp"
 
@@ -44,7 +44,7 @@ class PETScVector
    PETScVector() = delete;
 
    PETScVector( const FunctionType< ValueType >& function,
-                const FunctionType< PetscInt >&  numerator,
+                const FunctionType< idx_t >&     numerator,
                 const uint_t&                    level,
                 const DoFType&                   flag              = All,
                 const std::string&               name              = "Vec",
@@ -61,7 +61,7 @@ class PETScVector
    {
       VecCreate( petscCommunicator, &vec );
       VecSetType( vec, VECSTANDARD );
-      VecSetSizes( vec, (PetscInt) localSize, PETSC_DECIDE );
+      VecSetSizes( vec, (idx_t) localSize, PETSC_DECIDE );
       VecSetUp( vec );
       setName( name.c_str() );
    }
@@ -71,7 +71,7 @@ class PETScVector
    MPI_Comm getCommunicator() const { return petscCommunicator_; }
 
    void createVectorFromFunction( const FunctionType< ValueType >& src,
-                                  const FunctionType< PetscInt >&  numerator,
+                                  const FunctionType< idx_t >&     numerator,
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
@@ -83,7 +83,7 @@ class PETScVector
    }
 
    void createFunctionFromVector( const FunctionType< ValueType >& dst,
-                                  const FunctionType< PetscInt >&  numerator,
+                                  const FunctionType< idx_t >&     numerator,
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
@@ -114,7 +114,6 @@ class PETScVector
  protected:
    MPI_Comm petscCommunicator_;
    Vec      vec;
-
 };
 
 } // namespace hyteg

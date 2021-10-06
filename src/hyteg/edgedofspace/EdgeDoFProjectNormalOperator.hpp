@@ -46,7 +46,6 @@ class EdgeDoFProjectNormalOperator final : public Operator< hyteg::EdgeDoFFuncti
                  uint_t                           level,
                  DoFType                          flag ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -57,12 +56,11 @@ class EdgeDoFProjectNormalOperator final : public Operator< hyteg::EdgeDoFFuncti
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const EdgeDoFFunction< PetscInt >&               numU,
-                             const EdgeDoFFunction< PetscInt >&               numV,
-                             const EdgeDoFFunction< PetscInt >&               numW,
+                             const EdgeDoFFunction< idx_t >&             numU,
+                             const EdgeDoFFunction< idx_t >&             numV,
+                             const EdgeDoFFunction< idx_t >&             numW,
                              uint_t                                      level,
                              DoFType                                     flag ) const;
-#endif
 
  private:
    const std::function< void( const Point3D&, Point3D& ) > normal_function_;

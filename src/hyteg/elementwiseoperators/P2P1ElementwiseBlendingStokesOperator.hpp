@@ -97,6 +97,29 @@ class P2P1ElementwiseBlendingStokesOperator
       }
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+
+      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+
+      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag );
+      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag );
+
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
+         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag );
+      }
+   }
+
    P2ElementwiseBlendingLaplaceOperator   A;
    P2ToP1ElementwiseBlendingDivxOperator  div_x;
    P2ToP1ElementwiseBlendingDivyOperator  div_y;

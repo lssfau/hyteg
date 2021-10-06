@@ -48,7 +48,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
    }
 
 #ifndef PETSC_USE_COMPLEX
-   void addValue( uint_t row, uint_t col, real_t value )
+   void addValue( uint_t row, uint_t col, real_t value ) override
    {
       PetscReal petscVal;
 
@@ -65,7 +65,9 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
    }
 
-   void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
+   void addValues( const std::vector< uint_t >& rows,
+                   const std::vector< uint_t >& cols,
+                   const std::vector< real_t >& values ) override
    {
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
       std::vector< PetscInt > petscRows( rows.size() );
@@ -138,9 +140,9 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       }
 
       MatSetValues( mat_,
-                    static_cast< PetscInt >( petscRows.size() ),
+                    static_cast< idx_t >( petscRows.size() ),
                     petscRows.data(),
-                    static_cast< PetscInt >( petscCols.size() ),
+                    static_cast< idx_t >( petscCols.size() ),
                     petscCols.data(),
                     petscVals.data(),
                     ADD_VALUES );
@@ -148,7 +150,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
 #endif
 
-   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       Mat tmp;
 

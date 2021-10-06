@@ -26,68 +26,66 @@
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 
-
 namespace hyteg {
 
-class P2P1BlendingTaylorHoodStokesOperator
-   : public Operator<P2P1TaylorHoodFunction<real_t>, P2P1TaylorHoodFunction<real_t>>
+class P2P1BlendingTaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
    typedef P2BlendingLaplaceOperator VelocityOperator_T;
 
-   P2P1BlendingTaylorHoodStokesOperator(const std::shared_ptr< PrimitiveStorage >& storage,
-                                        uint_t minLevel, uint_t maxLevel)
-      : Operator(storage, minLevel, maxLevel)
-      , A(storage, minLevel, maxLevel)
-      , div_x(storage, minLevel, maxLevel)
-      , div_y(storage, minLevel, maxLevel)
-      , div_z(storage, minLevel, maxLevel)
-      , divT_x(storage, minLevel, maxLevel)
-      , divT_y(storage, minLevel, maxLevel)
-      , divT_z(storage, minLevel, maxLevel)
-      , pspg_inv_diag_(storage, minLevel, maxLevel)
-      , hasGlobalCells_(storage->hasGlobalCells())
+   P2P1BlendingTaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , A( storage, minLevel, maxLevel )
+   , div_x( storage, minLevel, maxLevel )
+   , div_y( storage, minLevel, maxLevel )
+   , div_z( storage, minLevel, maxLevel )
+   , divT_x( storage, minLevel, maxLevel )
+   , divT_y( storage, minLevel, maxLevel )
+   , divT_z( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   void apply(const P2P1TaylorHoodFunction<real_t>& src,
-              const P2P1TaylorHoodFunction<real_t>& dst,
-              const size_t level, DoFType flag) const
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               const size_t                            level,
+               DoFType                                 flag ) const
    {
-      WALBERLA_CHECK(!hasGlobalCells_, "Variable Stokes operator not implemented for 3D.");
+      WALBERLA_CHECK( !hasGlobalCells_, "Variable Stokes operator not implemented for 3D." );
 
-      A.apply(src.uvw[0], dst.uvw[0], level, flag, Replace);
-      divT_x.apply(src.p, dst.uvw[0], level, flag, Add);
+      A.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
+      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
 
-      A.apply(src.uvw[1], dst.uvw[1], level, flag, Replace);
-      divT_y.apply(src.p, dst.uvw[1], level, flag, Add);
+      A.apply( src.uvw[1], dst.uvw[1], level, flag, Replace );
+      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
 
-      if (hasGlobalCells_)
+      if ( hasGlobalCells_ )
       {
-         A.apply(src.uvw[2], dst.uvw[2], level, flag, Replace);
-         divT_z.apply(src.p, dst.uvw[2], level, flag, Add);
+         A.apply( src.uvw[2], dst.uvw[2], level, flag, Replace );
+         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
       }
 
-      div_x.apply(src.uvw[0], dst.p, level, flag, Replace);
-      div_y.apply(src.uvw[1], dst.p, level, flag, Add);
+      div_x.apply( src.uvw[0], dst.p, level, flag, Replace );
+      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
 
-      if (hasGlobalCells_)
+      if ( hasGlobalCells_ )
       {
-         div_z.apply(src.uvw[2], dst.p, level, flag, Add);
+         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
       }
    }
 
-   P2BlendingLaplaceOperator     A;
-   P2ToP1BlendingDivxOperator    div_x;
-   P2ToP1BlendingDivyOperator    div_y;
-   P2ToP1BlendingDivzOperator    div_z;
-   P1ToP2BlendingDivTxOperator   divT_x;
-   P1ToP2BlendingDivTyOperator   divT_y;
-   P1ToP2BlendingDivTzOperator   divT_z;
+   P2BlendingLaplaceOperator   A;
+   P2ToP1BlendingDivxOperator  div_x;
+   P2ToP1BlendingDivyOperator  div_y;
+   P2ToP1BlendingDivzOperator  div_z;
+   P1ToP2BlendingDivTxOperator divT_x;
+   P1ToP2BlendingDivTyOperator divT_y;
+   P1ToP2BlendingDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
    // P1PSPGOperator        pspg_;
-   P1PSPGInvDiagOperator         pspg_inv_diag_;
-   bool                          hasGlobalCells_;
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+   bool                  hasGlobalCells_;
 };
 
 } // namespace hyteg

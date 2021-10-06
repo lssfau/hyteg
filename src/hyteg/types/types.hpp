@@ -24,6 +24,8 @@
 
 namespace hyteg {
 
+using idx_t = int64_t;
+
 enum UpdateType
 {
   Replace = 0,

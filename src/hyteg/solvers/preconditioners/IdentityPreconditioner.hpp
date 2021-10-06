@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/solvers/Solver.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

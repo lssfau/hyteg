@@ -20,89 +20,101 @@
 
 #pragma once
 
-#include <memory>
-
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
+#include <memory>
 
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
-template< typename SourceFunction, typename DestinationFunction >
+template < typename SourceFunction, typename DestinationFunction >
 class Operator
 {
-public:
-  Operator(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
-    : storage_(storage), minLevel_(minLevel), maxLevel_(maxLevel)
-  {
-  if(storage->getTimingTree()){
-      enableTiming(storage->getTimingTree());
-    }
-  }
+ public:
+   Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   {
+      if ( storage->getTimingTree() )
+      {
+         enableTiming( storage->getTimingTree() );
+      }
+   }
 
-  typedef SourceFunction srcType;
-  typedef DestinationFunction dstType;
+   typedef SourceFunction      srcType;
+   typedef DestinationFunction dstType;
 
-  virtual ~Operator() = default;
+   virtual ~Operator() = default;
 
-  void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
+   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { timingTree_ = timingTree; }
 
-  const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
+   const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
-  uint_t getMinLevel() const { return minLevel_; }
+   uint_t getMinLevel() const { return minLevel_; }
 
-  uint_t getMaxLevel() const { return maxLevel_; }
+   uint_t getMaxLevel() const { return maxLevel_; }
 
-  // See the free function of the same name. Method might be revived, if we implement a base class for composite
-  // operators
-  //
-  // uint_t getNumberOfGlobalDoFCouplings( uint_t level ) const
-  // {
-  //    uint_t nCouplings =
-  //        indexing::countLocalDoFCouplings< typename srcType::Tag, typename dstType::Tag >( storage_, level );
-  //     walberla::mpi::allReduceInplace( nCouplings, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-  //    return nCouplings;
-  // };
+   // See the free function of the same name. Method might be revived, if we implement a base class for composite
+   // operators
+   //
+   // uint_t getNumberOfGlobalDoFCouplings( uint_t level ) const
+   // {
+   //    uint_t nCouplings =
+   //        indexing::countLocalDoFCouplings< typename srcType::Tag, typename dstType::Tag >( storage_, level );
+   //     walberla::mpi::allReduceInplace( nCouplings, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   //    return nCouplings;
+   // };
 
-  // Needed in VectorToVectorOperator
-  virtual void apply( const SourceFunction&      src,
-                      const DestinationFunction& dst,
-                      size_t                     level,
-                      DoFType                    flag,
-                      UpdateType                 updateType = Replace ) const
-  {
-     WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
-  };
+   // Needed in VectorToVectorOperator
+   virtual void apply( const SourceFunction&      src,
+                       const DestinationFunction& dst,
+                       size_t                     level,
+                       DoFType                    flag,
+                       UpdateType                 updateType = Replace ) const
+   {
+      WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
+   };
 
-protected:
-
-  const std::shared_ptr< PrimitiveStorage > storage_;
-  const uint_t minLevel_;
-  const uint_t maxLevel_;
-
-  std::shared_ptr< walberla::WcTimingTree > timingTree_;
+   virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >&             mat,
+                          const typename srcType::template FunctionType< idx_t >& src,
+                          const typename dstType::template FunctionType< idx_t >& dst,
+                          size_t                                                  level,
+                          DoFType                                                 flag ) const
+   {
+      WALBERLA_ABORT( "toMatrix() not implemented in derived class!" );
+   }
 
  protected:
+   const std::shared_ptr< PrimitiveStorage > storage_;
+   const uint_t                              minLevel_;
+   const uint_t                              maxLevel_;
 
-  void startTiming( const std::string & timerString ) const
-  {
-    if ( timingTree_ )
-    {
-      timingTree_->start( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " + FunctionTrait< DestinationFunction >::getTypeName() );
-      timingTree_->start( timerString );
-    }
-  }
+   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
-  void stopTiming ( const std::string & timerString ) const
-  {
-    if ( timingTree_ )
-    {
-      timingTree_->stop( timerString );
-      timingTree_->stop( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " + FunctionTrait< DestinationFunction >::getTypeName() );
-    }
-  }
+ protected:
+   void startTiming( const std::string& timerString ) const
+   {
+      if ( timingTree_ )
+      {
+         timingTree_->start( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " +
+                             FunctionTrait< DestinationFunction >::getTypeName() );
+         timingTree_->start( timerString );
+      }
+   }
+
+   void stopTiming( const std::string& timerString ) const
+   {
+      if ( timingTree_ )
+      {
+         timingTree_->stop( timerString );
+         timingTree_->stop( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " +
+                            FunctionTrait< DestinationFunction >::getTypeName() );
+      }
+   }
 };
 
 } // namespace hyteg

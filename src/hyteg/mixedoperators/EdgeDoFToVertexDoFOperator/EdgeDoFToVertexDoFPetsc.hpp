@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,14 +31,12 @@ namespace EdgeDoFToVertexDoF {
 using walberla::real_t;
 using walberla::uint_t;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-inline void saveVertexOperator( const uint_t&                                                level,
-                                const Vertex&                                                vertex,
-                                const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                                const std::shared_ptr< SparseMatrixProxy >&                  mat )
+inline void saveVertexOperator( const uint_t&                                             level,
+                                const Vertex&                                             vertex,
+                                const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
+                                const std::shared_ptr< SparseMatrixProxy >&               mat )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );
@@ -58,8 +56,8 @@ inline void saveVertexOperator3D( const uint_t&                                 
                                   const Vertex&                                                                vertex,
                                   const PrimitiveStorage&                                                      storage,
                                   const PrimitiveDataID< LevelWiseMemory< MacroVertexStencilMap_T >, Vertex >& operatorId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&                 srcId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&                 dstId,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&                    srcId,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&                    dstId,
                                   const std::shared_ptr< SparseMatrixProxy >&                                  mat )
 {
    auto opr_data = vertex.getData( operatorId )->getData( level );
@@ -73,10 +71,10 @@ inline void saveVertexOperator3D( const uint_t&                                 
       const Cell& neighborCell      = *( storage.getCell( vertex.neighborCells().at( neighborCellID ) ) );
       auto        cellLocalVertexID = neighborCell.getLocalVertexID( vertex.getID() );
 
-      const auto basisInCell = algorithms::getMissingIntegersAscending< 1, 4 >( {cellLocalVertexID} );
+      const auto basisInCell = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
 
       const auto centerIndexInCell = indexing::basisConversion(
-          centerIndexOnVertex, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+          centerIndexOnVertex, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
       for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientationsWithoutXYZ )
       {
@@ -148,19 +146,19 @@ inline void saveVertexOperator3D( const uint_t&                                 
    }
 }
 
-inline void saveEdgeOperator( const uint_t&                                              Level,
-                              const Edge&                                                edge,
-                              const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
-                              const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveEdgeOperator( const uint_t&                                           Level,
+                              const Edge&                                             edge,
+                              const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
+                              const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    const real_t*   opr_data = edge.getData( operatorId )->getPointer( Level );
-   const PetscInt* src      = edge.getData( srcId )->getPointer( Level );
-   const PetscInt* dst      = edge.getData( dstId )->getPointer( Level );
+   const idx_t*    src      = edge.getData( srcId )->getPointer( Level );
+   const idx_t*    dst      = edge.getData( dstId )->getPointer( Level );
 
-   PetscInt srcInt;
-   PetscInt dstInt;
+   idx_t srcInt;
+   idx_t dstInt;
 
    for ( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
    {
@@ -193,8 +191,8 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                                 const Edge&                                                              edge,
                                 const PrimitiveStorage&                                                  storage,
                                 const PrimitiveDataID< LevelWiseMemory< MacroEdgeStencilMap_T >, Edge >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&               srcId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&               dstId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                  srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                  dstId,
                                 const std::shared_ptr< SparseMatrixProxy >&                              mat )
 {
    auto opr_data = edge.getData( operatorId )->getData( level );
@@ -211,11 +209,11 @@ inline void saveEdgeOperator3D( const uint_t&                                   
          auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
          for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientations )
          {
@@ -283,13 +281,13 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                   }
 
                   const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
-                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+                      leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
                   const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
                       leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
                   const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
                   leafArrayIndexOnEdge         = edgedof::macroedge::indexOnNeighborFace(
-                      level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+                              level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
                }
                else
                {
@@ -308,19 +306,19 @@ inline void saveEdgeOperator3D( const uint_t&                                   
    }
 }
 
-inline void saveFaceOperator( const uint_t&                                              Level,
-                              const Face&                                                face,
-                              const PrimitiveDataID< StencilMemory< real_t >, Face >&    operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
-                              const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveFaceOperator( const uint_t&                                           Level,
+                              const Face&                                             face,
+                              const PrimitiveDataID< StencilMemory< real_t >, Face >& operatorId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
+                              const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    const real_t*   opr_data = face.getData( operatorId )->getPointer( Level );
-   const PetscInt* src      = face.getData( srcId )->getPointer( Level );
-   const PetscInt* dst      = face.getData( dstId )->getPointer( Level );
+   const idx_t*    src      = face.getData( srcId )->getPointer( Level );
+   const idx_t*    dst      = face.getData( dstId )->getPointer( Level );
 
-   PetscInt srcInt;
-   PetscInt dstInt;
+   idx_t srcInt;
+   idx_t dstInt;
 
    for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
    {
@@ -338,8 +336,8 @@ inline void saveFaceOperator3D( const uint_t&                                   
                                 const Face&                                                              face,
                                 const PrimitiveStorage&                                                  storage,
                                 const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&               srcId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&               dstId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                  srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                  dstId,
                                 const std::shared_ptr< SparseMatrixProxy >&                              mat )
 {
    auto opr_data = face.getData( operatorId )->getData( level );
@@ -406,13 +404,13 @@ inline void
     saveCellOperator( const uint_t&                                                                                Level,
                       const Cell&                                                                                  cell,
                       const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell >& operatorId,
-                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&                                   srcId,
-                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&                                   dstId,
+                      const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                                      srcId,
+                      const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                                      dstId,
                       const std::shared_ptr< SparseMatrixProxy >&                                                  mat )
 {
    auto      opr_data = cell.getData( operatorId )->getData( Level );
-   PetscInt* src      = cell.getData( srcId )->getPointer( Level );
-   PetscInt* dst      = cell.getData( dstId )->getPointer( Level );
+   idx_t*    src      = cell.getData( srcId )->getPointer( Level );
+   idx_t*    dst      = cell.getData( dstId )->getPointer( Level );
 
    for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
    {
@@ -434,100 +432,4 @@ inline void
 }
 
 } // namespace EdgeDoFToVertexDoF
-
-namespace petsc {
-
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const EdgeDoFFunction< PetscInt >&          src,
-                          const P1Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   const auto storage = src.getStorage();
-
-   for ( auto& it : opr.getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         if ( storage->hasGlobalCells() )
-         {
-            EdgeDoFToVertexDoF::saveVertexOperator3D(
-                level, vertex, *storage, opr.getVertexStencil3DID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
-         }
-         else
-         {
-            EdgeDoFToVertexDoF::saveVertexOperator(
-                level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
-         }
-      }
-   }
-
-   if ( level >= 1 )
-   {
-      for ( auto& it : opr.getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               EdgeDoFToVertexDoF::saveEdgeOperator3D(
-                   level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-            }
-            else
-            {
-               EdgeDoFToVertexDoF::saveEdgeOperator(
-                   level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-            }
-         }
-      }
-   }
-
-   if ( level >= 2 )
-   {
-      for ( auto& it : opr.getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               EdgeDoFToVertexDoF::saveFaceOperator3D(
-                   level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-            else
-            {
-               EdgeDoFToVertexDoF::saveFaceOperator(
-                   level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-         }
-      }
-
-      for ( auto& it : opr.getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if ( testFlag( cellBC, flag ) )
-         {
-            EdgeDoFToVertexDoF::saveCellOperator(
-                level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-         }
-      }
-   }
-}
-
-#endif
-
-} // namespace EdgeDoFToVertexDoF
-
 } // namespace hyteg

@@ -65,7 +65,6 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -75,12 +74,11 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P2Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
 
  private:
    /// compute product of element local vector with element matrix
@@ -121,26 +119,24 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                      real_t* const           dstEdgeData,
                                      const Matrixr< 10, 4 >& elMat ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P2Elements::P2Element&                element,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
-#endif
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    void assembleLocalElementMatrix2D( const Face&            face,
                                       uint_t                 level,

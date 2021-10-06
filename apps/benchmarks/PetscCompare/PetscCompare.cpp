@@ -114,7 +114,7 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< double > diff( "diff", storage, level, level );
    x.interpolate( exact, level, hyteg::Inner );
    //hyteg::communication::syncFunctionBetweenPrimitives(x,level);
-   hyteg::P1Function< PetscInt >    numerator( "numerator", storage, level, level );
+   hyteg::P1Function< idx_t >       numerator( "numerator", storage, level, level );
    hyteg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    //  for (const auto & faceIT : storage->getFaces()) {
@@ -155,14 +155,14 @@ int main( int argc, char* argv[] )
    //   WALBERLA_CRITICAL_SECTION_START
    //  for (auto &edgeIT : storage->getEdges()) {
    //    auto edge = edgeIT.second;
-   //    hyteg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
+   //    hyteg::vertexdof::macroedge::printFunctionMemory< idx_t >(level, *edge, numerator.getEdgeDataID());
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 
    numerator.enumerate( level );
 
    LIKWID_MARKER_START( "PETSc-setup" );
-   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator, hyteg::P1Function > matPetsc( localDoFs, totalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
    hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );

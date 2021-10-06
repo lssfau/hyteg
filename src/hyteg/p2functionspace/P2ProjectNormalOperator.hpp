@@ -19,11 +19,11 @@
  */
 #pragma once
 
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/edgedofspace/EdgeDoFProjectNormalOperator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -31,7 +31,7 @@ namespace hyteg {
 
 using walberla::real_t;
 
-class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
+class P2ProjectNormalOperator : public Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
 {
  public:
    P2ProjectNormalOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
@@ -47,9 +47,13 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
                  size_t                      level,
                  DoFType                     flag ) const;
 
+   void project( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag ) const
+   {
+      project( dst[0], dst[1], dst[2], level, flag );
+   }
+
    void project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -59,12 +63,17 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
    ///
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2Function< PetscInt >&               numU,
-                             const P2Function< PetscInt >&               numV,
-                             const P2Function< PetscInt >&               numW,
-                             uint_t                                      level,
-                             DoFType                                     flag );
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2Function< idx_t >&                  numU,
+                  const P2Function< idx_t >&                  numV,
+                  const P2Function< idx_t >&                  numW,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2VectorFunction< idx_t >&            num,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
 
    /// Assemble operator as sparse matrix
    ///
@@ -73,16 +82,19 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
    ///
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2VectorFunction< PetscInt >&         num,
-                             uint_t                                      level,
-                             DoFType                                     flag );
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2VectorFunction< idx_t >&            src,
+                  const P2VectorFunction< idx_t >&            dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      WALBERLA_UNUSED( dst );
+      toMatrix( mat, src, level, flag );
+   }
 
  private:
    P1ProjectNormalOperator      p1Operator;
    EdgeDoFProjectNormalOperator edgeDoFOperator;
 };
-
 
 } // namespace hyteg

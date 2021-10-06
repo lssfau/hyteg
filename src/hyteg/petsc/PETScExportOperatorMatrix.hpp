@@ -30,12 +30,13 @@
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-namespace hyteg {
-
-namespace petsc {
+namespace hyteg::petsc {
 
 /// \brief Auxilliary routine for pimping PETSC_VIEWER_ASCII_MATLAB file
-void pimpMatlabFile( std::string fName, std::string matrixName, bool elimDirichletBC, std::vector< PetscInt >& indices )
+void pimpMatlabFile( const std::string&    fName,
+                     const std::string&    matrixName,
+                     bool                  elimDirichletBC,
+                     std::vector< idx_t >& indices )
 {
    // Make Matlab be a little talkative
    std::ofstream ofs;
@@ -81,7 +82,7 @@ void pimpMatlabFile( std::string fName, std::string matrixName, bool elimDirichl
 ///
 template < class OperatorType >
 void exportOperator( OperatorType&                       op,
-                     std::string                         fName,
+                     const std::string&                  fName,
                      std::string                         matrixName,
                      PetscViewerFormat                   format,
                      std::shared_ptr< PrimitiveStorage > storage,
@@ -95,40 +96,39 @@ void exportOperator( OperatorType&                       op,
    uint_t globalDoFs = hyteg::numberOfGlobalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
    if ( localDoFs != globalDoFs )
    {
-      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for exportOperator()!" );
+      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for exportOperator()!" )
    }
    if ( beVerbose )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs );
+      WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs )
    }
 
    // Fire up PETSc
    if ( beVerbose )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Firing up PETSc" );
+      WALBERLA_LOG_INFO_ON_ROOT( " * Firing up PETSc" )
    }
    PETScManager pmgr;
 
    // Create PETSc matrix
    if ( beVerbose )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
+      WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" )
    }
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > petscMatrix(
-       localDoFs, globalDoFs, matrixName.c_str() );
-   typename OperatorType::srcType::template FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+   PETScSparseMatrix< OperatorType >                              petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
+   typename OperatorType::srcType::template FunctionType< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
 
    // Zero rows and columns of "Dirichlet DoFs"
-   std::vector< PetscInt > indices;
+   std::vector< idx_t > indices;
    if ( elimDirichletBC )
    {
       if ( elimSymmetric )
       {
          if ( beVerbose )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( " * Performing symmetric elimination of Dirichlet DoFs" );
+            WALBERLA_LOG_INFO_ON_ROOT( " * Performing symmetric elimination of Dirichlet DoFs" )
          }
          indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
       }
@@ -136,7 +136,7 @@ void exportOperator( OperatorType&                       op,
       {
          if ( beVerbose )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" );
+            WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" )
          }
          hyteg::petsc::applyDirichletBC( numerator, indices, level );
          petscMatrix.applyDirichletBC( numerator, level );
@@ -146,7 +146,7 @@ void exportOperator( OperatorType&                       op,
    // Write out matrix
    if ( beVerbose )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fName << "'" )
    }
    petscMatrix.print( fName.c_str(), format );
 
@@ -161,7 +161,6 @@ void exportOperator( OperatorType&                       op,
    }
 }
 
-} // namespace petsc
-} // namespace hyteg
+} // namespace hyteg::petsc
 
 #endif
