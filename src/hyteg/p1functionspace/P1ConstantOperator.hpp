@@ -91,7 +91,62 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
       assembleStencils();
    }
 
-   void scale( real_t scalar ){}; // todo implement
+   void scale( real_t scalar )
+   {
+      // todo: Remove these constraints
+      WALBERLA_CHECK_GREATER_EQUAL( minLevel_, 2, "scale() not implemented for level < 2" )
+      WALBERLA_CHECK( not storage_->hasGlobalCells(), "scale() not implemented for macro-cells" )
+
+      for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
+      {
+         for ( auto& it : storage_->getFaces() )
+         {
+            Face& face         = *it.second;
+            auto  face_stencil = face.getData( faceStencilID_ )->getPointer( level );
+
+            for ( const auto& neighbor : vertexdof::macroface::neighborsWithCenter )
+            {
+               face_stencil[vertexdof::stencilIndexFromVertex( neighbor )] *= scalar;
+            }
+         }
+
+         for ( auto& it : storage_->getEdges() )
+         {
+            Edge& edge         = *it.second;
+            auto  edge_stencil = edge.getData( edgeStencilID_ )->getPointer( level );
+
+            edge_stencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] *= scalar;
+
+            for ( const auto& neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] *= scalar;
+            }
+
+            for ( const auto& neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] *= scalar;
+            }
+
+            if ( edge.getNumNeighborFaces() == 2 )
+            {
+               for ( const auto& neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+               {
+                  edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] *= scalar;
+               }
+            }
+         }
+
+         for ( auto& it : storage_->getVertices() )
+         {
+            Vertex& vertex         = *it.second;
+            auto    vertex_stencil = vertex.getData( vertexStencilID_ )->getPointer( level );
+            for ( uint_t i = 0; i < vertex.getData( vertexStencilID_ )->getSize( level ); ++i )
+            {
+               vertex_stencil[i] *= scalar;
+            }
+         }
+      }
+   }
 
  protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
