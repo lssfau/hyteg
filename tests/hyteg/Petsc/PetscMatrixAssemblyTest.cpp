@@ -330,7 +330,7 @@ int main( int argc, char* argv[] )
    testAssembly< P1ElementwiseMassOperator >( storage, level, "P1ElementwiseOperator" );
    testAssembly< P2ElementwiseMassOperator >( storage, level, "P2ElementwiseOperator" );
 
-   auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
+   auto                            p2MassFormHyTeG       = std::make_shared< forms::p2_mass_blending_q4 >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
    testAssembly< P2BlendingLumpedDiagonalOperator, P2RowSumForm >(
        storage, level, lumpedMassFormP2HyTeG, "DiagonalNonConstantOperator" );
