@@ -36,6 +36,8 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -237,10 +239,10 @@ int main( int argc, char* argv[] )
        std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2 = std::make_shared< P2RowSumForm >( p2MassFormFenics );
 
-   auto                            p1MassFormHyTeG3D       = std::make_shared< P1Form_mass3D >();
+   auto                            p1MassFormHyTeG3D       = std::make_shared< forms::p1_mass_blending_q4 >();
    std::shared_ptr< P1RowSumForm > lumpedMassFormP1HyTeG3D = std::make_shared< P1RowSumForm >( p1MassFormHyTeG3D );
 
-   auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
+   auto                            p2MassFormHyTeG       = std::make_shared< forms::p2_mass_blending_q4 >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
 
    typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1LaplaceForm_T;

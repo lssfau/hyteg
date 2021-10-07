@@ -661,8 +661,8 @@ template class P1ToP2ElementwiseOperator<
 template class P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > >;
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > >;
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 2 > >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_0_blending_q2 >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_1_blending_q2 >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_2_blending_q2 >;
 
 } // namespace hyteg

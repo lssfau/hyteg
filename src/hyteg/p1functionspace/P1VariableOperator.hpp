@@ -27,8 +27,11 @@
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
-#include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
+
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_0_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_1_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_0_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_1_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
@@ -269,11 +272,11 @@ typedef P1VariableOperator< forms::p1_epsiloncc_0_1_blending_q2 > P1BlendingEpsi
 typedef P1VariableOperator< forms::p1_epsiloncc_1_0_blending_q2 > P1BlendingEpsilonOperator_21;
 typedef P1VariableOperator< forms::p1_epsiloncc_1_1_blending_q2 > P1BlendingEpsilonOperator_22;
 
-typedef P1VariableOperator< P1Form_divT_1 > P1BlendingDivTOperator_1;
-typedef P1VariableOperator< P1Form_divT_2 > P1BlendingDivTOperator_2;
+typedef P1VariableOperator< forms::p1_divt_0_blending_q1 > P1BlendingDivTOperator_1;
+typedef P1VariableOperator< forms::p1_divt_1_blending_q1 > P1BlendingDivTOperator_2;
 
-typedef P1VariableOperator< P1Form_div_1 > P1BlendingDivOperator_1;
-typedef P1VariableOperator< P1Form_div_2 > P1BlendingDivOperator_2;
+typedef P1VariableOperator< forms::p1_div_0_blending_q1 > P1BlendingDivOperator_1;
+typedef P1VariableOperator< forms::p1_div_1_blending_q1 > P1BlendingDivOperator_2;
 
 typedef P1VariableOperator< P1Form_pspg > P1BlendingPSPGOperator;
 

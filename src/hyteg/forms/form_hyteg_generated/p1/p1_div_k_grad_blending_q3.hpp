@@ -32,7 +32,6 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
-#include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
 namespace forms {
@@ -74,7 +73,7 @@ class p1_div_k_grad_blending_q3 : public P1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              191     264       5       0      5            200                12
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -86,7 +85,7 @@ class p1_div_k_grad_blending_q3 : public P1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              133     192       5       0      5            148                12
    ///
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -98,7 +97,7 @@ class p1_div_k_grad_blending_q3 : public P1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                             1014    1128       7       0      7            739                18
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -110,7 +109,15 @@ class p1_div_k_grad_blending_q3 : public P1FormHyTeG
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              702     840       7       0      7            589                18
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
+
+   bool assemble2D() const override { return true; }
+
+   bool assembly2DDefined() const override { return true; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
  private:
 

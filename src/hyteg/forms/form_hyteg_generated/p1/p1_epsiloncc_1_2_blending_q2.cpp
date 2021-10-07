@@ -23,7 +23,7 @@
  * 
  * Software:
  *
- * - quadpy version: 0.16.6
+ * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */

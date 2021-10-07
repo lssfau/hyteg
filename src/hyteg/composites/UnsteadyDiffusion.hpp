@@ -32,6 +32,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -267,7 +268,7 @@ typedef UnsteadyDiffusionOperator<
 typedef UnsteadyDiffusionOperator< P2Function< real_t >,
                                    P2ElementwiseOperator,
                                    P2Form_laplace,
-                                   P2Form_mass,
+                                   forms::p2_mass_blending_q4,
                                    P2LinearCombinationForm >
     P2ElementwiseUnsteadyDiffusionOperator;
 
