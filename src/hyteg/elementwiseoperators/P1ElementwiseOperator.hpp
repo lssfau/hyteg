@@ -27,9 +27,8 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -45,8 +44,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                               public WeightedJacobiSmoothable< P1Function< real_t > >,
                               public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
-public:
-P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+ public:
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
@@ -72,7 +71,6 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
                     size_t                      level,
                     DoFType                     flag ) const override;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -82,12 +80,11 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P1Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override;
 
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
@@ -182,24 +179,22 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
-#endif
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.

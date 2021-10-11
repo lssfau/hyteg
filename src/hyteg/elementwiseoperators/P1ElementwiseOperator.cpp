@@ -251,11 +251,11 @@ void P1ElementwiseOperator< P1Form >::smooth_jac( const P1Function< real_t >& ds
 
    // compute the current residual
    this->apply( src, dst, level, flag );
-   dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
+   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
-   dst.assign( { 1.0, omega }, { src, dst }, level, flag );
+   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
+   dst.assign( {1.0, omega}, {src, dst}, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -528,7 +528,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -573,15 +573,13 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 // Assemble operator as sparse matrix
 template < class P1Form >
-void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                           const P1Function< PetscInt >&               src,
-                                                           const P1Function< PetscInt >&               dst,
-                                                           uint_t                                      level,
-                                                           DoFType                                     flag ) const
+void P1ElementwiseOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                const P1Function< idx_t >&                  src,
+                                                const P1Function< idx_t >&                  dst,
+                                                uint_t                                      level,
+                                                DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
@@ -599,11 +597,11 @@ void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data in the two indexing functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstVertexDoFIdx = dst.getCellDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcVertexDoFIdx = src.getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstVertexDoFIdx = dst.getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcVertexDoFIdx = src.getCellDataID();
 
-         PetscInt* srcIdx = cell.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstIdx = cell.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcIdx = cell.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstIdx = cell.getData( dstVertexDoFIdx )->getPointer( level );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -635,11 +633,11 @@ void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr
          indexing::IndexIncrement offset;
 
          // get hold of the actual numerical data in the two functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstVertexDoFIdx = dst.getFaceDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcVertexDoFIdx = src.getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > srcVertexDoFIdx = src.getFaceDataID();
 
-         PetscInt* srcIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
 
          // the explicit uint_c cast prevents a segfault in intel compiler 2018.4
          // now loop over micro-faces of macro-face
@@ -671,8 +669,8 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
                                                              const uint_t                                xIdx,
                                                              const uint_t                                yIdx,
                                                              const P1Elements::P1Elements2D::P1Element&  element,
-                                                             const PetscInt* const                       srcIdx,
-                                                             const PetscInt* const                       dstIdx ) const
+                                                             const idx_t* const                          srcIdx,
+                                                             const idx_t* const                          dstIdx ) const
 {
    Matrix3r                 elMat;
    indexing::Index          nodeIdx;
@@ -691,7 +689,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // determine global indices of our local DoFs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -725,8 +723,8 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
                                                              const uint_t                                level,
                                                              const indexing::Index&                      microCell,
                                                              const celldof::CellType                     cType,
-                                                             const PetscInt* const                       srcIdx,
-                                                             const PetscInt* const                       dstIdx ) const
+                                                             const idx_t* const                          srcIdx,
+                                                             const idx_t* const                          dstIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -764,8 +762,6 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
    // add local matrix into global matrix
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
-
-#endif
 
 // P1ElementwiseLaplaceOperator
 template class P1ElementwiseOperator<

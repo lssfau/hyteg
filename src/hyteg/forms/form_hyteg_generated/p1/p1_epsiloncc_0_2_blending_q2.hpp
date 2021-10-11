@@ -23,7 +23,7 @@
  * 
  * Software:
  *
- * - quadpy version: 0.16.6
+ * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -32,7 +32,6 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
-#include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
 namespace forms {
@@ -52,10 +51,10 @@ class p1_epsiloncc_0_2_blending_q2 : public P1FormHyTeG
  public:
 
    /// \brief Not implemented - does nothing.
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
    /// \brief Not implemented - does nothing.
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -63,11 +62,11 @@ class p1_epsiloncc_0_2_blending_q2 : public P1FormHyTeG
    /// - element matrix dimensions (rows, cols): (4, 4)
    /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              286     373       5      5            289                 4
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              286     373       5       0      5            289                 4
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -75,11 +74,19 @@ class p1_epsiloncc_0_2_blending_q2 : public P1FormHyTeG
    /// - element matrix dimensions (rows, cols): (4, 4)
    /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              226     313       5      5            197                 4
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              226     313       5       0      5            197                 4
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
+
+   bool assemble2D() const override { return false; }
+
+   bool assembly2DDefined() const override { return false; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
  private:
 

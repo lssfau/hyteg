@@ -20,7 +20,6 @@
 #pragma once
 
 #cmakedefine HYTEG_BUILD_WITH_PETSC
-#cmakedefine HYTEG_BUILD_WITH_EIGEN
 #cmakedefine HYTEG_BUILD_WITH_TRILINOS
 #cmakedefine HYTEG_USE_GENERATED_KERNELS
 

@@ -26,7 +26,7 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -41,6 +41,8 @@ class GenericFunction
 {
  public:
    virtual ~GenericFunction(){};
+
+   typedef value_t valueType;
 
    template < typename func_t >
    func_t& unwrap()
@@ -72,6 +74,10 @@ class GenericFunction
    virtual functionTraits::FunctionKind getFunctionKind() const = 0;
 
    virtual uint_t getNumberOfLocalDoFs( uint_t level ) const = 0;
+
+   virtual uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                         const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                         const bool&     onRootOnly   = false ) const = 0;
 
    virtual std::shared_ptr< PrimitiveStorage > getStorage() const = 0;
 
@@ -131,24 +137,17 @@ class GenericFunction
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{
-   virtual void toVector( const GenericFunction< PetscInt >&    numerator,
+   virtual void toVector( const GenericFunction< idx_t >&       numerator,
                           const std::shared_ptr< VectorProxy >& vec,
                           uint_t                                level,
                           DoFType                               flag ) const = 0;
 
-   virtual void fromVector( const GenericFunction< PetscInt >&    numerator,
+   virtual void fromVector( const GenericFunction< idx_t >&       numerator,
                             const std::shared_ptr< VectorProxy >& vec,
                             uint_t                                level,
                             DoFType                               flag ) const = 0;
    /// @}
 #endif
 };
-
-// Special version of numberOfLocalDoFs for GenericFunctions
-template < typename value_t >
-inline uint_t numberOfLocalDoFs( const GenericFunction< value_t >& func, const uint_t& level )
-{
-   return func.getNumberOfLocalDoFs( level );
-}
 
 } // namespace hyteg

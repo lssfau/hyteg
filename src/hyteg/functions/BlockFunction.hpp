@@ -39,7 +39,10 @@ template < typename value_t >
 class BlockFunction
 {
  public:
-   typedef value_t ValueType;
+   typedef value_t valueType;
+
+   template < typename VType >
+   using FunctionType = BlockFunction< VType >;
 
    BlockFunction( const std::string name )
    : functionName_( name )
@@ -246,22 +249,44 @@ class BlockFunction
       return nDoFs;
    }
 
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < subFunc_.size(); ++k )
+      {
+         nDoFs += subFunc_[k]->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+      }
+      return nDoFs;
+   }
+
    void enumerate( uint_t level ) const
    {
       uint_t counterDoFs = getNumberOfLocalDoFs( level );
 
       std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
 
-      ValueType offset = 0;
+      valueType offset = 0;
 
       for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
       {
-         offset += static_cast< ValueType >( doFsPerRank[i] );
+         offset += static_cast< valueType >( doFsPerRank[i] );
       }
 
       for ( uint_t k = 0; k < subFunc_.size(); k++ )
       {
          subFunc_[k]->enumerate( level, offset );
+      }
+   }
+
+   template < typename OtherType >
+   void copyBoundaryConditionFromFunction( const BlockFunction< OtherType >& other )
+   {
+      WALBERLA_ASSERT_EQUAL( subFunc_.size(), other.getNumberOfBlocks() );
+      for ( uint_t k = 0; k < subFunc_.size(); k++ )
+      {
+         subFunc_[k]->setBoundaryCondition( other.getSubFunction( k ).getBoundaryCondition() );
       }
    }
 
@@ -280,12 +305,5 @@ class BlockFunction
       return subFuncVec;
    }
 };
-
-// Special version of numberOfLocalDoFs for GenericFunctions
-template < typename value_t >
-inline uint_t numberOfLocalDoFs( const BlockFunction< value_t >& func, const uint_t& level )
-{
-   return func.getNumberOfLocalDoFs( level );
-}
 
 } // namespace hyteg

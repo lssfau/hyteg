@@ -26,8 +26,8 @@
 #include <hyteg/Math.hpp>
 #include <hyteg/primitives/Primitive.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
-#include <hyteg/types/flags.hpp>
 #include <hyteg/types/pointnd.hpp>
+#include <hyteg/types/types.hpp>
 #include <vector>
 
 namespace hyteg {

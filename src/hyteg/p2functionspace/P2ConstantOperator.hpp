@@ -102,6 +102,18 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     size_t                      level,
                     DoFType                     flag ) const override;
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      this->getVertexToVertexOpr().toMatrix( mat, src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag );
+      this->getEdgeToVertexOpr().toMatrix( mat, src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag );
+      this->getVertexToEdgeOpr().toMatrix( mat, src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), level, flag );
+      this->getEdgeToEdgeOpr().toMatrix( mat, src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), level, flag );
+   }
+
  private:
    void smooth_sor_macro_vertices( const P2Function< real_t >& dst,
                                    const P2Function< real_t >& rhs,

@@ -96,6 +96,41 @@ namespace forms {
       (elMat(2, 2)) = a_2_2;
    }
 
+   void p1_epsiloncc_0_0_affine_q2::integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const
+   {
+      real_t p_affine_0_0 = coords[0][0];
+      real_t p_affine_0_1 = coords[0][1];
+      real_t p_affine_1_0 = coords[1][0];
+      real_t p_affine_1_1 = coords[1][1];
+      real_t p_affine_2_0 = coords[2][0];
+      real_t p_affine_2_1 = coords[2][1];
+      real_t tmp_0 = -p_affine_0_1;
+      real_t tmp_1 = p_affine_2_1 + tmp_0;
+      real_t tmp_2 = -p_affine_0_0;
+      real_t tmp_3 = p_affine_1_0 + tmp_2;
+      real_t tmp_4 = 1.0 / (tmp_1*tmp_3 - (p_affine_1_1 + tmp_0)*(p_affine_2_0 + tmp_2));
+      real_t tmp_5 = 2.0*tmp_4;
+      real_t tmp_6 = tmp_1*tmp_5;
+      real_t tmp_7 = p_affine_0_1 - p_affine_1_1;
+      real_t tmp_8 = tmp_5*tmp_7;
+      real_t tmp_9 = 1.0*tmp_4;
+      real_t tmp_10 = -tmp_1*tmp_9 - tmp_7*tmp_9;
+      real_t tmp_11 = p_affine_0_0 - p_affine_2_0;
+      real_t tmp_12 = 0.5*tmp_4;
+      real_t tmp_13 = -tmp_11*tmp_12 - tmp_12*tmp_3;
+      real_t tmp_14 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
+      real_t tmp_15 = tmp_14*(tmp_10*(-tmp_6 - tmp_8) + 2*tmp_13*(-tmp_11*tmp_9 - tmp_3*tmp_9));
+      real_t tmp_16 = tmp_13*tmp_5;
+      real_t tmp_17 = tmp_14*(tmp_10*tmp_6 + tmp_11*tmp_16);
+      real_t tmp_18 = tmp_14*(tmp_10*tmp_8 + tmp_16*tmp_3);
+      real_t a_0_0 = 0.5*tmp_15;
+      real_t a_0_1 = 0.5*tmp_17;
+      real_t a_0_2 = 0.5*tmp_18;
+      (elMat(0, 0)) = a_0_0;
+      (elMat(0, 1)) = a_0_1;
+      (elMat(0, 2)) = a_0_2;
+   }
+
    void p1_epsiloncc_0_0_affine_q2::integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const
    {
       real_t p_affine_0_0 = coords[0][0];
@@ -229,6 +264,86 @@ namespace forms {
       (elMat(3, 1)) = a_3_1;
       (elMat(3, 2)) = a_3_2;
       (elMat(3, 3)) = a_3_3;
+   }
+
+   void p1_epsiloncc_0_0_affine_q2::integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const
+   {
+      real_t p_affine_0_0 = coords[0][0];
+      real_t p_affine_0_1 = coords[0][1];
+      real_t p_affine_0_2 = coords[0][2];
+      real_t p_affine_1_0 = coords[1][0];
+      real_t p_affine_1_1 = coords[1][1];
+      real_t p_affine_1_2 = coords[1][2];
+      real_t p_affine_2_0 = coords[2][0];
+      real_t p_affine_2_1 = coords[2][1];
+      real_t p_affine_2_2 = coords[2][2];
+      real_t p_affine_3_0 = coords[3][0];
+      real_t p_affine_3_1 = coords[3][1];
+      real_t p_affine_3_2 = coords[3][2];
+      real_t tmp_0 = -p_affine_0_1;
+      real_t tmp_1 = p_affine_1_1 + tmp_0;
+      real_t tmp_2 = -p_affine_0_2;
+      real_t tmp_3 = p_affine_2_2 + tmp_2;
+      real_t tmp_4 = tmp_1*tmp_3;
+      real_t tmp_5 = p_affine_2_1 + tmp_0;
+      real_t tmp_6 = p_affine_1_2 + tmp_2;
+      real_t tmp_7 = tmp_5*tmp_6;
+      real_t tmp_8 = tmp_4 - tmp_7;
+      real_t tmp_9 = -p_affine_0_0;
+      real_t tmp_10 = p_affine_1_0 + tmp_9;
+      real_t tmp_11 = p_affine_3_2 + tmp_2;
+      real_t tmp_12 = tmp_11*tmp_5;
+      real_t tmp_13 = p_affine_2_0 + tmp_9;
+      real_t tmp_14 = p_affine_3_1 + tmp_0;
+      real_t tmp_15 = tmp_14*tmp_6;
+      real_t tmp_16 = p_affine_3_0 + tmp_9;
+      real_t tmp_17 = tmp_14*tmp_3;
+      real_t tmp_18 = tmp_1*tmp_11;
+      real_t tmp_19 = 1.0 / (tmp_10*tmp_12 - tmp_10*tmp_17 + tmp_13*tmp_15 - tmp_13*tmp_18 + tmp_16*tmp_4 - tmp_16*tmp_7);
+      real_t tmp_20 = 2.0*tmp_19;
+      real_t tmp_21 = tmp_20*tmp_8;
+      real_t tmp_22 = tmp_15 - tmp_18;
+      real_t tmp_23 = tmp_20*tmp_22;
+      real_t tmp_24 = tmp_12 - tmp_17;
+      real_t tmp_25 = tmp_20*tmp_24;
+      real_t tmp_26 = 1.0*tmp_19;
+      real_t tmp_27 = -tmp_22*tmp_26 - tmp_24*tmp_26 - tmp_26*tmp_8;
+      real_t tmp_28 = -tmp_1*tmp_13 + tmp_10*tmp_5;
+      real_t tmp_29 = tmp_1*tmp_16 - tmp_10*tmp_14;
+      real_t tmp_30 = tmp_13*tmp_14 - tmp_16*tmp_5;
+      real_t tmp_31 = 0.5*tmp_19;
+      real_t tmp_32 = -tmp_28*tmp_31 - tmp_29*tmp_31 - tmp_30*tmp_31;
+      real_t tmp_33 = -tmp_10*tmp_3 + tmp_13*tmp_6;
+      real_t tmp_34 = tmp_10*tmp_11 - tmp_16*tmp_6;
+      real_t tmp_35 = -tmp_11*tmp_13 + tmp_16*tmp_3;
+      real_t tmp_36 = -tmp_31*tmp_33 - tmp_31*tmp_34 - tmp_31*tmp_35;
+      real_t tmp_37 = p_affine_0_0*p_affine_1_1;
+      real_t tmp_38 = p_affine_0_0*p_affine_1_2;
+      real_t tmp_39 = p_affine_2_1*p_affine_3_2;
+      real_t tmp_40 = p_affine_0_1*p_affine_1_0;
+      real_t tmp_41 = p_affine_0_1*p_affine_1_2;
+      real_t tmp_42 = p_affine_2_2*p_affine_3_0;
+      real_t tmp_43 = p_affine_0_2*p_affine_1_0;
+      real_t tmp_44 = p_affine_0_2*p_affine_1_1;
+      real_t tmp_45 = p_affine_2_0*p_affine_3_1;
+      real_t tmp_46 = p_affine_2_2*p_affine_3_1;
+      real_t tmp_47 = p_affine_2_0*p_affine_3_2;
+      real_t tmp_48 = p_affine_2_1*p_affine_3_0;
+      real_t tmp_49 = std::abs(p_affine_0_0*tmp_39 - p_affine_0_0*tmp_46 + p_affine_0_1*tmp_42 - p_affine_0_1*tmp_47 + p_affine_0_2*tmp_45 - p_affine_0_2*tmp_48 - p_affine_1_0*tmp_39 + p_affine_1_0*tmp_46 - p_affine_1_1*tmp_42 + p_affine_1_1*tmp_47 - p_affine_1_2*tmp_45 + p_affine_1_2*tmp_48 + p_affine_2_0*tmp_41 - p_affine_2_0*tmp_44 - p_affine_2_1*tmp_38 + p_affine_2_1*tmp_43 + p_affine_2_2*tmp_37 - p_affine_2_2*tmp_40 - p_affine_3_0*tmp_41 + p_affine_3_0*tmp_44 + p_affine_3_1*tmp_38 - p_affine_3_1*tmp_43 - p_affine_3_2*tmp_37 + p_affine_3_2*tmp_40);
+      real_t tmp_50 = tmp_49*(tmp_27*(-tmp_21 - tmp_23 - tmp_25) + 2*tmp_32*(-tmp_26*tmp_28 - tmp_26*tmp_29 - tmp_26*tmp_30) + 2*tmp_36*(-tmp_26*tmp_33 - tmp_26*tmp_34 - tmp_26*tmp_35));
+      real_t tmp_51 = tmp_20*tmp_32;
+      real_t tmp_52 = tmp_20*tmp_36;
+      real_t tmp_53 = tmp_49*(tmp_25*tmp_27 + tmp_30*tmp_51 + tmp_35*tmp_52);
+      real_t tmp_54 = tmp_49*(tmp_23*tmp_27 + tmp_29*tmp_51 + tmp_34*tmp_52);
+      real_t tmp_55 = tmp_49*(tmp_21*tmp_27 + tmp_28*tmp_51 + tmp_33*tmp_52);
+      real_t a_0_0 = 0.16666666666666663*tmp_50;
+      real_t a_0_1 = 0.16666666666666663*tmp_53;
+      real_t a_0_2 = 0.16666666666666663*tmp_54;
+      real_t a_0_3 = 0.16666666666666663*tmp_55;
+      (elMat(0, 0)) = a_0_0;
+      (elMat(0, 1)) = a_0_1;
+      (elMat(0, 2)) = a_0_2;
+      (elMat(0, 3)) = a_0_3;
    }
 
 } // namespace forms

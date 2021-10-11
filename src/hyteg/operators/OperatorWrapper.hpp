@@ -25,6 +25,7 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/operators/GenericOperator.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -43,7 +44,10 @@ class OperatorWrapper final
 
    /// Constructor that constructs the operator which the class wraps itself around
    template < typename... ConstructorArguments >
-   OperatorWrapper( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, ConstructorArguments... args )
+   OperatorWrapper( const std::shared_ptr< PrimitiveStorage >& storage,
+                    uint_t                                     minLevel,
+                    uint_t                                     maxLevel,
+                    ConstructorArguments... args )
    {
       wrappedOper_ = std::make_unique< oper_t >( storage, minLevel, maxLevel, args... );
    };
@@ -87,7 +91,7 @@ class OperatorWrapper final
          {
             const auto& dst_unwrapped = dst.template unwrap< typename oper_t::srcType >();
             const auto& rhs_unwrapped = rhs.template unwrap< typename oper_t::dstType >();
-            op_gs->smooth_gs(dst_unwrapped, rhs_unwrapped, level, flag );
+            op_gs->smooth_gs( dst_unwrapped, rhs_unwrapped, level, flag );
          }
          else
          {
@@ -99,6 +103,19 @@ class OperatorWrapper final
          throw std::runtime_error( "For GaussSeidel src and dst functions must coincide" );
       }
    }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const GenericFunction< idx_t >&             src,
+                  const GenericFunction< idx_t >&             dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      wrappedOper_->toMatrix( mat,
+                              src.template unwrap< typename oper_t::srcType::template FunctionType< idx_t > >(),
+                              dst.template unwrap< typename oper_t::dstType::template FunctionType< idx_t > >(),
+                              level,
+                              flag );
+   };
 
  private:
    std::unique_ptr< oper_t > wrappedOper_;

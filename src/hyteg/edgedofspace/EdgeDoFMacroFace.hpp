@@ -1016,7 +1016,7 @@ template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Face >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = face.getData( srcId )->getPointer( Level );
@@ -1051,7 +1051,7 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Face >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = face.getData( srcId )->getPointer( Level );
@@ -1082,10 +1082,10 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-inline void applyDirichletBC( const uint_t&                                              Level,
-                              Face&                                                      face,
-                              std::vector< PetscInt >&                                   mat,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& numeratorId )
+inline void applyDirichletBC( const uint_t&                                           Level,
+                              Face&                                                   face,
+                              std::vector< idx_t >&                                   mat,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& numeratorId )
 {
    auto numerator = face.getData( numeratorId )->getPointer( Level );
 

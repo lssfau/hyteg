@@ -55,6 +55,12 @@ class VertexDoFToEdgeDoFOperator final : public Operator< P1Function< real_t >, 
                DoFType                          flag,
                UpdateType                       updateType = Replace ) const;
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const EdgeDoFFunction< idx_t >&             dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const;
+
    /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
    const PrimitiveDataID< StencilMemory< real_t >, Edge >& getEdgeStencilID() const { return edgeStencilID_; }
    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& getEdgeStencil3DID() const
@@ -202,7 +208,7 @@ void assembleVertexToEdgeStencils(
 
                const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
                    edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ), centerOrientation, cell, level, form );
-               for ( const auto & stencilIt : vertexToEdgeStencilMap )
+               for ( const auto& stencilIt : vertexToEdgeStencilMap )
                {
                   vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
                }

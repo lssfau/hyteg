@@ -41,7 +41,7 @@
  * For convenience, let us call these fluids A and B.
  * They are represented by an indicator function \f$\phi \in [-1, +1]\f$,
  * such that \f$\phi(x) = +1\f$ if only fluid A is present and \f$\phi(x) = -1\f$  if only fluid B is present.
- * All intermediate values correspond to mixtures of the fluid, where either A (\f$\phi(x) < 1\f$) or B dominates (\f$\phi(x) > 1\f$).
+ * All intermediate values correspond to mixtures of the fluid, where either A (\f$\phi(x) > 0\f$) or B dominates (\f$\phi(x) < 0\f$).
  *
  * We want to assign an energy functional to these equations given by
  * \f{align*}{
@@ -68,7 +68,7 @@
  *     \boldsymbol \psi = \boldsymbol \psi_c - \boldsymbol \psi_e
  * \f}
  * where \f$\boldsymbol \psi_e\f$, \f$\boldsymbol \psi_c\f$ are convex.
- * It can be shown that if we treat \f$\psi_e\f$ implicitly and \f$\psi_c\f$ explicitly the resulting scheme will be unconditionally gradient stable.
+ * It can be shown that if we treat \f$\psi_e\f$ explicitly and \f$\psi_c\f$ implicitly the resulting scheme will be unconditionally gradient stable.
  * That means that \f$F(\phi^{n+1}) \leq F(\phi^{n})\f$ for our time-discrete solutions \f$\phi^{(n)}\f$ independent of the time-step size \f$\tau\f$.
  * The resulting scheme is
  *
@@ -551,16 +551,6 @@ class P1CahnHilliardFunction : public BlockFunction< value_t >
    [[nodiscard]] const P1Function< value_t >& getPhi() const
    {
       return this->getSubFunction( 1 ).template unwrap< P1Function< value_t > >();
-   }
-
-   // TODO: Move this into BlockFunction
-   template < typename OtherFunctionValueType >
-   void copyBoundaryConditionFromFunction( const P1CahnHilliardFunction< OtherFunctionValueType >& other )
-   {
-      for ( uint_t k = 0; k < BlockFunction< value_t >::getNumberOfBlocks(); ++k )
-      {
-         BlockFunction< value_t >::getSubFunction( k ).setBoundaryCondition( other.getSubFunction( k ).getBoundaryCondition() );
-      }
    }
 };
 /// [CahnHilliardFunction definition]

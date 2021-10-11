@@ -100,7 +100,7 @@ public:
       storage_( storage ), velocityUBC_( velocityUBC ), velocityVBC_( velocityVBC )
     {
       tmpRHS_ = std::make_shared< Function_T< real_t > >( "tmpRHS", storage, minLevel, maxLevel );
-      numerator_ = std::make_shared< Function_T< PetscInt > >( "numerator", storage, minLevel, maxLevel );
+      numerator_ = std::make_shared< Function_T< idx_t > >( "numerator", storage, minLevel, maxLevel );
     }
 
     void solve( const Operator_T & A,
@@ -119,11 +119,11 @@ public:
     }
 
 private:
-   std::shared_ptr< Function_T< PetscInt > > numerator_;
-   std::shared_ptr< Function_T< real_t > > tmpRHS_;
-   std::shared_ptr< PrimitiveStorage > storage_;
-   std::function< real_t ( const hyteg::Point3D & ) > velocityUBC_;
-   std::function< real_t ( const hyteg::Point3D & ) > velocityVBC_;
+  std::shared_ptr< Function_T< idx_t > >           numerator_;
+  std::shared_ptr< Function_T< real_t > >          tmpRHS_;
+  std::shared_ptr< PrimitiveStorage >              storage_;
+  std::function< real_t( const hyteg::Point3D& ) > velocityUBC_;
+  std::function< real_t( const hyteg::Point3D& ) > velocityVBC_;
 #else
 public:
     PetscSolver( const std::shared_ptr< hyteg::PrimitiveStorage >         &,

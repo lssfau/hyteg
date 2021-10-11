@@ -717,14 +717,13 @@ inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDa
    return localMin;
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-inline void saveOperator( const uint_t&                                              level,
-                          Edge&                                                      edge,
-                          const PrimitiveStorage&                                    storage,
-                          const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& srcId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveOperator( const uint_t&                                           level,
+                          Edge&                                                   edge,
+                          const PrimitiveStorage&                                 storage,
+                          const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
@@ -734,8 +733,8 @@ inline void saveOperator( const uint_t&                                         
 
    for ( uint_t i = 1; i < rowsize - 1; ++i )
    {
-      PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-      PetscInt srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      idx_t dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      idx_t srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       mat->addValue(
           uint_c( dstint ), uint_c( srcint ), opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] );
 
@@ -778,10 +777,10 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
-inline void saveIdentityOperator( const uint_t&                                              level,
-                                  Edge&                                                      edge,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
-                                  const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveIdentityOperator( const uint_t&                                           level,
+                                  Edge&                                                   edge,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
@@ -789,19 +788,21 @@ inline void saveIdentityOperator( const uint_t&                                 
 
    for ( uint_t i = 1; i < rowsize - 1; ++i )
    {
-      PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      idx_t dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       mat->addValue( uint_c( dstint ), uint_c( dstint ), 1.0 );
    }
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
-   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
+   idx_t rowsize = (idx_t) levelinfo::num_microvertices_per_edge( level );
 
    auto src       = edge.getData( srcId )->getPointer( level );
    auto numerator = edge.getData( numeratorId )->getPointer( level );
@@ -816,10 +817,10 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
-   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
+   idx_t rowsize = (idx_t) levelinfo::num_microvertices_per_edge( level );
 
    auto numerator = edge.getData( numeratorId )->getPointer( level );
 
@@ -829,10 +830,10 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-inline void applyDirichletBC( const uint_t&                                              level,
-                              Edge&                                                      edge,
-                              std::vector< PetscInt >&                                   mat,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& numeratorId )
+inline void applyDirichletBC( const uint_t&                                           level,
+                              Edge&                                                   edge,
+                              std::vector< idx_t >&                                   mat,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& numeratorId )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 

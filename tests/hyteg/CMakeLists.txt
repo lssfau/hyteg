@@ -313,10 +313,8 @@ waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 waLBerla_compile_test(FILES operators/DiagonalNonConstantOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
 
-if( HYTEG_BUILD_WITH_EIGEN )
-  waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME P1SurrogateOperatorTest)
-endif()
+waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1SurrogateOperatorTest)
 
 waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ViscousOperatorsTest)
@@ -624,12 +622,6 @@ waLBerla_execute_test(NAME FunctionMemoryAllocationTest8 COMMAND $<TARGET_FILE:F
 waLBerla_compile_test(FILES functions/FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionSpaceDataTypesTest1 COMMAND $<TARGET_FILE:FunctionSpaceDataTypesTest> )
 
-if( HYTEG_BUILD_WITH_PETSC )
-  waLBerla_compile_test(FILES PetscTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
-  waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
-endif()
-
 waLBerla_compile_test(FILES functions/FunctionIteratorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionIteratorTest1 COMMAND $<TARGET_FILE:FunctionIteratorTest> )
 waLBerla_execute_test(NAME FunctionIteratorTest2 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 2 )
@@ -686,11 +678,9 @@ waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hy
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 
 ## numeric tools ##
-if( HYTEG_BUILD_WITH_EIGEN )
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SpectrumEstimationTest )
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
-endif()
 
 ## Form Evaluation ##
 waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
@@ -763,3 +753,14 @@ waLBerla_execute_test(NAME BlockOperatorBasicTest)
 
 waLBerla_compile_test(FILES operators/BlockOperatorGSSmoothableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BlockOperatorGSSmoothableTest)
+
+## PETSc & Matrix Assembly ##
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES Petsc/PetscTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
+  waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
+
+  waLBerla_compile_test(FILES Petsc/PetscMatrixAssemblyTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME PetscMatrixAssemblyTest COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> )
+  waLBerla_execute_test(NAME PetscMatrixAssemblyTest2 COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> PROCESSES 2 )
+endif()

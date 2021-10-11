@@ -44,7 +44,7 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    , divT_x( storage, minLevel, maxLevel )
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
-//   , pspg_( storage, minLevel, maxLevel )
+   //   , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -86,6 +86,29 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
       }
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+
+      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+
+      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag );
+      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag );
+
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
+         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag );
+      }
+   }
+
    P2ElementwiseLaplaceOperator   A;
    P2ToP1ElementwiseDivxOperator  div_x;
    P2ToP1ElementwiseDivyOperator  div_y;
@@ -95,9 +118,9 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    P1ToP2ElementwiseDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
-//   P1ElementwisePSPGOperator        pspg_;
+   //   P1ElementwisePSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
-   bool                             hasGlobalCells_;
+   bool                  hasGlobalCells_;
 };
 
 } // namespace hyteg

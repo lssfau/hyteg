@@ -209,9 +209,9 @@ void testPETScConversion( const std::string& kind, bool exportVTU = false )
 
    uint_t level = 4;
 
-   FunctionKind< real_t >   src( "src", storage, level, level );
-   FunctionKind< real_t >   dst( "dst", storage, level, level );
-   FunctionKind< PetscInt > numerator( "numerator", storage, level, level );
+   FunctionKind< real_t > src( "src", storage, level, level );
+   FunctionKind< real_t > dst( "dst", storage, level, level );
+   FunctionKind< idx_t >  numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > expression = []( const hyteg::Point3D& x ) {
       real_t value;

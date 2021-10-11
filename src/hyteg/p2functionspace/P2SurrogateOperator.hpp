@@ -29,7 +29,7 @@
 #include "variablestencil/P2VariableStencilCommon.hpp"
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
@@ -337,6 +337,6 @@ P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
 
 typedef P2SurrogateOperator<P2Form_laplace, OperatorType::EVEN> P2SurrogateLaplaceOperator;
 typedef P2SurrogateOperator<P2Form_divKgrad, OperatorType::EVEN> P2SurrogateDivKgradOperator;
-typedef P2SurrogateOperator<P2Form_mass, OperatorType::MASS>    P2SurrogateMassOperator;
+typedef P2SurrogateOperator<forms::p2_mass_blending_q4, OperatorType::MASS>    P2SurrogateMassOperator;
 
 } // namespace hyteg

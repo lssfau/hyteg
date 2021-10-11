@@ -238,7 +238,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
          }
 
          Matrixr< 3, 6 > elMat;
-         P2toP1Form       form;
+         P2toP1Form      form;
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -270,15 +270,14 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
    this->stopTiming( "apply" );
 }
 
-
 template < class P2toP1Form >
 void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_t                 level,
-                                                                   const indexing::Index& microFace,
-                                                                   facedof::FaceType      fType,
-                                                                   const real_t* const    srcVertexData,
-                                                                   const real_t* const    srcEdgeData,
-                                                                   real_t* const          dstVertexData,
-                                                                   const Matrixr< 3, 6 >&        elMat ) const
+                                                                           const indexing::Index& microFace,
+                                                                           facedof::FaceType      fType,
+                                                                           const real_t* const    srcVertexData,
+                                                                           const real_t* const    srcEdgeData,
+                                                                           real_t* const          dstVertexData,
+                                                                           const Matrixr< 3, 6 >& elMat ) const
 {
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
@@ -389,15 +388,13 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalElementMatrix3D( cons
    form.integrateAll( coords, elMat );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 // Assemble operator as sparse matrix
 template < class P2toP1Form >
-void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                   const P2Function< PetscInt >&               src,
-                                                                   const P1Function< PetscInt >&               dst,
-                                                                   uint_t                                      level,
-                                                                   DoFType                                     flag ) const
+void P2ToP1ElementwiseOperator< P2toP1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const P2Function< idx_t >&                  src,
+                                                        const P1Function< idx_t >&                  dst,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    WALBERLA_UNUSED( flag );
@@ -411,15 +408,15 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalMatrix( const std::sh
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data in the two indexing functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstVertexDoFIdx = dst.getCellDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcVertexDoFIdx = src.getVertexDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstVertexDoFIdx = dst.getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcVertexDoFIdx = src.getVertexDoFFunction().getCellDataID();
 
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcEdgeDoFIdx = src.getEdgeDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcEdgeDoFIdx = src.getEdgeDoFFunction().getCellDataID();
 
-         PetscInt* srcVertexIndices = cell.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstVertexIndices = cell.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcVertexIndices = cell.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstVertexIndices = cell.getData( dstVertexDoFIdx )->getPointer( level );
 
-         PetscInt* srcEdgeIndices = cell.getData( srcEdgeDoFIdx )->getPointer( level );
+         idx_t* srcEdgeIndices = cell.getData( srcEdgeDoFIdx )->getPointer( level );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -451,15 +448,15 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalMatrix( const std::sh
          indexing::IndexIncrement offset;
 
          // get hold of the actual numerical data in the two functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstVertexDoFIdx = dst.getFaceDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcVertexDoFIdx = src.getVertexDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > srcVertexDoFIdx = src.getVertexDoFFunction().getFaceDataID();
 
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcEdgeDoFIdx = src.getEdgeDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > srcEdgeDoFIdx = src.getEdgeDoFFunction().getFaceDataID();
 
-         PetscInt* srcVertexIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstVertexIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcVertexIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstVertexIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
 
-         PetscInt* srcEdgeIndices = face.getData( srcEdgeDoFIdx )->getPointer( level );
+         idx_t* srcEdgeIndices = face.getData( srcEdgeDoFIdx )->getPointer( level );
 
          // now loop over micro-faces of macro-face
          for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
@@ -508,10 +505,9 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
                                                                      const uint_t                                xIdx,
                                                                      const uint_t                                yIdx,
                                                                      const P2Elements::P2Element&                element,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       srcEdgeIdx,
-                                                                     const PetscInt* const dstVertexIdx ) const
-
+                                                                     const idx_t* const                          srcVertexIdx,
+                                                                     const idx_t* const                          srcEdgeIdx,
+                                                                     const idx_t* const dstVertexIdx ) const
 {
    Matrixr< 3, 6 >          elMat;
    indexing::Index          nodeIdx;
@@ -530,7 +526,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -572,9 +568,9 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly3D( const std::
                                                                      const uint_t                                level,
                                                                      const indexing::Index&                      microCell,
                                                                      const celldof::CellType                     cType,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       srcEdgeIdx,
-                                                                     const PetscInt* const dstVertexIdx ) const
+                                                                     const idx_t* const                          srcVertexIdx,
+                                                                     const idx_t* const                          srcEdgeIdx,
+                                                                     const idx_t* const dstVertexIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -621,8 +617,6 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly3D( const std::
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
-#endif
-
 template class P2ToP1ElementwiseOperator<
     P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >;
 
@@ -632,8 +626,8 @@ template class P2ToP1ElementwiseOperator<
 template class P2ToP1ElementwiseOperator<
     P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
-template class P2ToP1ElementwiseOperator< P2ToP1Form_div< 0 > >;
-template class P2ToP1ElementwiseOperator< P2ToP1Form_div< 1 > >;
-template class P2ToP1ElementwiseOperator< P2ToP1Form_div< 2 > >;
+template class P2ToP1ElementwiseOperator< forms::p2_to_p1_div_0_blending_q2 >;
+template class P2ToP1ElementwiseOperator< forms::p2_to_p1_div_1_blending_q2 >;
+template class P2ToP1ElementwiseOperator< forms::p2_to_p1_div_2_blending_q2 >;
 
 } // namespace hyteg

@@ -30,21 +30,21 @@ namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const DGFunction< PetscReal >&        function,
-                                      const DGFunction< PetscInt >&         numerator,
+                                      const DGFunction< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
+   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
 }
 
 inline void createFunctionFromVector( const DGFunction< PetscReal >&        function,
-                                      const DGFunction< PetscInt >&         numerator,
+                                      const DGFunction< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
+   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
 }
 
 } // namespace petsc

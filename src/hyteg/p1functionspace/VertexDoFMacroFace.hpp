@@ -1011,14 +1011,12 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
    return localMin;
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-inline void saveOperator( const uint_t&                                              Level,
-                          Face&                                                      face,
-                          const PrimitiveDataID< StencilMemory< real_t >, Face >&    operatorId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& srcId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveOperator( const uint_t&                                           Level,
+                          Face&                                                   face,
+                          const PrimitiveDataID< StencilMemory< real_t >, Face >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >& srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -1031,8 +1029,8 @@ inline void saveOperator( const uint_t&                                         
    {
       for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
-         PetscInt srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
-         PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         idx_t srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         idx_t dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          mat->addValue(
              uint_c( dstInt ), uint_c( srcInt ), opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] );
 
@@ -1065,10 +1063,10 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
-inline void saveIdentityOperator( const uint_t&                                              Level,
-                                  Face&                                                      face,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
-                                  const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveIdentityOperator( const uint_t&                                           Level,
+                                  Face&                                                   face,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -1079,7 +1077,7 @@ inline void saveIdentityOperator( const uint_t&                                 
    {
       for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
-         PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         idx_t dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
       }
       --inner_rowsize;
@@ -1090,8 +1088,8 @@ inline void saveOperator3D( const uint_t&                                       
                             Face&                                                           face,
                             const PrimitiveStorage&                                         storage,
                             const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face >& operatorId,
-                            const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&      srcId,
-                            const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&      dstId,
+                            const PrimitiveDataID< FunctionMemory< idx_t >, Face >&         srcId,
+                            const PrimitiveDataID< FunctionMemory< idx_t >, Face >&         dstId,
                             const std::shared_ptr< SparseMatrixProxy >&                     mat )
 {
    auto opr_data = face.getData( operatorId )->getData( Level );
@@ -1100,7 +1098,7 @@ inline void saveOperator3D( const uint_t&                                       
 
    for ( const auto& idxIt : Iterator( Level, 1 ) )
    {
-      const PetscInt dstInt = dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )];
+      const idx_t dstInt = dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )];
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
@@ -1127,18 +1125,20 @@ inline void saveOperator3D( const uint_t&                                       
                    vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
             }
 
-            const PetscInt srcInt = src[leafArrayIndexInMacroFace];
+            const idx_t srcInt = src[leafArrayIndexInMacroFace];
             mat->addValue( uint_c( dstInt ), uint_c( srcInt ), weight );
          }
       }
    }
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Face >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
@@ -1151,7 +1151,7 @@ inline void createVectorFromFunction( const uint_t&                             
    {
       for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
-         PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         idx_t numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          vec->setValue( uint_c( numeratorInt ),
                         src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] );
       }
@@ -1163,7 +1163,7 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Face >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
@@ -1176,7 +1176,7 @@ inline void createFunctionFromVector( const uint_t&                             
    {
       for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
-         PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         idx_t numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =
              vec->getValue( uint_c( numeratorInt ) );
       }
@@ -1184,14 +1184,15 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-inline void applyDirichletBC(const uint_t & level, Face & face,std::vector<PetscInt> &mat,
-                             const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId){
-
-  for( const auto & it : vertexdof::macroface::Iterator( level, 1 ))
-  {
-    mat.push_back(face.getData(numeratorId)->getPointer( level )[vertexdof::macroface::index( level, it.x(), it.y() )]);
-  }
-
+inline void applyDirichletBC( const uint_t&                                           level,
+                              Face&                                                   face,
+                              std::vector< idx_t >&                                   mat,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& numeratorId )
+{
+   for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      mat.push_back( face.getData( numeratorId )->getPointer( level )[vertexdof::macroface::index( level, it.x(), it.y() )] );
+   }
 }
 
 #endif

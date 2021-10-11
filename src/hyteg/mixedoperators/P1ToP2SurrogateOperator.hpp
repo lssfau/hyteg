@@ -28,8 +28,9 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_2_blending_q2.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
@@ -252,8 +253,8 @@ class P1ToP2SurrogateOperator : public Operator< P1Function< real_t >, P2Functio
    std::map< uint_t, PrimitiveDataID< P1toP2::FacePolynomialMemory, Face > > polynomialIDs_;
 };
 
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 0 > > P1ToP2SurrogateDivTxOperator;
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 1 > > P1ToP2SurrogateDivTyOperator;
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 2 > > P1ToP2SurrogateDivTzOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2SurrogateDivTxOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2SurrogateDivTyOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2SurrogateDivTzOperator;
 
 } // namespace hyteg

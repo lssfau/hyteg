@@ -86,6 +86,24 @@ class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, Dst
       return subOper_[i][j];
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const SrcVecFuncKind< idx_t >&              src,
+                  const DstVecFuncKind< idx_t >&              dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         for ( uint_t j = 0; j < dim_; j++ )
+         {
+            if ( subOper_[i][j] != nullptr )
+            {
+               subOper_[i][j]->toMatrix( mat, src[j], dst[i], level, flag );
+            }
+         }
+      }
+   }
+
  protected:
    std::vector< std::vector< std::shared_ptr< scalarOpType > > > subOper_;
    uint_t                                                        dim_;
