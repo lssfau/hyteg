@@ -33,12 +33,10 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
-#include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -291,12 +289,9 @@ int main( int argc, char* argv[] )
    printTestHdr( "Testing P1 Operators" );
 
    testAssembly< P1ConstantMassOperator >( storage, level, "P1ConstantOperator" );
-   testAssembly< P1ConstantMassOperator_new >( storage, level, "P1ConstantOperator_new", false );
    testAssembly< P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator", false );
-   testAssembly< P1BlendingMassOperator_new >( storage, level, "P1VariableOperator_new", false );
-
-   testAssembly< P1PolynomialBlendingMassOperator >( storage, level, level, "P1PolynomialBlendingOperator", false );
    testAssembly< P1BlendingMassOperator >( storage, level, "P1VariableOperator", false );
+
    testAssembly< P1ProjectNormalOperator >( level, "P1ProjectNormalOperator", false );
 
    printTestHdr( "Testing P2 Operators" );
