@@ -267,11 +267,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    {
       if ( backwards )
       {
-         if ( not backwards_sor_available() )
+         if ( !backwards_sor_available() )
          {
             throw std::runtime_error( "Backward SOR not implemented for this operator." );
          }
-         if ( not globalDefines::useGeneratedKernels )
+         if ( !globalDefines::useGeneratedKernels )
          {
             throw std::runtime_error( "Backward SOR only implemented in generated kernels." );
          }
@@ -1844,7 +1844,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
       std::memset( face_stencil, 0, stencilSize_ * sizeof( real_t ) );
 
-      WALBERLA_ASSERT( not storage_->hasGlobalCells() );
+      WALBERLA_ASSERT( !storage_->hasGlobalCells() );
       Point3D x = x0_ + i * dx_ + j * dy_;
 
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(

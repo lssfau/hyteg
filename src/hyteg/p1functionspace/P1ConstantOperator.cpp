@@ -77,7 +77,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real
 {
    // todo: Remove these constraints
    WALBERLA_CHECK_GREATER_EQUAL( minLevel_, 2, "scale() not implemented for level < 2" )
-   WALBERLA_CHECK( not storage_->hasGlobalCells(), "scale() not implemented for macro-cells" )
+   WALBERLA_CHECK( !storage_->hasGlobalCells(), "scale() not implemented for macro-cells" )
 
    for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
    {
