@@ -131,6 +131,74 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real
 }
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                               const P1Function< idx_t >&                  src,
+                                                                               const P1Function< idx_t >&                  dst,
+                                                                               size_t                                      level,
+                                                                               DoFType flag ) const
+{
+   for ( auto& it : storage_->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         vertexdof::macrovertex::saveOperator(
+             vertex, this->getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
+      }
+   }
+   if ( level >= 1 )
+   {
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::saveOperator(
+                level, edge, *storage_, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+      }
+   }
+   if ( level >= 2 )
+   {
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroface::saveOperator3D(
+                   level, face, *storage_, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+            else
+            {
+               vertexdof::macroface::saveOperator(
+                   level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+         }
+      }
+
+      for ( auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::saveOperator(
+                level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+         }
+      }
+   }
+}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply_face3D_generated(
     Face&                                                    face,
     const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,

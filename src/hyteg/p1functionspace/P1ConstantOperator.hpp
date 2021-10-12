@@ -63,75 +63,11 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
 
    void scale( real_t scalar );
 
-   /*  todo
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< idx_t >&                  src,
                   const P1Function< idx_t >&                  dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const override
-   {
-      const auto storage = src.getStorage();
-
-      for ( auto& it : this->getStorage()->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if ( testFlag( vertexBC, flag ) )
-         {
-            vertexdof::macrovertex::saveOperator(
-                vertex, this->getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
-         }
-      }
-
-      for ( auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            vertexdof::macroedge::saveOperator(
-                level, edge, *storage, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-         }
-      }
-
-      if ( level >= 2 )
-      {
-         for ( auto& it : this->getStorage()->getFaces() )
-         {
-            Face& face = *it.second;
-
-            const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-            if ( testFlag( faceBC, flag ) )
-            {
-               if ( storage->hasGlobalCells() )
-               {
-                  vertexdof::macroface::saveOperator3D(
-                      level, face, *storage, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-               }
-               else
-               {
-                  vertexdof::macroface::saveOperator(
-                      level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-               }
-            }
-         }
-
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-            if ( testFlag( cellBC, flag ) )
-            {
-               vertexdof::macrocell::saveOperator(
-                   level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-            }
-         }
-      }
-   }
-   */
+                  DoFType                                     flag ) const override;
 
  protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
