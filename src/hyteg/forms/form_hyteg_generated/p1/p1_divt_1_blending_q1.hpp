@@ -20,7 +20,7 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
+ *
  * Software:
  *
  * - quadpy version: 0.16.5
@@ -39,7 +39,7 @@ namespace forms {
 /// Implementation of the integration of a weak form over an element.
 ///
 /// - name:        p1_divt_1_blending_q1
-/// - description: 
+/// - description:
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///

@@ -27,7 +27,7 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 
 waLBerla_compile_test(FILES convergence/P2GMGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMGConvergenceTest)
-waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG3DConvergenceTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
@@ -335,9 +335,6 @@ waLBerla_execute_test(NAME P1DataHandlingTest)
 
 waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1EvaluateTest)
-
-waLBerla_compile_test(FILES P1/P1PointwiseOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1PointwiseOperatorTest)
 
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)

@@ -27,10 +27,10 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -48,6 +48,28 @@ enum KerType
    SURROGATE,
    SURROGATE_FAST,
 };
+
+// enable access to protected member functions
+template < class Op >
+class OperatorWrapper : public Op
+{
+ public:
+   using Op::Op;
+   using Op::apply_cell;
+   using Op::apply_cell_generated;
+   using Op::apply_face;
+   using Op::apply_face_generated;
+   using Op::smooth_sor_cell;
+   using Op::smooth_sor_cell_generated;
+   using Op::smooth_sor_face;
+   using Op::smooth_sor_face_generated;
+};
+
+using LaplaceConst         = OperatorWrapper< P1ConstantLaplaceOperator >;
+using LaplaceBlending      = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_blending_q1 > >;
+using LaplaceAffine        = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_affine_q1 > >;
+using LaplaceSurrogate     = OperatorWrapper< P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false > >;
+using LaplaceSurrogateFast = OperatorWrapper< P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, true > >;
 
 const std::map< std::string, KerType > strToKerType = { { "variable", VARIABLE },
                                                         { "constant", CONSTANT },
@@ -191,11 +213,11 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
 
    WALBERLA_LOG_INFO_ON_ROOT( "Intitialize operators" );
 
-   P1ConstantLaplaceOperator_new                                           L_const( storage, level, level );
-   hyteg::P1VariableOperator_new< hyteg::forms::p1_diffusion_blending_q1 > L_blend( storage, level, level );
-   hyteg::P1VariableOperator_new< hyteg::forms::p1_diffusion_affine_q1 >   L_aff( storage, level, level );
-   P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false >    L_q( storage, level, level );
-   P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, true >     L_q_fast( storage, level, level );
+   LaplaceConst         L_const( storage, level, level );
+   LaplaceBlending      L_blend( storage, level, level );
+   LaplaceAffine        L_aff( storage, level, level );
+   LaplaceSurrogate     L_q( storage, level, level );
+   LaplaceSurrogateFast L_q_fast( storage, level, level );
    L_q.interpolateStencils( q, sample );
    L_q_fast.interpolateStencils( q, sample );
 
