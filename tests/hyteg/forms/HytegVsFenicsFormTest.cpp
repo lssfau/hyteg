@@ -658,9 +658,9 @@ void run3DTestsWithAffineMap()
 
    logSectionHeader( "P2ToP1 DivZ Forms (3D)" );
    compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
-       forms::p2_to_p1_div_2_blending_q2,
-       Matrixr< 4, 10 >,
-       3 >( theTet, 1e-14, map );
+                          forms::p2_to_p1_div_2_blending_q2,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
 
    // HyTeG form generator test
 
@@ -814,8 +814,9 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
    // clang 9 seams to produce a problem related to vectorized division
    // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
-#if defined( NDEBUG ) && defined( __clang__ )
+#if ( defined( NDEBUG ) && defined( __clang__ ) ) || ( !defined( NDEBUG ) && defined( __INTEL_LLVM_COMPILER ) )
    // clang 10 has problems with some of the forms in Release mode (see issue #147)
+   // intel llvm has problems in debug mode
 #else
    // abort in case of common floating-point exceptions
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
