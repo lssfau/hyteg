@@ -343,8 +343,8 @@ void runBenchmark( real_t     cflMax,
    const real_t hMin                = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax                = MeshQuality::getMaximalEdgeLength( storage, level );
 
-   const real_t diffusivity                 = 1.0;
-   const real_t internalHeating             = 0.0;
+   const real_t diffusivity     = 1.0;
+   const real_t internalHeating = 0.0;
 
    const real_t sliceEvaluationRadius = domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin );
 
@@ -369,7 +369,11 @@ void runBenchmark( real_t     cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
    WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns temperature, including boundary:     " << unknownsTemperature )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns Stokes, including boundary:          " << unknownsStokes )
+   for ( uint_t l = minLevel; l <= level; l++ )
+   {
+      const uint_t unknownsStokesLevel = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns Stokes, including boundary, level " << l << ": " << unknownsStokesLevel )
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - benchmark settings: " )
