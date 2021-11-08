@@ -19,7 +19,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    typedef typename OperatorType::srcType               FunctionType;
    typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
-   /// \brief PETSc-based block preconditioned MinRes solver for the Stokes problem.
+   /// \brief PETSc-based block preconditioned Krylov solver for the Stokes problem.
    ///
    /// \param velocityPreconditionerType choose from different velocity preconditioners:
    ///                                   - 0: PCGAMG
@@ -27,15 +27,21 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 2: Schur complement
    ///                                   - 3: Hypre (BoomerAMG)
    ///                                   - 4: none
+   ///                                   - 5: GKB
    /// \param pressurePreconditionerType choose from different pressure preconditioners:
    ///                                   - 0: none
    ///                                   - 1: PCJACOBI (lumped mass)
+   /// \param krylovSolverType choose from different solvers:
+   ///                                   - 0: MINRES
+   ///                                   - 1: FGMRES
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1,
-                                         const uint_t&  pressurePreconditionerType = 1 )
+                                         const uint_t&  pressurePreconditionerType = 1,
+                                         const uint_t&  krylovSolverType = 0
+   )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -62,6 +68,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
    , pressurePreconditionerType_( pressurePreconditionerType )
+   , krylovSolverType_(krylovSolverType)
    , verbose_( false )
    , reassembleMatrix_( true )
    , matrixWasAssembledOnce_( false )
@@ -121,7 +128,25 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "Index set setup" );
 
       KSPCreate( petscCommunicator_, &ksp );
-      KSPSetType( ksp, KSPMINRES );
+       
+   
+      switch ( krylovSolverType_ )
+      {
+      case 0:
+         KSPSetType( ksp, KSPMINRES );
+         std::cout << "Using MINRES in PETScBlockPreconditionedStokesSolver " << std::endl;
+         break;
+      case 1:
+         KSPSetType( ksp, KSPFGMRES );
+         std::cout << "Using FGMRES in PETScBlockPreconditionedStokesSolver " << std::endl;
+         break;
+      case 2: 
+          default:
+         WALBERLA_ABORT( "Invalid solver type for PETSc block prec MinRes solver." )
+         break;
+      }
+
+
       KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
@@ -183,6 +208,61 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
          KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
+      else if ( velocityPreconditionerType_ == 5 )
+      {
+         std::cout << "Using GKB preconditioner" << std::endl;
+         
+         // Original system matrix A is used for the GKB preconditioner
+         KSPSetOperators( ksp, Amat.get(), Amat.get() );
+
+         // view index sets
+         /*
+         std::cout << "u-Index set" << std::endl;
+         ISView(is_[0],PETSC_VIEWER_STDOUT_WORLD);
+         std::cout << "p-Index set" << std::endl;
+         ISView( is_[1], PETSC_VIEWER_STDOUT_WORLD );
+         */
+
+         // preconditioner setup
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCFIELDSPLIT ); 
+         PCFieldSplitSetType( pc, PC_COMPOSITE_GKB );
+         PCFieldSplitSetIS( pc, "0", is_[0] );
+         PCFieldSplitSetIS( pc, "1", is_[1] );
+
+         // parameters of GKB
+         PCFieldSplitSetGKBDelay( pc, 5 );
+         PCFieldSplitSetGKBMaxit( pc, 1000);
+         PCFieldSplitSetGKBNu( pc, 1 );
+         PCFieldSplitSetGKBTol( pc, 1e-5 );
+         PCSetFromOptions(pc);
+         PCSetUp( pc );
+         
+         // one SubKsp: solver for H
+         PetscInt numSubKsps;
+         PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+         
+
+         // H-system should be solved by LU decomposition
+         KSPSetType( sub_ksps_[0], KSPPREONLY );
+         PC H_pc;
+         KSPGetPC( sub_ksps_[0], &H_pc );
+         PCSetType( H_pc, PCLU ); 
+         PCSetUp( H_pc );
+         //KSPView( ksp, PETSC_VIEWER_STDOUT_SELF );
+         
+         
+         // H-system should be solved by MG preconditioned CG
+         //TODO install hypre
+         /*
+         KSPSetType( sub_ksps_[0], KSPCG );
+         PC H_pc;
+         KSPGetPC( sub_ksps_[0], &H_pc );
+         PCSetType( H_pc, PCHYPRE ); 
+         PCHYPRESetType( H_pc, "boomeramg" );
+         */
+         
+      }
       else
       {
          KSPGetPC( ksp, &pc );
@@ -243,6 +323,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Solve" );
 
       timer.start();
+      std::cout << "Solving..." << std::endl;
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
@@ -371,6 +452,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
    uint_t velocityPreconditionerType_;
    uint_t pressurePreconditionerType_;
+   uint_t krylovSolverType_;
+
    bool   verbose_;
    bool   reassembleMatrix_;
    bool   matrixWasAssembledOnce_;

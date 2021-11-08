@@ -144,6 +144,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   PETScLUSolver< P1StokesOperator > solver_0( storage, level );
   PETScMinResSolver< P1StokesOperator > solver_1( storage, level );
   PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level, 1e-12 );
+  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_3( storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 0, 1 );
 
   walberla::WcTimer timer;
   switch ( solverType )
@@ -168,6 +169,13 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
       // (there have already been numerous issues).
       solver_2.solve( A, x, b, level );
       break;
+     
+    case 3:
+       WALBERLA_LOG_INFO_ON_ROOT( "Block precond. FGMRES solver with GKB preconditioner ..." )
+       solver_3.solve( A, x, b, level );
+       solver_3.solve( A, x, b, level );
+       break;
+       
     default:
     WALBERLA_ABORT( "No solver selected" );
       break;
@@ -202,7 +210,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP);
 }
 
-}
+} 
 
 using namespace hyteg;
 
@@ -218,6 +226,7 @@ int main( int argc, char* argv[] )
   petscSolveTest( 0, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
   petscSolveTest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.0e-14, 0.118, 2.78653 );
   petscSolveTest( 2, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
+  petscSolveTest( 3, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
 
   return EXIT_SUCCESS;
 }
