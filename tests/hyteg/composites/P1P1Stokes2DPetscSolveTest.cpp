@@ -30,6 +30,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -99,7 +100,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
   PETScLUSolver< P1StokesOperator > solver_1( storage, level );
-
+ 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );
   timer.end();

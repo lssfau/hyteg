@@ -33,6 +33,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
@@ -46,7 +47,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
+void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP, const uint_t & solverType )
 {
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -93,9 +94,21 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
   PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
+  PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2(
+      storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 0, 1 );
 
   walberla::WcTimer timer;
-  solver_1.solve( A, x, b, level );
+  switch (solverType) {
+     case 0:
+        solver_1.solve( A, x, b, level );
+        break;
+     case 1:
+        solver_2.solve( A, x, b, level );
+        break;
+     default:
+        WALBERLA_ABORT( "Invalid solver type." )
+        break;
+  }
   timer.end();
 
   hyteg::vertexdof::projectMean( x.p, level );
@@ -133,7 +146,8 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   PETScManager petscManager( &argc, &argv );
 
-  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184 );
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184, 0 );
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184, 1 );
 
   return EXIT_SUCCESS;
 }

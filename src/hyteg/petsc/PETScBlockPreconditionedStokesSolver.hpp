@@ -74,6 +74,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , matrixWasAssembledOnce_( false )
    {}
 
+
    ~PETScBlockPreconditionedStokesSolver() = default;
 
    /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
@@ -134,14 +135,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       {
       case 0:
          KSPSetType( ksp, KSPMINRES );
-         std::cout << "Using MINRES in PETScBlockPreconditionedStokesSolver " << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Using MINRES in PETScBlockPreconditionedStokesSolver " );
          break;
       case 1:
          KSPSetType( ksp, KSPFGMRES );
-         std::cout << "Using FGMRES in PETScBlockPreconditionedStokesSolver " << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Using FGMRES in PETScBlockPreconditionedStokesSolver " );
          break;
-      case 2: 
-          default:
+     default:
          WALBERLA_ABORT( "Invalid solver type for PETSc block prec MinRes solver." )
          break;
       }
@@ -196,6 +196,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr );
          PCFieldSplitSetIS( pc, "u", is_[0] );
          PCFieldSplitSetIS( pc, "p", is_[1] );
+         
 
          PetscInt numSubKsps;
 
@@ -210,18 +211,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       else if ( velocityPreconditionerType_ == 5 )
       {
-         std::cout << "Using GKB preconditioner" << std::endl;
-         
          // Original system matrix A is used for the GKB preconditioner
-         KSPSetOperators( ksp, Amat.get(), Amat.get() );
-
-         // view index sets
-         /*
-         std::cout << "u-Index set" << std::endl;
-         ISView(is_[0],PETSC_VIEWER_STDOUT_WORLD);
-         std::cout << "p-Index set" << std::endl;
-         ISView( is_[1], PETSC_VIEWER_STDOUT_WORLD );
-         */
+          KSPSetOperators( ksp, Amat.get(), Amat.get() );
 
          // preconditioner setup
          KSPGetPC( ksp, &pc );
@@ -241,26 +232,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          // one SubKsp: solver for H
          PetscInt numSubKsps;
          PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
-         
-
-         // H-system should be solved by LU decomposition
-         KSPSetType( sub_ksps_[0], KSPPREONLY );
-         PC H_pc;
-         KSPGetPC( sub_ksps_[0], &H_pc );
-         PCSetType( H_pc, PCLU ); 
-         PCSetUp( H_pc );
-         //KSPView( ksp, PETSC_VIEWER_STDOUT_SELF );
-         
-         
-         // H-system should be solved by MG preconditioned CG
-         //TODO install hypre
-         /*
+       
+         // CG for H system
          KSPSetType( sub_ksps_[0], KSPCG );
-         PC H_pc;
-         KSPGetPC( sub_ksps_[0], &H_pc );
-         PCSetType( H_pc, PCHYPRE ); 
-         PCHYPRESetType( H_pc, "boomeramg" );
-         */
          
       }
       else
@@ -323,7 +297,6 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Solve" );
 
       timer.start();
-      std::cout << "Solving..." << std::endl;
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
