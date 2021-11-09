@@ -29,7 +29,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -249,8 +249,8 @@ int main( int argc, char* argv[] )
    // ===================
    logSectionHeader( "Standard FEM Part" );
 
-   logMessage( "Preparing P1VariableOperator_new" );
-   P1AffineDivkGradOperator_new varOp( storage, minLevel, maxLevel, form );
+   logMessage( "Preparing P1VariableOperator" );
+   P1AffineDivkGradOperator varOp( storage, minLevel, maxLevel, form );
 
    logMessage( "Preparing Stencil Generation" );
    const PrimitiveDataID< StencilMemory< real_t >, Face >& stencilID   = varOp.getFaceStencilID();

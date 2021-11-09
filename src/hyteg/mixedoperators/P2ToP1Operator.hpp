@@ -26,6 +26,7 @@
 #pragma warning( push, 0 )
 #endif
 
+#include "hyteg/forms/P1WrapperForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 
@@ -50,7 +51,7 @@ class P2ToP1ConstantOperator : public Operator< P2Function< real_t >, P1Function
    , edgeToVertex( storage, minLevel, maxLevel )
    {}
 
-   P1ConstantOperator< P2ToP1Form > const& getVertexToVertexOpr() const { return vertexToVertex; }
+   P1ConstantOperator< P1WrapperForm< P2ToP1Form > > const& getVertexToVertexOpr() const { return vertexToVertex; }
 
    EdgeDoFToVertexDoFOperator< P2ToP1Form > const& getEdgeToVertexOpr() const { return edgeToVertex; }
 
@@ -80,8 +81,8 @@ class P2ToP1ConstantOperator : public Operator< P2Function< real_t >, P1Function
    }
 
  private:
-   P1ConstantOperator< P2ToP1Form >         vertexToVertex;
-   EdgeDoFToVertexDoFOperator< P2ToP1Form > edgeToVertex;
+   P1ConstantOperator< P1WrapperForm< P2ToP1Form > > vertexToVertex;
+   EdgeDoFToVertexDoFOperator< P2ToP1Form >          edgeToVertex;
 };
 
 typedef P2ToP1ConstantOperator<

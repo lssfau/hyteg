@@ -43,7 +43,7 @@ namespace hyteg {
 using walberla::int_c;
 using walberla::real_t;
 
-template < class P1Form >
+template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >,
                    public GSSmoothable< P1Function< real_t > >,
                    public GSBackwardsSmoothable< P1Function< real_t > >,
@@ -241,7 +241,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       smooth_sor( dst, rhs, 1.0, level, flag );
    }
 
-   void smooth_gs_backwards( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
+   void smooth_gs_backwards( const P1Function< real_t >& dst,
+                             const P1Function< real_t >& rhs,
+                             size_t                      level,
+                             DoFType                     flag ) const override
    {
       smooth_sor_backwards( dst, rhs, 1.0, level, flag );
    }
@@ -264,8 +267,14 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    {
       if ( backwards )
       {
-         WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
-         WALBERLA_CHECK( backwards_sor_available(), "Backward SOR not implemented for this operator." )
+         if ( !backwards_sor_available() )
+         {
+            throw std::runtime_error( "Backward SOR not implemented for this operator." );
+         }
+         if ( !globalDefines::useGeneratedKernels )
+         {
+            throw std::runtime_error( "Backward SOR only implemented in generated kernels." );
+         }
 
          this->startTiming( "SOR backwards" );
       }
@@ -341,11 +350,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
       // compute the current residual
       this->apply( src, dst, level, flag );
-      dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
+      dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
       // perform Jacobi update step
-      dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
-      dst.assign( {1.0, relax}, {src, dst}, level, flag );
+      dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
+      dst.assign( { 1.0, relax }, { src, dst }, level, flag );
 
       this->stopTiming( "smooth_jac" );
    }
@@ -395,6 +404,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       return cellStencilID_;
    }
 
+ protected:
    // assemble stencils for all macro-vertices
    void assemble_stencil_vertices3D()
    {
@@ -415,6 +425,26 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
             for ( uint_t i = 0; i < stencilSize; i++ )
             {
                stencilMemory[i] = stencil[i];
+            }
+
+            if constexpr ( Lumped )
+            {
+               for ( uint_t i = 1; i < stencilSize; i++ )
+               {
+                  stencilMemory[0] += stencilMemory[i];
+                  stencilMemory[i] = 0;
+               }
+            }
+            if constexpr ( Diagonal )
+            {
+               for ( uint_t i = 1; i < stencilSize; i++ )
+               {
+                  stencilMemory[i] = 0;
+               }
+            }
+            if constexpr ( InvertDiagonal )
+            {
+               stencilMemory[0] = 1.0 / stencilMemory[0];
             }
          }
       }
@@ -463,7 +493,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                     h;
 
                Matrixr< 1, 3 > matrixRow;
-               form_.integrateRow( 0, {{x, x + d0, x + d2}}, matrixRow );
+               form_.integrateRow( 0, { { x, x + d0, x + d2 } }, matrixRow );
 
                uint_t i = 1;
 
@@ -480,6 +510,28 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                vertex_stencil[0] += matrixRow( 0, 0 );
 
                ++neighborId;
+            }
+
+            if constexpr ( Lumped )
+            {
+               for ( uint_t i = 1; i < vertex.getData( vertexStencilID_ )->getSize( level ); ++i )
+               {
+                  vertex_stencil[0] += vertex_stencil[i];
+                  vertex_stencil[i] = 0;
+               }
+            }
+
+            if constexpr ( Diagonal )
+            {
+               for ( uint_t i = 1; i < vertex.getData( vertexStencilID_ )->getSize( level ); ++i )
+               {
+                  vertex_stencil[i] = 0;
+               }
+            }
+
+            if constexpr ( InvertDiagonal )
+            {
+               vertex_stencil[0] = 1.0 / vertex_stencil[0];
             }
          }
       }
@@ -581,7 +633,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                         {
                            for ( auto stencilIt : stencilMap[neighborCellID] )
                            {
-                              if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+                              if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                               {
                                  centerValue += stencilIt.second;
                               }
@@ -672,7 +724,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                            assemble_stencil_cell( stencilMap, i, j, k );
                         }
 
-                        real_t centerValue = stencilMap[indexing::IndexIncrement( {0, 0, 0} )];
+                        real_t centerValue = stencilMap[indexing::IndexIncrement( { 0, 0, 0 } )];
 
                         targetMemory[vertexdof::macrocell::index( level, i, j, k )] = centerValue;
                      }
@@ -1081,7 +1133,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, i, j, k, sd::VERTEX_C );
 
-               tmp = operatorData.at( {0, 0, 0} ) * src[centerIdx];
+               tmp = operatorData.at( { 0, 0, 0 } ) * src[centerIdx];
 
                for ( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
                {
@@ -1227,7 +1279,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         centerWeight += opr_data[neighborCellIdx][{0, 0, 0}];
+         centerWeight += opr_data[neighborCellIdx][{ 0, 0, 0 }];
       }
 
       auto invCenterWeight = 1.0 / centerWeight;
@@ -1244,7 +1296,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
             for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
             {
-               centerWeight += opr_data[neighborCellIdx][{0, 0, 0}];
+               centerWeight += opr_data[neighborCellIdx][{ 0, 0, 0 }];
             }
 
             invCenterWeight = 1.0 / centerWeight;
@@ -1258,7 +1310,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
-               if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+               if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                   continue;
 
                auto weight               = stencilIt.second;
@@ -1382,7 +1434,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
       real_t tmp;
 
-      auto inverseCenterWeight = 1.0 / operatorData[{0, 0, 0}];
+      auto inverseCenterWeight = 1.0 / operatorData[{ 0, 0, 0 }];
 
       const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
       uint_t       rowsizeY, rowsizeX;
@@ -1408,7 +1460,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                if ( variableStencil() )
                {
                   assemble_stencil_cell( operatorData, i, j, k );
-                  inverseCenterWeight = 1.0 / operatorData[{0, 0, 0}];
+                  inverseCenterWeight = 1.0 / operatorData[{ 0, 0, 0 }];
                }
 
                const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, i, j, k, sd::VERTEX_C );
@@ -1530,7 +1582,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    }
 
  protected:
-
    /// functions for variable stencil assembly. To be used in ,e.g., Ctor of constant operator, callback functions of variable operator, etc.
 
    /* Initialize assembly of variable edge stencil.
@@ -1578,12 +1629,15 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    */
    inline void assemble_variableStencil_edge( real_t* edge_stencil, const uint_t i ) const
    {
+      using namespace vertexdof::macroedge;
+      using sD = stencilDirection;
+
       Point3D x = x0_ + i * dx_;
 
       // 3D version (old version)
       if ( storage_->hasGlobalCells() )
       {
-         // new map not yet used -> use old linear stencil memory
+         // old linear stencil still used at certain points (e.g. in P2ConstantOperator)
          auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil_new< P1Form >(
              storage_, *edge_, indexing::Index( i, 0, 0 ), level_, form_ );
 
@@ -1592,6 +1646,47 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
          for ( uint_t i = 0; i < stencilSize_; i++ )
          {
             edge_stencil[i] = stencil[i];
+         }
+
+         if constexpr ( Lumped )
+         {
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] += edge_stencil[stencilIndexOnEdge( sD::VERTEX_W )];
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_W )] = 0;
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] += edge_stencil[stencilIndexOnEdge( sD::VERTEX_E )];
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_E )] = 0;
+            for ( uint_t neighborFace = 0; neighborFace < edge_->getNumNeighborFaces(); neighborFace++ )
+            {
+               edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] +=
+                   edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace )];
+               edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace )] = 0;
+               edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] +=
+                   edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace )];
+               edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace )] = 0;
+            }
+            for ( uint_t neighborCell = 0; neighborCell < edge_->getNumNeighborCells(); neighborCell++ )
+            {
+               edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] +=
+                   edge_stencil[stencilIndexOnNeighborCell( neighborCell, edge_->getNumNeighborFaces() )];
+               edge_stencil[stencilIndexOnNeighborCell( neighborCell, edge_->getNumNeighborFaces() )] = 0;
+            }
+         }
+         if constexpr ( Diagonal )
+         {
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_W )] = 0;
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_E )] = 0;
+            for ( uint_t neighborFace = 0; neighborFace < edge_->getNumNeighborFaces(); neighborFace++ )
+            {
+               edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace )] = 0;
+               edge_stencil[stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace )] = 0;
+            }
+            for ( uint_t neighborCell = 0; neighborCell < edge_->getNumNeighborCells(); neighborCell++ )
+            {
+               edge_stencil[stencilIndexOnNeighborCell( neighborCell, edge_->getNumNeighborFaces() )] = 0;
+            }
+         }
+         if constexpr ( InvertDiagonal )
+         {
+            edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )] = 1.0 / edge_stencil[stencilIndexOnEdge( sD::VERTEX_C )];
          }
       }
       // 2D version
@@ -1602,17 +1697,17 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
          // south face
          vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
              formS_,
-             {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S},
+             { x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S },
              P1Elements::P1Elements2D::elementSW,
              edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
              formS_,
-             {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE},
+             { x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE },
              P1Elements::P1Elements2D::elementS,
              edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
              formS_,
-             {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E},
+             { x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E },
              P1Elements::P1Elements2D::elementSE,
              edge_stencil );
 
@@ -1621,19 +1716,73 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
          {
             vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                 formN_,
-                {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N},
+                { x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N },
                 P1Elements::P1Elements2D::elementNE,
                 edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                 formN_,
-                {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW},
+                { x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW },
                 P1Elements::P1Elements2D::elementN,
                 edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                 formN_,
-                {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W},
+                { x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W },
                 P1Elements::P1Elements2D::elementNW,
                 edge_stencil );
+         }
+
+         if constexpr ( Lumped )
+         {
+            for ( const auto& neighbor : neighborsOnEdgeFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] +=
+                   edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )];
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+            }
+
+            for ( const auto& neighbor : neighborsOnSouthFaceFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] +=
+                   edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )];
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+            }
+
+            if ( north_ )
+            {
+               for ( const auto& neighbor : neighborsOnNorthFaceFromVertexDoF )
+               {
+                  edge_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] +=
+                      edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )];
+                  edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+               }
+            }
+         }
+
+         if constexpr ( Diagonal )
+         {
+            for ( const auto& neighbor : neighborsOnEdgeFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+            }
+
+            for ( const auto& neighbor : neighborsOnSouthFaceFromVertexDoF )
+            {
+               edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+            }
+
+            if ( north_ )
+            {
+               for ( const auto& neighbor : neighborsOnNorthFaceFromVertexDoF )
+               {
+                  edge_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+               }
+            }
+         }
+
+         if constexpr ( InvertDiagonal )
+         {
+            edge_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] =
+                1.0 / edge_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
          }
       }
    }
@@ -1642,8 +1791,22 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    */
    inline void assemble_variableStencil_edge3D( vertexdof::macroedge::StencilMap_T& edge_stencil, const uint_t i ) const
    {
-      // todo // new map not yet used -> use old linear stencil memory
-      WALBERLA_ABORT( "Assembly with new stencil map not yet implemented for edge-stencils!" )
+      WALBERLA_ASSERT( storage_->hasGlobalCells() );
+
+      for ( uint_t neighborCellID = 0; neighborCellID < edge_->getNumNeighborCells(); ++neighborCellID )
+      {
+         auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
+         auto vertexAssemblyIndexInCell =
+             vertexdof::macroedge::getIndexInNeighboringMacroCell( { i, 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+         edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
+             storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
+      }
+
+      // todo: also implement lumping/diagonal/invertdiagonal here
+      /* remark: This has also been missing in the old implementation of P1ConstantOperator.
+            Since assemble_variableStencil_edge3D() is only used in P2ConstantOperator,
+            it is not required for now.
+      */
    }
 
    /* Initialize assembly of variable face stencil.
@@ -1677,41 +1840,67 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    */
    inline void assemble_variableStencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const
    {
+      using sD = stencilDirection;
+
       std::memset( face_stencil, 0, stencilSize_ * sizeof( real_t ) );
 
-      WALBERLA_ASSERT( !( storage_->hasGlobalCells() ) );
+      WALBERLA_ASSERT( !storage_->hasGlobalCells() );
       Point3D x = x0_ + i * dx_ + j * dy_;
 
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S},
+          { x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S },
           P1Elements::P1Elements2D::elementSW,
           face_stencil );
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE},
+          { x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE },
           P1Elements::P1Elements2D::elementS,
           face_stencil );
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E},
+          { x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E },
           P1Elements::P1Elements2D::elementSE,
           face_stencil );
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N},
+          { x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N },
           P1Elements::P1Elements2D::elementNE,
           face_stencil );
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW},
+          { x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW },
           P1Elements::P1Elements2D::elementN,
           face_stencil );
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
-          {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W},
+          { x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W },
           P1Elements::P1Elements2D::elementNW,
           face_stencil );
+
+      if constexpr ( Lumped )
+      {
+         for ( const auto& neighbor : vertexdof::macroface::neighborsWithoutCenter )
+         {
+            face_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] +=
+                face_stencil[vertexdof::stencilIndexFromVertex( neighbor )];
+            face_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+         }
+      }
+
+      if constexpr ( Diagonal )
+      {
+         for ( const auto& neighbor : vertexdof::macroface::neighborsWithoutCenter )
+         {
+            face_stencil[vertexdof::stencilIndexFromVertex( neighbor )] = 0;
+         }
+      }
+
+      if constexpr ( InvertDiagonal )
+      {
+         face_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] =
+             1.0 / face_stencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
+      }
    }
 
    /* assembly of variable face stencil (requires assemble_variableStencil_face_init() for appropriate face and level).
@@ -1725,9 +1914,46 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroface::getIndexInNeighboringMacroCell( {i, j, 0}, *face_, neighborCellID, *storage_, level_ );
+             vertexdof::macroface::getIndexInNeighboringMacroCell( { i, j, 0 }, *face_, neighborCellID, *storage_, level_ );
          face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
+      }
+
+      if constexpr ( Lumped )
+      {
+         for ( uint_t neighborCellID = 0; neighborCellID < face_->getNumNeighborCells(); neighborCellID++ )
+         {
+            for ( auto& stencilIt : face_stencil[neighborCellID] )
+            {
+               if ( !( neighborCellID == 0 && stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) ) )
+               {
+                  face_stencil[0][{ 0, 0, 0 }] += stencilIt.second;
+                  stencilIt.second = 0;
+               }
+            }
+         }
+      }
+      if constexpr ( Diagonal )
+      {
+         for ( uint_t neighborCellID = 0; neighborCellID < face_->getNumNeighborCells(); neighborCellID++ )
+         {
+            for ( auto& stencilIt : face_stencil[neighborCellID] )
+            {
+               if ( stencilIt.first != indexing::IndexIncrement( { 0, 0, 0 } ) )
+               {
+                  stencilIt.second = 0;
+               }
+            }
+         }
+      }
+      if constexpr ( InvertDiagonal )
+      {
+         for ( uint_t neighborCellID = 1; neighborCellID < face_->getNumNeighborCells(); neighborCellID++ )
+         {
+            face_stencil[0][{ 0, 0, 0 }] += face_stencil[neighborCellID][{ 0, 0, 0 }];
+            face_stencil[neighborCellID][{ 0, 0, 0 }] = 0;
+         }
+         face_stencil[0][{ 0, 0, 0 }] = 1.0 / face_stencil[0][{ 0, 0, 0 }];
       }
    }
 
@@ -1750,6 +1976,26 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    {
       cell_stencil = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
           storage_, *cell_, indexing::Index( i, j, k ), level_, form_ );
+
+      if constexpr ( Lumped )
+      {
+         for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+         {
+            cell_stencil[{ 0, 0, 0 }] += cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )];
+            cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+         }
+      }
+      if constexpr ( Diagonal )
+      {
+         for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+         {
+            cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+         }
+      }
+      if constexpr ( InvertDiagonal )
+      {
+         cell_stencil[{ 0, 0, 0 }] = 1.0 / cell_stencil[{ 0, 0, 0 }];
+      }
    }
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////

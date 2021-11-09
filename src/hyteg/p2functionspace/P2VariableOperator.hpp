@@ -22,7 +22,7 @@
 
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
 #include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
@@ -199,6 +199,6 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
 };
 typedef P2VariableOperator< P2Form_laplace >  P2BlendingLaplaceOperator;
 typedef P2VariableOperator< P2Form_divKgrad > P2divKgradOperator;
-typedef P2VariableOperator< P2Form_mass >     P2BlendingMassOperator;
+typedef P2VariableOperator< forms::p2_mass_blending_q4 >     P2BlendingMassOperator;
 
 } // namespace hyteg

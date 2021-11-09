@@ -113,6 +113,27 @@ class P1RowSumForm : public P1Form
    bool assembly3DDefined() const override { return true; }
 
  private:
+
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override
+   {
+      Point3D row;
+      integrate( coords, row );
+      for ( int i = 0; i < 3; ++i )
+      {
+         elMat( 0, i ) = row[i];
+      }
+   }
+
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const override
+   {
+      Point4D row;
+      integrate( coords, row );
+      for ( int i = 0; i < 4; ++i )
+      {
+         elMat( 0, i ) = row[i];
+      }
+   }
+
    std::shared_ptr< P1Form > form_;
 };
 

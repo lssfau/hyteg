@@ -7,12 +7,10 @@ Parameters
   elementType 1;
 
   //operatorType:
-  // 0: constant;
+  // 0: old constant;
   // 1: variable;
   // 2: polynomial;
-  // 3: new_constant;
-  // 4: new_variable;
-  // 5: new_polynomial;
+  // 3: new constant;
   operatorType 4;
 
   // parameters for surrogate polynomials;

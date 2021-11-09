@@ -26,8 +26,8 @@
 #pragma warning( push, 0 )
 #endif
 
+#include "hyteg/forms/P1WrapperForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -37,7 +37,6 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hyteg {
-
 using walberla::real_t;
 
 template < class P1ToP2Form >
@@ -50,7 +49,7 @@ class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function
    , vertexToEdge( storage, minLevel, maxLevel )
    {}
 
-   P1ConstantOperator< P1ToP2Form > const& getVertexToVertexOpr() const { return vertexToVertex; }
+   P1ConstantOperator< P1WrapperForm< P1ToP2Form > > const& getVertexToVertexOpr() const { return vertexToVertex; }
 
    VertexDoFToEdgeDoFOperator< P1ToP2Form > const& getVertexToEdgeOpr() const { return vertexToEdge; }
 
@@ -80,8 +79,8 @@ class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function
    }
 
  private:
-   P1ConstantOperator< P1ToP2Form >         vertexToVertex;
-   VertexDoFToEdgeDoFOperator< P1ToP2Form > vertexToEdge;
+   P1ConstantOperator< P1WrapperForm< P1ToP2Form > > vertexToVertex;
+   VertexDoFToEdgeDoFOperator< P1ToP2Form >          vertexToEdge;
 };
 
 typedef P1ToP2ConstantOperator<

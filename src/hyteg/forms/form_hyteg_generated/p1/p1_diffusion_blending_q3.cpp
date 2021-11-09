@@ -20,7 +20,7 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- *
+ * 
  * Software:
  *
  * - quadpy version: 0.16.5
