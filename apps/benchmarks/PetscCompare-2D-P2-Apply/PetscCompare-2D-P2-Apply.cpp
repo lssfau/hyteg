@@ -51,7 +51,9 @@ int main( int argc, char* argv[] )
 
    LIKWID_MARKER_THREADINIT;
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
+#endif
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
@@ -126,6 +128,7 @@ int main( int argc, char* argv[] )
    oneFunc.interpolate( ones, level );
    wcTimingTreeApp.stop( "Interpolation" );
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    wcTimingTreeApp.start( "Enumeration" );
    numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
@@ -140,7 +143,7 @@ int main( int argc, char* argv[] )
    dstvecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
    wcTimingTreeApp.stop( "Petsc setup" );
    LIKWID_MARKER_STOP( "PETSc-setup" );
-
+#endif
    wcTimingTreeApp.start( "HyTeG apply" );
    LIKWID_MARKER_START( std::string("HyTeG-apply" + level_string).c_str() );
    for ( uint_t i = 0; i < iterations; i++ )
@@ -150,6 +153,7 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_STOP( std::string("HyTeG-apply" + level_string).c_str() );
    wcTimingTreeApp.stop( "HyTeG apply" );
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    //vecPetsc.print("../output/vector0.vec");
    PetscErrorCode ierr;
 
@@ -165,7 +169,10 @@ int main( int argc, char* argv[] )
    CHKERRQ( ierr );
 
    dstvecPetsc.createFunctionFromVector( z, numerator, level, hyteg::Inner );
-
+#else
+   wcTimingTreeApp.start( "Petsc apply" );
+   wcTimingTreeApp.stop( "Petsc apply" );
+#endif
    // WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hyteg::Inner ) );
    // WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hyteg::Inner ) );
 
@@ -213,10 +220,11 @@ int main( int argc, char* argv[] )
                                                 walberla::MPIManager::instance()->numProcesses(),
                                                 wcTimingTreeApp["HyTeG apply"].last(),
                                                 wcTimingTreeApp["Petsc apply"].last() ) )
+#ifdef HYTEG_BUILD_WITH_PETSC
    if ( mainConf.getParameter< bool >( "petscMatOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() );
    }
-
+#endif
    LIKWID_MARKER_CLOSE;
 }
