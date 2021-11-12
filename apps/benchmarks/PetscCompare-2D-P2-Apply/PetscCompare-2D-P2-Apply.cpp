@@ -208,7 +208,9 @@ int main( int argc, char* argv[] )
       vtkOutput.write( level );
    }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hyteg::Inner ), z.dotGlobal( oneFunc, level, hyteg::Inner ) )
+#endif
 
    WALBERLA_LOG_INFO_ON_ROOT(
        walberla::format( "%6s |%6s |%14s |%6s |%6s |%10s |%10s", "faces", "level", "dof", "iter", "procs", "hyteg", "petsc" ) )
