@@ -27,6 +27,7 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -101,7 +102,6 @@ int main( int argc, char* argv[] )
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
    wcTimingTreeApp.stop( "Mesh setup + load balancing" );
 
-   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       //return 5.0;
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
@@ -109,12 +109,12 @@ int main( int argc, char* argv[] )
    };
 
    wcTimingTreeApp.start( "Function allocation" );
-   hyteg::P2Function< double > oneFunc( "x", storage, level, level );
    hyteg::P2Function< double > x( "x", storage, level, level );
    hyteg::P2Function< double > y( "y", storage, level, level );
+#ifdef HYTEG_BUILD_WITH_PETSC
    hyteg::P2Function< double > z( "z", storage, level, level );
-   hyteg::P2Function< double > diff( "diff", storage, level, level );
    hyteg::P2Function< idx_t >  numerator( "numerator", storage, level, level );
+#endif
    wcTimingTreeApp.stop( "Function allocation" );
 
    const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
@@ -125,7 +125,6 @@ int main( int argc, char* argv[] )
 
    wcTimingTreeApp.start( "Interpolation" );
    x.interpolate( exact, level, hyteg::Inner );
-   oneFunc.interpolate( ones, level );
    wcTimingTreeApp.stop( "Interpolation" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -145,12 +144,12 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_STOP( "PETSc-setup" );
 #endif
    wcTimingTreeApp.start( "HyTeG apply" );
-   LIKWID_MARKER_START( std::string("HyTeG-apply" + level_string).c_str() );
+   LIKWID_MARKER_START( std::string( "HyTeG-apply" + level_string ).c_str() );
    for ( uint_t i = 0; i < iterations; i++ )
    {
       mass.apply( x, y, level, hyteg::Inner );
    }
-   LIKWID_MARKER_STOP( std::string("HyTeG-apply" + level_string).c_str() );
+   LIKWID_MARKER_STOP( std::string( "HyTeG-apply" + level_string ).c_str() );
    wcTimingTreeApp.stop( "HyTeG apply" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -158,12 +157,12 @@ int main( int argc, char* argv[] )
    PetscErrorCode ierr;
 
    wcTimingTreeApp.start( "Petsc apply" );
-   LIKWID_MARKER_START( std::string("Petsc-MatMult" + level_string).c_str() );
+   LIKWID_MARKER_START( std::string( "Petsc-MatMult" + level_string ).c_str() );
    for ( uint_t i = 0; i < iterations; i++ )
    {
       ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    }
-   LIKWID_MARKER_STOP( std::string("Petsc-MatMult" + level_string).c_str() );
+   LIKWID_MARKER_STOP( std::string( "Petsc-MatMult" + level_string ).c_str() );
    wcTimingTreeApp.stop( "Petsc apply" );
 
    CHKERRQ( ierr );
@@ -173,8 +172,6 @@ int main( int argc, char* argv[] )
    wcTimingTreeApp.start( "Petsc apply" );
    wcTimingTreeApp.stop( "Petsc apply" );
 #endif
-   // WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hyteg::Inner ) );
-   // WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hyteg::Inner ) );
 
    //dstvecPetsc.print("../output/vector1.vec");
 
@@ -195,21 +192,20 @@ int main( int argc, char* argv[] )
       jsonOutput.close();
    }
 
-   diff.assign( { 1.0, -1.0 }, { z, y }, level, hyteg::All );
-
    if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
       hyteg::VTKOutput vtkOutput( "./output", "PetscCompare-2D-P2-Apply", storage );
       vtkOutput.add( x );
+#ifdef HYTEG_BUILD_WITH_PETSC
       vtkOutput.add( z );
+#endif
       vtkOutput.add( y );
-      vtkOutput.add( diff );
       vtkOutput.write( level );
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hyteg::Inner ), z.dotGlobal( oneFunc, level, hyteg::Inner ) )
+   WALBERLA_CHECK_FLOAT_EQUAL( y.sumGlobal( level, hyteg::Inner ), z.sumGlobal( level, hyteg::Inner ) )
 #endif
 
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -227,6 +223,9 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() );
    }
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
+   //printFunctionAllocationInfo( *storage );
+   printCurrentMemoryUsage();
    LIKWID_MARKER_CLOSE;
 }
