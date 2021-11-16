@@ -221,9 +221,10 @@ int main( int argc, char* argv[] )
 #ifdef HYTEG_BUILD_WITH_PETSC
    if ( mainConf.getParameter< bool >( "petscMatOutput" ) )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() );
+      WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() )
    }
    printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
+   WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() )
 #endif
    //printFunctionAllocationInfo( *storage );
    printCurrentMemoryUsage();
