@@ -6,72 +6,29 @@ import math
 # required information: iteration counts, sparsity of the operators, size of (u,p) solution vector, FGMRES infos
 
 # example mean values for P2P1Stokes2D, 4 levels, 4771 DoFs
-its_FGMRES = 4
-its_GKB = 50 # mean value over all fgmres iterations
-its_CG = 14 # mean value over all gkb iterations, Preconditioner for CG is disabled to simplify things for now
-nnz_M = 380596 #petsc: 380596 # 52129 # is this possible? H = A00 + nu*A01*A01' introduces nonzeros
-nnz_A = 19778
-nnz_K = 87174
+
+# number of iterations
+its = {'FGMRES':3,'GKB':23,'CG':23}
+
+# number of nonzeros in operators
+nnz = {'OA_K':87174,'OA_M':380596,'OA_A':19778}
 m = 4226
 n = 4771 - 4226
 l = m + n
+op_size = {'OA_K': l, 'OA_M': m}
+
 restart = 30
 n_restarts = 0 # = its_FGMRES/restart
 
 # everything is compared to the problems operator application, which requires 2*nnz_K FLOPS
-FLOPS_OA = 2*nnz_K
+FLOPS_OA = 2*nnz['OA_K']
 
 ### work trackers
-work_in_CG = 0
-work_in_GKB = 0
-work_in_FGMRES = 0
-work_in_DOT = 0
-work_in_VS = 0
-work_in_VA = 0
-work_in_MV_M = 0
-work_in_MV_K = 0
-work_in_MV_A = 0
-work_in_BS = 0
+work_trackers = {'CG': 0, 'GKB': 0, 'FGMRES': 0, 'DOT': 0, 'VS': 0,'VA': 0, 'OA_M': 0, 'OA_K': 0, 'OA_A': 0, 'BS': 0, 'ILU': 0}
 
 def track_and_return(work_estimate, op):
-    global work_in_CG
-    global work_in_GKB
-    global work_in_FGMRES
-    global work_in_DOT
-    global work_in_VS
-    global work_in_VA
-    global work_in_MV_M
-    global work_in_MV_K
-    global work_in_MV_A
-    global work_in_BS
-    if(op == "CG"):
-            work_in_CG = work_in_CG + work_estimate
-            # work estimate of inner solvers/preconditioner will be added to total FGMRES work estimate
-            # => remove it to obtain work spend purely in FGMRES
-            #work_in_GKB = work_in_GKB - work_estimate
-            #work_in_FGMRES = work_in_FGMRES - work_estimate
-    elif(op == "GKB"):
-            work_in_GKB = work_in_GKB + work_estimate
-            #work_in_FGMRES = work_in_FGMRES - work_estimate
-    elif(op == "FGMRES"):
-            work_in_FGMRES = work_in_FGMRES + work_estimate
-    elif (op == "DOT"):
-            work_in_DOT = work_in_DOT + work_estimate
-    elif (op == "VS"):
-            work_in_VS = work_in_VS + work_estimate
-    elif (op == "VA"):
-            work_in_VA = work_in_VA + work_estimate
-    elif (op == "MV_A"):
-        work_in_MV_A = work_in_MV_A + work_estimate
-    elif (op == "MV_M"):
-        work_in_MV_M = work_in_MV_M + work_estimate
-    elif (op == "MV_K"):
-        work_in_MV_K = work_in_MV_K + work_estimate
-    elif (op == "BS"):
-        work_in_BS = work_in_BS + work_estimate
-    else:
-        print("Method not found, exiting...")
-        exit(-1)
+    global work_trackers
+    work_trackers[op] = work_trackers[op] + work_estimate
     return work_estimate
 
 
@@ -92,22 +49,15 @@ def W_VA(x, nn = 1):
 
 # Operator application requires 2*nnz(OP) FLOPS
 def W_MV(op, nn = 1):
-    if(op == "MV_A"):
-        return track_and_return(nn*2*nnz_A/FLOPS_OA, "MV_A")
-    if(op == "MV_M"):
-        return track_and_return(nn*2*nnz_M/FLOPS_OA, "MV_M")
-    if(op == "MV_K"):
-        return track_and_return(nn*2*nnz_K/FLOPS_OA, "MV_K")
-    else:
-        print("Operator not found, exiting...")
-        exit(-1)
-
+    return track_and_return(nn*2*nnz[op]/FLOPS_OA, op)
 
 ### work of algorithms:
+def W_PC_CG(nn = 1):
+    return W_ILU('OA_M', nn)
 
 # estimate work of Conjugate Gradient measured in Operator applications
 def W_CG():
-    return track_and_return(W_DOT(m, 4 * its_CG) + W_MV("MV_M", 2 * its_CG) + W_VA(m, 3 * its_CG) + W_VS(m, 3 * its_CG), "CG")
+    return track_and_return(W_DOT(m, 4 * its['CG'])  + W_MV("OA_M", its['CG'] + 1) + W_VA(m, 3 * its['CG']) + W_VS(m, 3 * its['CG']), "CG")
 
 # work for inner solve of GKB
 def W_IS():
@@ -115,20 +65,25 @@ def W_IS():
 
 # estimate work of GKB measured in Operator applications
 def W_GKB():
-    init_work = W_VS(n, 5) + W_DOT(m) + W_DOT(n) + W_MV("MV_A") + W_MV("MV_M")
+    init_work = W_VS(n, 5) + W_DOT(m) + W_DOT(n) + W_MV("OA_A") + W_MV("OA_M")
     inner_solver_work = 0
-    for i in range(its_GKB + 1):
+    for i in range(its['GKB'] + 1):
         inner_solver_work = inner_solver_work + W_IS()
     return track_and_return(init_work + inner_solver_work +
-        W_VS(n, 6 * its_GKB) + W_VA(n, 3 * its_GKB) + W_DOT(n, its_GKB)
-        + W_VS(m, 3 * its_GKB) + W_VA(m, 2 * its_GKB) + W_DOT(m, its_GKB)
-        + W_MV("MV_A", 2*its_GKB)
-        + W_MV("MV_M",2*its_GKB)
+        W_VS(n, 6 * its['GKB']) + W_VA(n, 3 * its['GKB']) + W_DOT(n, its['GKB'])
+        + W_VS(m, 3 * its['GKB']) + W_VA(m, 2 * its['GKB']) + W_DOT(m, its['GKB'])
+        + W_MV("OA_A", 2*its['GKB'])
+        + W_MV("OA_M",2*its['GKB'])
         , "GKB")
+
 
 # estimate work of Backward substitution measured in Operator applications
 def W_BS(s):
     return track_and_return(s*s/FLOPS_OA, "BS")
+
+# estimate work of Incomplete LU factorization measured in Operator applications
+def W_ILU(op, nn = 1):
+    return track_and_return(nn * 2/3 * op_size[op]*nnz[op]/FLOPS_OA, "ILU")
 
 # work of preconditioner in FMGRES
 def W_PC():
@@ -136,37 +91,41 @@ def W_PC():
 
 # estimate work of FGMRES measured in Operator applications
 def W_FGMRES():
-    init_work = W_VA(l) + W_VS(l) + W_MV("MV_K")
-    lsp_work = W_BS(its_FGMRES)
-    solution_update_work = W_VS(l, its_FGMRES) + W_VA(l, its_FGMRES) # n_restarts*restart to stay with the algorithm
-    rotations_work = W_VS(its_FGMRES, 5)
+    init_work = W_VA(l) + W_VS(l) + W_MV("OA_K")
+    lsp_work = W_BS(its['FGMRES'])
+    solution_update_work = W_VS(l, its['FGMRES']) + W_VA(l, its['FGMRES']) # n_restarts*restart to stay with the algorithm
+    rotations_work = W_VS(its['FGMRES'], 5)
     preconditioner_work = 0
-    for i in range(its_FGMRES):
+    for i in range(its['FGMRES']):
         preconditioner_work = preconditioner_work + W_PC()
     return track_and_return(
         init_work + rotations_work +
         lsp_work + solution_update_work +
-        preconditioner_work + W_MV("MV_K", its_FGMRES) +
-        W_DOT(l, restart/2 * its_FGMRES) + W_VS(l, restart/2 *its_FGMRES) +
-        W_VA(l, restart/2 *its_FGMRES) + W_DOT(l,its_FGMRES) +
-        W_VS(l,5*its_FGMRES) + W_VA(l,2*its_FGMRES), "FGMRES")
+        preconditioner_work + W_MV("OA_K", its['FGMRES']) +
+        W_DOT(l, restart/2 * its['FGMRES']) + W_VS(l, restart/2 *its['FGMRES']) +
+        W_VA(l, restart/2 *its['FGMRES']) + W_DOT(l,its['FGMRES']) +
+        W_VS(l,5*its['FGMRES']) + W_VA(l,2*its['FGMRES']), "FGMRES")
 
 
 total_work = W_FGMRES()
-
 print("Total work of FGMRES in Operator applications (= 1WU): ", total_work , "WU")
-print("Work spend purely in FGMRES: ",100*(work_in_FGMRES - work_in_GKB)/total_work, "% (", int(math.ceil(work_in_FGMRES - work_in_GKB)), "WU )")
-print("Work spend purely in GKB: ",100*(work_in_GKB - work_in_CG)/total_work, "% (", int(math.ceil(work_in_GKB - work_in_CG)), "WU )")
-print("Work spend in CG: ", 100*work_in_CG/total_work, "% (", int(math.ceil(work_in_CG)), "WU )")
+print("Work spend purely in FGMRES: ",100*(work_trackers['FGMRES'] - work_trackers['GKB'])/total_work, "% (", int(math.ceil(work_trackers['FGMRES'] - work_trackers['GKB'])), "WU )")
+print("Work spend purely in GKB: ",100*(work_trackers['GKB'] - work_trackers['CG'])/total_work, "% (", int(math.ceil(work_trackers['GKB'] - work_trackers['CG'])), "WU )")
+print("Work spend in CG: ", 100*(work_trackers['CG']-work_trackers['ILU'])/total_work, "% (", int(math.ceil(work_trackers['CG']-work_trackers['ILU'])), "WU )")
+print("Work spend in ILU(0) preconditioner: ", 100*(work_trackers['ILU'])/total_work, "% (", int(math.ceil(work_trackers['ILU'])), "WU )")
 print("By operations:")
 print("Work spend in operator applications:")
-print("K:", 100*work_in_MV_K/total_work, "% (", int(math.ceil(work_in_MV_K)), "WU )")
-print("A:", 100*work_in_MV_A/total_work, "% (", int(math.ceil(work_in_MV_A)), "WU )")
-print("M:", 100*work_in_MV_M/total_work, "% (", int(math.ceil(work_in_MV_M)), "WU )")
-print("DOTs: ", 100*work_in_DOT/total_work, "% (", int(math.ceil(work_in_DOT)), "WU )")
-print("Vector scalings: ", 100*work_in_VS/total_work, "% (", int(math.ceil(work_in_VS)), "WU )")
-print("Vector additions: ", 100*work_in_VA/total_work, "% (", int(math.ceil(work_in_VA)), "WU )")
-print("Back substitutions: ", 100*work_in_BS/total_work, "% (", int(math.ceil(work_in_BS)), "WU )")
+print("K:", 100*work_trackers['OA_K']/total_work, "% (", int(math.ceil(work_trackers['OA_K'])), "WU )")
+print("A:", 100*work_trackers['OA_A']/total_work, "% (", int(math.ceil(work_trackers['OA_A'])), "WU )")
+print("M:", 100*work_trackers['OA_M']/total_work, "% (", int(math.ceil(work_trackers['OA_M'])), "WU )")
+print("DOTs: ", 100*work_trackers['DOT']/total_work, "% (", int(math.ceil(work_trackers['DOT'])), "WU )")
+print("Vector scalings: ", 100*work_trackers['VS']/total_work, "% (", int(math.ceil(work_trackers['VS'])), "WU )")
+print("Vector additions: ", 100*work_trackers['VA']/total_work, "% (", int(math.ceil(work_trackers['VA'])), "WU )")
+print("Back substitutions: ", 100*work_trackers['BS']/total_work, "% (", int(math.ceil(work_trackers['BS'])), "WU )")
+print("ILU(0) preconditioner: ", 100*work_trackers['ILU']/total_work, "% (", int(math.ceil(work_trackers['ILU'])), "WU )")
+print("#applications K: ", work_trackers['OA_K']/(2*nnz['OA_K']/FLOPS_OA))
+print("#applications A: ", work_trackers['OA_A']/(2*nnz['OA_A']/FLOPS_OA))
+print("#applications M: ", work_trackers['OA_M']/(2*nnz['OA_M']/FLOPS_OA))
 
 
 
