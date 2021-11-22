@@ -16,6 +16,12 @@ def φ(x,y):
 def r(x,y):
     return sqrt(x*x + y*y)
 
+def sigmoidK():
+    α = symbols('alpha')
+    k = 1 + 1/(1+exp(-(α*(x-0.5))))
+    u = log(2*exp(α*(x-0.5)) + 1)/α - 2*x
+    return (k,u)
+
 def annulus():
     u = sin(4*φ(x,y))*sin(2*r(x,y))
     return (1,u)
@@ -63,7 +69,7 @@ def plume_example():
     return (k,u)
 
 
-k, u = basic_example()
+k, u = sigmoidK()
 
 def gradient(u):
     return np.array([diff(u,x), diff(u,y)])

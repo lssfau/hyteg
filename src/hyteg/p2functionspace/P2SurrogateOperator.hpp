@@ -29,6 +29,7 @@
 #include "variablestencil/P2VariableStencilCommon.hpp"
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
+#include <hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp>
 #include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
@@ -37,6 +38,7 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/P2MacroFacePolynomial.hpp>
 
+#include "hyteg/communication/Syncing.hpp"
 
 
 namespace hyteg {
