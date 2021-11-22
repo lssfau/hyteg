@@ -20,6 +20,7 @@
 
 #include <typeinfo>
 
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/indexing/CouplingCount.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -46,8 +47,8 @@ uint_t getNumberOfGlobalDoFCouplings( const opType& oper, uint_t level )
 {
    uint_t nCouplings = 0;
 
-   typedef Operator< P1Function< real_t >, P1Function< real_t > > P1ScalarOp;
-   typedef Operator< P2Function< real_t >, P2Function< real_t > > P2ScalarOp;
+   typedef Operator< P1Function< real_t >, P1Function< real_t > >           P1ScalarOp;
+   typedef Operator< P2Function< real_t >, P2Function< real_t > >           P2ScalarOp;
    typedef Operator< EdgeDoFFunction< real_t >, EdgeDoFFunction< real_t > > EdgeDoFScalarOp;
 
    // Scalar P1 operators

@@ -18,16 +18,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Face.hpp"
-#include "Edge.hpp"
-#include "Vertex.hpp"
-#include "hyteg/types/flags.hpp"
+
+#include <core/mpi/MPIManager.h>
+#include <cstddef>
+
 #include "hyteg/Math.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/types/types.hpp"
 
-#include <core/mpi/MPIManager.h>
-
-#include <cstddef>
+#include "Edge.hpp"
+#include "Vertex.hpp"
 
 namespace hyteg {
 using walberla::uint_c;

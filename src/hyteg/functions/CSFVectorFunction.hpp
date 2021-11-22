@@ -235,10 +235,18 @@ class CSFVectorFunction
 
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         values.push_back( compFunc_[k]->getMaxMagnitude( level, flag, mpiReduce ) );
+         values.push_back( compFunc_[k]->getMaxMagnitude( level, flag, false ) );
       }
 
-      return *std::max_element( values.begin(), values.end() );
+      valueType localMax = *std::max_element( values.begin(), values.end() );
+
+      valueType globalMax = localMax;
+      if ( mpiReduce )
+      {
+         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+      }
+
+      return globalMax;
    }
 
    /// \brief Copies all values function data from other to this.
@@ -263,6 +271,33 @@ class CSFVectorFunction
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
          compFunc_[k]->copyFrom( other[k], level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      }
+   }
+
+   void enumerate( uint_t level ) const
+   {
+      uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
+
+      std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
+
+      valueType offset = 0;
+
+      for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+      {
+         offset += static_cast< valueType >( doFsPerRank[i] );
+      }
+
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->enumerate( level, offset );
+      }
+   }
+
+   void enumerate( uint_t level, valueType& offset ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->enumerate( level, offset );
       }
    }
 

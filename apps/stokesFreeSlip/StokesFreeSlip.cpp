@@ -253,7 +253,7 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
       WALBERLA_LOG_INFO_ON_ROOT( "Solver: MINRES + no prec. (PETSc)" );
 #ifdef HYTEG_BUILD_WITH_PETSC
       solver =
-          std::make_shared< PETScMinResSolver< StokesOperatorFS > >( storage, maxLevel, absoluteTargetResidual, maxIterations );
+          std::make_shared< PETScMinResSolver< StokesOperatorFS > >( storage, maxLevel, 1e-30, absoluteTargetResidual, maxIterations );
 #else
       WALBERLA_ABORT( "PETSc not activated." );
 #endif

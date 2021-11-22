@@ -24,6 +24,18 @@
 
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/functions/GenericFunction.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
+
+// A whole lot of includes, so that createVectorFromFunction below has
+// a valid prototype for all possible cases
+#include "hyteg/dgfunctionspace/DGPetsc.hpp"
+#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
+#include "hyteg/facedofspace/FaceDoFPetsc.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#include "hyteg/p2functionspace/P2Petsc.hpp"
+
+// only needed for using idx_t in to/fromVector() below!
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 
@@ -34,10 +46,15 @@ template < typename func_t >
 class FunctionWrapper final : public GenericFunction< typename FunctionTrait< func_t >::ValueType >
 {
  public:
-
    typedef typename FunctionTrait< func_t >::ValueType value_t;
-   typedef typename FunctionTrait< func_t >::Tag Tag;
-   typedef func_t FunctionType;
+   typedef typename FunctionTrait< func_t >::Tag       Tag;
+
+   // is this really helpful, as it is not templated?
+   // typedef func_t FunctionType;
+   // how about this instead:
+   using WrappedFuncType = func_t;
+   template < typename VType >
+   using WrappedFuncKind = typename WrappedFuncType::template FunctionType< VType >;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
    FunctionWrapper() = delete;
@@ -53,7 +70,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    ~FunctionWrapper()
    {
-     // WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
    }
 
    /// provide access to wrapped function
@@ -67,10 +84,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    const std::string& getFunctionName() const { return wrappedFunc_->getFunctionName(); };
 
-   functionTraits::FunctionKind getFunctionKind() const
-   {
-     return FunctionTrait< func_t >::kind;
-   };
+   functionTraits::FunctionKind getFunctionKind() const { return FunctionTrait< func_t >::kind; };
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return wrappedFunc_->getStorage(); }
 
@@ -110,7 +124,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const
    {
-     return wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
+      return wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
    };
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { wrappedFunc_->enableTiming( timingTree ); };
@@ -160,18 +174,72 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->copyFrom( other.template unwrap< func_t >(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    };
 
+   void enumerate( uint_t level ) const { wrappedFunc_->enumerate( level ); };
+
+   void enumerate( uint_t level, value_t& offset ) const { wrappedFunc_->enumerate( level, offset ); };
+
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
+   {
+      auto storage = wrappedFunc_->getStorage();
+      return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
+   }
+
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      auto storage = wrappedFunc_->getStorage();
+      return numberOfGlobalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level, communicator, onRootOnly );
+   }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const GenericFunction< idx_t >&       numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      {
+         using numer_t = typename func_t::template FunctionType< idx_t >;
+         petsc::createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+      }
+      else
+      {
+         WALBERLA_ABORT( "FunctionWrapper::toVector() only works for ValueType being identical to PetscReal" );
+      }
+   };
+
+   void fromVector( const GenericFunction< idx_t >&       numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      {
+         using numer_t = typename func_t::template FunctionType< idx_t >;
+         petsc::createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+      }
+      else
+      {
+         WALBERLA_ABORT( "FunctionWrapper::fromVector() only works for ValueType being identical to PetscReal" );
+      }
+   };
+      /// @}
+#endif
+
  private:
    std::unique_ptr< func_t > wrappedFunc_;
 };
 
-
-template < template<typename> class WrapperFunc, typename func_t >
+template < template < typename > class WrapperFunc, typename func_t >
 const func_t& unwrap( const WrapperFunc< func_t >& wrapped )
 {
    return wrapped.unwrap();
 };
 
-template < template<typename> class WrapperFunc, typename func_t >
+template < template < typename > class WrapperFunc, typename func_t >
 func_t& unwrap( WrapperFunc< func_t >& wrapped )
 {
    return wrapped.unwrap();

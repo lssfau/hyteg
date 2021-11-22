@@ -22,7 +22,7 @@
 #include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #include "PETScWrapper.hpp"
 
@@ -44,14 +44,12 @@ class PETScVector
    PETScVector() = delete;
 
    PETScVector( const FunctionType< ValueType >& function,
-                const FunctionType< PetscInt >&  numerator,
+                const FunctionType< idx_t >&     numerator,
                 const uint_t&                    level,
                 const DoFType&                   flag              = All,
                 const std::string&               name              = "Vec",
                 const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ),
-                  name,
-                  petscCommunicator )
+   : PETScVector( numberOfLocalDoFs( function, level ), name, petscCommunicator )
    {
       createVectorFromFunction( function, numerator, level, flag );
    }
@@ -63,7 +61,7 @@ class PETScVector
    {
       VecCreate( petscCommunicator, &vec );
       VecSetType( vec, VECSTANDARD );
-      VecSetSizes( vec, (PetscInt) localSize, PETSC_DECIDE );
+      VecSetSizes( vec, (idx_t) localSize, PETSC_DECIDE );
       VecSetUp( vec );
       setName( name.c_str() );
    }
@@ -73,7 +71,7 @@ class PETScVector
    MPI_Comm getCommunicator() const { return petscCommunicator_; }
 
    void createVectorFromFunction( const FunctionType< ValueType >& src,
-                                  const FunctionType< PetscInt >&  numerator,
+                                  const FunctionType< idx_t >&     numerator,
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
@@ -84,13 +82,13 @@ class PETScVector
       VecAssemblyEnd( vec );
    }
 
-   void createFunctionFromVector( const FunctionType< ValueType >& src,
-                                  const FunctionType< PetscInt >&  numerator,
+   void createFunctionFromVector( const FunctionType< ValueType >& dst,
+                                  const FunctionType< idx_t >&     numerator,
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::petsc::createFunctionFromVector( src, numerator, proxy, level, flag );
+      hyteg::petsc::createFunctionFromVector( dst, numerator, proxy, level, flag );
    }
 
    void print( const char filename[], bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )

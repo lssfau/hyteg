@@ -111,7 +111,7 @@ int main( int argc, char* argv[] )
    hyteg::P2Function< double >   y( "y", storage, level, level );
    hyteg::P2Function< double >   z( "z", storage, level, level );
    hyteg::P2Function< double >   diff( "diff", storage, level, level );
-   hyteg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   hyteg::P2Function< idx_t >    numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
 
    const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
@@ -133,7 +133,7 @@ int main( int argc, char* argv[] )
 
    LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
-   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function > matPetsc( localDoFs, globalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > matPetsc( localDoFs, globalDoFs );
    matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
    hyteg::PETScVector< real_t, hyteg::P2Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );

@@ -38,8 +38,9 @@ class PETScMinResSolver : public Solver< OperatorType >
 
    PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                       const uint_t&                              level,
-                      const real_t                               tolerance     = 1e-12,
-                      const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
+                      const real_t                               relativeTolerance = 1e-30,
+                      const real_t                               absoluteTolerance = 1e-12,
+                      const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -60,7 +61,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
-      KSPSetTolerances( ksp, 1e-30, tolerance, PETSC_DEFAULT, maxIterations );
+      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
@@ -126,9 +127,9 @@ class PETScMinResSolver : public Solver< OperatorType >
  private:
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
@@ -137,8 +138,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    PC             pc;
    MatNullSpace   nullspace_;
    hyteg::DoFType flag_;
-   bool nullSpaceSet_;
-   bool reassembleMatrix_;
+   bool           nullSpaceSet_;
+   bool           reassembleMatrix_;
 };
 
 } // namespace hyteg

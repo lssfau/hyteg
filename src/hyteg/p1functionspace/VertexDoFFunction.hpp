@@ -28,7 +28,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
 #include "hyteg/communication/BufferedCommunication.hpp"
 
@@ -39,7 +39,7 @@ using walberla::real_t;
 using walberla::uint_t;
 
 template < typename ValueType >
-class DGFunction;
+class FaceDoFFunction;
 template < typename ValueType >
 class FunctionMemory;
 template < typename DataType, typename PrimitiveType >
@@ -194,7 +194,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
-   void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
+   void integrateDG( FaceDoFFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
@@ -229,6 +229,9 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// \tparam ValueType
    /// \param level
    void enumerate( uint_t level ) const;
+
+   /// like enumerate() but starting with value given by offset parameter
+   void enumerate( uint_t level, ValueType& offset ) const;
 
    // TODO: write more general version(s)
    ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
@@ -389,8 +392,6 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const;
-
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -400,11 +401,6 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
-
-   /// friend Stokes and P2Function for usage of enumerate
-   friend class P2Function< ValueType >;
-   friend class P1StokesFunction< ValueType >;
-   friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
 inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )
@@ -424,6 +420,7 @@ bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates, uint_t l
 
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
+extern template class VertexDoFFunction< idx_t >;
 
 } // namespace vertexdof
 } // namespace hyteg

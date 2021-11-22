@@ -24,8 +24,8 @@
 
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/primitives/Primitive.hpp"
-#include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

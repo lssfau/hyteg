@@ -23,8 +23,10 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -38,8 +40,9 @@ template < typename value_t >
 class GenericFunction
 {
  public:
+   virtual ~GenericFunction(){};
 
-   virtual ~GenericFunction() {};
+   typedef value_t valueType;
 
    template < typename func_t >
    func_t& unwrap()
@@ -69,6 +72,12 @@ class GenericFunction
    virtual const std::string& getFunctionName() const = 0;
 
    virtual functionTraits::FunctionKind getFunctionKind() const = 0;
+
+   virtual uint_t getNumberOfLocalDoFs( uint_t level ) const = 0;
+
+   virtual uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                         const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                         const bool&     onRootOnly   = false ) const = 0;
 
    virtual std::shared_ptr< PrimitiveStorage > getStorage() const = 0;
 
@@ -121,6 +130,24 @@ class GenericFunction
       this->setBoundaryCondition( other.getBoundaryCondition() );
    };
 
+   virtual void enumerate( uint_t level ) const = 0;
+
+   virtual void enumerate( uint_t level, value_t& offset ) const = 0;
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// conversion to/from linear algebra representation
+   /// @{
+   virtual void toVector( const GenericFunction< idx_t >&       numerator,
+                          const std::shared_ptr< VectorProxy >& vec,
+                          uint_t                                level,
+                          DoFType                               flag ) const = 0;
+
+   virtual void fromVector( const GenericFunction< idx_t >&       numerator,
+                            const std::shared_ptr< VectorProxy >& vec,
+                            uint_t                                level,
+                            DoFType                               flag ) const = 0;
+   /// @}
+#endif
 };
 
 } // namespace hyteg

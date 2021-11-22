@@ -21,7 +21,8 @@
 
 #include "core/DataTypes.h"
 #include "core/uid/all.h"
-#include "hyteg/types/flags.hpp"
+
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

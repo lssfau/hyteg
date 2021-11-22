@@ -65,24 +65,43 @@ class P1FormHyTeG : public P1Form
       WALBERLA_ABORT( "integrateAll() for 3D not implemented by current HyTeG form." );
    }
 
+   /// Transitional routine to allow 2D HyTeG forms inplace of FEniCS forms until we clean up the interfaces
+   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override {
+     Matrix3r elMat;
+     this->integrateAll( coords, elMat );
+     out[0] = elMat( 0, 0 );
+     out[1] = elMat( 0, 1 );
+     out[2] = elMat( 0, 2 );
+   }
+
+   /// Transitional routine to allow 3D HyTeG forms inplace of FEniCS forms until we clean up the interfaces
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override {
+     Matrix4r elMat;
+     this->integrateAll( coords, elMat );
+     out[0] = elMat( 0, 0 );
+     out[1] = elMat( 0, 1 );
+     out[2] = elMat( 0, 2 );
+     out[3] = elMat( 0, 3 );
+   }
+
    // We'd need to implement that in each child as we partially have separate 2D and 3D forms for P1 elements
    // at the moment; although the P1ElementwiseOperator does not make use of these anyway
-   virtual bool assemble2D() const
+   bool assemble2D() const override
    {
       WALBERLA_ABORT( "Don't call assemble2D on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assemble3D() const
+   bool assemble3D() const override
    {
       WALBERLA_ABORT( "Don't call assemble3D on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assembly2DDefined() const
+   bool assembly2DDefined() const override
    {
       WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
       return false;
    };
-   virtual bool assembly3DDefined() const
+   bool assembly3DDefined() const override
    {
       WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
       return false;

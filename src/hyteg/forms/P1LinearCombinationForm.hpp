@@ -81,6 +81,16 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override
+   {
+      Point3D row;
+      integrate(coords, row);
+      for (int i = 0; i < 3; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
+   }
+
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
       elMat.setAll( 0 );
@@ -115,6 +125,16 @@ class P1LinearCombinationForm : public P1Form
          Point4D tmpOut;
          owned_forms_[i]->integrate( coords, tmpOut );
          out += scalars_owned_forms_[i] * tmpOut;
+      }
+   }
+
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const override
+   {
+      Point4D row;
+      integrate(coords, row);
+      for (int i = 0; i < 4; ++i)
+      {
+         elMat(0,i) = row[i];
       }
    }
 

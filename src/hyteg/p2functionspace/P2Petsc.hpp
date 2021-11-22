@@ -19,21 +19,25 @@
  */
 #pragma once
 
-#include <hyteg/edgedofspace/EdgeDoFPetsc.hpp>
-#include <hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFPetsc.hpp>
-#include <hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp>
-#include <hyteg/p1functionspace/P1Petsc.hpp>
-#include <hyteg/p2functionspace/P2Function.hpp>
-#include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
-#include <hyteg/sparseassembly/VectorProxy.hpp>
+#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFPetsc.hpp"
+#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
 
+// ============
+//  P2Function
+// ============
 inline void createVectorFromFunction( const P2Function< PetscReal >&        function,
-                                      const P2Function< PetscInt >&         numerator,
+                                      const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -43,7 +47,7 @@ inline void createVectorFromFunction( const P2Function< PetscReal >&        func
 }
 
 inline void createFunctionFromVector( const P2Function< PetscReal >&        function,
-                                      const P2Function< PetscInt >&         numerator,
+                                      const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -52,24 +56,45 @@ inline void createFunctionFromVector( const P2Function< PetscReal >&        func
    createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
    applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
 }
 
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P2Function< PetscInt >&               src,
-                          const P2Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          uint_t                                      level,
-                          DoFType                                     flag )
+// ==================
+//  P2VectorFunction
+// ==================
+inline void createVectorFromFunction( const P2VectorFunction< PetscReal >&  function,
+                                      const P2VectorFunction< idx_t >&      numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
-   createMatrix( opr.getVertexToVertexOpr(), src.getVertexDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   createMatrix( opr.getEdgeToVertexOpr(), src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   createMatrix( opr.getVertexToEdgeOpr(), src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
-   createMatrix( opr.getEdgeToEdgeOpr(), src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
+   for ( uint_t k = 0; k < function.getDimension(); k++ )
+   {
+      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
+   }
+}
+
+inline void createFunctionFromVector( const P2VectorFunction< PetscReal >&  function,
+                                      const P2VectorFunction< idx_t >&      numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
+{
+   for ( uint_t k = 0; k < function.getDimension(); k++ )
+   {
+      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
+   }
+}
+
+inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
+   {
+      applyDirichletBC( numerator[k], mat, level );
+   }
 }
 
 } // namespace petsc

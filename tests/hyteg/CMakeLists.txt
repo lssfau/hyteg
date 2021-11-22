@@ -27,7 +27,7 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 
 waLBerla_compile_test(FILES convergence/P2GMGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMGConvergenceTest)
-waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG3DConvergenceTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
@@ -313,10 +313,12 @@ waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 waLBerla_compile_test(FILES operators/DiagonalNonConstantOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
 
-if( HYTEG_BUILD_WITH_EIGEN )
-  waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME P1SurrogateOperatorTest)
-endif()
+waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1SurrogateOperatorTest)
+
+waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME ViscousOperatorsTest)
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
@@ -333,9 +335,6 @@ waLBerla_execute_test(NAME P1DataHandlingTest)
 
 waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1EvaluateTest)
-
-waLBerla_compile_test(FILES P1/P1PointwiseOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1PointwiseOperatorTest)
 
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
@@ -490,6 +489,12 @@ waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 ## VectorFunctions ##
 waLBerla_compile_test(FILES VectorFunctions/VectorFunctionBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorFunctionBasicTest)
+
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES VectorFunctions/VectorFunctionPetscTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME VectorFunctionPetscTest)
+endif()
+
 waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
@@ -497,6 +502,21 @@ waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGInterpolateTest)
+
+waLBerla_compile_test(FILES DGAddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGAddTest)
+
+waLBerla_compile_test(FILES DGSwapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGSwapTest)
+
+waLBerla_compile_test(FILES DGDotTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGDotTest)
+
+waLBerla_compile_test(FILES DGCopyFromTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGCopyFromTest)
+
+waLBerla_compile_test(FILES DGMinMaxTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGMinMaxTest)
 
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
@@ -594,29 +614,26 @@ waLBerla_compile_test(FILES MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest> )
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest1 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> )
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest2 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest8 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionSpaceDataTypesTest1 COMMAND $<TARGET_FILE:FunctionSpaceDataTypesTest> )
 
-if( HYTEG_BUILD_WITH_PETSC )
-  waLBerla_compile_test(FILES PetscTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
-  waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
-endif()
-
-waLBerla_compile_test(FILES FunctionIteratorTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionIteratorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionIteratorTest1 COMMAND $<TARGET_FILE:FunctionIteratorTest> )
 waLBerla_execute_test(NAME FunctionIteratorTest2 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionIteratorTest8 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMemorySerializationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
+
+waLBerla_compile_test(FILES functions/FunctionMultiStoreTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionMultiStoreTest)
 
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
@@ -649,24 +666,21 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME ElementwiseOperatorPetscTest2 COMMAND $<TARGET_FILE:ElementwiseOperatorPetscTest> PROCESSES 2 )
 endif()
 
-
 # Test some basic auxiliary stuff for application layer
-waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FindMaxMinMagTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
 waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES FunctionPropertiesTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionPropertiesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionPropertiesTest)
 
-waLBerla_compile_test(FILES FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 
 ## numeric tools ##
-if( HYTEG_BUILD_WITH_EIGEN )
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SpectrumEstimationTest )
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
-endif()
 
 ## Form Evaluation ##
 waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
@@ -739,3 +753,14 @@ waLBerla_execute_test(NAME BlockOperatorBasicTest)
 
 waLBerla_compile_test(FILES operators/BlockOperatorGSSmoothableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BlockOperatorGSSmoothableTest)
+
+## PETSc & Matrix Assembly ##
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES Petsc/PetscTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
+  waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
+
+  waLBerla_compile_test(FILES Petsc/PetscMatrixAssemblyTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME PetscMatrixAssemblyTest COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> )
+  waLBerla_execute_test(NAME PetscMatrixAssemblyTest2 COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> PROCESSES 2 )
+endif()

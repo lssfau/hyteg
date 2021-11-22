@@ -22,7 +22,6 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"

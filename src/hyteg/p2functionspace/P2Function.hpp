@@ -208,11 +208,11 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    void restrictInjection( uint_t sourceLevel, DoFType flag = All ) const;
 
-   ValueType getMaxValue( uint_t level, DoFType flag = All ) const;
+   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All ) const;
+   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMinValue( uint_t level, DoFType flag = All ) const;
+   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
    void setBoundaryCondition( BoundaryCondition bc );
@@ -244,6 +244,7 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 
 extern template class P2Function< double >;
 extern template class P2Function< int >;
+extern template class P2Function< idx_t >;
 
 namespace p2function {
 

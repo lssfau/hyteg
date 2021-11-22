@@ -31,7 +31,6 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
@@ -70,11 +69,23 @@ class p2_div_k_grad_affine_q4 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (6, 6)
    /// - quadrature rule:                        Vioreanu-Rokhlin 2 | points: 6, degree: 4, test tolerance: 1.943e-16
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              553     987       2      1            455                 6
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              553     987       2       0      1            455                 6
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       triangle, dim: 2, vertices: 3
+   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - quadrature rule:                        Vioreanu-Rokhlin 2 | points: 6, degree: 4, test tolerance: 1.943e-16
+   /// - floating point operations:
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                              198     324       1       0      1            156                 6
+   ///
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -82,11 +93,31 @@ class p2_div_k_grad_affine_q4 : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (10, 10)
    /// - quadrature rule:                        Xiao-Gimbutas 4 | points: 11, degree: 4, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             4118    5862       2      1           2018                11
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                             4118    5862       2       0      1           2018                11
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
+   /// - element matrix dimensions (rows, cols): (10, 10)
+   /// - quadrature rule:                        Xiao-Gimbutas 4 | points: 11, degree: 4, test tolerance: 2.379e-17
+   /// - floating point operations:
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                             1037    1440       1       0      1            694                11
+   ///
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
+
+   bool assemble2D() const override { return true; }
+
+   bool assembly2DDefined() const override { return true; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
  private:
 

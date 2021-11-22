@@ -21,8 +21,6 @@
 
 #include "hyteg/eigen/EigenWrapper.hpp"
 
-#ifdef HYTEG_BUILD_WITH_EIGEN
-
 #include "Polynomial.hpp"
 
 namespace hyteg {
@@ -188,5 +186,3 @@ class LSQPInterpolator3D
    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> rhs;
 };
 }
-
-#endif

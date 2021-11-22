@@ -31,7 +31,6 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 
 namespace hyteg {
@@ -57,11 +56,23 @@ class p2_mass_affine_qe : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (6, 6)
    /// - quadrature rule:                        exact
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                                5      11       0      1             84                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                                5      11       0       0      1             84                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       triangle, dim: 2, vertices: 3
+   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - quadrature rule:                        exact
+   /// - floating point operations:
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                                5       9       0       0      1             20                 0
+   ///
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -69,11 +80,31 @@ class p2_mass_affine_qe : public P2FormHyTeG
    /// - element matrix dimensions (rows, cols): (10, 10)
    /// - quadrature rule:                        exact
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                               23      79       0      1            262                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               23      79       0       0      1            262                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
+   /// - element matrix dimensions (rows, cols): (10, 10)
+   /// - quadrature rule:                        exact
+   /// - floating point operations:
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               23      46       0       0      1             45                 0
+   ///
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
+
+   bool assemble2D() const override { return true; }
+
+   bool assembly2DDefined() const override { return true; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
 
 };
 

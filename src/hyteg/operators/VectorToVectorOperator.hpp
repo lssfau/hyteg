@@ -19,8 +19,8 @@
  */
 #pragma once
 
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
@@ -28,10 +28,12 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class SrcVecFuncType, class DstVecFuncType >
-class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
+template < typename ValueType, template < typename > class SrcVecFuncKind, template < typename > class DstVecFuncKind >
+class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, DstVecFuncKind< ValueType > >
 {
  public:
+   typedef SrcVecFuncKind< ValueType >                                                                            SrcVecFuncType;
+   typedef DstVecFuncKind< ValueType >                                                                            DstVecFuncType;
    typedef Operator< typename SrcVecFuncType::VectorComponentType, typename DstVecFuncType::VectorComponentType > scalarOpType;
 
    VectorToVectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -77,11 +79,29 @@ class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
       subOper_[i][j] = subOp;
    }
 
-  const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
+   const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
    {
       WALBERLA_ASSERT_LESS( i, dim_ );
       WALBERLA_ASSERT_LESS( j, dim_ );
       return subOper_[i][j];
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const SrcVecFuncKind< idx_t >&              src,
+                  const DstVecFuncKind< idx_t >&              dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         for ( uint_t j = 0; j < dim_; j++ )
+         {
+            if ( subOper_[i][j] != nullptr )
+            {
+               subOper_[i][j]->toMatrix( mat, src[j], dst[i], level, flag );
+            }
+         }
+      }
    }
 
  protected:

@@ -29,23 +29,23 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class VecFuncType, class SubOpType >
-class VectorLaplaceOperator : public VectorToVectorOperator< VecFuncType, VecFuncType >
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >
 {
  public:
    VectorLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 };
 
 // P1 versions
-typedef VectorLaplaceOperator< P1VectorFunction< real_t >, P1ConstantLaplaceOperator >    P1ConstantVectorLaplaceOperator;
-typedef VectorLaplaceOperator< P1VectorFunction< real_t >, P1ElementwiseLaplaceOperator > P1ElementwiseVectorLaplaceOperator;
-typedef VectorLaplaceOperator< P1VectorFunction< real_t >, P1ElementwiseBlendingLaplaceOperator >
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator >    P1ConstantVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator > P1ElementwiseVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >
     P1ElementwiseBlendingVectorLaplaceOperator;
 
 // P2 versions
-typedef VectorLaplaceOperator< P2VectorFunction< real_t >, P2ConstantLaplaceOperator >    P2ConstantVectorLaplaceOperator;
-typedef VectorLaplaceOperator< P2VectorFunction< real_t >, P2ElementwiseLaplaceOperator > P2ElementwiseVectorLaplaceOperator;
-typedef VectorLaplaceOperator< P2VectorFunction< real_t >, P2ElementwiseBlendingLaplaceOperator >
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator >    P2ConstantVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator > P2ElementwiseVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >
     P2ElementwiseBlendingVectorLaplaceOperator;
 
 } // namespace hyteg

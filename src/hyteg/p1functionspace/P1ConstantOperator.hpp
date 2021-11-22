@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,190 +19,152 @@
  */
 #pragma once
 
-#include <array>
-
-#include "hyteg/operators/Operator.hpp"
+#include "hyteg/fenics/fenics.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
+#include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
-#include "hyteg/memory/LevelWiseMemory.hpp"
-#include "hyteg/memory/StencilMemory.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/p1functionspace/P1Operator.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
 template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
-class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
-                           public WeightedJacobiSmoothable< P1Function< real_t > >,
-                           public GSSmoothable< P1Function< real_t > >,
-                           public GSBackwardsSmoothable< P1Function< real_t > >,
-                           public SORSmoothable< P1Function< real_t > >,
-                           public SORBackwardsSmoothable< P1Function< real_t > >,
-                           public OperatorWithInverseDiagonal< P1Function< real_t > >
+class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >
 {
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1Operator;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::storage_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::form_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::minLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::maxLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::vertexStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::cellStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell;
+
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
-   P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form );
 
-   ~P1ConstantOperator() override = default;
+   P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form );
 
    void scale( real_t scalar );
 
-   void apply( const P1Function< real_t >& src,
-               const P1Function< real_t >& dst,
-               size_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType = Replace ) const override final;
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override;
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override;
+ protected:
+   /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
 
-   void smooth_gs_backwards( const P1Function< real_t >& dst,
-                             const P1Function< real_t >& rhs,
-                             size_t                      level,
-                             DoFType                     flag ) const override
-   {
-      smooth_sor_backwards( dst, rhs, 1.0, level, flag );
-   }
+   /* Initialize assembly of variable edge stencil.
+      Will be called before iterating over edge whenever the stencil is applied.
+   */
+   inline void assemble_stencil_edge_init( Edge& edge, const uint_t level ) const {}
 
-   void smooth_sor( const P1Function< real_t >& dst,
-                    const P1Function< real_t >& rhs,
-                    real_t                      relax,
-                    size_t                      level,
-                    DoFType                     flag ) const override
-   {
-      smooth_sor( dst, rhs, relax, level, flag, false );
-   }
+   /* Assembly of edge stencil.
+      Will be called before stencil is applied to a particuar edge-DoF.
+   */
+   inline void assemble_stencil_edge( real_t* edge_stencil, const uint_t i ) const {}
 
-   void smooth_sor( const P1Function< real_t >& dst,
-                    const P1Function< real_t >& rhs,
-                    real_t                      relax,
-                    size_t                      level,
-                    DoFType                     flag,
-                    const bool&                 backwards ) const;
+   /* Initialize assembly of face stencil.
+      Will be called before iterating over face whenever the stencil is applied.
+   */
+   inline void assemble_stencil_face_init( Face& face, const uint_t level ) const {}
 
-   void smooth_sor_backwards( const P1Function< real_t >& dst,
-                              const P1Function< real_t >& rhs,
-                              real_t                      relax,
-                              size_t                      level,
-                              DoFType                     flag ) const override
-   {
-      smooth_sor( dst, rhs, relax, level, flag, true );
-   }
+   /* Assembly of face stencil.
+      Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
+   */
+   inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const {}
 
-   void smooth_jac( const P1Function< real_t >& dst,
-                    const P1Function< real_t >& rhs,
-                    const P1Function< real_t >& tmp,
-                    real_t                      relax,
-                    size_t                      level,
-                    DoFType                     flag ) const override;
+   /* Assembly of face stencil.
+      Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
+   */
+   inline void assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const
+   {}
 
-   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+   /* Initialize assembly of cell stencil.
+      Will be called before iterating over cell whenever the stencil is applied.
+   */
+   inline void assemble_stencil_cell_init( Cell& cell, const uint_t level ) const {}
 
-   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   /* Assembly of cell stencil.
+      Will be called before stencil is applied to a particuar cell-DoF.
+   */
+   inline void assemble_stencil_cell( vertexdof::macrocell::StencilMap_T& cell_stencil,
+                                      const uint_t                        i,
+                                      const uint_t                        j,
+                                      const uint_t                        k ) const
+   {}
 
-   std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
-   {
-      WALBERLA_CHECK_NOT_NULLPTR(
-          diagonalValues_,
-          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
-      return diagonalValues_;
-   };
+   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
-   {
-      WALBERLA_CHECK_NOT_NULLPTR(
-          inverseDiagonalValues_,
-          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
-      return inverseDiagonalValues_;
-   };
+   inline void apply_face3D_generated( Face&                                                    face,
+                                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,
+                                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
+                                       const uint_t&                                            level,
+                                       UpdateType                                               update ) const;
 
-   const PrimitiveDataID< StencilMemory< real_t >, Vertex >& getVertexStencilID() const { return vertexStencilID_; }
+   inline void apply_face_generated( Face&                                                    face,
+                                     const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,
+                                     const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
+                                     const uint_t&                                            level,
+                                     UpdateType                                               update ) const;
 
-   const PrimitiveDataID< StencilMemory< real_t >, Edge >& getEdgeStencilID() const { return edgeStencilID_; }
+   inline void apply_cell_generated( Cell&                                                    cell,
+                                     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& srcId,
+                                     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dstId,
+                                     const uint_t&                                            level,
+                                     UpdateType                                               update ) const;
 
-   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Edge >& getEdgeStencil3DID() const
-   {
-      return edgeStencil3DID_;
-   }
+   inline void smooth_sor_face3D_generated( Face&                                                    face,
+                                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
+                                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsId,
+                                            const uint_t&                                            level,
+                                            real_t                                                   relax,
+                                            const bool&                                              backwards = false ) const;
 
-   const PrimitiveDataID< StencilMemory< real_t >, Face >& getFaceStencilID() const { return faceStencilID_; }
+   inline void smooth_sor_face_generated( Face&                                                    face,
+                                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
+                                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsId,
+                                          const uint_t&                                            level,
+                                          real_t                                                   relax,
+                                          const bool&                                              backwards = false ) const;
 
-   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& getFaceStencil3DID() const
-   {
-      return faceStencil3DID_;
-   }
+   inline void smooth_sor_cell_generated( Cell&                                                    cell,
+                                          const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dstId,
+                                          const PrimitiveDataID< FunctionMemory< real_t >, Cell >& rhsId,
+                                          const uint_t&                                            level,
+                                          real_t                                                   relax,
+                                          const bool&                                              backwards = false ) const;
 
-   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& getCellStencilID() const
-   {
-      return cellStencilID_;
-   }
+   inline bool backwards_sor_available() const { return true; }
+   inline bool variableStencil() const { return false; }
 
- private:
+   // assemble stencils for macro-edges, -faces and -cells
    void assembleStencils();
-
-   void assembleStencils3D();
-
- private:
-   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   ///
-   /// \param invert if true, assembles the function carrying the inverse of the diagonal
-   void computeDiagonalOperatorValues( bool invert );
-
-   std::shared_ptr< P1Function< real_t > > diagonalValues_;
-   std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
-
-   void smooth_sor_macro_vertices( const P1Function< real_t >& dst,
-                                   const P1Function< real_t >& rhs,
-                                   real_t                      relax,
-                                   size_t                      level,
-                                   DoFType                     flag,
-                                   const bool&                 backwards = false ) const;
-
-   void smooth_sor_macro_edges( const P1Function< real_t >& dst,
-                                const P1Function< real_t >& rhs,
-                                real_t                      relax,
-                                size_t                      level,
-                                DoFType                     flag,
-                                const bool&                 backwards = false ) const;
-
-   void smooth_sor_macro_faces( const P1Function< real_t >& dst,
-                                const P1Function< real_t >& rhs,
-                                real_t                      relax,
-                                size_t                      level,
-                                DoFType                     flag,
-                                const bool&                 backwards = false ) const;
-
-   void smooth_sor_macro_cells( const P1Function< real_t >& dst,
-                                const P1Function< real_t >& rhs,
-                                real_t                      relax,
-                                size_t                      level,
-                                DoFType                     flag,
-                                const bool&                 backwards = false ) const;
-
-   PrimitiveDataID< StencilMemory< real_t >, Vertex >                             vertexStencilID_;
-   PrimitiveDataID< StencilMemory< real_t >, Edge >                               edgeStencilID_;
-   PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > edgeStencil3DID_;
-   PrimitiveDataID< StencilMemory< real_t >, Face >                               faceStencilID_;
-   PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
-   PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
-
-   P1Form form_;
 };
 
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoAssemble > > P1ZeroOperator;
 
 typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
     P1ConstantLaplaceOperator;
+// typedef P1ConstantOperator< forms::p1_diffusion_affine_q2 > P1ConstantLaplaceOperator;
 typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly >, true >
     P1DiagonalLaplaceOperator;
 
@@ -225,7 +187,6 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_ce
 
 typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ConstantMassOperator;
-
 typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
                             false,
                             true,

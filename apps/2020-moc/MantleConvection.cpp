@@ -32,6 +32,7 @@
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
@@ -686,7 +687,7 @@ void runBenchmark( real_t      cflMax,
    if ( solverInfo.diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
    {
       auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >(
-          storage, level, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
+          storage, level, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
       internalDiffusionSolver->reassembleMatrix( true );
       diffusionLinearSolver = internalDiffusionSolver;
    }
@@ -758,7 +759,7 @@ void runBenchmark( real_t      cflMax,
    real_t timeVTK       = 0;
 
    hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
-   vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
+   vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
 
    if ( vtkOutputVertexDoFs )
    {

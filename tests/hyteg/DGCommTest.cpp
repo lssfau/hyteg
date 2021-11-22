@@ -17,15 +17,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "core/mpi/all.h"
 #include "core/debug/all.h"
+#include "core/mpi/all.h"
 
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-
 
 using namespace hyteg;
 
@@ -41,12 +40,12 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 
   const uint_t minLevel = 2;
   //const uint_t maxLevel = 4;
-  hyteg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  hyteg::FaceDoFFunction< int32_t > x("x", storage, minLevel, maxLevel);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
 
-  size_t num = 1;
+  int32_t num = 1;
   x.enumerate(maxLevel,num);
 
   uint_t numberOfChecks = 0;
@@ -67,12 +66,12 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
   for (auto &edgeIt : storage->getEdges()) {
     Edge &edge = *edgeIt.second;
     //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
-    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
+    int32_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
     for(auto& vertexIt : nbrVertices){
       Vertex* vertex = storage->getVertex(vertexIt.getID());
-      uint_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
+      int32_t * vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       uint_t pos = std::numeric_limits< uint_t >::max();
       if(edge.vertex_index(vertex->getID()) == 0){
@@ -118,12 +117,12 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
-    uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
+    int32_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     for(uint_t i = 0; i < nbrEdges.size(); ++i){
       Edge* edge = storage->getEdge(nbrEdges[0].getID());
-      uint_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
+      int32_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
       uint_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face.getID());
 //////////////////// GRAY CELL //////////////////////

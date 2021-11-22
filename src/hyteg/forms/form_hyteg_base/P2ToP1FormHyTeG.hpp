@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/forms/Form.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
@@ -33,6 +34,17 @@ class P2ToP1FormHyTeG : public Form
    virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 >& elMat ) const = 0;
 
    virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 4, 10 >& elMat ) const = 0;
+
+ private:
+   virtual void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
+
+   virtual void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
 };
 
 } // namespace hyteg
