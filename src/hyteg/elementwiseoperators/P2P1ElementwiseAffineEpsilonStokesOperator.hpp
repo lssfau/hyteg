@@ -23,15 +23,7 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_0_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_0_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_0_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_1_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_1_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_1_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_2_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_2_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilonvar_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
