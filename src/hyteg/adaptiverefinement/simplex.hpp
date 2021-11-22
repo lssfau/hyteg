@@ -7,11 +7,18 @@
 #include <map>
 #include <vector>
 
-#include "hyteg/pointnd.hpp"
+#include "hyteg/types/pointnd.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 using walberla::real_t;
+
+enum Color
+{
+   RED,
+   GREEN
+};
 
 // multi-index to identify a K-simplex with its vertices
 template < int K >
@@ -236,3 +243,4 @@ class Simplex3 : public Simplex< 3, Simplex3 >
 };
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

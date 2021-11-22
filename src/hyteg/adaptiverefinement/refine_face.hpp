@@ -4,6 +4,7 @@
 
 #include "refine_edge.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply red refinement to face and add required vertices to vertices
@@ -200,3 +201,4 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
 }
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

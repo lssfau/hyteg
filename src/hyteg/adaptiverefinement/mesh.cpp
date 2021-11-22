@@ -8,6 +8,8 @@
 
 #include "refine_cell.hpp"
 
+namespace hyteg {
+
 namespace adaptiveRefinement {
 
 template < class K_Simplex >
@@ -301,3 +303,4 @@ template class Mesh< Simplex2 >;
 template class Mesh< Simplex3 >;
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

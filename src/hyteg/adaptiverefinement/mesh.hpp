@@ -4,6 +4,7 @@
 
 #include "simplex.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 template < class K_Simplex >
@@ -72,3 +73,4 @@ using Mesh2D = Mesh< Simplex2 >;
 using Mesh3D = Mesh< Simplex3 >;
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

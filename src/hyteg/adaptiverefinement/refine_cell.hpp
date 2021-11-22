@@ -3,6 +3,7 @@
 #include "refine_face.hpp"
 #include "simplexFactory.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply red refinement to cell and add required vertices to vertices
@@ -522,3 +523,4 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
 }
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

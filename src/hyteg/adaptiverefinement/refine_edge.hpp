@@ -2,6 +2,7 @@
 
 #include "simplex.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply edge bisection
@@ -17,3 +18,4 @@ inline void bisect_edge(std::shared_ptr<Simplex1> edge, int vtx)
 }
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

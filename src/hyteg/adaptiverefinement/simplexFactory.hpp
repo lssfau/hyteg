@@ -2,6 +2,7 @@
 
 #include "simplex.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 // Factory for constructing sub-simplices of a given tetrahedron
@@ -76,3 +77,4 @@ class SimplexFactory
 };
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

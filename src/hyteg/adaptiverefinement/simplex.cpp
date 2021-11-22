@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <cmath>
 #include <iostream>
-
+namespace hyteg {
 namespace adaptiveRefinement {
 
 // ============= K-Simplex =================
@@ -74,12 +74,13 @@ bool Simplex< K, K_Simplex >::has_vertex( int idx ) const
 template < int K, class K_Simplex >
 Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
 {
-   Point3D bc{ 0, 0, 0 };
+   Point3D bc({ 0, 0, 0 });
    for ( auto& vtxID : _vertices )
    {
-      bc = bc + nodes[vtxID];
+      bc += nodes[vtxID];
    }
-   return bc.scale( 1.0 / ( K + 1 ) );
+   bc *= ( 1.0 / ( K + 1 ) );
+   return bc;
 }
 
 template class Simplex< 1, Simplex1 >;
@@ -173,7 +174,7 @@ double Simplex< 2, Simplex2 >::volume( const std::vector< Point3D >& nodes ) con
    auto y = b - a;
 
    // ||X x Y|| / 2
-   return ( x.cross( y ) ).norm() / 2;
+   return crossProduct(x, y).norm() / 2;
 }
 
 std::shared_ptr< Simplex1 > Simplex2::get_Edge( int a, int b ) const
@@ -307,7 +308,7 @@ double Simplex< 3, Simplex3 >::volume( const std::vector< Point3D >& nodes ) con
    auto z = c - d;
 
    // |X * (Y x Z)| / 6
-   return std::abs( x.dot( y.cross( z ) ) ) / 6;
+   return std::abs( x.dot( crossProduct(y, z) ) ) / 6;
 }
 
 std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D >& nodes ) const
@@ -352,3 +353,4 @@ std::shared_ptr< Simplex2 > Simplex3::get_Face( int a, int b, int c ) const
 }
 
 } // namespace adaptiveRefinement
+} // namespace hyteg

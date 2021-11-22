@@ -1,6 +1,7 @@
 
 #include "simplexFactory.hpp"
 
+namespace hyteg {
 namespace adaptiveRefinement {
 
 std::shared_ptr< Simplex1 > SimplexFactory::make_edge( int a, int b, Color color )
@@ -34,3 +35,4 @@ std::shared_ptr< Simplex3 > SimplexFactory::make_cell( int a, int b, int c, int 
 }
 
 } // namespace adaptiveRefinement
+} // namespace hyteg
