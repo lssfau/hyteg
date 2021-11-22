@@ -425,7 +425,7 @@ void runBenchmark( real_t     cflMax,
    db.setConstantEntry( "num_macro_primitives", uint_c( setupStorage->getNumberOfPrimitives() ) );
    db.setConstantEntry( "diffusivity", diffusivity );
 
-   db.setConstantEntry( "stokes_solver_type", uint_c( solverInfo.stokesSolverType ) );
+   // db.setConstantEntry( "stokes_solver_type", uint_c( solverInfo.stokesSolverType ) );
    db.setConstantEntry( "uzawa_omega", solverInfo.uzawaOmega );
    db.setConstantEntry( "uzawa_inner_smooth", solverInfo.uzawaInnerIterations );
    db.setConstantEntry( "uzawa_pre_smooth", solverInfo.uzawaPreSmooth );
