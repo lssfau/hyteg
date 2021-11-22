@@ -9,7 +9,6 @@ Parameters
   //operatorType:
   // 0: variable;
   // 1: surrogate polynomial;
-  // 2: surrogate polynomial with scaling;
   operatorType 0;
 
   // polynomial degree for surrogate operator;
