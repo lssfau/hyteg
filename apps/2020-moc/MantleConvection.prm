@@ -1,18 +1,18 @@
 Parameters
 {
-    level 4;
+    level 2;
     minLevel 0;
 
-    rMin 0.5;
+    rMin 0.55;
     rMax 1.0;
 
-    nTan 12;
-    nRad 2;
-    threeDim false;
+    // nTan 12;
+    // nRad 2;
+    // threeDim false;
 
-    //nTan 3;
-    //nRad 3;
-    //threeDim true;
+    nTan 3;
+    nRad 3;
+    threeDim true;
 
     // PETSC_MUMPS         = 0,
     // PETSC_MINRES_JACOBI = 1,
@@ -25,8 +25,8 @@ Parameters
     stokesSolverType 5;
 
     stokesMaxNumIterations 1;
-    stokesAbsoluteResidualUTolerance 1e-6;
-    stokesRelativeResidualUTolerance 1e-6;
+    stokesAbsoluteResidualUTolerance 1e-8;
+    stokesRelativeResidualUTolerance 1e-8;
     uzawaPreSmooth 6;
     uzawaPostSmooth 6;
     uzawaInnerIterations 10;
@@ -35,24 +35,31 @@ Parameters
     // PETSC_MINRES = 0,
     // HYTEG_CG     = 1
     // HYTEG_GMG    = 2
-    diffusionSolverType 0;
+    diffusionSolverType 1;
 
     diffusionMaxNumIterations 10000;
     diffusionAbsoluteResidualUTolerance 1e-12;
 
-    maxNumTimeSteps 1;
+    maxNumTimeSteps 100;
     simulationTime 10;
-    cflMax 0.5;
+    cflMax 1.0;
     fixedTimeStep false;
     dtConstant 1e-4;
     rayleighNumber 1e8;
     vtk true;
     vtkOutputVelocity false;
+
     vtkOutputInterval 1;
     vtkOutputVertexDoFs true;
 
-    outputDirectory conv_rate;
-    outputBaseName conv_rate_u_6_6_10;
+    sphericalTemperatureSlice true;
+    sphericalTemperatureSliceInterval 1;
+    sphericalTemperatureSliceNumMeridians 360;
+    sphericalTemperatureSliceNumParallels 360;
+    sphericalTemperatureSliceIcoRefinements 6;
+
+    outputDirectory review;
+    outputBaseName review_test;
 
     verbose true;
 }
