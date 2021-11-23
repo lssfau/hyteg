@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -554,6 +554,18 @@ class MeshInfo
    /// \param oldMesh Original MeshIfno
    /// \param refinmentSteps number of refinements
    static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
+
+   /// \brief Creates a 3D mesh from given vertices and cells
+   ///
+   /// \param vertices  mesh vertices
+   /// \param cells     vector of cells, each given by their vertex ids
+   static MeshInfo fromCellData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 4>>& cells );
+
+   /// \brief Creates a 2D mesh from given vertices and faces
+   ///
+   /// \param vertices  mesh vertices
+   /// \param cells     vector of faces, each given by their vertex ids
+   static MeshInfo fromFaceData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 3>>& faces );
 
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };
