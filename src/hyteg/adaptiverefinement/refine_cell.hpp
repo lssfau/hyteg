@@ -29,7 +29,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    }
 
    // === collect vertex indices ===
-   std::vector< int > ref_vertices( 10 );
+   std::vector< int64_t > ref_vertices( 10 );
 
    // old vertices
    for ( int i = 0; i < 4; ++i )
@@ -196,11 +196,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    */
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_ptr< Simplex3 > cell )
 {
-   auto faces   = cell->refined_faces();
-   int  n_green = faces[GREEN].size();
-   int  n_red   = faces[RED].size();
-
-   assert( n_green == 2 and n_red == 0 );
+   auto faces = cell->refined_faces();
+   WALBERLA_ASSERT( faces[GREEN].size() == 2 and faces[RED].size() == 0 );
 
    // === split faces ===
 
@@ -213,7 +210,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int > ref_vertices( 5 );
+   std::vector< int64_t > ref_vertices( 5 );
 
    // vertices at split edge
    std::shared_ptr< Simplex1 > split_edge;
@@ -228,15 +225,15 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
          break;
       }
    }
-   assert( split_edge );
+   WALBERLA_ASSERT( split_edge );
 
    ref_vertices[1] = split_edge->get_vertices()[0];
    ref_vertices[2] = split_edge->get_vertices()[1];
 
-   auto is_unbranded = [&]( int vtx ) {
+   auto is_unbranded = [&]( int64_t vtx ) {
       return ( vtx != ref_vertices[1] and vtx != ref_vertices[2] and vtx != ref_vertices[4] );
    };
-   std::vector< int > unbranded;
+   std::vector< int64_t > unbranded;
    std::copy_if( cell->get_vertices().begin(), cell->get_vertices().end(), std::back_inserter( unbranded ), is_unbranded );
 
    ref_vertices[0] = unbranded[0];
@@ -288,11 +285,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    */
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_ptr< Simplex3 > cell )
 {
-   auto faces   = cell->refined_faces();
-   int  n_green = faces[GREEN].size();
-   int  n_red   = faces[RED].size();
-
-   assert( n_green == 4 and n_red == 0 );
+   auto faces = cell->refined_faces();
+   WALBERLA_ASSERT( faces[GREEN].size() == 4 and faces[RED].size() == 0 );
 
    // === split faces ===
 
@@ -305,7 +299,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int > ref_vertices( 6 );
+   std::vector< int64_t > ref_vertices( 6 );
 
    // vertices at split edges
    std::array< std::shared_ptr< Simplex1 >, 2 > split_edges;
@@ -324,17 +318,10 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
          ++split_idx;
       }
    }
-   assert( split_edges[0] and split_edges[1] );
+   WALBERLA_ASSERT( split_edges[0] and split_edges[1] );
 
    ref_vertices[1] = split_edges[0]->get_vertices()[0];
    ref_vertices[2] = split_edges[0]->get_vertices()[1];
-
-   // auto is_unbranded = [&](int vtx) { return (vtx != ref_vertices[1] and vtx != ref_vertices[2] and vtx != ref_vertices[4] and vtx != ref_vertices[5]); };
-   // std::vector<int> unbranded;
-   // std::copy_if(cell->get_vertices().begin(), cell->get_vertices().end(), std::back_inserter(unbranded), is_unbranded);
-
-   // ref_vertices[0] = unbranded[0];
-   // ref_vertices[3] = unbranded[1];
 
    ref_vertices[0] = split_edges[1]->get_vertices()[0];
    ref_vertices[3] = split_edges[1]->get_vertices()[1];
@@ -404,11 +391,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    */
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_ptr< Simplex3 > cell )
 {
-   auto faces   = cell->refined_faces();
-   int  n_green = faces[GREEN].size();
-   int  n_red   = faces[RED].size();
-
-   assert( n_green == 3 and n_red == 1 );
+   auto faces = cell->refined_faces();
+   WALBERLA_ASSERT( faces[GREEN].size() == 3 and faces[RED].size() == 1 );
 
    // === split faces ===
 
@@ -421,7 +405,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int > ref_vertices( 7 );
+   std::vector< int64_t > ref_vertices( 7 );
 
    // vertices at red face
    auto red_vtxs  = faces[RED][0]->get_vertices();

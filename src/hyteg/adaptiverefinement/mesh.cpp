@@ -113,7 +113,7 @@ std::set< std::shared_ptr< Simplex3 > >
 
    for ( auto& el : U )
    {
-      int n_red = 0;
+      int64_t n_red = 0;
 
       for ( auto& face : el->get_faces() )
       {
@@ -158,8 +158,8 @@ std::set< std::shared_ptr< Simplex2 > > Mesh< Simplex2 >::refine_green( std::set
 
       if ( new_vertices > 0 )
       {
-         assert( not el->has_green_edge() );
-         assert( new_vertices == 1 );
+         WALBERLA_ASSERT( not el->has_green_edge() );
+         WALBERLA_ASSERT( new_vertices == 1 );
 
          /* if green refinement had been applied to the same element before,
             nothing has to be done
@@ -200,7 +200,6 @@ std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set
    for ( auto& el : U_cpy )
    {
       int new_vertices = el->vertices_on_edges();
-      assert( new_vertices <= 3 );
 
       switch ( new_vertices )
       {
@@ -211,7 +210,7 @@ std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set
       case 1:
          if ( el->has_children() )
          {
-            assert( el->get_children().size() == 2 );
+            WALBERLA_ASSERT( el->get_children().size() == 2 );
             keepChildren( el );
          }
          else
@@ -227,7 +226,7 @@ std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set
          }
          else
          {
-            assert( el->get_children().size() == 0 or el->get_children().size() == 2 );
+            WALBERLA_ASSERT( el->get_children().size() == 0 or el->get_children().size() == 2 );
             el->kill_children();
             refined.merge( refine_cell_green_2( el ) );
          }
@@ -240,14 +239,14 @@ std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set
          }
          else
          {
-            assert( el->get_children().size() == 0 or el->get_children().size() == 2 );
+            WALBERLA_ASSERT( el->get_children().size() == 0 or el->get_children().size() == 2 );
             el->kill_children();
             refined.merge( refine_cell_green_3( el ) );
          }
          break;
 
       default:
-         assert( false );
+         WALBERLA_ASSERT( new_vertices <= 3 );
          break;
       }
 

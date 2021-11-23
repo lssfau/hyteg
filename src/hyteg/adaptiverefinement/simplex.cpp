@@ -10,11 +10,11 @@ namespace adaptiveRefinement {
 // ============= K-Simplex =================
 template < int K, class K_Simplex >
 const std::vector< std::shared_ptr< K_Simplex > >
-    Simplex< K, K_Simplex >::get_children_sorted( const std::array< int, K + 1 >& vertices ) const
+    Simplex< K, K_Simplex >::get_children_sorted( const std::array< int64_t, K + 1 >& vertices ) const
 {
-   assert( K < 3 ); // only implemented for 1 and 2 dimensions
+   WALBERLA_ASSERT( K < 3 ); // only implemented for 1 and 2 dimensions
 
-   assert( has_children() );
+   WALBERLA_ASSERT( has_children() );
 
    std::vector< std::shared_ptr< K_Simplex > > sorted( K + 1 );
 
@@ -29,7 +29,7 @@ const std::vector< std::shared_ptr< K_Simplex > >
          }
       }
 
-      assert( sorted[i] );
+      WALBERLA_ASSERT( sorted[i] );
    }
 
    for ( int i = K + 1; i < int( _children.size() ); ++i )
@@ -61,7 +61,7 @@ bool Simplex< K, K_Simplex >::kill_children()
 }
 
 template < int K, class K_Simplex >
-bool Simplex< K, K_Simplex >::has_vertex( int idx ) const
+bool Simplex< K, K_Simplex >::has_vertex( int64_t idx ) const
 {
    for ( auto& vtx : _vertices )
    {
@@ -74,7 +74,7 @@ bool Simplex< K, K_Simplex >::has_vertex( int idx ) const
 template < int K, class K_Simplex >
 Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
 {
-   Point3D bc({ 0, 0, 0 });
+   Point3D bc( { 0, 0, 0 } );
    for ( auto& vtxID : _vertices )
    {
       bc += nodes[vtxID];
@@ -106,7 +106,7 @@ int Simplex1::inner_vertices() const
 
 // ============= 2-Simplex (face) =================
 
-Simplex2::Simplex2( const std::array< int, 3 >&                         vertices,
+Simplex2::Simplex2( const std::array< int64_t, 3 >&                     vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
                     std::shared_ptr< Simplex2 >                         parent )
 : Simplex< 2, Simplex2 >( vertices, parent )
@@ -114,8 +114,8 @@ Simplex2::Simplex2( const std::array< int, 3 >&                         vertices
 {
    for ( int i = 0; i < 3; ++i )
    {
-      assert( _edges[i]->has_vertex( _vertices[i] ) );
-      assert( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
    }
 }
 
@@ -143,7 +143,7 @@ bool Simplex2::has_green_edge() const
    return false;
 }
 
-std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const std::array< int, 3 >& vertices ) const
+std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const std::array< int64_t, 3 >& vertices ) const
 {
    std::array< std::shared_ptr< Simplex1 >, 3 > sorted;
 
@@ -157,7 +157,7 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
          }
       }
 
-      assert( sorted[i] );
+      WALBERLA_ASSERT( sorted[i] );
    }
 
    return sorted;
@@ -174,10 +174,10 @@ double Simplex< 2, Simplex2 >::volume( const std::vector< Point3D >& nodes ) con
    auto y = b - a;
 
    // ||X x Y|| / 2
-   return crossProduct(x, y).norm() / 2;
+   return crossProduct( x, y ).norm() / 2;
 }
 
-std::shared_ptr< Simplex1 > Simplex2::get_Edge( int a, int b ) const
+std::shared_ptr< Simplex1 > Simplex2::get_Edge( int64_t a, int64_t b ) const
 {
    for ( auto& edge : _edges )
    {
@@ -216,7 +216,7 @@ std::pair< real_t, real_t > Simplex2::min_max_angle( const std::vector< Point3D 
 
 // ============= 3-Simplex (cell) =================
 
-Simplex3::Simplex3( const std::array< int, 4 >&                         vertices,
+Simplex3::Simplex3( const std::array< int64_t, 4 >&                     vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
                     std::shared_ptr< Simplex3 >                         parent )
@@ -228,25 +228,25 @@ Simplex3::Simplex3( const std::array< int, 4 >&                         vertices
    for ( int i = 0; i < 3; ++i )
    {
       // edge 0--2
-      assert( _edges[i]->has_vertex( _vertices[i] ) );
-      assert( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
       // edge 3--5
-      assert( _edges[i + 3]->has_vertex( _vertices[i] ) );
-      assert( _edges[i + 3]->has_vertex( _vertices[3] ) );
+      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[i] ) );
+      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[3] ) );
    }
 
    // check faces
    // face 0
    for ( int j = 0; j < 3; ++j )
    {
-      assert( _faces[0]->has_vertex( _vertices[j] ) );
+      WALBERLA_ASSERT( _faces[0]->has_vertex( _vertices[j] ) );
    }
    // face 1--3
    for ( int i = 1; i < 4; ++i )
    {
-      assert( _faces[i]->has_vertex( _vertices[i - 1] ) );
-      assert( _faces[i]->has_vertex( _vertices[i % 3] ) );
-      assert( _faces[i]->has_vertex( _vertices[3] ) );
+      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i - 1] ) );
+      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i % 3] ) );
+      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[3] ) );
    }
 }
 
@@ -308,7 +308,7 @@ double Simplex< 3, Simplex3 >::volume( const std::vector< Point3D >& nodes ) con
    auto z = c - d;
 
    // |X * (Y x Z)| / 6
-   return std::abs( x.dot( crossProduct(y, z) ) ) / 6;
+   return std::abs( x.dot( crossProduct( y, z ) ) ) / 6;
 }
 
 std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D >& nodes ) const
@@ -326,7 +326,7 @@ std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D 
    return mm;
 }
 
-std::shared_ptr< Simplex1 > Simplex3::get_Edge( int a, int b ) const
+std::shared_ptr< Simplex1 > Simplex3::get_Edge( int64_t a, int64_t b ) const
 {
    for ( auto& edge : _edges )
    {
@@ -339,7 +339,7 @@ std::shared_ptr< Simplex1 > Simplex3::get_Edge( int a, int b ) const
    return nullptr;
 }
 
-std::shared_ptr< Simplex2 > Simplex3::get_Face( int a, int b, int c ) const
+std::shared_ptr< Simplex2 > Simplex3::get_Face( int64_t a, int64_t b, int64_t c ) const
 {
    for ( auto& face : _faces )
    {
