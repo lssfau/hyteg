@@ -78,9 +78,9 @@ void printStencils( std::shared_ptr< PrimitiveStorage > storage, const A_t& A )
          {
             std::cout << node[0] << " " << node[1] << " " << node[2];
 
-            for ( auto& [idx, weight] : stencil )
+            for ( auto& weight : stencil )
             {
-               std::cout << " " << weight;
+               std::cout << " " << weight.second;
             }
 
             std::cout << "\n";
