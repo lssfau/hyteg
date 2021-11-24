@@ -1,10 +1,13 @@
 import math
+import matplotlib.pyplot as plt
+from matplotlib import axes
+import matplotlib.patches as mpatches
 
 ### calculates an estimate of the work done until GKB-preconditioned FGMRES or schur preconditioned MINRES
 ### reduce the residual of a nonstabilized Stokes-Problem by e^-8
 
 class work_estimate_block_prec_solver:
-    def __init__(self, nnz_p, m_p, n_p):
+    def __init__(self, name_p, nnz_p, m_p, n_p):
 
         # number of nonzeros in operators
         self.nnz = nnz_p #{'OA_K':87174,'OA_M':380596,'OA_A':19778}
@@ -12,12 +15,15 @@ class work_estimate_block_prec_solver:
         self.n = n_p
         self.l = m_p + n_p
         self.op_size = {'OA_K': self.l, 'OA_M': m_p}
+        self.name = name_p
 
         # everything is compared to the problems operator application, which requires 2*nnz_K FLOPS
         self.FLOPS_OA = 2*self.nnz['OA_K']
 
         ### work trackers
         self.work_trackers = {'AMG': 0, 'PCG_M': 0, 'DOT': 0, 'VS': 0,'VA': 0,  'OA_K': 0, 'OA_A': 0, 'ILU': 0}
+        self.we_per_iteration = []
+        self.residuals_per_iteration = []
 
     def track_and_return(self, work_estimate, op):
         self.work_trackers[op] = self.work_trackers[op] + work_estimate
@@ -25,6 +31,44 @@ class work_estimate_block_prec_solver:
 
     def estimate(self):
         pass
+
+    def read_residuals(self, file):
+        residuals_file = open(file, 'r')
+        Lines = residuals_file.readlines()
+        count = 0
+        for line in Lines:
+            count += 1
+            line.replace(" KSP Residual norm", "")
+            line = line[len(line) - 19:]
+            self.residuals_per_iteration.append(float(line))
+        self.we_per_iteration.insert(0, 0)
+
+    def add_to_plot(self, ax, marker):
+        ax.plot(self.we_per_iteration, self.residuals_per_iteration, marker)
+        counter = 0
+        last_point = len(self.we_per_iteration)
+        for x, y in zip(self.we_per_iteration, self.residuals_per_iteration):
+            if(counter != 0):
+                label = counter
+                plt.annotate(label,
+                             (x, y),
+                             textcoords="offset points",
+                             xytext=(3, 10),
+                             ha='center',
+                             size=5
+                             )
+            counter = counter + 1
+
+        plt.annotate(self.name,
+                     (self.we_per_iteration[-1], self.residuals_per_iteration[-1]),
+                     textcoords="offset points",
+                     xytext=(0, -12),
+                     ha='center',
+                     size=6
+                     )
+
+
+
 
     ### "micro" operations:
     # nn tells functions how many times the work estimate should be added
@@ -51,8 +95,8 @@ class work_estimate_block_prec_solver:
 
 
 class we_FGMRES_config(work_estimate_block_prec_solver):
-    def __init__(self, its_FGMRES_p, its_GKB_p, its_CG_p, nnz_p, m_p, n_p):
-        super().__init__(nnz_p, m_p, n_p)
+    def __init__(self,name_p, its_FGMRES_p, its_GKB_p, its_CG_p, nnz_p, m_p, n_p):
+        super().__init__(name_p, nnz_p, m_p, n_p)
         self.its_FGMRES = its_FGMRES_p  # 6
         self.its_GKB = its_GKB_p  # [10,10,10,10,10,10]
         self.its_CG = its_CG_p  # 4
@@ -61,7 +105,8 @@ class we_FGMRES_config(work_estimate_block_prec_solver):
         self.work_trackers.update({'GKB': 0, 'FGMRES': 0, 'OA_M': 0, 'BS': 0, 'AMG':0, 'CG_M':0})
 
     def estimate(self):
-        return self.W_FGMRES()
+        self.W_FGMRES()
+        print("Finished estimation computational work of ", self.name)
 
     def W_AMG(self):
         # algebraic multigrid work roughly estimated by operator complexity (MG Tutorial, AMG chapter)
@@ -111,57 +156,106 @@ class we_FGMRES_config(work_estimate_block_prec_solver):
         for i in range(self.its_FGMRES):
             FGMRES_work = FGMRES_work + self.W_PC(self.its_GKB[i]) + rotations_work/self.its_FGMRES + lsp_work/self.its_FGMRES + self.W_VS(self.l) +  self.W_VA(self.l) + self.W_MV("OA_K") + self.W_DOT(self.l, self.restart/2) + self.W_VS(self.l, self.restart/2) + self.W_VA(self.l, self.restart/2) +self.W_DOT(self.l) + self.W_VS(self.l,5) + self.W_VA(self.l,2)
             print("FGMRES work at iteration ", i + 1, ":", FGMRES_work, " WU")
+            self.we_per_iteration.append(FGMRES_work)
         return self.track_and_return(FGMRES_work, 'FGMRES')
 
 class we_MINRES_config(work_estimate_block_prec_solver):
-    def __init__(self, its_MINRES_p, its_CG_U_p, its_CG_P_p, nnz_p, m_p, n_p):
-        super().__init__(nnz_p, m_p, n_p)
+    def __init__(self, name_p, its_MINRES_p, its_CG_0_p, its_CG_1_p, nnz_p, m_p, n_p):
+        super().__init__(name_p, nnz_p, m_p, n_p)
         self.its_MINRES = its_MINRES_p
-        self.its_CG_U = its_CG_U_p
-        self.its_CG_P = its_CG_P_p
-        self.work_trackers.update({'MINRES': 0, 'CG_U': 0, 'CG_P' : 0, 'OA_U': 0, 'OA_P': 0, 'AMG_U': 0, 'AMG_P': 0})
+        self.its_CG_0 = its_CG_0_p
+        self.its_CG_1 = its_CG_1_p
+        self.work_trackers.update({'MINRES': 0, 'CG_0': 0, 'CG_1' : 0, 'OA_0': 0, 'OA_1': 0, 'AMG_0': 0, 'AMG_1': 0})
 
     def estimate(self):
-        return self.W_MINRES()
+        self.W_MINRES()
+        print("Finished estimation computational work of ", self.name)
 
     def W_AMG_U(self):
-        return self.track_and_return(2.1396*self.nnz['OA_U']/self.FLOPS_OA, 'AMG_U')
+        return self.track_and_return(3.8818*self.nnz['OA_0']/self.FLOPS_OA, 'AMG_0')
+        # return self.track_and_return(2.3849*self.nnz['OA_0']/self.FLOPS_OA, 'AMG_0')
+        #return self.track_and_return(2.1839*self.nnz['OA_0']/self.FLOPS_OA, 'AMG_0')
 
     def W_AMG_P(self):
-        return self.track_and_return(2.1396*self.nnz['OA_P']/self.FLOPS_OA, 'AMG_P')
+        return self.track_and_return(1.5*self.nnz['OA_1']/self.FLOPS_OA, 'AMG_1')
 
     # estimate work of Conjugate Gradient measured in Operator applications
     def W_CG_U(self, its, op):
         CG_work = 0
         for i in range(its):
             CG_work = CG_work + self.W_DOT(self.m, 4) + self.W_AMG_U() + self.W_MV(op) + self.W_VA(self.m, 3) + self.W_VS(self.m, 3)
-        return self.track_and_return(CG_work, 'CG_U')
+        return self.track_and_return(CG_work, 'CG_0')
 
     def W_CG_P(self, its, op):
         CG_work = 0
         for i in range(its):
             CG_work = CG_work + self.W_DOT(self.m, 4) + self.W_AMG_P() + self.W_MV(op) + self.W_VA(self.m, 3) + self.W_VS(self.m, 3)
-        return self.track_and_return(CG_work, 'CG_P')
+        return self.track_and_return(CG_work, 'CG_1')
 
     def W_PC_MINRES(self):
-        return self.W_CG_U(self.its_CG_U, 'OA_U') + self.W_CG_P(self.its_CG_P, 'OA_P')
+        return self.W_CG_U(self.its_CG_0, 'OA_0') + self.W_CG_P(self.its_CG_1, 'OA_1')
 
     # estimate work of MINRES measured in Operator applications
     def W_MINRES(self):
         MINRES_work = self.W_VA(self.l) + self.W_MV('OA_K') + self.W_PC_MINRES() + self.W_DOT(self.l)
-        for i in range(self.its_MINRES):
+        for i in range(self.its_MINRES + 1):
             MINRES_work = MINRES_work + self.W_VS(self.l,5) + self.W_DOT(self.l,2) + self.W_MV('OA_K') + self.W_VA(self.l,5) + self.W_PC_MINRES()
             print("MINRES work at iteration ", i + 1, ":", MINRES_work, " WU")
+            self.we_per_iteration.append(MINRES_work)
         return self.track_and_return(MINRES_work, 'MINRES')
 
 def main():
-    # level 1
+    # P2P1 on unit square level 1
     # two iterations FGMRES, 8 and 10 iterations GKB to apply preconditioner, 2 CG iterations to solve M-system in GKB, nonzeros in Operators, blocksizes of fieldsplit
-    #FGMRES_config = we_FGMRES_config(2, [8,10], 2, {'OA_K':1494,'OA_M':4724,'OA_A':346}, 82, 13)
-    #FGMRES_config.estimate()
+    FGMRES_l1 = we_FGMRES_config('FGMRES lvl 1', 2, [8,10], 2, {'OA_K':1494,'OA_M':4724,'OA_A':346}, 82, 13)
+    FGMRES_l1.estimate()
+    MINRES_l1 = we_MINRES_config('MINRES lvl 1',6, 3, 1, {'OA_K': 1494, 'OA_0': 802, 'OA_1': 69}, 82, 13)
+    MINRES_l1.estimate()
 
-    MINRES_config = we_MINRES_config(6, 3, 1, {'OA_K':1494,'OA_U':802,'OA_P':802}, 82, 13)
-    MINRES_config.estimate()
+    # P2P1 on unit square level 3
+    FGMRES_l3 = we_FGMRES_config('FGMRES lvl 3', 2, [22, 25], 4, {'OA_K':22086, 'OA_M': 92852, 'OA_A': 5026}, 1090, 145)
+    FGMRES_l3.estimate()
+    MINRES_l3 = we_MINRES_config('MINRES lvl 3',35, 10, 1, {'OA_K': 22086, 'OA_0': 12034, 'OA_1': 945}, 1090, 145)
+    MINRES_l3.estimate()
+
+    # P2P1 on unit square level 5
+    FGMRES_l5 = we_FGMRES_config('FGMRES lvl 5', 2, [22, 29], 5, {'OA_K':346374, 'OA_M': 1539764, 'OA_A': 78466}, 16642, 2113)
+    FGMRES_l5.estimate()
+    MINRES_l5 = we_MINRES_config('MINRES lvl 5', 42, 12, 1, {'OA_K': 346374, 'OA_0': 189442, 'OA_1': 14529}, 16642, 2113)
+    MINRES_l5.estimate()
+
+    # read residual files
+    #TODO run app in python, pick up output
+    FGMRES_l1.read_residuals('FGMRES_lvl1_residuals.txt')
+    FGMRES_l3.read_residuals('FGMRES_lvl3_residuals.txt')
+    FGMRES_l5.read_residuals('FGMRES_lvl5_residuals.txt')
+    MINRES_l1.read_residuals('MINRES_lvl1_residuals.txt')
+    MINRES_l3.read_residuals('MINRES_lvl3_residuals.txt')
+    MINRES_l5.read_residuals('MINRES_lvl5_residuals.txt')
+
+    # plotting
+    fig, ax = plt.subplots(1)
+    plt.grid(True, which="both", ls="-")
+    ax.set_xlabel('WUs (in FLOP cost of operator application)')
+    ax.set_ylabel('Residual norm')
+    ax.set_title("Operations until convergence for P2P1Stokes2D on unit square")
+    ax.set_yscale('log')
+
+    FGMRES_l1.add_to_plot(ax, 'bo-')
+    FGMRES_l3.add_to_plot(ax, 'bo-')
+    FGMRES_l5.add_to_plot(ax, 'bo-')
+    MINRES_l1.add_to_plot(ax, 'ro-')
+    MINRES_l3.add_to_plot(ax, 'ro-')
+    MINRES_l5.add_to_plot(ax, 'ro-')
+
+    #red_patch = mpatches.Patch('', label='MINRES config')
+    #red_patch = mpatches.Patch('', label='FGMRES config')
+    plt.legend(handles=[mpatches.Patch(None, 'r', label='MINRES config'), mpatches.Patch(None, 'b', label='FGMRES config')])
+
+    #ax.legend()
+
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
