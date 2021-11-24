@@ -35,22 +35,14 @@ template < class K_Simplex >
 class K_Mesh
 {
  public:
-   // Mesh( const std::vector< Point3D >& vertices, const std::set< std::shared_ptr< K_Simplex > >& elements )
-   // : _vertices( vertices )
-   // , _T( elements )
-   // {}
-
    /* construct adaptable mesh from MeshInfo */
    K_Mesh( const MeshInfo& meshInfo );
 
    /* apply red-green refinement to this mesh
-      @param elements_to_refine  subset of elements eligible for red refinement
+      @param elements_to_refine  subset of elements that shall be refined (red)
+                                 given by primitiveIDs w.r.t. K_Mesh::setupStorage()
    */
-   void refineRG( const std::set< std::shared_ptr< K_Simplex > >& elements_to_refine );
-
-   const std::vector< Point3D >& vertices() const { return _vertices; }
-
-   const std::set< std::shared_ptr< K_Simplex > >& elements() const { return _T; }
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -59,7 +51,10 @@ class K_Mesh
    real_t volume() const;
 
    // get SetupPrimitiveStorage corresponding to current refinement
-   inline SetupPrimitiveStorage& get_setupStorage() { return _setupStorage; };
+   inline SetupPrimitiveStorage& setupStorage() { return _setupStorage; };
+
+   inline const std::vector< Point3D >& vertices() const { return _vertices; }
+   inline const std::set< std::shared_ptr< K_Simplex > >& elements() const { return _T; }
 
  private:
    /* remove green edges from _T and replace the corresponding faces in R with their parents
@@ -101,6 +96,15 @@ class K_Mesh
    /* initialize _T for the base mesh (called by constructor) */
    void init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
                        const std::set< std::shared_ptr< Simplex3 > >&           cells );
+
+   /* find elements in _T corresponding to primitiveIDs
+      @param primitiveIDs  set of primitiveIDs w.r.t. _setupStorage
+      @return subset of _T for red refinement
+   */
+   std::set< std::shared_ptr< K_Simplex > > init_R(const std::vector< PrimitiveID >& primitiveIDs);
+
+   /* compute the barycenter of all primitives given by their IDs */
+   std::vector<Point3D> compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs);
 
    std::vector< Point3D >                   _vertices;
    std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level

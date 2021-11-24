@@ -84,6 +84,12 @@ class Simplex
    // @returns children, ordered s.th. vertices[j] \\subset children[j] for all j < children.size()
    const std::vector< std::shared_ptr< K_Simplex > > get_children_sorted( const std::array< int64_t, K + 1 >& vertices ) const;
 
+   /* compute the barycenter of a K simplex given by its vertices
+      @param vertices vertex coordinates
+      @return barycenter of conv(vertices)
+   */
+   static Point3D barycenter(const std::array<Point3D, K+1>& vertices);
+
    /* compute the barycenter of a simplex
       @nodes  coordinates of the global vertices
    */
