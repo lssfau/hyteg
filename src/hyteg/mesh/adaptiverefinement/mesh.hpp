@@ -101,10 +101,13 @@ class K_Mesh
       @param primitiveIDs  set of primitiveIDs w.r.t. _setupStorage
       @return subset of _T for red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > init_R(const std::vector< PrimitiveID >& primitiveIDs);
+   std::set< std::shared_ptr< K_Simplex > > init_R(const std::vector< PrimitiveID >& primitiveIDs) const;
 
    /* compute the barycenter of all primitives given by their IDs */
-   std::vector<Point3D> compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs);
+   std::vector<Point3D> compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs) const;
+
+   /* generate MeshInfo corresponding to current refinement */
+   hyteg::MeshInfo export_meshInfo() const;
 
    std::vector< Point3D >                   _vertices;
    std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level

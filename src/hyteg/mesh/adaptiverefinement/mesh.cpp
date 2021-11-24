@@ -45,11 +45,11 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
    // convert MeshInfo::vertexID to Mesh::vertexID
    std::map< MeshInfo::IDType, int64_t > conversion;
 
-      // initialize vertices
+   // initialize vertices
    uint_t idx = 0;
    for ( auto& [id, vtx] : meshInfo.getVertices() )
    {
-      _vertices[idx]  = vtx.getCoordinates();
+      _vertices[idx] = vtx.getCoordinates();
       // prepare element setup
       conversion[id]  = idx;
       vtxIndices[idx] = idx;
@@ -116,7 +116,7 @@ void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_pt
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
 {
-   auto R = init_R(elements_to_refine);
+   auto R = init_R( elements_to_refine );
    // remove green edges
    remove_green_edges( R );
 
@@ -139,24 +139,56 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    // update current configuration
    _T = U;
    _T.merge( refined );
+
+   // update setupStorage
+   auto meshInfo = export_meshInfo();
+   _setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+}
+
+template <>
+inline hyteg::MeshInfo K_Mesh< Simplex2 >::export_meshInfo() const
+{
+   std::vector< std::array< uint_t, 3 > > faces;
+
+   for ( auto& el : _T )
+   {
+      auto& v = el->get_vertices();
+      faces.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ) } );
+   }
+
+   return MeshInfo::fromFaceData( _vertices, faces );
+}
+
+template <>
+inline hyteg::MeshInfo K_Mesh< Simplex3 >::export_meshInfo() const
+{
+   std::vector< std::array< uint_t, 4 > > cells;
+
+   for ( auto& el : _T )
+   {
+      auto& v = el->get_vertices();
+      cells.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ), uint_t( v[3] ) } );
+   }
+
+   return MeshInfo::fromCellData( _vertices, cells );
 }
 
 template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > > K_Mesh<K_Simplex>::init_R(const std::vector< PrimitiveID >& primitiveIDs)
+inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
    std::set< std::shared_ptr< K_Simplex > > R;
 
-   auto barycenter_R = compute_barycenters(primitiveIDs);
+   auto barycenter_R = compute_barycenters( primitiveIDs );
 
-   for (auto& el : _T)
+   for ( auto& el : _T )
    {
-      for (const auto& bc : barycenter_R)
+      for ( const auto& bc : barycenter_R )
       {
          // ||bc_el - bc||/||bc||
-         auto err =  (el->barycenter(_vertices) - bc).norm()  / bc.norm();
-         if (err < 1e-14)
+         auto err = ( el->barycenter( _vertices ) - bc ).norm() / bc.norm();
+         if ( err < 1e-14 )
          {
-            R.insert(el);
+            R.insert( el );
             break;
          }
       }
@@ -166,36 +198,36 @@ inline std::set< std::shared_ptr< K_Simplex > > K_Mesh<K_Simplex>::init_R(const 
 }
 
 template <>
-inline std::vector<Point3D> K_Mesh<Simplex2>::compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs)
+inline std::vector< Point3D > K_Mesh< Simplex2 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
-   std::vector<Point3D> barycenter_R(primitiveIDs.size());
+   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
 
-   for (uint_t i = 0; i < primitiveIDs.size(); ++i)
+   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
    {
-      auto face = _setupStorage.getFace(primitiveIDs[i]);
-      if (face == nullptr)
+      auto face = _setupStorage.getFace( primitiveIDs[i] );
+      if ( face == nullptr )
       {
-         WALBERLA_ABORT("All primitiveIDs for refineRG() must correspond to a face in Mesh::setupStorage()!");
+         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a face in Mesh::setupStorage()!" );
       }
-      barycenter_R[i] = Simplex2::barycenter(face->getCoordinates());
+      barycenter_R[i] = Simplex2::barycenter( face->getCoordinates() );
    }
 
    return barycenter_R;
 }
 
 template <>
-inline std::vector<Point3D> K_Mesh<Simplex3>::compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs)
+inline std::vector< Point3D > K_Mesh< Simplex3 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
-   std::vector<Point3D> barycenter_R(primitiveIDs.size());
+   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
 
-   for (uint_t i = 0; i < primitiveIDs.size(); ++i)
+   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
    {
-      auto cell = _setupStorage.getCell(primitiveIDs[i]);
-      if (cell == nullptr)
+      auto cell = _setupStorage.getCell( primitiveIDs[i] );
+      if ( cell == nullptr )
       {
-         WALBERLA_ABORT("All primitiveIDs for refineRG() must correspond to a cell in Mesh::setupStorage()!");
+         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a cell in Mesh::setupStorage()!" );
       }
-      barycenter_R[i] = Simplex3::barycenter(cell->getCoordinates());
+      barycenter_R[i] = Simplex3::barycenter( cell->getCoordinates() );
    }
 
    return barycenter_R;
