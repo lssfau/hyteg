@@ -117,5 +117,86 @@ class K_Mesh
 using Mesh2D = K_Mesh< Simplex2 >;
 using Mesh3D = K_Mesh< Simplex3 >;
 
+// wrapper for adaptively refinable mesh for domains with arbitrary dimension
+class Mesh
+{
+ public:
+   /* construct adaptable mesh from MeshInfo */
+   Mesh( const MeshInfo& meshInfo )
+   : _DIM( ( meshInfo.getCells().size() > 0 ) ? 3 : 2 )
+   {
+      if ( _DIM == 3 )
+      {
+         _mesh3D = std::make_shared< Mesh3D >( meshInfo );
+         _mesh2D = nullptr;
+      }
+      else
+      {
+         _mesh2D = std::make_shared< Mesh2D >( meshInfo );
+         _mesh3D = nullptr;
+      }
+   }
+
+   /* apply red-green refinement to this mesh
+      @param elements_to_refine  subset of elements that shall be refined (red)
+                                 given by primitiveIDs w.r.t. K_Mesh::setupStorage()
+   */
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+   {
+      if ( _DIM == 3 )
+      {
+         _mesh3D->refineRG( elements_to_refine );
+      }
+      else
+      {
+         _mesh2D->refineRG( elements_to_refine );
+      }
+   }
+
+   // get minimum and maximum angle of the elements in T
+   std::pair< real_t, real_t > min_max_angle() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->min_max_angle();
+      }
+      else
+      {
+         return _mesh2D->min_max_angle();
+      }
+   }
+
+   // compute total volume of the triangulated domain
+   real_t volume() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->volume();
+      }
+      else
+      {
+         return _mesh2D->volume();
+      }
+   }
+
+   // get SetupPrimitiveStorage corresponding to current refinement
+   inline SetupPrimitiveStorage& setupStorage()
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->setupStorage();
+      }
+      else
+      {
+         return _mesh2D->setupStorage();
+      }
+   };
+
+ private:
+   int                       _DIM;    // spacial dimension
+   std::shared_ptr< Mesh2D > _mesh2D; // internal mesh object for the case _DIM=2
+   std::shared_ptr< Mesh3D > _mesh3D; // internal mesh object for the case _DIM=3
+};
+
 } // namespace adaptiveRefinement
 } // namespace hyteg

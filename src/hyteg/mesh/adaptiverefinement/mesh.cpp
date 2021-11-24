@@ -29,9 +29,9 @@
 #include "simplexFactory.hpp"
 
 namespace hyteg {
-
 namespace adaptiveRefinement {
 
+// todo: take care of geometrymap!
 template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
 : _setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
@@ -174,7 +174,8 @@ inline hyteg::MeshInfo K_Mesh< Simplex3 >::export_meshInfo() const
 }
 
 template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
+inline std::set< std::shared_ptr< K_Simplex > >
+    K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
    std::set< std::shared_ptr< K_Simplex > > R;
 
