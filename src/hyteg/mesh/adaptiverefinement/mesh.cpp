@@ -40,58 +40,78 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
    const uint_t n_vtxs = meshInfo.getVertices().size();
    _vertices.resize( n_vtxs );
 
-   std::vector< int64_t >                vtxIndices( n_vtxs );
+   // [0,1,...,n-1]
+   std::vector< int64_t > vtxIndices( n_vtxs );
+   // convert MeshInfo::vertexID to Mesh::vertexID
    std::map< MeshInfo::IDType, int64_t > conversion;
 
+      // initialize vertices
    uint_t idx = 0;
    for ( auto& [id, vtx] : meshInfo.getVertices() )
    {
       _vertices[idx]  = vtx.getCoordinates();
+      // prepare element setup
       conversion[id]  = idx;
       vtxIndices[idx] = idx;
       ++idx;
    }
 
+   // initialize all edges, faces and cells
+
    SimplexFactory fac( nullptr, vtxIndices );
+   // simplex factory does not store cells
+   std::set< std::shared_ptr< Simplex3 > > cells;
 
    for ( auto& [id, edge] : meshInfo.getEdges() )
    {
-      auto a = conversion[edge.getVertices()[0]];
-      auto b = conversion[edge.getVertices()[1]];
-      fac.make_edge( a, b );
+      const auto& v = edge.getVertices();
+
+      fac.make_edge( conversion[v[0]], conversion[v[1]] );
    }
 
-   // extract_elements( meshInfo, conversion );
+   for ( auto& [id, face] : meshInfo.getFaces() )
+   {
+      const auto& v = face.getVertices();
+
+      fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
+   }
+
+   for ( auto& [id, cell] : meshInfo.getCells() )
+   {
+      const auto& v = cell.getVertices();
+
+      cells.insert( fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] ) );
+   }
+
+   init_elements( fac.faces(), cells );
 }
 
-// // extract faces from meshInfo
-// template <>
-// void K_Mesh< Simplex2 >::extract_elements( const MeshInfo&                             meshInfo,
-//                                          const std::map< MeshInfo::IDType, uint_t >& meshvtxId_to_vtxIdx )
-// {
-//    if ( meshInfo.getCells().size() > 0 )
-//    {
-//       WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
-//    }
+template <>
+void K_Mesh< Simplex2 >::init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
+                                        const std::set< std::shared_ptr< Simplex3 > >&           cells )
+{
+   if ( not cells.empty() )
+   {
+      WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
+   }
 
-//    for ( auto& [id, face] : meshInfo.getFaces() )
-//    {
-//       auto& meshInfo_nodes = face.getVertices();
-//       auto  newFace        = std::make_shared< Simplex2 >( vtxs, edgs );
-//       _T.insert()
-//    }
-// }
+   for ( auto& [id, face] : faces )
+   {
+      _T.insert( face );
+   }
+}
 
-// // extract cells from meshInfo
-// template <>
-// void K_Mesh< Simplex3 >::extract_elements( const MeshInfo&                             meshInfo,
-//                                          const std::map< MeshInfo::IDType, uint_t >& meshvtxId_to_vtxIdx )
-// {
-//    if ( meshInfo.getCells().size() == 0 )
-//    {
-//       WALBERLA_ABORT( "Adaptive 3D mesh requires MeshInfo containing at least one cell!" );
-//    }
-// }
+template <>
+void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >&,
+                                        const std::set< std::shared_ptr< Simplex3 > >& cells )
+{
+   if ( cells.empty() )
+   {
+      WALBERLA_ABORT( "Adaptive 3D mesh requires MeshInfo containing at least one cell!" );
+   }
+
+   _T = cells;
+}
 
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::refineRG( const std::set< std::shared_ptr< K_Simplex > >& elements_to_refine )

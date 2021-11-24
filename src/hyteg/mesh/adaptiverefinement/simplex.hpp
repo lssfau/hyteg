@@ -41,11 +41,12 @@ enum Color
    GREEN
 };
 
-// multi-index to identify a K-simplex by its vertices
+// sorted multi-index to identify a (K-1)-simplex by its vertices
 template < int K >
 class Idx : public std::array< int64_t, K >
 {
  public:
+   // constructor implicitly sorts the elements
    template < class... Args >
    inline Idx( Args&&... args )
    : std::array< int64_t, K >( { args... } )

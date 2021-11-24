@@ -78,6 +78,9 @@ class SimplexFactory
    */
    std::shared_ptr< Simplex3 > make_cell( int64_t a, int64_t b, int64_t c, int64_t d );
 
+   inline const FaceMap& faces() { return _faces; }
+   inline const EdgeMap& edges() { return _edges; }
+
  private:
    const std::shared_ptr< Simplex3 > _parent;
    std::vector< int64_t >            _vertices;

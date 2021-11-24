@@ -98,6 +98,10 @@ class K_Mesh
    /* construct SetupPrimitiveStorage from current refinement */
    void update_setupStorage();
 
+   /* initialize _T for the base mesh (called by constructor) */
+   void init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
+                       const std::set< std::shared_ptr< Simplex3 > >&           cells );
+
    std::vector< Point3D >                   _vertices;
    std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level
    SetupPrimitiveStorage                    _setupStorage; // primitive storage of current refinement level
