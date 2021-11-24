@@ -22,21 +22,26 @@
 
 #include <set>
 
-#include "simplex.hpp"
-#include ""
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
+#include "simplex.hpp"
 
 namespace hyteg {
 namespace adaptiveRefinement {
 
+// adaptively refinable mesh for K-dimensional domains
 template < class K_Simplex >
-class Mesh
+class K_Mesh
 {
  public:
-   Mesh( const std::vector< Point3D >& vertices, const std::set< std::shared_ptr< K_Simplex > >& elements )
-   : _vertices( vertices )
-   , _T( elements )
-   {}
+   // Mesh( const std::vector< Point3D >& vertices, const std::set< std::shared_ptr< K_Simplex > >& elements )
+   // : _vertices( vertices )
+   // , _T( elements )
+   // {}
+
+   /* construct adaptable mesh from MeshInfo */
+   K_Mesh( const MeshInfo& meshInfo );
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements eligible for red refinement
@@ -52,6 +57,9 @@ class Mesh
 
    // compute total volume of the triangulated domain
    real_t volume() const;
+
+   // get SetupPrimitiveStorage corresponding to current refinement
+   inline SetupPrimitiveStorage& get_setupStorage() { return _setupStorage; };
 
  private:
    /* remove green edges from _T and replace the corresponding faces in R with their parents
@@ -87,15 +95,16 @@ class Mesh
    */
    std::set< std::shared_ptr< K_Simplex > > refine_element_red( std::shared_ptr< K_Simplex > element );
 
-
-
+   /* construct SetupPrimitiveStorage from current refinement */
+   void update_setupStorage();
 
    std::vector< Point3D >                   _vertices;
-   std::set< std::shared_ptr< K_Simplex > > _T; // set of elements of current refinement level
+   std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level
+   SetupPrimitiveStorage                    _setupStorage; // primitive storage of current refinement level
 };
 
-using Mesh2D = Mesh< Simplex2 >;
-using Mesh3D = Mesh< Simplex3 >;
+using Mesh2D = K_Mesh< Simplex2 >;
+using Mesh3D = K_Mesh< Simplex3 >;
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

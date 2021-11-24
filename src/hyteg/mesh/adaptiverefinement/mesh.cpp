@@ -26,13 +26,75 @@
 #include <map>
 
 #include "refine_cell.hpp"
+#include "simplexFactory.hpp"
 
 namespace hyteg {
 
 namespace adaptiveRefinement {
 
 template < class K_Simplex >
-void Mesh< K_Simplex >::refineRG( const std::set< std::shared_ptr< K_Simplex > >& elements_to_refine )
+K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
+: _setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
+{
+   // extract vertices
+   const uint_t n_vtxs = meshInfo.getVertices().size();
+   _vertices.resize( n_vtxs );
+
+   std::vector< int64_t >                vtxIndices( n_vtxs );
+   std::map< MeshInfo::IDType, int64_t > conversion;
+
+   uint_t idx = 0;
+   for ( auto& [id, vtx] : meshInfo.getVertices() )
+   {
+      _vertices[idx]  = vtx.getCoordinates();
+      conversion[id]  = idx;
+      vtxIndices[idx] = idx;
+      ++idx;
+   }
+
+   SimplexFactory fac( nullptr, vtxIndices );
+
+   for ( auto& [id, edge] : meshInfo.getEdges() )
+   {
+      auto a = conversion[edge.getVertices()[0]];
+      auto b = conversion[edge.getVertices()[1]];
+      fac.make_edge( a, b );
+   }
+
+   // extract_elements( meshInfo, conversion );
+}
+
+// // extract faces from meshInfo
+// template <>
+// void K_Mesh< Simplex2 >::extract_elements( const MeshInfo&                             meshInfo,
+//                                          const std::map< MeshInfo::IDType, uint_t >& meshvtxId_to_vtxIdx )
+// {
+//    if ( meshInfo.getCells().size() > 0 )
+//    {
+//       WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
+//    }
+
+//    for ( auto& [id, face] : meshInfo.getFaces() )
+//    {
+//       auto& meshInfo_nodes = face.getVertices();
+//       auto  newFace        = std::make_shared< Simplex2 >( vtxs, edgs );
+//       _T.insert()
+//    }
+// }
+
+// // extract cells from meshInfo
+// template <>
+// void K_Mesh< Simplex3 >::extract_elements( const MeshInfo&                             meshInfo,
+//                                          const std::map< MeshInfo::IDType, uint_t >& meshvtxId_to_vtxIdx )
+// {
+//    if ( meshInfo.getCells().size() == 0 )
+//    {
+//       WALBERLA_ABORT( "Adaptive 3D mesh requires MeshInfo containing at least one cell!" );
+//    }
+// }
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::refineRG( const std::set< std::shared_ptr< K_Simplex > >& elements_to_refine )
 {
    // remove green edges
    auto R = elements_to_refine;
@@ -60,8 +122,8 @@ void Mesh< K_Simplex >::refineRG( const std::set< std::shared_ptr< K_Simplex > >
 }
 
 template < class K_Simplex >
-std::set< std::shared_ptr< K_Simplex > > Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex > >& R,
-                                                                        std::set< std::shared_ptr< K_Simplex > >&       U )
+std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex > >& R,
+                                                                          std::set< std::shared_ptr< K_Simplex > >&       U )
 {
    std::set< std::shared_ptr< K_Simplex > > refined;
 
@@ -88,7 +150,7 @@ std::set< std::shared_ptr< K_Simplex > > Mesh< K_Simplex >::refine_red( const st
 }
 
 template < class K_Simplex >
-void Mesh< K_Simplex >::remove_green_edges( std::set< std::shared_ptr< K_Simplex > >& R )
+void K_Mesh< K_Simplex >::remove_green_edges( std::set< std::shared_ptr< K_Simplex > >& R )
 {
    auto T_cpy = _T;
 
@@ -109,7 +171,7 @@ void Mesh< K_Simplex >::remove_green_edges( std::set< std::shared_ptr< K_Simplex
 
 template <>
 std::set< std::shared_ptr< Simplex2 > >
-    Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U )
+    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U )
 {
    std::set< std::shared_ptr< Simplex2 > > R;
 
@@ -126,7 +188,7 @@ std::set< std::shared_ptr< Simplex2 > >
 
 template <>
 std::set< std::shared_ptr< Simplex3 > >
-    Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U )
+    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U )
 {
    std::set< std::shared_ptr< Simplex3 > > R;
 
@@ -165,7 +227,7 @@ std::set< std::shared_ptr< Simplex3 > >
 }
 
 template <>
-std::set< std::shared_ptr< Simplex2 > > Mesh< Simplex2 >::refine_green( std::set< std::shared_ptr< Simplex2 > >& U )
+std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_green( std::set< std::shared_ptr< Simplex2 > >& U )
 {
    std::set< std::shared_ptr< Simplex2 > > refined;
    std::set< std::shared_ptr< Simplex2 > > U_cpy = U;
@@ -204,7 +266,7 @@ std::set< std::shared_ptr< Simplex2 > > Mesh< Simplex2 >::refine_green( std::set
 }
 
 template <>
-std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set< std::shared_ptr< Simplex3 > >& U )
+std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::set< std::shared_ptr< Simplex3 > >& U )
 {
    std::set< std::shared_ptr< Simplex3 > > refined;
    std::set< std::shared_ptr< Simplex3 > > U_cpy = U;
@@ -277,19 +339,19 @@ std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_green( std::set
 }
 
 template <>
-std::set< std::shared_ptr< Simplex3 > > Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
+std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
 {
    return refine_cell_red( _vertices, element );
 }
 
 template <>
-std::set< std::shared_ptr< Simplex2 > > Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
+std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
 {
    return refine_face_red( _vertices, element );
 }
 
 template < class K_Simplex >
-std::pair< real_t, real_t > Mesh< K_Simplex >::min_max_angle() const
+std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 
@@ -305,7 +367,7 @@ std::pair< real_t, real_t > Mesh< K_Simplex >::min_max_angle() const
 }
 
 template < class K_Simplex >
-real_t Mesh< K_Simplex >::volume() const
+real_t K_Mesh< K_Simplex >::volume() const
 {
    real_t v_tot = 0;
 
@@ -317,8 +379,8 @@ real_t Mesh< K_Simplex >::volume() const
    return v_tot;
 }
 
-template class Mesh< Simplex2 >;
-template class Mesh< Simplex3 >;
+template class K_Mesh< Simplex2 >;
+template class K_Mesh< Simplex3 >;
 
 } // namespace adaptiveRefinement
 } // namespace hyteg
