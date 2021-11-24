@@ -23,14 +23,14 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-std::shared_ptr< Simplex1 > SimplexFactory::make_edge( int a, int b, Color color )
+std::shared_ptr< Simplex1 > SimplexFactory::make_edge( int64_t a, int64_t b, Color color )
 {
    auto edge = std::make_shared< Simplex1 >( _vertices[a], _vertices[b], nullptr, color );
    this->add_edge( a, b, edge );
    return edge;
 }
 
-std::shared_ptr< Simplex2 > SimplexFactory::make_face( int a, int b, int c )
+std::shared_ptr< Simplex2 > SimplexFactory::make_face( int64_t a, int64_t b, int64_t c )
 {
    std::array< int64_t, 3 >                     V{ _vertices[a], _vertices[b], _vertices[c] };
    std::array< std::shared_ptr< Simplex1 >, 3 > E{ _edges[{ a, b }], _edges[{ b, c }], _edges[{ c, a }] };
@@ -40,7 +40,7 @@ std::shared_ptr< Simplex2 > SimplexFactory::make_face( int a, int b, int c )
    return face;
 }
 
-std::shared_ptr< Simplex3 > SimplexFactory::make_cell( int a, int b, int c, int d )
+std::shared_ptr< Simplex3 > SimplexFactory::make_cell( int64_t a, int64_t b, int64_t c, int64_t d )
 {
    std::array< int64_t, 4 > V{ _vertices[a], _vertices[b], _vertices[c], _vertices[d] };
 

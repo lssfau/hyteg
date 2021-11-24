@@ -106,12 +106,12 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    // === new edge in cell interior ===
    // find shortest possible edge (either {4,9}, {5,7} or {6,8})
    auto distPt  = [&]( const Point3D& x, const Point3D& y ) { return ( x - y ).norm(); };
-   auto edgeLen = [&]( const std::array< int, 2 >& edge ) {
+   auto edgeLen = [&]( const Idx< 2 >& edge ) {
       return distPt( vertices[ref_vertices[edge[0]]], vertices[ref_vertices[edge[1]]] );
    };
-   std::set< std::array< int, 2 > > possible_edges{ { 4, 9 }, { 5, 7 }, { 6, 8 } };
-   std::array< int, 2 >             new_edge{ 4, 9 };
-   real_t                           new_edge_len = edgeLen( new_edge );
+   std::set< Idx< 2 > > possible_edges{ { 4, 9 }, { 5, 7 }, { 6, 8 } };
+   Idx< 2 >             new_edge{ 4, 9 };
+   real_t               new_edge_len = edgeLen( new_edge );
 
    for ( auto& edge : possible_edges )
    {
@@ -129,7 +129,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    fac.make_edge( vtx_a, vtx_b );
 
    // remaining vertices, i.e. {4,5,6,7,8,9}\{vtx_a,vtx_b}
-   std::set< int > vertices_wo_ab{ 4, 5, 6, 7, 8, 9 };
+   std::set< int64_t > vertices_wo_ab{ 4, 5, 6, 7, 8, 9 };
    vertices_wo_ab.erase( vtx_a );
    vertices_wo_ab.erase( vtx_b );
 

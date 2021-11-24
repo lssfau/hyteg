@@ -24,7 +24,7 @@
 
 namespace hyteg {
 
-MeshInfo MeshInfo::fromCellData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 4>>& cells );
+MeshInfo MeshInfo::fromCellData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 4>>& cells )
 {
    MeshInfo mesh = MeshInfo::emptyMeshInfo();
 
@@ -41,7 +41,7 @@ MeshInfo MeshInfo::fromCellData( const std::vector<Point3D>& vertices, const std
    return mesh;
 }
 
-MeshInfo MeshInfo::fromFaceData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 3>>& faces );
+MeshInfo MeshInfo::fromFaceData( const std::vector<Point3D>& vertices, const std::vector<std::array<uint_t, 3>>& faces )
 {
    MeshInfo mesh = MeshInfo::emptyMeshInfo();
 
@@ -56,7 +56,7 @@ MeshInfo MeshInfo::fromFaceData( const std::vector<Point3D>& vertices, const std
       mesh.addEdge( MeshInfo::Edge( { face[1], face[2] } , 0 ) );
       mesh.addEdge( MeshInfo::Edge( { face[2], face[0] } , 0 ) );
 
-      mesh.addFace( MeshInfo::Face( { face[0], face[1], face[2] } ), 0 ) );
+      mesh.addFace( MeshInfo::Face( { face[0], face[1], face[2] }, 0 ) );
    }
 
    return mesh;
