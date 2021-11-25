@@ -41,9 +41,9 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
    _vertices.resize( n_vtxs );
 
    // [0,1,...,n-1]
-   std::vector< int64_t > vtxIndices( n_vtxs );
+   std::vector< uint_t > vtxIndices( n_vtxs );
    // convert MeshInfo::vertexID to Mesh::vertexID
-   std::map< MeshInfo::IDType, int64_t > conversion;
+   std::map< MeshInfo::IDType, uint_t > conversion;
 
    // initialize vertices
    uint_t idx = 0;
@@ -307,7 +307,7 @@ std::set< std::shared_ptr< Simplex3 > >
 
    for ( auto& el : U )
    {
-      int64_t n_red = 0;
+      uint_t n_red = 0;
 
       for ( auto& face : el->get_faces() )
       {
@@ -348,7 +348,7 @@ std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_green( std::s
    for ( auto& el : U_cpy )
    {
       // count number of new vertices on the edges of el
-      int new_vertices = el->vertices_on_edges();
+      uint_t new_vertices = el->vertices_on_edges();
 
       if ( new_vertices > 0 )
       {
@@ -393,7 +393,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
 
    for ( auto& el : U_cpy )
    {
-      int new_vertices = el->vertices_on_edges();
+      uint_t new_vertices = el->vertices_on_edges();
 
       switch ( new_vertices )
       {

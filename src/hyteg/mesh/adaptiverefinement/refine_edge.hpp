@@ -29,7 +29,7 @@ namespace adaptiveRefinement {
       @param edge the edge to be bisected
       @param vtx index of the vertex on the edge midpoint
    */
-inline void bisect_edge( std::shared_ptr< Simplex1 > edge, int64_t vtx )
+inline void bisect_edge( std::shared_ptr< Simplex1 > edge, uint_t vtx )
 {
    WALBERLA_ASSERT( not edge->has_children() );
    edge->set_midpoint_idx( vtx );

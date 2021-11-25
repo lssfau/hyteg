@@ -49,15 +49,15 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    }
 
    // === collect vertex indices ===
-   std::vector< int64_t > ref_vertices( 10 );
+   std::vector< uint_t > ref_vertices( 10 );
 
    // old vertices
-   for ( int i = 0; i < 4; ++i )
+   for ( uint_t i = 0; i < 4; ++i )
    {
       ref_vertices[i] = cell->get_vertices()[i];
    }
    // new vertices
-   for ( int i = 0; i < 6; ++i )
+   for ( uint_t i = 0; i < 6; ++i )
    {
       ref_vertices[i + 4] = cell->get_edges()[i]->get_midpoint_idx();
    }
@@ -68,7 +68,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    // ref_edges[{i,j}] is the edge connecting ref_vertices[i] and ref_vertices[j]
 
    // edge-children
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
       auto child_edges_bottom = cell->get_edges()[i]->get_children_sorted( { ref_vertices[i], ref_vertices[( i + 1 ) % 3] } );
       auto child_edges_top    = cell->get_edges()[i + 3]->get_children_sorted( { ref_vertices[i], ref_vertices[3] } );
@@ -129,7 +129,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    fac.make_edge( vtx_a, vtx_b );
 
    // remaining vertices, i.e. {4,5,6,7,8,9}\{vtx_a,vtx_b}
-   std::set< int64_t > vertices_wo_ab{ 4, 5, 6, 7, 8, 9 };
+   std::set< uint_t > vertices_wo_ab{ 4, 5, 6, 7, 8, 9 };
    vertices_wo_ab.erase( vtx_a );
    vertices_wo_ab.erase( vtx_b );
 
@@ -187,15 +187,15 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       an existing edge. This is ensured by excluding vertices forming
       one of the edges in {{4, 9}, {5, 7}, {6, 8}}.
    */
-   std::vector< int > test_vertices;
+   std::vector< uint_t > test_vertices;
    std::copy( vertices_wo_ab.begin(), vertices_wo_ab.end(), std::back_inserter( test_vertices ) );
 
-   for ( int c = 0; c < 4; ++c )
+   for ( uint_t c = 0; c < 4; ++c )
    {
-      int vtx_c = test_vertices[c];
-      for ( int d = c + 1; d < 4; ++d )
+      uint_t vtx_c = test_vertices[c];
+      for ( uint_t d = c + 1; d < 4; ++d )
       {
-         int vtx_d = test_vertices[d];
+         uint_t vtx_d = test_vertices[d];
 
          Idx< 2 > edge_cd{ vtx_c, vtx_d };
 
@@ -230,18 +230,19 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int64_t > ref_vertices( 5 );
+   std::vector< uint_t > ref_vertices( 5 );
 
    // vertices at split edge
    std::shared_ptr< Simplex1 > split_edge;
 
    for ( auto& edge : cell->get_edges() )
    {
-      ref_vertices[4] = edge->get_midpoint_idx();
+      int64_t midpt = edge->get_midpoint_idx();
 
       if ( ref_vertices[4] >= 0 )
       {
-         split_edge = edge;
+         ref_vertices[4] = uint_t( midpt );
+         split_edge      = edge;
          break;
       }
    }
@@ -250,10 +251,10 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    ref_vertices[1] = split_edge->get_vertices()[0];
    ref_vertices[2] = split_edge->get_vertices()[1];
 
-   auto is_unbranded = [&]( int64_t vtx ) {
+   auto is_unbranded = [&]( uint_t vtx ) {
       return ( vtx != ref_vertices[1] and vtx != ref_vertices[2] and vtx != ref_vertices[4] );
    };
-   std::vector< int64_t > unbranded;
+   std::vector< uint_t > unbranded;
    std::copy_if( cell->get_vertices().begin(), cell->get_vertices().end(), std::back_inserter( unbranded ), is_unbranded );
 
    ref_vertices[0] = unbranded[0];
@@ -319,22 +320,23 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int64_t > ref_vertices( 6 );
+   std::vector< uint_t > ref_vertices( 6 );
 
    // vertices at split edges
    std::array< std::shared_ptr< Simplex1 >, 2 > split_edges;
 
-   int split_idx = 0;
+   uint_t split_idx = 0;
    for ( auto& edge : cell->get_edges() )
    {
       if ( split_idx >= 2 )
          break;
 
-      ref_vertices[4 + split_idx] = edge->get_midpoint_idx();
+      uint_t midpt = edge->get_midpoint_idx();
 
-      if ( ref_vertices[4 + split_idx] >= 0 )
+      if ( midpt >= 0 )
       {
-         split_edges[split_idx] = edge;
+         ref_vertices[4 + split_idx] = uint_t( midpt );
+         split_edges[split_idx]      = edge;
          ++split_idx;
       }
    }
@@ -391,7 +393,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
 
    // === new faces in cell interior
 
-   for ( int k = 0; k < 4; ++k )
+   for ( uint_t k = 0; k < 4; ++k )
    {
       fac.make_face( k, 4, 5 );
    }
@@ -425,13 +427,13 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    }
 
    // === collect vertex indices ===
-   std::vector< int64_t > ref_vertices( 7 );
+   std::vector< uint_t > ref_vertices( 7 );
 
    // vertices at red face
    auto red_vtxs  = faces[RED][0]->get_vertices();
    auto red_edges = faces[RED][0]->get_edges_sorted( red_vtxs );
 
-   for ( int k = 0; k < 3; ++k )
+   for ( uint_t k = 0; k < 3; ++k )
    {
       ref_vertices[k]     = red_vtxs[k];
       ref_vertices[k + 4] = red_edges[k]->get_midpoint_idx();
@@ -440,11 +442,11 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    // top vertex
    auto old_vtxs = cell->get_vertices();
 
-   for ( int k = 0; k < 4; ++k )
+   for ( uint_t k = 0; k < 4; ++k )
    {
       bool found = true;
 
-      for ( int bottom = 0; bottom < 3; ++bottom )
+      for ( uint_t bottom = 0; bottom < 3; ++bottom )
       {
          if ( old_vtxs[k] == ref_vertices[bottom] )
          {

@@ -60,13 +60,13 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
 
    // add new vertices ======================
 
-   std::vector< int64_t > ref_vertices( 6 ); // vertices of refined element
-   for ( int i = 0; i < 3; ++i )
+   std::vector< uint_t > ref_vertices( 6 ); // vertices of refined element
+   for ( uint_t i = 0; i < 3; ++i )
    {
       ref_vertices[i] = face->get_vertices()[i];
    }
 
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
       auto edge = face->get_edges()[i];
 
@@ -74,7 +74,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
 
       if ( midIdx >= 0 )
       {
-         ref_vertices[3 + i] = midIdx;
+         ref_vertices[3 + i] = uint_t( midIdx );
       }
       else
       {
@@ -82,12 +82,12 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
          Point3D x0 = vertices[edge->get_vertices()[0]];
          Point3D x1 = vertices[edge->get_vertices()[1]];
          Point3D mid;
-         for ( int j = 0; j < 3; ++j )
+         for ( uint_t j = 0; j < 3; ++j )
          {
             mid[j] = ( x0[j] + x1[j] ) / 2;
          }
          // add midpoint to refined vertices
-         ref_vertices[3 + i] = int64_t(vertices.size());
+         ref_vertices[3 + i] = vertices.size();
          // add midpoint to list of all vertices
          vertices.push_back( mid );
       }
@@ -97,7 +97,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
 
    std::vector< std::shared_ptr< Simplex1 > > ref_edges( 9 );
 
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
       auto edge = face->get_edges()[i];
 
@@ -113,29 +113,29 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
 
    // add inner edges ======================
 
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
-      int i0           = 3 + i;
-      int i1           = 3 + ( ( i + 1 ) % 3 );
+      uint_t i0        = 3 + i;
+      uint_t i1        = 3 + ( ( i + 1 ) % 3 );
       ref_edges[6 + i] = std::make_shared< Simplex1 >( ref_vertices[i0], ref_vertices[i1] );
    }
 
    // === split face ===
 
    // face_0
-   std::array< int64_t, 3 >                     v0{ ref_vertices[0], ref_vertices[3], ref_vertices[5] };
+   std::array< uint_t, 3 >                      v0{ ref_vertices[0], ref_vertices[3], ref_vertices[5] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e0{ ref_edges[0], ref_edges[8], ref_edges[5] };
    face->add_child( std::make_shared< Simplex2 >( v0, e0, face ) );
    // face_1
-   std::array< int64_t, 3 >                     v1{ ref_vertices[3], ref_vertices[1], ref_vertices[4] };
+   std::array< uint_t, 3 >                      v1{ ref_vertices[3], ref_vertices[1], ref_vertices[4] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e1{ ref_edges[1], ref_edges[2], ref_edges[6] };
    face->add_child( std::make_shared< Simplex2 >( v1, e1, face ) );
    // face_2
-   std::array< int64_t, 3 >                     v2{ ref_vertices[5], ref_vertices[4], ref_vertices[2] };
+   std::array< uint_t, 3 >                      v2{ ref_vertices[5], ref_vertices[4], ref_vertices[2] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e2{ ref_edges[7], ref_edges[3], ref_edges[4] };
    face->add_child( std::make_shared< Simplex2 >( v2, e2, face ) );
    // face_3
-   std::array< int64_t, 3 >                     v3{ ref_vertices[4], ref_vertices[5], ref_vertices[3] };
+   std::array< uint_t, 3 >                      v3{ ref_vertices[4], ref_vertices[5], ref_vertices[3] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e3{ ref_edges[7], ref_edges[8], ref_edges[6] };
    face->add_child( std::make_shared< Simplex2 >( v3, e3, face ) );
 
@@ -166,25 +166,25 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
 
    // get index of split edge ======================
    int e_split = -1;
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
       if ( face->get_edges()[i]->has_children() )
       {
-         e_split = i;
+         e_split = int( i );
          break;
       }
    }
    WALBERLA_ASSERT( e_split >= 0 );
-   auto edge = face->get_edges()[e_split];
+   auto edge = face->get_edges()[uint_t( e_split )];
 
    // index offset from the standard configuration (e_split = 2)
-   const int offset = 1 + e_split;
+   const uint_t offset = uint_t( 1 + e_split );
 
    // get vertex indices ======================
 
-   std::vector< int64_t > ref_vertices( 4 );
+   std::vector< uint_t > ref_vertices( 4 );
 
-   for ( int i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 3; ++i )
    {
       ref_vertices[i] = face->get_vertices()[( i + offset ) % 3];
    }
@@ -209,11 +209,11 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    // === split face ===
 
    // face_0
-   std::array< int64_t, 3 >                     v0{ ref_vertices[0], ref_vertices[1], ref_vertices[3] };
+   std::array< uint_t, 3 >                      v0{ ref_vertices[0], ref_vertices[1], ref_vertices[3] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e0{ ref_edges[0], ref_edges[4], ref_edges[3] };
    face->add_child( std::make_shared< Simplex2 >( v0, e0, face ) );
    // face_1
-   std::array< int64_t, 3 >                     v1{ ref_vertices[1], ref_vertices[2], ref_vertices[3] };
+   std::array< uint_t, 3 >                      v1{ ref_vertices[1], ref_vertices[2], ref_vertices[3] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e1{ ref_edges[1], ref_edges[2], ref_edges[4] };
    face->add_child( std::make_shared< Simplex2 >( v1, e1, face ) );
 

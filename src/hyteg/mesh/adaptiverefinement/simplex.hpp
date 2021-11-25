@@ -34,6 +34,7 @@ namespace adaptiveRefinement {
 
 using walberla::int64_t;
 using walberla::real_t;
+using walberla::uint_t;
 
 enum Color
 {
@@ -42,7 +43,7 @@ enum Color
 };
 
 // sorted multi-index to identify a (K-1)-simplex by its vertices
-template < int K >
+template < uint_t K >
 class Idx : public std::array< int64_t, K >
 {
  public:
@@ -56,7 +57,7 @@ class Idx : public std::array< int64_t, K >
 };
 
 // CRTP-base class for K-simplices
-template < int K, class K_Simplex >
+template < uint_t K, class K_Simplex >
 class Simplex
 {
  public:
@@ -88,7 +89,7 @@ class Simplex
       @param vertices vertex coordinates
       @return barycenter of conv(vertices)
    */
-   static Point3D barycenter(const std::array<Point3D, K+1>& vertices);
+   static Point3D barycenter( const std::array< Point3D, K + 1 >& vertices );
 
    /* compute the barycenter of a simplex
       @nodes  coordinates of the global vertices
@@ -141,7 +142,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
    /* count number of vertices in the interior of this edge
       @return number of vertices on the interior of *this
    */
-   int inner_vertices() const;
+   uint_t inner_vertices() const;
 
  private:
    Color   _color;
@@ -168,14 +169,14 @@ class Simplex2 : public Simplex< 2, Simplex2 >
          1-----------2
                [1]
    */
-   Simplex2( const std::array< int64_t, 3 >&                     vertices,
+   Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent = nullptr );
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
    */
-   int vertices_on_edges() const;
+   uint_t vertices_on_edges() const;
 
    bool has_green_edge() const;
 
@@ -187,13 +188,13 @@ class Simplex2 : public Simplex< 2, Simplex2 >
 
    const std::array< std::shared_ptr< Simplex1 >, 3 >& get_edges() const { return _edges; }
    // @returns edges of this face, ordered s.th. vertices[j] \\subset edges[j] for all j < 3
-   std::array< std::shared_ptr< Simplex1 >, 3 > get_edges_sorted( const std::array< int64_t, 3 >& vertices ) const;
+   std::array< std::shared_ptr< Simplex1 >, 3 > get_edges_sorted( const std::array< uint_t, 3 >& vertices ) const;
    /* get pointer to a certain edge of this face
       @param a    global vertex id
       @param b    global vertex id
       @return pointer to conv{a,b} if a,b \\in Face::_vertices, null otherwise
    */
-   std::shared_ptr< Simplex1 > get_Edge( int64_t a, int64_t b ) const;
+   std::shared_ptr< Simplex1 > get_Edge( uint_t a, uint_t b ) const;
 
  private:
    /* //!ordering of vertices must match ordering of edges, i.e.,
@@ -225,7 +226,7 @@ class Simplex3 : public Simplex< 3, Simplex3 >
                '*, |,*'               [0]   '*, |,*'   [1]               '*, |,*'
                    1                                                            (0) (bottom)
    */
-   Simplex3( const std::array< int64_t, 4 >&                     vertices,
+   Simplex3( const std::array< uint_t, 4 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent = nullptr );
@@ -235,7 +236,7 @@ class Simplex3 : public Simplex< 3, Simplex3 >
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
    */
-   int vertices_on_edges() const;
+   uint_t vertices_on_edges() const;
 
    /* compute minimum and maximum angle of this face
       @nodes  coordinates of the global vertices
@@ -251,14 +252,14 @@ class Simplex3 : public Simplex< 3, Simplex3 >
       @param b    global vertex id
       @return pointer to conv{a,b} if a,b \\in Cell::_vertices, null otherwise
    */
-   std::shared_ptr< Simplex1 > get_Edge( int64_t a, int64_t b ) const;
+   std::shared_ptr< Simplex1 > get_Edge( uint_t a, uint_t b ) const;
    /* get pointer to a certain face of this cell
       @param a    global vertex id
       @param b    global vertex id
       @param c    global vertex id
       @return pointer to conv{a,b,c} if a,b,c \\in Cell::_vertices, null otherwise
    */
-   std::shared_ptr< Simplex2 > get_Face( int64_t a, int64_t b, int64_t c ) const;
+   std::shared_ptr< Simplex2 > get_Face( uint_t a, uint_t b, uint_t c ) const;
 
    /* return all faces with vertices on the interior of their edges
       @return {F_red, F_green} s.th. F_* are those faces eligible for *-refinement (may be refined already)

@@ -53,7 +53,7 @@ class K_Mesh
    // get SetupPrimitiveStorage corresponding to current refinement
    inline SetupPrimitiveStorage& setupStorage() { return _setupStorage; };
 
-   inline const std::vector< Point3D >& vertices() const { return _vertices; }
+   inline const std::vector< Point3D >&                   vertices() const { return _vertices; }
    inline const std::set< std::shared_ptr< K_Simplex > >& elements() const { return _T; }
 
  private:
@@ -101,10 +101,10 @@ class K_Mesh
       @param primitiveIDs  set of primitiveIDs w.r.t. _setupStorage
       @return subset of _T for red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > init_R(const std::vector< PrimitiveID >& primitiveIDs) const;
+   std::set< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* compute the barycenter of all primitives given by their IDs */
-   std::vector<Point3D> compute_barycenters(const std::vector< PrimitiveID >& primitiveIDs) const;
+   std::vector< Point3D > compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* generate MeshInfo corresponding to current refinement */
    hyteg::MeshInfo export_meshInfo() const;
@@ -193,7 +193,7 @@ class Mesh
    };
 
  private:
-   int                       _DIM;    // spacial dimension
+   uint_t                    _DIM;    // spacial dimension
    std::shared_ptr< Mesh2D > _mesh2D; // internal mesh object for the case _DIM=2
    std::shared_ptr< Mesh3D > _mesh3D; // internal mesh object for the case _DIM=3
 };
