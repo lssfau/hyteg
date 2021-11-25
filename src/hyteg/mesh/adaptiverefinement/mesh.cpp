@@ -62,23 +62,23 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
    // simplex factory does not store cells
    std::set< std::shared_ptr< Simplex3 > > cells;
 
-   for ( auto& [id, edge] : meshInfo.getEdges() )
+   for ( auto& p : meshInfo.getEdges() )
    {
-      const auto& v = edge.getVertices();
+      const auto& v = p.second.getVertices();
 
       fac.make_edge( conversion[v[0]], conversion[v[1]] );
    }
 
-   for ( auto& [id, face] : meshInfo.getFaces() )
+   for ( auto& p : meshInfo.getFaces() )
    {
-      const auto& v = face.getVertices();
+      const auto& v = p.second.getVertices();
 
       fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
    }
 
-   for ( auto& [id, cell] : meshInfo.getCells() )
+   for ( auto& p : meshInfo.getCells() )
    {
-      const auto& v = cell.getVertices();
+      const auto& v = p.second.getVertices();
 
       cells.insert( fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] ) );
    }
@@ -95,9 +95,9 @@ void K_Mesh< Simplex2 >::init_elements( const std::map< Idx< 3 >, std::shared_pt
       WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
    }
 
-   for ( auto& [id, face] : faces )
+   for ( auto& p : faces )
    {
-      _T.insert( face );
+      _T.insert( p.second );
    }
 }
 
