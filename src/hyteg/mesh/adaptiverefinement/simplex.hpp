@@ -44,13 +44,13 @@ enum Color
 
 // sorted multi-index to identify a (K-1)-simplex by its vertices
 template < uint_t K >
-class Idx : public std::array< int64_t, K >
+class Idx : public std::array< uint_t, K >
 {
  public:
    // constructor implicitly sorts the elements
    template < class... Args >
    inline Idx( Args&&... args )
-   : std::array< int64_t, K >( { args... } )
+   : std::array< uint_t, K >( { args... } )
    {
       std::sort( this->begin(), this->end() );
    }
@@ -65,7 +65,7 @@ class Simplex
       @param vertices   global indices of the new Simplexes vertices
       @param parent     K-simplex s.th. this is a direct refinement of parent
    */
-   Simplex( const std::array< int64_t, K + 1 >& vertices, std::shared_ptr< K_Simplex > parent )
+   Simplex( const std::array< uint_t, K + 1 >& vertices, std::shared_ptr< K_Simplex > parent )
    : _vertices( vertices )
    , _parent( parent )
    {}
@@ -76,14 +76,14 @@ class Simplex
       @param idx global vertex-id
       @return (idx \\in Simplex::_vertices)
    */
-   bool has_vertex( int64_t idx ) const;
+   bool has_vertex( uint_t idx ) const;
 
-   const std::array< int64_t, K + 1 >&                get_vertices() const { return _vertices; }
+   const std::array< uint_t, K + 1 >&                get_vertices() const { return _vertices; }
    const std::vector< std::shared_ptr< K_Simplex > >& get_siblings() const { return _parent->_children; }
    std::shared_ptr< K_Simplex >                       get_parent() const { return _parent; }
    const std::vector< std::shared_ptr< K_Simplex > >& get_children() const { return _children; }
    // @returns children, ordered s.th. vertices[j] \\subset children[j] for all j < children.size()
-   const std::vector< std::shared_ptr< K_Simplex > > get_children_sorted( const std::array< int64_t, K + 1 >& vertices ) const;
+   const std::vector< std::shared_ptr< K_Simplex > > get_children_sorted( const std::array< uint_t, K + 1 >& vertices ) const;
 
    /* compute the barycenter of a K simplex given by its vertices
       @param vertices vertex coordinates
@@ -109,7 +109,7 @@ class Simplex
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
  protected:
-   std::array< int64_t, K + 1 >                _vertices;
+   std::array< uint_t, K + 1 >                _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
 };
@@ -124,7 +124,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
       @param parent  parent-edge
       @param c       = GREEN if this edge was added during green refinement step
    */
-   Simplex1( int64_t p1, int64_t p2, std::shared_ptr< Simplex1 > parent = nullptr, Color c = RED )
+   Simplex1( uint_t p1, uint_t p2, std::shared_ptr< Simplex1 > parent = nullptr, Color c = RED )
    : Simplex< 1, Simplex1 >( { p1, p2 }, parent )
    , _color( c )
    , _midpoint( -1 )
@@ -135,7 +135,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
    /* when an edge is refined, the index of the midpoint should be added!
       @param idx  global id of the newly added vertex
    */
-   void set_midpoint_idx( int64_t idx ) { _midpoint = idx; }
+   void set_midpoint_idx( uint_t idx ) { _midpoint = idx; }
    // @return global id of the vertex on the edge midpoint or -1 if edge hasn't been refined
    int64_t get_midpoint_idx() const { return _midpoint; }
 

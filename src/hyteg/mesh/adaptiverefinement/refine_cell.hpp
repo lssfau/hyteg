@@ -109,8 +109,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    auto edgeLen = [&]( const Idx< 2 >& edge ) {
       return distPt( vertices[ref_vertices[edge[0]]], vertices[ref_vertices[edge[1]]] );
    };
-   std::set< Idx< 2 > > possible_edges{ { 4, 9 }, { 5, 7 }, { 6, 8 } };
-   Idx< 2 >             new_edge{ 4, 9 };
+   std::set< Idx< 2 > > possible_edges{ { 4u, 9u }, { 5u, 7u }, { 6u, 8u } };
+   Idx< 2 >             new_edge{ 4u, 9u };
    real_t               new_edge_len = edgeLen( new_edge );
 
    for ( auto& edge : possible_edges )
@@ -239,7 +239,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    {
       int64_t midpt = edge->get_midpoint_idx();
 
-      if ( ref_vertices[4] >= 0 )
+      if ( midpt >= 0 )
       {
          ref_vertices[4] = uint_t( midpt );
          split_edge      = edge;
@@ -331,7 +331,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
       if ( split_idx >= 2 )
          break;
 
-      uint_t midpt = edge->get_midpoint_idx();
+      int64_t midpt = edge->get_midpoint_idx();
 
       if ( midpt >= 0 )
       {
