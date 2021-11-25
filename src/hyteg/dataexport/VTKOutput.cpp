@@ -187,10 +187,10 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
 
 void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 {
-   if ( level <= 1 )
-   {
-      return;
-   }
+   // if ( level <= 1 )
+   // {
+   //    return;
+   // }
 
    storage_->getTimingTree()->start( "VTK write" );
 
