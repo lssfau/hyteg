@@ -26,6 +26,10 @@ def annulus():
     u = sin(4*φ(x,y))*sin(2*r(x,y))
     return (1,u)
 
+def annulus2():
+    u = tanh(r(x,y))
+    return (1,u)
+
 def smooth_jump():
     α,φ = symbols('alpha phi')
     k = 2+tanh(α*(x-0.5));
@@ -69,7 +73,7 @@ def plume_example():
     return (k,u)
 
 
-k, u = sigmoidK()
+k, u = annulus2()
 
 def gradient(u):
     return np.array([diff(u,x), diff(u,y)])
