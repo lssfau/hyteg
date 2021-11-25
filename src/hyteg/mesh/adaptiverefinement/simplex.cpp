@@ -50,7 +50,7 @@ const std::vector< std::shared_ptr< K_Simplex > >
          }
       }
 
-      WALBERLA_ASSERT( sorted[i] );
+      WALBERLA_ASSERT( sorted[i] != nullptr );
    }
 
    for ( uint_t i = K + 1; i < _children.size(); ++i )
