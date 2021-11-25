@@ -1,0 +1,16 @@
+Parameters
+{
+  // spacial dimension of domain
+  dim 3;
+
+  // adaptive refinement
+  n_refinements 3;
+  proportion_of_elements_refined_per_step 0.1;
+
+  // linear solver (cg)
+  n_iterations 100;
+  tolerance 1e-12;
+
+  // vtk
+  vtkOutput 0;
+}

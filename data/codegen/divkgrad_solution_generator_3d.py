@@ -80,6 +80,11 @@ def spherical_shell_example():
     return (u, 1)
 
 
+def spherical_shell_example2():
+    u = tanh(r(x,y,z))
+    return (u, 1)
+
+
 def example():
     u = sin(pi*x)*sin(pi*y)*sin(pi*z)
     k = x*x + 1
@@ -180,6 +185,6 @@ def generic_solution(foo):
 
 
 if __name__ == '__main__':
-    tokamak_solution(tokamak_jump)
-    # generic_solution(spherical_shell_example)
+    # tokamak_solution(tokamak_jump)
+    generic_solution(spherical_shell_example2)
     # generic_solution(example)

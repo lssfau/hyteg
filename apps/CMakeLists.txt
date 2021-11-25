@@ -54,6 +54,10 @@ waLBerla_add_executable(NAME gmg_blending
       FILES gmg_blending.cpp
       DEPENDS hyteg)
 
+waLBerla_add_executable(NAME adaptiveRefinement
+      FILES adaptiveRefinement.cpp
+      DEPENDS hyteg)
+
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
