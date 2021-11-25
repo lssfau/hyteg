@@ -188,7 +188,9 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    {
       ref_vertices[i] = face->get_vertices()[( i + offset ) % 3];
    }
-   ref_vertices[3] = edge->get_midpoint_idx();
+   int64_t mp = edge->get_midpoint_idx();
+   WALBERLA_ASSERT( mp >= 0 );
+   ref_vertices[3] = uint_t( mp );
 
    // get edges ======================
 

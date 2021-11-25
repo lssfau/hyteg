@@ -59,7 +59,9 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    // new vertices
    for ( uint_t i = 0; i < 6; ++i )
    {
-      ref_vertices[i + 4] = cell->get_edges()[i]->get_midpoint_idx();
+      int64_t mp = cell->get_edges()[i]->get_midpoint_idx();
+      WALBERLA_ASSERT( mp >= 0 );
+      ref_vertices[i + 4] = uint_t( mp );
    }
 
    SimplexFactory fac( cell, ref_vertices );
@@ -435,8 +437,10 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
 
    for ( uint_t k = 0; k < 3; ++k )
    {
-      ref_vertices[k]     = red_vtxs[k];
-      ref_vertices[k + 4] = red_edges[k]->get_midpoint_idx();
+      ref_vertices[k] = red_vtxs[k];
+      int64_t mp      = red_edges[k]->get_midpoint_idx();
+      WALBERLA_ASSERT( mp >= 0 );
+      ref_vertices[k + 4] = uint_t( mp );
    }
 
    // top vertex

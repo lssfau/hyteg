@@ -135,7 +135,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
    /* when an edge is refined, the index of the midpoint should be added!
       @param idx  global id of the newly added vertex
    */
-   void set_midpoint_idx( uint_t idx ) { _midpoint = idx; }
+   void set_midpoint_idx( uint_t idx ) { _midpoint = int64_t(idx); }
    // @return global id of the vertex on the edge midpoint or -1 if edge hasn't been refined
    int64_t get_midpoint_idx() const { return _midpoint; }
 
