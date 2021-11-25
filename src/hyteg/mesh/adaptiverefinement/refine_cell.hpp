@@ -248,7 +248,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
          break;
       }
    }
-   WALBERLA_ASSERT( split_edge );
+   WALBERLA_ASSERT( split_edge != nullptr );
 
    ref_vertices[1] = split_edge->get_vertices()[0];
    ref_vertices[2] = split_edge->get_vertices()[1];

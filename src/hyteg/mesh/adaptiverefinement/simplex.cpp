@@ -190,7 +190,7 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
          }
       }
 
-      WALBERLA_ASSERT( sorted[i] );
+      WALBERLA_ASSERT( sorted[i] != nullptr );
    }
 
    return sorted;
