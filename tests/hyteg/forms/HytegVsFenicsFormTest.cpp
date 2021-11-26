@@ -42,6 +42,7 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_full_stokescc_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
@@ -270,6 +271,24 @@ void run2DTestsWithoutBlending()
                  2 >( triangle, 1e-15 );
    compareForms< P1FenicsForm< p1_stokes_epsilon_cell_integral_3_otherwise, fenics::NoAssemble >,
                  forms::p1_epsiloncc_1_1_affine_q2,
+                 Matrix3r,
+                 2 >( triangle, 1e-15 );
+
+   logSectionHeader( "P1 Full Stokes, 2D, no blending (HFG)" );
+   compareForms< P1FenicsForm< p1_stokes_full_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p1_full_stokescc_0_0_affine_q2,
+                 Matrix3r,
+                 2 >( triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_stokes_full_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 forms::p1_full_stokescc_0_1_affine_q2,
+                 Matrix3r,
+                 2 >( triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_stokes_full_cell_integral_2_otherwise, fenics::NoAssemble >,
+                 forms::p1_full_stokescc_1_0_affine_q2,
+                 Matrix3r,
+                 2 >( triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_stokes_full_cell_integral_3_otherwise, fenics::NoAssemble >,
+                 forms::p1_full_stokescc_1_1_affine_q2,
                  Matrix3r,
                  2 >( triangle, 1e-15 );
 
@@ -550,6 +569,44 @@ void run3DTestsWithoutBlending()
                  3 >( theTet, 3e-14 );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_epsilon_tet_cell_integral_8_otherwise >,
                  forms::p1_epsiloncc_2_2_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+
+   logSectionHeader( "P1 Full Stokes, 3D, no blending (HFG)" );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_0_otherwise >,
+                 forms::p1_full_stokescc_0_0_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_1_otherwise >,
+                 forms::p1_full_stokescc_0_1_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_2_otherwise >,
+                 forms::p1_full_stokescc_0_2_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_3_otherwise >,
+                 forms::p1_full_stokescc_1_0_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_4_otherwise >,
+                 forms::p1_full_stokescc_1_1_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_5_otherwise >,
+                 forms::p1_full_stokescc_1_2_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_6_otherwise >,
+                 forms::p1_full_stokescc_2_0_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_7_otherwise >,
+                 forms::p1_full_stokescc_2_1_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_8_otherwise >,
+                 forms::p1_full_stokescc_2_2_affine_q2,
                  Matrix4r,
                  3 >( theTet, 3e-14 );
 
