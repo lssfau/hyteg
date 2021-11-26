@@ -43,6 +43,8 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    uint_t l_min = lvl;
    uint_t l_max = lvl;
 
+   uint_t dim = storage->hasGlobalCells() ? 3 : 2;
+
    // continuous functions
    // auto coeff = [=]( const hyteg::Point3D& ) { return 1; };
    auto                                             exact = [=]( const hyteg::Point3D& x ) { return tanh( x.norm() ); };
@@ -79,7 +81,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    P1Function< real_t > u( "u", storage, l_min, l_max );
    P1Function< real_t > u_exact( "u_exact", storage, l_min, l_max );
    P1Function< real_t > err( "err", storage, l_min, l_max );
-   P1Function< real_t > tmp( "tmp", storage, l_min, l_max );
+   P1Function< real_t > tmp( "err*M*err", storage, l_min, l_max );
    // rhs
    tmp.interpolate( rhs, l_max );
    M.apply( tmp, b, l_max, hyteg::All );
@@ -96,13 +98,13 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    // compute total error
    err.assign( { 1.0, -1.0 }, { u, u_exact }, l_max );
    M.apply( err, tmp, l_max, hyteg::All, Replace );
-   real_t l2err = std::sqrt(err.dotGlobal( tmp, l_max ));
+   real_t l2err = std::sqrt( err.dotGlobal( tmp, l_max ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "L2-error = " << l2err );
 
    // compute elementwise error
    std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise;
-   if ( storage->hasGlobalCells() )
+   if ( dim == 3 )
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
@@ -127,7 +129,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
          l2_err_2_elwise.push_back( { l2_err_2_cell, id } );
       }
    }
-   else
+   else // dim == 2
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
@@ -159,13 +161,23 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    // export to vtk
    if ( vtk >= 0 )
    {
-      VTKOutput vtkOutput( "output", "adaptive", storage );
+      // compute L2 error contribution of each DoF, i.e. tmp_i=err_i*[M*err]_i
+      tmp.multElementwise( { err, tmp }, l_max );
+      // sanity check
+      auto check = std::sqrt( tmp.sumGlobal( l_max ) );
+      if ( std::abs( check - l2err ) > 1e-15 )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" );
+      }
+
+      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
       vtkOutput.add( err );
+      vtkOutput.add( tmp );
       vtkOutput.add( u_exact );
       vtkOutput.add( b );
-      vtkOutput.write( l_max, vtk );
+      vtkOutput.write( l_max, uint_t( vtk ) );
    }
 
    return l2_err_2_elwise;

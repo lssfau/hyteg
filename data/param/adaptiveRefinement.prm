@@ -1,10 +1,10 @@
 Parameters
 {
   // spacial dimension of domain
-  dim 2;
+  dim 3;
 
   // adaptive refinement
-  n_refinements 20;
+  n_refinements 8;
   proportion_of_elements_refined_per_step 0.1;
 
   // linear solver (cg)
