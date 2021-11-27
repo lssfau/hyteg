@@ -149,14 +149,16 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
          l2_err_2_elwise.push_back( { l2_err_2_face, id } );
       }
    }
+   std::cout << "sorting errors...\n";
    // todo communicaiton
    // sort by errors
    std::sort( l2_err_2_elwise.begin(), l2_err_2_elwise.end() );
-   // WALBERLA_LOG_INFO_ON_ROOT("local errors: ")
+   // WALBERLA_LOG_INFO("local errors: ")
    // for (auto& [e,el] : l2_err_2_elwise)
    // {
-   //    WALBERLA_LOG_INFO_ON_ROOT(" err_" << el << " = " << e);
+   //    WALBERLA_LOG_INFO(" err_" << el << " = " << e);
    // }
+   std::cout << "n_errors on rank " << walberla::mpi::MPIManager::instance()->rank() << ": " << l2_err_2_elwise.size() << "\n";
 
    // export to vtk
    if ( vtk >= 0 )
@@ -225,7 +227,7 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
          mesh.refineRG( R );
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "* solving system ..." );
+      WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
       mesh.setupStorage().setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       loadbalancing::roundRobin( mesh.setupStorage() );

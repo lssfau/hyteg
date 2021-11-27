@@ -55,6 +55,8 @@ class K_Mesh
 
    inline const std::vector< Point3D >&                   vertices() const { return _vertices; }
    inline const std::set< std::shared_ptr< K_Simplex > >& elements() const { return _T; }
+   inline uint_t                                          n_elements() const { return _T.size(); }
+   inline uint_t                                          n_vtx() const { return _vertices.size(); }
 
  private:
    /* remove green edges from _T and replace the corresponding faces in R with their parents
@@ -191,6 +193,32 @@ class Mesh
          return _mesh2D->setupStorage();
       }
    };
+
+   // get number of elements in current refinement
+   inline uint_t n_elements() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->n_elements();
+      }
+      else
+      {
+         return _mesh2D->n_elements();
+      }
+   }
+
+   // get number of vertices in current refinement
+   inline uint_t n_vtx() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->n_vtx();
+      }
+      else
+      {
+         return _mesh2D->n_vtx();
+      }
+   }
 
  private:
    uint_t                    _DIM;    // spacial dimension
