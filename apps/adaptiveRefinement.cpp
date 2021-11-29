@@ -103,54 +103,45 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    WALBERLA_LOG_INFO_ON_ROOT( "L2-error = " << l2err );
 
    // compute elementwise error
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise_loc;
+
    if ( dim == 3 )
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         real_t l2_err_2_cell = vertexdof::macrocell::dot< real_t >( l_max, *cell, err.getCellDataID(), tmp.getCellDataID() );
+         real_t l2_err_2_cell = vertexdof::macrocell::dot< real_t >( l_max, *cell, err.getCellDataID(), tmp.getCellDataID(), 0 );
 
-         for ( auto& faceID : cell->neighborFaces() )
-         {
-            l2_err_2_cell += vertexdof::macroface::dot< real_t >(
-                l_max, *( storage->getFace( faceID ) ), err.getFaceDataID(), tmp.getFaceDataID() );
-         }
-         for ( auto& edgeID : cell->neighborEdges() )
-         {
-            l2_err_2_cell += vertexdof::macroedge::dot< real_t >(
-                l_max, *( storage->getEdge( edgeID ) ), err.getEdgeDataID(), tmp.getEdgeDataID() );
-         }
-         for ( auto& vtxID : cell->neighborVertices() )
-         {
-            l2_err_2_cell += vertexdof::macrovertex::dot< real_t >(
-                *( storage->getVertex( vtxID ) ), err.getVertexDataID(), tmp.getVertexDataID(), l_max );
-         }
-
-         l2_err_2_elwise.push_back( { l2_err_2_cell, id } );
+         l2_err_2_elwise_loc.push_back( { l2_err_2_cell, id } );
       }
    }
    else // dim == 2
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         real_t l2_err_2_face = vertexdof::macroface::dot< real_t >( l_max, *face, err.getFaceDataID(), tmp.getFaceDataID() );
+         real_t l2_err_2_face = vertexdof::macroface::dot< real_t >( l_max, *face, err.getFaceDataID(), tmp.getFaceDataID(), 0 );
 
-         for ( auto& edgeID : face->neighborEdges() )
-         {
-            l2_err_2_face += vertexdof::macroedge::dot< real_t >(
-                l_max, *( storage->getEdge( edgeID ) ), err.getEdgeDataID(), tmp.getEdgeDataID() );
-         }
-         for ( auto& vtxID : face->neighborVertices() )
-         {
-            l2_err_2_face += vertexdof::macrovertex::dot< real_t >(
-                *( storage->getVertex( vtxID ) ), err.getVertexDataID(), tmp.getVertexDataID(), l_max );
-         }
-
-         l2_err_2_elwise.push_back( { l2_err_2_face, id } );
+         l2_err_2_elwise_loc.push_back( { l2_err_2_face, id } );
       }
    }
+
+   // communication
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise = l2_err_2_elwise_loc;
+
+   walberla::mpi::SendBuffer send;
+   walberla::mpi::RecvBuffer recv;
+
+   send << l2_err_2_elwise_loc;
+   walberla::mpi::allGathervBuffer(send, recv);
+   for (int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk)
+   {
+      if (rnk != walberla::mpi::MPIManager::instance()->rank())
+      {
+         recv >> l2_err_2_elwise_loc;
+         l2_err_2_elwise.insert(l2_err_2_elwise.end(), l2_err_2_elwise_loc.begin(), l2_err_2_elwise_loc.end());
+      }
+   }
+
    std::cout << "sorting errors...\n";
-   // todo communicaiton
    // sort by errors
    std::sort( l2_err_2_elwise.begin(), l2_err_2_elwise.end() );
    // WALBERLA_LOG_INFO("local errors: ")
