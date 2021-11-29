@@ -40,17 +40,17 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divt_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divt_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
-
 #include "hyteg/forms/form_hyteg_generated/p1/p1_full_stokescc_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_full_stokesvar_affine_q1.hpp"
-
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokescc_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokesvar_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_affine_q2.hpp"
@@ -143,15 +143,14 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    WALBERLA_CHECK_LESS_EQUAL( error, tol );
 }
 
-
 // we need another version, since the "pure" 3D forms, i.e. the _2_2 ones, have a different constructor
 // which accepts only a single callback
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
 void compareVarForms3D( const std::array< Point3D, dim + 1 >& element,
-                      real_t                                tol,
-                      std::shared_ptr< func_t >             callback,
-                      std::shared_ptr< GeometryMap >        map,
-                      real_t                                scaleFactor = real_c( 1 ) )
+                        real_t                                tol,
+                        std::shared_ptr< func_t >             callback,
+                        std::shared_ptr< GeometryMap >        map,
+                        real_t                                scaleFactor = real_c( 1 ) )
 {
    // setup our two forms
    FormFEniCS fenicsForm;
@@ -358,19 +357,19 @@ void run2DTestsWithoutBlending()
    compareVarForms< P1FenicsForm< p1_stokes_full_cell_integral_0_otherwise, fenics::NoAssemble >,
                     forms::p1_full_stokesvar_0_0_affine_q1,
                     Matrix3r,
-                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c(2) );
+                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< p1_stokes_full_cell_integral_1_otherwise, fenics::NoAssemble >,
                     forms::p1_full_stokesvar_0_1_affine_q1,
                     Matrix3r,
-                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c(2) );
+                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< p1_stokes_full_cell_integral_2_otherwise, fenics::NoAssemble >,
                     forms::p1_full_stokesvar_1_0_affine_q1,
                     Matrix3r,
-                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c(2) );
+                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< p1_stokes_full_cell_integral_3_otherwise, fenics::NoAssemble >,
                     forms::p1_full_stokesvar_1_1_affine_q1,
                     Matrix3r,
-                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c(2) );
+                    2 >( triangle, 5e-15, varCoeff, nullptr, real_c( 2 ) );
 
    logSectionHeader( "P2 mass, 2D, no blending (HFG)" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p2_mass_affine_qe, Matrix6r, 2 >(
@@ -391,6 +390,24 @@ void run2DTestsWithoutBlending()
                  2 >( triangle, 1e-13 );
    compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, fenics::NoAssemble >,
                  forms::p2_epsiloncc_1_1_affine_q2,
+                 Matrix6r,
+                 2 >( triangle, 1e-13 );
+
+   logSectionHeader( "P2 Full Stokes, 2D, no blending (HFG)" );
+   compareForms< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p2_full_stokescc_0_0_affine_q3,
+                 Matrix6r,
+                 2 >( triangle, 1e-13 );
+   compareForms< P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 forms::p2_full_stokescc_0_1_affine_q3,
+                 Matrix6r,
+                 2 >( triangle, 1e-13 );
+   compareForms< P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, fenics::NoAssemble >,
+                 forms::p2_full_stokescc_1_0_affine_q3,
+                 Matrix6r,
+                 2 >( triangle, 1e-13 );
+   compareForms< P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, fenics::NoAssemble >,
+                 forms::p2_full_stokescc_1_1_affine_q3,
                  Matrix6r,
                  2 >( triangle, 1e-13 );
 }
@@ -527,6 +544,24 @@ void run2DTestsWithAffineMap()
                           forms::p2_epsiloncc_1_1_blending_q3,
                           Matrix6r,
                           2 >( triangle, 5e-13, map );
+
+   logSectionHeader( "P2 Full Stokes, 2D, with blending & var (HFG)" );
+   compareVarForms< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, fenics::NoAssemble >,
+                    forms::p2_full_stokesvar_0_0_blending_q3,
+                    Matrix6r,
+                    2 >( triangle, 5e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, fenics::NoAssemble >,
+                    forms::p2_full_stokesvar_0_1_blending_q3,
+                    Matrix6r,
+                    2 >( triangle, 5e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, fenics::NoAssemble >,
+                    forms::p2_full_stokesvar_1_0_blending_q3,
+                    Matrix6r,
+                    2 >( triangle, 5e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, fenics::NoAssemble >,
+                    forms::p2_full_stokesvar_1_1_blending_q3,
+                    Matrix6r,
+                    2 >( triangle, 5e-13, varCoeff, map, real_c( 2 ) );
 }
 
 void run3DTestsWithoutBlending()
@@ -688,39 +723,39 @@ void run3DTestsWithoutBlending()
    compareVarForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_0_otherwise >,
                     forms::p1_full_stokesvar_0_0_affine_q1,
                     Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_1_otherwise >,
                     forms::p1_full_stokesvar_0_1_affine_q1,
                     Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms3D< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_2_otherwise >,
-                    forms::p1_full_stokesvar_0_2_affine_q1,
-                    Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                      forms::p1_full_stokesvar_0_2_affine_q1,
+                      Matrix4r,
+                      3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_3_otherwise >,
                     forms::p1_full_stokesvar_1_0_affine_q1,
                     Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_4_otherwise >,
                     forms::p1_full_stokesvar_1_1_affine_q1,
                     Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms3D< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_5_otherwise >,
-                    forms::p1_full_stokesvar_1_2_affine_q1,
-                    Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                      forms::p1_full_stokesvar_1_2_affine_q1,
+                      Matrix4r,
+                      3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms3D< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_6_otherwise >,
-                    forms::p1_full_stokesvar_2_0_affine_q1,
-                    Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                      forms::p1_full_stokesvar_2_0_affine_q1,
+                      Matrix4r,
+                      3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms3D< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_7_otherwise >,
                       forms::p1_full_stokesvar_2_1_affine_q1,
                       Matrix4r,
                       3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
    compareVarForms3D< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_full_tet_cell_integral_8_otherwise >,
-                    forms::p1_full_stokesvar_2_2_affine_q1,
-                    Matrix4r,
-                    3 >( theTet, 5e-15, varCoeff, nullptr, real_c(2) );
+                      forms::p1_full_stokesvar_2_2_affine_q1,
+                      Matrix4r,
+                      3 >( theTet, 5e-15, varCoeff, nullptr, real_c( 2 ) );
 
    logSectionHeader( "P2 Epsilon, 3D, no blending (HFG)" );
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise >,
@@ -939,28 +974,64 @@ void run3DTestsWithAffineMap()
                     forms::p2_epsilonvar_1_1_blending_q2,
                     Matrix10r,
                     3 >( theTet, 2e-13, varCoeff, map, real_c( 2 ) );
-
-   // 3D variants have different constructor! Only one callback!
    compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise >,
-                 forms::p2_epsilonvar_0_2_blending_q2,
-                 Matrix10r,
-                 3 >( theTet, 1e-13, varCoeff, map, real_c(2) );
+                      forms::p2_epsilonvar_0_2_blending_q2,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
    compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise >,
-                 forms::p2_epsilonvar_1_2_blending_q2,
-                 Matrix10r,
-                 3 >( theTet, 1e-13, varCoeff, map, real_c(2) );
+                      forms::p2_epsilonvar_1_2_blending_q2,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
    compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise >,
-                 forms::p2_epsilonvar_2_0_blending_q2,
-                 Matrix10r,
-                 3 >( theTet, 1e-13, varCoeff, map, real_c(2) );
+                      forms::p2_epsilonvar_2_0_blending_q2,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
    compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise >,
-                 forms::p2_epsilonvar_2_1_blending_q2,
-                 Matrix10r,
-                 3 >( theTet, 1e-13, varCoeff, map, real_c(2) );
+                      forms::p2_epsilonvar_2_1_blending_q2,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
    compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise >,
-                 forms::p2_epsilonvar_2_2_blending_q2,
-                 Matrix10r,
-                 3 >( theTet, 1e-13, varCoeff, map, real_c(2) );
+                      forms::p2_epsilonvar_2_2_blending_q2,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+
+   logSectionHeader( "P2 Full Stokes, 3D, with blending & var (HFG)" );
+   compareVarForms< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_0_otherwise >,
+                    forms::p2_full_stokesvar_0_0_blending_q3,
+                    Matrix10r,
+                    3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_1_otherwise >,
+                    forms::p2_full_stokesvar_0_1_blending_q3,
+                    Matrix10r,
+                    3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_3_otherwise >,
+                    forms::p2_full_stokesvar_1_0_blending_q3,
+                    Matrix10r,
+                    3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_4_otherwise >,
+                    forms::p2_full_stokesvar_1_1_blending_q3,
+                    Matrix10r,
+                    3 >( theTet, 2e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_2_otherwise >,
+                      forms::p2_full_stokesvar_0_2_blending_q3,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_5_otherwise >,
+                      forms::p2_full_stokesvar_1_2_blending_q3,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_6_otherwise >,
+                      forms::p2_full_stokesvar_2_0_blending_q3,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_7_otherwise >,
+                      forms::p2_full_stokesvar_2_1_blending_q3,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
+   compareVarForms3D< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_full_tet_cell_integral_8_otherwise >,
+                      forms::p2_full_stokesvar_2_2_blending_q3,
+                      Matrix10r,
+                      3 >( theTet, 1e-13, varCoeff, map, real_c( 2 ) );
 }
 
 int main( int argc, char** argv )
