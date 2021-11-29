@@ -125,7 +125,8 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    }
 
    // communication
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise = l2_err_2_elwise_loc;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise_other;
 
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
@@ -134,11 +135,8 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    walberla::mpi::allGathervBuffer(send, recv);
    for (int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk)
    {
-      if (rnk != walberla::mpi::MPIManager::instance()->rank())
-      {
-         recv >> l2_err_2_elwise_loc;
-         l2_err_2_elwise.insert(l2_err_2_elwise.end(), l2_err_2_elwise_loc.begin(), l2_err_2_elwise_loc.end());
-      }
+      recv >> l2_err_2_elwise_other;
+      l2_err_2_elwise.insert(l2_err_2_elwise.end(), l2_err_2_elwise_other.begin(), l2_err_2_elwise_other.end());
    }
 
    std::cout << "sorting errors...\n";
