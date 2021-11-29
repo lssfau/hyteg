@@ -38,12 +38,12 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_0_0_affine_q2
+/// - name:        p1_full_stokescc_0_0_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_0_0_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -54,11 +54,11 @@ class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               30      65       2       0      1             64                 0
+   ///                                               30      58       2       0      1             56                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -66,11 +66,11 @@ class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               23      37       1       0      1             33                 0
+   ///                                               23      35       1       0      1             30                 0
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -78,11 +78,11 @@ class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               93     172       2       0      1            139                 0
+   ///                                               93     160       2       0      1            126                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -90,11 +90,11 @@ class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               72     110       1       0      1             78                 0
+   ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -110,12 +110,12 @@ class p1_full_stokescc_0_0_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_0_1_affine_q2
+/// - name:        p1_full_stokescc_0_1_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_0_1_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -126,11 +126,11 @@ class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               25      61       2       0      1             62                 0
+   ///                                               23      50       2       0      1             50                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -138,11 +138,11 @@ class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               19      30       1       0      1             28                 0
+   ///                                               19      28       1       0      1             25                 0
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -150,11 +150,11 @@ class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -162,11 +162,11 @@ class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -182,12 +182,12 @@ class p1_full_stokescc_0_1_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_0_2_affine_q2
+/// - name:        p1_full_stokescc_0_2_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_0_2_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_0_2_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -204,11 +204,11 @@ class p1_full_stokescc_0_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -216,11 +216,11 @@ class p1_full_stokescc_0_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -236,12 +236,12 @@ class p1_full_stokescc_0_2_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_1_0_affine_q2
+/// - name:        p1_full_stokescc_1_0_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_1_0_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -252,11 +252,11 @@ class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               25      61       2       0      1             62                 0
+   ///                                               23      50       2       0      1             50                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -264,11 +264,11 @@ class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               19      30       1       0      1             28                 0
+   ///                                               19      28       1       0      1             25                 0
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -276,11 +276,11 @@ class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -288,11 +288,11 @@ class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -308,12 +308,12 @@ class p1_full_stokescc_1_0_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_1_1_affine_q2
+/// - name:        p1_full_stokescc_1_1_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_1_1_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -324,11 +324,11 @@ class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               30      65       2       0      1             64                 0
+   ///                                               30      58       2       0      1             56                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -336,11 +336,11 @@ class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
+   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               23      37       1       0      1             33                 0
+   ///                                               23      35       1       0      1             30                 0
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -348,11 +348,11 @@ class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               93     172       2       0      1            139                 0
+   ///                                               93     160       2       0      1            126                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -360,11 +360,11 @@ class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               72     110       1       0      1             78                 0
+   ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -380,12 +380,12 @@ class p1_full_stokescc_1_1_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_1_2_affine_q2
+/// - name:        p1_full_stokescc_1_2_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_1_2_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_1_2_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -402,11 +402,11 @@ class p1_full_stokescc_1_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -414,11 +414,11 @@ class p1_full_stokescc_1_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -434,12 +434,12 @@ class p1_full_stokescc_1_2_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_2_0_affine_q2
+/// - name:        p1_full_stokescc_2_0_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_2_0_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_2_0_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -456,11 +456,11 @@ class p1_full_stokescc_2_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -468,11 +468,11 @@ class p1_full_stokescc_2_0_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -488,12 +488,12 @@ class p1_full_stokescc_2_0_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_2_1_affine_q2
+/// - name:        p1_full_stokescc_2_1_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_2_1_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_2_1_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -510,11 +510,11 @@ class p1_full_stokescc_2_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               67     144       2       0      1            126                 0
+   ///                                               64     125       2       0      1            106                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -522,11 +522,11 @@ class p1_full_stokescc_2_1_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               55      84       1       0      1             65                 0
+   ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
@@ -542,12 +542,12 @@ class p1_full_stokescc_2_1_affine_q2 : public P1FormHyTeG
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_full_stokescc_2_2_affine_q2
+/// - name:        p1_full_stokescc_2_2_affine_q1
 /// - description: 
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_full_stokescc_2_2_affine_q2 : public P1FormHyTeG
+class p1_full_stokescc_2_2_affine_q1 : public P1FormHyTeG
 {
 
 
@@ -564,11 +564,11 @@ class p1_full_stokescc_2_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               93     172       2       0      1            139                 0
+   ///                                               93     160       2       0      1            126                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -576,11 +576,11 @@ class p1_full_stokescc_2_2_affine_q2 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               72     110       1       0      1             78                 0
+   ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
