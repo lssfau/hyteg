@@ -36,54 +36,60 @@ template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
 : _setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
 {
-   // extract vertices
-   const uint_t n_vtxs = meshInfo.getVertices().size();
-   _vertices.resize( n_vtxs );
-
-   // [0,1,...,n-1]
-   std::vector< uint_t > vtxIndices( n_vtxs );
-   // convert MeshInfo::vertexID to Mesh::vertexID
-   std::map< MeshInfo::IDType, uint_t > conversion;
-
-   // initialize vertices
-   uint_t idx = 0;
-   for ( auto& [id, vtx] : meshInfo.getVertices() )
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      _vertices[idx] = vtx.getCoordinates();
-      // prepare element setup
-      conversion[id]  = idx;
-      vtxIndices[idx] = idx;
-      ++idx;
+      // extract vertices
+      _n_vertices = meshInfo.getVertices().size();
+      _vertices.resize( _n_vertices );
+
+      // [0,1,...,n-1]
+      std::vector< uint_t > vtxIndices( _n_vertices );
+      // convert MeshInfo::vertexID to Mesh::vertexID
+      std::map< MeshInfo::IDType, uint_t > conversion;
+
+      // initialize vertices
+      uint_t idx = 0;
+      for ( auto& [id, vtx] : meshInfo.getVertices() )
+      {
+         _vertices[idx] = vtx.getCoordinates();
+         // prepare element setup
+         conversion[id]  = idx;
+         vtxIndices[idx] = idx;
+         ++idx;
+      }
+
+      // initialize all edges, faces and cells
+
+      SimplexFactory fac( nullptr, vtxIndices );
+      // simplex factory does not store cells
+      std::set< std::shared_ptr< Simplex3 > > cells;
+
+      for ( auto& p : meshInfo.getEdges() )
+      {
+         const auto& v = p.second.getVertices();
+
+         fac.make_edge( conversion[v[0]], conversion[v[1]] );
+      }
+
+      for ( auto& p : meshInfo.getFaces() )
+      {
+         const auto& v = p.second.getVertices();
+
+         fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
+      }
+
+      for ( auto& p : meshInfo.getCells() )
+      {
+         const auto& v = p.second.getVertices();
+
+         cells.insert( fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] ) );
+      }
+
+      init_elements( fac.faces(), cells );
+      _n_elements = _T.size();
    }
 
-   // initialize all edges, faces and cells
-
-   SimplexFactory fac( nullptr, vtxIndices );
-   // simplex factory does not store cells
-   std::set< std::shared_ptr< Simplex3 > > cells;
-
-   for ( auto& p : meshInfo.getEdges() )
-   {
-      const auto& v = p.second.getVertices();
-
-      fac.make_edge( conversion[v[0]], conversion[v[1]] );
-   }
-
-   for ( auto& p : meshInfo.getFaces() )
-   {
-      const auto& v = p.second.getVertices();
-
-      fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
-   }
-
-   for ( auto& p : meshInfo.getCells() )
-   {
-      const auto& v = p.second.getVertices();
-
-      cells.insert( fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] ) );
-   }
-
-   init_elements( fac.faces(), cells );
+   // todo communication (_n_vertices, _n_elements)
 }
 
 template <>
@@ -116,32 +122,42 @@ void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_pt
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
 {
-   auto R = init_R( elements_to_refine );
-   // remove green edges
-   remove_green_edges( R );
+   auto meshInfo = hyteg::MeshInfo::emptyMeshInfo();
 
-   /* recursively apply red refinement for elements
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      auto R = init_R( elements_to_refine );
+      // remove green edges
+      remove_green_edges( R );
+
+      /* recursively apply red refinement for elements
         that otherwise would be subject to multiple
         green refinement steps
    */
-   std::set< std::shared_ptr< K_Simplex > > U = _T;
-   std::set< std::shared_ptr< K_Simplex > > refined;
-   while ( not R.empty() )
-   {
-      refined.merge( refine_red( R, U ) );
+      std::set< std::shared_ptr< K_Simplex > > U = _T;
+      std::set< std::shared_ptr< K_Simplex > > refined;
+      while ( not R.empty() )
+      {
+         refined.merge( refine_red( R, U ) );
 
-      R = find_elements_for_red_refinement( U );
+         R = find_elements_for_red_refinement( U );
+      }
+
+      // apply green refinement
+      refined.merge( refine_green( U ) );
+
+      // update current configuration
+      _T = U;
+      _T.merge( refined );
+      _n_vertices = _vertices.size();
+      _n_elements = _T.size();
+
+      // update setupStorage
+      meshInfo = export_meshInfo();
    }
 
-   // apply green refinement
-   refined.merge( refine_green( U ) );
+   // todo communication (meshInfo, _n_vertices, _n_elements)
 
-   // update current configuration
-   _T = U;
-   _T.merge( refined );
-
-   // update setupStorage
-   auto meshInfo = export_meshInfo();
    _setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 }
 
@@ -468,13 +484,18 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 
-   for ( auto& el : _T )
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      auto mm_el = el->min_max_angle( _vertices );
+      for ( auto& el : _T )
+      {
+         auto mm_el = el->min_max_angle( _vertices );
 
-      mm.first  = std::min( mm.first, mm_el.first );
-      mm.second = std::max( mm.second, mm_el.second );
+         mm.first  = std::min( mm.first, mm_el.first );
+         mm.second = std::max( mm.second, mm_el.second );
+      }
    }
+
+   // todo communication (mm)
 
    return mm;
 }
@@ -484,10 +505,15 @@ real_t K_Mesh< K_Simplex >::volume() const
 {
    real_t v_tot = 0;
 
-   for ( auto& el : _T )
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      v_tot += el->volume( _vertices );
+      for ( auto& el : _T )
+      {
+         v_tot += el->volume( _vertices );
+      }
    }
+
+   // todo communication (v_tot)
 
    return v_tot;
 }

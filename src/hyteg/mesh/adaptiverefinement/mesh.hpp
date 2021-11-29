@@ -53,10 +53,8 @@ class K_Mesh
    // get SetupPrimitiveStorage corresponding to current refinement
    inline SetupPrimitiveStorage& setupStorage() { return _setupStorage; };
 
-   inline const std::vector< Point3D >&                   vertices() const { return _vertices; }
-   inline const std::set< std::shared_ptr< K_Simplex > >& elements() const { return _T; }
-   inline uint_t                                          n_elements() const { return _T.size(); }
-   inline uint_t                                          n_vtx() const { return _vertices.size(); }
+   inline uint_t n_elements() const { return _n_elements; }
+   inline uint_t n_vtx() const { return _n_vertices; }
 
  private:
    /* remove green edges from _T and replace the corresponding faces in R with their parents
@@ -111,6 +109,8 @@ class K_Mesh
    /* generate MeshInfo corresponding to current refinement */
    hyteg::MeshInfo export_meshInfo() const;
 
+   uint_t                                   _n_vertices;
+   uint_t                                   _n_elements;
    std::vector< Point3D >                   _vertices;
    std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level
    SetupPrimitiveStorage                    _setupStorage; // primitive storage of current refinement level
