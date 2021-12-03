@@ -101,7 +101,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
    {
       auto edge = face->get_edges()[i];
 
-      if ( not edge->has_children() )
+      if ( !edge->has_children() )
       {
          bisect_edge( edge, ref_vertices[3 + i] );
       }

@@ -96,7 +96,7 @@ template <>
 void K_Mesh< Simplex2 >::init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
                                         const std::set< std::shared_ptr< Simplex3 > >&           cells )
 {
-   if ( not cells.empty() )
+   if ( !cells.empty() )
    {
       WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
    }
@@ -136,7 +136,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    */
       std::set< std::shared_ptr< K_Simplex > > U = _T;
       std::set< std::shared_ptr< K_Simplex > > refined;
-      while ( not R.empty() )
+      while ( !R.empty() )
       {
          refined.merge( refine_red( R, U ) );
 
@@ -335,7 +335,7 @@ std::set< std::shared_ptr< Simplex3 > >
                face->kill_children();
             }
 
-            if ( not face->has_children() )
+            if ( !face->has_children() )
             {
                // apply red refinement to face
                refine_face_red( _vertices, face );
@@ -368,7 +368,7 @@ std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_green( std::s
 
       if ( new_vertices > 0 )
       {
-         WALBERLA_ASSERT( not el->has_green_edge() );
+         WALBERLA_ASSERT( !el->has_green_edge() );
          WALBERLA_ASSERT( new_vertices == 1 );
 
          /* if green refinement had been applied to the same element before,
@@ -430,7 +430,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
          break;
 
       case 2:
-         if ( el->has_children() and el->get_children().size() == 4 )
+         if ( el->has_children() && el->get_children().size() == 4 )
          {
             keepChildren( el );
          }
@@ -443,7 +443,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
          break;
 
       case 3:
-         if ( el->has_children() and el->get_children().size() == 4 )
+         if ( el->has_children() && el->get_children().size() == 4 )
          {
             keepChildren( el );
          }

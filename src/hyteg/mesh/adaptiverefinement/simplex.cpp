@@ -184,7 +184,7 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
    {
       for ( auto& edge : _edges )
       {
-         if ( edge->has_vertex( vertices[i] ) and edge->has_vertex( vertices[( i + 1 ) % 3] ) )
+         if ( edge->has_vertex( vertices[i] ) && edge->has_vertex( vertices[( i + 1 ) % 3] ) )
          {
             sorted[i] = edge;
          }
@@ -214,7 +214,7 @@ std::shared_ptr< Simplex1 > Simplex2::get_Edge( uint_t a, uint_t b ) const
 {
    for ( auto& edge : _edges )
    {
-      if ( edge->has_vertex( a ) and edge->has_vertex( b ) )
+      if ( edge->has_vertex( a ) && edge->has_vertex( b ) )
       {
          return edge;
       }
@@ -363,7 +363,7 @@ std::shared_ptr< Simplex1 > Simplex3::get_Edge( uint_t a, uint_t b ) const
 {
    for ( auto& edge : _edges )
    {
-      if ( edge->has_vertex( a ) and edge->has_vertex( b ) )
+      if ( edge->has_vertex( a ) && edge->has_vertex( b ) )
       {
          return edge;
       }
@@ -376,7 +376,7 @@ std::shared_ptr< Simplex2 > Simplex3::get_Face( uint_t a, uint_t b, uint_t c ) c
 {
    for ( auto& face : _faces )
    {
-      if ( face->has_vertex( a ) and face->has_vertex( b ) and face->has_vertex( c ) )
+      if ( face->has_vertex( a ) && face->has_vertex( b ) && face->has_vertex( c ) )
       {
          return face;
       }

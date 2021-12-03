@@ -41,7 +41,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
          face->kill_children();
       }
 
-      if ( not face->has_children() )
+      if ( !face->has_children() )
       {
          // apply red refinement to face
          refine_face_red( vertices, face );
@@ -219,13 +219,13 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_ptr< Simplex3 > cell )
 {
    auto faces = cell->refined_faces();
-   WALBERLA_ASSERT( faces[GREEN].size() == 2 and faces[RED].size() == 0 );
+   WALBERLA_ASSERT( faces[GREEN].size() == 2 && faces[RED].size() == 0 );
 
    // === split faces ===
 
    for ( auto& face : faces[GREEN] )
    {
-      if ( not face->has_children() )
+      if ( !face->has_children() )
       {
          refine_face_green( face );
       }
@@ -254,7 +254,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    ref_vertices[2] = split_edge->get_vertices()[1];
 
    auto is_unbranded = [&]( uint_t vtx ) {
-      return ( vtx != ref_vertices[1] and vtx != ref_vertices[2] and vtx != ref_vertices[4] );
+      return ( vtx != ref_vertices[1] && vtx != ref_vertices[2] && vtx != ref_vertices[4] );
    };
    std::vector< uint_t > unbranded;
    std::copy_if( cell->get_vertices().begin(), cell->get_vertices().end(), std::back_inserter( unbranded ), is_unbranded );
@@ -309,13 +309,13 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_ptr< Simplex3 > cell )
 {
    auto faces = cell->refined_faces();
-   WALBERLA_ASSERT( faces[GREEN].size() == 4 and faces[RED].size() == 0 );
+   WALBERLA_ASSERT( faces[GREEN].size() == 4 && faces[RED].size() == 0 );
 
    // === split faces ===
 
    for ( auto& face : faces[GREEN] )
    {
-      if ( not face->has_children() )
+      if ( !face->has_children() )
       {
          refine_face_green( face );
       }
@@ -342,7 +342,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
          ++split_idx;
       }
    }
-   WALBERLA_ASSERT( split_edges[0] and split_edges[1] );
+   WALBERLA_ASSERT( split_edges[0] && split_edges[1] );
 
    ref_vertices[1] = split_edges[0]->get_vertices()[0];
    ref_vertices[2] = split_edges[0]->get_vertices()[1];
@@ -416,13 +416,13 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_ptr< Simplex3 > cell )
 {
    auto faces = cell->refined_faces();
-   WALBERLA_ASSERT( faces[GREEN].size() == 3 and faces[RED].size() == 1 );
+   WALBERLA_ASSERT( faces[GREEN].size() == 3 && faces[RED].size() == 1 );
 
    // === split faces ===
 
    for ( auto& face : faces[GREEN] )
    {
-      if ( not face->has_children() )
+      if ( !face->has_children() )
       {
          refine_face_green( face );
       }
