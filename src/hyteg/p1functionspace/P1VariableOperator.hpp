@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
