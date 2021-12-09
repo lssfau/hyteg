@@ -107,7 +107,7 @@ class K_Mesh
    std::vector< Point3D > compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* generate MeshInfo corresponding to current refinement */
-   hyteg::MeshInfo export_meshInfo() const;
+   hyteg::MeshInfo export_meshInfo();
 
    uint_t                                   _n_vertices;
    uint_t                                   _n_elements;

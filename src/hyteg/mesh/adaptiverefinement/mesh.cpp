@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <core/mpi/Broadcast.h>
 #include <iostream>
 #include <map>
 
@@ -36,6 +37,7 @@ template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
 : _setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
 {
+   // internal data structures are only required on rank_0
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // extract vertices
@@ -89,7 +91,9 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
       _n_elements = _T.size();
    }
 
-   // todo communication (_n_vertices, _n_elements)
+   // broadcast required values to all processes (setupStorage is taken care of)
+   walberla::mpi::broadcastObject( _n_elements );
+   walberla::mpi::broadcastObject( _n_vertices );
 }
 
 template <>
@@ -122,8 +126,6 @@ void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_pt
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
 {
-   auto meshInfo = hyteg::MeshInfo::emptyMeshInfo();
-
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       auto R = init_R( elements_to_refine );
@@ -133,7 +135,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       /* recursively apply red refinement for elements
         that otherwise would be subject to multiple
         green refinement steps
-   */
+      */
       std::set< std::shared_ptr< K_Simplex > > U = _T;
       std::set< std::shared_ptr< K_Simplex > > refined;
       while ( !R.empty() )
@@ -151,40 +153,50 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       _T.merge( refined );
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
-
-      // update setupStorage
-      meshInfo = export_meshInfo();
    }
 
-   // todo communication (meshInfo, _n_vertices, _n_elements)
+   // update setupStorage
+   auto meshInfo = export_meshInfo();
 
    _setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 }
 
 template <>
-inline hyteg::MeshInfo K_Mesh< Simplex2 >::export_meshInfo() const
+inline hyteg::MeshInfo K_Mesh< Simplex2 >::export_meshInfo()
 {
    std::vector< std::array< uint_t, 3 > > faces;
 
-   for ( auto& el : _T )
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      auto& v = el->get_vertices();
-      faces.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ) } );
+      for ( auto& el : _T )
+      {
+         auto& v = el->get_vertices();
+         faces.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ) } );
+      }
    }
+
+   walberla::mpi::broadcastObject( faces );
+   walberla::mpi::broadcastObject( _vertices );
 
    return MeshInfo::fromFaceData( _vertices, faces );
 }
 
 template <>
-inline hyteg::MeshInfo K_Mesh< Simplex3 >::export_meshInfo() const
+inline hyteg::MeshInfo K_Mesh< Simplex3 >::export_meshInfo()
 {
    std::vector< std::array< uint_t, 4 > > cells;
 
-   for ( auto& el : _T )
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      auto& v = el->get_vertices();
-      cells.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ), uint_t( v[3] ) } );
+      for ( auto& el : _T )
+      {
+         auto& v = el->get_vertices();
+         cells.push_back( { uint_t( v[0] ), uint_t( v[1] ), uint_t( v[2] ), uint_t( v[3] ) } );
+      }
    }
+
+   walberla::mpi::broadcastObject( cells );
+   walberla::mpi::broadcastObject( _vertices );
 
    return MeshInfo::fromCellData( _vertices, cells );
 }
@@ -495,7 +507,7 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
       }
    }
 
-   // todo communication (mm)
+   walberla::mpi::broadcastObject( mm );
 
    return mm;
 }
@@ -513,7 +525,7 @@ real_t K_Mesh< K_Simplex >::volume() const
       }
    }
 
-   // todo communication (v_tot)
+   walberla::mpi::broadcastObject( v_tot );
 
    return v_tot;
 }

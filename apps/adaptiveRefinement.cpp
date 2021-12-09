@@ -21,6 +21,7 @@
 #include <core/Environment.h>
 #include <core/Format.hpp>
 #include <core/config/Create.h>
+#include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -132,22 +133,15 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    walberla::mpi::RecvBuffer recv;
 
    send << l2_err_2_elwise_loc;
-   walberla::mpi::allGathervBuffer(send, recv);
-   for (int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk)
+   walberla::mpi::allGathervBuffer( send, recv );
+   for ( int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk )
    {
       recv >> l2_err_2_elwise_other;
-      l2_err_2_elwise.insert(l2_err_2_elwise.end(), l2_err_2_elwise_other.begin(), l2_err_2_elwise_other.end());
+      l2_err_2_elwise.insert( l2_err_2_elwise.end(), l2_err_2_elwise_other.begin(), l2_err_2_elwise_other.end() );
    }
 
-   std::cout << "sorting errors...\n";
    // sort by errors
    std::sort( l2_err_2_elwise.begin(), l2_err_2_elwise.end() );
-   // WALBERLA_LOG_INFO("local errors: ")
-   // for (auto& [e,el] : l2_err_2_elwise)
-   // {
-   //    WALBERLA_LOG_INFO(" err_" << el << " = " << e);
-   // }
-   std::cout << "n_errors on rank " << walberla::mpi::MPIManager::instance()->rank() << ": " << l2_err_2_elwise.size() << "\n";
 
    // export to vtk
    if ( vtk >= 0 )
