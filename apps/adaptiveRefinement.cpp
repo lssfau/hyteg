@@ -185,7 +185,13 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
       WALBERLA_ABORT( "Dimension must be either 2 or 3!" );
    }
 
-   adaptiveRefinement::Mesh mesh( meshInfo );
+   // construct initial setupStorage
+   SetupPrimitiveStorage setupStorage(meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   // todo: apply Geometrymap
+
+   // construct adaptive mesh and update setup storage
+   adaptiveRefinement::Mesh mesh( setupStorage );
+   setupStorage = mesh.setupStorage();
 
    std::vector< std::pair< real_t, hyteg::PrimitiveID > > local_errors;
 
@@ -206,15 +212,17 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
          {
             R[i] = local_errors[N - 1 - i].second;
          }
-         // apply refinement
-         mesh.refineRG( R );
+         // apply refinement and update setupStorage
+         setupStorage = mesh.refineRG( R );
       }
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
-      mesh.setupStorage().setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-      loadbalancing::roundRobin( mesh.setupStorage() );
-      auto storage = std::make_shared< PrimitiveStorage >( mesh.setupStorage() );
+      // apply boundary conditions and load balancing
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      loadbalancing::roundRobin( setupStorage );
+      // construct PrimitiveStorage from setupStorage corresponding to current refinement
+      auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
       int vtkname  = ( vtk ) ? int( refinement ) : -1;
       local_errors = solve( storage, lvl, iter, tol, vtkname );

@@ -35,14 +35,22 @@ template < class K_Simplex >
 class K_Mesh
 {
  public:
-   /* construct adaptable mesh from MeshInfo */
-   K_Mesh( const MeshInfo& meshInfo );
+   /* construct adaptable mesh from setupStorage
+      @param setupStorage SetupPrimitiveStorage corresponding to initial coarse grid.
+                           Note that Geometrymaps must be applied to setupStorage
+                           before constructing the adaptive mesh.
+                           Furthermore, afer calling this constructor, the original
+                           setupStorage should not be used any more. Instead use
+                           this->setupStorage().
+   */
+   K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::setupStorage()
+      @return this->setupStorage(), i.e., setupStorage corresponding to new refinement
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
+   SetupPrimitiveStorage& refineRG( const std::vector< PrimitiveID >& elements_to_refine );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -123,18 +131,25 @@ using Mesh3D = K_Mesh< Simplex3 >;
 class Mesh
 {
  public:
-   /* construct adaptable mesh from MeshInfo */
-   Mesh( const MeshInfo& meshInfo )
-   : _DIM( ( meshInfo.getCells().size() > 0 ) ? 3 : 2 )
+   /* construct adaptable mesh from setupStorage
+      @param setupStorage SetupPrimitiveStorage corresponding to initial coarse grid.
+                           Note that Geometrymaps must be applied to setupStorage
+                           before constructing the adaptive mesh.
+                           Furthermore, afer calling this constructor, the original
+                           setupStorage should not be used any more. Instead use
+                           this->setupStorage().
+   */
+   Mesh( const SetupPrimitiveStorage& setupStorage )
+   : _DIM( ( setupStorage.getNumberOfCells() > 0 ) ? 3 : 2 )
    {
       if ( _DIM == 3 )
       {
-         _mesh3D = std::make_shared< Mesh3D >( meshInfo );
          _mesh2D = nullptr;
+         _mesh3D = std::make_shared< Mesh3D >( setupStorage );
       }
       else
       {
-         _mesh2D = std::make_shared< Mesh2D >( meshInfo );
+         _mesh2D = std::make_shared< Mesh2D >( setupStorage );
          _mesh3D = nullptr;
       }
    }
@@ -142,16 +157,17 @@ class Mesh
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::setupStorage()
+      @return this->setupStorage(), i.e., setupStorage corresponding to new refinement
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+   SetupPrimitiveStorage& refineRG( const std::vector< PrimitiveID >& elements_to_refine )
    {
       if ( _DIM == 3 )
       {
-         _mesh3D->refineRG( elements_to_refine );
+         return _mesh3D->refineRG( elements_to_refine );
       }
       else
       {
-         _mesh2D->refineRG( elements_to_refine );
+         return _mesh2D->refineRG( elements_to_refine );
       }
    }
 

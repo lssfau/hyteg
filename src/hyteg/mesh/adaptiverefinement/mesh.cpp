@@ -34,26 +34,26 @@ namespace adaptiveRefinement {
 
 // todo: take care of geometrymap!
 template < class K_Simplex >
-K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
-: _setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
+K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
+: _setupStorage( setupStorage )
 {
    // internal data structures are only required on rank_0
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // extract vertices
-      _n_vertices = meshInfo.getVertices().size();
+      _n_vertices = setupStorage.getVertices().size();
       _vertices.resize( _n_vertices );
 
       // [0,1,...,n-1]
       std::vector< uint_t > vtxIndices( _n_vertices );
-      // convert MeshInfo::vertexID to Mesh::vertexID
-      std::map< MeshInfo::IDType, uint_t > conversion;
+      // convert PrimitiveID::ID to Mesh::vertexID
+      std::map< PrimitiveID::IDType, uint_t > conversion;
 
       // initialize vertices
       uint_t idx = 0;
-      for ( auto& [id, vtx] : meshInfo.getVertices() )
+      for ( auto& [id, vtx] : setupStorage.getVertices() )
       {
-         _vertices[idx] = vtx.getCoordinates();
+         _vertices[idx] = vtx->getCoordinates();
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -65,33 +65,35 @@ K_Mesh< K_Simplex >::K_Mesh( const MeshInfo& meshInfo )
       SimplexFactory fac( nullptr, vtxIndices );
       // simplex factory does not store cells
       std::set< std::shared_ptr< Simplex3 > > cells;
+      std::vector< PrimitiveID >              v;
 
-      for ( auto& p : meshInfo.getEdges() )
+      for ( auto& p : setupStorage.getEdges() )
       {
-         const auto& v = p.second.getVertices();
+         p.second->getNeighborVertices( v );
 
-         fac.make_edge( conversion[v[0]], conversion[v[1]] );
+         fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
       }
 
-      for ( auto& p : meshInfo.getFaces() )
+      for ( auto& p : setupStorage.getFaces() )
       {
-         const auto& v = p.second.getVertices();
+         p.second->getNeighborVertices( v );
 
-         fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
+         fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
       }
 
-      for ( auto& p : meshInfo.getCells() )
+      for ( auto& p : setupStorage.getCells() )
       {
-         const auto& v = p.second.getVertices();
+         p.second->getNeighborVertices( v );
 
-         cells.insert( fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] ) );
+         cells.insert( fac.make_cell(
+             conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] ) );
       }
 
       init_elements( fac.faces(), cells );
       _n_elements = _T.size();
    }
 
-   // broadcast required values to all processes (setupStorage is taken care of)
+   // broadcast required values to all processes
    walberla::mpi::broadcastObject( _n_elements );
    walberla::mpi::broadcastObject( _n_vertices );
 }
@@ -124,7 +126,7 @@ void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_pt
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
@@ -159,6 +161,8 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    auto meshInfo = export_meshInfo();
 
    _setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   // todo: handle Geometrymap
+   return setupStorage();
 }
 
 template <>
@@ -448,7 +452,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
          }
          else
          {
-            WALBERLA_ASSERT( el->get_children().size() == 0 or el->get_children().size() == 2 );
+            WALBERLA_ASSERT( el->get_children().size() == 0 || el->get_children().size() == 2 );
             el->kill_children();
             refined.merge( refine_cell_green_2( el ) );
          }
@@ -461,7 +465,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
          }
          else
          {
-            WALBERLA_ASSERT( el->get_children().size() == 0 or el->get_children().size() == 2 );
+            WALBERLA_ASSERT( el->get_children().size() == 0 || el->get_children().size() == 2 );
             el->kill_children();
             refined.merge( refine_cell_green_3( el ) );
          }

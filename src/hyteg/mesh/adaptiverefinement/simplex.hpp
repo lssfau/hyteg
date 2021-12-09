@@ -71,7 +71,7 @@ class Simplex
    {}
 
    // return true if this has been refined
-   bool has_children() const { return not _children.empty(); }
+   bool has_children() const { return !_children.empty(); }
    /* check whether idx is a vertex of this element
       @param idx global vertex-id
       @return (idx \\in Simplex::_vertices)
