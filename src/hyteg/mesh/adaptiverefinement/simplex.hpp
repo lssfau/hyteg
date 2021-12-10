@@ -78,7 +78,7 @@ class Simplex
    */
    bool has_vertex( uint_t idx ) const;
 
-   const std::array< uint_t, K + 1 >&                get_vertices() const { return _vertices; }
+   const std::array< uint_t, K + 1 >&                 get_vertices() const { return _vertices; }
    const std::vector< std::shared_ptr< K_Simplex > >& get_siblings() const { return _parent->_children; }
    std::shared_ptr< K_Simplex >                       get_parent() const { return _parent; }
    const std::vector< std::shared_ptr< K_Simplex > >& get_children() const { return _children; }
@@ -90,13 +90,23 @@ class Simplex
       @return barycenter of conv(vertices)
    */
    static Point3D barycenter( const std::array< Point3D, K + 1 >& vertices );
+   /* compute the volme of a K-simplex given by its vertices
+      @param vertices vertex coordinates
+      @return volume of conv(vertices)
+   */
+   static double volume( const std::array< Point3D, K + 1 >& vertices );
 
+   /* get coordinates of the vertices of a simplex
+      @param nodes  coordinates of the global vertices
+      @return vertex coordinates
+   */
+   std::array< Point3D, K + 1 > vertices( const std::vector< Point3D >& nodes ) const;
    /* compute the barycenter of a simplex
-      @nodes  coordinates of the global vertices
+      @param nodes  coordinates of the global vertices
    */
    Point3D barycenter( const std::vector< Point3D >& nodes ) const;
    /* compute the volme of a simplex
-      @nodes  coordinates of the global vertices
+      @param nodes  coordinates of the global vertices
    */
    double volume( const std::vector< Point3D >& nodes ) const;
 
@@ -109,7 +119,7 @@ class Simplex
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
  protected:
-   std::array< uint_t, K + 1 >                _vertices;
+   std::array< uint_t, K + 1 >                 _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
 };
@@ -135,7 +145,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
    /* when an edge is refined, the index of the midpoint should be added!
       @param idx  global id of the newly added vertex
    */
-   void set_midpoint_idx( uint_t idx ) { _midpoint = int64_t(idx); }
+   void set_midpoint_idx( uint_t idx ) { _midpoint = int64_t( idx ); }
    // @return global id of the vertex on the edge midpoint or -1 if edge hasn't been refined
    int64_t get_midpoint_idx() const { return _midpoint; }
 

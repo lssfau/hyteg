@@ -93,7 +93,7 @@ bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
 }
 
 template < uint_t K, class K_Simplex >
-Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
+inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
 {
    Point3D bc( { 0, 0, 0 } );
    for ( auto& vtx : vertices )
@@ -105,15 +105,26 @@ Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >&
 }
 
 template < uint_t K, class K_Simplex >
+inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::vertices( const std::vector< Point3D >& nodes ) const
+{
+   std::array< Point3D, K + 1 > vertices;
+   for ( uint_t i = 0; i < K + 1; ++i )
+   {
+      vertices[i] = nodes[_vertices[i]];
+   }
+   return vertices;
+}
+
+template < uint_t K, class K_Simplex >
 Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
 {
-   Point3D bc( { 0, 0, 0 } );
-   for ( auto& vtxID : _vertices )
-   {
-      bc += nodes[vtxID];
-   }
-   bc *= ( 1.0 / ( K + 1 ) );
-   return bc;
+   return barycenter( this->vertices( nodes ) );
+}
+
+template < uint_t K, class K_Simplex >
+double Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
+{
+   return volume( this->vertices( nodes ) );
 }
 
 template class Simplex< 1, Simplex1 >;
@@ -136,6 +147,14 @@ uint_t Simplex1::inner_vertices() const
 
    return 0;
 }
+
+template <>
+inline double Simplex< 1, Simplex1 >::volume( const std::array< Point3D, 1 + 1 >& vertices )
+{
+   // lenght of edge
+   return (vertices[1] - vertices[0]).norm();
+}
+
 
 // ============= 2-Simplex (face) =================
 
@@ -197,11 +216,11 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
 }
 
 template <>
-double Simplex< 2, Simplex2 >::volume( const std::vector< Point3D >& nodes ) const
+inline double Simplex< 2, Simplex2 >::volume( const std::array< Point3D, 2 + 1 >& vertices )
 {
-   auto& a = nodes[_vertices[0]];
-   auto& b = nodes[_vertices[1]];
-   auto& c = nodes[_vertices[2]];
+   auto& a = vertices[0];
+   auto& b = vertices[1];
+   auto& c = vertices[2];
 
    auto x = c - a;
    auto y = b - a;
@@ -329,12 +348,12 @@ uint_t Simplex3::vertices_on_edges() const
 }
 
 template <>
-double Simplex< 3, Simplex3 >::volume( const std::vector< Point3D >& nodes ) const
+inline double Simplex< 3, Simplex3 >::volume( const std::array< Point3D, 3 + 1 >& vertices )
 {
-   auto& a = nodes[_vertices[0]];
-   auto& b = nodes[_vertices[1]];
-   auto& c = nodes[_vertices[2]];
-   auto& d = nodes[_vertices[3]];
+   auto& a = vertices[0];
+   auto& b = vertices[1];
+   auto& c = vertices[2];
+   auto& d = vertices[3];
 
    auto x = a - d;
    auto y = b - d;
