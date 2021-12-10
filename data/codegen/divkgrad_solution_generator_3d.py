@@ -81,7 +81,7 @@ def spherical_shell_example():
 
 
 def spherical_shell_example2():
-    u = tanh(r(x,y,z))
+    u = sin(1/r(x,y,z)**2)
     return (u, 1)
 
 

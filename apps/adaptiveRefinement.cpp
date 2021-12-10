@@ -48,28 +48,34 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
    // continuous functions
    // auto coeff = [=]( const hyteg::Point3D& ) { return 1; };
-   auto                                             exact = [=]( const hyteg::Point3D& x ) { return tanh( x.norm() ); };
+   auto exact = [=]( const hyteg::Point3D& x ) { return sin( 1.0 / x.normSq() ); };
+
    std::function< real_t( const hyteg::Point3D& ) > rhs;
    if ( storage->hasGlobalCells() )
    {
       rhs = [=]( const hyteg::Point3D& x ) {
-         auto x0 = x[0] * x[0];
-         auto x1 = x[1] * x[1];
-         auto x2 = x[2] * x[2];
+         auto x0 = pow( x[0], 2 );
+         auto x1 = pow( x[1], 2 );
+         auto x2 = pow( x[2], 2 );
          auto x3 = x0 + x1 + x2;
-         auto x4 = sqrt( x3 );
-         auto x5 = tanh( x4 );
-         auto x6 = 1 - pow( x5, 2 );
-         auto x7 = x6 / pow( x3, 3.0 / 2.0 );
-         auto x8 = 2 * x5 * x6 / x3;
-         return x0 * x7 + x0 * x8 + x1 * x7 + x1 * x8 + x2 * x7 + x2 * x8 - 3 * x6 / x4;
+         auto x4 = 1.0 / x3;
+         auto x5 = cos( x4 );
+         auto x6 = 4 * sin( x4 ) / pow( x3, 4 );
+         auto x7 = 8 * x5 / pow( x3, 3 );
+         return x0 * x6 - x0 * x7 + x1 * x6 - x1 * x7 + x2 * x6 - x2 * x7 + 6 * x5 / pow( x3, 2 );
       };
    }
    else
    {
       rhs = [=]( const hyteg::Point3D& x ) {
-         return 2 * sinh( sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / pow( cosh( sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ), 3 ) -
-                1 / ( sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) * pow( cosh( sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ), 2 ) );
+         auto x0 = pow( x[0], 2 );
+         auto x1 = pow( x[1], 2 );
+         auto x2 = x0 + x1;
+         auto x3 = 1.0 / x2;
+         auto x4 = cos( x3 );
+         auto x5 = 4 * sin( x3 ) / pow( x2, 4 );
+         auto x6 = 8 * x4 / pow( x2, 3 );
+         return x0 * x5 - x0 * x6 + x1 * x5 - x1 * x6 + 4 * x4 / pow( x2, 2 );
       };
    }
 
@@ -83,6 +89,12 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    P1Function< real_t > u_exact( "u_exact", storage, l_min, l_max );
    P1Function< real_t > err( "err", storage, l_min, l_max );
    P1Function< real_t > tmp( "err*M*err", storage, l_min, l_max );
+
+   // global DoF
+   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
+   auto n_dof = uint_t(tmp.dotGlobal(tmp, l_max));
+   WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
+
    // rhs
    tmp.interpolate( rhs, l_max );
    M.apply( tmp, b, l_max, hyteg::All );
@@ -114,7 +126,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
-         int                         i = 0;
+         int                          i = 0;
          for ( auto& vid : cell->neighborVertices() )
          {
             vertices[i] = storage->getVertex( vid )->getCoordinates();
@@ -192,13 +204,17 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
+   // setup domain
+   double min = 1.0 / std::sqrt( 4 * PI );
+   double max = 5;
+   uint_t N   = 2;
    if ( dim == 3 )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0.1, 0.1, 0.1 } ), Point3D( { 2, 2, 2 } ), 2, 2, 2 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( { min, min, min } ), Point3D( { max, max, max } ), N, N, N );
    }
    else if ( dim == 2 )
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { 0.1, 0.1 } ), Point2D( { 2, 2 } ), MeshInfo::CRISS, 2, 2 );
+      meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N, N );
    }
    else
    {
@@ -221,36 +237,18 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
       {
          WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
 
-         uint_t N     = local_errors.size();
-         uint_t N_ref = uint_t( std::ceil( real_t( N ) * p ) );
+         uint_t N_tot = local_errors.size();
+         uint_t N_ref = uint_t( std::ceil( real_t( N_tot ) * p ) );
 
-         WALBERLA_LOG_INFO_ON_ROOT( " -> " << N_ref << " of " << N << " elements are being refined ..." );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> " << N_ref << " of " << N_tot << " elements are being refined ..." );
 
          // collect elements to refine
          std::vector< PrimitiveID > R( N_ref );
          for ( uint_t i = 0; i < N_ref; ++i )
          {
-            R[i] = local_errors[N - 1 - i].second;
+            R[i] = local_errors[N_tot - 1 - i].second;
          }
 
-         // std::cout << "errors: \n";
-         // for (auto& [err, id] : local_errors)
-         // {
-         //    std::cout << "err_" << id << " = " << err << "\n";
-         // }
-
-         // std::cout << "elements to refine: \n";
-         // for (auto& el : R)
-         // {
-         //    std::vector<PrimitiveID> vtxes;
-         //    setupStorage.getPrimitive(el)->getNeighborVertices(vtxes);
-         //    std::cout << "vtxs_" << el << " = \n";
-         //    for (auto& vID : vtxes)
-         //    {
-         //       std::cout << *(setupStorage.getVertex(vID)) << ", ";
-         //    }
-         //    std::cout << "\n";
-         // }
          // apply refinement and update setupStorage
          setupStorage = mesh.refineRG( R );
       }

@@ -1,14 +1,14 @@
 Parameters
 {
   // spacial dimension of domain
-  dim 2;
+  dim 3;
 
   // adaptive refinement
-  n_refinements 10;
+  n_refinements 0;
   proportion_of_elements_refined_per_step 0.1;
 
   // linear solver (cg)
-  microlevel 0;
+  microlevel 2;
   n_iterations 100000;
   tolerance 1e-12;
 
