@@ -4,7 +4,7 @@ Parameters
   dim 2;
 
   // adaptive refinement
-  n_refinements 5;
+  n_refinements 10;
   proportion_of_elements_refined_per_step 0.1;
 
   // linear solver (cg)

@@ -37,7 +37,7 @@ using walberla::uint_t;
 
 #define PI 3.14159265359
 
-// solve problem with current refinement and return sorted list of elementwise squared l2 errors
+// solve problem with current refinement and return sorted list of elementwise squared errors
 std::vector< std::pair< real_t, hyteg::PrimitiveID > >
     solve( std::shared_ptr< PrimitiveStorage > storage, uint_t lvl, uint_t iter, real_t tol, int vtk )
 {
@@ -104,44 +104,64 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    WALBERLA_LOG_INFO_ON_ROOT( "L2-error = " << l2err );
 
    // compute elementwise error
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise_loc;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise_loc;
 
    if ( dim == 3 )
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         real_t l2_err_2_cell = vertexdof::macrocell::dot< real_t >( l_max, *cell, err.getCellDataID(), tmp.getCellDataID(), 0 );
+         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
 
-         l2_err_2_elwise_loc.push_back( { l2_err_2_cell, id } );
+         // scale squared error by cell-volume
+         std::array< Point3D, 3 + 1 > vertices;
+         int                         i = 0;
+         for ( auto& vid : cell->neighborVertices() )
+         {
+            vertices[i] = storage->getVertex( vid )->getCoordinates();
+            ++i;
+         }
+         err_2_cell *= adaptiveRefinement::Simplex3::volume( vertices );
+
+         err_2_elwise_loc.push_back( { err_2_cell, id } );
       }
    }
    else // dim == 2
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         real_t l2_err_2_face = vertexdof::macroface::dot< real_t >( l_max, *face, err.getFaceDataID(), tmp.getFaceDataID(), 0 );
+         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
 
-         l2_err_2_elwise_loc.push_back( { l2_err_2_face, id } );
+         // scale squared error by face-volume
+         std::array< Point3D, 2 + 1 > vertices;
+         int                          i = 0;
+         for ( auto& vid : face->neighborVertices() )
+         {
+            vertices[i] = storage->getVertex( vid )->getCoordinates();
+            ++i;
+         }
+         err_2_face *= adaptiveRefinement::Simplex2::volume( vertices );
+
+         err_2_elwise_loc.push_back( { err_2_face, id } );
       }
    }
 
    // communication
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise;
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > l2_err_2_elwise_other;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise;
+   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise_other;
 
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
 
-   send << l2_err_2_elwise_loc;
+   send << err_2_elwise_loc;
    walberla::mpi::allGathervBuffer( send, recv );
    for ( int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk )
    {
-      recv >> l2_err_2_elwise_other;
-      l2_err_2_elwise.insert( l2_err_2_elwise.end(), l2_err_2_elwise_other.begin(), l2_err_2_elwise_other.end() );
+      recv >> err_2_elwise_other;
+      err_2_elwise.insert( err_2_elwise.end(), err_2_elwise_other.begin(), err_2_elwise_other.end() );
    }
 
    // sort by errors
-   std::sort( l2_err_2_elwise.begin(), l2_err_2_elwise.end() );
+   std::sort( err_2_elwise.begin(), err_2_elwise.end() );
 
    // export to vtk
    if ( vtk >= 0 )
@@ -165,7 +185,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
       vtkOutput.write( l_max, uint_t( vtk ) );
    }
 
-   return l2_err_2_elwise;
+   return err_2_elwise;
 }
 
 void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint_t iter, real_t tol, bool vtk )
@@ -186,7 +206,7 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
    }
 
    // construct initial setupStorage
-   SetupPrimitiveStorage setupStorage(meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    // todo: apply Geometrymap
 
    // construct adaptive mesh and update setup storage
@@ -212,6 +232,25 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
          {
             R[i] = local_errors[N - 1 - i].second;
          }
+
+         // std::cout << "errors: \n";
+         // for (auto& [err, id] : local_errors)
+         // {
+         //    std::cout << "err_" << id << " = " << err << "\n";
+         // }
+
+         // std::cout << "elements to refine: \n";
+         // for (auto& el : R)
+         // {
+         //    std::vector<PrimitiveID> vtxes;
+         //    setupStorage.getPrimitive(el)->getNeighborVertices(vtxes);
+         //    std::cout << "vtxs_" << el << " = \n";
+         //    for (auto& vID : vtxes)
+         //    {
+         //       std::cout << *(setupStorage.getVertex(vID)) << ", ";
+         //    }
+         //    std::cout << "\n";
+         // }
          // apply refinement and update setupStorage
          setupStorage = mesh.refineRG( R );
       }
