@@ -73,7 +73,7 @@ def plume_example():
     return (k,u)
 
 def to_cpp_function(name, expr):
-    cs = cse(expr)
+    cs = cse(simplify(expr))
     # print(cs)
     print('std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) \n{'%name)
     for (var,val) in cs[0]:

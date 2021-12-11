@@ -54,28 +54,17 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    if ( storage->hasGlobalCells() )
    {
       rhs = [=]( const hyteg::Point3D& x ) {
-         auto x0 = pow( x[0], 2 );
-         auto x1 = pow( x[1], 2 );
-         auto x2 = pow( x[2], 2 );
-         auto x3 = x0 + x1 + x2;
-         auto x4 = 1.0 / x3;
-         auto x5 = cos( x4 );
-         auto x6 = 4 * sin( x4 ) / pow( x3, 4 );
-         auto x7 = 8 * x5 / pow( x3, 3 );
-         return x0 * x6 - x0 * x7 + x1 * x6 - x1 * x7 + x2 * x6 - x2 * x7 + 6 * x5 / pow( x3, 2 );
+         auto x0 = x.normSq();
+         auto x1 = 1.0 / x0;
+         return 2 * ( -x0 * cos( x1 ) + 2 * sin( x1 ) ) / pow( x0, 3 );
       };
    }
    else
    {
       rhs = [=]( const hyteg::Point3D& x ) {
-         auto x0 = pow( x[0], 2 );
-         auto x1 = pow( x[1], 2 );
-         auto x2 = x0 + x1;
-         auto x3 = 1.0 / x2;
-         auto x4 = cos( x3 );
-         auto x5 = 4 * sin( x3 ) / pow( x2, 4 );
-         auto x6 = 8 * x4 / pow( x2, 3 );
-         return x0 * x5 - x0 * x6 + x1 * x5 - x1 * x6 + 4 * x4 / pow( x2, 2 );
+         auto x0 = x.normSq();
+         auto x1 = 1.0 / x0;
+         return 4 * ( -x0 * cos( x1 ) + sin( x1 ) ) / pow( x0, 3 );
       };
    }
 
@@ -92,7 +81,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
-   auto n_dof = uint_t(tmp.dotGlobal(tmp, l_max));
+   auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
    // rhs
@@ -126,7 +115,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
-         int                          i = 0;
+         uint_t                       i = 0;
          for ( auto& vid : cell->neighborVertices() )
          {
             vertices[i] = storage->getVertex( vid )->getCoordinates();
@@ -145,7 +134,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
-         int                          i = 0;
+         uint_t                       i = 0;
          for ( auto& vid : face->neighborVertices() )
          {
             vertices[i] = storage->getVertex( vid )->getCoordinates();
@@ -222,7 +211,8 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
    }
 
    // construct initial setupStorage
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage  initialStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage& setupStorage = initialStorage;
    // todo: apply Geometrymap
 
    // construct adaptive mesh and update setup storage

@@ -104,7 +104,7 @@ def function_template(name, body):
     return 'std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) { return %s; };' % (name, body)
 
 def to_cpp_function(name, expr):
-    cs = cse(expr)
+    cs = cse(simplify(expr))
     # print(cs)
     print('std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) \n{'%name)
     for (var,val) in cs[0]:
