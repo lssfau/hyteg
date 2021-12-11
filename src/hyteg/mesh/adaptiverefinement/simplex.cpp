@@ -28,8 +28,139 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-// ============= 1-Simplex (edge) =================
+// ============= K-Simplex =================
+template < uint_t K, class K_Simplex >
+const std::vector< std::shared_ptr< K_Simplex > >
+    Simplex< K, K_Simplex >::get_children_sorted( const std::array< uint_t, K + 1 >& vertices ) const
+{
+   WALBERLA_ASSERT( K < 3 ); // only implemented for 1 and 2 dimensions
+
+   WALBERLA_ASSERT( has_children() );
+
+   std::vector< std::shared_ptr< K_Simplex > > sorted( K + 1 );
+
+   for ( uint_t i = 0; i <= K; ++i )
+   {
+      for ( auto& child : _children )
+      {
+         if ( child->has_vertex( vertices[uint_t( i )] ) )
+         {
+            sorted[i] = child;
+            break;
+         }
+      }
+
+      WALBERLA_ASSERT( sorted[i] != nullptr );
+   }
+
+   for ( uint_t i = K + 1; i < _children.size(); ++i )
+   {
+      sorted.push_back( _children[i] );
+   }
+
+   return sorted;
+}
+
+template < uint_t K, class K_Simplex >
+void Simplex< K, K_Simplex >::add_child( const std::shared_ptr< K_Simplex >& child )
+{
+   _children.push_back( child );
+}
+
+template < uint_t K, class K_Simplex >
+bool Simplex< K, K_Simplex >::kill_children()
+{
+   if ( _children.empty() )
+   {
+      return false;
+   }
+   else
+   {
+      _children.clear();
+      return true;
+   }
+}
+
+template < uint_t K, class K_Simplex >
+bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
+{
+   for ( auto& vtx : _vertices )
+   {
+      if ( vtx == idx )
+         return true;
+   }
+   return false;
+}
+
+template < uint_t K, class K_Simplex >
+inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
+{
+   Point3D bc( { 0, 0, 0 } );
+   for ( auto& vtx : vertices )
+   {
+      bc += vtx;
+   }
+   bc *= ( 1.0 / ( K + 1 ) );
+   return bc;
+}
+
+template < uint_t K, class K_Simplex >
+inline double Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 >& vertices )
+{
+   if constexpr ( K == 1 )
+   {
+      // length of edge
+      return ( vertices[1] - vertices[0] ).norm();
+   }
+   else
+   {
+      auto x = vertices[1] - vertices[0];
+      auto y = vertices[2] - vertices[0];
+
+      if constexpr ( K == 2 )
+      {
+         // ||X x Y|| / 2
+         return crossProduct( x, y ).norm() / 2.0;
+      }
+      if constexpr ( K == 3 )
+      {
+         auto z = vertices[3] - vertices[0];
+         // |(X x Y)/2 * Z/3|
+         return std::abs( crossProduct( x, y ).dot(z) ) / 6.0;
+      }
+
+      return 0.0;
+   }
+}
+
+template < uint_t K, class K_Simplex >
+inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::vertices( const std::vector< Point3D >& nodes ) const
+{
+   std::array< Point3D, K + 1 > vertices;
+   for ( uint_t i = 0; i < K + 1; ++i )
+   {
+      vertices[i] = nodes[_vertices[i]];
+   }
+   return vertices;
+}
+
+template < uint_t K, class K_Simplex >
+Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
+{
+   return barycenter( this->vertices( nodes ) );
+}
+
+template < uint_t K, class K_Simplex >
+double Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
+{
+   return volume( this->vertices( nodes ) );
+}
+
 template class Simplex< 1, Simplex1 >;
+template class Simplex< 2, Simplex2 >;
+template class Simplex< 3, Simplex3 >;
+
+// ============= 1-Simplex (edge) =================
 
 uint_t Simplex1::inner_vertices() const
 {
@@ -46,16 +177,7 @@ uint_t Simplex1::inner_vertices() const
    return 0;
 }
 
-template <>
-inline double Simplex< 1, Simplex1 >::volume( const std::array< Point3D, 1 + 1 >& vertices )
-{
-   // lenght of edge
-   return (vertices[1] - vertices[0]).norm();
-}
-
-
 // ============= 2-Simplex (face) =================
-template class Simplex< 2, Simplex2 >;
 
 Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
@@ -114,20 +236,6 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
    return sorted;
 }
 
-template <>
-inline double Simplex< 2, Simplex2 >::volume( const std::array< Point3D, 2 + 1 >& vertices )
-{
-   auto& a = vertices[0];
-   auto& b = vertices[1];
-   auto& c = vertices[2];
-
-   auto x = c - a;
-   auto y = b - a;
-
-   // ||X x Y|| / 2
-   return crossProduct( x, y ).norm() / 2;
-}
-
 std::shared_ptr< Simplex1 > Simplex2::get_Edge( uint_t a, uint_t b ) const
 {
    for ( auto& edge : _edges )
@@ -166,7 +274,6 @@ std::pair< real_t, real_t > Simplex2::min_max_angle( const std::vector< Point3D 
 }
 
 // ============= 3-Simplex (cell) =================
-template class Simplex< 3, Simplex3 >;
 
 Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
@@ -247,22 +354,6 @@ uint_t Simplex3::vertices_on_edges() const
    return n;
 }
 
-template <>
-inline double Simplex< 3, Simplex3 >::volume( const std::array< Point3D, 3 + 1 >& vertices )
-{
-   auto& a = vertices[0];
-   auto& b = vertices[1];
-   auto& c = vertices[2];
-   auto& d = vertices[3];
-
-   auto x = a - d;
-   auto y = b - d;
-   auto z = c - d;
-
-   // |X * (Y x Z)| / 6
-   return std::abs( x.dot( crossProduct( y, z ) ) ) / 6;
-}
-
 std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D >& nodes ) const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
@@ -302,105 +393,6 @@ std::shared_ptr< Simplex2 > Simplex3::get_Face( uint_t a, uint_t b, uint_t c ) c
    }
 
    return nullptr;
-}
-
-// ============= K-Simplex =================
-template < uint_t K, class K_Simplex >
-const std::vector< std::shared_ptr< K_Simplex > >
-    Simplex< K, K_Simplex >::get_children_sorted( const std::array< uint_t, K + 1 >& vertices ) const
-{
-   WALBERLA_ASSERT( K < 3 ); // only implemented for 1 and 2 dimensions
-
-   WALBERLA_ASSERT( has_children() );
-
-   std::vector< std::shared_ptr< K_Simplex > > sorted( K + 1 );
-
-   for ( uint_t i = 0; i <= K; ++i )
-   {
-      for ( auto& child : _children )
-      {
-         if ( child->has_vertex( vertices[uint_t( i )] ) )
-         {
-            sorted[i] = child;
-            break;
-         }
-      }
-
-      WALBERLA_ASSERT( sorted[i] != nullptr );
-   }
-
-   for ( uint_t i = K + 1; i < _children.size(); ++i )
-   {
-      sorted.push_back( _children[i] );
-   }
-
-   return sorted;
-}
-
-template < uint_t K, class K_Simplex >
-void Simplex< K, K_Simplex >::add_child( const std::shared_ptr< K_Simplex >& child )
-{
-   _children.push_back( child );
-}
-
-template < uint_t K, class K_Simplex >
-bool Simplex< K, K_Simplex >::kill_children()
-{
-   if ( _children.empty() )
-   {
-      return false;
-   }
-   else
-   {
-      _children.clear();
-      return true;
-   }
-}
-
-template < uint_t K, class K_Simplex >
-bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
-{
-   for ( auto& vtx : _vertices )
-   {
-      if ( vtx == idx )
-         return true;
-   }
-   return false;
-}
-
-template < uint_t K, class K_Simplex >
-inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
-{
-   Point3D bc( { 0, 0, 0 } );
-   for ( auto& vtx : vertices )
-   {
-      bc += vtx;
-   }
-   bc *= ( 1.0 / ( K + 1 ) );
-   return bc;
-}
-
-template < uint_t K, class K_Simplex >
-inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::vertices( const std::vector< Point3D >& nodes ) const
-{
-   std::array< Point3D, K + 1 > vertices;
-   for ( uint_t i = 0; i < K + 1; ++i )
-   {
-      vertices[i] = nodes[_vertices[i]];
-   }
-   return vertices;
-}
-
-template < uint_t K, class K_Simplex >
-Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
-{
-   return barycenter( this->vertices( nodes ) );
-}
-
-template < uint_t K, class K_Simplex >
-double Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
-{
-   return volume( this->vertices( nodes ) );
 }
 
 } // namespace adaptiveRefinement
