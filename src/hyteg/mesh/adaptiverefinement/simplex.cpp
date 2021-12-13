@@ -107,14 +107,15 @@ inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K
 template < uint_t K, class K_Simplex >
 inline double Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 >& vertices )
 {
+   auto x = vertices[1] - vertices[0];
+
    if constexpr ( K == 1 )
    {
       // length of edge
-      return ( vertices[1] - vertices[0] ).norm();
+      return x.norm();
    }
    else
    {
-      auto x = vertices[1] - vertices[0];
       auto y = vertices[2] - vertices[0];
 
       if constexpr ( K == 2 )
@@ -126,11 +127,11 @@ inline double Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
       {
          auto z = vertices[3] - vertices[0];
          // |(X x Y)/2 * Z/3|
-         return std::abs( crossProduct( x, y ).dot(z) ) / 6.0;
+         return std::abs( crossProduct( x, y ).dot( z ) ) / 6.0;
       }
-
-      return 0.0;
    }
+
+   return 0.0;
 }
 
 template < uint_t K, class K_Simplex >
