@@ -32,7 +32,6 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-// todo: take care of geometrymap!
 template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 : _setupStorage( setupStorage )
@@ -360,7 +359,7 @@ std::set< std::shared_ptr< Simplex3 > >
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, face );
+               refine_face_red( _vertices, _vertexMap, face );
             }
 
             ++n_red;
@@ -492,13 +491,13 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
 template <>
 std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
 {
-   return refine_cell_red( _vertices, element );
+   return refine_cell_red( _vertices, _vertexMap, element );
 }
 
 template <>
 std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
 {
-   return refine_face_red( _vertices, element );
+   return refine_face_red( _vertices, _vertexMap, element );
 }
 
 template < class K_Simplex >

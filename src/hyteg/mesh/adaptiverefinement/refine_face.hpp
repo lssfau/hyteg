@@ -23,7 +23,6 @@
 #include <set>
 
 #include "refine_edge.hpp"
-// todo use correct geometrymap for subelements
 
 namespace hyteg {
 namespace adaptiveRefinement {
@@ -54,8 +53,9 @@ namespace adaptiveRefinement {
 
       @return sub-elements
    */
-inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Point3D >&     vertices,
-                                                                std::shared_ptr< Simplex2 > face )
+inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Point3D >&                             vertices,
+                                                                std::map< uint_t, std::shared_ptr< GeometryMap > >& geometryMap,
+                                                                std::shared_ptr< Simplex2 >                         face )
 {
    // === prepare sets of vertices and edges for face->split() ===
 
@@ -91,6 +91,8 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
          ref_vertices[3 + i] = vertices.size();
          // add midpoint to list of all vertices
          vertices.push_back( mid );
+         // add geometry map to new vertex
+         geometryMap[vertices.size() - 1] = edge->getGeometryMap();
       }
    }
 
@@ -118,7 +120,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
    {
       uint_t i0        = 3 + i;
       uint_t i1        = 3 + ( ( i + 1 ) % 3 );
-      ref_edges[6 + i] = std::make_shared< Simplex1 >( ref_vertices[i0], ref_vertices[i1] );
+      ref_edges[6 + i] = std::make_shared< Simplex1 >( ref_vertices[i0], ref_vertices[i1], nullptr, RED, face->getGeometryMap() );
    }
 
    // === split face ===
@@ -207,7 +209,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    ref_edges[3]     = child_edges[1];
 
    // add new edge
-   ref_edges[4] = std::make_shared< Simplex1 >( ref_vertices[1], ref_vertices[3], nullptr, GREEN );
+   ref_edges[4] = std::make_shared< Simplex1 >( ref_vertices[1], ref_vertices[3], nullptr, GREEN, face->getGeometryMap() );
 
    // === split face ===
 

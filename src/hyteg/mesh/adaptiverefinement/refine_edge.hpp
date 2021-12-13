@@ -21,7 +21,6 @@
 #pragma once
 
 #include "simplex.hpp"
-// todo use correct geometrymap for subelements
 
 namespace hyteg {
 namespace adaptiveRefinement {

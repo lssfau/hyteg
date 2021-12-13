@@ -23,16 +23,15 @@
 #include "refine_face.hpp"
 #include "simplexFactory.hpp"
 
-// todo use correct geometrymap for subelements
-
 namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply red refinement to cell and add required vertices to vertices
       @return sub-elements
    */
-inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&     vertices,
-                                                                std::shared_ptr< Simplex3 > cell )
+inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&                             vertices,
+                                                                std::map< uint_t, std::shared_ptr< GeometryMap > >& geometryMap,
+                                                                std::shared_ptr< Simplex3 >                         cell )
 {
    // === split faces ===
    for ( auto& face : cell->get_faces() )
@@ -46,7 +45,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       if ( !face->has_children() )
       {
          // apply red refinement to face
-         refine_face_red( vertices, face );
+         refine_face_red( vertices, geometryMap, face );
       }
    }
 
