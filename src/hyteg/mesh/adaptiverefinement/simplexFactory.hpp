@@ -40,6 +40,7 @@ class SimplexFactory
    SimplexFactory( const std::shared_ptr< Simplex3 > parent, const std::vector< uint_t >& vertices )
    : _parent( parent )
    , _vertices( vertices )
+   , _geometryMap( ( parent == nullptr ) ? nullptr : parent->getGeometryMap() )
    {}
 
    /* add existing face \\subset parent for creating sub-tetrahedra
@@ -78,6 +79,9 @@ class SimplexFactory
    */
    std::shared_ptr< Simplex3 > make_cell( uint_t a, uint_t b, uint_t c, uint_t d );
 
+   /* set a given geometrymap for each new element created by this factory */
+   void useGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) { _geometryMap = geometryMap; }
+
    inline const FaceMap& faces() { return _faces; }
    inline const EdgeMap& edges() { return _edges; }
 
@@ -86,6 +90,7 @@ class SimplexFactory
    std::vector< uint_t >             _vertices;
    EdgeMap                           _edges;
    FaceMap                           _faces;
+   std::shared_ptr< GeometryMap >    _geometryMap;
 };
 
 } // namespace adaptiveRefinement

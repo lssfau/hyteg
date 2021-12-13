@@ -23,6 +23,7 @@
 #include <set>
 
 #include "refine_edge.hpp"
+// todo use correct geometrymap for subelements
 
 namespace hyteg {
 namespace adaptiveRefinement {

@@ -27,6 +27,7 @@
 #include <map>
 #include <vector>
 
+#include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
@@ -62,12 +63,16 @@ class Simplex
 {
  public:
    /* Ctor
-      @param vertices   global indices of the new Simplexes vertices
-      @param parent     K-simplex s.th. this is a direct refinement of parent
+      @param vertices      global indices of the new Simplexes vertices
+      @param parent        K-simplex s.th. this is a direct refinement of parent
+      @param geometrymap   geometrymap for this element (default: map inherited from parent)
    */
-   Simplex( const std::array< uint_t, K + 1 >& vertices, std::shared_ptr< K_Simplex > parent )
+   Simplex( const std::array< uint_t, K + 1 >& vertices,
+            std::shared_ptr< K_Simplex >       parent,
+            std::shared_ptr< GeometryMap >     geometryMap = nullptr )
    : _vertices( vertices )
    , _parent( parent )
+   , _geometryMap( ( parent == nullptr || geometryMap != nullptr ) ? geometryMap : parent->getGeometryMap() )
    {}
 
    // return true if this has been refined
@@ -118,10 +123,13 @@ class Simplex
    */
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
+   const std::shared_ptr< GeometryMap >& getGeometryMap() const { return _geometryMap; }
+
  protected:
    std::array< uint_t, K + 1 >                 _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
+   std::shared_ptr< GeometryMap >              _geometryMap;
 };
 
 // 1-simplex (edge)
@@ -129,13 +137,18 @@ class Simplex1 : public Simplex< 1, Simplex1 >
 {
  public:
    /* Ctor
-      @param p1      global id of first vertex
-      @param p2      global id of second vertex
-      @param parent  parent-edge
-      @param c       = GREEN if this edge was added during green refinement step
+      @param p1            global id of first vertex
+      @param p2            global id of second vertex
+      @param parent        parent-edge
+      @param c             = GREEN if this edge was added during green refinement step
+      @param geometrymap   geometrymap for this element (default: map inherited from parent)
    */
-   Simplex1( uint_t p1, uint_t p2, std::shared_ptr< Simplex1 > parent = nullptr, Color c = RED )
-   : Simplex< 1, Simplex1 >( { p1, p2 }, parent )
+   Simplex1( uint_t                         p1,
+             uint_t                         p2,
+             std::shared_ptr< Simplex1 >    parent      = nullptr,
+             Color                          c           = RED,
+             std::shared_ptr< GeometryMap > geometryMap = nullptr )
+   : Simplex< 1, Simplex1 >( { p1, p2 }, parent, geometryMap )
    , _color( c )
    , _midpoint( -1 )
    {}
@@ -181,7 +194,8 @@ class Simplex2 : public Simplex< 2, Simplex2 >
    */
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
-             std::shared_ptr< Simplex2 >                         parent = nullptr );
+             std::shared_ptr< Simplex2 >                         parent      = nullptr,
+             std::shared_ptr< GeometryMap >                      geometryMap = nullptr );
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
@@ -239,7 +253,8 @@ class Simplex3 : public Simplex< 3, Simplex3 >
    Simplex3( const std::array< uint_t, 4 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
-             std::shared_ptr< Simplex3 >                         parent = nullptr );
+             std::shared_ptr< Simplex3 >                         parent      = nullptr,
+             std::shared_ptr< GeometryMap >                      geometryMap = nullptr );
 
    bool has_green_edge() const;
 

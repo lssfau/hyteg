@@ -23,6 +23,8 @@
 #include "refine_face.hpp"
 #include "simplexFactory.hpp"
 
+// todo use correct geometrymap for subelements
+
 namespace hyteg {
 namespace adaptiveRefinement {
 

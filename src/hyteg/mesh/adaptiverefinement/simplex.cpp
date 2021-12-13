@@ -182,8 +182,9 @@ uint_t Simplex1::inner_vertices() const
 
 Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
-                    std::shared_ptr< Simplex2 >                         parent )
-: Simplex< 2, Simplex2 >( vertices, parent )
+                    std::shared_ptr< Simplex2 >                         parent,
+                    std::shared_ptr< GeometryMap >                      geometryMap )
+: Simplex< 2, Simplex2 >( vertices, parent, geometryMap )
 , _edges( edges )
 {
    for ( uint_t i = 0; i < 3; ++i )
@@ -279,8 +280,9 @@ std::pair< real_t, real_t > Simplex2::min_max_angle( const std::vector< Point3D 
 Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
-                    std::shared_ptr< Simplex3 >                         parent )
-: Simplex< 3, Simplex3 >( vertices, parent )
+                    std::shared_ptr< Simplex3 >                         parent,
+                    std::shared_ptr< GeometryMap >                      geometryMap )
+: Simplex< 3, Simplex3 >( vertices, parent, geometryMap )
 , _edges( edges )
 , _faces( faces )
 {

@@ -117,11 +117,12 @@ class K_Mesh
    /* generate MeshInfo corresponding to current refinement */
    hyteg::MeshInfo export_meshInfo();
 
-   uint_t                                   _n_vertices;
-   uint_t                                   _n_elements;
-   std::vector< Point3D >                   _vertices;
-   std::set< std::shared_ptr< K_Simplex > > _T;            // set of elements of current refinement level
-   SetupPrimitiveStorage                    _setupStorage; // primitive storage of current refinement level
+   uint_t                                             _n_vertices;
+   uint_t                                             _n_elements;
+   std::vector< Point3D >                             _vertices;
+   std::map< uint_t, std::shared_ptr< GeometryMap > > _vertexMap;    // geometrymap for vertices
+   std::set< std::shared_ptr< K_Simplex > >           _T;            // set of elements of current refinement level
+   SetupPrimitiveStorage                              _setupStorage; // primitive storage of current refinement level
 };
 
 using Mesh2D = K_Mesh< Simplex2 >;

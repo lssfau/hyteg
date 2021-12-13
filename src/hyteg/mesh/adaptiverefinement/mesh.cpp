@@ -53,7 +53,13 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       uint_t idx = 0;
       for ( auto& [id, vtx] : setupStorage.getVertices() )
       {
+         // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
+         // extract geometrymap of vertex
+         if ( vtx->getGeometryMap() != nullptr )
+         {
+            _vertexMap[idx] = vtx->getGeometryMap();
+         }
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -70,21 +76,21 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       for ( auto& p : setupStorage.getEdges() )
       {
          p.second->getNeighborVertices( v );
-
+         fac.useGeometryMap( p.second->getGeometryMap() );
          fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
       }
 
       for ( auto& p : setupStorage.getFaces() )
       {
          p.second->getNeighborVertices( v );
-
+         fac.useGeometryMap( p.second->getGeometryMap() );
          fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
       }
 
       for ( auto& p : setupStorage.getCells() )
       {
          p.second->getNeighborVertices( v );
-
+         fac.useGeometryMap( p.second->getGeometryMap() );
          cells.insert( fac.make_cell(
              conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] ) );
       }
