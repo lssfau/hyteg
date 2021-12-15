@@ -69,6 +69,10 @@ private:
 
 class PrimitiveID;
 class PrimitiveStorage;
+namespace adaptiveRefinement{
+  template <class K_Simplex>
+  class K_Mesh;
+}
 
 class Vertex;
 class Edge;
@@ -97,6 +101,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   typedef internal::PrimitiveData PrimitiveData;
 

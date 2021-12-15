@@ -392,6 +392,20 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   loadbalancing::roundRobin( *this );
 }
 
+SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,
+                                              const EdgeMap&   edges,
+                                              const FaceMap&   faces,
+                                              const CellMap&   cells,
+                                              const uint_t&    numberOfProcesses )
+: numberOfProcesses_( numberOfProcesses )
+, vertices_( vertices )
+, edges_( edges )
+, faces_( faces )
+, cells_( cells )
+{
+   loadbalancing::roundRobin( *this );
+}
+
 Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id )
 {
   if ( vertexExists( id ) ) { return getVertex( id ); }

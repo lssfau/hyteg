@@ -32,8 +32,9 @@ namespace hyteg {
 class Cell : public Primitive
 {
  public:
-
    friend class SetupPrimitiveStorage;
+   template <class K_Simplex>
+   friend class adaptiveRefinement::K_Mesh;
 
    /// Creates a macro-cell instance
    ///

@@ -40,6 +40,8 @@ class Face : public Primitive
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
+   template <class K_Simplex>
+   friend class adaptiveRefinement::K_Mesh;
 
    Face( const PrimitiveID&                  primitiveID,
          const std::array< PrimitiveID, 3 >& vertexIDs,
