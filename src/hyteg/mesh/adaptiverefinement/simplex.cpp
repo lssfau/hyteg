@@ -135,7 +135,7 @@ inline double Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
 }
 
 template < uint_t K, class K_Simplex >
-inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::vertices( const std::vector< Point3D >& nodes ) const
+inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const std::vector< Point3D >& nodes ) const
 {
    std::array< Point3D, K + 1 > vertices;
    for ( uint_t i = 0; i < K + 1; ++i )
@@ -148,13 +148,13 @@ inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::vertices( const std
 template < uint_t K, class K_Simplex >
 Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
 {
-   return barycenter( this->vertices( nodes ) );
+   return barycenter( this->coordinates( nodes ) );
 }
 
 template < uint_t K, class K_Simplex >
 double Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
 {
-   return volume( this->vertices( nodes ) );
+   return volume( this->coordinates( nodes ) );
 }
 
 template class Simplex< 1, Simplex1 >;

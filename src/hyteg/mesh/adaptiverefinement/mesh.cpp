@@ -25,7 +25,9 @@
 #include <core/mpi/Broadcast.h>
 #include <iostream>
 #include <map>
+#include <type_traits>
 
+#include "convertToSetupStorage.hpp"
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
 
@@ -72,62 +74,60 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       std::set< std::shared_ptr< Simplex3 > > cells;
       std::vector< PrimitiveID >              v;
 
-      for ( auto& p : setupStorage.getEdges() )
+      for ( auto& [id, edge] : setupStorage.getEdges() )
       {
-         p.second->getNeighborVertices( v );
-         fac.useGeometryMap( p.second->getGeometryMap() );
-         fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
+         edge->getNeighborVertices( v );
+         fac.useGeometryMap( edge->getGeometryMap() );
+         auto myEdge = fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
+         myEdge->setPrimitiveID( id );
       }
 
-      for ( auto& p : setupStorage.getFaces() )
+      for ( auto& [id, face] : setupStorage.getFaces() )
       {
-         p.second->getNeighborVertices( v );
-         fac.useGeometryMap( p.second->getGeometryMap() );
-         fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
+         face->getNeighborVertices( v );
+         fac.useGeometryMap( face->getGeometryMap() );
+         auto myFace = fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
+         myFace->setPrimitiveID( id );
       }
 
-      for ( auto& p : setupStorage.getCells() )
+      for ( auto& [id, cell] : setupStorage.getCells() )
       {
-         p.second->getNeighborVertices( v );
-         fac.useGeometryMap( p.second->getGeometryMap() );
-         cells.insert( fac.make_cell(
-             conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] ) );
+         cell->getNeighborVertices( v );
+         fac.useGeometryMap( cell->getGeometryMap() );
+         auto myCell = fac.make_cell(
+             conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] );
+         myCell->setPrimitiveID( id );
+         cells.insert( myCell );
       }
 
-      init_elements( fac.faces(), cells );
+      // insert volume elements into _T
+      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      {
+         if ( !cells.empty() )
+         {
+            WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
+         }
+         for ( auto& p : fac.faces() )
+         {
+            _T.insert( p.second );
+         }
+      }
+      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      {
+         if ( cells.empty() )
+         {
+            WALBERLA_ABORT( "Adaptive 3D mesh requires MeshInfo containing at least one cell!" );
+         }
+
+         _T = cells;
+      }
+
       _n_elements = _T.size();
    }
 
    // broadcast required values to all processes
    walberla::mpi::broadcastObject( _n_elements );
    walberla::mpi::broadcastObject( _n_vertices );
-}
-
-template <>
-void K_Mesh< Simplex2 >::init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
-                                        const std::set< std::shared_ptr< Simplex3 > >&           cells )
-{
-   if ( !cells.empty() )
-   {
-      WALBERLA_ABORT( "Adaptive 2D mesh requires MeshInfo without any cells!" );
-   }
-
-   for ( auto& p : faces )
-   {
-      _T.insert( p.second );
-   }
-}
-
-template <>
-void K_Mesh< Simplex3 >::init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >&,
-                                        const std::set< std::shared_ptr< Simplex3 > >& cells )
-{
-   if ( cells.empty() )
-   {
-      WALBERLA_ABORT( "Adaptive 3D mesh requires MeshInfo containing at least one cell!" );
-   }
-
-   _T = cells;
 }
 
 template < class K_Simplex >
@@ -163,11 +163,49 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
    }
 
    // update setupStorage
-   auto meshInfo = export_meshInfo();
+   std::set< std::shared_ptr< Simplex3 > > cells;
+   std::set< std::shared_ptr< Simplex2 > > faces;
+   std::set< std::shared_ptr< Simplex1 > > edges;
+   collect_elements( cells, faces, edges );
+   _setupStorage = CreateSetupStorage( _vertices, _vertexMap, edges, faces, cells, _setupStorage.getNumberOfProcesses() );
 
-   _setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   // todo: handle Geometrymap
-   return setupStorage();
+   return _setupStorage;
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::collect_elements( std::set< std::shared_ptr< Simplex3 > >& cells,
+                                            std::set< std::shared_ptr< Simplex2 > >& faces,
+                                            std::set< std::shared_ptr< Simplex1 > >& edges ) const
+{
+   cells.clear();
+   faces.clear();
+   edges.clear();
+
+   // collect cells
+   if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+   {
+      cells = _T;
+   }
+   // collect faces
+   if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+   {
+      faces = _T;
+   }
+   for ( auto& cell : cells )
+   {
+      for ( auto& face : cell->get_faces() )
+      {
+         faces.insert( face );
+      }
+   }
+   // collect edges
+   for ( auto& face : faces )
+   {
+      for ( auto& edge : face->get_edges() )
+      {
+         edges.insert( edge );
+      }
+   }
 }
 
 template <>

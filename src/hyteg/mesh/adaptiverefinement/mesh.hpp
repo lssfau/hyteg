@@ -98,13 +98,6 @@ class K_Mesh
    */
    std::set< std::shared_ptr< K_Simplex > > refine_element_red( std::shared_ptr< K_Simplex > element );
 
-   /* construct SetupPrimitiveStorage from current refinement */
-   void update_setupStorage();
-
-   /* initialize _T for the base mesh (called by constructor) */
-   void init_elements( const std::map< Idx< 3 >, std::shared_ptr< Simplex2 > >& faces,
-                       const std::set< std::shared_ptr< Simplex3 > >&           cells );
-
    /* find elements in _T corresponding to primitiveIDs
       @param primitiveIDs  set of primitiveIDs w.r.t. _setupStorage
       @return subset of _T for red refinement
@@ -117,9 +110,21 @@ class K_Mesh
    /* generate MeshInfo corresponding to current refinement */
    hyteg::MeshInfo export_meshInfo();
 
+   /* collect all elements and subelements of current refinement */
+   void collect_elements( std::set< std::shared_ptr< Simplex3 > >& cells,
+                          std::set< std::shared_ptr< Simplex2 > >& faces,
+                          std::set< std::shared_ptr< Simplex1 > >& edges ) const;
+
+   static SetupPrimitiveStorage CreateSetupStorage( const std::vector< Point3D >&                       vertices,
+                                                    std::map< uint_t, std::shared_ptr< GeometryMap > >& vertexGeometryMap,
+                                                    std::set< std::shared_ptr< Simplex1 > >&            edges,
+                                                    std::set< std::shared_ptr< Simplex2 > >&            faces,
+                                                    std::set< std::shared_ptr< Simplex3 > >&            cells,
+                                                    const uint_t&                                       n_processes );
+
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
-   std::vector< Point3D >                             _vertices;
+   std::vector< Point3D >                             _vertices;     // vertex coordinates
    std::map< uint_t, std::shared_ptr< GeometryMap > > _vertexMap;    // geometrymap for vertices
    std::set< std::shared_ptr< K_Simplex > >           _T;            // set of elements of current refinement level
    SetupPrimitiveStorage                              _setupStorage; // primitive storage of current refinement level

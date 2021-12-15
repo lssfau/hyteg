@@ -27,6 +27,7 @@
 #include <map>
 #include <vector>
 
+#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/pointnd.hpp"
 
@@ -105,7 +106,7 @@ class Simplex
       @param nodes  coordinates of the global vertices
       @return vertex coordinates
    */
-   std::array< Point3D, K + 1 > vertices( const std::vector< Point3D >& nodes ) const;
+   std::array< Point3D, K + 1 > coordinates( const std::vector< Point3D >& nodes ) const;
    /* compute the barycenter of a simplex
       @param nodes  coordinates of the global vertices
    */
@@ -124,12 +125,16 @@ class Simplex
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
    const std::shared_ptr< GeometryMap >& getGeometryMap() const { return _geometryMap; }
+   const PrimitiveID&                    getPrimitiveID() const { return _id; }
+
+   void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
 
  protected:
    std::array< uint_t, K + 1 >                 _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
    std::shared_ptr< GeometryMap >              _geometryMap;
+   PrimitiveID                                 _id;
 };
 
 // 1-simplex (edge)
