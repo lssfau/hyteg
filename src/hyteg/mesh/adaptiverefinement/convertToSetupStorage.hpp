@@ -24,7 +24,7 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-// create setupstorage and add primitiveIDs to all elements
+// create setupstorage and add primitiveIDs to all simplices
 template < class K_Simplex >
 inline SetupPrimitiveStorage
     K_Mesh< K_Simplex >::CreateSetupStorage( const std::vector< Point3D >&                       vertices,
@@ -39,28 +39,11 @@ inline SetupPrimitiveStorage
    SetupPrimitiveStorage::FaceMap   faces_sps;
    SetupPrimitiveStorage::CellMap   cells_sps;
 
-   // We cache the inserted primitives (edges, faces and cells) by filling
-   // these maps with the surrounding vertexIDs as keys and the inserted
-   // PrimitiveIDs as values.
-   // This way we do not need to search for the neighboring lower level
-   // primitives when building inner primitives.
-   // std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToEdgeIDs;
-   // std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToFaceIDs;
-   // auto findCachedPrimitiveID = []( const std::vector< PrimitiveID >&                          unsortedPrimitiveIDs,
-   //                                  const std::map< std::vector< PrimitiveID >, PrimitiveID >& cache ) -> PrimitiveID {
-   //    std::vector< PrimitiveID > sortedKey( unsortedPrimitiveIDs );
-   //    std::sort( sortedKey.begin(), sortedKey.end() );
-   //    WALBERLA_ASSERT_GREATER(
-   //        cache.count( sortedKey ), 0, "Could not find primitive in cache during SetupStorage construction." );
-   //    return cache.at( sortedKey );
-   // };
-   std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
-   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
-
    // give each primitive a running id
    uint_t id = 0;
 
-   // Adding vertices to storage
+   //****** add vertices to storage ******
+
    for ( const auto& vtx : vertices )
    {
       PrimitiveID vtxID( id );
@@ -76,7 +59,11 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
-   // Adding edges to storage
+   //****** add edges to storage ******
+
+   // identify edges with their vertex IDs
+   std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
+
    for ( const auto& edge : edges )
    {
       constexpr uint_t K = 1;
@@ -114,7 +101,11 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
-   // Adding faces to storage
+   //****** add faces to storage ******
+
+   // identify faces with their vertex IDs
+   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
+
    for ( const auto& face : faces )
    {
       constexpr uint_t K = 2;
@@ -171,7 +162,8 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
-   // Adding cells to storage
+   //****** add cells to storage ******
+
    for ( const auto& cell : cells )
    {
       constexpr uint_t K = 3;
@@ -273,7 +265,7 @@ inline SetupPrimitiveStorage
          edges_sps[edgeID.getID()]->addCell( cellID );
       }
       // Adding cell ID to faces as neighbors
-      for ( const auto& faceID : edgeIDs )
+      for ( const auto& faceID : faceIDs )
       {
          faces_sps[faceID.getID()]->addCell( cellID );
       }
@@ -281,7 +273,8 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
-   // add indirect neighbor faces
+   //****** add indirect neighbor faces ******
+
    for ( const auto& [faceID, face] : faces_sps )
    {
       std::set< PrimitiveID > indirectNeighborsSet;
@@ -303,7 +296,8 @@ inline SetupPrimitiveStorage
           face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
-   // add indirect neighbor cells
+   //****** add indirect neighbor cells ******
+
    for ( const auto& [cellID, cell] : cells_sps )
    {
       std::set< PrimitiveID > indirectNeighborsSet;
@@ -325,6 +319,7 @@ inline SetupPrimitiveStorage
           cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
+   //****** construct new setupStorage ******
    return SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
 }
 
