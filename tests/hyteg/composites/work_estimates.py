@@ -51,24 +51,12 @@ class work_estimator:
         for x in self.work_trackers:
             print(x + ': ' + str(self.work_trackers[x]))
 
-
     def read_residuals(self, file):
         residuals_file = open(file, 'r')
         Lines = residuals_file.readlines()
-        if(self.name[0:3] == 'GKB'):
-            #print('GKB')
-            for line in Lines:
-                l = len(line)
-                line = line[l-13:]
-                #print(line)
-                self.residuals_per_iteration.append(float(line))
-        else:
-            #print('MINRES')
-            for line in Lines:
-                l = len(line)
-                line = line[l - 19:]
-                #print(line)
-                self.residuals_per_iteration.append(float(line))
+        for line in Lines:
+            self.residuals_per_iteration.append(float(line))
+
 
 
     def add_to_plot(self, ax, marker):
@@ -97,7 +85,7 @@ class work_estimator:
                      size=10
                      )
 
-class GMG_solver_unit_square(work_estimator):
+class GMG_solver(work_estimator):
     def __init__(self, name_p, nnz_p, n_cycles_p, nu_inc_p, nu_pre_p, nu_post_p, max_lvl_p, min_lvl_p, init_node_composition_p, init_bc_nodes_p):
         super().__init__(name_p, nnz_p, 0)
         self.n_cycles = n_cycles_p
@@ -112,27 +100,24 @@ class GMG_solver_unit_square(work_estimator):
         self.bc_nodes_at_lvl = [init_bc_nodes_p]
         self.work_trackers.update({'MG':0, 'VECLAPLACIAN':0, 'DIVERGENCE':0})
 
-
-    def estimate(self):
+    def compute_node_composition(self):
         # compute node composition at each level
         for l in range(self.min_lvl + 1, self.max_lvl + 1):
             last_lvl_all_nodes = self.node_comp_at_lvl[l - 1]['all']
-            self.node_comp_at_lvl.append({'vert': last_lvl_all_nodes, 'XeYe': last_lvl_all_nodes - 1, 'XYe': 4 * self.node_comp_at_lvl[l - 1]['XYe']})
+            self.node_comp_at_lvl.append({'vert': last_lvl_all_nodes, 'XeYe': last_lvl_all_nodes - 1,
+                                          'XYe': 4 * self.node_comp_at_lvl[l - 1]['XYe']})
             self.node_comp_at_lvl[l].update({'all': sum(self.node_comp_at_lvl[l].values())})
-            self.bc_nodes_at_lvl.append({'vert': 2*self.bc_nodes_at_lvl[l - 1]['vert'], 'XeYe': 2*self.bc_nodes_at_lvl[l - 1]['XeYe']})
-        print("All nodes on finest: ", self.node_comp_at_lvl[self.max_lvl]['all'])
+            self.bc_nodes_at_lvl.append(
+                {'vert': 2 * self.bc_nodes_at_lvl[l - 1]['vert'], 'XeYe': 2 * self.bc_nodes_at_lvl[l - 1]['XeYe']})
         W_Div = self.W_DIVERGENCE(self.max_lvl)
         W_Lap = self.W_VECLAPLACIAN(self.max_lvl)
-        print("WU on finest: ", (W_Div + W_Lap))
-        self.W_MG()
-        print("Finished estimation computational work of ", self.name)
-
+        print("Validation value for node composition on finest: W(K_l)/W(K_PETSc)=", (W_Div + W_Lap))
 
     # leveled operator applications must be introduced for MG
     def W_VECLAPLACIAN(self, l):
         # inner nodes at this level and each position
         inner_verts = self.node_comp_at_lvl[l]['vert'] - self.bc_nodes_at_lvl[l]['vert']
-        inner_XeYe = self.node_comp_at_lvl[l]['XeYe']- self.bc_nodes_at_lvl[l]['XeYe']
+        inner_XeYe = self.node_comp_at_lvl[l]['XeYe'] - self.bc_nodes_at_lvl[l]['XeYe']
         W_bc = 2*2 * (6*self.bc_nodes_at_lvl[l]['XeYe'] + 0.5*self.bc_nodes_at_lvl[l]['vert']*9 + 0.5*self.bc_nodes_at_lvl[l]['vert']*12)
         W_inner = 2 * 2 * (19 * inner_verts + 9 * (inner_XeYe + self.node_comp_at_lvl[l]['XYe']))
         return (W_bc + W_inner)/self.FLOPS_OA
@@ -144,24 +129,52 @@ class GMG_solver_unit_square(work_estimator):
         W_inner = 2 * 4 * (7 * inner_verts + 4 * (inner_XeYe + self.node_comp_at_lvl[l]['XYe']))
         return (W_inner + W_bc)/self.FLOPS_OA
 
-    def W_VCYCLE(self):
+    def W_VCYCLE(self, level):
         VCYCLE_work = 0
-        for l in range(self.min_lvl,self.max_lvl + 1):
+        for l in range(self.min_lvl,level):
             VCYCLE_work = VCYCLE_work + self.W_ON_LVL(l)
             print("Work on level ", l, "= ", VCYCLE_work)
-            self.we_per_iteration.append(VCYCLE_work)
         return VCYCLE_work
 
     def W_ON_LVL(self, l):
-        return (self.nu_pre + self.nu_post + 2*(self.max_lvl - l)*self.nu_inc)*(self.W_VECLAPLACIAN(l) + 2*self.W_DIVERGENCE(l)) + (self.W_VECLAPLACIAN(l) + 2*self.W_DIVERGENCE(l))
+        return (self.nu_pre + self.nu_post + 2*(self.max_lvl - l)*self.nu_inc)*(self.W_VECLAPLACIAN(l) + self.W_DIVERGENCE(l)) + (self.W_VECLAPLACIAN(l) + self.W_DIVERGENCE(l))
 
-    def W_MG(self):
+class VCYCLE_solver(GMG_solver):
+    def __init__(self, name_p, nnz_p, n_cycles_p, nu_inc_p, nu_pre_p, nu_post_p, max_lvl_p, min_lvl_p, init_node_composition_p, init_bc_nodes_p):
+        super().__init__( name_p, nnz_p, n_cycles_p, nu_inc_p, nu_pre_p, nu_post_p, max_lvl_p, min_lvl_p, init_node_composition_p, init_bc_nodes_p)
+
+    def estimate(self):
+        self.compute_node_composition()
+        self.W_VCYCLES()
+        print("Finished estimation computational work of ", self.name)
+
+    def W_VCYCLES(self):
         MG_work = 0
         self.we_per_iteration.append(MG_work)
-        for i in range(1,self.n_cycles):
-            MG_work = MG_work + self.W_VCYCLE()
+        for i in range(0,self.n_cycles):
+            MG_work = MG_work + self.W_VCYCLE(self.max_lvl + 1)
             print(self.name + " work at iteration ", i + 1, ":", MG_work, " WU")
             self.we_per_iteration.append(MG_work)
+
+class FMG_solver(GMG_solver):
+    def __init__(self, name_p, nnz_p, n_cycles_p, nu_inc_p, nu_pre_p, nu_post_p, max_lvl_p, min_lvl_p, init_node_composition_p, init_bc_nodes_p):
+        super().__init__( name_p, nnz_p, n_cycles_p, nu_inc_p, nu_pre_p, nu_post_p, max_lvl_p, min_lvl_p, init_node_composition_p, init_bc_nodes_p)
+
+    def estimate(self):
+        self.compute_node_composition()
+        self.W_FMG()
+        print("Finished estimation computational work of ", self.name)
+
+    def W_FMG(self):
+        MG_work = 0
+        self.we_per_iteration.append(MG_work)
+        for l in range(0,self.max_lvl + 1):
+            for k in range(0, self.n_cycles):
+                MG_work = MG_work + self.W_VCYCLE(l)
+                print("Cycle on lvl ", l)
+            self.we_per_iteration.append(MG_work)
+
+        print("Work of ", self.name, ": ", MG_work, " WUs")
 
 
 class block_prec_solver(work_estimator):
@@ -283,7 +296,6 @@ class MINRES_solver(block_prec_solver):
         self.work_trackers.update({'MINRES': 0, 'CG_U': 0, 'OA_U': 0,  'AMG_U': 0})
         self.apply_trackers.update({'OA_U': 0})
 
-
     def estimate(self):
         self.W_MINRES()
         print("Finished estimation computational work of ", self.name)
@@ -325,22 +337,18 @@ def main():
     #MINRES_l3.estimate()
 
     # P2P1 on unit square level 4
-    #GKB_l4 = GKB_solver('GKB lvl 4', 21, 5, {'OA_K':87174, 'OA_M':   47618, 'OA_A': 19778}, 4226, 4771 - 4226)
+    #GKB_l4 = GKB_solver('GKB lvl 4', 10, 5, {'OA_K':87174, 'OA_M':   47618, 'OA_A': 19778}, 4226, 4771 - 4226)
     #GKB_l4 = we_GKB_config('A lvl 4', 1, 1, {'OA_K': 87174, 'OA_M': 47618, 'OA_A': 19778}, 4226, 4771 - 4226)
     #GKB_l4.estimate()
-    #GKB_l4.print_work()
-    #GKB_l4.print_applies()
-    #MINRES_l4 = MINRES_solver('MINRES lvl 4', 41, 5, {'OA_K': 87174, 'OA_U':  47618}, 4226, 4771 - 4226)
-    #MINRES_l4 = we_MINRES_config('B lvl 4', 1, 0, {'OA_K': 87174, 'OA_U': 47618}, 4226, 4771 - 4226)
+    #MINRES_l4 = MINRES_solver('MINRES lvl 4', 24, 5, {'OA_K': 87174, 'OA_U':  47618}, 4226, 4771 - 4226)
     #MINRES_l4.estimate()
-    #MINRES_l4.print_work()
-    #MINRES_l4.print_applies()
-    #FGMRES_l4 = GKB_solver('FGMRES lvl 6', 2, 5, {'OA_K': 1380870, 'OA_M': 755714, 'OA_A': 312578}, 66050, 74371 - 66050)
-    #FGMRES_l4.its_FGMRES = 9
+    #FGMRES_l4 = GKB_solver('FGMRES lvl 4', 2, 5,  {'OA_K':87174, 'OA_M':   47618, 'OA_A': 19778}, 4226, 4771 - 4226)
+    #FGMRES_l4.its_FGMRES = 4
     #FGMRES_l4.estimate()
-
-    GMG_l4 = GMG_solver_unit_square('GMG lvl 4', {'OA_K':  22086}, 7, 2, 6, 6, 3, 0, {'vert':5, 'XeYe':4, 'XYe':4}, {'vert':4, 'XeYe':4})
-    GMG_l4.estimate()
+    #VCYCLES_l4 = VCYCLE_solver('VCycles lvl 4', {'OA_K':  87174}, 7, 2, 6, 6, 4, 0, {'vert':5, 'XeYe':4, 'XYe':4}, {'vert':4, 'XeYe':4})
+    #VCYCLES_l4.estimate()
+    FMG_l4 = FMG_solver('FMG lvl 4', {'OA_K': 87174}, 1, 3, 1, 2, 4, 0, {'vert': 5, 'XeYe': 4, 'XYe': 4},  {'vert': 4, 'XeYe': 4})
+    FMG_l4.estimate()
 
     # P2P1 on unit square level 5
     #GKB_l5 = GKB_solver('GKB lvl 5', 21, 5, {'OA_K':346374, 'OA_M': 189442, 'OA_A': 78466}, 16642, 2113)
@@ -360,8 +368,6 @@ def main():
     #FGMRES_l6.its_FGMRES = 7
     #FGMRES_l6.estimate()
 
-    # read residual files
-    #TODO run app in python, pick up output
 
 
     # plotting
@@ -372,37 +378,34 @@ def main():
     #ax.set_title("Operations until convergence for P2P1Stokes2D on unit square")
     #ax.set_yscale('log')
 
-    #ax.set_yticklabels([])
-    #ax.set_xticklabels([])
+    # read residuals
     #GKB_l4.read_residuals('GKB_lvl4_trueresiduals.txt')
     #GKB_l5.read_residuals('GKB_lvl5_trueresiduals.txt')
     #GKB_l6.read_residuals('GKB_lvl6_trueresiduals.txt')
     #FGMRES_l4.read_residuals('FGMRES_lvl4_trueresiduals.txt')
     #FGMRES_l5.read_residuals('FGMRES_lvl5_trueresiduals.txt')
     #FGMRES_l6.read_residuals('FGMRES_lvl6_trueresiduals.txt')
-    #MINRES_l3.read_residuals('MINRES_lvl3_residuals.txt')
     #MINRES_l4.read_residuals('MINRES_lvl4_trueresiduals.txt')
     #MINRES_l5.read_residuals('MINRES_lvl5_trueresiduals.txt')
     #MINRES_l6.read_residuals('MINRES_lvl6_trueresiduals.txt')
-
+    #VCYCLES_l4.read_residuals('MG_lvl4_trueresiduals.txt')
 
     #GKB_l5.read_residuals('GKB_lvl5_trueresiduals.txt')
     #MINRES_l5.read_residuals('MINRES_lvl5_trueresiduals.txt')
 
-    #GKB_l3.add_to_plot(ax, 'bo-')
+    # add residuals to convergence plot
     #GKB_l4.add_to_plot(ax, 'bo-')
     #GKB_l5.add_to_plot(ax, 'bo-')
     #GKB_l6.add_to_plot(ax, 'bo-')
-
     #FGMRES_l4.add_to_plot(ax, 'go-')
     #FGMRES_l5.add_to_plot(ax, 'go-')
     #FGMRES_l6.add_to_plot(ax, 'go-')
-    #MINRES_l3.add_to_plot(ax, 'ro-')
     #MINRES_l4.add_to_plot(ax, 'ro-')
     #MINRES_l5.add_to_plot(ax, 'ro-')
     #MINRES_l6.add_to_plot(ax, 'ro-')
-    #plt.legend(handles=[mpatches.Patch(None, 'b', label=r"$GKB(M,A,(AMG_1 + CG_{5})(M))$"), mpatches.Patch(None, 'r', label=r'$MINRES^{ (AMG_1 + CG_{5})(M_{p,bd})}(K)$'), mpatches.Patch(None, 'g', label=r'$FGMRES^{GKB_2(M,A,(AMG_1 + CG_{5})(M))}$')])
-    #ax.legend()
+    #VCYCLES_l4.add_to_plot(ax, 'yo-')
+
+    #plt.legend(handles=[mpatches.Patch(None, 'y', label=r"$VCYCLE(6,6,2,0.66,0.3)$"),mpatches.Patch(None, 'b', label=r"$GKB(M,A,(AMG_1 + CG_{5})(M))$"), mpatches.Patch(None, 'r', label=r'$MINRES^{ (AMG_1 + CG_{5})(M_{p,bd})}(K)$'), mpatches.Patch(None, 'g', label=r'$FGMRES^{GKB_2(M,A,(AMG_1 + CG_{5})(M))}$')])
     #plt.show()
 
 
