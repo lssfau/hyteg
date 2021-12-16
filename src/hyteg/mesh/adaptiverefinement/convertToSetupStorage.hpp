@@ -69,30 +69,49 @@ inline SetupPrimitiveStorage
       constexpr uint_t K = 1;
 
       PrimitiveID edgeID( id );
-      edge->setPrimitiveID( edgeID );
 
-      const auto& v = edge->get_vertices();
+      // vertices
+      std::array< uint_t, K + 1 > v;
+      v.fill( 0 );
+      // vertex coordinates
+      std::array< Point3D, K + 1 > coords;
+      // properties
+      std::shared_ptr< GeometryMap > geometryMap  = nullptr;
+      uint_t                         boundaryFlag = 0;
+
+      // extract data from simplex
+      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      {
+         edge->setPrimitiveID( edgeID );
+         v           = edge->get_vertices();
+         coords      = edge->coordinates( vertices );
+         geometryMap = edge->getGeometryMap();
+         // boundaryFlag = edge->getBoundaryFlag() // todo
+      }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMap );
+      // walberla::mpi::broadcastObject( boundaryFlag );
+
       // vertex IDs
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i < K + 1; ++i )
       {
          vertexIDs[i] = PrimitiveID( v[i] );
       }
-      // vertex coordinates
-      auto coords = edge->coordinates( vertices );
 
       // add new edge
       auto primitive = std::make_shared< Edge >( edgeID, vertexIDs[0], vertexIDs[1], coords );
       edges_sps[id]  = primitive;
 
       // add properties
-      //   primitive->meshBoundaryFlag_ = edge->getBoundaryFlag() // todo
-      primitive->geometryMap_ = edge->getGeometryMap();
+      primitive->meshBoundaryFlag_ = boundaryFlag;
+      primitive->geometryMap_      = geometryMap;
 
       // Adding edge ID as neighbor to SetupVertices
-      for ( const auto& vertexID : v )
+      for ( const auto& vertexID : vertexIDs )
       {
-         vertices_sps[vertexID]->addEdge( edgeID );
+         vertices_sps[vertexID.getID()]->addEdge( edgeID );
       }
 
       // Caching neighboring vertices
@@ -111,27 +130,53 @@ inline SetupPrimitiveStorage
       constexpr uint_t K = 2;
 
       PrimitiveID faceID( id );
-      face->setPrimitiveID( faceID );
 
-      const auto& v = face->get_vertices();
-      // vertex ids
+      // vertices
+      std::array< uint_t, K + 1 > v;
+      v.fill( 0 );
+      // vertex coordinates
+      std::array< Point3D, K + 1 > coords;
+      // properties
+      std::shared_ptr< GeometryMap > geometryMap  = nullptr;
+      uint_t                         boundaryFlag = 0;
+
+      // extract data from simplex
+      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      {
+         face->setPrimitiveID( faceID );
+         v           = face->get_vertices();
+         coords      = face->coordinates( vertices );
+         geometryMap = face->getGeometryMap();
+         // boundaryFlag = face->getBoundaryFlag() // todo
+      }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMap );
+      // walberla::mpi::broadcastObject( boundaryFlag );
+      // walberla::mpi::broadcastObject( edgeIDs );
+      // walberla::mpi::broadcastObject( edgeOrientation );
+
+      // vertex IDs
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i < K + 1; ++i )
       {
          vertexIDs[i] = PrimitiveID( v[i] );
       }
-      // vertex coordinates
-      auto coords = face->coordinates( vertices );
 
-      // edge ids
+      // edge IDs
       std::array< PrimitiveID, K + 1 > edgeIDs;
+      edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
+      edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
+      edgeIDs[2] = vertexIDsToEdgeID[{ v[1], v[2] }];
+
       // edge orientation
       std::array< int, K + 1 > edgeOrientation;
-      auto                     faceEdges = face->get_edges_sorted( v );
       for ( uint_t i = 0; i < K + 1; ++i )
       {
-         edgeIDs[i] = faceEdges[i]->getPrimitiveID();
-         if ( faceEdges[i]->get_vertices()[0] == v[i] )
+         std::vector< PrimitiveID > edgeVertices;
+         edges_sps[edgeIDs[i].getID()]->getNeighborVertices( edgeVertices );
+
+         if ( edgeVertices[0].getID() == v[i] )
             edgeOrientation[i] = 1;
          else
             edgeOrientation[i] = -1;
@@ -142,13 +187,13 @@ inline SetupPrimitiveStorage
       faces_sps[id]  = primitive;
 
       // add properties
-      //   primitive->meshBoundaryFlag_ = face->getBoundaryFlag(); // todo
-      primitive->geometryMap_ = face->getGeometryMap();
+      primitive->meshBoundaryFlag_ = boundaryFlag;
+      primitive->geometryMap_      = geometryMap;
 
       // Adding face ID to vertices as neighbors
-      for ( const auto& vertexID : v )
+      for ( const auto& vertexID : vertexIDs )
       {
-         vertices_sps[vertexID]->addFace( faceID );
+         vertices_sps[vertexID.getID()]->addFace( faceID );
       }
       // Adding face ID to edges as neighbors
       for ( const auto& edgeID : edgeIDs )
@@ -169,19 +214,38 @@ inline SetupPrimitiveStorage
       constexpr uint_t K = 3;
 
       PrimitiveID cellID( id );
-      cell->setPrimitiveID( cellID );
 
-      const auto& v = cell->get_vertices();
-      // vertex ids
+      // vertices
+      std::array< uint_t, K + 1 > v;
+      v.fill( 0 );
+      // vertex coordinates
+      std::array< Point3D, K + 1 > coords;
+      // properties
+      std::shared_ptr< GeometryMap > geometryMap  = nullptr;
+      uint_t                         boundaryFlag = 0;
+
+      // extract data from simplex
+      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      {
+         cell->setPrimitiveID( cellID );
+         v           = cell->get_vertices();
+         coords      = cell->coordinates( vertices );
+         geometryMap = cell->getGeometryMap();
+         // boundaryFlag = cell->getBoundaryFlag(); // todo
+      }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMap );
+      // walberla::mpi::broadcastObject( boundaryFlag );
+
+      // vertex IDs
       std::vector< PrimitiveID > vertexIDs( K + 1 );
       for ( uint_t i = 0; i < K + 1; ++i )
       {
          vertexIDs[i] = PrimitiveID( v[i] );
       }
-      // vertex coordinates
-      auto coords = cell->coordinates( vertices );
 
-      // edge ids
+      // edge IDs
       std::vector< PrimitiveID > edgeIDs( 6 );
       edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
       edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
@@ -195,7 +259,7 @@ inline SetupPrimitiveStorage
       faceIDs[0] = vertexIDsToFaceID[{ v[0], v[1], v[2] }];
       faceIDs[1] = vertexIDsToFaceID[{ v[0], v[1], v[3] }];
       faceIDs[2] = vertexIDsToFaceID[{ v[0], v[2], v[3] }];
-      faceIDs[3] = vertexIDsToFaceID[{ v[1], v[1], v[3] }];
+      faceIDs[3] = vertexIDsToFaceID[{ v[1], v[2], v[3] }];
 
       std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
 
@@ -251,13 +315,13 @@ inline SetupPrimitiveStorage
       cells_sps[id] = primitive;
 
       // add properties
-      //   primitive->meshBoundaryFlag_ = cell->getBoundaryFlag(); // todo
-      primitive->geometryMap_ = cell->getGeometryMap();
+      primitive->meshBoundaryFlag_ = boundaryFlag;
+      primitive->geometryMap_      = geometryMap;
 
       // Adding cell ID to vertices as neighbors
-      for ( const auto& vertexID : v )
+      for ( const auto& vertexID : vertexIDs )
       {
-         vertices_sps[vertexID]->addCell( cellID );
+         vertices_sps[vertexID.getID()]->addCell( cellID );
       }
       // Adding cell ID to edges as neighbors
       for ( const auto& edgeID : edgeIDs )
