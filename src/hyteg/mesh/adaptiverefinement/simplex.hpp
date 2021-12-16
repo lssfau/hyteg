@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "hyteg/PrimitiveID.hpp"
-#include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
@@ -58,6 +57,8 @@ class Idx : public std::array< uint_t, K >
    }
 };
 
+// todo Simplex1
+
 // CRTP-base class for K-simplices
 template < uint_t K, class K_Simplex >
 class Simplex
@@ -68,12 +69,10 @@ class Simplex
       @param parent        K-simplex s.th. this is a direct refinement of parent
       @param geometrymap   geometrymap for this element (default: map inherited from parent)
    */
-   Simplex( const std::array< uint_t, K + 1 >& vertices,
-            std::shared_ptr< K_Simplex >       parent,
-            std::shared_ptr< GeometryMap >     geometryMap = nullptr )
+   Simplex( const std::array< uint_t, K + 1 >& vertices, std::shared_ptr< K_Simplex > parent, uint_t geometryMap = uint_t( -1 ) )
    : _vertices( vertices )
    , _parent( parent )
-   , _geometryMap( ( parent == nullptr || geometryMap != nullptr ) ? geometryMap : parent->getGeometryMap() )
+   , _geometryMap( ( parent == nullptr || geometryMap != uint_t( -1 ) ) ? geometryMap : parent->getGeometryMap() )
    {}
 
    // return true if this has been refined
@@ -124,8 +123,8 @@ class Simplex
    */
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
-   const std::shared_ptr< GeometryMap >& getGeometryMap() const { return _geometryMap; }
-   const PrimitiveID&                    getPrimitiveID() const { return _id; }
+   const uint_t&      getGeometryMap() const { return _geometryMap; }
+   const PrimitiveID& getPrimitiveID() const { return _id; }
 
    void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
 
@@ -133,7 +132,7 @@ class Simplex
    std::array< uint_t, K + 1 >                 _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
-   std::shared_ptr< GeometryMap >              _geometryMap;
+   uint_t                                      _geometryMap;
    PrimitiveID                                 _id;
 };
 
@@ -148,11 +147,11 @@ class Simplex1 : public Simplex< 1, Simplex1 >
       @param c             = GREEN if this edge was added during green refinement step
       @param geometrymap   geometrymap for this element (default: map inherited from parent)
    */
-   Simplex1( uint_t                         p1,
-             uint_t                         p2,
-             std::shared_ptr< Simplex1 >    parent      = nullptr,
-             Color                          c           = RED,
-             std::shared_ptr< GeometryMap > geometryMap = nullptr )
+   Simplex1( uint_t                      p1,
+             uint_t                      p2,
+             std::shared_ptr< Simplex1 > parent      = nullptr,
+             Color                       c           = RED,
+             uint_t                      geometryMap = uint_t( -1 ) )
    : Simplex< 1, Simplex1 >( { p1, p2 }, parent, geometryMap )
    , _color( c )
    , _midpoint( -1 )
@@ -200,7 +199,7 @@ class Simplex2 : public Simplex< 2, Simplex2 >
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent      = nullptr,
-             std::shared_ptr< GeometryMap >                      geometryMap = nullptr );
+             uint_t                                              geometryMap = uint_t( -1 ) );
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
@@ -259,7 +258,7 @@ class Simplex3 : public Simplex< 3, Simplex3 >
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent      = nullptr,
-             std::shared_ptr< GeometryMap >                      geometryMap = nullptr );
+             uint_t                                              geometryMap = uint_t( -1 ) );
 
    bool has_green_edge() const;
 

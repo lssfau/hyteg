@@ -25,6 +25,7 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/adaptiverefinement/mesh.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -173,7 +174,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
       auto check = std::sqrt( tmp.sumGlobal( l_max ) );
       if ( std::abs( check - l2err ) > 1e-15 )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" );
+         WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" << l2err << " != " << check );
       }
 
       VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
@@ -196,14 +197,17 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
    // setup domain
    double min = 1.0 / std::sqrt( 4 * PI );
    double max = 5;
-   uint_t N   = 2;
+   uint_t N   = 4;
+   uint_t M   = 2;
    if ( dim == 3 )
    {
       meshInfo = MeshInfo::meshCuboid( Point3D( { min, min, min } ), Point3D( { max, max, max } ), N, N, N );
+      // todo: use spherical shell
    }
    else if ( dim == 2 )
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N, N );
+      // meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N, N );
+      meshInfo = MeshInfo::meshAnnulus( min, max, MeshInfo::CRISS, N, M );
    }
    else
    {
@@ -213,7 +217,16 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
    // construct initial setupStorage
    SetupPrimitiveStorage  initialStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    SetupPrimitiveStorage& setupStorage = initialStorage;
-   // todo: apply Geometrymap
+
+   // apply geometry map
+   if ( dim == 3 )
+   {
+      // todo
+   }
+   else
+   {
+      AnnulusMap::setMap( setupStorage );
+   }
 
    // construct adaptive mesh and update setup storage
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -248,6 +261,11 @@ void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint
       // apply boundary conditions and load balancing
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       loadbalancing::roundRobin( setupStorage );
+
+      // std::stringstream ss;
+      // setupStorage.toStream( ss, true );
+      // WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
+
       // construct PrimitiveStorage from setupStorage corresponding to current refinement
       auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

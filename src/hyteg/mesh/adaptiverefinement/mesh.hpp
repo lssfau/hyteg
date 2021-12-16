@@ -116,18 +116,20 @@ class K_Mesh
                           std::set< std::shared_ptr< Simplex1 > >& edges ) const;
 
    static SetupPrimitiveStorage CreateSetupStorage( const std::vector< Point3D >&                       vertices,
-                                                    std::map< uint_t, std::shared_ptr< GeometryMap > >& vertexGeometryMap,
                                                     std::set< std::shared_ptr< Simplex1 > >&            edges,
                                                     std::set< std::shared_ptr< Simplex2 > >&            faces,
                                                     std::set< std::shared_ptr< Simplex3 > >&            cells,
+                                                    std::map< uint_t, std::shared_ptr< GeometryMap > >& geometryMap,
+                                                    std::map< uint_t, uint_t >&                         vertexGeometryMap,
                                                     const uint_t&                                       n_processes );
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
    std::vector< Point3D >                             _vertices;     // vertex coordinates
-   std::map< uint_t, std::shared_ptr< GeometryMap > > _vertexMap;    // geometrymap for vertices
    std::set< std::shared_ptr< K_Simplex > >           _T;            // set of elements of current refinement level
    SetupPrimitiveStorage                              _setupStorage; // primitive storage of current refinement level
+   std::map< uint_t, std::shared_ptr< GeometryMap > > _geometryMap;  // geometrymaps of original mesh
+   std::map< uint_t, uint_t >                         _vertexMap;    // geometrymap for vertices
 };
 
 using Mesh2D = K_Mesh< Simplex2 >;

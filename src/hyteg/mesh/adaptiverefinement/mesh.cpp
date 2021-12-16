@@ -38,6 +38,15 @@ template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 : _setupStorage( setupStorage )
 {
+   // copy geometrymaps for each primitive in initial setupStorage
+   SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
+   setupStorage.getSetupPrimitives( setupPrimitives );
+   for ( auto& [id, primitive] : setupPrimitives )
+   {
+      _geometryMap[id] = primitive->getGeometryMap();
+   }
+   _geometryMap[size_t( -1 )] = nullptr; // used for uninitialized values
+
    // internal data structures are only required on rank_0
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
@@ -57,10 +66,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
          // extract geometrymap of vertex
-         if ( vtx->getGeometryMap() != nullptr )
-         {
-            _vertexMap[idx] = vtx->getGeometryMap();
-         }
+         _vertexMap[idx] = id;
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -77,7 +83,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       for ( auto& [id, edge] : setupStorage.getEdges() )
       {
          edge->getNeighborVertices( v );
-         fac.useGeometryMap( edge->getGeometryMap() );
+         fac.useGeometryMap( id );
          auto myEdge = fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
          myEdge->setPrimitiveID( id );
       }
@@ -85,7 +91,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       for ( auto& [id, face] : setupStorage.getFaces() )
       {
          face->getNeighborVertices( v );
-         fac.useGeometryMap( face->getGeometryMap() );
+         fac.useGeometryMap( id );
          auto myFace = fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
          myFace->setPrimitiveID( id );
       }
@@ -93,7 +99,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       for ( auto& [id, cell] : setupStorage.getCells() )
       {
          cell->getNeighborVertices( v );
-         fac.useGeometryMap( cell->getGeometryMap() );
+         fac.useGeometryMap( id );
          auto myCell = fac.make_cell(
              conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] );
          myCell->setPrimitiveID( id );
@@ -162,12 +168,19 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
       _n_elements = _T.size();
    }
 
-   // update setupStorage
-   std::set< std::shared_ptr< Simplex3 > > cells;
-   std::set< std::shared_ptr< Simplex2 > > faces;
+   // collect all vertices, edges, faces and cells
    std::set< std::shared_ptr< Simplex1 > > edges;
+   std::set< std::shared_ptr< Simplex2 > > faces;
+   std::set< std::shared_ptr< Simplex3 > > cells;
    collect_elements( cells, faces, edges );
-   _setupStorage = CreateSetupStorage( _vertices, _vertexMap, edges, faces, cells, _setupStorage.getNumberOfProcesses() );
+   // walberla::mpi::broadcastObject( _vertices );
+   // walberla::mpi::broadcastObject( edges );
+   // walberla::mpi::broadcastObject( faces );
+   // walberla::mpi::broadcastObject( cells );
+
+   // create new setupStorage
+   _setupStorage =
+       CreateSetupStorage( _vertices, edges, faces, cells, _geometryMap, _vertexMap, _setupStorage.getNumberOfProcesses() );
 
    return _setupStorage;
 }
