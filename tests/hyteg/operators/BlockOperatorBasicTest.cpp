@@ -29,6 +29,7 @@
 #include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -36,7 +37,7 @@
 
 using namespace hyteg;
 
-typedef P2P1TaylorHoodBlockFunction< real_t > thType;
+using thType = P2P1TaylorHoodBlockFunction< real_t >;
 
 std::shared_ptr< OperatorWrapper< VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction > > >
     createP1EpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -55,6 +56,9 @@ std::shared_ptr< OperatorWrapper< VectorToVectorOperator< real_t, P1VectorFuncti
    return wrapped;
 }
 
+// NOTE: This is, of course, bad coding, since for kind = 2 our operator does not work on a function of thType.
+//       It is funny that it works at all :) Need to change that by adding templates and a definition of a
+//       P1P1StokesBlockFunction
 std::shared_ptr< BlockOperator< thType, thType > > createOperator( uint_t                                     kind,
                                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                                    size_t                                     minLevel,
@@ -70,7 +74,7 @@ std::shared_ptr< BlockOperator< thType, thType > > createOperator( uint_t       
    {
    case 1:
       oper->setSubOperator(
-          0, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, minLevel, maxLevel ) );
+          0, 0, std::make_shared< OperatorWrapper< P2ConstantVectorLaplaceOperator > >( storage, minLevel, maxLevel ) );
       oper->setSubOperator(
           0, 1, std::make_shared< OperatorWrapper< P1ToP2ConstantDivTOperator > >( storage, minLevel, maxLevel ) );
       oper->setSubOperator(
@@ -150,6 +154,7 @@ int main( int argc, char* argv[] )
    thType src( "src", storage, minLevel, maxLevel );
    thType dst( "dst", storage, minLevel, maxLevel );
 
+   // checking no-op
    blockOper.apply( src, dst, maxLevel, All );
 
    // use factory
