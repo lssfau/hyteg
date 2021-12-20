@@ -45,7 +45,15 @@ class P1StokesFunction
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel )
+   : P1StokesFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+   {}
+
+   P1StokesFunction( const std::string&                         _name,
+                     const std::shared_ptr< PrimitiveStorage >& storage,
+                     size_t                                     minLevel,
+                     size_t                                     maxLevel,
+                     BoundaryCondition                          velocityBC )
+   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
    , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
    {}
 

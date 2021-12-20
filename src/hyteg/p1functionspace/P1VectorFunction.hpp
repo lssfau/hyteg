@@ -45,15 +45,22 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel )
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ) {}
+
+   P1VectorFunction( const std::string&                         _name,
+                     const std::shared_ptr< PrimitiveStorage >& storage,
+                     size_t                                     minLevel,
+                     size_t                                     maxLevel,
+                     BoundaryCondition                          bc )
    : CSFVectorFunction< P1VectorFunction< ValueType > >( _name )
    {
       this->compFunc_.clear();
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel ) );
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc ) );
 
       if ( storage->hasGlobalCells() )
       {
-         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel ) );
+         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
       }
    }
 };
