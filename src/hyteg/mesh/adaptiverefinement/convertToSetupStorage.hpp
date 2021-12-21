@@ -21,19 +21,16 @@
 #pragma once
 #include "mesh.hpp"
 
+// todo fix communication bug
+
 namespace hyteg {
 namespace adaptiveRefinement {
 
-// create setupstorage and add primitiveIDs to all simplices
 template < class K_Simplex >
-inline SetupPrimitiveStorage
-    K_Mesh< K_Simplex >::CreateSetupStorage( const std::vector< Point3D >&                       vertices,
-                                             std::set< std::shared_ptr< Simplex1 > >&            edges,
-                                             std::set< std::shared_ptr< Simplex2 > >&            faces,
-                                             std::set< std::shared_ptr< Simplex3 > >&            cells,
-                                             std::map< uint_t, std::shared_ptr< GeometryMap > >& geometryMap,
-                                             std::map< uint_t, uint_t >&                         vertexGeometryMap,
-                                             const uint_t&                                       n_processes )
+uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
+                                                const FaceData& faces,
+                                                const CellData& cells,
+                                                const uint_t&   n_processes )
 {
    SetupPrimitiveStorage::VertexMap vertices_sps;
    SetupPrimitiveStorage::EdgeMap   edges_sps;
@@ -43,9 +40,10 @@ inline SetupPrimitiveStorage
    // give each primitive a running id
    uint_t id = 0;
 
+   WALBERLA_LOG_INFO( ">>>>>>> add vertices <<<<<<<<<<<<<<\n\n" );
    //****** add vertices to storage ******
 
-   for ( const auto& vtx : vertices )
+   for ( const auto& vtx : _vertices )
    {
       PrimitiveID vtxID( id );
 
@@ -54,50 +52,49 @@ inline SetupPrimitiveStorage
       vertices_sps[id] = primitive;
 
       // add properties
-      //   primitive->meshBoundaryFlag_ = vtx.getBoundaryFlag() // todo
-      primitive->geometryMap_ = geometryMap[vertexGeometryMap[id]];
+      primitive->meshBoundaryFlag_ = _vertexBoundaryFlag[id];
+      primitive->geometryMap_      = _geometryMap[_vertexGeometryMap[id]];
 
       ++id;
    }
 
+   WALBERLA_LOG_INFO( ">>>>>>>> add edges <<<<<<<<<<<<<<\n\n" );
    //****** add edges to storage ******
 
    // identify edges with their vertex IDs
    std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
 
-   for ( const auto& edge : edges )
+   for ( size_t e = 0; e < edges.size(); ++e )
    {
       constexpr uint_t K = 1;
 
       PrimitiveID edgeID( id );
 
-      // vertices
-      std::array< uint_t, K + 1 > v;
-      v.fill( 0 );
-      // vertex coordinates
-      std::array< Point3D, K + 1 > coords;
-      // properties
-      uint_t geometryMapID = 0;
-      uint_t boundaryFlag  = 0;
+      // simplexData
+      auto v             = edges.get_vertices( e );
+      auto geometryMapID = edges.getGeometryMap( e );
+      auto boundaryFlag  = edges.getBoundaryFlag( e );
 
       // extract data from simplex
-      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-      {
-         edge->setPrimitiveID( edgeID );
-         v             = edge->get_vertices();
-         coords        = edge->coordinates( vertices );
-         geometryMapID = edge->getGeometryMap();
-         // boundaryFlag = edge->getBoundaryFlag() // todo
-      }
-      walberla::mpi::broadcastObject( v );
-      walberla::mpi::broadcastObject( coords );
-      walberla::mpi::broadcastObject( geometryMapID );
-      walberla::mpi::broadcastObject( boundaryFlag );
+      // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      // {
+      //    edge->setPrimitiveID( edgeID );
+      //    v             = edge->get_vertices();
+      //    coords        = edge->coordinates( vertices );
+      //    geometryMapID = edge->getGeometryMap();
+      //    // boundaryFlag = edge->getBoundaryFlag() // todo
+      // }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMapID );
+      // walberla::mpi::broadcastObject( boundaryFlag );
 
-      // vertex IDs
+      // vertex coordinates and IDs
+      std::array< Point3D, K + 1 >     coords;
       std::array< PrimitiveID, K + 1 > vertexIDs;
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( size_t i = 0; i < K + 1; ++i )
       {
+         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
@@ -107,7 +104,7 @@ inline SetupPrimitiveStorage
 
       // add properties
       primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = geometryMap[geometryMapID];
+      primitive->geometryMap_      = _geometryMap[geometryMapID];
 
       // Adding edge ID as neighbor to SetupVertices
       for ( const auto& vertexID : vertexIDs )
@@ -121,44 +118,46 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
+   WALBERLA_LOG_INFO( ">>>>>>>> add faces <<<<<<<<<<<<<<\n\n" );
    //****** add faces to storage ******
+
+   // write back ID of first face
+   auto face0 = id;
 
    // identify faces with their vertex IDs
    std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
 
-   for ( const auto& face : faces )
+   for ( size_t f = 0; f < faces.size(); ++f )
    {
       constexpr uint_t K = 2;
 
       PrimitiveID faceID( id );
 
-      // vertices
-      std::array< uint_t, K + 1 > v;
-      v.fill( 0 );
-      // vertex coordinates
-      std::array< Point3D, K + 1 > coords;
-      // properties
-      uint_t geometryMapID = 0;
-      uint_t boundaryFlag  = 0;
+      // simplexData
+      auto v             = faces.get_vertices( f );
+      auto geometryMapID = faces.getGeometryMap( f );
+      auto boundaryFlag  = faces.getBoundaryFlag( f );
 
-      // extract data from simplex
-      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-      {
-         face->setPrimitiveID( faceID );
-         v             = face->get_vertices();
-         coords        = face->coordinates( vertices );
-         geometryMapID = face->getGeometryMap();
-         // boundaryFlag = face->getBoundaryFlag() // todo
-      }
-      walberla::mpi::broadcastObject( v );
-      walberla::mpi::broadcastObject( coords );
-      walberla::mpi::broadcastObject( geometryMapID );
-      walberla::mpi::broadcastObject( boundaryFlag );
+      // // extract data from simplex
+      // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      // {
+      //    face->setPrimitiveID( faceID );
+      //    v             = face->get_vertices();
+      //    coords        = face->coordinates( _vertices );
+      //    geometryMapID = face->getGeometryMap();
+      //    // boundaryFlag = face->getBoundaryFlag() // todo
+      // }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMapID );
+      // walberla::mpi::broadcastObject( boundaryFlag );
 
-      // vertex IDs
+      // vertex coordinates and IDs
+      std::array< Point3D, K + 1 >     coords;
       std::array< PrimitiveID, K + 1 > vertexIDs;
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( size_t i = 0; i < K + 1; ++i )
       {
+         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
@@ -195,7 +194,7 @@ inline SetupPrimitiveStorage
 
       // add properties
       primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = geometryMap[geometryMapID];
+      primitive->geometryMap_      = _geometryMap[geometryMapID];
 
       // Adding face ID to vertices as neighbors
       for ( const auto& vertexID : vertexIDs )
@@ -214,41 +213,43 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
+   WALBERLA_LOG_INFO( ">>>>>>>> add cells <<<<<<<<<<<<<<\n\n" );
    //****** add cells to storage ******
 
-   for ( const auto& cell : cells )
+   // write back ID of first cell
+   auto cell0 = id;
+
+   for ( uint_t c = 0; c < cells.size(); ++c )
    {
       constexpr uint_t K = 3;
 
       PrimitiveID cellID( id );
 
-      // vertices
-      std::array< uint_t, K + 1 > v;
-      v.fill( 0 );
-      // vertex coordinates
-      std::array< Point3D, K + 1 > coords;
-      // properties
-      uint_t geometryMapID = 0;
-      uint_t boundaryFlag  = 0;
+      // simplexData
+      auto v             = cells.get_vertices( c );
+      auto geometryMapID = cells.getGeometryMap( c );
+      auto boundaryFlag  = cells.getBoundaryFlag( c );
 
-      // extract data from simplex
-      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-      {
-         cell->setPrimitiveID( cellID );
-         v             = cell->get_vertices();
-         coords        = cell->coordinates( vertices );
-         geometryMapID = cell->getGeometryMap();
-         // boundaryFlag = cell->getBoundaryFlag(); // todo
-      }
-      walberla::mpi::broadcastObject( v );
-      walberla::mpi::broadcastObject( coords );
-      walberla::mpi::broadcastObject( geometryMapID );
-      walberla::mpi::broadcastObject( boundaryFlag );
+      // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      // {
+      //    cell->setPrimitiveID( cellID );
+      //    v             = cell->get_vertices();
+      //    coords        = cell->coordinates( _vertices );
+      //    geometryMapID = cell->getGeometryMap();
+      //    // boundaryFlag = cell->getBoundaryFlag(); // todo
+      // }
+      // walberla::mpi::broadcastObject( v );
+      // walberla::mpi::broadcastObject( coords );
+      // walberla::mpi::broadcastObject( geometryMapID );
+      // walberla::mpi::broadcastObject( boundaryFlag );
 
       // vertex IDs
-      std::vector< PrimitiveID > vertexIDs( K + 1 );
-      for ( uint_t i = 0; i < K + 1; ++i )
+      // vertex coordinates and IDs
+      std::array< Point3D, K + 1 > coords;
+      std::vector< PrimitiveID >   vertexIDs( K + 1 );
+      for ( size_t i = 0; i < K + 1; ++i )
       {
+         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
@@ -355,7 +356,7 @@ inline SetupPrimitiveStorage
 
       // add properties
       primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = geometryMap[geometryMapID];
+      primitive->geometryMap_      = _geometryMap[geometryMapID];
 
       // Adding cell ID to vertices as neighbors
       for ( const auto& vertexID : vertexIDs )
@@ -376,6 +377,7 @@ inline SetupPrimitiveStorage
       ++id;
    }
 
+   WALBERLA_LOG_INFO( ">>>>>>>> add indirect nbrs <<<<<<<<<<<<<<\n\n" );
    //****** add indirect neighbor faces ******
 
    for ( const auto& [faceID, face] : faces_sps )
@@ -422,8 +424,12 @@ inline SetupPrimitiveStorage
           cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
+   WALBERLA_LOG_INFO( ">>>>>>>> setupStorage <<<<<<<<<<<<<<\n\n" );
    //****** construct new setupStorage ******
-   return SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
+   _setupStorage = SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
+
+   WALBERLA_LOG_INFO( ">>>>>>>> return <<<<<<<<<<<<<<\n\n" );
+   return ( cells.size() == 0 ) ? face0 : cell0;
 }
 
 } // namespace adaptiveRefinement
