@@ -173,7 +173,8 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
    std::set< std::shared_ptr< Simplex2 > > faces;
    std::set< std::shared_ptr< Simplex3 > > cells;
    collect_elements( cells, faces, edges );
-   // walberla::mpi::broadcastObject( _vertices );
+   walberla::mpi::broadcastObject( _vertices );
+   walberla::mpi::broadcastObject( _vertexMap );
    // walberla::mpi::broadcastObject( edges );
    // walberla::mpi::broadcastObject( faces );
    // walberla::mpi::broadcastObject( cells );

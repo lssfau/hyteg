@@ -89,10 +89,10 @@ inline SetupPrimitiveStorage
          geometryMapID = edge->getGeometryMap();
          // boundaryFlag = edge->getBoundaryFlag() // todo
       }
-      // walberla::mpi::broadcastObject( v );
-      // walberla::mpi::broadcastObject( coords );
-      // walberla::mpi::broadcastObject( geometryMap );
-      // walberla::mpi::broadcastObject( boundaryFlag );
+      walberla::mpi::broadcastObject( v );
+      walberla::mpi::broadcastObject( coords );
+      walberla::mpi::broadcastObject( geometryMapID );
+      walberla::mpi::broadcastObject( boundaryFlag );
 
       // vertex IDs
       std::array< PrimitiveID, K + 1 > vertexIDs;
@@ -150,12 +150,10 @@ inline SetupPrimitiveStorage
          geometryMapID = face->getGeometryMap();
          // boundaryFlag = face->getBoundaryFlag() // todo
       }
-      // walberla::mpi::broadcastObject( v );
-      // walberla::mpi::broadcastObject( coords );
-      // walberla::mpi::broadcastObject( geometryMap );
-      // walberla::mpi::broadcastObject( boundaryFlag );
-      // walberla::mpi::broadcastObject( edgeIDs );
-      // walberla::mpi::broadcastObject( edgeOrientation );
+      walberla::mpi::broadcastObject( v );
+      walberla::mpi::broadcastObject( coords );
+      walberla::mpi::broadcastObject( geometryMapID );
+      walberla::mpi::broadcastObject( boundaryFlag );
 
       // vertex IDs
       std::array< PrimitiveID, K + 1 > vertexIDs;
@@ -164,11 +162,19 @@ inline SetupPrimitiveStorage
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, K + 1 > edgeOrder{ { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul } } };
+
       // edge IDs
       std::array< PrimitiveID, K + 1 > edgeIDs;
-      edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
-      edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
-      edgeIDs[2] = vertexIDsToEdgeID[{ v[1], v[2] }];
+      for ( uint_t i = 0; i < K + 1; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+
+      // edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
+      // edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
+      // edgeIDs[2] = vertexIDsToEdgeID[{ v[1], v[2] }];
 
       // edge orientation
       std::array< int, K + 1 > edgeOrientation;
@@ -177,7 +183,7 @@ inline SetupPrimitiveStorage
          std::vector< PrimitiveID > edgeVertices;
          edges_sps[edgeIDs[i].getID()]->getNeighborVertices( edgeVertices );
 
-         if ( edgeVertices[0].getID() == v[i] )
+         if ( edgeVertices[0].getID() == v[edgeOrder[i][0]] )
             edgeOrientation[i] = 1;
          else
             edgeOrientation[i] = -1;
@@ -234,10 +240,10 @@ inline SetupPrimitiveStorage
          geometryMapID = cell->getGeometryMap();
          // boundaryFlag = cell->getBoundaryFlag(); // todo
       }
-      // walberla::mpi::broadcastObject( v );
-      // walberla::mpi::broadcastObject( coords );
-      // walberla::mpi::broadcastObject( geometryMap );
-      // walberla::mpi::broadcastObject( boundaryFlag );
+      walberla::mpi::broadcastObject( v );
+      walberla::mpi::broadcastObject( coords );
+      walberla::mpi::broadcastObject( geometryMapID );
+      walberla::mpi::broadcastObject( boundaryFlag );
 
       // vertex IDs
       std::vector< PrimitiveID > vertexIDs( K + 1 );
@@ -246,63 +252,95 @@ inline SetupPrimitiveStorage
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, 6 > edgeOrder{
+          { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul }, { 0ul, 3ul }, { 1ul, 3ul }, { 2ul, 3ul } } };
+
       // edge IDs
       std::vector< PrimitiveID > edgeIDs( 6 );
-      edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
-      edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
-      edgeIDs[2] = vertexIDsToEdgeID[{ v[1], v[2] }];
-      edgeIDs[3] = vertexIDsToEdgeID[{ v[0], v[3] }];
-      edgeIDs[4] = vertexIDsToEdgeID[{ v[1], v[3] }];
-      edgeIDs[5] = vertexIDsToEdgeID[{ v[2], v[3] }];
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+      // edgeIDs[0] = vertexIDsToEdgeID[{ v[0], v[1] }];
+      // edgeIDs[1] = vertexIDsToEdgeID[{ v[0], v[2] }];
+      // edgeIDs[2] = vertexIDsToEdgeID[{ v[1], v[2] }];
+      // edgeIDs[3] = vertexIDsToEdgeID[{ v[0], v[3] }];
+      // edgeIDs[4] = vertexIDsToEdgeID[{ v[1], v[3] }];
+      // edgeIDs[5] = vertexIDsToEdgeID[{ v[2], v[3] }];
+
+      // ordering of faces
+      constexpr std::array< std::array< uint_t, 3 >, K + 1 > faceOrder{
+          { { 0ul, 1ul, 2ul }, { 0ul, 1ul, 3ul }, { 0ul, 2ul, 3ul }, { 1ul, 2ul, 3ul } } };
 
       // face IDs
       std::vector< PrimitiveID > faceIDs( K + 1 );
-      faceIDs[0] = vertexIDsToFaceID[{ v[0], v[1], v[2] }];
-      faceIDs[1] = vertexIDsToFaceID[{ v[0], v[1], v[3] }];
-      faceIDs[2] = vertexIDsToFaceID[{ v[0], v[2], v[3] }];
-      faceIDs[3] = vertexIDsToFaceID[{ v[1], v[2], v[3] }];
+      for ( uint_t i = 0; i < K + 1; ++i )
+      {
+         faceIDs[i] = vertexIDsToFaceID[{ v[faceOrder[i][0]], v[faceOrder[i][1]], v[faceOrder[i][2]] }];
+      }
+      // faceIDs[0] = vertexIDsToFaceID[{ v[0], v[1], v[2] }];
+      // faceIDs[1] = vertexIDsToFaceID[{ v[0], v[1], v[3] }];
+      // faceIDs[2] = vertexIDsToFaceID[{ v[0], v[2], v[3] }];
+      // faceIDs[3] = vertexIDsToFaceID[{ v[1], v[2], v[3] }];
 
       std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
 
       // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
 
-      edgeLocalVertexToCellLocalVertexMaps[0][edges_sps.at( edgeIDs[0].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      edgeLocalVertexToCellLocalVertexMaps[0][edges_sps.at( edgeIDs[0].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         for ( const auto& j : edgeOrder[i] )
+         {
+            edgeLocalVertexToCellLocalVertexMaps[i][edges_sps.at( edgeIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
 
-      edgeLocalVertexToCellLocalVertexMaps[1][edges_sps.at( edgeIDs[1].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      edgeLocalVertexToCellLocalVertexMaps[1][edges_sps.at( edgeIDs[1].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      // edgeLocalVertexToCellLocalVertexMaps[0][edges_sps.at( edgeIDs[0].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // edgeLocalVertexToCellLocalVertexMaps[0][edges_sps.at( edgeIDs[0].getID() )->vertex_index( vertexIDs[1] )] = 1;
 
-      edgeLocalVertexToCellLocalVertexMaps[2][edges_sps.at( edgeIDs[2].getID() )->vertex_index( vertexIDs[1] )] = 1;
-      edgeLocalVertexToCellLocalVertexMaps[2][edges_sps.at( edgeIDs[2].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      // edgeLocalVertexToCellLocalVertexMaps[1][edges_sps.at( edgeIDs[1].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // edgeLocalVertexToCellLocalVertexMaps[1][edges_sps.at( edgeIDs[1].getID() )->vertex_index( vertexIDs[2] )] = 2;
 
-      edgeLocalVertexToCellLocalVertexMaps[3][edges_sps.at( edgeIDs[3].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      edgeLocalVertexToCellLocalVertexMaps[3][edges_sps.at( edgeIDs[3].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // edgeLocalVertexToCellLocalVertexMaps[2][edges_sps.at( edgeIDs[2].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      // edgeLocalVertexToCellLocalVertexMaps[2][edges_sps.at( edgeIDs[2].getID() )->vertex_index( vertexIDs[2] )] = 2;
 
-      edgeLocalVertexToCellLocalVertexMaps[4][edges_sps.at( edgeIDs[4].getID() )->vertex_index( vertexIDs[1] )] = 1;
-      edgeLocalVertexToCellLocalVertexMaps[4][edges_sps.at( edgeIDs[4].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // edgeLocalVertexToCellLocalVertexMaps[3][edges_sps.at( edgeIDs[3].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // edgeLocalVertexToCellLocalVertexMaps[3][edges_sps.at( edgeIDs[3].getID() )->vertex_index( vertexIDs[3] )] = 3;
 
-      edgeLocalVertexToCellLocalVertexMaps[5][edges_sps.at( edgeIDs[5].getID() )->vertex_index( vertexIDs[2] )] = 2;
-      edgeLocalVertexToCellLocalVertexMaps[5][edges_sps.at( edgeIDs[5].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // edgeLocalVertexToCellLocalVertexMaps[4][edges_sps.at( edgeIDs[4].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      // edgeLocalVertexToCellLocalVertexMaps[4][edges_sps.at( edgeIDs[4].getID() )->vertex_index( vertexIDs[3] )] = 3;
+
+      // edgeLocalVertexToCellLocalVertexMaps[5][edges_sps.at( edgeIDs[5].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      // edgeLocalVertexToCellLocalVertexMaps[5][edges_sps.at( edgeIDs[5].getID() )->vertex_index( vertexIDs[3] )] = 3;
 
       std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
 
       // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
 
-      faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[1] )] = 1;
-      faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      for ( uint_t i = 0; i < K + 1; ++i )
+      {
+         for ( auto& j : faceOrder[i] )
+         {
+            faceLocalVertexToCellLocalVertexMaps[i][faces_sps.at( faceIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
 
-      faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[1] )] = 1;
-      faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      // faceLocalVertexToCellLocalVertexMaps[0][faces_sps.at( faceIDs[0].getID() )->vertex_index( vertexIDs[2] )] = 2;
 
-      faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[0] )] = 0;
-      faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[2] )] = 2;
-      faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      // faceLocalVertexToCellLocalVertexMaps[1][faces_sps.at( faceIDs[1].getID() )->vertex_index( vertexIDs[3] )] = 3;
 
-      faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[1] )] = 1;
-      faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[2] )] = 2;
-      faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[3] )] = 3;
+      // faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[0] )] = 0;
+      // faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      // faceLocalVertexToCellLocalVertexMaps[2][faces_sps.at( faceIDs[2].getID() )->vertex_index( vertexIDs[3] )] = 3;
+
+      // faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[1] )] = 1;
+      // faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[2] )] = 2;
+      // faceLocalVertexToCellLocalVertexMaps[3][faces_sps.at( faceIDs[3].getID() )->vertex_index( vertexIDs[3] )] = 3;
 
       // add new cell
       auto primitive = std::make_shared< Cell >( cellID,
