@@ -53,6 +53,8 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       // extract vertices
       _n_vertices = setupStorage.getVertices().size();
       _vertices.resize( _n_vertices );
+      _vertexBoundaryFlag.resize( _n_vertices );
+      _vertexGeometryMap.resize( _n_vertices );
 
       // [0,1,...,n-1]
       std::vector< uint_t > vtxIndices( _n_vertices );
@@ -66,7 +68,9 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
          // extract geometrymap of vertex
-         _vertexMap[idx] = id;
+         _vertexGeometryMap[idx] = id;
+         // extract boundaryFlag of vertex
+         _vertexBoundaryFlag[idx] = vtx->getMeshBoundaryFlag();
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -80,6 +84,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       std::set< std::shared_ptr< Simplex3 > > cells;
       std::vector< PrimitiveID >              v;
 
+      // todo handle boundary flag
       for ( auto& [id, edge] : setupStorage.getEdges() )
       {
          edge->getNeighborVertices( v );
@@ -168,22 +173,96 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
       _n_elements = _T.size();
    }
 
-   // collect all vertices, edges, faces and cells
+   WALBERLA_LOG_INFO( ">>>>>>>> refinement done <<<<<<<<<<<<<<\n\n" );
+
+   // extract connectivity, geometry and boundary data
+   EdgeData edges;
+   FaceData faces;
+   CellData cells;
+   extract_data( edges, faces, cells );
+
+   WALBERLA_LOG_INFO( ">>>>>>>> extraction done <<<<<<<<<<<<<<\n\n" );
+
+   // broadcast data to all processes
+   walberla::mpi::broadcastObject( _n_elements );
+   walberla::mpi::broadcastObject( _n_vertices );
+   walberla::mpi::broadcastObject( _vertices );
+   walberla::mpi::broadcastObject( _vertexGeometryMap );
+   walberla::mpi::broadcastObject( _vertexBoundaryFlag );
+   edges.broadcast();
+   faces.broadcast();
+   cells.broadcast();
+
+   WALBERLA_LOG_INFO( ">>>>>>>> broadcast done <<<<<<<<<<<<<<\n\n" );
+
+   // update storage
+   auto id = updateSetupStorage( edges, faces, cells, _setupStorage.getNumberOfProcesses() );
+
+   // todo clear vertex data on rank!=0
+
+   WALBERLA_LOG_INFO( ">>>>>>>> storage done <<<<<<<<<<<<<<\n\n" );
+
+   // insert PrimitiveIDs to volume elements
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         el->setPrimitiveID( id );
+         ++id;
+      }
+   }
+
+   return _setupStorage;
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const
+{
    std::set< std::shared_ptr< Simplex1 > > edges;
    std::set< std::shared_ptr< Simplex2 > > faces;
    std::set< std::shared_ptr< Simplex3 > > cells;
-   collect_elements( cells, faces, edges );
-   walberla::mpi::broadcastObject( _vertices );
-   walberla::mpi::broadcastObject( _vertexMap );
-   // walberla::mpi::broadcastObject( edges );
-   // walberla::mpi::broadcastObject( faces );
-   // walberla::mpi::broadcastObject( cells );
 
-   // create new setupStorage
-   _setupStorage =
-       CreateSetupStorage( _vertices, edges, faces, cells, _geometryMap, _vertexMap, _setupStorage.getNumberOfProcesses() );
+   // collect cells
+   if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+   {
+      cells = _T;
+   }
+   // collect faces
+   if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+   {
+      faces = _T;
+   }
+   for ( auto& cell : cells )
+   {
+      for ( auto& face : cell->get_faces() )
+      {
+         faces.insert( face );
+      }
+   }
+   // collect edges
+   for ( auto& face : faces )
+   {
+      for ( auto& edge : face->get_edges() )
+      {
+         edges.insert( edge );
+      }
+   }
 
-   return _setupStorage;
+   // collect celldata
+   for ( auto& cell : cells )
+   {
+      cellData.add( cell.get() );
+   }
+   // collect facedata
+   for ( auto& face : faces )
+   {
+      faceData.add( face.get() );
+   }
+   // collect edgedata
+   for ( auto& edge : edges )
+   {
+      edgeData.add( edge.get() );
+   }
 }
 
 template < class K_Simplex >
@@ -411,7 +490,7 @@ std::set< std::shared_ptr< Simplex3 > >
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, _vertexMap, face );
+               refine_face_red( _vertices, _vertexGeometryMap, face );
             }
 
             ++n_red;
@@ -543,13 +622,13 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
 template <>
 std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
 {
-   return refine_cell_red( _vertices, _vertexMap, element );
+   return refine_cell_red( _vertices, _vertexGeometryMap, element );
 }
 
 template <>
 std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
 {
-   return refine_face_red( _vertices, _vertexMap, element );
+   return refine_face_red( _vertices, _vertexGeometryMap, element );
 }
 
 template < class K_Simplex >
@@ -593,6 +672,17 @@ real_t K_Mesh< K_Simplex >::volume() const
 
 template class K_Mesh< Simplex2 >;
 template class K_Mesh< Simplex3 >;
+
+// SimplexData
+
+template < class K_Simplex >
+template < size_t J >
+inline void K_Mesh< K_Simplex >::SimplexData< J >::broadcast()
+{
+   walberla::mpi::broadcastObject( this->vertices );
+   walberla::mpi::broadcastObject( this->geometryMap );
+   walberla::mpi::broadcastObject( this->boundaryFlag );
+}
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// todo handle boundary flag
+
 #pragma once
 
 #include <set>
@@ -54,7 +56,7 @@ namespace adaptiveRefinement {
       @return sub-elements
    */
 inline std::set< std::shared_ptr< Simplex2 > >
-    refine_face_red( std::vector< Point3D >& vertices, std::map< uint_t, uint_t >& geometryMap, std::shared_ptr< Simplex2 > face )
+    refine_face_red( std::vector< Point3D >& vertices, std::vector< uint_t >& geometryMap, std::shared_ptr< Simplex2 > face )
 {
    // === prepare sets of vertices and edges for face->split() ===
 

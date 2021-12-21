@@ -69,10 +69,14 @@ class Simplex
       @param parent        K-simplex s.th. this is a direct refinement of parent
       @param geometrymap   geometrymap for this element (default: map inherited from parent)
    */
-   Simplex( const std::array< uint_t, K + 1 >& vertices, std::shared_ptr< K_Simplex > parent, uint_t geometryMap = uint_t( -1 ) )
+   Simplex( const std::array< uint_t, K + 1 >& vertices,
+            std::shared_ptr< K_Simplex >       parent,
+            uint_t                             geometryMap  = uint_t( -1 ),
+            uint_t                             boundaryFlag = 0 )
    : _vertices( vertices )
    , _parent( parent )
    , _geometryMap( ( parent == nullptr || geometryMap != uint_t( -1 ) ) ? geometryMap : parent->getGeometryMap() )
+   , _boundaryFlag( ( parent == nullptr ) ? boundaryFlag : parent->getBoundaryFlag() )
    {}
 
    // return true if this has been refined
@@ -124,6 +128,7 @@ class Simplex
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
    const uint_t&      getGeometryMap() const { return _geometryMap; }
+   const uint_t&      getBoundaryFlag() const { return _boundaryFlag; }
    const PrimitiveID& getPrimitiveID() const { return _id; }
 
    void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
@@ -133,6 +138,7 @@ class Simplex
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
    uint_t                                      _geometryMap;
+   uint_t                                      _boundaryFlag;
    PrimitiveID                                 _id;
 };
 
@@ -149,10 +155,11 @@ class Simplex1 : public Simplex< 1, Simplex1 >
    */
    Simplex1( uint_t                      p1,
              uint_t                      p2,
-             std::shared_ptr< Simplex1 > parent      = nullptr,
-             Color                       c           = RED,
-             uint_t                      geometryMap = uint_t( -1 ) )
-   : Simplex< 1, Simplex1 >( { p1, p2 }, parent, geometryMap )
+             std::shared_ptr< Simplex1 > parent       = nullptr,
+             Color                       c            = RED,
+             uint_t                      geometryMap  = uint_t( -1 ),
+             uint_t                      boundaryFlag = 0 )
+   : Simplex< 1, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
    , _color( c )
    , _midpoint( -1 )
    {}
@@ -198,8 +205,9 @@ class Simplex2 : public Simplex< 2, Simplex2 >
    */
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
-             std::shared_ptr< Simplex2 >                         parent      = nullptr,
-             uint_t                                              geometryMap = uint_t( -1 ) );
+             std::shared_ptr< Simplex2 >                         parent       = nullptr,
+             uint_t                                              geometryMap  = uint_t( -1 ),
+             uint_t                                              boundaryFlag = 0 );
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
@@ -257,8 +265,9 @@ class Simplex3 : public Simplex< 3, Simplex3 >
    Simplex3( const std::array< uint_t, 4 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
-             std::shared_ptr< Simplex3 >                         parent      = nullptr,
-             uint_t                                              geometryMap = uint_t( -1 ) );
+             std::shared_ptr< Simplex3 >                         parent       = nullptr,
+             uint_t                                              geometryMap  = uint_t( -1 ),
+             uint_t                                              boundaryFlag = 0 );
 
    bool has_green_edge() const;
 

@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// todo handle boundary flag
+
 #include "simplex.hpp"
 
 #include <algorithm>
@@ -183,8 +185,9 @@ uint_t Simplex1::inner_vertices() const
 Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
                     std::shared_ptr< Simplex2 >                         parent,
-                    uint_t                      geometryMap )
-: Simplex< 2, Simplex2 >( vertices, parent, geometryMap )
+                    uint_t                                              geometryMap,
+                    uint_t                                              boundaryFlag )
+: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag )
 , _edges( edges )
 {
    for ( uint_t i = 0; i < 3; ++i )
@@ -281,8 +284,9 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
                     const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
                     std::shared_ptr< Simplex3 >                         parent,
-                    uint_t                      geometryMap )
-: Simplex< 3, Simplex3 >( vertices, parent, geometryMap )
+                    uint_t                                              geometryMap,
+                    uint_t                                              boundaryFlag )
+: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag )
 , _edges( edges )
 , _faces( faces )
 {
