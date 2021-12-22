@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// todo handle boundary flag
-
 #pragma once
 
 #include <set>
@@ -92,8 +90,9 @@ inline std::set< std::shared_ptr< Simplex2 > >
          ref_vertices[3 + i] = vertices.size();
          // add midpoint to list of all vertices
          vertices.push_back( mid );
-         // add geometry map to new vertex
-         geometryMap[vertices.size() - 1] = edge->getGeometryMap();
+         // add properties of new vertex
+         geometryMap.push_back(edge->getGeometryMap());
+         // todo boundaryFlag.push_back(edge->getGeometryMap());
       }
    }
 
