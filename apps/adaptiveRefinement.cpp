@@ -172,7 +172,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
       tmp.multElementwise( { err, tmp }, l_max );
       // sanity check
       auto check = std::sqrt( tmp.sumGlobal( l_max ) );
-      if ( std::abs( check - l2err ) > 1e-15 )
+      if ( std::abs( check - l2err ) > 1e-10 )
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" << l2err << " != " << check );
       }
@@ -190,52 +190,70 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    return err_2_elwise;
 }
 
-void solve_for_each_refinement( uint_t dim, uint_t n, real_t p, uint_t lvl, uint_t iter, real_t tol, bool vtk )
+SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, uint_t N3 )
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
-   // setup domain
-   double min = 1.0 / std::sqrt( 4 * PI );
-   double max = 5;
-   uint_t N   = 4;
-   uint_t M   = 2;
-   if ( dim == 3 )
-   {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { min, min, min } ), Point3D( { max, max, max } ), N, N, N );
-      // todo: use spherical shell
-   }
-   else if ( dim == 2 )
-   {
-      // meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N, N );
-      meshInfo = MeshInfo::meshAnnulus( min, max, MeshInfo::CRISS, N, M );
-   }
-   else
-   {
-      WALBERLA_ABORT( "Dimension must be either 2 or 3!" );
-   }
+   constexpr double min = 1.0 / std::sqrt( 4 * PI );
+   constexpr double max = 5;
 
-   // construct initial setupStorage
-   SetupPrimitiveStorage  initialStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   SetupPrimitiveStorage& setupStorage = initialStorage;
-
-   // apply geometry map
-   if ( dim == 3 )
+   if ( dim == 3 && shape == 0 )
+   {
+      meshInfo = MeshInfo::meshCuboid( Point3D( { min, min, min } ), Point3D( { max, max, max } ), N1, N2, N3 );
+   }
+   else if ( dim == 3 && shape == 1 )
    {
       // todo
    }
+   else if ( dim == 2 && shape == 0 )
+   {
+      meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N1, N2 );
+   }
+   else if ( dim == 2 && shape == 1 )
+   {
+      meshInfo = MeshInfo::meshAnnulus( min, max, MeshInfo::CRISS, N1, N2 );
+   }
    else
    {
-      AnnulusMap::setMap( setupStorage );
+      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
    }
 
-   // construct adaptive mesh and update setup storage
-   adaptiveRefinement::Mesh mesh( setupStorage );
-   setupStorage = mesh.setupStorage();
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   // apply geometry map
+   if ( shape == 1 )
+   {
+      if ( dim == 3 )
+      {
+         // todo
+      }
+      else // dim == 2
+      {
+         AnnulusMap::setMap( setupStorage );
+      }
+   }
+
+   return setupStorage;
+}
+
+void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
+                                uint_t                       n,
+                                real_t                       p,
+                                uint_t                       lvl,
+                                uint_t                       iter,
+                                real_t                       tol,
+                                bool                         vtk )
+{
+   // construct adaptive mesh
+   adaptiveRefinement::Mesh mesh( initialStorage );
+   SetupPrimitiveStorage&   setupStorage = mesh.setupStorage();
 
    std::vector< std::pair< real_t, hyteg::PrimitiveID > > local_errors;
 
+   // loop over refinement levels
    for ( uint_t refinement = 0; refinement <= n; ++refinement )
    {
+      // apply refinement
       if ( refinement > 0 )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
@@ -297,15 +315,24 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "config = " << *cfg );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
-   const uint_t dim           = parameters.getParameter< uint_t >( "dim" );
-   const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t lvl           = parameters.getParameter< uint_t >( "microlevel" );
-   const real_t p_refinement  = parameters.getParameter< real_t >( "proportion_of_elements_refined_per_step" );
-   const uint_t iter          = parameters.getParameter< uint_t >( "n_iterations" );
-   const real_t tol           = parameters.getParameter< real_t >( "tolerance" );
-   const bool   vtkoutput     = parameters.getParameter< bool >( "vtkOutput" );
+   const uint_t dim   = parameters.getParameter< uint_t >( "dim" );
+   const uint_t shape = parameters.getParameter< uint_t >( "shape" );
+   const uint_t N1    = parameters.getParameter< uint_t >( "n1" );
+   const uint_t N2    = parameters.getParameter< uint_t >( "n2" );
+   const uint_t N3    = parameters.getParameter< uint_t >( "n3" );
 
-   solve_for_each_refinement( dim, n_refinements, p_refinement, lvl, iter, tol, vtkoutput );
+   const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
+   const real_t p_refinement  = parameters.getParameter< real_t >( "proportion_of_elements_refined_per_step" );
+   const uint_t lvl           = parameters.getParameter< uint_t >( "microlevel" );
+
+   const uint_t iter = parameters.getParameter< uint_t >( "n_iterations" );
+   const real_t tol  = parameters.getParameter< real_t >( "tolerance" );
+
+   const bool vtkoutput = parameters.getParameter< bool >( "vtkOutput" );
+
+   // solve
+   auto setupStorage = domain( dim, shape, N1, N2, N3 );
+   solve_for_each_refinement( setupStorage, n_refinements, p_refinement, lvl, iter, tol, vtkoutput );
 
    return 0;
 }
