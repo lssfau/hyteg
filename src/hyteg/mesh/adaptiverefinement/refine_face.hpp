@@ -29,32 +29,37 @@ namespace adaptiveRefinement {
 
 /* apply red refinement to face and add required vertices to vertices
       2
-         |\
-         | \
-         |  \
-      [4]|   \ [3]
-         |    \
-         | (2) \
-         |      \
-         |       \
-         |        \
-         |   [7]   \
-         5|----------4
-         |\        | \
-         | \       |  \
-         |  \  (3) |   \
-         |   \[8]  |[6] \ [2]
-      [5]|    \    |     \
-         | (0) \   | (1)  \
-         |      \  |       \
-         |       \ |        \
-         0---------3---------1
-            [0]        [1]
-
-      @return sub-elements
+      |\
+      | \
+      |  \
+   [4]|   \ [3]
+      |    \
+      | (2) \
+      |      \
+      |       \
+      |        \
+      |   [7]   \
+      5|----------4
+      |\        | \
+      | \       |  \
+      |  \  (3) |   \
+      |   \[8]  |[6] \ [2]
+   [5]|    \    |     \
+      | (0) \   | (1)  \
+      |      \  |       \
+      |       \ |        \
+      0---------3---------1
+         [0]        [1]
+   @param vertices      global coordinates of all vertices in the mesh
+   @param geometryMap   geometrymap ID of all vertices in the mesh
+   @param boundaryFlag  boundaryFlag of all vertices in the mesh
+   @param face          subject to refinement
+   @return sub-elements
    */
-inline std::set< std::shared_ptr< Simplex2 > >
-    refine_face_red( std::vector< Point3D >& vertices, std::vector< uint_t >& geometryMap, std::shared_ptr< Simplex2 > face )
+inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Point3D >&     vertices,
+                                                                std::vector< uint_t >&      geometryMap,
+                                                                std::vector< uint_t >&      boundaryFlag,
+                                                                std::shared_ptr< Simplex2 > face )
 {
    // === prepare sets of vertices and edges for face->split() ===
 
@@ -91,8 +96,8 @@ inline std::set< std::shared_ptr< Simplex2 > >
          // add midpoint to list of all vertices
          vertices.push_back( mid );
          // add properties of new vertex
-         geometryMap.push_back(edge->getGeometryMap());
-         // todo boundaryFlag.push_back(edge->getGeometryMap());
+         geometryMap.push_back( edge->getGeometryMap() );
+         boundaryFlag.push_back( edge->getGeometryMap() );
       }
    }
 
@@ -120,7 +125,8 @@ inline std::set< std::shared_ptr< Simplex2 > >
    {
       uint_t i0        = 3 + i;
       uint_t i1        = 3 + ( ( i + 1 ) % 3 );
-      ref_edges[6 + i] = std::make_shared< Simplex1 >( ref_vertices[i0], ref_vertices[i1], nullptr, RED, face->getGeometryMap() );
+      ref_edges[6 + i] = std::make_shared< Simplex1 >(
+          ref_vertices[i0], ref_vertices[i1], nullptr, RED, face->getGeometryMap(), face->getBoundaryFlag() );
    }
 
    // === split face ===
@@ -209,7 +215,8 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    ref_edges[3]     = child_edges[1];
 
    // add new edge
-   ref_edges[4] = std::make_shared< Simplex1 >( ref_vertices[1], ref_vertices[3], nullptr, GREEN, face->getGeometryMap() );
+   ref_edges[4] = std::make_shared< Simplex1 >(
+       ref_vertices[1], ref_vertices[3], nullptr, GREEN, face->getGeometryMap(), face->getBoundaryFlag() );
 
    // === split face ===
 

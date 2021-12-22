@@ -21,8 +21,6 @@
 #pragma once
 #include "mesh.hpp"
 
-// todo fix communication bug
-
 namespace hyteg {
 namespace adaptiveRefinement {
 
@@ -40,7 +38,6 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
    // give each primitive a running id
    uint_t id = 0;
 
-   WALBERLA_LOG_INFO( ">>>>>>> add vertices <<<<<<<<<<<<<<\n\n" );
    //****** add vertices to storage ******
 
    for ( const auto& vtx : _vertices )
@@ -58,7 +55,6 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
       ++id;
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> add edges <<<<<<<<<<<<<<\n\n" );
    //****** add edges to storage ******
 
    // identify edges with their vertex IDs
@@ -118,7 +114,6 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
       ++id;
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> add faces <<<<<<<<<<<<<<\n\n" );
    //****** add faces to storage ******
 
    // write back ID of first face
@@ -213,7 +208,6 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
       ++id;
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> add cells <<<<<<<<<<<<<<\n\n" );
    //****** add cells to storage ******
 
    // write back ID of first cell
@@ -377,7 +371,6 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
       ++id;
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> add indirect nbrs <<<<<<<<<<<<<<\n\n" );
    //****** add indirect neighbor faces ******
 
    for ( const auto& [faceID, face] : faces_sps )
@@ -424,11 +417,9 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
           cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> setupStorage <<<<<<<<<<<<<<\n\n" );
    //****** construct new setupStorage ******
    _setupStorage = SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
 
-   WALBERLA_LOG_INFO( ">>>>>>>> return <<<<<<<<<<<<<<\n\n" );
    return ( cells.size() == 0 ) ? face0 : cell0;
 }
 

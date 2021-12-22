@@ -57,8 +57,6 @@ class Idx : public std::array< uint_t, K >
    }
 };
 
-// todo Simplex1
-
 // CRTP-base class for K-simplices
 template < uint_t K, class K_Simplex >
 class Simplex
@@ -131,6 +129,8 @@ class Simplex
    const uint_t&      getBoundaryFlag() const { return _boundaryFlag; }
    const PrimitiveID& getPrimitiveID() const { return _id; }
 
+   void setGeometryMap( const uint_t& geometryMap ) { _geometryMap = geometryMap; }
+   void setBoundaryFlag( const uint_t& boundaryFlag ) { _boundaryFlag = boundaryFlag; }
    void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
 
  protected:

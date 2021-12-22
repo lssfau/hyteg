@@ -84,30 +84,32 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       std::set< std::shared_ptr< Simplex3 > > cells;
       std::vector< PrimitiveID >              v;
 
-      // todo handle boundary flag
       for ( auto& [id, edge] : setupStorage.getEdges() )
       {
          edge->getNeighborVertices( v );
-         fac.useGeometryMap( id );
          auto myEdge = fac.make_edge( conversion[v[0].getID()], conversion[v[1].getID()] );
          myEdge->setPrimitiveID( id );
+         myEdge->setGeometryMap( id );
+         myEdge->setBoundaryFlag( edge->getMeshBoundaryFlag() );
       }
 
       for ( auto& [id, face] : setupStorage.getFaces() )
       {
          face->getNeighborVertices( v );
-         fac.useGeometryMap( id );
          auto myFace = fac.make_face( conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()] );
          myFace->setPrimitiveID( id );
+         myFace->setGeometryMap( id );
+         myFace->setBoundaryFlag( face->getMeshBoundaryFlag() );
       }
 
       for ( auto& [id, cell] : setupStorage.getCells() )
       {
          cell->getNeighborVertices( v );
-         fac.useGeometryMap( id );
          auto myCell = fac.make_cell(
              conversion[v[0].getID()], conversion[v[1].getID()], conversion[v[2].getID()], conversion[v[3].getID()] );
          myCell->setPrimitiveID( id );
+         myCell->setGeometryMap( id );
+         myCell->setBoundaryFlag( cell->getMeshBoundaryFlag() );
          cells.insert( myCell );
       }
 
@@ -173,15 +175,11 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
       _n_elements = _T.size();
    }
 
-   WALBERLA_LOG_INFO( ">>>>>>>> refinement done <<<<<<<<<<<<<<\n\n" );
-
    // extract connectivity, geometry and boundary data
    EdgeData edges;
    FaceData faces;
    CellData cells;
    extract_data( edges, faces, cells );
-
-   WALBERLA_LOG_INFO( ">>>>>>>> extraction done <<<<<<<<<<<<<<\n\n" );
 
    // broadcast data to all processes
    walberla::mpi::broadcastObject( _n_elements );
@@ -193,14 +191,10 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
    faces.broadcast();
    cells.broadcast();
 
-   WALBERLA_LOG_INFO( ">>>>>>>> broadcast done <<<<<<<<<<<<<<\n\n" );
-
    // update storage
    auto id = updateSetupStorage( edges, faces, cells, _setupStorage.getNumberOfProcesses() );
 
    // todo clear vertex data on rank!=0
-
-   WALBERLA_LOG_INFO( ">>>>>>>> storage done <<<<<<<<<<<<<<\n\n" );
 
    // insert PrimitiveIDs to volume elements
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -347,6 +341,8 @@ inline std::set< std::shared_ptr< K_Simplex > >
 {
    std::set< std::shared_ptr< K_Simplex > > R;
 
+   // todo use ids instead of barycenters
+
    auto barycenter_R = compute_barycenters( primitiveIDs );
 
    for ( auto& el : _T )
@@ -490,7 +486,7 @@ std::set< std::shared_ptr< Simplex3 > >
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, _vertexGeometryMap, face );
+               refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, face );
             }
 
             ++n_red;
@@ -622,13 +618,13 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
 template <>
 std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
 {
-   return refine_cell_red( _vertices, _vertexGeometryMap, element );
+   return refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
 }
 
 template <>
 std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
 {
-   return refine_face_red( _vertices, _vertexGeometryMap, element );
+   return refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
 }
 
 template < class K_Simplex >

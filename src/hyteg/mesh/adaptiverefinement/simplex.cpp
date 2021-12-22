@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// todo handle boundary flag
-
 #include "simplex.hpp"
 
 #include <algorithm>

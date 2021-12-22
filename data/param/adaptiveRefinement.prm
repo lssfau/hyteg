@@ -3,15 +3,15 @@ Parameters
   // spacial dimension of domain
   dim 2;
   // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 0;
+  shape 1;
   // initial mesh (n3 only used for cube)
-  n1 1;
-  n2 1;
+  n1 6;
+  n2 2;
   n3 1;
 
   // adaptive refinement
   n_refinements 1;
-  proportion_of_elements_refined_per_step 1;
+  proportion_of_elements_refined_per_step 0.2;
 
   // linear solver (cg)
   microlevel 0;

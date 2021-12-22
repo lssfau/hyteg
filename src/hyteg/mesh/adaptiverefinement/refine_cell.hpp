@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// todo handle boundary flag
-
 #pragma once
 
 #include "refine_face.hpp"
@@ -29,10 +27,16 @@ namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply red refinement to cell and add required vertices to vertices
-      @return sub-elements
-   */
-inline std::set< std::shared_ptr< Simplex3 > >
-    refine_cell_red( std::vector< Point3D >& vertices, std::vector< uint_t >& geometryMap, std::shared_ptr< Simplex3 > cell )
+   @param vertices      global coordinates of all vertices in the mesh
+   @param geometryMap   geometrymap ID of all vertices in the mesh
+   @param boundaryFlag  boundaryFlag of all vertices in the mesh
+   @param cell          subject to refinement
+   @return sub-elements
+*/
+inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&     vertices,
+                                                                std::vector< uint_t >&      geometryMap,
+                                                                std::vector< uint_t >&      boundaryFlag,
+                                                                std::shared_ptr< Simplex3 > cell )
 {
    // === split faces ===
    for ( auto& face : cell->get_faces() )
@@ -46,7 +50,7 @@ inline std::set< std::shared_ptr< Simplex3 > >
       if ( !face->has_children() )
       {
          // apply red refinement to face
-         refine_face_red( vertices, geometryMap, face );
+         refine_face_red( vertices, geometryMap, boundaryFlag, face );
       }
    }
 

@@ -25,7 +25,7 @@ namespace adaptiveRefinement {
 
 std::shared_ptr< Simplex1 > SimplexFactory::make_edge( uint_t a, uint_t b, Color color )
 {
-   auto edge = std::make_shared< Simplex1 >( _vertices[a], _vertices[b], nullptr, color, _geometryMap );
+   auto edge = std::make_shared< Simplex1 >( _vertices[a], _vertices[b], nullptr, color, _geometryMap, _boundaryFlag );
    this->add_edge( a, b, edge );
    return edge;
 }
@@ -35,7 +35,7 @@ std::shared_ptr< Simplex2 > SimplexFactory::make_face( uint_t a, uint_t b, uint_
    std::array< uint_t, 3 >                      V{ _vertices[a], _vertices[b], _vertices[c] };
    std::array< std::shared_ptr< Simplex1 >, 3 > E{ _edges[{ a, b }], _edges[{ b, c }], _edges[{ c, a }] };
 
-   auto face = std::make_shared< Simplex2 >( V, E, nullptr, _geometryMap );
+   auto face = std::make_shared< Simplex2 >( V, E, nullptr, _geometryMap, _boundaryFlag );
    this->add_face( a, b, c, face );
    return face;
 }
@@ -50,7 +50,7 @@ std::shared_ptr< Simplex3 > SimplexFactory::make_cell( uint_t a, uint_t b, uint_
    std::array< std::shared_ptr< Simplex2 >, 4 > F{
        _faces[{ a, b, c }], _faces[{ a, b, d }], _faces[{ b, c, d }], _faces[{ a, c, d }] };
 
-   return std::make_shared< Simplex3 >( V, E, F, _parent, _geometryMap );
+   return std::make_shared< Simplex3 >( V, E, F, _parent, _geometryMap, _boundaryFlag );
 }
 
 } // namespace adaptiveRefinement

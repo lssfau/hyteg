@@ -74,7 +74,7 @@ class K_Mesh
       {
          vertices.push_back( simplex->get_vertices() );
          geometryMap.push_back( simplex->getGeometryMap() );
-         boundaryFlag.push_back( 0 ); // todo boundaryFlag.push_back(simplex->getBoundaryFlag());
+         boundaryFlag.push_back( simplex->getBoundaryFlag() );
       }
 
       void broadcast();
@@ -83,7 +83,6 @@ class K_Mesh
       const uint_t&                      getGeometryMap( uint_t i ) const { return geometryMap[i]; }
       const uint_t&                      getBoundaryFlag( uint_t i ) const { return boundaryFlag[i]; }
       uint_t                             size() const { return vertices.size(); }
-
 
     private:
       std::vector< std::array< uint_t, J + 1 > > vertices;

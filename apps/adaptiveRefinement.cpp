@@ -49,25 +49,16 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
    // continuous functions
    // auto coeff = [=]( const hyteg::Point3D& ) { return 1; };
-   auto exact = [=]( const hyteg::Point3D& x ) { return sin( 1.0 / x.normSq() ); };
-
-   std::function< real_t( const hyteg::Point3D& ) > rhs;
-   if ( storage->hasGlobalCells() )
-   {
-      rhs = [=]( const hyteg::Point3D& x ) {
-         auto x0 = x.normSq();
-         auto x1 = 1.0 / x0;
-         return 2 * ( -x0 * cos( x1 ) + 2 * sin( x1 ) ) / pow( x0, 3 );
-      };
-   }
-   else
-   {
-      rhs = [=]( const hyteg::Point3D& x ) {
-         auto x0 = x.normSq();
-         auto x1 = 1.0 / x0;
-         return 4 * ( -x0 * cos( x1 ) + sin( x1 ) ) / pow( x0, 3 );
-      };
-   }
+   auto exact = [=]( const hyteg::Point3D& x ) {
+      auto r2 = x.normSq();
+      return sin( 1.0 / ( r2 * r2 ) );
+   };
+   auto rhs = [=]( const hyteg::Point3D& x ) {
+      auto r2 = x.normSq();
+      auto x0 = r2 * r2;
+      auto x1 = 1.0 / x0;
+      return 4 * ( x0 * ( real_t( dim ) - 6 ) * cos( x1 ) + 4 * sin( x1 ) ) / pow( r2, 5 );
+   };
 
    // operators
    P1BlendingMassOperator    M( storage, l_min, l_max );
@@ -194,8 +185,10 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
-   constexpr double min = 1.0 / std::sqrt( 4 * PI );
-   constexpr double max = 5;
+   // constexpr double min = 1.0 / std::sqrt( 4 * PI );
+   // constexpr double max = 5;
+   constexpr double min = 1.0 / std::pow( 2 * PI, 1.0 / 4.0 );
+   constexpr double max = 2;
 
    if ( dim == 3 && shape == 0 )
    {
@@ -232,6 +225,9 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
          AnnulusMap::setMap( setupStorage );
       }
    }
+
+   // todo fix boundary issue
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    return setupStorage;
 }
@@ -276,13 +272,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
-      // apply boundary conditions and load balancing
-      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-      loadbalancing::roundRobin( setupStorage );
-
-      // std::stringstream ss;
-      // setupStorage.toStream( ss, true );
-      // WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
+      std::stringstream ss;
+      setupStorage.toStream( ss, true );
+      WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
 
       // construct PrimitiveStorage from setupStorage corresponding to current refinement
       auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
