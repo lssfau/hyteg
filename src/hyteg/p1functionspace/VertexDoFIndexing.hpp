@@ -25,7 +25,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/StencilDirections.hpp"
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"

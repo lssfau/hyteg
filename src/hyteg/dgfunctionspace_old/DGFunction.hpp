@@ -19,21 +19,21 @@
  */
 #pragma once
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 
 namespace hyteg {
 
 template < typename ValueType >
-class DGFunction : public FaceDoFFunction< ValueType >
+class DGFunction_old : public FaceDoFFunction_old< ValueType >
 {
  public:
    typedef ValueType valueType;
 
    template < typename VType >
-   using FunctionType = DGFunction< VType >;
+   using FunctionType = DGFunction_old< VType >;
 
-   DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : FaceDoFFunction< ValueType >( name, storage, minLevel, maxLevel )
+   DGFunction_old( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : FaceDoFFunction_old< ValueType >( name, storage, minLevel, maxLevel )
    {}
 
    void projectP1( P1Function< ValueType >& src, uint_t level, DoFType flag, UpdateType updateType = Replace );

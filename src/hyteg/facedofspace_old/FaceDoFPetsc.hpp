@@ -25,8 +25,8 @@
 
 namespace hyteg {
 
-inline void createVectorFromFunction( const FaceDoFFunction< real_t >&      function,
-                                      const FaceDoFFunction< idx_t >&       numerator,
+inline void createVectorFromFunction( const FaceDoFFunction_old< real_t >&  function,
+                                      const FaceDoFFunction_old< idx_t >&   numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -34,8 +34,8 @@ inline void createVectorFromFunction( const FaceDoFFunction< real_t >&      func
    WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
-inline void createFunctionFromVector( const FaceDoFFunction< real_t >&      function,
-                                      const FaceDoFFunction< idx_t >&       numerator,
+inline void createFunctionFromVector( const FaceDoFFunction_old< real_t >&  function,
+                                      const FaceDoFFunction_old< idx_t >&   numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )

@@ -25,7 +25,7 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"

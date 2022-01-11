@@ -23,7 +23,7 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -205,8 +205,8 @@ int main( int argc, char* argv[] )
    hyteg::run2DTest< P2Function< real_t > >( CONST_FUNCS, storage, "P2Function" );
    hyteg::run2DTest< P2Function< real_t > >( POLY_RAT, storage, "P2Function" );
 
-   hyteg::run2DTest< FaceDoFFunction< real_t > >( CONST_FUNCS, storage, "DGFunction" );
-   hyteg::run2DTest< FaceDoFFunction< real_t > >( POLY_RAT, storage, "DGFunction" );
+   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( CONST_FUNCS, storage, "DGFunction" );
+   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( POLY_RAT, storage, "DGFunction" );
 
    // ------------
    //  3D Testing

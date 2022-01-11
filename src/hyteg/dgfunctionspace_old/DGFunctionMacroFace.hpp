@@ -23,7 +23,7 @@
 // #include "DGFaceIndex.hpp"
 // #include "hyteg/bubblefunctionspace/BubbleFaceIndex.hpp"
 
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace dgfunction {

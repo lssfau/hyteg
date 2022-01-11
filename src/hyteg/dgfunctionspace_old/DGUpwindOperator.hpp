@@ -21,17 +21,17 @@
 
 #include <array>
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGFunctionMacroEdge.hpp"
-#include "hyteg/dgfunctionspace/DGFunctionMacroFace.hpp"
-#include "hyteg/dgfunctionspace/DGFunctionMacroVertex.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroEdge.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroFace.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroVertex.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
 template < class VelocityBaseType >
-class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
+class DGUpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_old< real_t > >
 {
    typedef std::array< VelocityBaseType, 2 > VelocityType;
 
@@ -46,8 +46,8 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
 
    ~DGUpwindOperator() override = default;
 
-   void apply( const DGFunction< real_t >& src,
-               const DGFunction< real_t >& dst,
+   void apply( const DGFunction_old< real_t >& src,
+               const DGFunction_old< real_t >& dst,
                uint_t                      level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const

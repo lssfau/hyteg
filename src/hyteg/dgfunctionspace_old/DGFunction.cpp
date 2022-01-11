@@ -18,16 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
 
-#include "hyteg/dgfunctionspace/DGFunctionMacroEdge.hpp"
-#include "hyteg/dgfunctionspace/DGFunctionMacroFace.hpp"
-#include "hyteg/dgfunctionspace/DGFunctionMacroVertex.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroEdge.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroFace.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunctionMacroVertex.hpp"
 
 namespace hyteg {
 
 template < typename ValueType >
-void DGFunction< ValueType >::projectP1( P1Function< ValueType >& src, uint_t level, DoFType flag, UpdateType updateType )
+void DGFunction_old< ValueType >::projectP1( P1Function< ValueType >& src, uint_t level, DoFType flag, UpdateType updateType )
 {
    this->startTiming( "projectP1" );
 
@@ -85,8 +85,8 @@ void DGFunction< ValueType >::projectP1( P1Function< ValueType >& src, uint_t le
    this->stopTiming( "projectP1" );
 }
 
-template class DGFunction< real_t >;
-template class DGFunction< int32_t >;
-template class DGFunction< int64_t >;
+template class DGFunction_old< real_t >;
+template class DGFunction_old< int32_t >;
+template class DGFunction_old< int64_t >;
 
 } // namespace hyteg

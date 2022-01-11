@@ -28,9 +28,9 @@
 
 // A whole lot of includes, so that createVectorFromFunction below has
 // a valid prototype for all possible cases
-#include "hyteg/dgfunctionspace/DGPetsc.hpp"
+#include "hyteg/dgfunctionspace_old/DGPetsc.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
-#include "hyteg/facedofspace/FaceDoFPetsc.hpp"
+#include "hyteg/facedofspace_old/FaceDoFPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 
