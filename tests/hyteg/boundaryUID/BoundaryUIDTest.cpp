@@ -39,14 +39,10 @@ using namespace hyteg;
 // that we can use them in the interpolation methods to set
 // Dirichlet BC values.
 
-int main( int argc, char* argv[] )
+template < typename func_t >
+void runTest()
 {
-   // -------------
-   //  Basic Setup
-   // -------------
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
+   WALBERLA_LOG_INFO_ON_ROOT( "Running BoundaryUIDTest for " << FunctionTrait< func_t >::getTypeName() );
 
    // -----------------------------------------
    //  Define markers for geometric boundaries
@@ -86,47 +82,71 @@ int main( int argc, char* argv[] )
    // -----------------------
    //  Function Manipulation
    // -----------------------
-   uint_t               minLevel = 2;
-   uint_t               maxLevel = 3;
-   P2Function< real_t > func( "Test Func #1", storage, minLevel, maxLevel );
+   uint_t minLevel = 2;
+   uint_t maxLevel = 3;
+   func_t func( "Test Func #1", storage, minLevel, maxLevel );
 
    // generate bc object and set different conditions on inside and outside
    BoundaryCondition bcs;
    BoundaryUID       outerBC = bcs.createDirichletBC( "Dirichlet on outer radius", markerOuterBoundary );
    BoundaryUID       innerBC = bcs.createDirichletBC( "Dirichlet on inner radius", markerInnerBoundary );
 
-   std::function< real_t( const Point3D& ) > DirichletInner = []( const Point3D& ) { return real_c( 3 ); };
-   std::function< real_t( const Point3D& ) > DirichletOuter = []( const Point3D& ) { return real_c( 1 ); };
+   real_t iValue = real_c( 30 );  // on inner boundary
+   real_t mValue = real_c( 20 );  // in the interior
+   real_t oValue = real_c( 10 );  // on outer boundary
+
+   std::function< real_t( const Point3D& ) > DirichletInner = [ iValue ]( const Point3D& ) { return iValue; };
+   std::function< real_t( const Point3D& ) > DirichletOuter = [ oValue ]( const Point3D& ) { return oValue; };
 
    func.setBoundaryCondition( bcs );
 
    // assign functions values
-   func.interpolate( real_c( 2 ), maxLevel, All );
-   func.interpolate( DirichletInner, maxLevel, innerBC );
-   func.interpolate( DirichletOuter, maxLevel, outerBC );
+   func.interpolate( mValue, maxLevel, All );
+   if constexpr ( !std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
+   {
+      func.interpolate( DirichletInner, maxLevel, innerBC );
+      func.interpolate( DirichletOuter, maxLevel, outerBC );
+
+      // Would fail do to missing implementation for 1st argument being constant:
+      // func.interpolate( iValue, maxLevel, innerBC );
+      // func.interpolate( oValue, maxLevel, innerBC );
+   }
+   else
+   {
+      func.interpolate( {DirichletInner, DirichletInner}, maxLevel, innerBC );
+      func.interpolate( {DirichletOuter, DirichletOuter}, maxLevel, outerBC );
+   }
 
    // ------------------
    //  Control Function
    // ------------------
-   std::function< real_t( const Point3D& ) > controlValues = [innerRad, outerRad]( const Point3D& x ) {
+   std::function< real_t( const Point3D& ) > controlValues = [innerRad, outerRad, iValue, mValue, oValue]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
       real_t mytol  = 1e-14;
       if ( std::abs( innerRad - radius ) < mytol )
       {
-         return real_c( 3 );
+         return iValue;
       }
       else if ( std::abs( outerRad - radius ) < mytol )
       {
-         return real_c( 1 );
+         return oValue;
       }
-      return real_c( 2 );
+      return mValue;
    };
 
-   P2Function< real_t > ctrl( "Test Func #2", storage, minLevel, maxLevel );
-   P2Function< real_t > diff( "Test Func #3", storage, minLevel, maxLevel );
+   func_t ctrl( "Test Func #2", storage, minLevel, maxLevel );
+   func_t diff( "Test Func #3", storage, minLevel, maxLevel );
    ctrl.interpolate( controlValues, maxLevel, All );
    diff.assign( {-1.0, 1.0}, {func, ctrl}, maxLevel, All );
-   real_t check = diff.getMaxMagnitude( maxLevel, All );
+   real_t check = real_c( 0 );
+   if constexpr ( std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
+   {
+      check = diff.getMaxComponentMagnitude( maxLevel, All );
+   }
+   else
+   {
+      check = diff.getMaxMagnitude( maxLevel, All );
+   }
    WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
 
    // ------------
@@ -144,6 +164,24 @@ int main( int argc, char* argv[] )
       vtkOutput.add( diff );
       vtkOutput.write( maxLevel );
    }
+}
+
+int main( int argc, char* argv[] )
+{
+   // -------------
+   //  Basic Setup
+   // -------------
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   // ------------------------------------------
+   //  Run test with different function classes
+   // ------------------------------------------
+   runTest< P1Function< real_t > >();
+   runTest< P2Function< real_t > >();
+   runTest< P1VectorFunction< real_t > >();
+   runTest< P2VectorFunction< real_t > >();
 
    return 0;
 }
