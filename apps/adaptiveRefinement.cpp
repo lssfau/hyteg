@@ -26,6 +26,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/adaptiverefinement/mesh.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -37,32 +38,68 @@ using walberla::real_t;
 using walberla::uint_t;
 
 #define PI 3.14159265359
+#define R_min 1.0
+#define R_max 2.0
+
+// functions corresponding to a pde of type -∇⋅(k∇u) = f
+struct PDE_data
+{
+   std::function< real_t( const hyteg::Point3D& ) > u_anal; // analytic solution u
+   std::function< real_t( const hyteg::Point3D& ) > f;      // rhs f
+   std::function< real_t( const hyteg::Point3D& ) > k;      // diffusion coefficient k
+   std::function< real_t( const hyteg::Point3D& ) > u_D;    // dirichlet data
+};
+
+PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
+{
+   PDE_data pde;
+
+   pde.u_anal = [=]( const hyteg::Point3D& x ) {
+      auto x0 = tanh( alpha * ( x.norm() - 1.5 ) );
+      return 0.5 * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) * exp( -beta ) /
+             alpha;
+   };
+
+   pde.k = [=]( const hyteg::Point3D& x ) {
+      auto x0 = x.norm();
+      auto x1 = ( dim == 2 ) ? x0 : x0 * x0;
+      return exp( beta * tanh( alpha * ( x0 - 1.5 ) ) ) / x1;
+   };
+
+   pde.f = [=]( const hyteg::Point3D& ) { return 0; };
+
+   if ( shape == 0 ) // no blending
+   {
+      pde.u_D = pde.u_anal;
+   }
+   else // blending
+   {
+      auto R_mid   = ( R_min + R_max ) / 2.0;
+      auto u_inner = pde.u_anal( Point3D( { R_min, 0, 0 } ) );
+      auto u_outer = pde.u_anal( Point3D( { R_max, 0, 0 } ) );
+
+      pde.u_D = [=]( const hyteg::Point3D& x ) { return ( x.norm() < R_mid ) ? u_inner : u_outer; };
+   }
+
+   return pde;
+}
 
 // solve problem with current refinement and return sorted list of elementwise squared errors
 std::vector< std::pair< real_t, hyteg::PrimitiveID > >
-    solve( std::shared_ptr< PrimitiveStorage > storage, uint_t lvl, uint_t iter, real_t tol, int vtk )
+    solve( std::shared_ptr< PrimitiveStorage > storage, const PDE_data& pde, uint_t lvl, uint_t iter, real_t tol, int vtk )
 {
    uint_t l_min = lvl;
    uint_t l_max = lvl;
 
    uint_t dim = storage->hasGlobalCells() ? 3 : 2;
 
-   // continuous functions
-   // auto coeff = [=]( const hyteg::Point3D& ) { return 1; };
-   auto exact = [=]( const hyteg::Point3D& x ) {
-      auto r2 = x.normSq();
-      return sin( 1.0 / ( r2 * r2 ) );
-   };
-   auto rhs = [=]( const hyteg::Point3D& x ) {
-      auto r2 = x.normSq();
-      auto x0 = r2 * r2;
-      auto x1 = 1.0 / x0;
-      return 4 * ( x0 * ( real_t( dim ) - 6 ) * cos( x1 ) + 4 * sin( x1 ) ) / pow( r2, 5 );
-   };
-
    // operators
-   P1BlendingMassOperator    M( storage, l_min, l_max );
-   P1BlendingLaplaceOperator A( storage, l_min, l_max );
+   using M_t = P1BlendingMassOperator;
+   using A_t = P1BlendingDivkGradOperator;
+   forms::p1_div_k_grad_blending_q3 form( pde.k, pde.k );
+
+   M_t M( storage, l_min, l_max );
+   A_t A( storage, l_min, l_max, form );
 
    // FE functions
    P1Function< real_t > b( "b", storage, l_min, l_max );
@@ -77,16 +114,16 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
    // rhs
-   tmp.interpolate( rhs, l_max );
+   tmp.interpolate( pde.f, l_max );
    M.apply( tmp, b, l_max, hyteg::All );
    // exact solution
-   u_exact.interpolate( exact, l_max );
+   u_exact.interpolate( pde.u_anal, l_max );
    // initialize u
-   u.interpolate( exact, l_max, hyteg::DirichletBoundary );
+   u.interpolate( pde.u_D, l_max, hyteg::DirichletBoundary );
    u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::Inner );
 
    // solve
-   hyteg::CGSolver< P1BlendingLaplaceOperator > solver( storage, l_min, l_min, iter, tol );
+   hyteg::CGSolver< A_t > solver( storage, l_min, l_min, iter, tol );
    solver.solve( A, u, b, l_max );
 
    // compute total error
@@ -168,13 +205,21 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
          WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" << l2err << " != " << check );
       }
 
+      P1Function< real_t > k( "k", storage, l_min, l_max );
+      P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
+      k.interpolate( pde.k, l_max );
+      boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
+      boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
+
       VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
+      vtkOutput.add( k );
       vtkOutput.add( err );
       vtkOutput.add( tmp );
       vtkOutput.add( u_exact );
       vtkOutput.add( b );
+      vtkOutput.add( boundary );
       vtkOutput.write( l_max, uint_t( vtk ) );
    }
 
@@ -185,26 +230,26 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
-   // constexpr double min = 1.0 / std::sqrt( 4 * PI );
-   // constexpr double max = 5;
-   constexpr double min = 1.0 / std::pow( 2 * PI, 1.0 / 4.0 );
-   constexpr double max = 2;
-
    if ( dim == 3 && shape == 0 )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { min, min, min } ), Point3D( { max, max, max } ), N1, N2, N3 );
+      Point3D n( { 1, 1, 1 } );
+      n /= n.norm();
+      meshInfo = MeshInfo::meshCuboid( R_min * n, R_max * n, N1, N2, N3 );
    }
    else if ( dim == 3 && shape == 1 )
    {
-      // todo
+      std::vector< double > layers( N2, 1.0 / real_t(N2) );
+      meshInfo = MeshInfo::meshSphericalShell( N1, layers );
    }
    else if ( dim == 2 && shape == 0 )
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { min, min } ), Point2D( { max, max } ), MeshInfo::CRISS, N1, N2 );
+      Point2D n( { 1, 1 } );
+      n /= n.norm();
+      meshInfo = MeshInfo::meshRectangle( R_min * n, R_max * n, MeshInfo::CRISS, N1, N2 );
    }
    else if ( dim == 2 && shape == 1 )
    {
-      meshInfo = MeshInfo::meshAnnulus( min, max, MeshInfo::CRISS, N1, N2 );
+      meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
    }
    else
    {
@@ -218,7 +263,7 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
    {
       if ( dim == 3 )
       {
-         // todo
+         IcosahedralShellMap::setMap( setupStorage );
       }
       else // dim == 2
       {
@@ -226,13 +271,13 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
       }
    }
 
-   // todo fix boundary issue
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   // setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    return setupStorage;
 }
 
 void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
+                                const PDE_data&              pde,
                                 uint_t                       n,
                                 real_t                       p,
                                 uint_t                       lvl,
@@ -272,15 +317,15 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
-      std::stringstream ss;
-      setupStorage.toStream( ss, true );
-      WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
+      // std::stringstream ss;
+      // setupStorage.toStream( ss, true );
+      // WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
 
       // construct PrimitiveStorage from setupStorage corresponding to current refinement
       auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
       int vtkname  = ( vtk ) ? int( refinement ) : -1;
-      local_errors = solve( storage, lvl, iter, tol, vtkname );
+      local_errors = solve( storage, pde, lvl, iter, tol, vtkname );
    }
 }
 
@@ -313,6 +358,9 @@ int main( int argc, char* argv[] )
    const uint_t N2    = parameters.getParameter< uint_t >( "n2" );
    const uint_t N3    = parameters.getParameter< uint_t >( "n3" );
 
+   const real_t alpha = parameters.getParameter< real_t >( "alpha" );
+   const real_t beta  = parameters.getParameter< real_t >( "beta" );
+
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "proportion_of_elements_refined_per_step" );
    const uint_t lvl           = parameters.getParameter< uint_t >( "microlevel" );
@@ -324,7 +372,8 @@ int main( int argc, char* argv[] )
 
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
-   solve_for_each_refinement( setupStorage, n_refinements, p_refinement, lvl, iter, tol, vtkoutput );
+   auto pde_data     = functions( dim, shape, alpha, beta );
+   solve_for_each_refinement( setupStorage, pde_data, n_refinements, p_refinement, lvl, iter, tol, vtkoutput );
 
    return 0;
 }

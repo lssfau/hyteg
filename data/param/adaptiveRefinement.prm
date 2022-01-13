@@ -3,18 +3,22 @@ Parameters
   // spacial dimension of domain
   dim 2;
   // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 1;
+  shape 0;
   // initial mesh (n3 only used for cube)
-  n1 6;
+  n1 2;
   n2 2;
   n3 1;
 
+  // diffusion coefficient
+  alpha 10; // control slope of the "jump", 5 <= alpha <= 35
+  beta 1; // control height of the "jump", 1 <= beta <= 10
+
   // adaptive refinement
-  n_refinements 1;
+  n_refinements 0;
   proportion_of_elements_refined_per_step 0.2;
 
   // linear solver (cg)
-  microlevel 0;
+  microlevel 5;
   n_iterations 10000;
   tolerance 1e-12;
 
