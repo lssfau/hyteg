@@ -84,37 +84,46 @@ void runTest()
    // -----------------------
    uint_t minLevel = 2;
    uint_t maxLevel = 3;
-   func_t func( "Test Func #1", storage, minLevel, maxLevel );
+   func_t func1( "Test Func #1", storage, minLevel, maxLevel );
+   func_t func2( "Test Func #2", storage, minLevel, maxLevel );
 
    // generate bc object and set different conditions on inside and outside
    BoundaryCondition bcs;
    BoundaryUID       outerBC = bcs.createDirichletBC( "Dirichlet on outer radius", markerOuterBoundary );
    BoundaryUID       innerBC = bcs.createDirichletBC( "Dirichlet on inner radius", markerInnerBoundary );
 
-   real_t iValue = real_c( 30 );  // on inner boundary
-   real_t mValue = real_c( 20 );  // in the interior
-   real_t oValue = real_c( 10 );  // on outer boundary
+   real_t iValue = real_c( 30 ); // on inner boundary
+   real_t mValue = real_c( 20 ); // in the interior
+   real_t oValue = real_c( 10 ); // on outer boundary
 
-   std::function< real_t( const Point3D& ) > DirichletInner = [ iValue ]( const Point3D& ) { return iValue; };
-   std::function< real_t( const Point3D& ) > DirichletOuter = [ oValue ]( const Point3D& ) { return oValue; };
+   std::function< real_t( const Point3D& ) > DirichletInner = [iValue]( const Point3D& ) { return iValue; };
+   std::function< real_t( const Point3D& ) > DirichletOuter = [oValue]( const Point3D& ) { return oValue; };
 
-   func.setBoundaryCondition( bcs );
+   func1.setBoundaryCondition( bcs );
+   func2.setBoundaryCondition( bcs );
 
    // assign functions values
-   func.interpolate( mValue, maxLevel, All );
+   func1.interpolate( mValue, maxLevel, All );
+   func2.interpolate( mValue, maxLevel, All );
    if constexpr ( !std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
    {
-      func.interpolate( DirichletInner, maxLevel, innerBC );
-      func.interpolate( DirichletOuter, maxLevel, outerBC );
+      // use an expression
+      func1.interpolate( DirichletInner, maxLevel, innerBC );
+      func1.interpolate( DirichletOuter, maxLevel, outerBC );
 
-      // Would fail do to missing implementation for 1st argument being constant:
-      // func.interpolate( iValue, maxLevel, innerBC );
-      // func.interpolate( oValue, maxLevel, innerBC );
+      // use constant value
+      func2.interpolate( iValue, maxLevel, innerBC );
+      func2.interpolate( oValue, maxLevel, outerBC );
    }
    else
    {
-      func.interpolate( {DirichletInner, DirichletInner}, maxLevel, innerBC );
-      func.interpolate( {DirichletOuter, DirichletOuter}, maxLevel, outerBC );
+      // use an expression
+      func1.interpolate( {DirichletInner, DirichletInner}, maxLevel, innerBC );
+      func1.interpolate( {DirichletOuter, DirichletOuter}, maxLevel, outerBC );
+
+      // use constant value
+      func2.interpolate( {iValue, iValue}, maxLevel, innerBC );
+      func2.interpolate( {oValue, oValue}, maxLevel, outerBC );
    }
 
    // ------------------
@@ -134,20 +143,31 @@ void runTest()
       return mValue;
    };
 
-   func_t ctrl( "Test Func #2", storage, minLevel, maxLevel );
-   func_t diff( "Test Func #3", storage, minLevel, maxLevel );
-   ctrl.interpolate( controlValues, maxLevel, All );
-   diff.assign( {-1.0, 1.0}, {func, ctrl}, maxLevel, All );
-   real_t check = real_c( 0 );
-   if constexpr ( std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
+   func_t ctrl( "Test Func #3", storage, minLevel, maxLevel );
+   func_t diff( "Test Func #4", storage, minLevel, maxLevel );
+   for ( uint_t k = 1; k <= 2; ++k )
    {
-      check = diff.getMaxComponentMagnitude( maxLevel, All );
+      ctrl.interpolate( controlValues, maxLevel, All );
+      if ( k == 1 )
+      {
+         diff.assign( {-1.0, 1.0}, {func1, ctrl}, maxLevel, All );
+      }
+      else
+      {
+         diff.assign( {-1.0, 1.0}, {func2, ctrl}, maxLevel, All );
+      }
+      real_t check = real_c( 0 );
+      if constexpr ( std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
+      {
+         check = diff.getMaxComponentMagnitude( maxLevel, All );
+      }
+      else
+      {
+         check = diff.getMaxMagnitude( maxLevel, All );
+      }
+      // WALBERLA_LOG_INFO_ON_ROOT( "k = " << k << ", check = " << check );
+      WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
    }
-   else
-   {
-      check = diff.getMaxMagnitude( maxLevel, All );
-   }
-   WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
 
    // ------------
    //  Output VTK
@@ -159,7 +179,8 @@ void runTest()
       std::string fName = "boundaryUIDTest";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( func );
+      vtkOutput.add( func1 );
+      vtkOutput.add( func2 );
       vtkOutput.add( ctrl );
       vtkOutput.add( diff );
       vtkOutput.write( maxLevel );

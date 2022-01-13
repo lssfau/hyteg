@@ -231,6 +231,12 @@ void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level
 }
 
 template < typename ValueType >
+void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
+{
+  interpolate( [constant]( const Point3D& ){ return constant; }, level, boundaryUID );
+}
+
+template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                 uint_t                                              level,
                                                 DoFType                                             flag ) const

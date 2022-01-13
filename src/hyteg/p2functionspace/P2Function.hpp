@@ -115,6 +115,15 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    inline void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
+   /// @name Member functions for interpolation using BoundaryUID flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
+ 
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
+   //@}
+
+   /// @name Member functions for interpolation using DoFType flags
+   //@{
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
@@ -127,12 +136,11 @@ class P2Function final : public Function< P2Function< ValueType > >
       this->interpolate( expr[0], level, flag );
    };
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
-
    void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                      const std::vector< std::reference_wrapper< const P2Function< ValueType > > >&        srcFunctions,
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
+   //@}
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;
