@@ -97,7 +97,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
          vertices.push_back( mid );
          // add properties of new vertex
          geometryMap.push_back( edge->getGeometryMap() );
-         boundaryFlag.push_back( edge->getGeometryMap() );
+         boundaryFlag.push_back( edge->getBoundaryFlag() );
       }
    }
 
