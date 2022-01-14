@@ -101,6 +101,13 @@ void P2Function< ValueType >::interpolate( ValueType constant, uint_t level, DoF
 }
 
 template < typename ValueType >
+void P2Function< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
+{
+   vertexDoFFunction_.interpolate( constant, level, boundaryUID );
+   edgeDoFFunction_.interpolate( constant, level, boundaryUID );
+}
+
+template < typename ValueType >
 void P2Function< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                            uint_t                                              level,
                                            DoFType                                             flag ) const

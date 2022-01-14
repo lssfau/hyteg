@@ -104,6 +104,14 @@ class CSFVectorFunction
       }
    }
 
+   void interpolate( valueType constant, size_t level, BoundaryUID boundaryUID ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->interpolate( constant, level, boundaryUID );
+      }
+   }
+
    void interpolate( const std::vector< std::function< valueType( const hyteg::Point3D& ) > >& expr,
                      size_t                                                                    level,
                      DoFType                                                                   flag = All ) const
@@ -119,6 +127,38 @@ class CSFVectorFunction
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
          compFunc_[k]->interpolate( expr[k], level, flag );
+      }
+   }
+
+   void interpolate( const std::vector< valueType >& constants, size_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, flag );
+      }
+   }
+
+   void interpolate( const std::vector< valueType >& constants, size_t level, BoundaryUID boundaryUID ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, boundaryUID );
       }
    }
 
