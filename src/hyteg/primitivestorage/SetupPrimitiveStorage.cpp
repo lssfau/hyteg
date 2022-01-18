@@ -724,6 +724,45 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation( const uint_t &
   }
 }
 
+void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t& meshBoundaryFlag,
+                                                                    const std::function< bool( const Point3D& x ) >& onBoundary )
+{
+   auto centroid = []( const std::vector< Point3D >& coordinates ) -> Point3D {
+      Point3D c( { 0, 0, 0 } );
+      for ( const auto& p : coordinates )
+         c += p;
+      c *= 1. / static_cast< double >( coordinates.size() );
+      return c;
+   };
+
+   for ( const auto& p : vertices_ )
+   {
+      const auto c = centroid( { p.second->getCoordinates() } );
+      if ( onBoundary( c ) )
+         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
+   }
+
+   for ( const auto& p : edges_ )
+   {
+      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) );
+      if ( onBoundary( c ) )
+         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
+   }
+
+   for ( const auto& p : faces_ )
+   {
+      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) );
+      if ( onBoundary( c ) )
+         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
+   }
+
+   for ( const auto& p : cells_ )
+   {
+      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) );
+      if ( onBoundary( c ) )
+         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
+   }
+}
 
 bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner ) const
 {

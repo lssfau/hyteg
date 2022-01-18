@@ -128,6 +128,10 @@ public:
                                              const std::function< bool( const Point3D & x ) > & onBoundary,
                                              const bool & allVertices = true );
 
+  /// Every primitive for which onBoundary() returns true for the primitive's centroid is assigned the passed mesh boundary flag.
+  void setMeshBoundaryFlagsByCentroidLocation( const uint_t&                                    meshBoundaryFlag,
+                                               const std::function< bool( const Point3D& x ) >& onBoundary );
+
   /// Returns true, if the primitive lies on the boundary.
   /// \param primitiveID the ID of the primitive to be tested
   /// \param highestDimensionAlwaysInner if true, this method always returns false if the targeted primitive is of highest dimension (cells for 3D, faces for 2D meshes)
