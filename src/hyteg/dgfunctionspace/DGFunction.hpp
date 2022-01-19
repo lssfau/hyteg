@@ -1,0 +1,112 @@
+/*
+ * Copyright (c) 2017-2022 Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "hyteg/functions/Function.hpp"
+#include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
+
+namespace hyteg {
+namespace dg {
+
+using walberla::real_c;
+using walberla::real_t;
+using walberla::uint_t;
+
+template < typename ValueType >
+class DGFunction final : public Function< DGFunction< ValueType > >
+{
+ public:
+   typedef ValueType valueType;
+
+   template < typename VType >
+   using FunctionType = DGFunction< VType >;
+
+   /// \brief Instantiates a DGFunction.
+   ///
+   /// \param name              name of the function for output / debugging purposes
+   /// \param storage           PrimitiveStorage that this lives on
+   /// \param minLevel          min refinement level to allocate
+   /// \param maxLevel          max refinement level to allocate
+   /// \param basis             polynomial basis information through corresponding DGBasisInfo object
+   /// \param initialPolyDegree polynomial degree to initialize with globally
+   DGFunction( const std::string&                         name,
+               const std::shared_ptr< PrimitiveStorage >& storage,
+               uint_t                                     minLevel,
+               uint_t                                     maxLevel,
+               const std::shared_ptr< DGBasisInfo >&      basis,
+               int                                        initialPolyDegree );
+
+   /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
+   void assign( const std::vector< ValueType >&                                               scalars,
+                const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                uint_t                                                                        level );
+
+   /// \brief Evaluate finite element function at a specific coordinates.
+   ///
+   /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
+   ///
+   /// Evaluation is performed in two steps:
+   ///
+   ///   1. For all volume primitives of the local subdomain:
+   ///      If a point-tet (point-triangle in 2D) inclusion test succeeds, the function returns true
+   ///      and the finite-element function is evaluated.
+   ///
+   ///   2. Skipped, if radius is negative.
+   ///      For all volume primitives of the local subdomain:
+   ///      A sphere-tet (circle-triangle) intersection
+   ///      test is performed, if successful returns true, and the finite-element function is extrapolated
+   ///      to the specified coordinate and evaluated, depending on the radius, this might introduce (large) errors.
+   ///
+   /// If both tests fail, this function returns false, and no evaluation is performed (i.e. the returned, evaluated
+   /// value is not set to anything meaningful).
+   ///
+   /// Note that two parallel processes that return true, may return _different_ values.
+   ///
+   /// No communication is performed in this function.
+   /// -> Does not need to be called collectively.
+   /// -> Different values are returned on each process.
+   ///
+   /// \param coordinates where the function shall be evaluated
+   /// \param level refinement level
+   /// \param value function value at the coordinate if search was successful
+   /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
+   /// \return true if the function was evaluated successfully, false otherwise
+   ///
+   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+
+ private:
+   using Function< DGFunction< ValueType > >::communicators_;
+   using Function< DGFunction< ValueType > >::additiveCommunicators_;
+
+   std::string                         name_;
+   std::shared_ptr< PrimitiveStorage > storage_;
+   uint_t                              minLevel_;
+   uint_t                              maxLevel_;
+   std::shared_ptr< DGBasisInfo >      basis_;
+
+   volumedofspace::VolumeDoFFunction< ValueType > volumeDoFFunction_;
+
+   std::map< PrimitiveID, int > polyDegreesPerPrimitive_;
+};
+
+} // namespace dg
+} // namespace hyteg
