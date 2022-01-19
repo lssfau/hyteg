@@ -35,7 +35,9 @@ using indexing::Index;
 
 enum class FaceType : uint_t
 {
+   /// "bottom-left" face
    GRAY,
+   /// "top-right" face
    BLUE
 };
 
