@@ -38,13 +38,27 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
 , minLevel_( minLevel )
 , maxLevel_( maxLevel )
 , basis_( basis )
-, volumeDoFFunction_( name,
-                      storage,
-                      minLevel,
-                      maxLevel,
-                      basis->numDoFsPerElement( initialPolyDegree ),
-                      volumedofspace::VolumeDoFMemoryLayout::SoA )
-{}
+{
+   if ( storage->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Not implemented for cells yet." )
+   }
+   else
+   {
+      for ( auto pid : storage->getFaceIDs() )
+      {
+         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+      }
+   }
+
+   volumeDoFFunction_ =
+       std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >( name,
+                                                                           storage,
+                                                                           minLevel,
+                                                                           maxLevel,
+                                                                           basis->numDoFsPerElement( initialPolyDegree ),
+                                                                           volumedofspace::VolumeDoFMemoryLayout::SoA );
+}
 
 template < typename ValueType >
 bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
@@ -84,7 +98,7 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
             std::vector< real_t > dofs( ndofs );
             for ( uint_t i = 0; i < ndofs; i++ )
             {
-               dofs[i] = real_t( volumeDoFFunction_.dof( faceID, elementIndex, i, faceType, level ) );
+               dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
             }
 
             real_t value_r;

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "hyteg/functions/Function.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/functions/Function.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
@@ -93,6 +93,25 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ///
    bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
+   /// \brief Returns the internally stored VolumeDoFFunction.
+   [[nodiscard]] std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction() const
+   {
+      return volumeDoFFunction_;
+   }
+
+   /// \brief Returns the associated DGBasisInfo object.
+   [[nodiscard]] std::shared_ptr< DGBasisInfo > basis() const { return basis_; }
+
+   /// \brief Returns the polynomial degree of the function on the passed primitive.
+   [[nodiscard]] int polynomialDegree( const PrimitiveID& primitiveID ) const
+   {
+      WALBERLA_ASSERT( storage_->primitiveExistsLocally( primitiveID ),
+                       "No information on the polynomial degree on this primitive (primitive does not exist locally)." );
+      WALBERLA_ASSERT( polyDegreesPerPrimitive_.count( primitiveID ) > 0,
+                       "No information on the polynomial degree on this primitive (no information stored in the map)." );
+      return polyDegreesPerPrimitive_.at( primitiveID );
+   }
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;
@@ -103,7 +122,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    uint_t                              maxLevel_;
    std::shared_ptr< DGBasisInfo >      basis_;
 
-   volumedofspace::VolumeDoFFunction< ValueType > volumeDoFFunction_;
+   std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction_;
 
    std::map< PrimitiveID, int > polyDegreesPerPrimitive_;
 };
