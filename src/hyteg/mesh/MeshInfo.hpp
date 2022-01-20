@@ -383,13 +383,6 @@ class MeshInfo
       }
    }
 
-   void setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag );
-
-   /// Every primitive for which onBoundary() returns true for all / any (if allVertices == true / false) of the primitve's vertices is assigned the passed mesh boundary flag.
-   void setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
-                                              const std::function< bool( const Point3D& x ) >& onBoundary,
-                                              const bool&                                      allVertices = true );
-
    typedef std::map< IDType, Vertex >                VertexContainer;
    typedef std::map< std::array< IDType, 2 >, Edge > EdgeContainer;
    typedef std::map< std::vector< IDType >, Face >   FaceContainer;

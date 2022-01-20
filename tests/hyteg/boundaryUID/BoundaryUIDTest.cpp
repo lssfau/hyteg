@@ -61,6 +61,10 @@ void runTest()
 
    MeshInfo meshInfo = MeshInfo::meshAnnulus( innerRad, outerRad, 0.0, 2.0 * pi, MeshInfo::CROSS, 8, nLayers );
 
+   // generate the setupStorage and associate blending map
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   AnnulusMap::setMap( setupStorage );
+
    // flag the inner and outer boundary by assigning different values
    auto onBoundary = [&boundaryRad, tol]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
@@ -68,14 +72,10 @@ void runTest()
    };
 
    boundaryRad = outerRad;
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( markerOuterBoundary, onBoundary, true );
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( markerOuterBoundary, onBoundary, true );
 
    boundaryRad = innerRad;
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( markerInnerBoundary, onBoundary, true );
-
-   // generate the setupStorage and associate blending map
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   AnnulusMap::setMap( setupStorage );
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( markerInnerBoundary, onBoundary, true );
 
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
