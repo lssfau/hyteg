@@ -647,13 +647,16 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
    if ( verbose )
    {
       os << "\n";
-      os << "Vertices:   ID | Target Rank | Position  | Neighbor Edges \n"
-         << "---------------------------------------------------------\n";
+      os << "               |             | mesh     |                                      | \n"
+         << "Vertices:   ID | Target Rank | boundary | Position                             | Neighbor Edges\n"
+         << "               |             | flag     |                                      | \n"
+         << "-----------------------------------------------------------------------------------------------\n";
       for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
       {
          Point3D coordinates = it->second->getCoordinates();
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-            << coordinates << " | ";
+            << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::scientific << std::showpos
+            << std::setprecision( 3 ) << coordinates << " | ";
          for ( const auto& neighborEdgeID : it->second->getHigherDimNeighbors() )
          {
             os << neighborEdgeID.getID() << " ";
@@ -662,13 +665,15 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
       }
       os << "\n";
 
-      os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | mesh boundary flag   | Neighbor Faces \n"
-         << "----------------------------------------------------------------------------------------------\n";
+      os << "               |             |            |            | mesh     |\n"
+         << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | boundary | Neighbor Faces\n"
+         << "               |             |            |            | flag     |\n"
+         << "----------------------------------------------------------------------------------\n";
       for ( auto it = edges_.begin(); it != edges_.end(); it++ )
       {
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
             << std::setw( 10 ) << it->second->getVertexID0().getID() << " | " << std::setw( 10 )
-            << it->second->getVertexID1().getID() << " | " << std::setw( 20 ) << it->second->getMeshBoundaryFlag() << " | ";
+            << it->second->getVertexID1().getID() << " | " << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | ";
          for ( const auto& neighborFaceID : it->second->getHigherDimNeighbors() )
          {
             os << neighborFaceID.getID() << " ";
@@ -677,26 +682,32 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
       }
       os << "\n";
 
-      os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
-         << "-------------------------------------------------------------\n";
+      os << "               |             | mesh     |          |          |         \n"
+         << "Faces:      ID | Target Rank | boundary | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
+         << "               |             | flag     |          |          |         \n"
+         << "------------------------------------------------------------------------\n";
       for ( auto it = faces_.begin(); it != faces_.end(); it++ )
       {
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-            << std::setw( 8 ) << it->second->getEdgeID0().getID() << " | " << std::setw( 8 ) << it->second->getEdgeID1().getID()
-            << " | " << std::setw( 8 ) << it->second->getEdgeID2().getID() << "\n";
+            << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::setw( 8 ) << it->second->getEdgeID0().getID()
+            << " | " << std::setw( 8 ) << it->second->getEdgeID1().getID() << " | " << std::setw( 8 )
+            << it->second->getEdgeID2().getID() << "\n";
       }
       os << "\n";
 
       if ( cells_.size() > 0 )
       {
-         os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
-            << "------------------------------------------------------------------------\n";
+         os << "               |             | mesh        |          |          |          |\n"
+            << "Cells:      ID | Target Rank | boundary    | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
+            << "               |             | flag        |          |          |          |\n"
+            << "--------------------------------------------------------------------------------------\n";
          for ( auto it = cells_.begin(); it != cells_.end(); it++ )
          {
             os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-               << std::setw( 8 ) << it->second->neighborFaces()[0].getID() << " | " << std::setw( 8 )
-               << it->second->neighborFaces()[1].getID() << " | " << std::setw( 8 ) << it->second->neighborFaces()[2].getID()
-               << " | " << std::setw( 8 ) << it->second->neighborFaces()[3].getID() << "\n";
+               << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::setw( 8 )
+               << it->second->neighborFaces()[0].getID() << " | " << std::setw( 8 ) << it->second->neighborFaces()[1].getID()
+               << " | " << std::setw( 8 ) << it->second->neighborFaces()[2].getID() << " | " << std::setw( 8 )
+               << it->second->neighborFaces()[3].getID() << "\n";
          }
       }
    }
@@ -790,7 +801,6 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
    auto centroid = [useGeometryMap]( const std::vector< Point3D >&         coordinates,
                                      const std::shared_ptr< GeometryMap >& map ) -> Point3D {
       Point3D c( {real_c( 0 ), real_c( 0 ), real_c( 0 )} );
-      Point3D cMapped;
       for ( const auto& p : coordinates )
       {
          c += p;
@@ -798,6 +808,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
       c *= real_c( 1 ) / real_c( coordinates.size() );
       if ( useGeometryMap )
       {
+         Point3D cMapped;
          map->evalF( c, cMapped );
          return cMapped;
       }

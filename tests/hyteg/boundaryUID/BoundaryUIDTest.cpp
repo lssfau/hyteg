@@ -172,7 +172,7 @@ void runTest()
    // ------------
    //  Output VTK
    // ------------
-   bool beVerbose = false;
+   bool beVerbose = true;
    if ( beVerbose )
    {
       std::string fPath = "../../output";
@@ -184,6 +184,10 @@ void runTest()
       vtkOutput.add( ctrl );
       vtkOutput.add( diff );
       vtkOutput.write( maxLevel );
+
+      std::stringstream sStr;
+      setupStorage.toStream( sStr, true );
+      WALBERLA_LOG_INFO_ON_ROOT( "Here we go:\n" << sStr.str() );
    }
 }
 
