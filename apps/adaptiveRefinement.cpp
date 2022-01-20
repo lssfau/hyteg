@@ -207,15 +207,24 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
       P1Function< real_t > k( "k", storage, l_min, l_max );
       P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
+      P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       k.interpolate( pde.k, l_max );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
 
-      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
+      // auto _err_abs_ = [&]( const hyteg::Point3D& x ) {
+      //    real_t val;
+      //    err.evaluate( x, l_max, val, 1e-7 );
+      //    return std::abs( val );
+      // };
+      err_2.multElementwise({err, err}, l_max, hyteg::All);
+
+      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d" , storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
       vtkOutput.add( k );
       vtkOutput.add( err );
+      vtkOutput.add( err_2 );
       vtkOutput.add( tmp );
       vtkOutput.add( u_exact );
       vtkOutput.add( b );
@@ -238,8 +247,7 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
    }
    else if ( dim == 3 && shape == 1 )
    {
-      std::vector< double > layers( N2, 1.0 / real_t(N2) );
-      meshInfo = MeshInfo::meshSphericalShell( N1, layers );
+      meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
    }
    else if ( dim == 2 && shape == 0 )
    {
@@ -271,7 +279,7 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
       }
    }
 
-   // setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    return setupStorage;
 }
