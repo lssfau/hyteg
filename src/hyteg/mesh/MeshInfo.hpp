@@ -588,14 +588,19 @@ class MeshInfo
    /// \param tol         parameter used to determine, whether an edge is part of the boundary, or not
    void deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol );
 
-   /// Derive information on edges from vertices and faces (for full annulus)
+   /// Set the boundaryFlag of all edges automatically from that of their vertices
 
-   /// This method is used in the 2D inline mesh generator for the full annulus. The latter
-   /// provides only information on vertices and faces. The information on the edges is then
-   /// derived from the faces, as each face has three edges.
-   /// \param minTol  parameter used to determine, whether an edge is part of the inner boundary, or not
-   /// \param maxTol  parameter used to determine, whether an edge is part of the outer boundary, or not
-   void deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol );
+   /// Calling the method results in the boundaryFlag of all edges in the MeshInfo being (re)set.
+   /// The flag of a single edge is set to that of its two vertices, if the latter agree. Otherwise
+   /// it will be set to the value of the undecided argument.
+   void deduceEdgeFlagsFromVertices( uint_t flagInconsistent = 0 );
+
+   /// Set the boundaryFlag of all faces automatically from that of their vertices
+
+   /// Calling the method results in the boundaryFlag of all faces in the MeshInfo being (re)set.
+   /// The flag of a single face is set to that of its three vertices, if the latter agree. Otherwise
+   /// it will be set to the value of the undecided argument.
+   void deduceFaceFlagsFromVertices( uint_t flagInconsistent = 0 );
 
    VertexContainer vertices_;
    EdgeContainer   edges_;
