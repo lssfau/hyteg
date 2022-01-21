@@ -515,8 +515,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         edgedof::macroedge::createVectorFromFunction< real_t >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         createVectorFromFunction< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
 
@@ -527,8 +526,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         edgedof::macroface::createVectorFromFunction< real_t >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+         createVectorFromFunction< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
 
@@ -539,8 +537,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         edgedof::macrocell::createVectorFromFunction< real_t >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+         createVectorFromFunction< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
@@ -561,8 +558,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         edgedof::macroedge::createFunctionFromVector< real_t >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         createFunctionFromVector< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
 
@@ -576,8 +572,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         edgedof::macroface::createFunctionFromVector< real_t >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+         createFunctionFromVector< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
 
@@ -588,8 +583,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         edgedof::macrocell::createFunctionFromVector< real_t >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+         createFunctionFromVector< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
@@ -603,7 +597,7 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
       const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, DirichletBoundary ) )
       {
-         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
+         applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
       }
    }
 
@@ -614,7 +608,7 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
       const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, DirichletBoundary ) )
       {
-         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
+         applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
       }
    }
 }
