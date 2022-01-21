@@ -515,7 +515,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         createVectorFromFunction< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         edgedof::macroedge::createVectorFromFunction< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
 
@@ -526,7 +526,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         createVectorFromFunction< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+         edgedof::macroface::createVectorFromFunction< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
 
@@ -537,7 +537,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         createVectorFromFunction< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+         edgedof::macrocell::createVectorFromFunction< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
@@ -558,7 +558,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         createFunctionFromVector< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         edgedof::macroedge::createFunctionFromVector< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
 
@@ -572,7 +572,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         createFunctionFromVector< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+         edgedof::macroface::createFunctionFromVector< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
 
@@ -583,7 +583,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         createFunctionFromVector< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+         edgedof::macrocell::createFunctionFromVector< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
@@ -597,7 +597,7 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
       const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, DirichletBoundary ) )
       {
-         applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
+         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
       }
    }
 
@@ -608,7 +608,7 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
       const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, DirichletBoundary ) )
       {
-         applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
+         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
       }
    }
 }

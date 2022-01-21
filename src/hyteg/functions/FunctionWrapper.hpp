@@ -199,7 +199,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
                   uint_t                                level,
                   DoFType                               flag ) const
    {
-      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      if constexpr ( std::is_same< value_t, real_t >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
          createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
@@ -215,7 +215,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
                     uint_t                                level,
                     DoFType                               flag ) const
    {
-      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      if constexpr ( std::is_same< value_t, real_t >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
          createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
