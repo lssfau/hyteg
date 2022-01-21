@@ -20,6 +20,11 @@
 
 #include "hyteg/adaptiverefinement/simplexFactory.hpp"
 
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/logging/Logging.h"
+#include "core/timing/Timer.h"
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );

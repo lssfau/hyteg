@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/logging/Logging.h"
+#include "core/timing/Timer.h"
 
 #include "hyteg/adaptiverefinement/mesh.hpp"
 
