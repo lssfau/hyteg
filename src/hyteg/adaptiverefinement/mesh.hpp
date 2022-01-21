@@ -22,7 +22,6 @@
 
 #include <set>
 
-#include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include "simplex.hpp"
@@ -136,16 +135,8 @@ class K_Mesh
    /* compute the barycenter of all primitives given by their IDs */
    std::vector< Point3D > compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* generate MeshInfo corresponding to current refinement */
-   hyteg::MeshInfo export_meshInfo();
-
    /* extract connectivity, geometrymap and boundaryFlags from all elements */
    void extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const;
-
-   /* collect all elements and subelements of current refinement */
-   void collect_elements( std::set< std::shared_ptr< Simplex3 > >& cells,
-                          std::set< std::shared_ptr< Simplex2 > >& faces,
-                          std::set< std::shared_ptr< Simplex1 > >& edges ) const;
 
    /* update internal _setupStorage and return id of first volume element */
    uint_t updateSetupStorage( const EdgeData& edges, const FaceData& faces, const CellData& cells, const uint_t& n_processes );

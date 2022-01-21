@@ -24,10 +24,10 @@
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 
+#include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
-#include "hyteg/mesh/adaptiverefinement/mesh.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -84,6 +84,55 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
    return pde;
 }
 
+SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, uint_t N3 )
+{
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+
+   if ( dim == 3 && shape == 0 )
+   {
+      Point3D n( { 1, 1, 1 } );
+      n /= n.norm();
+      meshInfo = MeshInfo::meshCuboid( R_min * n, R_max * n, N1, N2, N3 );
+   }
+   else if ( dim == 3 && shape == 1 )
+   {
+      meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
+   }
+   else if ( dim == 2 && shape == 0 )
+   {
+      Point2D n( { 1, 1 } );
+      n /= n.norm();
+      meshInfo = MeshInfo::meshRectangle( R_min * n, R_max * n, MeshInfo::CRISS, N1, N2 );
+   }
+   else if ( dim == 2 && shape == 1 )
+   {
+      meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
+   }
+
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   // apply geometry map
+   if ( shape == 1 )
+   {
+      if ( dim == 3 )
+      {
+         IcosahedralShellMap::setMap( setupStorage );
+      }
+      else // dim == 2
+      {
+         AnnulusMap::setMap( setupStorage );
+      }
+   }
+
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   return setupStorage;
+}
+
 // solve problem with current refinement and return sorted list of elementwise squared errors
 std::vector< std::pair< real_t, hyteg::PrimitiveID > >
     solve( std::shared_ptr< PrimitiveStorage > storage, const PDE_data& pde, uint_t lvl, uint_t iter, real_t tol, int vtk )
@@ -106,7 +155,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    P1Function< real_t > u( "u", storage, l_min, l_max );
    P1Function< real_t > u_exact( "u_exact", storage, l_min, l_max );
    P1Function< real_t > err( "err", storage, l_min, l_max );
-   P1Function< real_t > tmp( "err*M*err", storage, l_min, l_max );
+   P1Function< real_t > tmp( "tmp", storage, l_min, l_max );
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
@@ -196,36 +245,22 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    // export to vtk
    if ( vtk >= 0 )
    {
-      // compute L2 error contribution of each DoF, i.e. tmp_i=err_i*[M*err]_i
-      tmp.multElementwise( { err, tmp }, l_max );
-      // sanity check
-      auto check = std::sqrt( tmp.sumGlobal( l_max ) );
-      if ( std::abs( check - l2err ) > 1e-10 )
-      {
-         WALBERLA_LOG_WARNING_ON_ROOT( "sanity check failed: l2err" << l2err << " != " << check );
-      }
-
       P1Function< real_t > k( "k", storage, l_min, l_max );
-      P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
-      P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       k.interpolate( pde.k, l_max );
+
+      P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
 
-      // auto _err_abs_ = [&]( const hyteg::Point3D& x ) {
-      //    real_t val;
-      //    err.evaluate( x, l_max, val, 1e-7 );
-      //    return std::abs( val );
-      // };
-      err_2.multElementwise({err, err}, l_max, hyteg::All);
+      P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
+      err_2.multElementwise( { err, err }, l_max, hyteg::All );
 
-      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d" , storage );
+      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
       vtkOutput.add( k );
       vtkOutput.add( err );
       vtkOutput.add( err_2 );
-      vtkOutput.add( tmp );
       vtkOutput.add( u_exact );
       vtkOutput.add( b );
       vtkOutput.add( boundary );
@@ -233,55 +268,6 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    }
 
    return err_2_elwise;
-}
-
-SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, uint_t N3 )
-{
-   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-
-   if ( dim == 3 && shape == 0 )
-   {
-      Point3D n( { 1, 1, 1 } );
-      n /= n.norm();
-      meshInfo = MeshInfo::meshCuboid( R_min * n, R_max * n, N1, N2, N3 );
-   }
-   else if ( dim == 3 && shape == 1 )
-   {
-      meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
-   }
-   else if ( dim == 2 && shape == 0 )
-   {
-      Point2D n( { 1, 1 } );
-      n /= n.norm();
-      meshInfo = MeshInfo::meshRectangle( R_min * n, R_max * n, MeshInfo::CRISS, N1, N2 );
-   }
-   else if ( dim == 2 && shape == 1 )
-   {
-      meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
-   }
-   else
-   {
-      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
-   }
-
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   // apply geometry map
-   if ( shape == 1 )
-   {
-      if ( dim == 3 )
-      {
-         IcosahedralShellMap::setMap( setupStorage );
-      }
-      else // dim == 2
-      {
-         AnnulusMap::setMap( setupStorage );
-      }
-   }
-
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-
-   return setupStorage;
 }
 
 void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
