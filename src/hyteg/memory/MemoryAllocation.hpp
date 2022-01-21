@@ -125,7 +125,7 @@ inline std::tuple< double, double, double >
        walberla::mpi::allReduce( locallyAllocatedMemory, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() ) /
        1e+09;
 
-   std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
+   // std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
 
    WALBERLA_LOG_INFO_ON_ROOT( "========================= Memory Usage Info =========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " method: " << method );

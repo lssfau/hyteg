@@ -525,7 +525,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
    particleStorage.clear();
 
    const uint_t                                rank     = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-   const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme );
+   // const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme ); //this seems to be unused?
    const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
    const uint_t                                rkStages = b.size();
 
