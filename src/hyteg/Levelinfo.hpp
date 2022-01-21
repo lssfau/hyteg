@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,6 +82,7 @@ constexpr inline uint_t num_microfaces_per_face( uint_t level )
 
 constexpr inline uint_t num_microfaces_per_face_from_width( uint_t width )
 {
+   width -= 1;
    return ( width * width + width ) / 2 + ( ( width - 1 ) * ( width - 1 ) + ( width - 1 ) ) / 2;
 }
 
