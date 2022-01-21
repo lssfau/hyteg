@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,15 +29,12 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
-namespace petsc {
 
 // ============
 //  P1Function
 // ============
-inline void createVectorFromFunction( const P1Function< PetscReal >&        function,
+inline void createVectorFromFunction( const P1Function< real_t >&           function,
                                       const P1Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -50,7 +47,7 @@ inline void createVectorFromFunction( const P1Function< PetscReal >&        func
       const DoFType vertexBC = function.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         vertexdof::macrovertex::createVectorFromFunction< PetscReal >(
+         vertexdof::macrovertex::createVectorFromFunction< real_t >(
              vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level );
       }
    }
@@ -62,7 +59,7 @@ inline void createVectorFromFunction( const P1Function< PetscReal >&        func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         vertexdof::macroedge::createVectorFromFunction< PetscReal >(
+         vertexdof::macroedge::createVectorFromFunction< real_t >(
              level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
@@ -74,7 +71,7 @@ inline void createVectorFromFunction( const P1Function< PetscReal >&        func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         vertexdof::macroface::createVectorFromFunction< PetscReal >(
+         vertexdof::macroface::createVectorFromFunction< real_t >(
              level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
@@ -86,13 +83,13 @@ inline void createVectorFromFunction( const P1Function< PetscReal >&        func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         vertexdof::macrocell::createVectorFromFunction< PetscReal >(
+         vertexdof::macrocell::createVectorFromFunction< real_t >(
              level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
 
-inline void createFunctionFromVector( const P1Function< PetscReal >&        function,
+inline void createFunctionFromVector( const P1Function< real_t >&           function,
                                       const P1Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -105,7 +102,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
       const DoFType vertexBC = function.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         vertexdof::macrovertex::createFunctionFromVector< PetscReal >(
+         vertexdof::macrovertex::createFunctionFromVector< real_t >(
              vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level );
       }
    }
@@ -120,7 +117,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         vertexdof::macroedge::createFunctionFromVector< PetscReal >(
+         vertexdof::macroedge::createFunctionFromVector< real_t >(
              level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
@@ -135,7 +132,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         vertexdof::macroface::createFunctionFromVector< PetscReal >(
+         vertexdof::macroface::createFunctionFromVector< real_t >(
              level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
@@ -150,7 +147,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         vertexdof::macrocell::createFunctionFromVector< PetscReal >(
+         vertexdof::macrocell::createFunctionFromVector< real_t >(
              level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
@@ -195,7 +192,7 @@ inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector<
 // ==================
 //  P1VectorFunction
 // ==================
-inline void createVectorFromFunction( const P1VectorFunction< PetscReal >&  function,
+inline void createVectorFromFunction( const P1VectorFunction< real_t >&     function,
                                       const P1VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -207,7 +204,7 @@ inline void createVectorFromFunction( const P1VectorFunction< PetscReal >&  func
    }
 }
 
-inline void createFunctionFromVector( const P1VectorFunction< PetscReal >&  function,
+inline void createFunctionFromVector( const P1VectorFunction< real_t >&     function,
                                       const P1VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -226,13 +223,6 @@ inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::v
       applyDirichletBC( numerator[k], mat, level );
    }
 }
-
-} // namespace petsc
-} // namespace hyteg
-
-#endif
-
-namespace hyteg {
 
 // =============
 //  P1Operators

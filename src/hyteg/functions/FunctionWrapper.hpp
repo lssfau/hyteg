@@ -35,7 +35,7 @@
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 
 // only needed for using idx_t in to/fromVector() below!
-#include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -192,7 +192,6 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       return numberOfGlobalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level, communicator, onRootOnly );
    }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{
    void toVector( const GenericFunction< idx_t >&       numerator,
@@ -203,7 +202,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       if constexpr ( std::is_same< value_t, PetscReal >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
-         petsc::createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+         createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else
       {
@@ -219,15 +218,14 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       if constexpr ( std::is_same< value_t, PetscReal >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
-         petsc::createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+         createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else
       {
          WALBERLA_ABORT( "FunctionWrapper::fromVector() only works for ValueType being identical to PetscReal" );
       }
    };
-      /// @}
-#endif
+   /// @}
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;

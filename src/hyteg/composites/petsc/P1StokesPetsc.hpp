@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,12 +26,9 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
-namespace petsc {
 
-inline void createVectorFromFunction( const P1StokesFunction< PetscReal >&  function,
+inline void createVectorFromFunction( const P1StokesFunction< real_t >&     function,
                                       const P1StokesFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -46,7 +43,7 @@ inline void createVectorFromFunction( const P1StokesFunction< PetscReal >&  func
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P1StokesFunction< PetscReal >&  function,
+inline void createFunctionFromVector( const P1StokesFunction< real_t >&     function,
                                       const P1StokesFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -72,7 +69,4 @@ inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::v
    //  applyDirichletBC(numerator.p, mat, level);
 }
 
-} // namespace petsc
 } // namespace hyteg
-
-#endif

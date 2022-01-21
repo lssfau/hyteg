@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2022 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,11 +27,9 @@
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
 namespace hyteg {
-namespace petsc {
 
-inline void createVectorFromFunction( const GenericFunction< PetscReal >&   function,
+inline void createVectorFromFunction( const GenericFunction< real_t >&      function,
                                       const GenericFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -40,7 +38,7 @@ inline void createVectorFromFunction( const GenericFunction< PetscReal >&   func
    function.toVector( numerator, vec, level, flag );
 }
 
-inline void createFunctionFromVector( const GenericFunction< PetscReal >&   function,
+inline void createFunctionFromVector( const GenericFunction< real_t >&      function,
                                       const GenericFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -49,6 +47,4 @@ inline void createFunctionFromVector( const GenericFunction< PetscReal >&   func
    function.fromVector( numerator, vec, level, flag );
 }
 
-} // namespace petsc
 } // namespace hyteg
-#endif

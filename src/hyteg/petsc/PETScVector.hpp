@@ -76,7 +76,7 @@ class PETScVector
                                   DoFType                          flag = All )
    {
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::petsc::createVectorFromFunction( src, numerator, proxy, level, flag );
+      hyteg::createVectorFromFunction( src, numerator, proxy, level, flag );
 
       VecAssemblyBegin( vec );
       VecAssemblyEnd( vec );
@@ -88,7 +88,7 @@ class PETScVector
                                   DoFType                          flag = All )
    {
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::petsc::createFunctionFromVector( dst, numerator, proxy, level, flag );
+      hyteg::createFunctionFromVector( dst, numerator, proxy, level, flag );
    }
 
    void print( const char filename[], bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
