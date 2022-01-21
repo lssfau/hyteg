@@ -25,7 +25,7 @@ namespace hyteg {
 
 class VTKOutput;
 
-class VTKDGDoFWriter
+class VTKFaceDoFWriter
 {
  public:
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
@@ -33,7 +33,7 @@ class VTKDGDoFWriter
  private:
    template < typename value_t >
    static void writeScalarFunction( std::ostream&                              output,
-                                    const FaceDoFFunction_old< value_t >&          function,
+                                    const FaceDoFFunction_old< value_t >&      function,
                                     const std::shared_ptr< PrimitiveStorage >& storage,
                                     const uint_t&                              level,
                                     bool                                       write2D,

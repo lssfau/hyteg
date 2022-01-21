@@ -35,6 +35,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 #include "vtk/UtilityFunctions.h"
+#include "hyteg/dataexport/VTKDGWriter.hpp"
 
 namespace hyteg {
 
@@ -100,7 +101,7 @@ void VTKOutput::add( const GenericFunction< value_t >& function )
       break;
 
    case functionTraits::DG_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< FaceDoFFunction_old< value_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGFunction< value_t > > >( function );
       break;
 
    default:
@@ -148,7 +149,7 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
       VTKEdgeDoFWriter::write( *this, output, level, dofType );
       break;
    case vtk::DoFType::DG:
-      VTKDGDoFWriter::write( *this, output, level );
+      VTKDGWriter::write( *this, output, level );
       break;
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
@@ -334,21 +335,8 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
    //  DGFunctions [double, int32_t, int64_t]
    // ----------------------------------------
-   for ( const auto& function : dgFunctions_.getFunctions< double >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
-   for ( const auto& function : dgFunctions_.getFunctions< int32_t >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
-   for ( const auto& function : dgFunctions_.getFunctions< int64_t >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
+
+   // no communication necessary
 }
 
 // -------------------------

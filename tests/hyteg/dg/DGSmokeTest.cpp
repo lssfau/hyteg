@@ -20,11 +20,13 @@
 
 #include "core/Environment.h"
 
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
@@ -35,25 +37,37 @@ void test()
 {
    using namespace dg;
 
-   MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   // MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/porous_coarse.msh" );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    const uint_t minLevel = 2;
-   const uint_t maxLevel = 5;
+   const uint_t maxLevel = 3;
 
-   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > exact =
-       []( const Point3D& xx, const std::vector< real_t >& ) { return 2 * xx[0] + xx[1]; };
+   // std::function< real_t( const Point3D& ) > f = []( const Point3D& x ) { return sqrt( x[0] * x[0] + x[1] * x[1] ) < 0.3 ? 1 : 0; };
+   std::function< real_t( const Point3D& ) > f = []( const Point3D& x ) { return x[0]; };
 
    auto basis = std::make_shared< DGBasisLinearLagrange_Example >();
 
    DGFunction< real_t > u( "u", storage, minLevel, maxLevel, basis, 1 );
    DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, basis, 1 );
 
+   tmp.evaluateLinearFunctional( f, maxLevel );
+
    auto       mass = std::make_shared< DGMassForm_Example >();
    DGOperator M( storage, minLevel, maxLevel, mass );
 
-   M.apply( u, tmp, maxLevel, All, Replace );
+   // CGSolver< DGOperator > solver( storage, minLevel, maxLevel, 1000, 1e-12 );
+   // solver.setPrintInfo( true );
+   // solver.solve( M, u, tmp, maxLevel );
+
+   VTKOutput vtkOutput( "../../output", "DGSmokeTest", storage );
+
+   vtkOutput.add( u );
+   vtkOutput.add( tmp );
+
+   vtkOutput.write( maxLevel );
 }
 
 } // namespace hyteg

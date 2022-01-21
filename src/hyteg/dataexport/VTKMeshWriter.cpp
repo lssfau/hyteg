@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,10 +19,11 @@
  */
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 
 // from walberla
@@ -35,7 +36,8 @@ using walberla::vtk::typeToString;
 void VTKMeshWriter::writePointsForMicroVertices( const VTKOutput&                           mgr,
                                                  std::ostream&                              output,
                                                  const std::shared_ptr< PrimitiveStorage >& storage,
-                                                 uint_t                                     level )
+                                                 uint_t                                     level,
+                                                 bool                                       discontinuous )
 {
    using ScalarType = real_t;
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( mgr.vtkDataFormat_ );
@@ -46,44 +48,72 @@ void VTKMeshWriter::writePointsForMicroVertices( const VTKOutput&               
       {
          Face& face = *it.second;
 
-         size_t  rowsize = levelinfo::num_microvertices_per_edge( level );
-         Point3D x, x0, xBlend;
-
-         x0 = face.coords[0];
-
-         Point3D d0 = ( face.coords[1] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
-         Point3D d2 = ( face.coords[2] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
-
-         size_t inner_rowsize = rowsize;
-
-         for ( size_t i = 0; i < rowsize; ++i )
+         if ( discontinuous )
          {
-            x = x0;
-            x += real_c( i ) * d2;
-
-            for ( size_t j = 0; j < inner_rowsize; ++j )
+            for ( auto faceType : facedof::allFaceTypes )
             {
-               face.getGeometryMap()->evalF( x, xBlend );
-               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
-               x += d0;
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  const std::array< indexing::Index, 3 > vertexIndices =
+                      facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+                  for ( uint_t i = 0; i < 3; i++ )
+                  {
+                     const auto vtkPoint = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                     Point3D    xBlend;
+                     face.getGeometryMap()->evalF( vtkPoint, xBlend );
+                     streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
+                  }
+               }
             }
+         }
+         else
+         {
+            size_t  rowsize = levelinfo::num_microvertices_per_edge( level );
+            Point3D x, x0, xBlend;
 
-            --inner_rowsize;
+            x0 = face.coords[0];
+
+            Point3D d0 = ( face.coords[1] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
+            Point3D d2 = ( face.coords[2] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
+
+            size_t inner_rowsize = rowsize;
+
+            for ( size_t i = 0; i < rowsize; ++i )
+            {
+               x = x0;
+               x += real_c( i ) * d2;
+
+               for ( size_t j = 0; j < inner_rowsize; ++j )
+               {
+                  face.getGeometryMap()->evalF( x, xBlend );
+                  streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
+                  x += d0;
+               }
+
+               --inner_rowsize;
+            }
          }
       }
    }
    else
    {
-      for ( const auto& it : storage->getCells() )
+      if ( discontinuous )
       {
-         const Cell& cell = *it.second;
-
-         for ( const auto& idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
+         WALBERLA_ABORT( "Discontinuous points not implemented for 3D." );
+      }
+      else
+      {
+         for ( const auto& it : storage->getCells() )
          {
-            const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, idxIt );
-            Point3D       xBlend;
-            cell.getGeometryMap()->evalF( vtkPoint, xBlend );
-            streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
+            const Cell& cell = *it.second;
+
+            for ( const auto& idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
+            {
+               const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, idxIt );
+               Point3D       xBlend;
+               cell.getGeometryMap()->evalF( vtkPoint, xBlend );
+               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
+            }
          }
       }
    }
@@ -121,8 +151,7 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
 
          switch ( dofType )
          {
-         case vtk::DoFType::EDGE_X:
-         {
+         case vtk::DoFType::EDGE_X: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D horizontalMicroEdgePosition =
@@ -133,8 +162,7 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
             }
             break;
          }
-         case vtk::DoFType::EDGE_Y:
-         {
+         case vtk::DoFType::EDGE_Y: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D verticalMicroEdgePosition =
@@ -145,8 +173,7 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
             }
             break;
          }
-         case vtk::DoFType::EDGE_XY:
-         {
+         case vtk::DoFType::EDGE_XY: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D horizontalMicroEdgePosition =
@@ -230,7 +257,8 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
 void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr,
                                   std::ostream&                              output,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
-                                  uint_t                                     faceWidth )
+                                  uint_t                                     faceWidth,
+                                  bool                                       discontinuous )
 {
    using CellType = uint32_t;
 
@@ -239,35 +267,49 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
 
    VTKOutput::VTKStreamWriter< CellType > streamWriterCells( mgr.vtkDataFormat_ );
 
-   const uint_t numberOfCells =
-       uint_c( ( ( faceWidth - 1 ) * faceWidth ) / 2 ) + ( ( ( faceWidth - 2 ) * ( faceWidth - 1 ) ) / 2 );
+   const uint_t numberOfCells = levelinfo::num_microfaces_per_face_from_width( faceWidth );
 
    // connectivity
    CellType offset = 0;
 
    for ( auto& it : storage->getFaces() )
    {
-      //TODO is it really unused?
-      WALBERLA_UNUSED( it );
-      CellType rowsize       = static_cast< CellType >( faceWidth ) - 1;
-      CellType inner_rowsize = rowsize;
-
-      for ( CellType i = 0; i < rowsize; ++i )
+      if ( discontinuous )
       {
-         for ( CellType j = 0; j < inner_rowsize - 1; ++j )
+         for ( auto faceType : facedof::allFaceTypes )
          {
+            const uint_t numMicroFacesAtBoundary = faceType == facedof::FaceType::GRAY ? faceWidth - 1 : faceWidth - 2;
+            for ( const auto& idxIt : indexing::FaceIterator( numMicroFacesAtBoundary ) )
+            {
+               streamWriterCells << offset << offset + 1 << offset + 2;
+               offset += 3;
+            }
+         }
+      }
+      else
+      {
+         CellType rowsize       = static_cast< CellType >( faceWidth ) - 1;
+         CellType inner_rowsize = rowsize;
+
+         for ( CellType i = 0; i < rowsize; ++i )
+         {
+            for ( CellType j = 0; j < inner_rowsize - 1; ++j )
+            {
+               streamWriterCells << offset << offset + 1 << offset + inner_rowsize + 1;
+               streamWriterCells << offset + 1 << offset + inner_rowsize + 2 << offset + inner_rowsize + 1;
+               ++offset;
+            }
+
             streamWriterCells << offset << offset + 1 << offset + inner_rowsize + 1;
-            streamWriterCells << offset + 1 << offset + inner_rowsize + 2 << offset + inner_rowsize + 1;
-            ++offset;
+
+            offset += 2;
+            --inner_rowsize;
          }
 
-         streamWriterCells << offset << offset + 1 << offset + inner_rowsize + 1;
-
-         offset += 2;
-         --inner_rowsize;
+         ++offset;
       }
 
-      ++offset;
+      WALBERLA_UNUSED( it );
    }
 
    streamWriterCells.toStream( output );
@@ -322,8 +364,11 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
 void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr,
                                   std::ostream&                              output,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
-                                  uint_t                                     width )
+                                  uint_t                                     width,
+                                  bool                                       discontinuous )
 {
+   WALBERLA_CHECK( !discontinuous, "Discontinuous VTK cells not implemented in 3D." );
+
    using CellIdx_T = int32_t;
 
    output << "<Cells>\n";
