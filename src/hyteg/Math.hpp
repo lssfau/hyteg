@@ -19,7 +19,9 @@
  */
 #ifndef MATH_HPP
 #define MATH_HPP
-
+#ifdef _MSC_VER
+  #define _USE_MATH_DEFINES //for M_PI
+#endif
 #include <cmath>
 
 #include "core/DataTypes.h"

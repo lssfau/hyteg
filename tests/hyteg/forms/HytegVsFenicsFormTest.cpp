@@ -1044,7 +1044,9 @@ int main( int argc, char** argv )
    // intel llvm has problems in debug mode
 #else
    // abort in case of common floating-point exceptions
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
 #endif
    // environment stuff
