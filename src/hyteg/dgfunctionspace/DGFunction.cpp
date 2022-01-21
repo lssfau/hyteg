@@ -21,6 +21,8 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
 namespace dg {
@@ -84,7 +86,10 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
          Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
          Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
-         if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
+         if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) ||
+              ( searchToleranceRadius > 0 &&
+                circleTriangleIntersection(
+                    coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) ) )
          {
             indexing::Index   elementIndex;
             facedof::FaceType faceType;
@@ -94,7 +99,16 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
                 level, face, coordinates2D, elementIndex, faceType, localCoordinates );
 
             Eigen::Matrix< real_t, 2, 1 > refPos( localCoordinates[0], localCoordinates[1] );
-
+#if 0
+            std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+            auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+            for ( uint_t i = 0; i < 3; i++ )
+            {
+               const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+               affineElementVertices[i]( 0 ) = coord[0];
+               affineElementVertices[i]( 1 ) = coord[1];
+            }
+#endif
             std::vector< real_t > dofs( ndofs );
             for ( uint_t i = 0; i < ndofs; i++ )
             {
@@ -104,28 +118,11 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
             real_t value_r;
             basis_->evaluate( polyDegree, refPos, dofs, value_r );
 
+            // Eigen::Matrix< real_t, 2, 1 > coords( coordinates2D[0], coordinates2D[1] );
+            // basis_->evaluate( polyDegree, affineElementVertices, coords, dofs, value_r );
+
             value = ValueType( value_r );
             return true;
-         }
-      }
-
-      if ( searchToleranceRadius > 0 )
-      {
-         WALBERLA_ABORT( "not implemented" );
-         for ( auto& it : this->getStorage()->getFaces() )
-         {
-            Face& face = *it.second;
-
-            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-            if ( circleTriangleIntersection(
-                     coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
-            {
-               // value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
-               return true;
-            }
          }
       }
    }
@@ -175,6 +172,54 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
    }
 
    return false;
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level )
+{
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Linear functional evaluation not implemented." )
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( faceID );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               const std::array< indexing::Index, 3 > vertexIndices =
+                   facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+               std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+               for ( uint_t i = 0; i < 3; i++ )
+               {
+                  const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                  elementVertices[i]( 0 )  = elementVertex[0];
+                  elementVertices[i]( 1 )  = elementVertex[1];
+               }
+
+               std::vector< real_t > dofValues( numDofs );
+               basis()->integrateBasisFunction( degree, elementVertices, f, dofValues );
+
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
+                      ValueType( dofValues[i] );
+               }
+            }
+         }
+      }
+   }
 }
 
 /// explicit instantiation

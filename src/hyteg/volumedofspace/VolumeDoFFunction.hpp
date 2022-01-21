@@ -57,7 +57,7 @@ inline constexpr uint_t levelToWidth( uint_t level )
 /// \param faceType  type of the volume (two types of micro-faces exist)
 /// \param dof       DoF ID (there may be more than one DoF per volume)
 /// \param ndofs     number of DoFs per micro-volume
-/// \param width     number of micro-edges per edge of the macro-face
+/// \param level     refinement level
 /// \param memLayout specifies the memory layout for which the array index is computed
 ///
 /// \return array index
@@ -66,13 +66,12 @@ inline constexpr uint_t index( uint_t                x,
                                facedof::FaceType     faceType,
                                uint_t                dof,
                                uint_t                ndofs,
-                               uint_t                width,
+                               uint_t                level,
                                VolumeDoFMemoryLayout memLayout )
 {
-   const auto numMicroVolumes = levelinfo::num_microfaces_per_face_from_width( width );
+   const auto numMicroVolumes = levelinfo::num_microfaces_per_face( level );
 
-   const auto microVolume = faceType == facedof::FaceType::GRAY ? hyteg::indexing::macroFaceIndex( width, x, y ) :
-                                                                  hyteg::indexing::macroFaceIndex( width - 1, x, y );
+   const auto microVolume = facedof::macroface::index( level, x, y, faceType );
 
    if ( memLayout == VolumeDoFMemoryLayout::SoA )
    {
@@ -165,16 +164,16 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                       uint_t                                     numScalars,
                       VolumeDoFMemoryLayout                      memoryLayout );
 
-//   /// \brief Sets all DoFs to a specified constant.
-//   void setConstant( real_t constant, uint_t level );
-//
-//   /// \brief Sets all DoFs to 0.
-//   void setZero( uint_t level );
-//
-//   /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
-//   void assign( const std::vector< ValueType >&                                                      scalars,
-//                const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-//                uint_t                                                                               level );
+   //   /// \brief Sets all DoFs to a specified constant.
+   //   void setConstant( real_t constant, uint_t level );
+   //
+   //   /// \brief Sets all DoFs to 0.
+   //   void setZero( uint_t level );
+   //
+   //   /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
+   //   void assign( const std::vector< ValueType >&                                                      scalars,
+   //                const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+   //                uint_t                                                                               level );
 
    /// \brief Returns a pointer to the array that stores all degrees of freedom.
    ///
@@ -220,13 +219,8 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
        dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, facedof::FaceType faceType, uint_t level ) const
    {
       auto data = dofMemory( primitiveID, level );
-      return data[indexing::index( idx.x(),
-                                   idx.y(),
-                                   faceType,
-                                   dofID,
-                                   numScalarsPerPrimitive_.at( primitiveID ),
-                                   indexing::levelToWidth( level ),
-                                   memoryLayout_ )];
+      return data[indexing::index(
+          idx.x(), idx.y(), faceType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
    }
 
    /// \brief Access to a degree of freedom on a macro-face (for debugging / testing).
@@ -244,14 +238,11 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    ValueType& dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, facedof::FaceType faceType, uint_t level )
    {
       auto data = dofMemory( primitiveID, level );
-      return data[indexing::index( idx.x(),
-                                   idx.y(),
-                                   faceType,
-                                   dofID,
-                                   numScalarsPerPrimitive_.at( primitiveID ),
-                                   indexing::levelToWidth( level ),
-                                   memoryLayout_ )];
+      return data[indexing::index(
+          idx.x(), idx.y(), faceType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
    }
+
+   VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
 
  private:
    void allocateMemory();

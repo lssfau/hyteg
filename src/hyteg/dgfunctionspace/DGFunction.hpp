@@ -93,6 +93,17 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ///
    bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
+   /// Evaluates the linear functional
+   ///
+   ///   l( v ) = \int_\Omega f * v
+   ///
+   /// by integration over the local basis functions and writes the result into the vector, i.e.
+   ///
+   ///   u_i <- \int_T f * \phi_i
+   ///
+   /// where \phi_i is the basis function associated with the DoF u_i and f a given analytical function.
+   void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level );
+
    /// \brief Returns the internally stored VolumeDoFFunction.
    [[nodiscard]] std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction() const
    {
