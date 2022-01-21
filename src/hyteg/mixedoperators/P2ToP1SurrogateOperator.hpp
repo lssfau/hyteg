@@ -77,9 +77,9 @@ class P2ToP1SurrogateOperator : public Operator< P2Function< real_t >, P1Functio
       std::array< real_t, P2::NumStencilentries2D::EtV > edgeToVertexStencil;
 
       // we only use polynomials for face stencils
-      for ( auto& it : storage_->getFaces() )
+      for ( auto& itF : storage_->getFaces() )
       {
-         Face& face = *it.second;
+         Face& face = *itF.second;
          form_.setGeometryMap( face.getGeometryMap() );
 
          Point3D x0( face.coords[0] ), x;
