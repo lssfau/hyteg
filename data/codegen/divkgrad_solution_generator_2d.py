@@ -26,6 +26,10 @@ def annulus():
     u = sin(4*φ(x,y))*sin(2*r(x,y))
     return (1,u)
 
+def annulus2():
+    u = sin(1/r(x,y)**2)
+    return (1,u)
+
 def smooth_jump():
     α,φ = symbols('alpha phi')
     k = 2+tanh(α*(x-0.5));
@@ -68,8 +72,13 @@ def plume_example():
 
     return (k,u)
 
-
-k, u = sigmoidK()
+def to_cpp_function(name, expr):
+    cs = cse(simplify(expr))
+    # print(cs)
+    print('std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) \n{'%name)
+    for (var,val) in cs[0]:
+        print('   auto %s = %s;'%(ccode(var),ccode(val)))
+    print('   return %s;\n};'%ccode(cs[1][0]))
 
 def gradient(u):
     return np.array([diff(u,x), diff(u,y)])
@@ -77,17 +86,16 @@ def gradient(u):
 def divergence(u):
     return diff(u[0],x) + diff(u[1],y)
 
-# Right hand side
-f = -divergence(k * gradient(u))
+if __name__ == '__main__':
 
+    k, u = annulus2()
+    # Right hand side
+    f = -divergence(k * gradient(u))
 
-# Generate code
-x.name = 'x[0]'
-y.name = 'x[1]'
+    # Generate code
+    x.name = 'x[0]'
+    y.name = 'x[1]'
 
-def function_template(name, body):
-    return 'std::function<real_t(const hyteg::Point3D&)> %s = [](const hyteg::Point3D& x) { return %s; };' % (name, body)
-
-print(function_template('coeff', ccode(simplify(k))))
-print(function_template('exact', ccode(simplify(u))))
-print(function_template('rhs', ccode(simplify(f))))
+    to_cpp_function('coeff', k)
+    to_cpp_function('exact', u)
+    to_cpp_function('rhs', f)

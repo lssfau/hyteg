@@ -459,18 +459,19 @@ inline void multElementwise( const uint_t & level,
 
 }
 
-template< typename ValueType >
-inline ValueType dot( const uint_t & level,
-                   const Cell & cell,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId)
+template < typename ValueType >
+inline ValueType dot( const uint_t&                                               level,
+                      const Cell&                                                 cell,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& lhsId,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& rhsId,
+                      const uint_t&                                               offset=1 )
 {
    auto sp = ValueType( 0 );
 
   const ValueType * lhsPtr = cell.getData( lhsId )->getPointer( level );
   const ValueType * rhsPtr = cell.getData( rhsId )->getPointer( level );
 
-  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, offset ) )
   {
     const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
     sp += lhsPtr[ idx ] * rhsPtr[ idx ];

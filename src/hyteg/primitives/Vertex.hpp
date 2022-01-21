@@ -45,6 +45,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   /// Constructs a vertex with given id and coordinates
   /// \param primitiveID Id of vertex

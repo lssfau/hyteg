@@ -453,28 +453,29 @@ inline void multElementwise( const uint_t&                                      
    }
 }
 
-
 template < typename ValueType >
 inline ValueType dot( const uint_t&                                               Level,
-                   Face&                                                       face,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+                      Face&                                                       face,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
+                      const uint_t&                                               offset = 1 )
 {
    walberla::math::KahanAccumulator< ValueType > scalarProduct;
-   uint_t                                        rowsize       = levelinfo::num_microvertices_per_edge( Level );
-   uint_t                                        inner_rowsize = rowsize;
+
+   uint_t rowsizeY = levelinfo::num_microvertices_per_edge( Level );
+   uint_t rowsizeX;
 
    ValueType* lhsPtr = face.getData( lhsId )->getPointer( Level );
    ValueType* rhsPtr = face.getData( rhsId )->getPointer( Level );
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for( uint_t j = offset; j < rowsizeY - offset; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      rowsizeX = rowsizeY - j;
+      for( uint_t i = offset; i < rowsizeX - offset; ++i )
       {
          scalarProduct += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] *
                           rhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
       }
-      --inner_rowsize;
    }
 
    return scalarProduct.get();

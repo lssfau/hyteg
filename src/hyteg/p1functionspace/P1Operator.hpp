@@ -148,7 +148,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
    std::map< indexing::Index, std::vector< real_t > > computeStencilsForFace( Face& face ) const
    {
-      if (storage_->hasGlobalCells())
+      if ( storage_->hasGlobalCells() )
       {
          WALBERLA_ABORT( "Only available for 2D domains!" );
       }
@@ -728,7 +728,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                for ( uint_t j = 1; j < rowsizeY - 2; ++j )
                {
-                  if ( not use_variable_stencil_assembly )
+                  if ( !use_variable_stencil_assembly )
                   {
                      assemble_stencil_face_init_y( j );
                   }
@@ -845,7 +845,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
                {
-                  if ( not use_variable_stencil_assembly )
+                  if ( !use_variable_stencil_assembly )
                   {
                      assemble_stencil_cell_init_z( k );
                   }
@@ -854,7 +854,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                   for ( uint_t j = 1; j < rowsizeY - 2; ++j )
                   {
-                     if ( not use_variable_stencil_assembly )
+                     if ( !use_variable_stencil_assembly )
                      {
                         assemble_stencil_cell_init_y( j );
                      }
