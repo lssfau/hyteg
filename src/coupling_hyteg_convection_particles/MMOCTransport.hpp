@@ -942,12 +942,12 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    WALBERLA_MPI_SECTION()
    {
       const int TAG = 98234;
-
+#ifdef _MSC_VER
       //need a first receive to avoid blocking on windows while communicating with itself
       int selfCommMessage = 0;
       MPI_Request selfCommRequest;
       MPI_Irecv(&selfCommMessage, 1, MPI_INT, walberla::mpi::MPIManager::instance()->rank(), TAG, walberla::mpi::MPIManager::instance()->comm(), &selfCommRequest);
-
+#endif
       for ( const auto& p : particleStorage )
       {
          if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 ){
@@ -977,6 +977,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       }
 
       int numReceivedParticleLocations = 0;
+      #ifdef _MSC_VER
       //get self communication
       {
          int ready;
@@ -990,6 +991,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
          }
 
       }
+      #endif
       while ( numReceivedParticleLocations < numberOfCreatedParticles )
       {
          MPI_Status status;
