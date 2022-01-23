@@ -342,8 +342,6 @@ inline void saveIdentityOperator( Vertex&                                       
    mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
@@ -351,8 +349,8 @@ inline void createVectorFromFunction( const Vertex&                             
                                       const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   auto     src       = vertex.getData( srcId )->getPointer( level );
-   idx_t    numerator = vertex.getData( numeratorId )->getPointer( level )[0];
+   auto  src       = vertex.getData( srcId )->getPointer( level );
+   idx_t numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
    vec->setValue( uint_c( numerator ), src[0] );
 }
@@ -375,8 +373,6 @@ inline void applyDirichletBC( Vertex&                                           
 {
    mat.push_back( vertex.getData( numeratorId )->getPointer( level )[0] );
 }
-
-#endif
 
 } // namespace macrovertex
 } // namespace vertexdof

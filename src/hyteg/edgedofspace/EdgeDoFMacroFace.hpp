@@ -38,16 +38,17 @@ namespace hyteg {
 namespace edgedof {
 namespace macroface {
 
+using indexing::Index;
 using walberla::real_c;
 using walberla::uint_t;
-using indexing::Index;
 
-inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation & orientation)
+inline Point3D
+    coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation& orientation )
 {
    const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
    const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
-   Point3D increment;
+   Point3D       increment;
    switch ( orientation )
    {
    case EdgeDoFOrientation::X:
@@ -65,7 +66,6 @@ inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const
    return face.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() ) + increment;
 }
 
-
 inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  edgeDoFIndexInMacroFace,
                                                        const Face&             face,
                                                        const uint_t&           neighborCellID,
@@ -76,12 +76,12 @@ inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  e
    const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
 
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
-       {neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )} );
+       { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
+         neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
+         neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) } );
 
    const auto indexInMacroCell = indexing::basisConversion(
-       edgeDoFIndexInMacroFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+       edgeDoFIndexInMacroFace, localVertexIDsAtCell, { 0, 1, 2, 3 }, levelinfo::num_microedges_per_edge( level ) );
    return indexInMacroCell;
 }
 
@@ -127,7 +127,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    transform = A.adj();
    transform *= 1.0 / A.det();
 
-   Point2D x( {coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1]} );
+   Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
    Point2D xRelMacro = transform.mul( x );
 
@@ -136,8 +136,8 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    real_t hInv    = walberla::real_c( rowsize - 1 );
    real_t h       = walberla::real_c( 1.0 / hInv );
 
-   int    binX    = static_cast< int >( std::floor( xRelMacro[0] * ( rowsize - 1 ) ) );
-   int    binY    = static_cast< int >( std::floor( xRelMacro[1] * ( rowsize - 1 ) ) );
+   int binX = static_cast< int >( std::floor( xRelMacro[0] * ( rowsize - 1 ) ) );
+   int binY = static_cast< int >( std::floor( xRelMacro[1] * ( rowsize - 1 ) ) );
 
    if ( binX < 0 )
    {
@@ -161,9 +161,9 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
 
    if ( binX + binY >= static_cast< int >( rowsize - 1 ) )
    {
-      int binXDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
-      binXDec += (binX + binY - static_cast< int >( rowsize - 2 )) % 2;
-      int binYDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      int binXDec = ( binX + binY - static_cast< int >( rowsize - 2 ) ) / 2;
+      binXDec += ( binX + binY - static_cast< int >( rowsize - 2 ) ) % 2;
+      int binYDec = ( binX + binY - static_cast< int >( rowsize - 2 ) ) / 2;
       binX -= binXDec;
       binY -= binYDec;
    }
@@ -174,7 +174,6 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    WALBERLA_ASSERT_LESS( col, rowsize - 1 );
    WALBERLA_ASSERT_LESS( row, rowsize - 1 );
    WALBERLA_ASSERT_LESS( col + row, rowsize - 1, "index.x(): " << col << ", index.y()" << row );
-
 
    localCoordinates[0] = xRelMacro[0] - col * h;
    localCoordinates[1] = xRelMacro[1] - row * h;
@@ -188,7 +187,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    // decide if up or down triangle
    // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
    // otherwise check floating point distance
-   bool upTriangle = (col + row == rowsize - 2) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
+   bool upTriangle = ( col + row == rowsize - 2 ) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
 
    if ( upTriangle )
    {
@@ -761,9 +760,9 @@ inline void apply3D( const uint_t&                                              
    for ( const auto& centerIndexInFace : hyteg::edgedof::macroface::Iterator( level, 0 ) )
    {
       std::map< edgedof::EdgeDoFOrientation, real_t > tmpResults = {
-          {edgedof::EdgeDoFOrientation::X, real_c( 0 )},
-          {edgedof::EdgeDoFOrientation::Y, real_c( 0 )},
-          {edgedof::EdgeDoFOrientation::XY, real_c( 0 )},
+          { edgedof::EdgeDoFOrientation::X, real_c( 0 ) },
+          { edgedof::EdgeDoFOrientation::Y, real_c( 0 ) },
+          { edgedof::EdgeDoFOrientation::XY, real_c( 0 ) },
       };
 
       for ( const auto& faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
@@ -1010,8 +1009,6 @@ inline void
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Face&                                                       face,
@@ -1063,21 +1060,21 @@ inline void createFunctionFromVector( const uint_t&                             
       if ( it.row() != 0 )
       {
          const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
-         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         src[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       // Do not read vertical DoFs at left border
       if ( it.col() != 0 )
       {
          const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
-         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         src[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       // Do not read diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
-         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         src[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
    }
 }
@@ -1113,8 +1110,6 @@ inline void applyDirichletBC( const uint_t&                                     
       }
    }
 }
-
-#endif
 
 } // namespace macroface
 } // namespace edgedof

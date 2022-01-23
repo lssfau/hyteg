@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,15 +28,12 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
-namespace petsc {
 
 // ============
 //  P2Function
 // ============
-inline void createVectorFromFunction( const P2Function< PetscReal >&        function,
+inline void createVectorFromFunction( const P2Function< real_t >&           function,
                                       const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -46,7 +43,7 @@ inline void createVectorFromFunction( const P2Function< PetscReal >&        func
    createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P2Function< PetscReal >&        function,
+inline void createFunctionFromVector( const P2Function< real_t >&           function,
                                       const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -65,7 +62,7 @@ inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector<
 // ==================
 //  P2VectorFunction
 // ==================
-inline void createVectorFromFunction( const P2VectorFunction< PetscReal >&  function,
+inline void createVectorFromFunction( const P2VectorFunction< real_t >&     function,
                                       const P2VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -77,7 +74,7 @@ inline void createVectorFromFunction( const P2VectorFunction< PetscReal >&  func
    }
 }
 
-inline void createFunctionFromVector( const P2VectorFunction< PetscReal >&  function,
+inline void createFunctionFromVector( const P2VectorFunction< real_t >&     function,
                                       const P2VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -97,7 +94,4 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
    }
 }
 
-} // namespace petsc
 } // namespace hyteg
-
-#endif

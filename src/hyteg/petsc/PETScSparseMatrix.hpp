@@ -188,7 +188,7 @@ class PETScSparseMatrix
    void applyDirichletBC( const FunctionTypeSrc< idx_t >& numerator, uint_t level )
    {
       std::vector< idx_t > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
@@ -225,7 +225,7 @@ class PETScSparseMatrix
                                        const uint_t&                                                        level )
    {
       std::vector< idx_t > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       PETScVector< real_t, FunctionTypeSrc > dirichletSolutionVec(
@@ -246,7 +246,7 @@ class PETScSparseMatrix
    std::vector< idx_t > applyDirichletBCSymmetrically( const FunctionTypeSrc< idx_t >& numerator, const uint_t& level )
    {
       std::vector< idx_t > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)

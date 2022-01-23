@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,13 +25,12 @@
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
-namespace petsc {
 
-inline void createVectorFromFunction( const P2P2StokesFunction< PetscReal >& function,
-                                      const P2P2StokesFunction< idx_t >&     numerator,
-                                      const std::shared_ptr< VectorProxy >&  vec,
-                                      uint_t                                 level,
-                                      DoFType                                flag )
+inline void createVectorFromFunction( const P2P2StokesFunction< real_t >&   function,
+                                      const P2P2StokesFunction< idx_t >&    numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createVectorFromFunction( function.uvw[0], numerator.uvw[0], vec, level, flag );
    createVectorFromFunction( function.uvw[1], numerator.uvw[1], vec, level, flag );
@@ -42,11 +41,11 @@ inline void createVectorFromFunction( const P2P2StokesFunction< PetscReal >& fun
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P2P2StokesFunction< PetscReal >& function,
-                                      const P2P2StokesFunction< idx_t >&     numerator,
-                                      const std::shared_ptr< VectorProxy >&  vec,
-                                      uint_t                                 level,
-                                      DoFType                                flag )
+inline void createFunctionFromVector( const P2P2StokesFunction< real_t >&   function,
+                                      const P2P2StokesFunction< idx_t >&    numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createFunctionFromVector( function.uvw[0], numerator.uvw[0], vec, level, flag );
    createFunctionFromVector( function.uvw[1], numerator.uvw[1], vec, level, flag );
@@ -68,5 +67,4 @@ inline void applyDirichletBC( const P2P2StokesFunction< idx_t >& numerator, std:
    //  applyDirichletBC(numerator.p, mat, level);
 }
 
-} // namespace petsc
 } // namespace hyteg

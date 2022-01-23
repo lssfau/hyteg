@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -138,7 +138,7 @@ void exportOperator( OperatorType&                       op,
          {
             WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" )
          }
-         hyteg::petsc::applyDirichletBC( numerator, indices, level );
+         hyteg::applyDirichletBC( numerator, indices, level );
          petscMatrix.applyDirichletBC( numerator, level );
       }
    }

@@ -46,11 +46,11 @@ inline indexing::Index getIndexInNeighboringMacroEdge( const indexing::Index&  e
                                                        const uint_t&           level )
 {
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-       {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
-        cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 )} );
+       { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
+         cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 ) } );
 
    const auto indexInMacroEdge = indexing::basisConversion(
-       edgeDoFIndexInMacroCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+       edgeDoFIndexInMacroCell, { 0, 1, 2, 3 }, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
    return indexInMacroEdge;
 }
 
@@ -61,11 +61,11 @@ inline indexing::Index getIndexInNeighboringMacroEdgeXYZ( const indexing::Index&
                                                           const uint_t&           level )
 {
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-       {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
-        cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 )} );
+       { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
+         cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 ) } );
 
    const auto indexInMacroEdge = indexing::basisConversion(
-       edgeDoFIndexInMacroCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
+       edgeDoFIndexInMacroCell, { 0, 1, 2, 3 }, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
    return indexInMacroEdge;
 }
 
@@ -75,8 +75,8 @@ inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroEdge( const E
                                                                          const PrimitiveStorage&   storage )
 {
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-       {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
-        cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 )} );
+       { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 0 ),
+         cell.getEdgeLocalVertexToCellLocalVertexMaps().at( neighborEdgeID ).at( 1 ) } );
 
    const auto orientationInMacroEdge = edgedof::convertEdgeDoFOrientationCellToFace(
        orientationInMacroCell, localVertexIDsAtCell.at( 0 ), localVertexIDsAtCell.at( 1 ), localVertexIDsAtCell.at( 2 ) );
@@ -90,12 +90,12 @@ inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index&  e
                                                        const uint_t&           level )
 {
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
-       {cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 0 ),
-        cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 1 ),
-        cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 2 )} );
+       { cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 0 ),
+         cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 1 ),
+         cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 2 ) } );
 
    const auto indexInMacroFace = indexing::basisConversion(
-       edgeDoFIndexInMacroCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+       edgeDoFIndexInMacroCell, { 0, 1, 2, 3 }, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
    return indexInMacroFace;
 }
 
@@ -106,12 +106,12 @@ inline indexing::Index getIndexInNeighboringMacroFaceXYZ( const indexing::Index&
                                                           const uint_t&           level )
 {
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
-       {cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 0 ),
-        cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 1 ),
-        cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 2 )} );
+       { cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 0 ),
+         cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 1 ),
+         cell.getFaceLocalVertexToCellLocalVertexMaps().at( neighborFaceID ).at( 2 ) } );
 
    const auto indexInMacroFace = indexing::basisConversion(
-       edgeDoFIndexInMacroCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
+       edgeDoFIndexInMacroCell, { 0, 1, 2, 3 }, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
    return indexInMacroFace;
 }
 
@@ -987,8 +987,6 @@ inline void
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Cell&                                                       cell,
@@ -1004,44 +1002,44 @@ inline void createVectorFromFunction( const uint_t&                             
       if ( isInnerXEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       if ( isInnerYEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       if ( isInnerZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       if ( isInnerXYEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       if ( isInnerXZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       if ( isInnerYZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
-         vec->setValue( uint_c( numerator[idx]) , src[idx] );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
    }
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
    {
       const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
-      vec->setValue( uint_c( numerator[idx]) , src[idx] );
+      vec->setValue( uint_c( numerator[idx] ), src[idx] );
    }
 }
 
@@ -1060,48 +1058,46 @@ inline void createFunctionFromVector( const uint_t&                             
       if ( isInnerXEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       if ( isInnerYEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       if ( isInnerZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       if ( isInnerXYEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       if ( isInnerXZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       if ( isInnerYZEdgeDoF( Level, it ) )
       {
          const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
-         dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+         dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
       }
    }
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
    {
       const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
-      dst[idx] = vec->getValue( uint_c( numerator[idx] ) );
+      dst[idx]         = vec->getValue( uint_c( numerator[idx] ) );
    }
 }
-
-#endif
 
 } // namespace macrocell
 } // namespace edgedof
