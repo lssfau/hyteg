@@ -24,6 +24,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -260,6 +261,143 @@ void captureTheFlags( bool useCentroids )
    WALBERLA_LOG_INFO_ON_ROOT( "Here we go:\n" << sStr.str() );
 }
 
+// we mesh a rectangle and use a PolarCoordsMap to map it to a half annulus
+template < typename func_t >
+void centroidHardBlendingTest()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Running BoundaryUIDTest::centroidHardBlendingTest for "
+                              << FunctionTrait< func_t >::getTypeName() );
+
+   bool beVerbose = false;
+
+   // -----------------------------------------
+   //  Define markers for geometric boundaries
+   // -----------------------------------------
+   uint_t markerInnerBoundary = 33;
+   uint_t markerOuterBoundary = 66;
+   uint_t markerSideBoundary  = 99;
+
+   // --------------
+   //  SetupStorage
+   // --------------
+   real_t innerRad    = real_c( 1 );
+   real_t outerRad    = real_c( 2 );
+   real_t phiMin      = real_c( 0 );
+   real_t phiMax      = real_c( pi );
+   real_t boundaryRad = 0.0;
+   real_t tol         = real_c( 1e-5 );
+
+   MeshInfo meshInfo =
+       MeshInfo::meshRectangle( Point2D( {innerRad, phiMin} ), Point2D( {outerRad, phiMax} ), MeshInfo::CRISS, 3, 4 );
+   // MeshInfo::meshRectangle( Point2D( {innerRad, phiMin} ), Point2D( {outerRad, phiMax} ), MeshInfo::DIAMOND, 3, 2 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   PolarCoordsMap::setMap( setupStorage );
+
+   // ---------------
+   //  BoundaryFlags
+   // ---------------
+
+   // oracle for curved boundaries
+   auto onCurvedBoundary = [&boundaryRad, tol]( const Point3D& x ) {
+      real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
+      return std::abs( boundaryRad - radius ) < tol;
+   };
+
+   // oracle for straight boundaries
+   auto onStraightBoundary = [tol]( const Point3D& x ) { return std::abs( x[1] ) < tol; };
+
+   setupStorage.setMeshBoundaryFlagsByCentroidLocation( markerSideBoundary, onStraightBoundary, true );
+
+   boundaryRad = outerRad;
+   setupStorage.setMeshBoundaryFlagsByCentroidLocation( markerOuterBoundary, onCurvedBoundary, true );
+
+   boundaryRad = innerRad;
+   setupStorage.setMeshBoundaryFlagsByCentroidLocation( markerInnerBoundary, onCurvedBoundary, true );
+
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // report primitives and their flags
+   if ( beVerbose )
+   {
+      std::stringstream sStr;
+      setupStorage.toStream( sStr, true );
+      WALBERLA_LOG_INFO_ON_ROOT( "" << sStr.str() );
+   }
+
+   // -----------------------
+   //  Function Manipulation
+   // -----------------------
+   uint_t minLevel = 2;
+   uint_t maxLevel = 2;
+   func_t test( "Test Func", storage, minLevel, maxLevel );
+   func_t ctrl( "Ctrl Func", storage, minLevel, maxLevel );
+
+   // generate bc object and set different conditions on inner, outer, and straight boundaries
+   BoundaryCondition bcs;
+   BoundaryUID       outerBC = bcs.createDirichletBC( "Dirichlet on outer radius", markerOuterBoundary );
+   BoundaryUID       innerBC = bcs.createDirichletBC( "Dirichlet on inner radius", markerInnerBoundary );
+   BoundaryUID       sideBC  = bcs.createDirichletBC( "Dirichlet on side boundary radius", markerSideBoundary );
+
+   test.setBoundaryCondition( bcs );
+   ctrl.setBoundaryCondition( bcs );
+
+   // assign functions values
+   real_t iValue = real_c( 30 ); // on inner boundary
+   real_t mValue = real_c( 20 ); // in the interior
+   real_t oValue = real_c( 10 ); // on outer boundary
+   real_t sValue = real_c( -4 ); // on side boundary
+
+   test.interpolate( mValue, maxLevel, All );
+   test.interpolate( iValue, maxLevel, innerBC );
+   test.interpolate( oValue, maxLevel, outerBC );
+   test.interpolate( sValue, maxLevel, sideBC );
+
+   // ------------------
+   //  Control Function
+   // ------------------
+   std::function< real_t( const Point3D& ) > controlValues =
+       [innerRad, outerRad, iValue, mValue, oValue, sValue]( const Point3D& x ) {
+          real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
+          real_t mytol  = 1e-14;
+          if ( std::abs( innerRad - radius ) < mytol )
+          {
+             return iValue;
+          }
+          else if ( std::abs( outerRad - radius ) < mytol )
+          {
+             return oValue;
+          }
+          else if ( std::abs( x[1] ) < mytol )
+          {
+             return sValue;
+          }
+          return mValue;
+       };
+   ctrl.interpolate( controlValues, maxLevel, All );
+
+   // ------------
+   //  Output VTK
+   // ------------
+   if ( beVerbose )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "centroidTest";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( test );
+      vtkOutput.add( ctrl );
+      vtkOutput.write( maxLevel );
+   }
+
+   // -----------------------
+   //  check for differences
+   // -----------------------
+   func_t diff( "Diff Func", storage, minLevel, maxLevel );
+   diff.assign( {-1.0, 1.0}, {test, ctrl}, maxLevel, All );
+   real_t check = diff.getMaxMagnitude( maxLevel, All );
+   WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
+}
+
 int main( int argc, char* argv[] )
 {
    // -------------
@@ -292,6 +430,10 @@ int main( int argc, char* argv[] )
    runTest< P2Function< real_t > >( useCentroids );
    runTest< P1VectorFunction< real_t > >( useCentroids );
    runTest< P2VectorFunction< real_t > >( useCentroids );
+
+   // use a strongly blended geometry
+   centroidHardBlendingTest< P1Function< real_t > >();
+   centroidHardBlendingTest< P2Function< real_t > >();
 
    return 0;
 }
