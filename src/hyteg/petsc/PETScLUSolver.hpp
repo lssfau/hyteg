@@ -224,6 +224,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
       b.assign( { 1.0 }, { x }, level, DirichletBoundary );
       bVec.createVectorFromFunction( b, num, level, All );
+      xVec.createVectorFromFunction( x, num, level, All );
 
       if ( assumeSymmetry_ )
       {
