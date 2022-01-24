@@ -41,8 +41,6 @@ template < typename ValueType, template < class > class FunctionType >
 class PETScVector
 {
  public:
-   PETScVector() = delete;
-
    PETScVector( const std::string& name              = "Vec",
                 const MPI_Comm&    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : name_( name )

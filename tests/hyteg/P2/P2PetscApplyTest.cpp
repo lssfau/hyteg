@@ -56,12 +56,12 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 
    writeDomainPartitioningVTK( storage, "../../output", "P2PetscApplyTestDomain" );
 
-   P2Function< real_t >   src( "src", storage, level, level );
-   P2Function< real_t >   hhgDst( "hhgDst", storage, level, level );
-   P2Function< real_t >   petscDst( "petscDst", storage, level, level );
-   P2Function< real_t >   err( "error", storage, level, level );
-   P2Function< real_t >   ones( "ones", storage, level, level );
-   P2Function< idx_t >    numerator( "numerator", storage, level, level );
+   P2Function< real_t > src( "src", storage, level, level );
+   P2Function< real_t > hhgDst( "hhgDst", storage, level, level );
+   P2Function< real_t > petscDst( "petscDst", storage, level, level );
+   P2Function< real_t > err( "error", storage, level, level );
+   P2Function< real_t > ones( "ones", storage, level, level );
+   P2Function< idx_t >  numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
@@ -90,9 +90,9 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P2Function >              srcPetscVec( localDoFs );
-   PETScVector< real_t, P2Function >              dstPetscVec( localDoFs );
-   PETScSparseMatrix< P2ConstantLaplaceOperator > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P2Function >              srcPetscVec;
+   PETScVector< real_t, P2Function >              dstPetscVec;
+   PETScSparseMatrix< P2ConstantLaplaceOperator > petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
