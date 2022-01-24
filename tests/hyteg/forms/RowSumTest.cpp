@@ -109,7 +109,6 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
    // check if matrices diagonal
 
    PETScManager                                             manager;
-   typedef typename FunctionTrait< funcType< idx_t > >::Tag enumTag;
    funcType< idx_t >                                        numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
