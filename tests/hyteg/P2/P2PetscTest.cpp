@@ -72,11 +72,9 @@ int main( int argc, char* argv[] )
    // Check if row sum is zero
    WALBERLA_CHECK_LESS( sqSum, 1e-14 );
 
-   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
-   uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
    numerator.enumerate( level );
 
-   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc( localDoFs, globalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    WALBERLA_CHECK_EQUAL( Lpetsc.isSymmetric(), true );

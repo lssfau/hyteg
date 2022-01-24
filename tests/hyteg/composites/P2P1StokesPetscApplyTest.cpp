@@ -90,9 +90,9 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P2P1TaylorHoodFunction >     srcPetscVec( localDoFs );
-   PETScVector< real_t, P2P1TaylorHoodFunction >     dstPetscVec( localDoFs );
-   PETScSparseMatrix< P2P1TaylorHoodStokesOperator > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P2P1TaylorHoodFunction >     srcPetscVec;
+   PETScVector< real_t, P2P1TaylorHoodFunction >     dstPetscVec;
+   PETScSparseMatrix< P2P1TaylorHoodStokesOperator > petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );

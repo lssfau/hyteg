@@ -80,7 +80,6 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    numerator.enumerate( level );
 
    const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
