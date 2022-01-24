@@ -110,8 +110,6 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 
    PETScManager                                             manager;
    typedef typename FunctionTrait< funcType< idx_t > >::Tag enumTag;
-   const auto                                               localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
-   const auto                                               globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
    funcType< idx_t >                                        numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
@@ -154,8 +152,7 @@ int main( int argc, char* argv[] )
    meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
    meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
 
-   uint maxLevel  = 3;
-   bool succeeded = true;
+   uint maxLevel = 3;
 
    // -----------------------------
    //  Run tests for P1RowSumForm
@@ -164,7 +161,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
    WALBERLA_LOG_INFO_ON_ROOT( "Running tests for P1RowSumForm" );
    WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
-   succeeded = true;
+   bool succeeded = true;
 
    auto p1DiffusionFormFenics =
        std::make_shared< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >();
