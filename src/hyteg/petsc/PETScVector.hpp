@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -43,27 +43,22 @@ class PETScVector
  public:
    PETScVector() = delete;
 
+   PETScVector( const std::string& name              = "Vec",
+                const MPI_Comm&    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : name_( name )
+   , petscCommunicator_( petscCommunicator )
+   , allocated_( false )
+   {}
+
    PETScVector( const FunctionType< ValueType >& function,
                 const FunctionType< idx_t >&     numerator,
                 const uint_t&                    level,
                 const DoFType&                   flag              = All,
                 const std::string&               name              = "Vec",
                 const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : PETScVector( numberOfLocalDoFs( function, level ), name, petscCommunicator )
+   : PETScVector( name, petscCommunicator )
    {
       createVectorFromFunction( function, numerator, level, flag );
-   }
-
-   PETScVector( uint_t             localSize,
-                const std::string& name              = "Vec",
-                const MPI_Comm&    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : petscCommunicator_( petscCommunicator )
-   {
-      VecCreate( petscCommunicator, &vec );
-      VecSetType( vec, VECSTANDARD );
-      VecSetSizes( vec, (idx_t) localSize, PETSC_DECIDE );
-      VecSetUp( vec );
-      setName( name.c_str() );
    }
 
    ~PETScVector() { VecDestroy( &vec ); }
@@ -75,6 +70,9 @@ class PETScVector
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
+      const auto localSize = numberOfLocalDoFs( src, level );
+      allocateVector( localSize );
+
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
       hyteg::createVectorFromFunction( src, numerator, proxy, level, flag );
 
@@ -87,6 +85,8 @@ class PETScVector
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
+      WALBERLA_CHECK( allocated_, "Cannot create function from PETSc vector - the vector wasn't even allocated." );
+
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
       hyteg::createFunctionFromVector( dst, numerator, proxy, level, flag );
    }
@@ -112,8 +112,24 @@ class PETScVector
    inline Vec& get() { return vec; }
 
  protected:
-   MPI_Comm petscCommunicator_;
-   Vec      vec;
+   std::string name_;
+   MPI_Comm    petscCommunicator_;
+   Vec         vec;
+   bool        allocated_;
+
+ private:
+   inline void allocateVector( uint_t localSize )
+   {
+      if ( !allocated_ )
+      {
+         VecCreate( petscCommunicator_, &vec );
+         VecSetType( vec, VECSTANDARD );
+         VecSetSizes( vec, (idx_t) localSize, PETSC_DECIDE );
+         VecSetUp( vec );
+         setName( name_.c_str() );
+         allocated_ = true;
+      }
+   }
 };
 
 } // namespace hyteg
