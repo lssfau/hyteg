@@ -89,9 +89,14 @@
  * 
  * The flags will be set on the \link hyteg::SetupPrimitiveStorage `SetupPrimitiveStorage`\endlink object we
  * generate from our mesh using one of the different `setMeshBoundaryFlags` methods. In our case
- * \link hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation() `setMeshBoundaryFlagsByVertexLocation()`\endlink
- * is the appropriate one. We need to supply to it a callback that returns true or false, depending on whether a
- * macro-vertex belongs to the boundary part we want to flag, or not.
+ * \link hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation() `setMeshBoundaryFlagsByCentroidLocation()`\endlink
+ * is the appropriate one.
+ * We need to supply to it a callback that returns true or false, depending on whether the centroid of a macro primitive
+ * belongs to the boundary part we want to flag, or not.
+ * Note that we might also use 
+ * \link hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation() `setMeshBoundaryFlagsByVertexLocation()`\endlink.
+ * However, this method requires a little more consideration w.r.t. the callbacks as the flags for higher-dimensional
+ * primitives are derived from those of their associated vertices.
  * 
  * \snippet tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp Flag_Boundaries_Parts
  *
@@ -196,10 +201,10 @@
  */
 
 #include "core/DataTypes.h"
+#include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
-#include "core/Environment.h"
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -215,7 +220,8 @@ using namespace hyteg;
 
 int main( int argc, char** argv )
 {
-   walberla::Environment env( argc, argv ); // TODO: this needs to be added for MPI builds I think (did not build on my machine ;))
+   walberla::Environment env( argc,
+                              argv ); // TODO: this needs to be added for MPI builds I think (did not build on my machine ;))
    walberla::MPIManager::instance()->useWorldComm();
 
    const uint_t nx       = 3;
@@ -225,7 +231,7 @@ int main( int argc, char** argv )
 
    /// [Flag_Boundaries_Parts]
    // generate mesh and setup storage
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1.5, 1 } ), MeshInfo::CROSS, nx, ny );
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, ny );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -237,20 +243,24 @@ int main( int argc, char** argv )
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    // callbacks for marking parts of the boundary
-   real_t eps = 1e-3;
-   auto topBoundary = [ eps ]( const Point3D& x ) { return std::abs( x[1] - real_c( 1 ) ) < eps; };
+   real_t eps         = 1e-3;
+   auto   topBoundary = [eps]( const Point3D& x ) { return std::abs( x[1] - real_c( 1 ) ) < eps; };
 
-   auto bottomBoundary = [ eps ]( const Point3D& x ) { return x[1] < eps; };
+   auto bottomBoundary = [eps]( const Point3D& x ) { return x[1] < eps; };
 
-   auto leftBoundary = [ eps ]( const Point3D& x ) { return x[0] < eps; };
+   auto leftBoundary = [eps]( const Point3D& x ) {
+      return x[0] < eps && !( std::abs( x[1] - real_c( 1 ) ) < eps ) && !( x[1] < eps );
+   };
 
-   auto rightBoundary = [ eps ]( const Point3D& x ) { return std::abs( x[0] - real_c( 1.5 ) ) < eps; };
+   auto rightBoundary = [eps]( const Point3D& x ) {
+      return std::abs( x[0] - real_c( 1.5 ) ) < eps && !( std::abs( x[1] - real_c( 1 ) ) < eps ) && !( x[1] < eps );
+   };
 
    // assigning mesh boundary flags to different parts of the boundary
-   setupStorage->setMeshBoundaryFlagsByVertexLocation( 1, topBoundary );
-   setupStorage->setMeshBoundaryFlagsByVertexLocation( 2, bottomBoundary );
-   setupStorage->setMeshBoundaryFlagsByVertexLocation( 3, leftBoundary );
-   setupStorage->setMeshBoundaryFlagsByVertexLocation( 4, rightBoundary );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( 1, topBoundary );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( 2, bottomBoundary );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( 3, leftBoundary );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( 4, rightBoundary );
 
    // now create the actual storage
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
@@ -260,13 +270,13 @@ int main( int argc, char** argv )
    BoundaryCondition bcVelocity;
    BoundaryCondition bcTemperature;
 
-   BoundaryUID idTopWallVel = bcVelocity.createDirichletBC( "topWall", { 1 } );
-   BoundaryUID idBotWallVel = bcVelocity.createDirichletBC( "botWall", { 2 } );
-   bcVelocity.createFreeslipBC( "sideWalls", { 3, 4 } );
+   BoundaryUID idTopWallVel = bcVelocity.createDirichletBC( "topWall", {1} );
+   BoundaryUID idBotWallVel = bcVelocity.createDirichletBC( "botWall", {2} );
+   bcVelocity.createFreeslipBC( "sideWalls", {3, 4} );
 
-   BoundaryUID idTopWallTemp = bcTemperature.createDirichletBC( "dirichletWallTop", { 1 } );
-   BoundaryUID idBotWallTemp = bcTemperature.createDirichletBC( "dirichletWallBot", { 2 } );
-   bcTemperature.createNeumannBC( "neumannWalls", { 3, 4 } );
+   BoundaryUID idTopWallTemp = bcTemperature.createDirichletBC( "dirichletWallTop", {1} );
+   BoundaryUID idBotWallTemp = bcTemperature.createDirichletBC( "dirichletWallBot", {2} );
+   bcTemperature.createNeumannBC( "neumannWalls", {3, 4} );
    /// [BC_Objects]
 
    /// [Function_Creation]
@@ -282,8 +292,8 @@ int main( int argc, char** argv )
 
    /// [Setting_BC_Temp]
    // fixed temperatures on top and bottom edge
-   real_t topT   = real_c( 0.0 );
-   real_t botT   = real_c( 1.0 );
+   real_t topT = real_c( 0.0 );
+   real_t botT = real_c( 1.0 );
 
    // as the values are a constant we do not need to provide a callback function to the interpolation method
    temperature.interpolate( botT, maxLevel, idBotWallTemp );
@@ -296,20 +306,20 @@ int main( int argc, char** argv )
    // per component (note that we cannot mix the types, though)
 
    // set velocity field on bottom wall to no-slip
-   velocity.interpolate( { real_c( 0 ), real_c( 0 ) }, maxLevel, idBotWallVel );
+   velocity.interpolate( {real_c( 0 ), real_c( 0 )}, maxLevel, idBotWallVel );
 
    // set velocity field on top wall to no-outflow + non-zero tangential component
-   velocity.interpolate( { real_c( 2 ), real_c( 0 ) }, maxLevel, idTopWallVel );
+   velocity.interpolate( {real_c( 2 ), real_c( 0 )}, maxLevel, idTopWallVel );
 
    // to set the boundary values on our TaylorHood funcion, we extract its velocity component
-   uAndp.uvw.interpolate( { real_c( 0 ), real_c( 0 ) }, maxLevel, idBotWallVel );
-   uAndp.uvw.interpolate( { real_c( 2 ), real_c( 0 ) }, maxLevel, idTopWallVel );
+   uAndp.uvw.interpolate( {real_c( 0 ), real_c( 0 )}, maxLevel, idBotWallVel );
+   uAndp.uvw.interpolate( {real_c( 2 ), real_c( 0 )}, maxLevel, idTopWallVel );
 
    /// [Setting_BC_Vel]
 
    /// [Setting_ICs]
    auto initialTemperature = []( const Point3D& x ) {
-      return ( 1.0 - x[1] ) + 0.01 * std::cos( pi * x[0] / real_c(1.5) ) * std::sin( pi * x[1] );
+      return ( 1.0 - x[1] ) + 0.01 * std::cos( pi * x[0] / real_c( 1.5 ) ) * std::sin( pi * x[1] );
    };
    temperature.interpolate( initialTemperature, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
    /// [Setting_ICs]

@@ -127,18 +127,8 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
 
   // Prepare storage and set geometry mapping
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  PolarCoordsMap::setMap( setupStorage );
 
-  for( auto it : setupStorage.getFaces() ) {
-    setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
-  }
-
-  for( auto it : setupStorage.getEdges() ) {
-    setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
-  }
-
-  for( auto it : setupStorage.getVertices() ) {
-    setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
-  }
   loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
