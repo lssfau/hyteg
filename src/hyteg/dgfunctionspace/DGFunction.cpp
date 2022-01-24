@@ -222,6 +222,50 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
    }
 }
 
+template < typename ValueType >
+void DGFunction< ValueType >::enumerate( uint_t level ) const
+{
+   ValueType offset = 0;
+   this->enumerate( level, offset );
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+      // 3D
+      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+   }
+   else
+   {
+      // 2D
+      for ( const auto& it : storage_->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( faceID );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
+                      offset++;
+               }
+            }
+         }
+      }
+   }
+}
+
 /// explicit instantiation
 template class DGFunction< double >;
 template class DGFunction< float >;
@@ -229,4 +273,97 @@ template class DGFunction< int32_t >;
 template class DGFunction< int64_t >;
 
 } // namespace dg
+
+void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
+                               const dg::DGFunction< idx_t >&        numerator,
+                               const std::shared_ptr< VectorProxy >& vec,
+                               uint_t                                level,
+                               DoFType                               flag )
+{
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      // 3D
+      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+   }
+   else
+   {
+      // 2D
+      for ( const auto& it : function.getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto degree  = function.polynomialDegree( faceID );
+         const auto numDofs = function.basis()->numDoFsPerElement( degree );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
+         const auto dofs      = function.volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = function.volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx =
+                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  const auto value =
+                      dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  vec->setValue( vectorIdx, value );
+               }
+            }
+         }
+      }
+   }
+}
+
+void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
+                               const dg::DGFunction< idx_t >&        numerator,
+                               const std::shared_ptr< VectorProxy >& vec,
+                               uint_t                                level,
+                               DoFType                               flag )
+{
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      // 3D
+      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+   }
+   else
+   {
+      // 2D
+      for ( const auto& it : function.getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto degree  = function.polynomialDegree( faceID );
+         const auto numDofs = function.basis()->numDoFsPerElement( degree );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
+         auto       dofs      = function.volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = function.volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx =
+                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  const auto value = vec->getValue( vectorIdx );
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] = value;
+               }
+            }
+         }
+      }
+   }
+}
+
+void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not applied to sparse matrix." );
+}
+
 } // namespace hyteg

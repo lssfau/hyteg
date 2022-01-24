@@ -22,6 +22,7 @@
 
 #include "hyteg/dgfunctionspace/DGForm.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
@@ -123,6 +124,25 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       return polyDegreesPerPrimitive_.at( primitiveID );
    }
 
+   /// \brief Assigns unique values to all data points. Increments by 1 per DoF.
+   ///
+   /// Mainly used for sparse matrix assembly to get global integer identifiers for all DoFs.
+   ///
+   /// \param level refinement level to enumerate
+   void enumerate( uint_t level ) const;
+
+   /// \brief Like enumerate() but starting with a value given by the offset parameter.
+   ///
+   /// \param level  refinement level to enumerate
+   /// \param offset value to start from, the next "free" value is returned
+   void enumerate( uint_t level, ValueType& offset ) const;
+
+   template < typename OtherValueType >
+   void copyBoundaryConditionFromFunction( const DGFunction< OtherValueType >& other )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not copied!" );
+   }
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;
@@ -135,8 +155,23 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction_;
 
-   std::map< PrimitiveID, int > polyDegreesPerPrimitive_;
+   std::map< PrimitiveID, uint_t > polyDegreesPerPrimitive_;
 };
 
 } // namespace dg
+
+void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
+                               const dg::DGFunction< idx_t >&        numerator,
+                               const std::shared_ptr< VectorProxy >& vec,
+                               uint_t                                level,
+                               DoFType                               flag );
+
+void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
+                               const dg::DGFunction< idx_t >&        numerator,
+                               const std::shared_ptr< VectorProxy >& vec,
+                               uint_t                                level,
+                               DoFType                               flag );
+
+void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+
 } // namespace hyteg

@@ -75,6 +75,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                     DoFType                     flag,
                     UpdateType                  updateType = Replace ) const;
 
+   void toMatrixInner( const std::shared_ptr< SparseMatrixProxy >&             mat,
+                       const typename srcType::template FunctionType< idx_t >& src,
+                       const typename dstType::template FunctionType< idx_t >& dst,
+                       size_t                                                  level,
+                       DoFType                                                 flag ) const;
+
    std::shared_ptr< DGForm > form_;
 };
 
