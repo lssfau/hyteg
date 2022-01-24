@@ -51,8 +51,6 @@ class PETScSparseMatrix
    template < typename ValueType >
    using FunctionTypeDst = typename OperatorType::dstType::template FunctionType< ValueType >;
 
-   PETScSparseMatrix() = delete;
-
    PETScSparseMatrix( const std::string name              = "Mat",
                       const MPI_Comm&   petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : name_( name )

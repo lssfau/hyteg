@@ -91,7 +91,7 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
    // assemble matrices
-   PETScSparseMatrix< opType > lapMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< opType > lapMat( "Mat" );
 
    switch ( verbosity )
    {
