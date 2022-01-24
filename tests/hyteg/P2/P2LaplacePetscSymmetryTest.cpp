@@ -42,9 +42,6 @@ static void test( const std::string& meshFile, const uint_t& level )
    P2Function< idx_t >       numerator( "numerator", storage, level, level );
    P2ConstantLaplaceOperator L( storage, level, level );
 
-   const uint_t globalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
-   const uint_t localDoFs  = numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
-
    numerator.enumerate( level );
 
    hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc;
