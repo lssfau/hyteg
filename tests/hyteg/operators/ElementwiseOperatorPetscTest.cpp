@@ -64,7 +64,6 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
 
    typedef typename FunctionTrait< FuncType< idx_t > >::Tag enumTag;
    uint_t                                                   globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
-   uint_t                                                   localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
    if ( beVerbose )
    {
