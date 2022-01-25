@@ -59,7 +59,13 @@ class PETScVector
       createVectorFromFunction( function, numerator, level, flag );
    }
 
-   ~PETScVector() { VecDestroy( &vec ); }
+   ~PETScVector()
+   {
+      if ( allocated_ )
+      {
+         VecDestroy( &vec );
+      }
+   }
 
    MPI_Comm getCommunicator() const { return petscCommunicator_; }
 
