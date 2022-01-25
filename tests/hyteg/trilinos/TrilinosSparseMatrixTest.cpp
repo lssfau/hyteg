@@ -116,7 +116,7 @@ void compareSparseMatrixMatlabOutput()
    trilinosMatrix.exportToMatlabFormat( "../../output/TrilinosMatlabExport.m", "MyTrilinosMatrix" );
 
    // PETScSparseMatrix< OperatorType, P2P1TaylorHoodFunction > petscMatrix( storage, level );
-   PETScSparseMatrix< OperatorType > petscMatrix( storage, level );
+   PETScSparseMatrix< OperatorType > petscMatrix;
    petscMatrix.createMatrixFromOperator( op, level, numerator );
    petscMatrix.applyDirichletBC( numerator, level );
    petscMatrix.print( "../../output/PetscMatlabExport.m" );
