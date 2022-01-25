@@ -266,6 +266,41 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
    }
 }
 
+template < typename ValueType >
+uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
+{
+   uint_t ndofs = 0;
+
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "getNumberOfLocalDoFs not implemented for 3D." );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto numElements       = levelinfo::num_microfaces_per_face( level );
+         const auto degree            = polyDegreesPerPrimitive_.at( faceID );
+         const auto numDoFsPerElement = basis()->numDoFsPerElement( degree );
+
+         ndofs += numElements * numDoFsPerElement;
+      }
+   }
+
+   return ndofs;
+}
+
+template < typename ValueType >
+uint_t DGFunction< ValueType >::getNumberOfGlobalDoFs( uint_t level ) const
+{
+   const uint_t ndofs = getNumberOfLocalDoFs( level );
+   walberla::mpi::allReduceInplace( ndofs, walberla::mpi::SUM );
+   return ndofs;
+}
+
 /// explicit instantiation
 template class DGFunction< double >;
 template class DGFunction< float >;

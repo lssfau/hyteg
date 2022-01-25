@@ -143,6 +143,12 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not copied!" );
    }
 
+   /// \brief Returns the number of DoFs that are allocated on this process.
+   uint_t getNumberOfLocalDoFs( uint_t level ) const;
+
+   /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
+   uint_t getNumberOfGlobalDoFs( uint_t level ) const;
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;
