@@ -20,6 +20,9 @@
 
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 
+#include "core/mpi/MPIWrapper.h"
+#include "core/mpi/Reduce.h"
+
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
