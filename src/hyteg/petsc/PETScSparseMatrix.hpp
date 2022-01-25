@@ -59,7 +59,13 @@ class PETScSparseMatrix
    , assembled_( false )
    {}
 
-   virtual ~PETScSparseMatrix() { MatDestroy( &mat ); }
+   virtual ~PETScSparseMatrix()
+   {
+      if ( allocated_ )
+      {
+         MatDestroy( &mat );
+      }
+   }
 
    inline void createMatrixFromOperator( const OperatorType&             op,
                                          uint_t                          level,
