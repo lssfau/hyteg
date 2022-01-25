@@ -283,6 +283,7 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
             {
                streamWriterCells << offset << offset + 1 << offset + 2;
                offset += 3;
+               WALBERLA_UNUSED( idxIt );
             }
          }
       }
