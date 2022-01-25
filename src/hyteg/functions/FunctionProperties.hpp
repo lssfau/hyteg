@@ -144,7 +144,7 @@ inline uint_t numberOfLocalDoFs< EdgeDoFFunctionTag >( const PrimitiveStorage& p
 }
 
 template <>
-inline uint_t numberOfLocalDoFs< DGFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+inline uint_t numberOfLocalDoFs< FaceDoFFunction_old_Tag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
    return levelinfo::num_microfaces_per_face( level ) * primitiveStorage.getNumberOfLocalFaces();
 }
