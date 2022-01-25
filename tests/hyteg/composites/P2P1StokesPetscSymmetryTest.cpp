@@ -42,12 +42,9 @@ static void test( const std::string& meshFile, const uint_t& level )
    P2P1TaylorHoodFunction< idx_t > numerator( "numerator", storage, level, level );
    P2P1TaylorHoodStokesOperator    L( storage, level, level );
 
-   const uint_t globalDoFs = numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
-   const uint_t localDoFs  = numberOfLocalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
-
    numerator.enumerate( level );
 
-   hyteg::PETScSparseMatrix< P2P1TaylorHoodStokesOperator > Lpetsc( localDoFs, globalDoFs );
+   hyteg::PETScSparseMatrix< P2P1TaylorHoodStokesOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    WALBERLA_CHECK( Lpetsc.isSymmetric(),

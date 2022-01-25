@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,17 +44,11 @@ class PETScMinResSolver : public Solver< OperatorType >
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
-   , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Amat",
-           petscCommunicator_ )
-   , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-                          "AmatNonEliminatedBC",
-                          petscCommunicator_ )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
-   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
+   , Amat( "Amat", petscCommunicator_ )
+   , AmatNonEliminatedBC( "AmatNonEliminatedBC", petscCommunicator_ )
+   , xVec( "xVec", petscCommunicator_ )
+   , bVec( "bVec", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )

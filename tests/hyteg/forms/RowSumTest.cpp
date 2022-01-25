@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,8 +50,10 @@ template < class P1Form >
 using P1ConstOp = P1ConstantOperator< P1Form, false, false, false >;
 
 template < typename rowSumFormType,
-           template < class > class funcType,
-           template < class > class opType,
+           template < class >
+           class funcType,
+           template < class >
+           class opType,
            typename opTypeLap,
            typename opTypeMass >
 bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormType rowSumLaplace, rowSumFormType rowSumMass )
@@ -93,11 +95,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 
    // compare
    real_t maxError;
-   error.assign( {1.0, -1.0}, {dstVerificationLaplace, dstRowSumLaplace}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstVerificationLaplace, dstRowSumLaplace }, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude Laplace: " << maxError << ", eps: " << eps );
 
-   error.assign( {1.0, -1.0}, {dstVerificationMass, dstRowSumMass}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstVerificationMass, dstRowSumMass }, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude mass: " << maxError << ", eps: " << eps );
 
@@ -107,24 +109,21 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
    // check if matrices diagonal
 
    PETScManager                                             manager;
-   typedef typename FunctionTrait< funcType< idx_t > >::Tag enumTag;
-   const auto                                               localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
-   const auto                                               globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
    funcType< idx_t >                                        numerator( "numerator", storage, level, level );
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< opType< rowSumFormType > > massLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType > > massLumpedPetsc;
    massLumpedPetsc.createMatrixFromOperator( MLumped, level, numerator );
 
-   PETScSparseMatrix< opType< rowSumFormType > > laplaceLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType > > laplaceLumpedPetsc;
    laplaceLumpedPetsc.createMatrixFromOperator( LLumped, level, numerator );
 
    const auto massDiagonal    = massLumpedPetsc.isDiagonal();
    const auto laplaceDiagonal = laplaceLumpedPetsc.isDiagonal();
 
    // just to make sure petsc is diagonal check works...
-   PETScSparseMatrix< opTypeLap > laplacePetsc( localSize, globalSize );
+   PETScSparseMatrix< opTypeLap > laplacePetsc;
    laplacePetsc.createMatrixFromOperator( L, level, numerator );
    WALBERLA_CHECK( !laplacePetsc.isDiagonal() );
 
@@ -152,8 +151,7 @@ int main( int argc, char* argv[] )
    meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
    meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
 
-   uint maxLevel  = 3;
-   bool succeeded = true;
+   uint maxLevel = 3;
 
    // -----------------------------
    //  Run tests for P1RowSumForm
@@ -162,7 +160,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
    WALBERLA_LOG_INFO_ON_ROOT( "Running tests for P1RowSumForm" );
    WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
-   succeeded = true;
+   bool succeeded = true;
 
    auto p1DiffusionFormFenics =
        std::make_shared< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >();

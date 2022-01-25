@@ -115,7 +115,7 @@ void exportOperator( OperatorType&                       op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" )
    }
-   PETScSparseMatrix< OperatorType >                              petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
+   PETScSparseMatrix< OperatorType >                              petscMatrix( matrixName.c_str() );
    typename OperatorType::srcType::template FunctionType< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2022 Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -42,12 +42,9 @@ static void test( const std::string& meshFile, const uint_t& level )
    P2Function< idx_t >       numerator( "numerator", storage, level, level );
    P2ConstantLaplaceOperator L( storage, level, level );
 
-   const uint_t globalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
-   const uint_t localDoFs  = numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
-
    numerator.enumerate( level );
 
-   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc( localDoFs, globalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    WALBERLA_CHECK( Lpetsc.isSymmetric(), "P2 Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );

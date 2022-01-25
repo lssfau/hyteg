@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Nils Kohl, Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -92,7 +92,7 @@ void exportLinearSystem( OperatorType                        op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
    }
-   PETScSparseMatrix< OperatorType > petscMatrix( localDoFs, globalDoFs, nameMatrix.c_str() );
+   PETScSparseMatrix< OperatorType > petscMatrix( nameMatrix.c_str() );
    FunctionType< idx_t >             numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );

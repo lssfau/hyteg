@@ -80,7 +80,6 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    numerator.enumerate( level );
 
    const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P1StokesFunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -88,9 +87,9 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P1StokesFunction > srcPetscVec( localDoFs );
-   PETScVector< real_t, P1StokesFunction > dstPetscVec( localDoFs );
-   PETScSparseMatrix< P1StokesOperator >   petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P1StokesFunction > srcPetscVec;
+   PETScVector< real_t, P1StokesFunction > dstPetscVec;
+   PETScSparseMatrix< P1StokesOperator >   petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );

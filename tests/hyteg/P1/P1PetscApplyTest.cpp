@@ -80,7 +80,6 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    numerator.enumerate( level );
 
    const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -88,9 +87,9 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P1Function >              srcPetscVec( localDoFs );
-   PETScVector< real_t, P1Function >              dstPetscVec( localDoFs );
-   PETScSparseMatrix< P1ConstantLaplaceOperator > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P1Function >              srcPetscVec;
+   PETScVector< real_t, P1Function >              dstPetscVec;
+   PETScSparseMatrix< P1ConstantLaplaceOperator > petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -103,7 +102,7 @@ void p1PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
+   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
    const auto absScalarProd = std::abs( err.dotGlobal( ones, level, location ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
