@@ -1,3 +1,22 @@
+/*
+* Copyright (c) 2017-2022 Nils Kohl.
+*
+* This file is part of HyTeG
+* (see https://i10git.cs.fau.de/hyteg/hyteg).
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include <memory>
@@ -39,21 +58,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
-   , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Amat",
-           petscCommunicator_ )
-   , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-                          "AmatNonEliminatedBC",
-                          petscCommunicator_ )
-   , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Pmat",
-           petscCommunicator_ )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
-   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
+   , Amat( "Amat", petscCommunicator_ )
+   , AmatNonEliminatedBC( "AmatNonEliminatedBC", petscCommunicator_ )
+   , Pmat( "Pmat", petscCommunicator_ )
+   , xVec( "xVec", petscCommunicator_ )
+   , bVec( "bVec", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
    , storage_( storage )
    , tolerance_( tolerance )
    , maxIterations_( maxIterations )
@@ -208,8 +218,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-         case 3:
-         {
+         case 3: {
             PCSetType( pc_u, PCHYPRE );
             break;
          }

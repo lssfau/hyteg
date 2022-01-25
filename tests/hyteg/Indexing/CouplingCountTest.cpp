@@ -67,7 +67,6 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       typedef typename FunctionTrait< fType< idx_t > >::Tag enumTag;
 
       uint_t globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
-      uint_t localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
       if ( beVerbose )
       {
@@ -80,7 +79,7 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       uint_t nnzHyTeG = indexing::getNumberOfGlobalDoFCouplings( oper, level );
 
       // assemble matrix
-      PETScSparseMatrix< opType > petscMat( localDoFs, globalDoFs );
+      PETScSparseMatrix< opType > petscMat;
       petscMat.createMatrixFromOperator( oper, level, enumerator, All );
       uint_t nnzPETSc = petscMat.getInfo().getNNZ();
 

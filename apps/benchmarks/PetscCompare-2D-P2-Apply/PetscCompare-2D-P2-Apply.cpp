@@ -106,12 +106,12 @@ int main( int argc, char* argv[] )
    };
 
    wcTimingTreeApp.start( "Function allocation" );
-   hyteg::P2Function< double >   oneFunc( "x", storage, level, level );
-   hyteg::P2Function< double >   x( "x", storage, level, level );
-   hyteg::P2Function< double >   y( "y", storage, level, level );
-   hyteg::P2Function< double >   z( "z", storage, level, level );
-   hyteg::P2Function< double >   diff( "diff", storage, level, level );
-   hyteg::P2Function< idx_t >    numerator( "numerator", storage, level, level );
+   hyteg::P2Function< double > oneFunc( "x", storage, level, level );
+   hyteg::P2Function< double > x( "x", storage, level, level );
+   hyteg::P2Function< double > y( "y", storage, level, level );
+   hyteg::P2Function< double > z( "z", storage, level, level );
+   hyteg::P2Function< double > diff( "diff", storage, level, level );
+   hyteg::P2Function< idx_t >  numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
 
    const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
@@ -126,18 +126,17 @@ int main( int argc, char* argv[] )
    wcTimingTreeApp.stop( "Interpolation" );
 
    wcTimingTreeApp.start( "Enumeration" );
-   const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
    numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
 
    LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
-   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > matPetsc( localDoFs, globalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > matPetsc;
    matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
-   hyteg::PETScVector< real_t, hyteg::P2Function > vecPetsc( localDoFs );
+   hyteg::PETScVector< real_t, hyteg::P2Function > vecPetsc;
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
-   hyteg::PETScVector< real_t, hyteg::P2Function > dstvecPetsc( localDoFs );
+   hyteg::PETScVector< real_t, hyteg::P2Function > dstvecPetsc;
+   dstvecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
    wcTimingTreeApp.stop( "Petsc setup" );
    LIKWID_MARKER_STOP( "PETSc-setup" );
 
