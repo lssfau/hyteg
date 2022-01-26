@@ -1,5 +1,16 @@
 waLBerla_link_files_to_builddir(*.msh)
 
+## adaptive refinement ##
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementTest)
+
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
+
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
+
+
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)

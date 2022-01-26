@@ -157,6 +157,11 @@ class SetupPrimitiveStorage
    /// \param primitiveID the ID of the primitive to be tested
    /// \param highestDimensionAlwaysInner if true, this method always returns false if the targeted primitive is of highest dimension (cells for 3D, faces for 2D meshes)
    bool onBoundary( const PrimitiveID& primitiveID, const bool& highestDimensionAlwaysInner = false ) const;
+   /// Returns the number of primitives that lie on the boundary
+   uint_t getNumVerticesOnBoundary() const;
+   uint_t getNumEdgesOnBoundary() const;
+   uint_t getNumFacesOnBoundary() const;
+   uint_t getNumCellsOnBoundary() const;
 
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
@@ -171,12 +176,6 @@ class SetupPrimitiveStorage
    uint_t getMaxPrimitivesPerRank() const;
    /// Returns the average number of primitives per rank
    real_t getAvgPrimitivesPerRank() const;
-
-   /// Returns the number of primitives that lie on the boundary
-   uint_t getNumVerticesOnBoundary() const;
-   uint_t getNumEdgesOnBoundary() const;
-   uint_t getNumFacesOnBoundary() const;
-   uint_t getNumCellsOnBoundary() const;
 
    uint_t numberOfProcesses_;
 

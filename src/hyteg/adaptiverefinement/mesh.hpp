@@ -63,6 +63,11 @@ class K_Mesh
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
 
+   // reference to set of volume elements corresponding to current refinement
+   const std::set< std::shared_ptr< K_Simplex > >& get_elements() const { return _T; }
+   // reference to list of vertex coordinates corresponding to current refinement
+   const std::vector< Point3D >& get_vertices() const { return _vertices; }
+
  private:
    template < uint_t J >
    class SimplexData
