@@ -35,8 +35,10 @@ using namespace hyteg;
 int main( int argc, char** argv )
 {
 #ifndef __APPLE__
-   // should work with Intel, GCC, Clang and even MSVC compiler
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );

@@ -345,7 +345,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
 int main( int argc, char* argv[] )
 {
 #ifndef __APPLE__
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
 
    walberla::Environment env( argc, argv );

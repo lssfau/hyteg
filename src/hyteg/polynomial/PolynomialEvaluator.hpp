@@ -348,7 +348,7 @@ class Polynomial3DEvaluator{
     // p(x,y,z) = sum_{ |i+j+k| = 0,...,degree_ } c_ijk * x^i*y^j*z^k
     for (uint_t ijk = 0; ijk <= degree_; ++ijk)
     {
-      for (int i = ijk; i >= 0; --i)
+      for (int i = int(ijk); i >= 0; --i)
       {
         // idx of coefficient c_ij of 2d polynoial
         uint_t idx_ij = ijk * (ijk+1) / 2 + ijk - i;

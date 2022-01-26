@@ -394,6 +394,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::opera
    {
       return increment_level_0();
    }
+   return *this;
 }
 
 

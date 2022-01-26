@@ -525,7 +525,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
    particleStorage.clear();
 
    const uint_t                                rank     = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-   const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme );
+   // const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme ); //this seems to be unused?
    const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
    const uint_t                                rkStages = b.size();
 
@@ -942,13 +942,19 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    WALBERLA_MPI_SECTION()
    {
       const int TAG = 98234;
-
+#ifdef _MSC_VER
+      //need a first receive to avoid blocking on windows while communicating with itself
+      int selfCommMessage = 0;
+      MPI_Request selfCommRequest;
+      MPI_Irecv(&selfCommMessage, 1, MPI_INT, walberla::mpi::MPIManager::instance()->rank(), TAG, walberla::mpi::MPIManager::instance()->comm(), &selfCommRequest);
+#endif
       for ( const auto& p : particleStorage )
       {
-         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
+         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 ){
             numParticlesToSendToRank[p.getStartProcess()] = 0;
+            sendRequests[p.getStartProcess()] = MPI_Request();
+         }
          numParticlesToSendToRank[p.getStartProcess()]++;
-         sendRequests[p.getStartProcess()] = MPI_Request();
       }
 
       for ( auto& it : numParticlesToSendToRank )
@@ -971,6 +977,21 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       }
 
       int numReceivedParticleLocations = 0;
+      #ifdef _MSC_VER
+      //get self communication
+      {
+         int ready;
+         MPI_Status status;
+         MPI_Test(&selfCommRequest, &ready, &status);
+         if(ready){
+            numReceivedParticleLocations = selfCommMessage;
+            numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numReceivedParticleLocations;
+         }else{
+            WALBERLA_LOG_INFO("somethings very wrong here");
+         }
+
+      }
+      #endif
       while ( numReceivedParticleLocations < numberOfCreatedParticles )
       {
          MPI_Status status;

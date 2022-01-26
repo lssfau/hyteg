@@ -151,7 +151,7 @@ int main( int argc, char* argv[] )
    meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
    meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
 
-   uint maxLevel = 3;
+   uint_t maxLevel = 3;
 
    // -----------------------------
    //  Run tests for P1RowSumForm
@@ -172,7 +172,7 @@ int main( int argc, char* argv[] )
 
    for ( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh )
    {
-      for ( uint level = 0; level <= maxLevel; ++level )
+      for ( uint_t level = 0; level <= maxLevel; ++level )
       {
          succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >(
              level, *mesh, rowSumLaplaceP1, rowSumMassP1 );
@@ -201,7 +201,7 @@ int main( int argc, char* argv[] )
 
    for ( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh )
    {
-      for ( uint level = 0; level <= maxLevel; ++level )
+      for ( uint_t level = 0; level <= maxLevel; ++level )
       {
          succeeded &=
              RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >(

@@ -202,7 +202,7 @@ inline void applyVariableStencil(uint_t level,
    Face* faceS = storage->getFace(edge.neighborFaces()[0]);
    Face* faceN = (edge.getNumNeighborFaces() == 2) ? storage->getFace(edge.neighborFaces()[1]) : nullptr;
 
-   uint_t s_south, e_south, o_south, s_north, e_north, o_north;
+   uint_t s_south = 0, e_south = 0, o_south = 0, s_north = 0, e_north = 0, o_north = 0;
    s_south = faceS->vertex_index(edge.neighborVertices()[0]);
    e_south = faceS->vertex_index(edge.neighborVertices()[1]);
    o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
@@ -671,7 +671,7 @@ inline void applyVariableStencil(uint_t level,
    Face* faceS = storage->getFace(edge.neighborFaces()[0]);
    Face* faceN = (edge.getNumNeighborFaces() == 2) ? storage->getFace(edge.neighborFaces()[1]) : nullptr;
 
-   uint_t s_south, e_south, o_south, s_north, e_north, o_north;
+   uint_t s_south = 0, e_south = 0, o_south = 0, s_north = 0, e_north = 0, o_north = 0;
    s_south = faceS->vertex_index(edge.neighborVertices()[0]);
    e_south = faceS->vertex_index(edge.neighborVertices()[1]);
    o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
