@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2022 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,12 +23,9 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
-namespace petsc {
 
-inline void createVectorFromFunction( const FaceDoFFunction< PetscReal >&   function,
+inline void createVectorFromFunction( const FaceDoFFunction< real_t >&      function,
                                       const FaceDoFFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -37,7 +34,7 @@ inline void createVectorFromFunction( const FaceDoFFunction< PetscReal >&   func
    WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
-inline void createFunctionFromVector( const FaceDoFFunction< PetscReal >&   function,
+inline void createFunctionFromVector( const FaceDoFFunction< real_t >&      function,
                                       const FaceDoFFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -46,7 +43,4 @@ inline void createFunctionFromVector( const FaceDoFFunction< PetscReal >&   func
    WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
-} // namespace petsc
 } // namespace hyteg
-
-#endif

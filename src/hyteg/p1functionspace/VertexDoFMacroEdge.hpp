@@ -793,8 +793,6 @@ inline void saveIdentityOperator( const uint_t&                                 
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,
                                       Edge&                                                       edge,
@@ -842,7 +840,6 @@ inline void applyDirichletBC( const uint_t&                                     
       mat.push_back( edge.getData( numeratorId )->getPointer( level )[i] );
    }
 }
-#endif
 
 } // namespace macroedge
 } // namespace vertexdof

@@ -134,7 +134,6 @@ class GenericFunction
 
    virtual void enumerate( uint_t level, value_t& offset ) const = 0;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{
    virtual void toVector( const GenericFunction< idx_t >&       numerator,
@@ -147,7 +146,6 @@ class GenericFunction
                             uint_t                                level,
                             DoFType                               flag ) const = 0;
    /// @}
-#endif
 };
 
 } // namespace hyteg

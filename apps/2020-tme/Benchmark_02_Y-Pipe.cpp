@@ -162,9 +162,6 @@ void benchmark( int argc, char** argv )
      return false;
    };
 
-   meshInfo.setAllMeshBoundaryFlags( 1 );
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( 2, outflowBoundary, false );
-
    auto tiltZCoordinateMap = [&]( const hyteg::Point3D& p ) -> Point3D {
 
      if ( p[0] > 1 + eps && p[1] > -eps )
@@ -257,7 +254,15 @@ void benchmark( int argc, char** argv )
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsInner( 0, true );
+
+   // new code ...
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage->setMeshBoundaryFlagsByVertexLocation( 2, outflowBoundary, false );
+
+   // ... replaces old
+   // meshInfo.setAllMeshBoundaryFlags( 1 );
+   // meshInfo.setMeshBoundaryFlagsByVertexLocation( 2, outflowBoundary, false );
+   // setupStorage->setMeshBoundaryFlagsInner( 0, true );
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 

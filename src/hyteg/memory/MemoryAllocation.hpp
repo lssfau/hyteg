@@ -20,8 +20,16 @@
 
 #include <cassert>
 #include <iostream>
-#include <sys/resource.h>
-#include <sys/time.h>
+
+#if defined(_MSC_VER)
+   #include <sys/timeb.h>
+   #include <windows.h>
+   #include <psapi.h>
+   #pragma comment(lib, "psapi.lib")
+#else
+   #include <sys/time.h>
+   #include <sys/resource.h>
+#endif
 #include <vector>
 
 #include "core/Abort.h"
@@ -55,14 +63,20 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
 {
    if ( type == MemoryUsageDeterminationType::C_RUSAGE )
    {
-      struct rusage usage;
-      int           gru = getrusage( RUSAGE_SELF, &usage );
-      WALBERLA_ASSERT( gru == 0, "getrusage() returned an error." );
+      #if defined(_MSC_VER)
+             PROCESS_MEMORY_COUNTERS info;
+            GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
+            return static_cast< double >(info.PeakWorkingSetSize);
+      #else
+         struct rusage usage;
+         int           gru = getrusage( RUSAGE_SELF, &usage );
+         WALBERLA_ASSERT( gru == 0, "getrusage() returned an error." );
 
-      // printf("ru_maxrss: %ld (maximum resident set size -- MB)\n",usage.ru_maxrss / 1024);
-      // assert(usage.ru_maxrss / 1024 > megabytes );
+         // printf("ru_maxrss: %ld (maximum resident set size -- MB)\n",usage.ru_maxrss / 1024);
+         // assert(usage.ru_maxrss / 1024 > megabytes );
 
-      return static_cast< double >( usage.ru_maxrss * 1024 );
+         return static_cast< double >( usage.ru_maxrss * 1024 );
+      #endif
    }
    else if ( type == MemoryUsageDeterminationType::PETSC )
    {
@@ -111,7 +125,7 @@ inline std::tuple< double, double, double >
        walberla::mpi::allReduce( locallyAllocatedMemory, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() ) /
        1e+09;
 
-   std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
+   // std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
 
    WALBERLA_LOG_INFO_ON_ROOT( "========================= Memory Usage Info =========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " method: " << method );

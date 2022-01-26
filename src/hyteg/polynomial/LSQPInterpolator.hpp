@@ -45,6 +45,9 @@ constexpr uint_t GetNumInterpolationPoints(uint_t level)
 
       case LSQPType::EDGE_ALL:
          return (levelinfo::num_microedges_per_face(level) - 3 * levelinfo::num_microedges_per_edge(level)) / 3;
+         
+      default:
+         return 0;
    }
 }
 

@@ -19,11 +19,13 @@
  */
 #pragma once
 
+
+
 #include <array>
 
 #include "core/OpenMP.h"
 
-#include "hyteg/Stencil.hpp"
+#include "hyteg/Stencil.hpp" 
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -1783,7 +1785,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       using namespace vertexdof::macroedge;
       using sD = stencilDirection;
 
-      Point3D x = x0_ + i * dx_;
+      Point3D x = x0_ + walberla::real_t(i) * dx_;
 
       // 3D version (old version)
       if ( storage_->hasGlobalCells() )
@@ -1794,9 +1796,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
          WALBERLA_ASSERT_EQUAL( stencilSize_, stencil.size() );
 
-         for ( uint_t i = 0; i < stencilSize_; i++ )
+         for ( uint_t j = 0; j < stencilSize_; j++ )
          {
-            edge_stencil[i] = stencil[i];
+            edge_stencil[j] = stencil[j];
          }
 
          if constexpr ( Lumped )
@@ -1996,7 +1998,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       std::memset( face_stencil, 0, stencilSize_ * sizeof( real_t ) );
 
       WALBERLA_ASSERT( !storage_->hasGlobalCells() );
-      Point3D x = x0_ + i * dx_ + j * dy_;
+      Point3D x = x0_ + walberla::real_t(i) * dx_ + walberla::real_t(j) * dy_;
 
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,

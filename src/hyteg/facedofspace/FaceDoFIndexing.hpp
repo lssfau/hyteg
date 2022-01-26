@@ -300,7 +300,7 @@ constexpr inline uint_t
 /// Be aware that the iterator also handles orientation e.g. if unpacking from a buffer filled with
 /// data from the edge the indices are either increasing or decrase depending on the orientation of
 /// the edge
-class indexIterator : public std::iterator< std::forward_iterator_tag, walberla::uint_t >
+class indexIterator // inheritance of std::iterator is deprecated
 {
  public:
    inline indexIterator( uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level );
@@ -312,6 +312,12 @@ class indexIterator : public std::iterator< std::forward_iterator_tag, walberla:
    inline walberla::uint_t operator*() const;
    inline bool             operator==( const indexIterator& other ) const;
    inline bool             operator!=( const indexIterator& other ) const;
+
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = walberla::uint_t ;
+    using difference_type   = ptrdiff_t;
+    using pointer           = walberla::uint_t*;
+    using reference         = walberla::uint_t&;
 
  private:
    int    idx_;

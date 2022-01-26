@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -115,7 +115,7 @@ void exportOperator( OperatorType&                       op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" )
    }
-   PETScSparseMatrix< OperatorType >                              petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
+   PETScSparseMatrix< OperatorType >                              petscMatrix( matrixName.c_str() );
    typename OperatorType::srcType::template FunctionType< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
@@ -138,7 +138,7 @@ void exportOperator( OperatorType&                       op,
          {
             WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" )
          }
-         hyteg::petsc::applyDirichletBC( numerator, indices, level );
+         hyteg::applyDirichletBC( numerator, indices, level );
          petscMatrix.applyDirichletBC( numerator, level );
       }
    }

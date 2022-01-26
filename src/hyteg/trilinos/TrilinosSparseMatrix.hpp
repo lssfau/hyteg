@@ -103,7 +103,7 @@ class TrilinosSparseMatrix
    void applyDirichletBoundaryConditions( const FunctionType< idx_t >& numerator )
    {
       std::vector< idx_t > dirichletRowIndices;
-      hyteg::petsc::applyDirichletBC( numerator, dirichletRowIndices, level_ );
+      hyteg::applyDirichletBC( numerator, dirichletRowIndices, level_ );
 
       zeroRows( dirichletRowIndices, 1.0 );
    }

@@ -33,6 +33,11 @@ using walberla::math::pi;
 
 namespace hyteg {
 
+// boundary flags for the full annulus
+uint_t flagInterior      = 0;
+uint_t flagInnerBoundary = 1;
+uint_t flagOuterBoundary = 2;
+
 MeshInfo MeshInfo::meshAnnulus( const real_t      rhoMin,
                                 const real_t      rhoMax,
                                 const real_t      phiLeft,
@@ -77,17 +82,47 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
    WALBERLA_ASSERT_GREATER( nTan, 0 );
    WALBERLA_ASSERT_GREATER( nRad, 0 );
 
-   // mesh partial annulus in polar coordinates
+   // mesh a rectangle representing the annulus in polar coordinates
    MeshInfo meshInfo = MeshInfo::meshRectangle(
        Point2D( {rhoMin, real_c( 0.0 )} ), Point2D( {rhoMax, real_c( 2.0 ) * pi} ), flavour, nRad, nTan );
 
-   // close domain at phi = 0 = 2*pi
+   // determine some tolerances for further operations
    const real_t tolFactor  = 0.1;
    const real_t xTolerance = ( ( rhoMax - rhoMin ) / real_c( nRad ) ) * tolFactor;
    const real_t yTolerance = ( 2.0 * pi / real_c( nTan ) ) * tolFactor;
 
-   // Gather all vertices on the top boundary and matching
-   // vertices on the bottom boundary.
+   // set boundary flags for vertices;
+   // note that the interior of the left and right edge of the rectangle will be glued together
+   for ( auto& it : meshInfo.vertices_ )
+   {
+      real_t rho = it.second.getCoordinates()[0];
+      if ( std::abs( rhoMax - rho ) < xTolerance )
+      {
+         it.second.setBoundaryFlag( flagOuterBoundary );
+      }
+      else if ( std::abs( rhoMin - rho ) < xTolerance )
+      {
+         it.second.setBoundaryFlag( flagInnerBoundary );
+      }
+      else
+      {
+         it.second.setBoundaryFlag( flagInterior );
+      }
+   }
+
+   // now do the same for edges
+   meshInfo.deduceEdgeFlagsFromVertices( flagInterior );
+
+   // and (re)set flags for all faces
+   for ( auto& it : meshInfo.faces_ )
+   {
+      it.second.setBoundaryFlag( flagInterior );
+   }
+
+   // close domain at phi = 0 = 2*pi:
+
+   // Gather all vertices on the top boundary (phi = 2*pi) and matching
+   // vertices on the bottom boundary (phi=0).
    std::map< IDType, Vertex > bottomBoundaryVertices; // map from top ID to bottom vertex instance
    for ( const auto& it : meshInfo.vertices_ )
    {
@@ -136,61 +171,60 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
    }
 
    // Replace vertex IDs in all primitives.
-   std::vector< std::array< IDType, 2 > > edgesToRemove;
+   std::vector< std::array< IDType, 2 > >    edgesToRemove;
    std::map< std::array< IDType, 2 >, Edge > newEdges;
 
-   for ( const auto & it : meshInfo.edges_ )
+   for ( const auto& it : meshInfo.edges_ )
    {
       auto oldEdgeID = it.first;
 
-      std::array< IDType, 2 > newKey = oldEdgeID;
-      bool replaceEdge = false;
+      std::array< IDType, 2 > newKey      = oldEdgeID;
+      bool                    replaceEdge = false;
 
       if ( bottomBoundaryVertices.count( oldEdgeID[0] ) > 0 )
       {
-         newKey[0] = bottomBoundaryVertices[oldEdgeID[0]].getID();
+         newKey[0]   = bottomBoundaryVertices[oldEdgeID[0]].getID();
          replaceEdge = true;
-
       }
       if ( bottomBoundaryVertices.count( oldEdgeID[1] ) > 0 )
       {
-         newKey[1] = bottomBoundaryVertices[oldEdgeID[1]].getID();
+         newKey[1]   = bottomBoundaryVertices[oldEdgeID[1]].getID();
          replaceEdge = true;
       }
 
       if ( replaceEdge )
       {
          edgesToRemove.push_back( it.first );
-         Edge newEdge( newKey, 0 );
+         Edge newEdge( newKey, flagInterior );
          newEdges[newKey] = newEdge;
       }
    }
 
-   for ( const auto & it : edgesToRemove )
+   for ( const auto& it : edgesToRemove )
    {
       meshInfo.edges_.erase( it );
    }
 
-   for ( const auto & it : newEdges )
+   for ( const auto& it : newEdges )
    {
       meshInfo.edges_[it.first] = it.second;
    }
 
-   std::vector< std::vector< IDType > > facesToRemove;
+   std::vector< std::vector< IDType > >    facesToRemove;
    std::map< std::vector< IDType >, Face > newFaces;
 
-   for ( const auto & it : meshInfo.faces_ )
+   for ( const auto& it : meshInfo.faces_ )
    {
       auto oldFaceID = it.first;
 
-      std::vector< IDType > newKey = oldFaceID;
-      bool replaceFace = false;
+      std::vector< IDType > newKey      = oldFaceID;
+      bool                  replaceFace = false;
 
       for ( uint_t i = 0; i < 3; i++ )
       {
          if ( bottomBoundaryVertices.count( oldFaceID[i] ) > 0 )
          {
-            newKey[i] = bottomBoundaryVertices[oldFaceID[i]].getID();
+            newKey[i]   = bottomBoundaryVertices[oldFaceID[i]].getID();
             replaceFace = true;
          }
       }
@@ -198,21 +232,20 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
       if ( replaceFace )
       {
          facesToRemove.push_back( it.first );
-         Face newFace( newKey, 0 );
+         Face newFace( newKey, flagInterior );
          newFaces[newKey] = newFace;
       }
    }
 
-   for ( const auto & it : facesToRemove )
+   for ( const auto& it : facesToRemove )
    {
       meshInfo.faces_.erase( it );
    }
 
-   for ( const auto & it : newFaces )
+   for ( const auto& it : newFaces )
    {
       meshInfo.faces_[it.first] = it.second;
    }
-
 
    // map vertex coordinates to cartesian domain
    Point3D node;
@@ -257,26 +290,26 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
    for ( uint_t i = 0; i < nTan; ++i )
    {
       // inner boundary
-      node[0]                = rhoMin * std::cos( (real_t) i * deltaPhi );
-      node[1]                = rhoMin * std::sin( (real_t) i * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      node[0]                = rhoMin * std::cos( real_c( i ) * deltaPhi );
+      node[1]                = rhoMin * std::sin( real_c( i ) * deltaPhi );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInnerBoundary );
       indices2id.insert( {{i, 0}, id} );
       ++id;
 
       // interior nodes
       for ( uint_t j = 1; j < nRad; ++j )
       {
-         node[0]                = ( rhoMin + (real_t) j * deltaRho ) * std::cos( (real_t) i * deltaPhi );
-         node[1]                = ( rhoMin + (real_t) j * deltaRho ) * std::sin( (real_t) i * deltaPhi );
-         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
+         node[0]                = ( rhoMin + real_c( j ) * deltaRho ) * std::cos( real_c( i ) * deltaPhi );
+         node[1]                = ( rhoMin + real_c( j ) * deltaRho ) * std::sin( real_c( i ) * deltaPhi );
+         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInterior );
          indices2id.insert( {{i, j}, id} );
          ++id;
       }
 
       // outer boundary
-      node[0]                = rhoMax * std::cos( (real_t) i * deltaPhi );
-      node[1]                = rhoMax * std::sin( (real_t) i * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      node[0]                = rhoMax * std::cos( real_c( i ) * deltaPhi );
+      node[1]                = rhoMax * std::sin( real_c( i ) * deltaPhi );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagOuterBoundary );
       indices2id.insert( {{i, nRad}, id} );
       ++id;
    }
@@ -291,93 +324,40 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
    // --------------------
    //  generate triangles
    // --------------------
-   real_t midPhi = 0.0;
-   real_t midRho = 0.0;
+   real_t midPhi = real_c( 0 );
+   real_t midRho = real_c( 0 );
    for ( uint_t i = 0; i < nTan; ++i )
    {
       for ( uint_t j = 0; j < nRad; ++j )
       {
          // add new central vertex
-         midPhi                 = ( (real_t) i + 0.5 ) * deltaPhi;
-         midRho                 = rhoMin + ( (real_t) j + 0.5 ) * deltaRho;
+         midPhi                 = ( real_c( i ) + real_c( 0.5 ) ) * deltaPhi;
+         midRho                 = rhoMin + ( real_c( j ) + real_c( 0.5 ) ) * deltaRho;
          node[0]                = midRho * std::cos( midPhi );
          node[1]                = midRho * std::sin( midPhi );
-         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
+         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInterior );
 
          // add four sub-triangles of cell
-         meshInfo.addFace( Face( {getIDX( ( i ), j ), id, getIDX( ( i + 1 ) % nTan, j )}, 0 ) );
-         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j ), id, getIDX( ( i + 1 ) % nTan, j + 1 )}, 0 ) );
-         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j + 1 ), id, getIDX( ( i ), j + 1 )}, 0 ) );
-         meshInfo.addFace( Face( {getIDX( ( i ), j + 1 ), id, getIDX( ( i ), j )}, 0 ) );
+         meshInfo.addFace( Face( {getIDX( ( i ), j ), id, getIDX( ( i + 1 ) % nTan, j )}, flagInterior ) );
+         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j ), id, getIDX( ( i + 1 ) % nTan, j + 1 )}, flagInterior ) );
+         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j + 1 ), id, getIDX( ( i ), j + 1 )}, flagInterior ) );
+         meshInfo.addFace( Face( {getIDX( ( i ), j + 1 ), id, getIDX( ( i ), j )}, flagInterior ) );
          ++id;
       }
    }
 
    // generate edges from faces
-   meshInfo.deriveEdgesForFullAnnulus( rhoMin + 0.1 * deltaRho, rhoMax - 0.1 * deltaRho );
+   for ( const auto& it : meshInfo.faces_ )
+   {
+      std::vector< IDType > fNode = it.second.getVertices();
+      meshInfo.addEdge( Edge( {fNode[0], fNode[1]}, flagInterior ) );
+      meshInfo.addEdge( Edge( {fNode[0], fNode[2]}, flagInterior ) );
+      meshInfo.addEdge( Edge( {fNode[1], fNode[2]}, flagInterior ) );
+   }
+   meshInfo.deduceEdgeFlagsFromVertices( flagInterior );
 
    // done
    return meshInfo;
-}
-
-void MeshInfo::deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol )
-{
-   MeshInfo::FaceContainer   faces = this->getFaces();
-   MeshInfo::VertexContainer verts = this->getVertices();
-
-   uint_t  edgeBoundaryFlag = 0;
-   Point3D node1, node2;
-   real_t  radius1, radius2;
-
-   for ( const auto& it : faces )
-   {
-      // extract the three nodes of the face
-      std::vector< IDType > fNode = it.second.getVertices();
-
-      // determine their position w.r.t. the boundary
-      std::vector< uint_t > meshBoundaryFlags( 3 );
-      meshBoundaryFlags[0] = verts.find( fNode[0] )->second.getBoundaryFlag();
-      meshBoundaryFlags[1] = verts.find( fNode[1] )->second.getBoundaryFlag();
-      meshBoundaryFlags[2] = verts.find( fNode[2] )->second.getBoundaryFlag();
-
-      // set the three edges of triangle, edge is on boundary, if both
-      // its vertices are
-      edgeBoundaryFlag = 0;
-      if ( meshBoundaryFlags[0] == 1 && meshBoundaryFlags[1] == 1 )
-      {
-         radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
-         radius2 = verts.find( fNode[1] )->second.getCoordinates().norm();
-         if ( ( radius1 < minTol && radius2 < minTol ) || ( radius1 > maxTol && radius2 < maxTol ) )
-         {
-            edgeBoundaryFlag = 1;
-         }
-      }
-      this->addEdge( Edge( {fNode[0], fNode[1]}, edgeBoundaryFlag ) );
-
-      edgeBoundaryFlag = 0;
-      if ( meshBoundaryFlags[0] == 1 && meshBoundaryFlags[2] == 1 )
-      {
-         radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
-         radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
-         if ( ( radius1 < minTol && radius2 < minTol ) || ( radius1 > maxTol && radius2 < maxTol ) )
-         {
-            edgeBoundaryFlag = 1;
-         }
-      }
-      this->addEdge( Edge( {fNode[0], fNode[2]}, edgeBoundaryFlag ) );
-
-      edgeBoundaryFlag = 0;
-      if ( meshBoundaryFlags[1] == 1 && meshBoundaryFlags[2] == 1 )
-      {
-         radius1 = verts.find( fNode[1] )->second.getCoordinates().norm();
-         radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
-         if ( ( radius1 < minTol && radius2 < minTol ) || ( radius1 > maxTol && radius2 < maxTol ) )
-         {
-            edgeBoundaryFlag = 1;
-         }
-      }
-      this->addEdge( Edge( {fNode[1], fNode[2]}, edgeBoundaryFlag ) );
-   }
 }
 
 } // namespace hyteg

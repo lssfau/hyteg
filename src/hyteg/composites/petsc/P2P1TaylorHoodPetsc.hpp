@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,16 +27,13 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 namespace hyteg {
-namespace petsc {
 
-inline void createVectorFromFunction( const P2P1TaylorHoodFunction< PetscReal >& function,
-                                      const P2P1TaylorHoodFunction< idx_t >&     numerator,
-                                      const std::shared_ptr< VectorProxy >&      vec,
-                                      uint_t                                     level,
-                                      DoFType                                    flag )
+inline void createVectorFromFunction( const P2P1TaylorHoodFunction< real_t >& function,
+                                      const P2P1TaylorHoodFunction< idx_t >&  numerator,
+                                      const std::shared_ptr< VectorProxy >&   vec,
+                                      uint_t                                  level,
+                                      DoFType                                 flag )
 {
    createVectorFromFunction( function.uvw[0], numerator.uvw[0], vec, level, flag );
    createVectorFromFunction( function.uvw[1], numerator.uvw[1], vec, level, flag );
@@ -47,11 +44,11 @@ inline void createVectorFromFunction( const P2P1TaylorHoodFunction< PetscReal >&
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P2P1TaylorHoodFunction< PetscReal >& function,
-                                      const P2P1TaylorHoodFunction< idx_t >&     numerator,
-                                      const std::shared_ptr< VectorProxy >&      vec,
-                                      uint_t                                     level,
-                                      DoFType                                    flag )
+inline void createFunctionFromVector( const P2P1TaylorHoodFunction< real_t >& function,
+                                      const P2P1TaylorHoodFunction< idx_t >&  numerator,
+                                      const std::shared_ptr< VectorProxy >&   vec,
+                                      uint_t                                  level,
+                                      DoFType                                 flag )
 {
    createFunctionFromVector( function.uvw[0], numerator.uvw[0], vec, level, flag );
    createFunctionFromVector( function.uvw[1], numerator.uvw[1], vec, level, flag );
@@ -73,7 +70,4 @@ inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, 
    //  applyDirichletBC(numerator.p, mat, level);
 }
 
-} // namespace petsc
 } // namespace hyteg
-
-#endif

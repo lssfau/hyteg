@@ -91,7 +91,7 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
    // assemble matrices
-   PETScSparseMatrix< opType > lapMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< opType > lapMat( "Mat" );
 
    switch ( verbosity )
    {
@@ -148,7 +148,9 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
 int main( int argc, char* argv[] )
 {
 #ifndef __APPLE__
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
    // -------
    //  Setup

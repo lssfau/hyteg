@@ -342,10 +342,7 @@ class IcosahedralShellMap : public GeometryMap
       real_t aux;
       bool   pairFound = false;
 
-      uint_t idxRefVertex;
-      uint_t idxRayVertex;
-      uint_t idxThrVertex;
-      uint_t idxForVertex;
+      uint_t idxRefVertex = 0, idxRayVertex = 0, idxThrVertex = 0, idxForVertex = 0;
 
       SHELL_MAP_LOG( "micro-vertex 0 = " << coords[0] );
       SHELL_MAP_LOG( "micro-vertex 1 = " << coords[1] );

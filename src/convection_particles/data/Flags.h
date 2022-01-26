@@ -40,7 +40,9 @@ public:
 private:
    value_type flags_ = 0;
 };
-
+#ifdef INFINITE
+#undef INFINITE
+#endif
 /// default value after initialization
 static const FlagT::value_type NO_FLAGS          = 0;
 /// the particle extends into at least one direction till infinity

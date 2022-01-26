@@ -313,8 +313,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       }
 
       // initialize polynomial evaluator
-      for ( auto& it : storage_->getFaces() )
-      {
+      // for ( auto& it : storage_->getFaces() )
+      // {
          // auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_); // always returns 27!
          auto stencilSize = faceStencilSize2D;
 
@@ -323,8 +323,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             facePolyEvaluator_.push_back( Polynomial2DEvaluator( polyDegree ) );
          }
 
-         break; // we use the same evaluator for all faces
-      }
+      //    break; // we use the same evaluator for all faces
+      // }
    }
 
    /* interpolate polynomials

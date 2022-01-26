@@ -48,22 +48,22 @@ using indexing::Index;
 using walberla::real_c;
 using walberla::uint_t;
 
-inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index  & vertexDoFIndexInMacroFace,
-                                                       const Face             & face,
-                                                       const uint_t           & neighborCellID,
-                                                       const PrimitiveStorage & storage,
-                                                       const uint_t           & level )
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  vertexDoFIndexInMacroFace,
+                                                       const Face&             face,
+                                                       const uint_t&           neighborCellID,
+                                                       const PrimitiveStorage& storage,
+                                                       const uint_t&           level )
 {
-   const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
-   const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+   const Cell&  neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+   const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
 
    const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
-   { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) } );
+       { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
+         neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
+         neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) } );
 
-   const auto indexInMacroCell = indexing::basisConversion( vertexDoFIndexInMacroFace, localVertexIDsAtCell,
-                                                            {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+   const auto indexInMacroCell = indexing::basisConversion(
+       vertexDoFIndexInMacroFace, localVertexIDsAtCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
    return indexInMacroCell;
 }
 
@@ -158,7 +158,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    transform = A.adj();
    transform *= 1.0 / A.det();
 
-   Point2D x( {coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1]} );
+   Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
    Point2D xRelMacro = transform.mul( x );
 
@@ -191,9 +191,9 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
 
    if ( binX + binY >= static_cast< int >( rowsize - 1 ) )
    {
-      int binXDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
-      binXDec += (binX + binY - static_cast< int >( rowsize - 2 )) % 2;
-      int binYDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      int binXDec = ( binX + binY - static_cast< int >( rowsize - 2 ) ) / 2;
+      binXDec += ( binX + binY - static_cast< int >( rowsize - 2 ) ) % 2;
+      int binYDec = ( binX + binY - static_cast< int >( rowsize - 2 ) ) / 2;
       binX -= binXDec;
       binY -= binYDec;
    }
@@ -215,11 +215,10 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    transform *= hInv;
    transform = transform.transpose();
 
-
    // decide if up or down triangle
    // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
    // otherwise check floating point distance
-   bool upTriangle = (index.x() + index.y() == rowsize - 2) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
+   bool upTriangle = ( index.x() + index.y() == rowsize - 2 ) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
 
    // Combine solution from linear basis functions depending on triangle orientation
    if ( upTriangle )
@@ -251,7 +250,7 @@ inline void interpolate( const uint_t&                                          
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
-   for( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
    {
       const uint_t idx = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
       faceData[idx]    = scalar;
@@ -259,16 +258,16 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                             Level,
-                         Face&                                                                                     face,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                               faceMemoryId,
-                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                srcIds,
+inline void interpolate( const uint_t&                                                                               Level,
+                         Face&                                                                                       face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                                 faceMemoryId,
+                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                  srcIds,
                          const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
    std::vector< ValueType* > srcPtr;
-   for( const auto& src : srcIds )
+   for ( const auto& src : srcIds )
    {
       srcPtr.push_back( face.getData( src )->getPointer( Level ) );
    }
@@ -277,12 +276,12 @@ inline void interpolate( const uint_t&                                          
 
    Point3D xBlend;
 
-   for( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
    {
       const Point3D coordinate = coordinateFromIndex( Level, face, it );
       const uint_t  idx        = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
-      for( uint_t k = 0; k < srcPtr.size(); ++k )
+      for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVector[k] = srcPtr[k][idx];
       }
@@ -291,47 +290,52 @@ inline void interpolate( const uint_t&                                          
    }
 }
 
-template< typename ValueType >
-inline real_t evaluate( const uint_t & level, const Face & face, const Point3D coordinates,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID)
+template < typename ValueType >
+inline real_t evaluate( const uint_t&                                               level,
+                        const Face&                                                 face,
+                        const Point3D                                               coordinates,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID )
 {
-   Point2D localCoordinates;
+   Point2D  localCoordinates;
    Matrix2r transform;
-   Point3D localDoFs;
+   Point3D  localDoFs;
    getLocalElementDoFIndicesFromCoordinates( level, face, coordinates, srcID, localCoordinates, transform, localDoFs );
-   real_t value = (1.0 - localCoordinates[0] - localCoordinates[1]) * localDoFs[0];
+   real_t value = ( 1.0 - localCoordinates[0] - localCoordinates[1] ) * localDoFs[0];
    value += localCoordinates[0] * localDoFs[1];
    value += localCoordinates[1] * localDoFs[2];
 
    return value;
 }
 
-template< typename ValueType >
-inline void evaluateGradient( const uint_t & level, Face & face, const Point3D coordinates,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID, Point3D& gradient)
+template < typename ValueType >
+inline void evaluateGradient( const uint_t&                                               level,
+                              Face&                                                       face,
+                              const Point3D                                               coordinates,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,
+                              Point3D&                                                    gradient )
 {
-  Point2D localCoordinates;
-  Matrix2r transform;
-  Point3D localDoFs;
-  getLocalElementDoFIndicesFromCoordinates( level, face, coordinates, srcID, localCoordinates, transform, localDoFs );
-  Point2D gradient_;
-  gradient_[0] = localDoFs[1] - localDoFs[0];
-  gradient_[1] = localDoFs[2] - localDoFs[0];
-  gradient_ = transform.mul(gradient_);
-  gradient[0] = gradient_[0];
-  gradient[1] = gradient_[1];
+   Point2D  localCoordinates;
+   Matrix2r transform;
+   Point3D  localDoFs;
+   getLocalElementDoFIndicesFromCoordinates( level, face, coordinates, srcID, localCoordinates, transform, localDoFs );
+   Point2D gradient_;
+   gradient_[0] = localDoFs[1] - localDoFs[0];
+   gradient_[1] = localDoFs[2] - localDoFs[0];
+   gradient_    = transform.mul( gradient_ );
+   gradient[0]  = gradient_[0];
+   gradient[1]  = gradient_[1];
 }
 
-template< typename ValueType >
-inline void swap( const uint_t & level, Face & face,
-                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
-                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstID )
+template < typename ValueType >
+inline void swap( const uint_t&                                               level,
+                  Face&                                                       face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstID )
 {
-  auto srcData = face.getData( srcID );
-  auto dstData = face.getData( dstID );
-  srcData->swap( *dstData, level );
+   auto srcData = face.getData( srcID );
+   auto dstData = face.getData( dstID );
+   srcData->swap( *dstData, level );
 }
-
 
 template < typename ValueType >
 inline void assign( const uint_t&                                                              Level,
@@ -345,17 +349,17 @@ inline void assign( const uint_t&                                               
 
    ValueType*                dst = face.getData( dstId )->getPointer( Level );
    std::vector< ValueType* > srcPtr;
-   for( auto src : srcIds )
+   for ( auto src : srcIds )
    {
       srcPtr.push_back( face.getData( src )->getPointer( Level ) );
    }
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          ValueType tmp = scalars[0] * srcPtr[0][vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-         for( uint_t k = 1; k < srcIds.size(); ++k )
+         for ( uint_t k = 1; k < srcIds.size(); ++k )
          {
             tmp += scalars[k] * srcPtr[k][vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          }
@@ -376,9 +380,9 @@ inline void add( const uint_t&                                               lev
 
    ValueType* dstPtr = face.getData( dstId )->getPointer( level );
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          dstPtr[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] += scalar;
       }
@@ -398,18 +402,18 @@ inline void add( const uint_t&                                                  
 
    ValueType*                dstPtr = face.getData( dstId )->getPointer( Level );
    std::vector< ValueType* > srcPtr;
-   for( auto src : srcIds )
+   for ( auto src : srcIds )
    {
       srcPtr.push_back( face.getData( src )->getPointer( Level ) );
    }
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          auto tmp = ValueType( 0 );
 
-         for( uint_t k = 0; k < srcIds.size(); ++k )
+         for ( uint_t k = 0; k < srcIds.size(); ++k )
          {
             tmp += scalars[k] * srcPtr[k][vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          }
@@ -418,7 +422,6 @@ inline void add( const uint_t&                                                  
       --inner_rowsize;
    }
 }
-
 
 template < typename ValueType >
 inline void multElementwise( const uint_t&                                                              Level,
@@ -431,19 +434,19 @@ inline void multElementwise( const uint_t&                                      
 
    ValueType*                dstPtr = face.getData( dstId )->getPointer( Level );
    std::vector< ValueType* > srcPtr;
-   for( auto src : srcIds )
+   for ( auto src : srcIds )
    {
       srcPtr.push_back( face.getData( src )->getPointer( Level ) );
    }
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          const uint_t idx = vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C );
-         ValueType tmp = srcPtr[0][idx];
+         ValueType    tmp = srcPtr[0][idx];
 
-         for( uint_t k = 1; k < srcIds.size(); ++k )
+         for ( uint_t k = 1; k < srcIds.size(); ++k )
          {
             tmp *= srcPtr[k][idx];
          }
@@ -468,10 +471,10 @@ inline ValueType dot( const uint_t&                                             
    ValueType* lhsPtr = face.getData( lhsId )->getPointer( Level );
    ValueType* rhsPtr = face.getData( rhsId )->getPointer( Level );
 
-   for( uint_t j = offset; j < rowsizeY - offset; ++j )
+   for ( uint_t j = offset; j < rowsizeY - offset; ++j )
    {
       rowsizeX = rowsizeY - j;
-      for( uint_t i = offset; i < rowsizeX - offset; ++i )
+      for ( uint_t i = offset; i < rowsizeX - offset; ++i )
       {
          scalarProduct += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] *
                           rhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
@@ -482,7 +485,10 @@ inline ValueType dot( const uint_t&                                             
 }
 
 template < typename ValueType >
-inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID, const bool & absolute )
+inline ValueType sum( const uint_t&                                               level,
+                      const Face&                                                 face,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID,
+                      const bool&                                                 absolute )
 {
    ValueType* faceData = face.getData( dataID )->getPointer( level );
    auto       sum      = ValueType( 0 );
@@ -491,11 +497,11 @@ inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveData
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
       if ( absolute )
       {
-        sum += std::abs( faceData[idx] );
+         sum += std::abs( faceData[idx] );
       }
       else
       {
-        sum += faceData[idx];
+         sum += faceData[idx];
       }
    }
    return sum;
@@ -518,50 +524,52 @@ inline void apply( const uint_t&                                               L
 
    ValueType tmp = real_c( 0 );
 
-  for( uint_t j = 1; j < rowsize - 2; ++j )
-  {
-     for( uint_t i = 1; i < inner_rowsize - 2; ++i )
-     {
-        if( face.getNumNeighborCells() == 0 )
-        {
-           static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
-           tmp = real_c( 0 );
-           for( const auto direction : vertexdof::macroface::neighborsWithCenter )
-           {
-              tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                     src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-           }
-        } else if( face.getNumNeighborCells() == 1 )
-        {
-           tmp = real_c( 0 );
-           for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
-           {
-              tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                     src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-           }
-        } else if( face.getNumNeighborCells() == 2 )
-        {
-           tmp = real_c( 0 );
-           for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
-           {
-              tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                     src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-           }
-        }
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      {
+         if ( face.getNumNeighborCells() == 0 )
+         {
+            static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+            tmp = real_c( 0 );
+            for ( const auto direction : vertexdof::macroface::neighborsWithCenter )
+            {
+               tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
+         else if ( face.getNumNeighborCells() == 1 )
+         {
+            tmp = real_c( 0 );
+            for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+            {
+               tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
+         else if ( face.getNumNeighborCells() == 2 )
+         {
+            tmp = real_c( 0 );
+            for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+            {
+               tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
 
-        WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
+         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
 
-        if ( update == Replace )
-        {
-          dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
-        }
-        else
-        {
-          dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] += tmp;
-        }
-     }
-     --inner_rowsize;
-  }
+         if ( update == Replace )
+         {
+            dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
+         }
+         else
+         {
+            dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] += tmp;
+         }
+      }
+      --inner_rowsize;
+   }
 }
 
 template < typename ValueType >
@@ -579,9 +587,9 @@ inline void apply3D( const uint_t&                                              
 
    for ( const auto& idxIt : Iterator( Level, 1 ) )
    {
-     ValueType tmp = real_c( 0 );
+      ValueType tmp = real_c( 0 );
 
-     for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
+      for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
          auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
          auto centerIndexInCell =
@@ -596,26 +604,28 @@ inline void apply3D( const uint_t&                                              
             uint_t leafArrayIndexInMacroFace;
             if ( leafIndexInMacroFace.z() == 0 )
             {
-              leafArrayIndexInMacroFace = vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
             }
             else
             {
-              WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
-              leafArrayIndexInMacroFace = vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
+               WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
             }
 
-            tmp += weight * src[ leafArrayIndexInMacroFace ];
+            tmp += weight * src[leafArrayIndexInMacroFace];
          }
       }
 
-     if ( update == Replace )
-     {
-       dst[ vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() ) ] = tmp;
-     }
-     else if ( update == Add )
-     {
-       dst[ vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() ) ] += tmp;
-     }
+      if ( update == Replace )
+      {
+         dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )] = tmp;
+      }
+      else if ( update == Add )
+      {
+         dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )] += tmp;
+      }
    }
 }
 
@@ -637,29 +647,31 @@ inline void smooth_gs( const uint_t&                                            
 
    ValueType tmp;
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-         if( face.getNumNeighborCells() == 0 )
+         if ( face.getNumNeighborCells() == 0 )
          {
-            for( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
+            for ( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
             {
                tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
                       dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
             }
-         } else if( face.getNumNeighborCells() == 1 )
+         }
+         else if ( face.getNumNeighborCells() == 1 )
          {
-            for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+            for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
             {
                tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
                       dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
             }
-         } else if( face.getNumNeighborCells() == 2 )
+         }
+         else if ( face.getNumNeighborCells() == 2 )
          {
-            for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+            for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
             {
                tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
                       dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
@@ -682,54 +694,56 @@ inline void smooth_sor( const uint_t&                                           
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
                         ValueType                                                   relax )
 {
-  uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
-  uint_t inner_rowsize = rowsize;
+   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
+   uint_t inner_rowsize = rowsize;
 
-  auto opr_data = face.getData( operatorId )->getPointer( Level );
-  auto dst      = face.getData( dstId )->getPointer( Level );
-  auto rhs      = face.getData( rhsId )->getPointer( Level );
+   auto opr_data = face.getData( operatorId )->getPointer( Level );
+   auto dst      = face.getData( dstId )->getPointer( Level );
+   auto rhs      = face.getData( rhsId )->getPointer( Level );
 
-  const auto invCenterWeight = 1.0 / opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const auto invCenterWeight = 1.0 / opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
 
-  ValueType tmp;
+   ValueType tmp;
 
-  for( uint_t j = 1; j < rowsize - 2; ++j )
-  {
-    for( uint_t i = 1; i < inner_rowsize - 2; ++i )
-    {
-      tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
-
-      if( face.getNumNeighborCells() == 0 )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-        for( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
-        {
-          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                 dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-        }
-      } else if( face.getNumNeighborCells() == 1 )
-      {
-        for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
-        {
-          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                 dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-        }
-      } else if( face.getNumNeighborCells() == 2 )
-      {
-        for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
-        {
-          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
-                 dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-        }
+         tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+
+         if ( face.getNumNeighborCells() == 0 )
+         {
+            for ( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
+         else if ( face.getNumNeighborCells() == 1 )
+         {
+            for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
+         else if ( face.getNumNeighborCells() == 2 )
+         {
+            for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         }
+
+         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
+
+         dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =
+             ( 1.0 - relax ) * dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] +
+             relax * tmp * invCenterWeight;
       }
-
-      WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
-
-      dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =
-      ( 1.0 - relax ) * dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] +
-      relax * tmp * invCenterWeight;
-    }
-    --inner_rowsize;
-  }
+      --inner_rowsize;
+   }
 }
 
 template < typename ValueType >
@@ -748,7 +762,7 @@ inline void smoothSOR3D( const uint_t&                                          
    real_t centerWeight = real_c( 0 );
    for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
    {
-      centerWeight += opr_data[neighborCellIdx][{0, 0, 0}];
+      centerWeight += opr_data[neighborCellIdx][{ 0, 0, 0 }];
    }
    const auto invCenterWeight = 1.0 / centerWeight;
 
@@ -763,7 +777,7 @@ inline void smoothSOR3D( const uint_t&                                          
              vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
          for ( auto stencilIt : opr_data[neighborCellIdx] )
          {
-            if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+            if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                continue;
 
             auto weight               = stencilIt.second;
@@ -811,13 +825,13 @@ inline void smooth_jac( const uint_t&                                           
 
    ValueType tmp;
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-         for( auto neighbor : vertexdof::macroface::neighborsWithoutCenter )
+         for ( auto neighbor : vertexdof::macroface::neighborsWithoutCenter )
          {
             tmp -= opr_data[vertexdof::stencilIndexFromVertex( neighbor )] *
                    tmpVar[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
@@ -835,9 +849,9 @@ inline void smooth_jac( const uint_t&                                           
 /// \param length Size of the triangle in the first dimension
 inline bool is_boundary( uint_t index, uint_t length )
 {
-   if( index < length )
+   if ( index < length )
       return true;
-   while( index >= length )
+   while ( index >= length )
    {
       index -= length;
       length--;
@@ -846,8 +860,10 @@ inline bool is_boundary( uint_t index, uint_t length )
 }
 
 template < typename ValueType >
-inline void
-    enumerate( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId, ValueType& num )
+inline void enumerate( const uint_t&                                               Level,
+                       Face&                                                       face,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+                       ValueType&                                                  num )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -856,9 +872,9 @@ inline void
 
    ValueType* dstPtr = face.getData( dstId )->getPointer( Level );
 
-   for( uint_t i = 0; i < rowsize - 3; ++i )
+   for ( uint_t i = 0; i < rowsize - 3; ++i )
    {
-      for( uint_t j = 0; j < inner_rowsize - 3; ++j )
+      for ( uint_t j = 0; j < inner_rowsize - 3; ++j )
       {
          dstPtr[mr] = num;
          num++;
@@ -893,9 +909,9 @@ inline void integrateDG( const uint_t&                                          
 
    real_t tmp;
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          tmp =
              rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW )] *
@@ -956,11 +972,11 @@ inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDa
    auto src      = face.getData( srcId )->getPointer( level );
    auto localMax = -std::numeric_limits< ValueType >::max();
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )]);
+         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
       }
       --inner_rowsize;
    }
@@ -978,9 +994,9 @@ inline ValueType
    auto src      = face.getData( srcId )->getPointer( level );
    auto localMax = ValueType( 0.0 );
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          localMax = std::max( localMax,
                               std::abs( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ) );
@@ -1000,9 +1016,9 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
    auto src      = face.getData( srcId )->getPointer( level );
    auto localMin = std::numeric_limits< ValueType >::max();
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
          localMin = std::min( localMin, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
       }
@@ -1133,8 +1149,6 @@ inline void saveOperator3D( const uint_t&                                       
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Face&                                                       face,
@@ -1196,8 +1210,6 @@ inline void applyDirichletBC( const uint_t&                                     
    }
 }
 
-#endif
-
 template < typename ValueType >
 inline void
     printFunctionMemory( const uint_t Level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
@@ -1206,9 +1218,9 @@ inline void
    using namespace std;
    cout << setfill( '=' ) << setw( 100 ) << "" << endl;
    cout << face << std::left << setprecision( 1 ) << fixed << setfill( ' ' ) << endl << "Vertex DoFs: ";
-   for( const auto& it : vertexdof::macroface::Iterator( Level, 0 ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( Level, 0 ) )
    {
-      if( it.col() == 0 )
+      if ( it.col() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
            << faceMemory[hyteg::vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )]

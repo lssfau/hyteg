@@ -118,7 +118,7 @@ template < class operType, class RowSumFormType >
 void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::shared_ptr< RowSumFormType >& rowSumForm )
 {
    PETScManager                  petscManager;
-   PETScSparseMatrix< operType > matrix( storage, level, "diagonal matrix" );
+   PETScSparseMatrix< operType > matrix( "diagonal matrix" );
 
    typename operType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
@@ -136,8 +136,8 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
                       real_t                               bound )
 {
    PETScManager                   petscManager;
-   PETScSparseMatrix< vOperType > testMat( storage, level, "diagonal matrix 1" );
-   PETScSparseMatrix< cOperType > compMat( storage, level, "diagonal matrix 2" );
+   PETScSparseMatrix< vOperType > testMat( "diagonal matrix 1" );
+   PETScSparseMatrix< cOperType > compMat( "diagonal matrix 2" );
 
    typename vOperType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
