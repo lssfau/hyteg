@@ -25,6 +25,8 @@
 
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/adaptiverefinement/simplex.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 
 using walberla::int64_t;
 using walberla::real_t;
@@ -35,7 +37,7 @@ namespace hyteg {
 template < uint_t K, class K_Simplex >
 void adaptiveRefinementBlendingTest( uint_t n_refinements )
 {
-   MeshInfo meshInfo;
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
    if ( K == 2 )
    {
@@ -64,7 +66,7 @@ void adaptiveRefinementBlendingTest( uint_t n_refinements )
       std::vector< PrimitiveID > to_refine;
       for ( auto& el : mesh.get_elements() )
       {
-         to_refine.push_back( el->getPrimitiveID() )
+         to_refine.push_back( el->getPrimitiveID() );
       }
 
       auto& setupStorage = mesh.refineRG( to_refine );
@@ -73,12 +75,12 @@ void adaptiveRefinementBlendingTest( uint_t n_refinements )
 
       for ( auto& [id, vtx] : vertices )
       {
+         Point3D x_blended;
+         vtx->getGeometryMap()->evalF( vtx->getCoordinates(), x_blended );
+         auto r = x_blended.norm();
+
          if ( setupStorage.onBoundary( PrimitiveID( id ) ) )
          {
-            Point3D x_blended;
-            vtx->getGeometryMap()->evalF( vtx->getCoordinates(), x_blended );
-            auto r = x_blended.norm();
-
             if ( r < 1.5 )
             {
                WALBERLA_CHECK_FLOAT_EQUAL( r, 1.0 );
@@ -87,6 +89,11 @@ void adaptiveRefinementBlendingTest( uint_t n_refinements )
             {
                WALBERLA_CHECK_FLOAT_EQUAL( r, 2.0 );
             }
+         }
+         else
+         {
+            WALBERLA_CHECK_GREATER( r, 1.0 );
+            WALBERLA_CHECK_LESS( r, 2.0 );
          }
       }
    }
@@ -101,5 +108,5 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::adaptiveRefinementBlendingTest< 2, hyteg::adaptiveRefinement::Simplex2 >( 2 );
-   hyteg::adaptiveRefinementBlendingTest< 3, hyteg::adaptiveRefinement::Simplex3 >( 1 );
+   hyteg::adaptiveRefinementBlendingTest< 3, hyteg::adaptiveRefinement::Simplex3 >( 2 );
 }

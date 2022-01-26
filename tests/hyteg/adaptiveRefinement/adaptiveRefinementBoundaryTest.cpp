@@ -33,9 +33,11 @@ using walberla::uint_t;
 namespace hyteg {
 
 template < uint_t K, class K_Simplex >
-void adaptiveRefinementBoundaryTest(uint_t n_refinements)
+void adaptiveRefinementBoundaryTest( uint_t n_refinements )
 {
-   MeshInfo meshInfo;
+   WALBERLA_LOG_INFO_ON_ROOT( "Boundary test " << K << "d" );
+
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
    if ( K == 2 )
    {
@@ -50,6 +52,9 @@ void adaptiveRefinementBoundaryTest(uint_t n_refinements)
 
    setupStorage_init.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
+   auto n_boundary_edges = setupStorage_init.getNumEdgesOnBoundary();
+   auto n_boundary_faces = setupStorage_init.getNumFacesOnBoundary();
+
    adaptiveRefinement::K_Mesh< K_Simplex > mesh( setupStorage_init );
 
    for ( uint_t ref = 0; ref < n_refinements; ++ref )
@@ -57,10 +62,19 @@ void adaptiveRefinementBoundaryTest(uint_t n_refinements)
       std::vector< PrimitiveID > to_refine;
       for ( auto& el : mesh.get_elements() )
       {
-         to_refine.push_back( el->getPrimitiveID() )
+         to_refine.push_back( el->getPrimitiveID() );
       }
 
       auto& setupStorage = mesh.refineRG( to_refine );
+
+      std::stringstream ss;
+      setupStorage.toStream( ss, false );
+      WALBERLA_LOG_INFO_ON_ROOT( "Refinement " << ( ref + 1 ) << ": " << ss.str() );
+
+      n_boundary_edges = n_boundary_edges * 2 + n_boundary_faces * 3;
+      n_boundary_faces = n_boundary_faces * 4;
+      WALBERLA_CHECK_EQUAL( setupStorage.getNumEdgesOnBoundary(), n_boundary_edges );
+      WALBERLA_CHECK_EQUAL( setupStorage.getNumFacesOnBoundary(), n_boundary_faces );
 
       hyteg::SetupPrimitiveStorage::PrimitiveMap primitiveMap;
       setupStorage.getSetupPrimitives( primitiveMap );
@@ -68,7 +82,7 @@ void adaptiveRefinementBoundaryTest(uint_t n_refinements)
       for ( auto& [id, primitive] : primitiveMap )
       {
          auto   flag     = primitive->getMeshBoundaryFlag();
-         uint_t boundary = setupStorage.onBoundary( PrimitiveID( id ) ) ? 1 : 0;
+         uint_t boundary = setupStorage.onBoundary( PrimitiveID( id ), true ) ? 1 : 0;
          WALBERLA_CHECK_EQUAL( flag, boundary );
       }
    }
@@ -82,6 +96,6 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::adaptiveRefinementBoundaryTest< 2, hyteg::adaptiveRefinement::Simplex2 >(4);
-   hyteg::adaptiveRefinementBoundaryTest< 3, hyteg::adaptiveRefinement::Simplex3 >(3);
+   hyteg::adaptiveRefinementBoundaryTest< 2, hyteg::adaptiveRefinement::Simplex2 >( 4 );
+   hyteg::adaptiveRefinementBoundaryTest< 3, hyteg::adaptiveRefinement::Simplex3 >( 3 );
 }

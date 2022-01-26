@@ -1,17 +1,14 @@
 waLBerla_link_files_to_builddir(*.msh)
 
 ## adaptive refinement ##
-waLBerla_compile_test(FILES adaptiveRefinement/SimplexTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME SimplexTest)
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementTest)
 
-waLBerla_compile_test(FILES adaptiveRefinement/SimplexFactoryTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME SimplexFactoryTest)
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
 
-waLBerla_compile_test(FILES adaptiveRefinement/adaptiveMesh2DTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME adaptiveMesh2DTest)
-
-waLBerla_compile_test(FILES adaptiveRefinement/adaptiveMesh3DTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME adaptiveMesh3DTest)
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
 
 
 ## Convergence ##

@@ -35,7 +35,7 @@ namespace hyteg {
 template < uint_t K, class K_Simplex >
 void adaptiveRefinementTest()
 {
-   MeshInfo                    meshInfo;
+   MeshInfo                    meshInfo = MeshInfo::emptyMeshInfo();
    Point3D                     barycenter_0;
    real_t                      volume;
    std::pair< real_t, real_t > min_max_angle = { walberla::math::pi / 4.0, walberla::math::pi / 2.0 };
@@ -84,7 +84,7 @@ void adaptiveRefinementTest()
       WALBERLA_CHECK_FLOAT_EQUAL( barycenter[i], barycenter_0[i] );
 
    // test Simplex::volume()
-   WALBERLA_CHECK_FLOAT_EQUAL( simplex_0->volume(), volume );
+   WALBERLA_CHECK_FLOAT_EQUAL( simplex_0->volume( vertices_0 ), volume );
 
    // test Simplex::min_max_angle()
    auto angles = simplex_0->min_max_angle( vertices_0 );
@@ -112,8 +112,7 @@ void adaptiveRefinementTest()
    uint_t origin = 0; // (0, 0, 0)
    for ( uint_t i = 0; i < vertices_0.size(); ++i )
    {
-      auto vtx = vertices_0[i];
-      if ( vtx[0] == 0.0 && vtx[1] == 0.0 && vtx[2] == 0.0 )
+      if ( vertices_0[i].normSq() <= 0.0 )
       {
          origin = i;
          break;
