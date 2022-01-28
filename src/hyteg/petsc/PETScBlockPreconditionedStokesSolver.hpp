@@ -129,8 +129,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "Index set setup" );
 
       KSPCreate( petscCommunicator_, &ksp );
-       
-   
+     
       switch ( krylovSolverType_ )
       {
       case 0:
@@ -141,14 +140,18 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          KSPSetType( ksp, KSPFGMRES );
          WALBERLA_LOG_INFO_ON_ROOT( "Using FGMRES in PETScBlockPreconditionedStokesSolver " );
          break;
+      case 2:
+         KSPSetType( ksp, KSPPREONLY );
+         WALBERLA_LOG_INFO_ON_ROOT( "Using only the preconditioner in PETScBlockPreconditionedStokesSolver " );
+         break;
      default:
          WALBERLA_ABORT( "Invalid solver type for PETSc block prec MinRes solver." )
          break;
       }
 
 
-      KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
-      KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
+      KSPSetTolerances( ksp, 1e-6, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      KSPSetInitialGuessNonzero( ksp, PETSC_FALSE );
       KSPSetFromOptions( ksp );
 
       x.getStorage()->getTimingTree()->start( "Vector copy" );
@@ -188,14 +191,27 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Pmat.get() );
 
+      // print info about nonzeros of problem matrix
+      auto matInfo = Amat.getInfo();
+      std::cout << "nnz(A) = " << matInfo.getNNZ() << std::endl;
+      // optionally print matrix
+      Amat.print("Amat.m", false, 	PETSC_VIEWER_ASCII_MATLAB);
+      Pmat.print("Pmat.m", false, 	PETSC_VIEWER_ASCII_MATLAB);
+      bVec.print("bVec.m", false, 	PETSC_VIEWER_ASCII_MATLAB);
+      // print info about nonzeros of problem matrix with noneliminated bcs
+      //matInfo = AmatNonEliminatedBC.getInfo();
+      //std::cout << "nnz(A) = " << matInfo.getNNZ() << std::endl;
+      // optionally print matrix
+      //AmatNonEliminatedBC.print("AmatNonEliminatedBC.m", false, 	PETSC_VIEWER_ASCII_MATLAB);
+
       if ( velocityPreconditionerType_ == 2 )
       {
          KSPGetPC( ksp, &pc );
          PCSetType( pc, PCFIELDSPLIT );
          PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
          PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr );
-         PCFieldSplitSetIS( pc, "u", is_[0] );
-         PCFieldSplitSetIS( pc, "p", is_[1] );
+         PCFieldSplitSetIS( pc, "0", is_[0] );
+         PCFieldSplitSetIS( pc, "1", is_[1] );
          
 
          PetscInt numSubKsps;
@@ -205,14 +221,41 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
          KSPSetType( sub_ksps_[0], KSPCG );
          KSPSetType( sub_ksps_[1], KSPCG );
+         PC H_pc;
+         KSPGetPC( sub_ksps_[0], &H_pc );
+         PCSetType( H_pc, PCHYPRE ); 
+         KSPGetPC( sub_ksps_[1], &H_pc );
+         PCSetType( H_pc, PCHYPRE ); 
+
+         /*
+         Mat*               sub_ksps0_Amat;
+         Mat*               sub_ksps0_Pmat;
+         Mat*               sub_ksps1_Amat;
+         Mat*               sub_ksps1_Pmat;
+         KSPGetOperators( sub_ksps_[0], sub_ksps0_Amat, sub_ksps0_Pmat );
+         KSPGetOperators( sub_ksps_[1], sub_ksps1_Amat, sub_ksps1_Pmat );
+         PetscViewer viewer;        
+         PetscViewerASCIIOpen( walberla::mpi::MPIManager::instance()->comm(), "sub_ksps0_Pmat", &viewer );
+         PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB ); 
+         MatView( *sub_ksps0_Pmat, viewer );
+         PetscViewerASCIIOpen( walberla::mpi::MPIManager::instance()->comm(), "sub_ksps1_Pmat", &viewer );
+         PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
+         MatView( *sub_ksps1_Pmat, viewer );
+         PetscViewerDestroy( &viewer );
+         */
+         
 
          KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
          KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
       else if ( velocityPreconditionerType_ == 5 )
       {
+
+          
          // Original system matrix A is used for the GKB preconditioner
-          KSPSetOperators( ksp, Amat.get(), Amat.get() );
+         KSPSetOperators( ksp, Amat.get(), Amat.get() );
+
+         //Amat.print( "Amat", false, PETSC_VIEWER_ASCII_MATLAB );
 
          // preconditioner setup
          KSPGetPC( ksp, &pc );
@@ -223,10 +266,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
          // parameters of GKB
          PCFieldSplitSetGKBDelay( pc, 5 );
-         PCFieldSplitSetGKBMaxit( pc, 1000);
-         PCFieldSplitSetGKBNu( pc, 1 );
-         PCFieldSplitSetGKBTol( pc, 1e-5 );
-         PCSetFromOptions(pc);
+         PCFieldSplitSetGKBMaxit( pc, 100);
+         PCFieldSplitSetGKBNu( pc, 0 );
+         PCFieldSplitSetGKBTol( pc, 1e-6 );
          PCSetUp( pc );
          
          // one SubKsp: solver for H
@@ -235,7 +277,11 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
        
          // CG for H system
          KSPSetType( sub_ksps_[0], KSPCG );
-         
+         KSPSetTolerances( sub_ksps_[0], 1e-7, 1e-7, PETSC_DEFAULT, maxIterations_ );
+         PC H_pc;
+         KSPGetPC(sub_ksps_[0], &H_pc );
+         PCSetType( H_pc, PCHYPRE ); 
+          
       }
       else
       {
@@ -264,6 +310,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
             break;
          case 3:
          {
+            KSPSetType( sub_ksps_[0], KSPCG );
+            KSPSetTolerances( sub_ksps_[0], 1e-7, 1e-7, PETSC_DEFAULT, maxIterations_ );
             PCSetType( pc_u, PCHYPRE );
             break;
          }

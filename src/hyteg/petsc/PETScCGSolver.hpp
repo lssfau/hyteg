@@ -115,7 +115,7 @@ class PETScCGSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
       KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCNONE );
+      PCSetType( pc, PCHYPRE );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 

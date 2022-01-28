@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
@@ -28,8 +29,8 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class VecFuncKind, class LaplOpType, class DivOpType, class DivOpTType > // different discretizations for Laplace operator and Divergence
-class AugmentedLagrangianOperator : public Operator<  VecFuncKind,  VecFuncKind >
+template < class VecFunctionType, class LaplOpType, class DivOpType, class DivOpTType > // different discretizations for Laplace operator and Divergence
+class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunctionType >
 {
 
     public:
@@ -39,7 +40,7 @@ class AugmentedLagrangianOperator : public Operator<  VecFuncKind,  VecFuncKind 
             size_t                                     level, // only one level, GKB not to be leveled any time soon
             real_t                                     gamma // gamma = Augmented Laplacian Parameter
         ) 
-        : Operator< VecFuncKind, VecFuncKind >( storage, level, level )
+        : Operator< VecFunctionType, VecFunctionType >( storage, level, level )
         , storage_(storage)
         , level_(level)
         , Lapl( storage, level, level )
@@ -50,8 +51,8 @@ class AugmentedLagrangianOperator : public Operator<  VecFuncKind,  VecFuncKind 
         }
 
         void apply( 
-            const VecFuncKind&         src,
-            const VecFuncKind&         dst,
+            const VecFunctionType&         src,
+            const VecFunctionType&         dst,
             size_t                     level,
             DoFType                    flag,
             UpdateType                 updateType = Replace 
@@ -60,11 +61,11 @@ class AugmentedLagrangianOperator : public Operator<  VecFuncKind,  VecFuncKind 
             // apply Augmented Lagrangian opterator:
             // ALOPx = (Laplace + gamma^-1 Div^T Div)x
             // in [AR13] notation: M = W + gamma^-1AA^T
-            VecFuncKind tmp0("tmp0",storage_, level, level);
+            VecFunctionType tmp0("tmp0",storage_, level, level);
             typename DivOpType::dstType tmp1("tmp1",storage_, level, level);
-            VecFuncKind tmp2("tmp2",storage_, level, level);
+            VecFunctionType tmp2("tmp2",storage_, level, level);
             Lapl.apply( src, tmp0, level, flag );
-            if(fabs(gamma_) > pow(10,-10)) {
+            if(fabs(gamma_) > 1e-10) {
                 div.apply( src, tmp1, level, flag );
                 divT.apply( tmp1, tmp2, level, flag );
                 dst.assign( {1, 1/gamma_}, {tmp0, tmp2}, level );
@@ -74,28 +75,33 @@ class AugmentedLagrangianOperator : public Operator<  VecFuncKind,  VecFuncKind 
             }
         }  
 
-        void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const VecFuncKind&      src,
-                  const VecFuncKind&      dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
+        void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                  mat,
+                  const typename VecFunctionType::template FunctionType< idx_t >&   src,
+                  const typename VecFunctionType::template FunctionType< idx_t >&   dst,
+                  size_t                                                            level,
+                  DoFType                                                           flag ) const
    {
-        auto divMat = mat.createCopy():
-        auto divTMat = mat.createCopy():
+        /*
+        auto divMat = mat->createCopy();
+        auto divTMat = mat->createCopy();
         
         div.toMatrix(divMat,src,dst,level,flag);
         divT.toMatrix(divTMat,src,dst,level,flag);
-        mat.createFromMatrixProduct({divTMat,divMat});
-        
+        mat->createFromMatrixProduct({divTMat,divMat});
+        */
+
+       // use gamma = 0 for now
+       //TOTO create AL matrix
+       Lapl.toMatrix(mat,src,dst,level,flag);
 
    } 
     private:
         std::shared_ptr< PrimitiveStorage >          storage_;
-        size_t          level_;
-        real_t        gamma_;
-        LaplOpType    Lapl;
-        DivOpType     div;
-        DivOpTType    divT;
+        size_t                                       level_;
+        real_t                                       gamma_;
+        LaplOpType                                   Lapl;
+        DivOpType                                    div;
+        DivOpTType                                   divT;
 };
 
 // specification of Augmented Lagrangian Operator for a P2P1 Taylor Hood Stokes discretization

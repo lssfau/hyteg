@@ -207,7 +207,69 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          WALBERLA_CHECK( !err );
       }
    }
+/*
+   void createFromMatrixSum( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
+   {
+      Mat tmp;
 
+      PetscErrorCode err;
+
+      err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK( !err );
+      err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK( !err );
+
+      err = MatDuplicate( mat_, MAT_DO_NOT_COPY_VALUES, &tmp );
+      WALBERLA_CHECK( !err );
+
+      WALBERLA_CHECK_GREATER( matrices.size(), 0 );
+
+      auto petscProxy = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( 0 ) );
+      WALBERLA_CHECK_NOT_NULLPTR( petscProxy );
+
+      err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK( !err );
+      err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK( !err );
+
+      err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
+      WALBERLA_CHECK( !err );
+
+      for ( uint_t i = 1; i < matrices.size(); i++ )
+      {
+         petscProxy = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( i ) );
+
+         err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+         err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+
+         err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+         err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+
+         Mat mats[2];
+         mats[0] = mat_;
+         mats[1] = petscProxy->mat_;
+         //mat_, petscProxy->mat_,
+         err = MatCreateComposite( PETSC_COMM_WORLD, 2, mats, &tmp );
+         WALBERLA_CHECK( !err );
+         err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
+         WALBERLA_CHECK( !err );
+
+         err = MatAssemblyBegin( tmp, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+         err = MatAssemblyEnd( tmp, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+
+         err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+         err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !err );
+      }
+   }
+   */
  private:
    Mat mat_;
 };

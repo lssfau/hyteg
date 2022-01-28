@@ -104,6 +104,7 @@ public:
   void setGeometryMap( const PrimitiveID & primitiveID, const std::shared_ptr<GeometryMap>& map) { getPrimitive(primitiveID)->geometryMap_ = map; }
 
   void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }
+  uint_t getMeshBoundaryFlag( const PrimitiveID & primitiveID) { return getPrimitive(primitiveID)->meshBoundaryFlag_; }
 
   /// Sets the mesh boundary flag of the primitives to a specified value if they are located on the boundary of the domain
   /// \param meshBoundaryFlagOnBoundary the flag the primitives are set to if they are located on the boundary

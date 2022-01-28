@@ -24,7 +24,7 @@
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
-#include "hyteg/operators/AugmentedLargangianOperator.hpp"
+#include "hyteg/operators/AugmentedLagrangianOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -62,7 +62,7 @@ class GKBSolver : public Solver< SaddlePointOp >
        uint_t                                     mI             = std::numeric_limits< uint_t >::max(),
        real_t                                     tol            = 1e-5,
        real_t                                     Gamma          = 0, // Augmented Lagrangian Parameter
-       real_t                                     S              = 0.2, 
+//     real_t                                     S              = 0.2, // upper bound in check 3
        uint_t                                     Delay          = 5
    )  :  flag( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo( false )
@@ -71,11 +71,12 @@ class GKBSolver : public Solver< SaddlePointOp >
    , timingTree( storage->getTimingTree())
    , ALSolver(aLS)  // make this default PETScLUSolver => petsc build check   
    , gamma(Gamma)
-   , s(S)
+   //, s(S)
    , delay(Delay)
    , A(ConstraintOpT(storage, level, level))
    , AT(ConstraintOp(storage, level, level))
    , M(AugmentedLagrangianOp(storage,level,gamma))
+   //TODO check for unnecessary auxiliary functions
    , u("u", storage, level, level), p("p", storage, level, level)
    , q("q", storage, level, level), v("v", storage, level, level)
    , d("d", storage, level, level), tmp_v("tmp_v", storage, level, level)
@@ -93,25 +94,40 @@ class GKBSolver : public Solver< SaddlePointOp >
       if ( x.isDummy() || b.isDummy() )
          return;
 
+      //TODO get AL matrix, print, check vs matlab AL matrix
       //TODO check for uvw and p attribute in x and b, check if functions match between SaddlePointOp and sub operators, need concepts
 
       // set up rhs side for p and u
       mFunction f = b.uvw;
       nFunction g = b.p;
 
-
+      // copy boundary conditions
+      //mFunction u0 = x.uvw;
+      //nFunction p0 = x.p;
+      /*
+      u.copyBoundaryConditionFromFunction(u0);
+      v.copyBoundaryConditionFromFunction(u0);
+      tmp_v.copyBoundaryConditionFromFunction(u0);
+      tmp_w.copyBoundaryConditionFromFunction(u0);
+   	p.copyBoundaryConditionFromFunction(p0);
+      d.copyBoundaryConditionFromFunction(p0);
+      tmp_q.copyBoundaryConditionFromFunction(p0);
+      dualr.copyBoundaryConditionFromFunction(p0);
+      q.copyBoundaryConditionFromFunction(p0);
+      
+*/
       timingTree->start( "GKBSolver" );
 
       // Init: first q 
+      /*
       ALSolver.solve(M,u,f,level);
       AT.apply(u,tmp_q,level,flag);
       dualr.assign({1,-1},{g,tmp_q},level,flag);
       q.assign({1/gamma},{dualr},level,flag);
       beta = sqrt(dualr.dotGlobal(q,level,flag));
-
-       
       std::cout << "Init beta=" << beta << std::endl;
-      
+      */
+
       uint k = 0;
       bool convergence = false;
       //while()
@@ -165,7 +181,7 @@ class GKBSolver : public Solver< SaddlePointOp >
    // GKB related 
    // parameters
    real_t                                    gamma; // AL parameter
-   real_t                                    s;   // for upper bound
+//   real_t                                    s;   // for upper bound
    uint_t                                    delay; // delay for lower bound
 
    // operators
@@ -196,11 +212,11 @@ class GKBSolver : public Solver< SaddlePointOp >
 
 
 // specification of GKB solver for P2P1TaylorHood Finite Elements with Sparse LU as inner solver
-using  GKBSolver_P2P1THOP = GKBSolver< 
+using  GKBSolver_P2P1THOP_NO_AL = GKBSolver< 
    P2P1TaylorHoodStokesOperator, 
    P1ToP2ConstantDivTOperator,
    P2ToP1ConstantDivOperator, 
-   ALOP_P2P1TH, 
-   PETScLUSolver<ALOP_P2P1TH>
+   P2ConstantVectorLaplaceOperator, 
+   CGSolver<P2ConstantVectorLaplaceOperator> // GKB with actualy AL in check 2
 >; 
 } // namespace hyteg
