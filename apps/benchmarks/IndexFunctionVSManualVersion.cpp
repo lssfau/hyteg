@@ -20,10 +20,10 @@
 #include "core/Environment.h"
 #include "core/debug/TestSubsystem.h"
 
-#include "hyteg/indexing/Optimization.hpp"
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/indexing/Optimization.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -44,9 +44,9 @@ inline void manualApply( real_t* oprPtr, real_t* srcPtr, real_t* dstPtr, UpdateT
    size_t mr = 1 + rowsize;
    size_t tr = mr + ( rowsize - 1 );
    ///This is written for the update type Replace!
-   for( size_t i = 0; i < rowsize - 3; ++i )
+   for ( size_t i = 0; i < rowsize - 3; ++i )
    {
-      for( size_t j = 0; j < inner_rowsize - 3; ++j )
+      for ( size_t j = 0; j < inner_rowsize - 3; ++j )
       {
          dstPtr[mr] = oprPtr[0] * srcPtr[br] + oprPtr[1] * srcPtr[br + 1] + oprPtr[2] * srcPtr[mr - 1] + oprPtr[3] * srcPtr[mr] +
                       oprPtr[4] * srcPtr[mr + 1] + oprPtr[5] * srcPtr[tr - 1] + oprPtr[6] * srcPtr[tr];
@@ -80,9 +80,9 @@ int main( int argc, char** argv )
 
    const size_t level = 10;
 
-   auto                   src  = std::make_shared< hyteg::P1Function< real_t > >( "src", storage, level, level );
-   auto                   dst1 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
-   auto                   dst2 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
+   auto                             src  = std::make_shared< hyteg::P1Function< real_t > >( "src", storage, level, level );
+   auto                             dst1 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
+   auto                             dst2 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
    hyteg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
@@ -91,7 +91,7 @@ int main( int argc, char** argv )
    src->interpolate( ones, level );
 
    real_t* oprPtr = face->getData( M.getFaceStencilID() )->getPointer( level );
-   for( uint_t i = 0; i < 7; ++i )
+   for ( uint_t i = 0; i < 7; ++i )
    {
       oprPtr[i] = real_c( i );
    }
@@ -117,13 +117,14 @@ int main( int argc, char** argv )
 
    ///check calculations
    real_t sum1 = 0, sum2 = 0;
-   for( uint_t i = 0; i < levelinfo::num_microvertices_per_face( level ); ++i )
+   for ( uint_t i = 0; i < levelinfo::num_microvertices_per_face( level ); ++i )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( dst1Ptr[i], dst2Ptr[i], "i was: " << i );
       sum1 += dst1Ptr[i];
       sum2 += dst2Ptr[i];
    }
    WALBERLA_CHECK_FLOAT_UNEQUAL( sum1, 0. );
+   WALBERLA_CHECK_FLOAT_UNEQUAL( sum2, 0. );
 
    LIKWID_MARKER_CLOSE;
 }

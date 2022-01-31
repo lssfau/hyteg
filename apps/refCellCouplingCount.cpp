@@ -20,13 +20,13 @@
 #include <set>
 #include <sstream>
 
-#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/indexing/CouplingCount.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
@@ -51,9 +51,9 @@ using namespace hyteg;
 #define MAX_LEVEL_LIMIT 20
 
 // first index is level
-std::vector< std::array< std::array< uint_t, 6>, 6 > > edgeToEdgePerEdge( MAX_LEVEL_LIMIT );
-std::vector< std::array< std::array< uint_t, 4>, 6 > > edgeToFacePerEdge( MAX_LEVEL_LIMIT );
-std::vector< std::array< uint_t, 6 > > edgeToCell( MAX_LEVEL_LIMIT );
+std::vector< std::array< std::array< uint_t, 6 >, 6 > > edgeToEdgePerEdge( MAX_LEVEL_LIMIT );
+std::vector< std::array< std::array< uint_t, 4 >, 6 > > edgeToFacePerEdge( MAX_LEVEL_LIMIT );
+std::vector< std::array< uint_t, 6 > >                  edgeToCell( MAX_LEVEL_LIMIT );
 
 namespace edge2edge {
 
@@ -115,8 +115,8 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
    uint_t numCell2EdgeCouplings = 0;
 
 #ifdef SEPARATE_CELL_COUPLINGS_FOR_EDGES_AND_FACES
-   std::array< uint_t, 4 > numCell2FacePerFace = {0};
-   std::array< uint_t, 6 > numCell2EdgePerEdge = {0};
+   std::array< uint_t, 4 > numCell2FacePerFace = { 0 };
+   std::array< uint_t, 6 > numCell2EdgePerEdge = { 0 };
 #endif
 
    for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
@@ -239,7 +239,7 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
 
    // return counts;
    WALBERLA_ASSERT_EQUAL( numTotalCouplings, numCell2CellCouplings + numCell2FaceCouplings + numCell2EdgeCouplings );
-   return {numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings};
+   return { numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings };
 }
 
 // ==================================================================================================================================
@@ -294,7 +294,7 @@ uint_t getFaceCouplingsTotal( const uint_t&                                     
                               PrimitiveStorage&                                                                   storage,
                               const PrimitiveDataID< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >& operatorID )
 {
-   std::array< uint_t, 4 > perFaceCouplings = {0};
+   std::array< uint_t, 4 > perFaceCouplings = { 0 };
 
    uint_t k = 0;
    for ( PrimitiveID& faceID : storage.getFaceIDs() )
@@ -331,11 +331,11 @@ uint_t getEdgeCouplingsForEdge( const uint_t&                                   
          auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microedges_per_edge( level ) );
          const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
              edgeCenterOrientation, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
 
@@ -350,7 +350,7 @@ uint_t getEdgeCouplingsForEdge( const uint_t&                                   
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                const auto leafIndexOnEdge = indexing::basisConversion(
-                   leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+                   leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microedges_per_edge( level ) );
 
                const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
                const auto onCellFacesSetOnEdge =
@@ -379,7 +379,7 @@ uint_t getEdgeCouplingsTotal( const uint_t&                                     
                               PrimitiveStorage&                                                                   storage,
                               const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >& operatorID )
 {
-   std::array< uint_t, 6 > perEdgeCouplings = {0};
+   std::array< uint_t, 6 > perEdgeCouplings = { 0 };
 
    uint_t k = 0;
    for ( PrimitiveID& edgeID : storage.getEdgeIDs() )
@@ -537,7 +537,7 @@ void countEdgeDoFToEdgeDoFCouplings()
    WALBERLA_LOG_INFO_ON_ROOT( "connected to these vertices. On level 0 the number is 5." );
 
    // COMPARISON TO TRUE VALUES
-   std::array< uint_t, 5 > nnzEE = {36, 217, 1474, 10788, 82376};
+   std::array< uint_t, 5 > nnzEE = { 36, 217, 1474, 10788, 82376 };
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "COMPARISON:" );
@@ -561,7 +561,6 @@ void countEdgeDoFToEdgeDoFCouplings()
 
    WALBERLA_LOG_INFO_ON_ROOT( "+-------+---------+---------+------------+" );
 }
-
 
 namespace edge2vertex {
 
@@ -593,8 +592,8 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
    uint_t numCell2EdgeCouplings = 0;
 
 #ifdef SEPARATE_CELL_COUPLINGS_FOR_EDGES_AND_FACES
-   std::array< uint_t, 4 > numCell2FacePerFace = {0};
-   std::array< uint_t, 6 > numCell2EdgePerEdge = {0};
+   std::array< uint_t, 4 > numCell2FacePerFace = { 0 };
+   std::array< uint_t, 6 > numCell2EdgePerEdge = { 0 };
 #endif
 
    for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
@@ -624,7 +623,7 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
 
    // return counts;
    WALBERLA_ASSERT_EQUAL( numTotalCouplings, numCell2CellCouplings + numCell2FaceCouplings + numCell2EdgeCouplings );
-   return {numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings};
+   return { numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings };
 }
 
 // ==================================================================================================================================
@@ -637,7 +636,7 @@ std::array< uint_t, 3 > getFaceCouplingsForFace(
 {
    auto opr_data = face.getData( operatorId )->getData( level );
 
-   uint_t nTotal = 0;
+   uint_t nTotal     = 0;
    uint_t nFace2Cell = 0;
    uint_t nFace2Face = 0;
    uint_t nFace2Edge = 0;
@@ -662,7 +661,7 @@ std::array< uint_t, 3 > getFaceCouplingsForFace(
          {
             for ( const auto& stencilIt : opr_data[neighborCellID][leafOrientation] )
             {
-               const auto stencilOffset = stencilIt.first;
+               const auto stencilOffset   = stencilIt.first;
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                if ( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientation ) )
@@ -693,24 +692,24 @@ std::array< uint_t, 3 > getFaceCouplingsForFace(
    return { nFace2Cell, nFace2Face, nFace2Edge };
 }
 
-std::array< uint_t, 3 > getFaceCouplings(
-    const uint_t&                                                                                level,
-    PrimitiveStorage&                                                                            storage,
-    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& operatorID )
+std::array< uint_t, 3 >
+    getFaceCouplings( const uint_t&                                                                                level,
+                      PrimitiveStorage&                                                                            storage,
+                      const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& operatorID )
 {
-   std::array< uint_t, 4 > perFaceFace2Cell = {0};
-   std::array< uint_t, 4 > perFaceFace2Face = {0};
-   std::array< uint_t, 4 > perFaceFace2Edge = {0};
+   std::array< uint_t, 4 > perFaceFace2Cell = { 0 };
+   std::array< uint_t, 4 > perFaceFace2Face = { 0 };
+   std::array< uint_t, 4 > perFaceFace2Edge = { 0 };
    // std::array< uint_t, 4 > perFaceFaceTotal = {0};
 
    uint_t k = 0;
    for ( PrimitiveID& faceID : storage.getFaceIDs() )
    {
-      Face& face          = *( storage.getFace( faceID ) );
+      Face&                   face  = *( storage.getFace( faceID ) );
       std::array< uint_t, 3 > count = getFaceCouplingsForFace( level, face, storage, operatorID );
-      perFaceFace2Cell[k] = count[0];
-      perFaceFace2Face[k] = count[1];
-      perFaceFace2Edge[k] = count[2];
+      perFaceFace2Cell[k]           = count[0];
+      perFaceFace2Face[k]           = count[1];
+      perFaceFace2Edge[k]           = count[2];
       // perFaceFaceTotal[k] = count[0] + count[1] + count[2];
 
 #ifdef SEPARATE_FACE_COUPLINGS_FOR_FACES
@@ -727,18 +726,18 @@ std::array< uint_t, 3 > getFaceCouplings(
 
 // ==================================================================================================================================
 
-std::array<uint_t,3> getEdgeCouplingsForEdge(
+std::array< uint_t, 3 > getEdgeCouplingsForEdge(
     const uint_t&                                                                                level,
     const Edge&                                                                                  edge,
     const PrimitiveStorage&                                                                      storage,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& operatorId,
-    bool beVerbose )
+    bool                                                                                         beVerbose )
 {
-   uint_t nTotal = 0;
+   uint_t nTotal     = 0;
    uint_t nEdge2Cell = 0;
    uint_t nEdge2Face = 0;
    uint_t nEdge2Edge = 0;
-   uint_t control = 0;
+   uint_t control    = 0;
 
    std::array< uint_t, 6 > couplingsPerEdge = { 15, 19, 15, 15, 19, 15 };
    // std::array< uint_t, 6 > Edge2Edge = {0};
@@ -756,17 +755,17 @@ std::array<uint_t,3> getEdgeCouplingsForEdge(
          cellLocalEdgeID          = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
          for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientations )
          {
             for ( const auto& stencilIt : opr_data[neighborCellID][leafOrientationInCell] )
             {
-               const auto stencilOffset = stencilIt.first;
+               const auto stencilOffset   = stencilIt.first;
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                auto onEdges = edgedof::macrocell::isOnCellEdges( level, leafIndexInCell, leafOrientationInCell );
@@ -799,24 +798,29 @@ std::array<uint_t,3> getEdgeCouplingsForEdge(
       }
    }
 
-   if( beVerbose ) {
-     WALBERLA_LOG_INFO_ON_ROOT( " --> cellLocalEdgeID = " << cellLocalEdgeID );
-     for ( uint_t k = 0; k < 6; k++ )
-       {
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " --> cellLocalEdgeID = " << cellLocalEdgeID );
+      for ( uint_t k = 0; k < 6; k++ )
+      {
          WALBERLA_LOG_INFO_ON_ROOT( " --> # coupling to edge " << k << " = " << edgeToEdgePerEdge[level][cellLocalEdgeID][k] );
          // WALBERLA_LOG_INFO_ON_ROOT( " --> # coupling to edge " << k << " = " << Edge2Edge[k] );
-       }
-     for ( uint_t k = 0; k < 4; k++ )
-       {
+      }
+      for ( uint_t k = 0; k < 4; k++ )
+      {
          WALBERLA_LOG_INFO_ON_ROOT( " --> # coupling to face " << k << " = " << edgeToFacePerEdge[level][cellLocalEdgeID][k] );
          // WALBERLA_LOG_INFO_ON_ROOT( " --> # coupling to face " << k << " = " << Edge2Face[k] );
-       }
-     
-     WALBERLA_ASSERT_EQUAL( control, nEdge2Cell + nEdge2Face + nEdge2Edge );
-     WALBERLA_ASSERT_EQUAL( control, nTotal );
+      }
+
+      WALBERLA_ASSERT_EQUAL( control, nEdge2Cell + nEdge2Face + nEdge2Edge );
+      WALBERLA_ASSERT_EQUAL( control, nTotal );
+   }
+   else
+   {
+      WALBERLA_UNUSED( control );
    }
 
-   return {nEdge2Cell, nEdge2Face, nEdge2Edge};
+   return { nEdge2Cell, nEdge2Face, nEdge2Edge };
 }
 
 uint_t getEdgeCouplings( const uint_t&                                                                                level,
@@ -824,17 +828,18 @@ uint_t getEdgeCouplings( const uint_t&                                          
                          const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& operatorID,
                          bool beVerbose = false )
 {
-   std::array< uint_t, 6 > perEdgeEdge2Cell = {0};
-   std::array< uint_t, 6 > perEdgeEdge2Face = {0};
-   std::array< uint_t, 6 > perEdgeEdge2Edge = {0};
+   std::array< uint_t, 6 > perEdgeEdge2Cell = { 0 };
+   std::array< uint_t, 6 > perEdgeEdge2Face = { 0 };
+   std::array< uint_t, 6 > perEdgeEdge2Edge = { 0 };
 
-   uint_t total = 0;
-   uint_t k = 0;
-   std::array< uint_t, 3> count;
+   uint_t                  total = 0;
+   uint_t                  k     = 0;
+   std::array< uint_t, 3 > count;
 
-   for( uint_t i = 0; i < 6; i++ ) {
-     edgeToEdgePerEdge[level][i] = {0};
-     edgeToFacePerEdge[level][i] = {0};
+   for ( uint_t i = 0; i < 6; i++ )
+   {
+      edgeToEdgePerEdge[level][i] = { 0 };
+      edgeToFacePerEdge[level][i] = { 0 };
    }
 
    for ( PrimitiveID& edgeID : storage.getEdgeIDs() )
@@ -846,19 +851,19 @@ uint_t getEdgeCouplings( const uint_t&                                          
       // WALBERLA_LOG_INFO_ON_ROOT( "EDGE " << k << ": size(oprData   ) = " << oprData.size() );
       // WALBERLA_LOG_INFO_ON_ROOT( "EDGE " << k << ": size(oprData[0]) = " << oprData[0].size() );
       uint_t sumCouplingsPerLeafOrientation = 0;
-      if( beVerbose ) {
-        for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
-          {
+      if ( beVerbose )
+      {
+         for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
+         {
             WALBERLA_LOG_INFO_ON_ROOT( "EDGE " << k << ": size(oprData[0][" << leafOrientation
-                                       << "]) = " << oprData[0][leafOrientation].size() );
+                                               << "]) = " << oprData[0][leafOrientation].size() );
             sumCouplingsPerLeafOrientation += oprData[0][leafOrientation].size();
-            for( auto element : oprData[0][leafOrientation] )
-              {
-                WALBERLA_LOG_INFO_ON_ROOT( "element [" << element.first << " , " << element.second << " ]" );
-              }
-          }
-        WALBERLA_LOG_INFO_ON_ROOT( "EDGE " << k << ": sumCouplingsPerLeafOrientation = "
-                                   << sumCouplingsPerLeafOrientation );
+            for ( auto element : oprData[0][leafOrientation] )
+            {
+               WALBERLA_LOG_INFO_ON_ROOT( "element [" << element.first << " , " << element.second << " ]" );
+            }
+         }
+         WALBERLA_LOG_INFO_ON_ROOT( "EDGE " << k << ": sumCouplingsPerLeafOrientation = " << sumCouplingsPerLeafOrientation );
       }
 
       count = getEdgeCouplingsForEdge( level, edge, storage, operatorID, beVerbose );
@@ -938,16 +943,16 @@ void countEdgeDoFToVertexDoFCouplings()
       }
       else
       {
-        count = edge2vertex::getFaceCouplings( lvl, *storage, operEV.getFaceStencil3DID() );
-        nFace2Cell[lvl] = count[0];
+         count           = edge2vertex::getFaceCouplings( lvl, *storage, operEV.getFaceStencil3DID() );
+         nFace2Cell[lvl] = count[0];
 
-        nFace2Edge[lvl] = eDoFsOnEdge - 2;
-        WALBERLA_ASSERT_EQUAL( nFace2Edge[lvl], count[2] / 3 );
+         nFace2Edge[lvl] = eDoFsOnEdge - 2;
+         WALBERLA_ASSERT_EQUAL( nFace2Edge[lvl], count[2] / 3 );
 
-        nFace2Face[lvl] = 12 * vDoFsOnFace - 3 * nFace2Edge[lvl];
-        nFace2Lost[lvl] = count[1] - nFace2Face[lvl];  // these are the face-to-other-face couplings
+         nFace2Face[lvl] = 12 * vDoFsOnFace - 3 * nFace2Edge[lvl];
+         nFace2Lost[lvl] = count[1] - nFace2Face[lvl]; // these are the face-to-other-face couplings
 
-        nFaceTotal[lvl] = count[0] + count[1] + count[2];
+         nFaceTotal[lvl] = count[0] + count[1] + count[2];
       }
    }
 
@@ -965,9 +970,8 @@ void countEdgeDoFToVertexDoFCouplings()
    {
       WALBERLA_LOG_INFO_ON_ROOT( "|   " << lvl << "   | " << std::setw( 7 ) << nCellTotal[lvl] << " | " << std::setw( 9 )
                                         << nCell2Cell[lvl] << " | " << std::setw( 9 ) << nCell2Face[lvl] << " | "
-                                        << std::setw( 9 ) << nCell2Edge[lvl] << " | "
-                                        << std::setw( 7 ) << 50 * ( numberOfInnerDoFs< VertexDoFFunctionTag, Cell >( lvl ) )
-                                        << " |" );
+                                        << std::setw( 9 ) << nCell2Edge[lvl] << " | " << std::setw( 7 )
+                                        << 50 * ( numberOfInnerDoFs< VertexDoFFunctionTag, Cell >( lvl ) ) << " |" );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "+-------+---------+-----------+-----------+-----------+---------+" );
@@ -991,7 +995,6 @@ void countEdgeDoFToVertexDoFCouplings()
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "+-------+---------+-----------+-----------+-----------+---------+---------+" );
-
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Remark:" );
@@ -1019,14 +1022,13 @@ void countEdgeDoFToVertexDoFCouplings()
    WALBERLA_LOG_INFO_ON_ROOT( "| Level | nnz(VE) | our sum |" );
    WALBERLA_LOG_INFO_ON_ROOT( "+-------+---------+---------+" );
 
-   std::array< uint_t, 5 > nnzVE = {24, 122, 740, 5064, 37264};
-   uint_t nVertexCouplingsSum = 4*6;
+   std::array< uint_t, 5 > nnzVE               = { 24, 122, 740, 5064, 37264 };
+   uint_t                  nVertexCouplingsSum = 4 * 6;
    for ( uint_t lvl = 0; lvl <= ( maxLevel < 4 ? maxLevel : 4 ); lvl++ )
    {
       uint_t nnz = nCellTotal[lvl] + 4 * nFaceTotal[lvl] + nEdgeTotalSum[lvl] + nVertexCouplingsSum;
-      WALBERLA_LOG_INFO_ON_ROOT( "|   " << lvl << "   | "
-                                 << std::setw( 7 ) << nnzVE[lvl] << " | "
-                                 << std::setw( 7 ) << nnz << " | " );
+      WALBERLA_LOG_INFO_ON_ROOT( "|   " << lvl << "   | " << std::setw( 7 ) << nnzVE[lvl] << " | " << std::setw( 7 ) << nnz
+                                        << " | " );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "+-------+---------+---------+" );
@@ -1039,47 +1041,39 @@ void countEdgeDoFToVertexDoFCouplings()
                                           << ": eDoFs/cell = " << ( numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( lvl ) ) );
    }
 
-
    WALBERLA_LOG_INFO_ON_ROOT( "+--------------------------------------------------------+" );
    WALBERLA_LOG_INFO_ON_ROOT( "|             Coupling from Edge #X to Target:           |" );
    WALBERLA_LOG_INFO_ON_ROOT( "+--------------------------------------------------------+" );
    for ( uint_t lvl = 1; lvl <= maxLevel; lvl++ )
    {
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------------------------------------------------------+" );
-     WALBERLA_LOG_INFO_ON_ROOT( "|                         LEVEL " << lvl << "                        |" );
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
-     WALBERLA_LOG_INFO_ON_ROOT( "| Target |   0   |   1   |   2   |   3   |   4   |   5   |" );
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
-     for ( uint_t k = 0; k < 6; k++ )
-       {
-         WALBERLA_LOG_INFO_ON_ROOT( "| Edge " << k << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][0][k] << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][1][k] << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][2][k] << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][3][k] << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][4][k] << " | "
-                                    << std::setw(5) << edgeToEdgePerEdge[lvl][5][k] << " |" );
-       }
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
-     for ( uint_t k = 0; k < 4; k++ )
-       {
-         WALBERLA_LOG_INFO_ON_ROOT( "| Face " << k << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][0][k] << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][1][k] << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][2][k] << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][3][k] << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][4][k] << " | "
-                                    << std::setw(5) << edgeToFacePerEdge[lvl][5][k] << " |" );
-       }
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
-     WALBERLA_LOG_INFO_ON_ROOT( "| Cell   | "
-                                << std::setw(5) << edgeToCell[lvl][0] << " | "
-                                << std::setw(5) << edgeToCell[lvl][1] << " | "
-                                << std::setw(5) << edgeToCell[lvl][2] << " | "
-                                << std::setw(5) << edgeToCell[lvl][3] << " | "
-                                << std::setw(5) << edgeToCell[lvl][4] << " | "
-                                << std::setw(5) << edgeToCell[lvl][5] << " |" );
-     WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------------------------------------------------------+" );
+      WALBERLA_LOG_INFO_ON_ROOT( "|                         LEVEL " << lvl << "                        |" );
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
+      WALBERLA_LOG_INFO_ON_ROOT( "| Target |   0   |   1   |   2   |   3   |   4   |   5   |" );
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
+      for ( uint_t k = 0; k < 6; k++ )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT(
+             "| Edge " << k << " | " << std::setw( 5 ) << edgeToEdgePerEdge[lvl][0][k] << " | " << std::setw( 5 )
+                       << edgeToEdgePerEdge[lvl][1][k] << " | " << std::setw( 5 ) << edgeToEdgePerEdge[lvl][2][k] << " | "
+                       << std::setw( 5 ) << edgeToEdgePerEdge[lvl][3][k] << " | " << std::setw( 5 )
+                       << edgeToEdgePerEdge[lvl][4][k] << " | " << std::setw( 5 ) << edgeToEdgePerEdge[lvl][5][k] << " |" );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
+      for ( uint_t k = 0; k < 4; k++ )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT(
+             "| Face " << k << " | " << std::setw( 5 ) << edgeToFacePerEdge[lvl][0][k] << " | " << std::setw( 5 )
+                       << edgeToFacePerEdge[lvl][1][k] << " | " << std::setw( 5 ) << edgeToFacePerEdge[lvl][2][k] << " | "
+                       << std::setw( 5 ) << edgeToFacePerEdge[lvl][3][k] << " | " << std::setw( 5 )
+                       << edgeToFacePerEdge[lvl][4][k] << " | " << std::setw( 5 ) << edgeToFacePerEdge[lvl][5][k] << " |" );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
+      WALBERLA_LOG_INFO_ON_ROOT( "| Cell   | " << std::setw( 5 ) << edgeToCell[lvl][0] << " | " << std::setw( 5 )
+                                               << edgeToCell[lvl][1] << " | " << std::setw( 5 ) << edgeToCell[lvl][2] << " | "
+                                               << std::setw( 5 ) << edgeToCell[lvl][3] << " | " << std::setw( 5 )
+                                               << edgeToCell[lvl][4] << " | " << std::setw( 5 ) << edgeToCell[lvl][5] << " |" );
+      WALBERLA_LOG_INFO_ON_ROOT( "+--------+-------+-------+-------+-------+-------+-------+" );
    }
 }
 
