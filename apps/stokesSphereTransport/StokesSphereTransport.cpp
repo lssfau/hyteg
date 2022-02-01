@@ -184,14 +184,12 @@ void simulate( int argc, char* argv[] )
    P2Function< real_t >             tmp( "tmp", storage, minLevel, maxLevel );
    P2Function< real_t >             tmp2( "tmp2", storage, minLevel, maxLevel );
 
-   uint_t totalGlobalDofsStokes = 0;
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
       uint_t tmpDofStokes = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
       uint_t tmpDofTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemperature );
-      totalGlobalDofsStokes += tmpDofStokes;
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
@@ -266,7 +264,6 @@ void simulate( int argc, char* argv[] )
    printFunctionAllocationInfo( *storage, 1 );
 
    walberla::WcTimer timer;
-   real_t            time = 0.0;
 
    auto calculateResidualStokes = [&]() {
       L.apply( u, r, maxLevel, Inner | NeumannBoundary );
@@ -400,8 +397,6 @@ void simulate( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Advection time step ..." )
 
       timer.start();
-
-      time += dt;
 
       transport.step( temp, u.uvw, uLastTimeStep.uvw, maxLevel, All, dt, 1, true );
 
