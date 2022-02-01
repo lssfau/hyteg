@@ -186,10 +186,7 @@ class CSFVectorFunction
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-      for ( uint_t k = 0; k < compFunc_.size(); ++k )
-      {
-         compFunc_[k]->setBoundaryCondition( vectorFunctionTools::filter( k, other ).getBoundaryCondition() );
-      }
+     setBoundaryCondition( other.getBoundaryCondition() );
    }
    /// @}
 

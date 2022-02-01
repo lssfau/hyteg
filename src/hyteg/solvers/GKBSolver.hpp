@@ -24,9 +24,11 @@
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/operators/AugmentedLagrangianOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
@@ -35,6 +37,12 @@ using walberla::real_t;
 using walberla::uint_t;
 
 /// Golub-Kahan-Bidiagonalization Solver implementation from "GENERALIZED GOLUB–KAHAN BIDIAGONALIZATION AND STOPPING CRITERIA" by Mario Arioli 
+/*  solves 
+   M   A  * u  = f 
+   A^T 0    p    g
+   with M, the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div
+   and modified right hand sides f,g = 
+*/
 
 template<
    class SaddlePointOp,// this op is not needed in GKB but added in order to fit the solver class hierarchy and for global residual calculation
@@ -55,16 +63,22 @@ class GKBSolver : public Solver< SaddlePointOp >
    typedef typename ConstraintOp::srcType mFunction;
    typedef typename ConstraintOp::dstType nFunction;
 
+   // check if given operators are consistent
+   static_assert(std::is_same<typename ConstraintOp::srcType,typename  ConstraintOpT::dstType>::value == true);
+   static_assert(std::is_same<typename ConstraintOp::dstType,typename  ConstraintOpT::srcType>::value == true);
+   static_assert(std::is_same<typename AugmentedLagrangianOp::dstType,typename  ConstraintOp::srcType>::value == true);
+   static_assert(std::is_same<typename AugmentedLagrangianOp::srcType,typename  ConstraintOp::srcType>::value == true);
+
    GKBSolver(
        const std::shared_ptr< PrimitiveStorage >& storage,
        uint_t                                     level,
        AugmentedLagrangianSolver                  aLS,
-       uint_t                                     mI             = std::numeric_limits< uint_t >::max(),
+       uint_t                                     mI             = 20,
        real_t                                     tol            = 1e-5,
        real_t                                     Gamma          = 0, // Augmented Lagrangian Parameter
 //     real_t                                     S              = 0.2, // upper bound in check 3
        uint_t                                     Delay          = 5
-   )  :  flag( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
+   )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo( false )
    , tolerance( tol )
    , maxIter( mI )
@@ -75,36 +89,43 @@ class GKBSolver : public Solver< SaddlePointOp >
    , delay(Delay)
    , A(ConstraintOpT(storage, level, level))
    , AT(ConstraintOp(storage, level, level))
-   , M(AugmentedLagrangianOp(storage,level,gamma))
+   , M(AugmentedLagrangianOp(storage,level,level))
    //TODO check for unnecessary auxiliary functions
    , u("u", storage, level, level), p("p", storage, level, level)
    , q("q", storage, level, level), v("v", storage, level, level)
    , d("d", storage, level, level), tmp_v("tmp_v", storage, level, level)
    , tmp_q("tmp_q", storage, level, level),tmp_w("tmp_w", storage, level, level)
-   , dualr("dualr", storage, level, level)
-   , z(std::vector<real_t>(delay,0))
+   , dualr("dualr", storage, level, level), globalR("globalR", storage, level, level)
+   , globalX("globalX", storage, level, level), globalTmp("globalTmp", storage, level, level)
+   , z(std::vector<real_t>(30,0))
    {
+      if(Gamma < 1e-10) gamma = 1; // switch off AL for gamma close to 0
    }
 
-   void solve( const SaddlePointOp& A, const nmFunction& x, const nmFunction& b, const uint_t level ) override
+   void solve( const SaddlePointOp& K, const nmFunction& x, const nmFunction& b, const uint_t Level ) override
    {
+      level = Level;
       if ( maxIter == 0 )
          return;
 
-      if ( x.isDummy() || b.isDummy() )
-         return;
+      //if ( x.isDummy() || b.isDummy() )
+       //  return;
 
       //TODO get AL matrix, print, check vs matlab AL matrix
       //TODO check for uvw and p attribute in x and b, check if functions match between SaddlePointOp and sub operators, need concepts
 
+      // check bnorm 
+      std::cout << "bnom=" <<sqrt( b.dotGlobal(b,level, All  ) ) << std::endl;
+
       // set up rhs side for p and u
       mFunction f = b.uvw;
       nFunction g = b.p;
+      std::cout << "fnom=" <<sqrt( f.dotGlobal(f,level, All  ) ) << std::endl;
 
       // copy boundary conditions
-      //mFunction u0 = x.uvw;
-      //nFunction p0 = x.p;
-      /*
+      mFunction u0 = x.uvw;
+      nFunction p0 = x.p;
+      // No difference for 76 res
       u.copyBoundaryConditionFromFunction(u0);
       v.copyBoundaryConditionFromFunction(u0);
       tmp_v.copyBoundaryConditionFromFunction(u0);
@@ -115,57 +136,99 @@ class GKBSolver : public Solver< SaddlePointOp >
       dualr.copyBoundaryConditionFromFunction(p0);
       q.copyBoundaryConditionFromFunction(p0);
       
-*/
+      
+
       timingTree->start( "GKBSolver" );
 
       // Init: first q 
-      /*
-      ALSolver.solve(M,u,f,level);
-      AT.apply(u,tmp_q,level,flag);
-      dualr.assign({1,-1},{g,tmp_q},level,flag);
-      q.assign({1/gamma},{dualr},level,flag);
-      beta = sqrt(dualr.dotGlobal(q,level,flag));
+      ALSolver.solve(M,u,f,level);                                 // u = M^-1*f
+      std::cout << "Initinit unorm=" << sqrt(u.dotGlobal(u,level,Inner)) << std::endl;
+      AT.apply(u,tmp_q,level,All);                                 // store A'*u
+      dualr.assign({1,-1},{g,tmp_q},level,All);                    // r = g - A'*u
+      q.assign({1/gamma},{dualr},level,All);                       // q = N^-1*r
+      beta = sqrt(dualr.dotGlobal(q,level,All));                   // beta = ||r'*q||_2
+      q.assign({1/beta},{q},level,All);                            // q = q/beta
+      std::cout << "Init qnorm=" << sqrt(q.dotGlobal(q,level,All)) << std::endl;
       std::cout << "Init beta=" << beta << std::endl;
-      */
 
-      uint k = 0;
+      // Init: first v
+      A.apply(q,tmp_v,level,All);                                  // store A*q
+      ALSolver.solve(M,v,tmp_v,level);                             // v = M^-1*A*q
+      M.apply(v,tmp_v,level,All);                                  // for Mnorm of v
+      alpha = sqrt(v.dotGlobal(tmp_v,level,All));                  // alpha = ||v||_M
+      v.assign({1/alpha},{v},level,All);                           // v = v/alpha
+      std::cout << "Init alpha=" << alpha << std::endl;
+      std::cout << "Init vnorm=" << sqrt(v.dotGlobal(v,level,All)) << std::endl;
+      d.assign({1/alpha},{q},level,All);                           // d = q/alpha
+      z.at(0) = (beta/alpha);                                      // z0 = beta/alpha
+      std::cout << "Init z=" << z.at(0) << std::endl;
+      
+      // initial iterates of u,p
+      u.assign({1,z.at(0)},{u,v},level,All);                       // u = u + z0*v
+      p.assign({1,-z.at(0)},{p,d},level,All);                          // p = p -z0*d
+      std::cout << "Init unorm=" << sqrt(u.dotGlobal(u,level,All)) << std::endl;
+      std::cout << "Init pnorm=" << sqrt(p.dotGlobal(p,level,All)) << std::endl;
+      
       bool convergence = false;
-      //while()
-
-
-
+      maxIter = 10;
+      while(k < maxIter && !convergence) {
+            k += 1;
+            ComputeNextQ();
+            ComputeNextV();
+            SolutionUpdate();
+            ResidualNorm(K,b);
+      }
       timingTree->stop( "GKBSolver" );
+
+      x.uvw.assign({1},{u},level,Inner);
+      x.p.assign({1},{p},level,Inner);
    }
 
    void setPrintInfo( bool pI ) { printInfo = pI; }
    
-   /*
+   
    void ComputeNextQ() {
-      AT.apply(v, tmp_q, level, flag);
-      q.assign({1/gamma,-alpha/gamma}, {tmp_q,q}, level, flag);
-      beta = sqrt(q.dotGlobal(q, level, flag)/gamma);
-      q.assign({1/beta},{q}, level, flag);
+      AT.apply(v, tmp_q, level, Inner, Replace);                             // Store A'*v
+      q.assign({1/gamma,-alpha}, {tmp_q,q}, level, Inner);          // Store q = 1/gamma*(A'*v -alpha*gamma*q)
+      beta = sqrt(q.dotGlobal(q, level, Inner)*gamma);              // beta = ||q||_N
+      q.assign({1/beta},{q}, level, Inner);                         // q = q/beta
+     // std::cout << "It " << k <<" qnorm=" << sqrt(q.dotGlobal(q,level,All)) << std::endl;
+      std::cout << "It " << k <<" beta=" << beta << std::endl;
    }
 
    void ComputeNextV() {
-      A.apply(q, tmp_v, level, flag);
-      M.apply(v, tmp_v2, level, flag);
-      tmp_v.assign({1,-beta},{tmp_v,tmp_w}, level, flag);
-      ALSolver.solve(M,tmp_w,tmp_v,level);
-      M.apply(tmp_w,tmp_v,level,flag);
-      alpha = sqrt(tmp_v.dotGlobal(tmp_w,level,flag));
-      v.assign({1/alpha},{tmp_w},level,flag);
-
+      A.apply(q, tmp_v, level, Inner, Replace);                              // Store A*q
+      M.apply(v, tmp_w, level, Inner, Replace);                             // Store M*V
+      tmp_v.assign({1,-beta},{tmp_v,tmp_w}, level, Inner);          // Store (A*q - beta*M*v)
+      ALSolver.solve(M,v,tmp_v,level);                             // v = M^-1*(A*q - beta*M*v) TODO: Optimize M^-1*M
+      M.apply(v,tmp_v,level, Inner, Replace); 
+      alpha = sqrt(tmp_v.dotGlobal(v,level,Inner));                 // alpha = ||v||_M
+      v.assign({1/alpha},{v},level,Inner);                          // v = v/alpha
+      std::cout << "It " << k <<" alpha=" << alpha << std::endl;
    }
-   */
+   
    void SolutionUpdate() {
+      z.at(k) = -beta/alpha*z.at((k-1));                              // z_k+1 = -beta/alpha*z_k
+      d.assign({1/alpha,-beta/alpha},{q,d},level,Inner );            // d = 1/alpha*(q - beta*d)
+      u.assign({1,z.at(k)},{u,v},level,Inner);                       // u = u + z*v
+      p.assign({1,-z.at(k)},{p,d},level,Inner);                          // p = p -z0*d
+      
+      std::cout << "It " << k <<" z=" << z.at(k) << std::endl;
+      std::cout << "It " << k <<" dnorm=" << sqrt(d.dotGlobal(d,level,All)) << std::endl;
+      std::cout << "It " << k <<" unorm=" << sqrt(u.dotGlobal(u,level,All)) << std::endl;
+      std::cout << "It " << k <<" pnorm=" << sqrt(p.dotGlobal(p,level,All)) << std::endl;
       
    }
 
-  
-   void Mnorm() {
-
+   void ResidualNorm(const SaddlePointOp& K, const nmFunction& b) {
+      globalX.uvw.assign({1},{u},level,Inner);
+      globalX.p.assign({1},{p},level,Inner);
+      K.apply(globalX,globalTmp,level,Inner);
+      globalR.assign({1,-1},{b,globalTmp},level,Inner);
+      std::cout << "It " << k << " ||r||=" << sqrt(globalR.dotGlobal(globalR,level,Inner)) << std::endl;
    }
+
+  
    
 
 
@@ -177,6 +240,8 @@ class GKBSolver : public Solver< SaddlePointOp >
    real_t                                    tolerance;
    uint_t                                    maxIter;   
    std::shared_ptr< walberla::WcTimingTree > timingTree;
+   uint_t                                    level;
+   uint_t                                    k = 0;
 
    // GKB related 
    // parameters
@@ -201,6 +266,10 @@ class GKBSolver : public Solver< SaddlePointOp >
    nFunction                                 q; // basis vector for pressure solution in K(A'A)                                    
    nFunction                                 d; // auxiliary vector for update of p
    std::vector<real_t>                       z; // coefficients of velocity in v_i, must be recorded for lower bound stopping critera
+   nmFunction                                globalR;
+   nmFunction                                globalX;
+   nmFunction                                globalTmp;
+
 
    // temporary functions
    mFunction                                 tmp_v; 
