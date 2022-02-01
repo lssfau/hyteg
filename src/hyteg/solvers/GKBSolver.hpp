@@ -36,20 +36,26 @@ namespace hyteg {
 using walberla::real_t; 
 using walberla::uint_t;
 
-/// Golub-Kahan-Bidiagonalization Solver implementation from "GENERALIZED GOLUB–KAHAN BIDIAGONALIZATION AND STOPPING CRITERIA" by Mario Arioli 
+/// Golub-Kahan-Bidiagonalization Solver implementation from "GENERALIZED GOLUB–KAHAN BIDIAGONALIZATION AND STOPPING CRITERIA" by Mario Arioli, 2013 
 /*  solves 
+   K x = b, in block form:
+
    M   A  * u  = f 
    A^T 0    p    g
-   with M, the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div
-   and modified right hand sides f,g = 
+
+   with K, an (m + n) x (m + n) matrix
+   and with M (m x m) the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div
+   and modified right hand sides f,g (m,n vector) 
+   f= //TODO add real AL approach (not necessary yet for P2P1 Stokes)
 */
 
 template<
-   class SaddlePointOp,// this op is not needed in GKB but added in order to fit the solver class hierarchy and for global residual calculation
+   // this op is not needed in GKB(not monolithic) but added in order to fit the solver class hierarchy and for global residual calculation
+   class SaddlePointOp,
    
    // these are necessary for the GKB
-   class ConstraintOpT,  
-   class ConstraintOp,   
+   class ConstraintOpT, 
+   class ConstraintOp,  // divergence for stokes
    class AugmentedLagrangianOp,
    class AugmentedLagrangianSolver
 >
@@ -74,10 +80,11 @@ class GKBSolver : public Solver< SaddlePointOp >
        uint_t                                     level,
        AugmentedLagrangianSolver                  innerSolver,
        uint_t                                     maxIt          = 30,
-       // GKB stops if one of the tolerances is reached for one of the quantities
+       // GKB stops if one of the tolerances is reached for one of the quantities: residual or error in energy norm/M norm
        real_t                                     merror_tol     = 1e-10, 
        real_t                                     res_tol        = 1e-10,
-       real_t                                     Gamma          = 0, // Augmented Lagrangian Parameter
+       // Augmented Lagrangian Parameter
+       real_t                                     Gamma          = 0, 
 //     real_t                                     S              = 0.2, // upper bound in check 3
        uint_t                                     Delay          = 5
    )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
@@ -103,7 +110,7 @@ class GKBSolver : public Solver< SaddlePointOp >
    , z(std::vector<real_t>(maxIt,0))
    {
       WALBERLA_LOG_INFO_ON_ROOT("Switching off augmented Lagrangian approach due to negative or very small gamma!");
-      if(Gamma < 1e-10) gamma = 1; // switch off AL for gamma close to 0 or negativ
+      if(Gamma < 1e-10) gamma = 1; // switch off AL for gamma close to 0 or negative
    }
 
    void solve( const SaddlePointOp& K, const nmFunction& x, const nmFunction& b, const uint_t Level ) override
@@ -176,6 +183,7 @@ class GKBSolver : public Solver< SaddlePointOp >
       std::cout << "Init pnorm=" << sqrt(p.dotGlobal(p,level,All)) << std::endl;
       }
 
+      ////// main loop /////////
       bool convergence = false;
       while(k < maxIter - 1 && !convergence) {
             k += 1;
@@ -198,8 +206,8 @@ class GKBSolver : public Solver< SaddlePointOp >
       x.p.assign({1},{p},level,Inner);
    }
 
+
    void setPrintInfo( bool pI ) { printInfo = pI; }
-   
    
    void ComputeNextQ(bool debug_output) {
       AT.apply(v, tmp_q, level, Inner, Replace);                             // Store A'*v
@@ -261,6 +269,7 @@ class GKBSolver : public Solver< SaddlePointOp >
 
    bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b) {
       if(ResidualNorm(K,b) < res_tolerance) return true;
+      //TODO add lower and upper bound stopping criterium
       else return false;
       
    }
@@ -319,11 +328,24 @@ class GKBSolver : public Solver< SaddlePointOp >
 
 
 // specification of GKB solver for P2P1TaylorHood Finite Elements with CG as inner solver
-using  GKBSolver_P2P1THOP_NO_AL = GKBSolver< 
+// without AL approach!
+using  GKBSolver_P2P1TH_NO_AL = GKBSolver< 
    P2P1TaylorHoodStokesOperator, 
    P1ToP2ConstantDivTOperator,
    P2ToP1ConstantDivOperator, 
    P2ConstantVectorLaplaceOperator, 
-   CGSolver<P2ConstantVectorLaplaceOperator> // GKB with actualy AL in check 2
+   CGSolver<P2ConstantVectorLaplaceOperator> 
 >; 
+
+// specification of GKB solver for P2P1TaylorHood Finite Elements with CG as inner solver
+// now with AL
+/*
+using  GKBSolver_P2P1TH = GKBSolver< 
+   P2P1TaylorHoodStokesOperator, 
+   P1ToP2ConstantDivTOperator,
+   P2ToP1ConstantDivOperator, 
+   ALOP_P2P1TH, 
+   CGSolver<ALOP_P2P1TH> 
+>;
+*/
 } // namespace hyteg
