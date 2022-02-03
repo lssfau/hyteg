@@ -207,8 +207,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          WALBERLA_CHECK( !err );
       }
    }
-/*
-   void createFromMatrixSum( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
+
+   void createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       Mat tmp;
 
@@ -251,6 +251,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
          Mat mats[2];
          mats[0] = mat_;
+         MatScale(petscProxy->mat_,scalars.at(i));
          mats[1] = petscProxy->mat_;
          //mat_, petscProxy->mat_,
          err = MatCreateComposite( PETSC_COMM_WORLD, 2, mats, &tmp );
@@ -269,7 +270,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          WALBERLA_CHECK( !err );
       }
    }
-   */
+   
  private:
    Mat mat_;
 };

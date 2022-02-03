@@ -50,8 +50,8 @@ class SparseMatrixProxy
 
   /// \brief Stores the sum of the passed matrices (as ordered in the vector) in this matrix.
    ///        Can be used to assemble concatenated operators.
- //  virtual void
- //       createFromMatrixSum( const std::vector< std::shared_ptr< SparseMatrixProxy > > & matrices ) = 0;
+  virtual void
+        createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )  = 0;
 
 };
 
