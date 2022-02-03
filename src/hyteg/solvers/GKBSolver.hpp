@@ -82,15 +82,16 @@ class GKBSolver : public Solver< SaddlePointOp >
        real_t                                     Nu             = 0, 
        uint_t                                     maxIt          = 50,
        // GKB stops if one of the tolerances is reached for one of the quantities: residual or error in energy norm/M norm
-       real_t                                     merror_tol     = 1e-10, 
-       real_t                                     res_tol        = 1e-10,
+       real_t                                     merrorTol     = 1e-6, 
+       real_t                                     resTol        = 1e-6,
        // Augmented Lagrangian Parameter
 //     real_t                                     S              = 0.2, // upper bound in check 3
-       uint_t                                     Delay          = 1
+       uint_t                                     Delay          = 1,
+       bool                                       resConvergence = true
    )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo( true )
-   , res_tolerance( res_tol )
-   , merror_tolerance( merror_tol )
+   , resTolerance( resTol )
+   , merrorTolerance( merrorTol )
    , maxIter( maxIt )
    , timingTree( storage->getTimingTree())
    , ALSolver(innerSolver)  
@@ -108,6 +109,7 @@ class GKBSolver : public Solver< SaddlePointOp >
    , dualr("dualr", storage, level, level), globalR("globalR", storage, level, level)
    , globalX("globalX", storage, level, level), globalTmp("globalTmp", storage, level, level)
    , z(std::vector<real_t>(maxIt,0))
+   , useResidualConvergence(resConvergence)
    {  
    }
 
@@ -134,10 +136,6 @@ class GKBSolver : public Solver< SaddlePointOp >
          A.apply(g,tmp_v,level,flag);
          f.assign({1,nu},{f,tmp_v},level,flag);
       }
-
-
-
-      
 
       timingTree->start( "GKBSolver" );
 
@@ -179,7 +177,7 @@ class GKBSolver : public Solver< SaddlePointOp >
 
       if(printInfo) {
          if(k == maxIter-1) {
-            WALBERLA_LOG_INFO_ON_ROOT("GKB did not converge to MErrtol=" << merror_tolerance<< "or Rtol="<<res_tolerance<<" in "<<maxIter<<" iterations.");
+            WALBERLA_LOG_INFO_ON_ROOT("GKB did not converge to MErrtol=" << merrorTolerance<< "or Rtol="<<resTolerance<<" in "<<maxIter<<" iterations.");
          } else {
             WALBERLA_LOG_INFO_ON_ROOT("GKB converged in "<<k<<" iterations.");
          }
@@ -231,12 +229,10 @@ class GKBSolver : public Solver< SaddlePointOp >
   
 
    bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
-      if(k > delay && LowerBoundMErrEstimate() < merror_tolerance) return true;
+      if(k > delay && LowerBoundMErrEstimate() < merrorTolerance) return true;
       
-      if(ResidualNorm(K,b,f,g) < res_tolerance) return true;
-      //TODO add lower and upper bound stopping criterium
-       
-      
+      if(useResidualConvergence && ResidualNorm(K,b,f,g) < resTolerance) return true;
+      //TODO add upper bound stopping criterium
       return false;
       
    }
@@ -255,7 +251,7 @@ class GKBSolver : public Solver< SaddlePointOp >
       //globalR.assign({1,-1},{b,globalTmp},level,flag);
       real_t resnorm = sqrt(globalR.dotGlobal(globalR,level,flag));
       if(printInfo)
-        // WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " ||r||="<< resnorm);
+        WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " ||r||="<< resnorm);
       return resnorm;
    }   
 
@@ -278,8 +274,10 @@ class GKBSolver : public Solver< SaddlePointOp >
    // general parameters
    hyteg::DoFType                            flag;
    bool                                      printInfo;
-   real_t                                    merror_tolerance;
-   real_t                                    res_tolerance;
+   bool                                      useResidualConvergence;
+   real_t                                    merrorTolerance;
+   real_t                                    resTolerance;
+   
    uint_t                                    maxIter;   
    std::shared_ptr< walberla::WcTimingTree > timingTree;
    uint_t                                    level;
