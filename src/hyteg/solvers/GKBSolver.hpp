@@ -44,7 +44,7 @@ using walberla::uint_t;
    A^T 0    p    g
 
    with K, an (m + n) x (m + n) matrix
-   and with M (m x m) the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div
+   and with M (m x m) the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div in case of Stokes
    and modified right hand sides f,g (m,n vector) 
    f= //TODO add real AL approach (not necessary yet for P2P1 Stokes)
 */
@@ -80,13 +80,13 @@ class GKBSolver : public Solver< SaddlePointOp >
        uint_t                                     level,
        AugmentedLagrangianSolver                  innerSolver,
        real_t                                     Nu             = 0, 
-       uint_t                                     maxIt          = 30,
+       uint_t                                     maxIt          = 50,
        // GKB stops if one of the tolerances is reached for one of the quantities: residual or error in energy norm/M norm
        real_t                                     merror_tol     = 1e-10, 
        real_t                                     res_tol        = 1e-10,
        // Augmented Lagrangian Parameter
 //     real_t                                     S              = 0.2, // upper bound in check 3
-       uint_t                                     Delay          = 5
+       uint_t                                     Delay          = 1
    )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo( true )
    , res_tolerance( res_tol )
@@ -111,11 +111,10 @@ class GKBSolver : public Solver< SaddlePointOp >
    {  
    }
 
+// solve(AugmentedLagrangianOp, ConstraintOp, x, b) doesnt
    void solve( const SaddlePointOp& K, const nmFunction& x, const nmFunction& b, const uint_t Level ) override
    {
       level = Level;
-   
-
       //TODO get AL matrix, print, check vs matlab AL matrix
 
       // copy boundary conditions
@@ -229,6 +228,19 @@ class GKBSolver : public Solver< SaddlePointOp >
       q.copyBoundaryConditionFromFunction(p0);
    }
 
+  
+
+   bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
+      if(k > delay && LowerBoundMErrEstimate() < merror_tolerance) return true;
+      
+      if(ResidualNorm(K,b,f,g) < res_tolerance) return true;
+      //TODO add lower and upper bound stopping criterium
+       
+      
+      return false;
+      
+   }
+  
    real_t ResidualNorm(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
       globalX.uvw.assign({1},{u},level,flag);
       globalX.p.assign({1},{p},level,flag);
@@ -243,18 +255,22 @@ class GKBSolver : public Solver< SaddlePointOp >
       //globalR.assign({1,-1},{b,globalTmp},level,flag);
       real_t resnorm = sqrt(globalR.dotGlobal(globalR,level,flag));
       if(printInfo)
-         WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " ||r||="<< resnorm);
+        // WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " ||r||="<< resnorm);
       return resnorm;
-   }
+   }   
 
-   bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
-      if(ResidualNorm(K,b,f,g) < res_tolerance) return true;
-      //TODO add lower and upper bound stopping criterium
-      else return false;
-      
+   real_t LowerBoundMErrEstimate() {
+      real_t xi = 0;
+      // xi = square(xi from paper)
+      // sum up solution coefficients from <delay> last steps, they build the error for u at step k - delay
+      // error at step k is smaller than at step k - delay due to monotonous error reduction for u in GKB
+      for(uint_t j = k - delay + 1; j == k; ++j) {
+         xi = xi + std::pow(z.at(j),2);
+      }   
+      if(printInfo)
+         WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " Mnorm error lower bound xi ="<< sqrt(xi));
+      return sqrt(xi);
    }
-  
-   
 
 
  private:
@@ -309,6 +325,8 @@ class GKBSolver : public Solver< SaddlePointOp >
 
 // specification of GKB solver for P2P1TaylorHood Finite Elements with CG as inner solver
 // without AL approach!
+//TODO remove, use nu = 0 for this
+/*
 using  GKBSolver_P2P1TH_NO_AL = GKBSolver< 
    P2P1TaylorHoodStokesOperator, 
    P1ToP2ConstantDivTOperator,
@@ -316,7 +334,7 @@ using  GKBSolver_P2P1TH_NO_AL = GKBSolver<
    P2ConstantVectorLaplaceOperator, 
    CGSolver<P2ConstantVectorLaplaceOperator> 
 >; 
-
+*/
 // specification of GKB solver for P2P1TaylorHood Finite Elements with CG as inner solver
 // now with AL
 using  GKBSolver_P2P1TH = GKBSolver< 
