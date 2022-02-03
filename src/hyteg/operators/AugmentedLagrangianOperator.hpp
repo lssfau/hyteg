@@ -24,6 +24,10 @@
 #include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
+
+
 #include <type_traits>
 namespace hyteg {
 
@@ -38,7 +42,7 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
         AugmentedLagrangianOperator(
             const std::shared_ptr< PrimitiveStorage >& storage,
             size_t                                     level, // only one level, GKB not to be leveled any time soon
-            real_t                                     gamma // gamma = Augmented Laplacian Parameter
+            real_t                                     Nu = 0 // nu = Augmented Laplacian Parameter
         ) 
         : Operator< VecFunctionType, VecFunctionType >( storage, level, level )
         , storage_(storage)
@@ -46,32 +50,35 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
         , Lapl( storage, level, level )
         , div( storage, level, level )
         , divT( storage, level, level )
+        , nu(Nu)
         { 
-            gamma_ = gamma;
         }
 
         void apply( 
             const VecFunctionType&         src,
             const VecFunctionType&         dst,
-            size_t                     level,
-            DoFType                    flag,
-            UpdateType                 updateType = Replace 
+            size_t                         level,
+            DoFType                        flag,
+            UpdateType                     updateType = Replace 
         ) const
         {
             // apply Augmented Lagrangian opterator:
-            // ALOPx = (Laplace + gamma^-1 Div^T Div)x
-            // in [AR13] notation: M = W + gamma^-1AA^T
+            // ALOPx = (Laplace + nu Div^T Div)x
+            // in [AR13] paper notation: M = W + nuAA^T
+            if(nu > 0) {
+                
+           // std::cout << "apply nu>0path " << nu << std::endl;
             VecFunctionType tmp0("tmp0",storage_, level, level);
             typename DivOpType::dstType tmp1("tmp1",storage_, level, level);
             VecFunctionType tmp2("tmp2",storage_, level, level);
             Lapl.apply( src, tmp0, level, flag );
-            if(fabs(gamma_) > 1e-10) {
-                div.apply( src, tmp1, level, flag );
-                divT.apply( tmp1, tmp2, level, flag );
-                dst.assign( {1, 1/gamma_}, {tmp0, tmp2}, level );
+            div.apply( src, tmp1, level, flag );
+            divT.apply( tmp1, tmp2, level, flag );
+            dst.assign( {1, nu}, {tmp0, tmp2}, level,flag );
             } else {
-                // if gamma is 0 switch off AL
-                dst.assign( {1}, {tmp0}, level );   
+                
+            //std::cout << "apply nu=0path" << std::endl;
+            Lapl.apply( src, dst, level, flag );
             }
         }  
 
@@ -80,25 +87,28 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
                   const typename VecFunctionType::template FunctionType< idx_t >&   dst,
                   size_t                                                            level,
                   DoFType                                                           flag ) const
-   {
-        /*
-        auto divMat = mat->createCopy();
-        auto divTMat = mat->createCopy();
-        
-        div.toMatrix(divMat,src,dst,level,flag);
-        divT.toMatrix(divTMat,src,dst,level,flag);
-        mat->createFromMatrixProduct({divTMat,divMat});
-        */
-
-       // use gamma = 0 for now
-       //TOTO create AL matrix
-       Lapl.toMatrix(mat,src,dst,level,flag);
-
-   } 
+        {
+            if(nu > 0) {
+                
+            //std::cout << "nu>0path" << std::endl;
+            PETScSparseMatrix<LaplOpType> LaplMat(storage_,level_);
+            auto divTdivMat = mat->createCopy();
+            PETScSparseMatrix<DivOpType> divMat(storage_,level_);
+            PETScSparseMatrix<DivOpTType> divTMat(storage_,level_);
+            auto LaplMatProxy = std::make_shared<PETScSparseMatrixProxy>(LaplMat.get());
+            auto divMatProxy = std::make_shared<PETScSparseMatrixProxy>(divMat.get());
+            auto divTMatProxy = std::make_shared<PETScSparseMatrixProxy>(divTMat.get());
+            divTdivMat->createFromMatrixProduct({divTMatProxy,divMatProxy});
+            mat->createFromMatrixLinComb({1,nu},{LaplMatProxy,divTdivMat});
+            } else {
+            //std::cout << "nu=0path" << std::endl;
+            Lapl.toMatrix(mat,src,dst,level,flag);
+            }
+        }   
     private:
         std::shared_ptr< PrimitiveStorage >          storage_;
         size_t                                       level_;
-        real_t                                       gamma_;
+        real_t                                       nu;
         LaplOpType                                   Lapl;
         DivOpType                                    div;
         DivOpTType                                   divT;
