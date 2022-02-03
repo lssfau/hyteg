@@ -31,7 +31,7 @@ inline void createVectorFromFunction( const FaceDoFFunction< real_t >&      func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+  function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const FaceDoFFunction< real_t >&      function,
@@ -40,7 +40,7 @@ inline void createFunctionFromVector( const FaceDoFFunction< real_t >&      func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+  function.fromVector( numerator, vec, level, flag );
 }
 
 } // namespace hyteg

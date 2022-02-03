@@ -2019,7 +2019,7 @@ template < typename ValueType >
 void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t >&     numerator,
                                                  const std::shared_ptr< VectorProxy >& vec,
                                                  uint_t                                level,
-                                                 DoFType                               flag )
+                                                 DoFType                               flag ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {

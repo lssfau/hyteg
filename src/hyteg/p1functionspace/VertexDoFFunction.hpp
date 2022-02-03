@@ -405,7 +405,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    void fromVector( const VertexDoFFunction< idx_t >&     numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
-                    DoFType                               flag );
+                    DoFType                               flag ) const;
    /// @}
 
    using Function< VertexDoFFunction< ValueType > >::isDummy;

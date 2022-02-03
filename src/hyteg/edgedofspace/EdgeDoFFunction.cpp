@@ -1780,7 +1780,7 @@ template < typename ValueType >
 void EdgeDoFFunction< ValueType >::fromVector( const EdgeDoFFunction< idx_t >&       numerator,
                                                const std::shared_ptr< VectorProxy >& vec,
                                                uint_t                                level,
-                                               DoFType                               flag )
+                                               DoFType                               flag ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {

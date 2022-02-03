@@ -369,7 +369,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    void fromVector( const EdgeDoFFunction< idx_t >&       numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
-                    DoFType                               flag );
+                    DoFType                               flag ) const;
    /// @}
 
    using Function< EdgeDoFFunction< ValueType > >::isDummy;

@@ -508,38 +508,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         edgedof::macroedge::createVectorFromFunction< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         edgedof::macroface::createVectorFromFunction< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         edgedof::macrocell::createVectorFromFunction< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
+  function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      function,
@@ -548,44 +517,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   function.startCommunication< Vertex, Edge >( level );
-   function.endCommunication< Vertex, Edge >( level );
-
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         edgedof::macroedge::createFunctionFromVector< real_t >( level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   function.startCommunication< Edge, Face >( level );
-   function.endCommunication< Edge, Face >( level );
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         edgedof::macroface::createFunctionFromVector< real_t >( level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         edgedof::macrocell::createFunctionFromVector< real_t >( level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
+  function.fromVector( numerator, vec, level, flag );
 }
 
 inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
