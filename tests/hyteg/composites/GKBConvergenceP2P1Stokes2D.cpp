@@ -1,4 +1,4 @@
-/*
+*
  * Copyright (c) 2017-2019 Dominik Thoennes.
  *
  * This file is part of HyTeG
@@ -71,7 +71,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP, const uint_t & solverType )
+void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo)
 {
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -112,7 +112,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
-  real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
+  real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ));
 
   WALBERLA_LOG_INFO_ON_ROOT( "Init discrete L2 error u = " << discr_l2_err_1_u );
   WALBERLA_LOG_INFO_ON_ROOT( "Init discrete L2 error v = " << discr_l2_err_1_v );
@@ -130,13 +130,20 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 //  vtkOutput.add( b.p );
 //  vtkOutput.write( level, 0 );
 
- 
-  GKBSolver_P2P1THOP_NO_AL GKB_HOUSE_solver( 
+ /*
+  GKBSolver_P2P1TH_NO_AL GKB_HOUSE_solver( 
       storage, 
       level,
       CGSolver<P2ConstantVectorLaplaceOperator>(storage, level, level), // solve exactly
-      std::numeric_limits< PetscInt >::max(), 
-      1e-6
+      30
+  );
+  */
+ GKBSolver_P2P1TH GKB_HOUSE_solver( 
+      storage, 
+      level,
+      CGSolver<ALOP_P2P1TH>(storage, level, level), // solve exactly
+      0,    
+      30
   );
 
   PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > GKB_PETSC_solver(
@@ -163,7 +170,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
   discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
   discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
-  residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
+  residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
@@ -182,7 +189,7 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   PETScManager petscManager( &argc, &argv );
 
-  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184, 0 );
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ) );
 
   return EXIT_SUCCESS;
 }
