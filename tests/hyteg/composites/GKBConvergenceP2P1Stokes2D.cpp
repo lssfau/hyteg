@@ -1,4 +1,4 @@
-*
+/*
  * Copyright (c) 2017-2019 Dominik Thoennes.
  *
  * This file is part of HyTeG
@@ -40,26 +40,6 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
-#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/communication/Syncing.hpp"
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScCGSolver.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
-#include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/GKBSolver.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -106,6 +86,9 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo)
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+
+
+  WALBERLA_LOG_INFO( "Testing GKB convergence on the unit square...");
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 

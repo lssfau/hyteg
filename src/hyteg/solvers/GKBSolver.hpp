@@ -326,5 +326,4 @@ using  GKBSolver_P2P1TH = GKBSolver<
    ALOP_P2P1TH, 
    CGSolver<ALOP_P2P1TH> 
 >;
-
 } // namespace hyteg
