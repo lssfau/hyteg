@@ -39,8 +39,7 @@ inline void createVectorFromFunction( const P2Function< real_t >&           func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   createVectorFromFunction( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
-   createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
+   function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const P2Function< real_t >&           function,
@@ -49,8 +48,7 @@ inline void createFunctionFromVector( const P2Function< real_t >&           func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   createFunctionFromVector( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
-   createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
+   function.fromVector( numerator, vec, level, flag );
 }
 
 inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
@@ -68,10 +66,7 @@ inline void createVectorFromFunction( const P2VectorFunction< real_t >&     func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getDimension(); k++ )
-   {
-      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
-   }
+  function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const P2VectorFunction< real_t >&     function,
@@ -80,10 +75,7 @@ inline void createFunctionFromVector( const P2VectorFunction< real_t >&     func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getDimension(); k++ )
-   {
-      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
-   }
+  function.fromVector( numerator, vec, level, flag );
 }
 
 inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )

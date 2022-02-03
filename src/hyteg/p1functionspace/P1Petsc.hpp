@@ -97,10 +97,7 @@ inline void createVectorFromFunction( const P1VectorFunction< real_t >&     func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getDimension(); k++ )
-   {
-      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
-   }
+  function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const P1VectorFunction< real_t >&     function,
@@ -109,10 +106,7 @@ inline void createFunctionFromVector( const P1VectorFunction< real_t >&     func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getDimension(); k++ )
-   {
-      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
-   }
+  function.fromVector( numerator, vec, level, flag );
 }
 
 inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )

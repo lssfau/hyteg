@@ -237,6 +237,27 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode );
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const P2Function< idx_t >&            numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      this->getVertexDoFFunction().toVector( numerator.getVertexDoFFunction(), vec, level, flag );
+      this->getEdgeDoFFunction().toVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+   }
+
+   void fromVector( const P2Function< idx_t >&            numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      this->getVertexDoFFunction().fromVector( numerator.getVertexDoFFunction(), vec, level, flag );
+      this->getEdgeDoFFunction().fromVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+   };
+   /// @}
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
 

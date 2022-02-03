@@ -341,6 +341,55 @@ class CSFVectorFunction
       }
    }
 
+   /// conversion to/from linear algebra representation
+   ///
+   /// \todo Find a better solution. The latter would require to find a way to derive from
+   /// VectorFunctionType that we need in the interface a corresponding function with
+   /// different ValueType. So e.g. P1VectorFunction< idx_t > if VectorFunctionType equals
+   /// P1VectorFunction< real_t >.
+   ///
+   /// @{
+   template < template < class > class VectorFunctionIndexType >
+   void toVector( const VectorFunctionIndexType< idx_t >& numerator,
+                  const std::shared_ptr< VectorProxy >&   vec,
+                  uint_t                                  level,
+                  DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->toVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+
+   template < template < class > class VectorFunctionIndexType >
+   void fromVector( const VectorFunctionIndexType< idx_t >& numerator,
+                    const std::shared_ptr< VectorProxy >&   vec,
+                    uint_t                                  level,
+                    DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->fromVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+   /// @}
+
  protected:
    const std::string                                     functionName_;
    std::vector< std::shared_ptr< VectorComponentType > > compFunc_;
