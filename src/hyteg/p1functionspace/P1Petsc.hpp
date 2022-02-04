@@ -34,24 +34,6 @@ namespace hyteg {
 // ============
 //  P1Function
 // ============
-inline void createVectorFromFunction( const P1Function< real_t >&           function,
-                                      const P1Function< idx_t >&            numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.toVector( numerator, vec, level, flag );
-}
-
-inline void createFunctionFromVector( const P1Function< real_t >&           function,
-                                      const P1Function< idx_t >&            numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.fromVector( numerator, vec, level, flag );
-}
-
 inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getVertices() )
@@ -91,24 +73,6 @@ inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector<
 // ==================
 //  P1VectorFunction
 // ==================
-inline void createVectorFromFunction( const P1VectorFunction< real_t >&     function,
-                                      const P1VectorFunction< idx_t >&      numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.toVector( numerator, vec, level, flag );
-}
-
-inline void createFunctionFromVector( const P1VectorFunction< real_t >&     function,
-                                      const P1VectorFunction< idx_t >&      numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.fromVector( numerator, vec, level, flag );
-}
-
 inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )

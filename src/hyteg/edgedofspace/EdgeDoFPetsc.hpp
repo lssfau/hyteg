@@ -502,24 +502,6 @@ inline void saveCellIdentityOperator( const uint_t&                             
    }
 }
 
-inline void createVectorFromFunction( const EdgeDoFFunction< real_t >&      function,
-                                      const EdgeDoFFunction< idx_t >&       numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.toVector( numerator, vec, level, flag );
-}
-
-inline void createFunctionFromVector( const EdgeDoFFunction< real_t >&      function,
-                                      const EdgeDoFFunction< idx_t >&       numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-  function.fromVector( numerator, vec, level, flag );
-}
-
 inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getEdges() )

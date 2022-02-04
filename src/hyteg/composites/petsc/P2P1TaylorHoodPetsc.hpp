@@ -29,24 +29,6 @@
 
 namespace hyteg {
 
-inline void createVectorFromFunction( const P2P1TaylorHoodFunction< real_t >& function,
-                                      const P2P1TaylorHoodFunction< idx_t >&  numerator,
-                                      const std::shared_ptr< VectorProxy >&   vec,
-                                      uint_t                                  level,
-                                      DoFType                                 flag )
-{
-  function.toVector( numerator, vec, level, flag );
-}
-
-inline void createFunctionFromVector( const P2P1TaylorHoodFunction< real_t >& function,
-                                      const P2P1TaylorHoodFunction< idx_t >&  numerator,
-                                      const std::shared_ptr< VectorProxy >&   vec,
-                                      uint_t                                  level,
-                                      DoFType                                 flag )
-{
-  function.fromVector( numerator, vec, level, flag );
-}
-
 inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );
