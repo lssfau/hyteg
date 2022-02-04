@@ -42,24 +42,18 @@ void DGOperator::apply( const DGFunction< real_t >& src,
 {
    // TODO: communicate
 
-   applyInner( src, dst, level, flag, updateType );
-
-   // TODO: apply inner facets
-   // TODO: apply boundary facets
+   assembleAndOrApply< real_t >( src, dst, level, flag, nullptr, updateType );
 };
 
-void DGOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >&             mat,
-                           const typename srcType::template FunctionType< idx_t >& src,
-                           const typename dstType::template FunctionType< idx_t >& dst,
-                           size_t                                                  level,
-                           DoFType                                                 flag ) const
+void DGOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                           const DGFunction< idx_t >&                  src,
+                           const DGFunction< idx_t >&                  dst,
+                           size_t                                      level,
+                           DoFType                                     flag ) const
 {
    // TODO: communicate
 
-   toMatrixInner( mat, src, dst, level, flag );
-
-   // TODO: apply inner facets
-   // TODO: apply boundary facets
+   assembleAndOrApply< idx_t >( src, dst, level, flag, mat, Replace );
 }
 
 void DGOperator::smooth_jac( const DGFunction< real_t >& dst,
@@ -70,166 +64,17 @@ void DGOperator::smooth_jac( const DGFunction< real_t >& dst,
                              DoFType                     flag ) const
 {
    WALBERLA_ABORT( "DGOperator: weighted Jacobi not implemented." );
+   WALBERLA_UNUSED( dst );
+   WALBERLA_UNUSED( rhs );
+   WALBERLA_UNUSED( tmp );
+   WALBERLA_UNUSED( relax );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( flag );
 }
 
 std::shared_ptr< DGFunction< real_t > > DGOperator::getInverseDiagonalValues() const
 {
    WALBERLA_ABORT( "DGOperator: inverse diagonal not implemented." );
-}
-
-void DGOperator::applyInner( const DGFunction< real_t >& src,
-                             const DGFunction< real_t >& dst,
-                             size_t                      level,
-                             DoFType                     flag,
-                             UpdateType                  updateType ) const
-{
-   WALBERLA_CHECK( updateType == Replace );
-
-   if ( this->getStorage()->hasGlobalCells() )
-   {
-      WALBERLA_ABORT( "DG apply not implemented in 3D." );
-   }
-   else
-   {
-      for ( const auto& faceIt : this->getStorage()->getFaces() )
-      {
-         const auto faceId = faceIt.first;
-         const auto face   = *faceIt.second;
-
-         const auto srcPolyDegree = src.polynomialDegree( faceId );
-         const auto dstPolyDegree = dst.polynomialDegree( faceId );
-
-         const auto numSrcDofs = src.basis()->numDoFsPerElement( srcPolyDegree );
-         const auto numDstDofs = dst.basis()->numDoFsPerElement( dstPolyDegree );
-
-         const auto srcDofMemory = src.volumeDoFFunction()->dofMemory( faceId, level );
-         auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( faceId, level );
-
-         const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
-         const auto dstMemLayout = dst.volumeDoFFunction()->memoryLayout();
-
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
-            {
-               // First we assemble the local element matrix.
-               // For that we need the (affine) coordinates of the local element.
-
-               const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIdx, faceType );
-
-               std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > vertexCoords;
-               for ( uint_t i = 0; i < 3; i++ )
-               {
-                  const auto coord     = vertexdof::macroface::coordinateFromIndex( level, face, microVertexIndices[i] );
-                  vertexCoords[i]( 0 ) = coord[0];
-                  vertexCoords[i]( 1 ) = coord[1];
-               }
-
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-               form_->integrateVolume( vertexCoords, *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
-
-               // Now we need to perform the multiplication with the source DoFs.
-
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
-               srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
-               dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
-
-               for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-               {
-                  srcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index(
-                      elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
-               }
-
-               dstDofs = localMat * srcDofs;
-
-               for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
-               {
-                  dstDofMemory[volumedofspace::indexing::index(
-                      elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] =
-                      dstDofs( dstDofIdx );
-               }
-            }
-         }
-      }
-   }
-
-   WALBERLA_UNUSED( flag );
-}
-
-void DGOperator::toMatrixInner( const std::shared_ptr< SparseMatrixProxy >&             mat,
-                                const typename srcType::template FunctionType< idx_t >& src,
-                                const typename dstType::template FunctionType< idx_t >& dst,
-                                size_t                                                  level,
-                                DoFType                                                 flag ) const
-{
-   if ( this->getStorage()->hasGlobalCells() )
-   {
-      WALBERLA_ABORT( "DG apply not implemented in 3D." );
-   }
-   else
-   {
-      for ( const auto& faceIt : this->getStorage()->getFaces() )
-      {
-         const auto faceId = faceIt.first;
-         const auto face   = *faceIt.second;
-
-         const auto srcPolyDegree = src.polynomialDegree( faceId );
-         const auto dstPolyDegree = dst.polynomialDegree( faceId );
-
-         const auto numSrcDofs = src.basis()->numDoFsPerElement( srcPolyDegree );
-         const auto numDstDofs = dst.basis()->numDoFsPerElement( dstPolyDegree );
-
-         const auto srcDofMemory = src.volumeDoFFunction()->dofMemory( faceId, level );
-         const auto dstDofMemory = dst.volumeDoFFunction()->dofMemory( faceId, level );
-
-         const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
-         const auto dstMemLayout = dst.volumeDoFFunction()->memoryLayout();
-
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
-            {
-               // First we assemble the local element matrix.
-               // For that we need the (affine) coordinates of the local element.
-
-               const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIdx, faceType );
-
-               std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > vertexCoords;
-               for ( uint_t i = 0; i < 3; i++ )
-               {
-                  const auto coord     = vertexdof::macroface::coordinateFromIndex( level, face, microVertexIndices[i] );
-                  vertexCoords[i]( 0 ) = coord[0];
-                  vertexCoords[i]( 1 ) = coord[1];
-               }
-
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-               form_->integrateVolume( vertexCoords, *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
-
-               // Now we need to perform the multiplication with the source DoFs.
-
-               Eigen::Matrix< idx_t, Eigen::Dynamic, 1 > srcDofs;
-               Eigen::Matrix< idx_t, Eigen::Dynamic, 1 > dstDofs;
-               srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
-               dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
-
-               for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
-               {
-                  for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                  {
-                     const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                         elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-                     const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
-                         elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
-                     mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   WALBERLA_UNUSED( flag );
 }
 
 } // namespace dg

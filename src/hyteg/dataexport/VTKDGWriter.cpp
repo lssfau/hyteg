@@ -121,7 +121,8 @@ void VTKDGWriter::writeScalarFunction( std::ostream&                            
    {
       for ( const auto& it : storage->getFaces() )
       {
-         const Face& face = *it.second;
+         const PrimitiveID faceID = it.first;
+         const Face&       face   = *it.second;
 
          for ( auto faceType : facedof::allFaceTypes )
          {
@@ -133,7 +134,7 @@ void VTKDGWriter::writeScalarFunction( std::ostream&                            
                {
                   const auto vtkPoint = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
                   value_t    value;
-                  function.evaluate( vtkPoint, level, value );
+                  function.evaluateOnMicroElement( vtkPoint, level, faceID, idxIt, faceType, value );
                   streamWriter << value;
                }
             }

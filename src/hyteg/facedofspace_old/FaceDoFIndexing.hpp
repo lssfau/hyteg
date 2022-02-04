@@ -186,6 +186,14 @@ enum DofType
    CELL_BLUE = 1
 };
 
+/// \brief Returns true if the considered micro-face shares a boundary with the macro-face.
+inline bool sharesBoundaryWithMacro( Index microFaceIdx, FaceType faceType, uint_t level )
+{
+   return ( faceType == FaceType::GRAY ) &&
+          ( microFaceIdx.x() == 0 || microFaceIdx.y() == 0 ||
+            microFaceIdx.x() + microFaceIdx.y() == levelinfo::num_microedges_per_edge( level ) - 1 );
+}
+
 // Do we still need the indexFaceStencil? It is currently not used anywhere
 // -- /// these numbers specify the postion of each stencil entry in the stencil memory array
 // -- /// they are randomly chosen but need to be kept this way

@@ -79,6 +79,46 @@ class DGMassForm_Example : public DGForm
       elMat( 2, 1 ) = a_2_1;
       elMat( 2, 2 ) = a_2_2;
    }
+
+   virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
+                                     const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                     const DGBasisInfo&                                       trialBasis,
+                                     const DGBasisInfo&                                       testBasis,
+                                     int                                                      trialDegree,
+                                     int                                                      testDegree,
+                                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( trialBasis );
+      WALBERLA_UNUSED( testBasis );
+      WALBERLA_UNUSED( trialDegree );
+      WALBERLA_UNUSED( testDegree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
+
+   virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
+                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
+                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                        const DGBasisInfo&                                       trialBasis,
+                                        const DGBasisInfo&                                       testBasis,
+                                        int                                                      trialDegree,
+                                        int                                                      testDegree,
+                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      WALBERLA_UNUSED( coordsElementInner );
+      WALBERLA_UNUSED( coordsElementOuter );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( trialBasis );
+      WALBERLA_UNUSED( testBasis );
+      WALBERLA_UNUSED( trialDegree );
+      WALBERLA_UNUSED( testDegree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   };
 };
 
 } // namespace dg

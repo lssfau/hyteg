@@ -20,6 +20,7 @@
 
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 
+#include "core/DataTypes.h"
 #include "core/mpi/MPIWrapper.h"
 #include "core/mpi/Reduce.h"
 
@@ -29,6 +30,8 @@
 
 namespace hyteg {
 namespace dg {
+
+using walberla::uint_t;
 
 template < typename ValueType >
 DGFunction< ValueType >::DGFunction( const std::string&                         name,
@@ -102,16 +105,7 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
                 level, face, coordinates2D, elementIndex, faceType, localCoordinates );
 
             Eigen::Matrix< real_t, 2, 1 > refPos( localCoordinates[0], localCoordinates[1] );
-#if 0
-            std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
-            auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
-            for ( uint_t i = 0; i < 3; i++ )
-            {
-               const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-               affineElementVertices[i]( 0 ) = coord[0];
-               affineElementVertices[i]( 1 ) = coord[1];
-            }
-#endif
+
             std::vector< real_t > dofs( ndofs );
             for ( uint_t i = 0; i < ndofs; i++ )
             {
@@ -175,6 +169,65 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
    }
 
    return false;
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
+                                                      uint_t                 level,
+                                                      const PrimitiveID&     faceID,
+                                                      hyteg::indexing::Index elementIndex,
+                                                      facedof::FaceType      faceType,
+                                                      ValueType&             value ) const
+{
+   if ( !this->storage_->hasGlobalCells() )
+   {
+      // 2D
+
+      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
+
+      const Face& face = *storage_->getFace( faceID );
+
+      const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
+      const auto ndofs      = uint_c( basis_->numDoFsPerElement( polyDegree ) );
+
+      Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
+
+      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+      auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+      for ( uint_t i = 0; i < 3; i++ )
+      {
+         const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+         affineElementVertices[i]( 0 ) = coord[0];
+         affineElementVertices[i]( 1 ) = coord[1];
+      }
+
+      // trafo from affine to reference space
+      Eigen::Matrix< real_t, 2, 2 > A;
+      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+      const auto Ainv = A.inverse();
+
+      const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+      const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
+
+      std::vector< real_t > dofs( ndofs );
+      for ( uint_t i = 0; i < ndofs; i++ )
+      {
+         dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
+      }
+
+      real_t value_r;
+      basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+      value = ValueType( value_r );
+   }
+   else
+   {
+      WALBERLA_ABORT( "not implemented" );
+   }
 }
 
 template < typename ValueType >
@@ -297,10 +350,17 @@ uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
 }
 
 template < typename ValueType >
-uint_t DGFunction< ValueType >::getNumberOfGlobalDoFs( uint_t level ) const
+uint_t DGFunction< ValueType >::getNumberOfGlobalDoFs( uint_t level, const MPI_Comm& communicator, const bool& onRootOnly ) const
 {
-   const uint_t ndofs = getNumberOfLocalDoFs( level );
-   walberla::mpi::allReduceInplace( ndofs, walberla::mpi::SUM );
+   uint_t ndofs = getNumberOfLocalDoFs( level );
+   if ( onRootOnly )
+   {
+      walberla::mpi::reduceInplace( ndofs, walberla::mpi::SUM, 0, communicator );
+   }
+   else
+   {
+      walberla::mpi::allReduceInplace( ndofs, walberla::mpi::SUM, communicator );
+   }
    return ndofs;
 }
 
@@ -354,6 +414,8 @@ void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
          }
       }
    }
+
+   WALBERLA_UNUSED( flag );
 }
 
 void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
@@ -397,11 +459,16 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
          }
       }
    }
+
+   WALBERLA_UNUSED( flag );
 }
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not applied to sparse matrix." );
+   WALBERLA_UNUSED( numerator );
+   WALBERLA_UNUSED( mat );
+   WALBERLA_UNUSED( level );
 }
 
 } // namespace hyteg

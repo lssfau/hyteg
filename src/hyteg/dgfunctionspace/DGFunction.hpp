@@ -94,6 +94,31 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ///
    bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
+   /// \brief Evaluate finite element function on a specific micro-face.
+   ///
+   /// The standard evaluate() function does not take the discontinuity of the function into account.
+   /// If the function is evaluated at a discontinuity with evaluate(), it is kind of "random" which of the neighboring elements
+   /// is used to evaluate the polynom.
+   ///
+   /// This is for example an issue for accurate visualization of discontinuities.
+   ///
+   /// The present method solves this issue by taking a specific (micro-)element as input argument. This way the function can be
+   /// evaluated on _different_ elements at the same coordinate. Note that regardless of whether the specified coordinate is
+   /// located on the element or not - the local polynomial is extrapolated.
+   ///
+   /// \param coordinates  where the function shall be evaluated
+   /// \param level        refinement level
+   /// \param faceID       the macro-face where the (micro-)element is located on
+   /// \param elementIndex the logical index of the micro-element
+   /// \param faceType     the type of the local micro-element
+   /// \param value        the evaluation
+   void evaluateOnMicroElement( const Point3D&         coordinates,
+                                uint_t                 level,
+                                const PrimitiveID&     faceID,
+                                hyteg::indexing::Index elementIndex,
+                                facedof::FaceType      faceType,
+                                ValueType&             value ) const;
+
    /// Evaluates the linear functional
    ///
    ///   l( v ) = \int_\Omega f * v
@@ -147,7 +172,14 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    uint_t getNumberOfLocalDoFs( uint_t level ) const;
 
    /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
-   uint_t getNumberOfGlobalDoFs( uint_t level ) const;
+   ///
+   /// \param level        refinement level
+   /// \param communicator if required, a custom communicator can be passed
+   /// \param onRootOnly   if true, the result is only returned on the root process
+   /// \return
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const;
 
  private:
    using Function< DGFunction< ValueType > >::communicators_;
