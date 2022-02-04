@@ -78,7 +78,7 @@ class GKBSolver : public Solver< SaddlePointOp >
    GKBSolver(
        const std::shared_ptr< PrimitiveStorage >& storage,
        uint_t                                     level,
-       AugmentedLagrangianSolver                  innerSolver,
+       AugmentedLagrangianSolver                  innerSolver,    
        real_t                                     Nu             = 0, 
        uint_t                                     maxIt          = 50,
        // GKB stops if one of the tolerances is reached for one of the quantities: residual or error in energy norm/M norm
@@ -87,7 +87,7 @@ class GKBSolver : public Solver< SaddlePointOp >
        // Augmented Lagrangian Parameter
 //     real_t                                     S              = 0.2, // upper bound in check 3
        uint_t                                     Delay          = 1,
-       bool                                       resConvergence = true
+       bool                                       resConvergence = false
    )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo( true )
    , resTolerance( resTol )
@@ -110,7 +110,8 @@ class GKBSolver : public Solver< SaddlePointOp >
    , globalX("globalX", storage, level, level), globalTmp("globalTmp", storage, level, level)
    , z(std::vector<real_t>(maxIt,0))
    , useResidualConvergence(resConvergence)
-   {  
+   {
+      WALBERLA_LOG_INFO_ON_ROOT("Mnorm error tolerance is set to " << merrorTol << ", inner solver tolerance should be at least " << merrorTol/10 << ".");
    }
 
 // solve(AugmentedLagrangianOp, ConstraintOp, x, b) doesnt
@@ -177,7 +178,7 @@ class GKBSolver : public Solver< SaddlePointOp >
 
       if(printInfo) {
          if(k == maxIter-1) {
-            WALBERLA_LOG_INFO_ON_ROOT("GKB did not converge to MErrtol=" << merrorTolerance<< "or Rtol="<<resTolerance<<" in "<<maxIter<<" iterations.");
+            WALBERLA_LOG_INFO_ON_ROOT("GKB did not converge to MErrtol=" << merrorTolerance<< " or Rtol="<<resTolerance<<" in "<<maxIter<<" iterations.");
          } else {
             WALBERLA_LOG_INFO_ON_ROOT("GKB converged in "<<k<<" iterations.");
          }
