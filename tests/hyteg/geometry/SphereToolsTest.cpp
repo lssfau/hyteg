@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "core/Environment.h"
+#include "core/debug/TestSubsystem.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"

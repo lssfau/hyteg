@@ -28,36 +28,6 @@
 
 namespace hyteg {
 
-inline void createVectorFromFunction( const P1StokesFunction< real_t >&     function,
-                                      const P1StokesFunction< idx_t >&      numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   createVectorFromFunction( function.uvw[0], numerator.uvw[0], vec, level, flag );
-   createVectorFromFunction( function.uvw[1], numerator.uvw[1], vec, level, flag );
-   if ( function.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createVectorFromFunction( function.uvw[2], numerator.uvw[2], vec, level, flag );
-   }
-   createVectorFromFunction( function.p, numerator.p, vec, level, flag );
-}
-
-inline void createFunctionFromVector( const P1StokesFunction< real_t >&     function,
-                                      const P1StokesFunction< idx_t >&      numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   createFunctionFromVector( function.uvw[0], numerator.uvw[0], vec, level, flag );
-   createFunctionFromVector( function.uvw[1], numerator.uvw[1], vec, level, flag );
-   if ( function.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createFunctionFromVector( function.uvw[2], numerator.uvw[2], vec, level, flag );
-   }
-   createFunctionFromVector( function.p, numerator.p, vec, level, flag );
-}
-
 inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );

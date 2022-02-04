@@ -23,6 +23,7 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 
@@ -357,6 +358,19 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const EdgeDoFFunction< idx_t >&       numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const EdgeDoFFunction< idx_t >&       numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 

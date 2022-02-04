@@ -19,6 +19,7 @@
  */
 #include "VertexDoFFunction.hpp"
 
+#include <typeinfo>
 #include <utility>
 
 #include "core/OpenMP.h"
@@ -1946,6 +1947,147 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    }
 
    this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::toVector( const VertexDoFFunction< idx_t >&     numerator,
+                                               const std::shared_ptr< VectorProxy >& vec,
+                                               uint_t                                level,
+                                               DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "VertexDoFFunction< T >::toVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            vertexdof::macrovertex::createVectorFromFunction< real_t >(
+                vertex, this->getVertexDataID(), numerator.getVertexDataID(), vec, level );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::createVectorFromFunction< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            vertexdof::macroface::createVectorFromFunction< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::createVectorFromFunction< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t >&     numerator,
+                                                 const std::shared_ptr< VectorProxy >& vec,
+                                                 uint_t                                level,
+                                                 DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "VertexDoFFunction< T >::fromVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            vertexdof::macrovertex::createFunctionFromVector< real_t >(
+                vertex, this->getVertexDataID(), numerator.getVertexDataID(), vec, level );
+         }
+      }
+
+      this->startCommunication< Vertex, Edge >( level );
+      this->endCommunication< Vertex, Edge >( level );
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::createFunctionFromVector< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Edge, Face >( level );
+      this->endCommunication< Edge, Face >( level );
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            vertexdof::macroface::createFunctionFromVector< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Face, Cell >( level );
+      this->endCommunication< Face, Cell >( level );
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::createFunctionFromVector< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
 }
 
 // =================

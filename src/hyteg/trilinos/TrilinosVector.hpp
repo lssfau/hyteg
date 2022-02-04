@@ -73,7 +73,7 @@ class TrilinosVector
                           DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
-      hyteg::createVectorFromFunction( function, numerator, proxy, level_, flag );
+      function.toVector( numerator, proxy, level_, flag );
    }
 
    RCP< VectorType > getTpetraVector() const { return vector_; }
@@ -83,7 +83,7 @@ class TrilinosVector
                          DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
-      hyteg::createFunctionFromVector( function, numerator, proxy, level_, flag );
+      function.fromVector( numerator, proxy, level_, flag );
    }
 
    /// \brief Returns a string representation of this vector.

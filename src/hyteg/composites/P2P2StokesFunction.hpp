@@ -140,6 +140,33 @@ class P2P2StokesFunction
       p.enumerate( level, offset );
    }
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const P2P2StokesFunction< idx_t >&      numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      {
+         uvw[k].toVector( numerator.uvw[k], vec, level, flag );
+      }
+      p.toVector( numerator.p, vec, level, flag );
+   }
+
+   void fromVector( const P2P2StokesFunction< idx_t >&      numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      {
+         uvw[k].fromVector( numerator.uvw[k], vec, level, flag );
+      }
+      p.fromVector( numerator.p, vec, level, flag );
+   };
+   /// @}
+
    P2VectorFunction< ValueType > uvw;
    P2Function< ValueType >       p;
 };

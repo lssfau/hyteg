@@ -28,7 +28,6 @@
 
 #include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/functions/GenericFunctionPetsc.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
