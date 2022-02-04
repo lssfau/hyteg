@@ -975,7 +975,45 @@ void run3DTestsWithAffineMap()
                           Matrix4r,
                           3 >( theTet, 3e-14, map );
 
-   logSectionHeader( "P2 Epsilon, 3D, with blending (HFG)" );
+   logSectionHeader( "P2 Epsilon, 3D, with blending (HFG), q2" );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise >,
+                          forms::p2_epsiloncc_0_0_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise >,
+                          forms::p2_epsiloncc_0_1_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise >,
+                          forms::p2_epsiloncc_0_2_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise >,
+                          forms::p2_epsiloncc_1_0_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise >,
+                          forms::p2_epsiloncc_1_1_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-13, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise >,
+                          forms::p2_epsiloncc_1_2_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-13, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise >,
+                          forms::p2_epsiloncc_2_0_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-13, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise >,
+                          forms::p2_epsiloncc_2_1_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-13, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise >,
+                          forms::p2_epsiloncc_2_2_blending_q2,
+                          Matrix10r,
+                          3 >( theTet, 5e-13, map );
+
+   logSectionHeader( "P2 Epsilon, 3D, with blending (HFG), q3" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise >,
                           forms::p2_epsiloncc_0_0_blending_q3,
                           Matrix10r,
