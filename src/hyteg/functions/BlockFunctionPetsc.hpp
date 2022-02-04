@@ -36,10 +36,7 @@ inline void createVectorFromFunction( const BlockFunction< real_t >&        func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
-   {
-      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
-   }
+   function.toVector( numerator, vec, level, flag );
 }
 
 inline void createFunctionFromVector( const BlockFunction< real_t >&        function,
@@ -48,10 +45,7 @@ inline void createFunctionFromVector( const BlockFunction< real_t >&        func
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
-   {
-      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
-   }
+   function.fromVector( numerator, vec, level, flag );
 }
 
 } // namespace hyteg
