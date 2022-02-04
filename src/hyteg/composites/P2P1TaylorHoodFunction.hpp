@@ -219,6 +219,33 @@ class P2P1TaylorHoodFunction
       setPressureBoundaryCondition( other.getPressureBoundaryCondition() );
    }
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const P2P1TaylorHoodFunction< idx_t >& numerator,
+                  const std::shared_ptr< VectorProxy >&  vec,
+                  uint_t                                 level,
+                  DoFType                                flag ) const
+   {
+      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      {
+         uvw[k].toVector( numerator.uvw[k], vec, level, flag );
+      }
+      p.toVector( numerator.p, vec, level, flag );
+   }
+
+   void fromVector( const P2P1TaylorHoodFunction< idx_t >& numerator,
+                    const std::shared_ptr< VectorProxy >&  vec,
+                    uint_t                                 level,
+                    DoFType                                flag ) const
+   {
+      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      {
+         uvw[k].fromVector( numerator.uvw[k], vec, level, flag );
+      }
+      p.fromVector( numerator.p, vec, level, flag );
+   };
+   /// @}
+
    VelocityFunction_T uvw;
    PressureFunction_T p;
 };
