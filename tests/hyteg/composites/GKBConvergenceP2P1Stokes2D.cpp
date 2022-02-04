@@ -40,6 +40,26 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GKBSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -84,64 +104,43 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo)
   A.apply( x, residuum, level, hyteg::Inner | hyteg::NeumannBoundary );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
- uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-
-
-  WALBERLA_LOG_INFO( "Testing GKB convergence on the unit square...");
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) );
+  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ));
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete L2 error u = " << discr_l2_err_1_u );
-  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete L2 error v = " << discr_l2_err_1_v );
-  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete L2 error p = " << discr_l2_err_1_p );
+  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete nonnormalized L2 error u = " << discr_l2_err_1_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete nonnormalized L2 error v = " << discr_l2_err_1_v );
+  WALBERLA_LOG_INFO_ON_ROOT( "Init discrete nonnormalized L2 error p = " << discr_l2_err_1_p );
   WALBERLA_LOG_INFO_ON_ROOT( "Init residuum = " << residuum_l2_1 );
 
-//  VTKOutput vtkOutput("../../output", "P2P1Stokes2DPetscSolve", storage);
-//  vtkOutput.add( x.uvw );
-//  vtkOutput.add( x.p );
-//  vtkOutput.add( x_exact.uvw );
-//  vtkOutput.add( x_exact.p );
-//  vtkOutput.add( err.uvw );
-//  vtkOutput.add( err.p );
-//  vtkOutput.add( b.uvw );
-//  vtkOutput.add( b.p );
-//  vtkOutput.write( level, 0 );
 
- /*
-  GKBSolver_P2P1TH_NO_AL GKB_HOUSE_solver( 
-      storage, 
-      level,
-      CGSolver<P2ConstantVectorLaplaceOperator>(storage, level, level), // solve exactly
-      30
-  );
-  */
- GKBSolver_P2P1TH GKB_HOUSE_solver( 
-      storage, 
-      level,
-      CGSolver<ALOP_P2P1TH>(storage, level, level), // solve exactly
-      0,    
-      30
+  GKBSolver_P2P1TH GKB_HOUSE_solver( 
+    storage, 
+    level,
+    CGSolver<ALOP_P2P1TH>(storage, level, level,std::numeric_limits< uint_t >::max(),1e-7), 
+    0,    
+    30,
+    1e-6
   );
 
   PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > GKB_PETSC_solver(
     storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 0, 2 );
   
-   ///////////////////////////////////////////////////////////////////////////// solve /////////////////////////////////////////////// 
-   bool HOUSE = true;
-   if(HOUSE) {
+  ///////////////////////////////////////////////////////////////////////////// solve /////////////////////////////////////////////// 
+  bool HOUSE = true;
+  if(HOUSE) {
       A.apply( x, residuum, level, hyteg::Inner | hyteg::NeumannBoundary );
       b.assign({1,-1},{b,residuum},level , All);
       GKB_HOUSE_solver.solve( A, x, b, level );   
-   } else {
-     // f.assign({1},{u_exact},maxlevel, DirichletBoundary|NeumannBoundary);
+  } else {
       GKB_PETSC_solver.solve( A, x, b, level );
-   }
+  }
 
   hyteg::vertexdof::projectMean( x.p, level );
   hyteg::vertexdof::projectMean( x_exact.p, level );
@@ -150,14 +149,14 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo)
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-  discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-  discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+  discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ));
+  discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level )  );
+  discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) );
   residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete nonnormalized L2 error u = " << discr_l2_err_1_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete nonnormalized L2 error v = " << discr_l2_err_1_v );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete nonnormalized L2 error p = " << discr_l2_err_1_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2_1 );
 
 }
