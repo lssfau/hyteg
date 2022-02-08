@@ -53,6 +53,7 @@ class DGForm
    ///
    /// \param coordsElement      coordinates of the triangle element vertices
    /// \param coordsFacet        coordinates of the interface edge
+   /// \param outwardNormal      (normalized) normal vector to the interface in direction of the outer element
    /// \param trialBasis         trial function basis - determines the number of columns of the element matrix
    /// \param testBasis          test function basis - determines the number of rows of the element matrix
    /// \param trialDegree        polynomial degree of the trial function on this element
@@ -60,6 +61,7 @@ class DGForm
    /// \param elMat              computed local element matrix
    virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
                                      const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                     const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
                                      const DGBasisInfo&                                       trialBasis,
                                      const DGBasisInfo&                                       testBasis,
                                      int                                                      trialDegree,
@@ -68,9 +70,10 @@ class DGForm
 
    /// \brief Integrates the facet contributions from both sides on a triangle element (2D) - writing to the inner DoFs.
    ///
-   /// \param coordsElementInner      coordinates of the triangle element vertices of the inenr (dst) element
+   /// \param coordsElementInner      coordinates of the triangle element vertices of the inner (dst) element
    /// \param coordsElementOuter      coordinates of the triangle element vertices of the outer (src) element
    /// \param coordsFacet             coordinates of the interface edge
+   /// \param outwardNormal           (normalized) normal vector to the interface in direction of the outer element
    /// \param trialBasis              trial function basis - determines the number of columns of the element matrix (outer element)
    /// \param testBasis               test function basis - determines the number of rows of the element matrix (inner element)
    /// \param trialDegree             polynomial degree of the trial function on this element
@@ -79,11 +82,31 @@ class DGForm
    virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                        const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
                                         const DGBasisInfo&                                       trialBasis,
                                         const DGBasisInfo&                                       testBasis,
                                         int                                                      trialDegree,
                                         int                                                      testDegree,
                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   /// \brief Integrates the facet contributions at Dirichlet boundaries (2D) - writing to the inner DoFs.
+   ///
+   /// \param coordsElement           coordinates of the triangle element vertices of the inner (dst) element
+   /// \param coordsFacet             coordinates of the interface edge
+   /// \param outwardNormal           (normalized) normal vector to the interface in direction of the outer element
+   /// \param trialBasis              trial function basis - determines the number of columns of the element matrix (outer element)
+   /// \param testBasis               test function basis - determines the number of rows of the element matrix (inner element)
+   /// \param trialDegree             polynomial degree of the trial function on this element
+   /// \param testDegree              polynomial degree of the test function on this element
+   /// \param elMat                   computed local element matrix
+   virtual void integrateFacetDirichletBoundary( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
+                                                 const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                                 const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       trialBasis,
+                                                 const DGBasisInfo&                                       testBasis,
+                                                 int                                                      trialDegree,
+                                                 int                                                      testDegree,
+                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
 };
 
 } // namespace dg

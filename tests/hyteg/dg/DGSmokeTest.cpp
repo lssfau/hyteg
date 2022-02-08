@@ -23,6 +23,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
+#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
@@ -39,7 +40,7 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::math::pi;
 
-void test()
+void testMass()
 {
    using namespace dg;
 
@@ -78,10 +79,91 @@ void test()
    PETScCGSolver< DGOperator > solver( storage, maxLevel, numeratorSrc );
    solver.solve( M, u, tmp, maxLevel );
 
-   VTKOutput vtkOutput( "../../output", "DGSmokeTest", storage );
+   VTKOutput vtkOutput( "../../output", "DGSmokeTestMass", storage );
 
    vtkOutput.add( u );
    vtkOutput.add( tmp );
+
+   vtkOutput.write( maxLevel );
+}
+
+void testDiffusion( uint_t maxLevel )
+{
+   using namespace dg;
+
+   MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
+
+   auto ff = []( const Point3D& p ) {
+      Matrix3r mat;
+      mat( 0, 0 ) = .34;
+      mat( 0, 1 ) = .678;
+      mat( 0, 2 ) = 0;
+
+      mat( 1, 0 ) = .282;
+      mat( 1, 1 ) = .35353;
+      mat( 1, 2 ) = 0;
+
+      mat( 2, 0 ) = 0;
+      mat( 2, 1 ) = 0;
+      mat( 2, 2 ) = 0;
+
+      return mat.mul( p );
+   };
+
+   // meshInfo.applyCoordinateMap( ff );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const uint_t minLevel = 2;
+
+   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * ( x[0] + x[1] - 1 ) );
+   };
+
+   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+      return 4 * pi * pi * ( -2 * sin( 4 * pi * ( x[0] + x[1] ) ) + sin( 4 * pi * x[0] ) + sin( 4 * pi * x[1] ) );
+   };
+
+   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto massForm    = std::make_shared< DGMassForm_Example >();
+
+   DGFunction< real_t > u( "u", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > f( "f", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > sol( "sol", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > err( "err", storage, minLevel, maxLevel, basis, 1 );
+
+   DGFunction< idx_t > numerator( "numerator", storage, minLevel, maxLevel, basis, 1 );
+   numerator.enumerate( maxLevel );
+
+   DGOperator A( storage, minLevel, maxLevel, laplaceForm );
+   DGOperator M( storage, minLevel, maxLevel, massForm );
+
+   std::string                     fileName = "/tmp/diffusion.m";
+   PETScSparseMatrix< DGOperator > mat;
+   mat.createMatrixFromOperator( A, maxLevel, numerator, numerator );
+   mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
+
+   f.evaluateLinearFunctional( rhsFunc, maxLevel );
+   tmp.evaluateLinearFunctional( solFunc, maxLevel );
+
+   PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
+   solverM.solve( M, sol, tmp, maxLevel );
+   PETScCGSolver< DGOperator > solverA( storage, maxLevel, numerator );
+   solverA.solve( A, u, f, maxLevel );
+
+   err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
+   auto discrL2 = sqrt( err.dotGlobal( err, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "level " << maxLevel << ": L2 error " << discrL2 );
+
+   VTKOutput vtkOutput( "../../output", "DGSmokeTestLaplace", storage );
+
+   vtkOutput.add( u );
+   vtkOutput.add( err );
+   vtkOutput.add( sol );
 
    vtkOutput.write( maxLevel );
 }
@@ -95,7 +177,12 @@ int main( int argc, char** argv )
 
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::test();
+   // hyteg::testMass();
+
+   hyteg::testDiffusion( 3 );
+   // hyteg::testDiffusion( 4 );
+   // hyteg::testDiffusion( 5 );
+   hyteg::testDiffusion( 6 );
 
    return EXIT_SUCCESS;
 }

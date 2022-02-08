@@ -82,6 +82,7 @@ class DGMassForm_Example : public DGForm
 
    virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
                                      const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                     const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
                                      const DGBasisInfo&                                       trialBasis,
                                      const DGBasisInfo&                                       testBasis,
                                      int                                                      trialDegree,
@@ -90,6 +91,7 @@ class DGMassForm_Example : public DGForm
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( outwardNormal );
       WALBERLA_UNUSED( trialBasis );
       WALBERLA_UNUSED( testBasis );
       WALBERLA_UNUSED( trialDegree );
@@ -102,6 +104,7 @@ class DGMassForm_Example : public DGForm
    virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                        const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
                                         const DGBasisInfo&                                       trialBasis,
                                         const DGBasisInfo&                                       testBasis,
                                         int                                                      trialDegree,
@@ -111,6 +114,7 @@ class DGMassForm_Example : public DGForm
       WALBERLA_UNUSED( coordsElementInner );
       WALBERLA_UNUSED( coordsElementOuter );
       WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( outwardNormal );
       WALBERLA_UNUSED( trialBasis );
       WALBERLA_UNUSED( testBasis );
       WALBERLA_UNUSED( trialDegree );
@@ -119,6 +123,27 @@ class DGMassForm_Example : public DGForm
 
       // Does nothing.
    };
+
+   virtual void integrateFacetDirichletBoundary( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
+                                                 const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
+                                                 const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       trialBasis,
+                                                 const DGBasisInfo&                                       testBasis,
+                                                 int                                                      trialDegree,
+                                                 int                                                      testDegree,
+                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( outwardNormal );
+      WALBERLA_UNUSED( trialBasis );
+      WALBERLA_UNUSED( testBasis );
+      WALBERLA_UNUSED( trialDegree );
+      WALBERLA_UNUSED( testDegree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
 };
 
 } // namespace dg

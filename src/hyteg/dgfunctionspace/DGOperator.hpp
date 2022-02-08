@@ -36,6 +36,9 @@
 namespace hyteg {
 namespace dg {
 
+using facedof::FaceType;
+using indexing::Index;
+using volumedofspace::VolumeDoFMemoryLayout;
 using walberla::int_c;
 using walberla::real_t;
 
@@ -71,6 +74,37 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
    [[nodiscard]] std::shared_ptr< DGFunction< real_t > > getInverseDiagonalValues() const override;
 
  private:
+   /// Just a small helper method that writes the local matrix into the global sparse system.
+   template < typename VType >
+   void addLocalToGlobalMatrix( int                                                            numSrcDofs,
+                                int                                                            numDstDofs,
+                                VType*                                                         srcDofMemory,
+                                VType*                                                         dstDofMemory,
+                                VolumeDoFMemoryLayout                                          srcMemLayout,
+                                VolumeDoFMemoryLayout                                          dstMemLayout,
+                                Index                                                          srcElementIdx,
+                                Index                                                          dstElementIdx,
+                                FaceType                                                       srcFaceType,
+                                FaceType                                                       dstFaceType,
+                                uint_t                                                         level,
+                                std::shared_ptr< SparseMatrixProxy >                           mat,
+                                const Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+   {
+      // Sparse assembly.
+      for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
+      {
+         for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+         {
+            const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                dstElementIdx.x(), dstElementIdx.y(), dstFaceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
+            const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                srcElementIdx.x(), srcElementIdx.y(), srcFaceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
+            // WALBERLA_LOG_INFO_ON_ROOT( "Adding value " << localMat( dstDofIdx, srcDofIdx ) << " in ( " << globalRowIdx << ", " << globalColIdx << " )" )
+            mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+         }
+      }
+   }
+
    /// \brief Helper function that can be used to either apply the operator, or to assemble the sparse matrix.
    ///
    /// Since about 99% of the implementation is equal, it makes sense to fuse that here.
@@ -154,7 +188,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   // MatVec or sparse assembly? //
                   ////////////////////////////////
 
-                  if ( !std::is_same_v< VType, idx_t > || mat == nullptr )
+                  if ( mat == nullptr )
                   {
                      // Matrix-vector multiplication.
                      dstDofs += localMat * srcDofs;
@@ -162,17 +196,21 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   else
                   {
                      // Sparse assembly.
-                     for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
-                     {
-                        for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                        {
-                           const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-                           const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
-                               elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
-                           mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
-                        }
-                     }
+#if 1
+                     addLocalToGlobalMatrix( numSrcDofs,
+                                             numDstDofs,
+                                             srcDofMemory,
+                                             dstDofMemory,
+                                             srcMemLayout,
+                                             dstMemLayout,
+                                             elementIdx,
+                                             elementIdx,
+                                             faceType,
+                                             faceType,
+                                             level,
+                                             mat,
+                                             localMat );
+#endif
                   }
 
                   /////////////////////////////
@@ -187,12 +225,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                       storage_->getNumberOfLocalFaces(), 1, "Currently the implementation does not support macro-interfaces." );
 
                   // If the current element shares a boundary with the macro-element we need to handle that.
-                  if ( facedof::macroface::sharesBoundaryWithMacro( elementIdx, faceType, level ) )
-                  {
-                     // TODO: handle macro-interfaces
-                     // TODO: handle Dirichlet & Neumann boundaries
-                  }
-                  else
                   {
                      // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
 
@@ -239,6 +271,17 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         interfaceVertexIndices[2][1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
                      }
 
+                     std::array< bool, 3 > atDirichletBoundary;
+                     atDirichletBoundary[0] = ( faceType == facedof::FaceType::GRAY && elementIdx.x() == 0 );
+                     atDirichletBoundary[1] = ( faceType == facedof::FaceType::GRAY && elementIdx.y() == 0 );
+                     atDirichletBoundary[2] =
+                         ( faceType == facedof::FaceType::GRAY &&
+                           elementIdx.x() + elementIdx.y() == int( levelinfo::num_microedges_per_edge( level ) - 1 ) );
+
+                     // TODO: fix Dirichlet
+                     // TODO: handle Neumann
+                     // TODO: handle primitive interfaces
+
                      // Looping over neighbor elements.
                      for ( uint_t n = 0; n < 3; n++ )
                      {
@@ -260,63 +303,167 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            interfaceVertexCoords[n][i]( 1 ) = coord[1];
                         }
 
-                        localMat.setZero();
-                        form_->integrateFacetInner( vertexCoordsVolume,
-                                                    interfaceVertexCoords[n],
-                                                    *src.basis(),
-                                                    *dst.basis(),
-                                                    srcPolyDegree,
-                                                    dstPolyDegree,
-                                                    localMat );
+                        // TODO: outsource the normal computation!
+                        Eigen::Matrix< real_t, 2, 1 > outerPoint =
+                            ( 1 / 3. ) * ( neighborElementVertexCoords[n][0] + neighborElementVertexCoords[n][1] +
+                                           neighborElementVertexCoords[n][2] );
+                        //                        if ( faceType == facedof::FaceType::GRAY )
+                        //                        {
+                        //                           outerPoint = ( 1 / 3. ) * ( vertexCoordsVolume[0] + vertexCoordsVolume[1] + vertexCoordsVolume[2] );
+                        //                        }
+                        const auto s = ( outerPoint - interfaceVertexCoords[n][0] )
+                                           .template dot( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] ) /
+                                       ( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] )
+                                           .template dot( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] );
+                        const auto proj =
+                            interfaceVertexCoords[n][0] + s * ( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] );
+                        Eigen::Matrix< real_t, 2, 1 > outwardNormal = outerPoint - proj;
+                        outwardNormal.normalize();
 
-                        if ( !std::is_same_v< VType, idx_t > || mat == nullptr )
+                        if ( atDirichletBoundary[n] )
                         {
-                           // Matrix-vector multiplication.
-                           dstDofs += localMat * srcDofs;
+                           localMat.setZero();
+                           form_->integrateFacetDirichletBoundary( vertexCoordsVolume,
+                                                                   interfaceVertexCoords[n],
+                                                                   outwardNormal,
+                                                                   *src.basis(),
+                                                                   *dst.basis(),
+                                                                   srcPolyDegree,
+                                                                   dstPolyDegree,
+                                                                   localMat );
+
+                           if ( mat == nullptr )
+                           {
+                              // Matrix-vector multiplication.
+                              dstDofs += localMat * srcDofs;
+                           }
+                           else
+                           {
+                              // Sparse assembly.
+#if 1
+                              addLocalToGlobalMatrix( numSrcDofs,
+                                                      numDstDofs,
+                                                      srcDofMemory,
+                                                      dstDofMemory,
+                                                      srcMemLayout,
+                                                      dstMemLayout,
+                                                      elementIdx,
+                                                      elementIdx,
+                                                      faceType,
+                                                      faceType,
+                                                      level,
+                                                      mat,
+                                                      localMat );
+#endif
+                           }
                         }
                         else
                         {
-                           // TODO: assembly
-                        }
-
-                        localMat.setZero();
-                        form_->integrateFacetCoupling( vertexCoordsVolume,
-                                                       neighborElementVertexCoords[n],
+                           localMat.setZero();
+                           form_->integrateFacetInner( vertexCoordsVolume,
                                                        interfaceVertexCoords[n],
+                                                       outwardNormal,
                                                        *src.basis(),
                                                        *dst.basis(),
                                                        srcPolyDegree,
                                                        dstPolyDegree,
                                                        localMat );
 
-                        // Now we need the DoFs from the neighboring element.
-                        Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
-                        nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+                           if ( mat == nullptr )
+                           {
+                              // Matrix-vector multiplication.
+                              dstDofs += localMat * srcDofs;
+                           }
+                           else
+                           {
+                              // Sparse assembly.
+#if 1
+                              addLocalToGlobalMatrix( numSrcDofs,
+                                                      numDstDofs,
+                                                      srcDofMemory,
+                                                      dstDofMemory,
+                                                      srcMemLayout,
+                                                      dstMemLayout,
+                                                      elementIdx,
+                                                      elementIdx,
+                                                      faceType,
+                                                      faceType,
+                                                      level,
+                                                      mat,
+                                                      localMat );
+#endif
+                           }
 
-                        for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                        {
-                           nSrcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index( neighborElementIndices[n].x(),
-                                                                                                 neighborElementIndices[n].y(),
-                                                                                                 nFaceType,
-                                                                                                 srcDofIdx,
-                                                                                                 numSrcDofs,
-                                                                                                 level,
-                                                                                                 srcMemLayout )];
-                        }
+                           localMat.setZero();
+                           form_->integrateFacetCoupling( vertexCoordsVolume,
+                                                          neighborElementVertexCoords[n],
+                                                          interfaceVertexCoords[n],
+                                                          outwardNormal,
+                                                          *src.basis(),
+                                                          *dst.basis(),
+                                                          srcPolyDegree,
+                                                          dstPolyDegree,
+                                                          localMat );
 
-                        if ( !std::is_same_v< VType, idx_t > || mat == nullptr )
-                        {
-                           // Matrix-vector multiplication.
-                           dstDofs += localMat * nSrcDofs;
-                        }
-                        else
-                        {
-                           // TODO: assembly
+                           //                           WALBERLA_LOG_INFO_ON_ROOT( "n: " << n );
+                           //                           WALBERLA_LOG_INFO_ON_ROOT( "ft: " << ( faceType == FaceType::GRAY ? "gray" : "blue" ) );
+                           //                           for ( auto vvv : vertexCoordsVolume )
+                           //                           {
+                           //                              WALBERLA_LOG_INFO_ON_ROOT( "vol: " << vvv );
+                           //                           }
+                           //                           for ( auto inf : interfaceVertexCoords[n] )
+                           //                           {
+                           //                              WALBERLA_LOG_INFO_ON_ROOT( "iface: " << inf );
+                           //                           }
+                           //                           WALBERLA_LOG_INFO_ON_ROOT( localMat );
+
+                           // Now we need the DoFs from the neighboring element.
+                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+
+                           for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                           {
+                              nSrcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index( neighborElementIndices[n].x(),
+                                                                                                    neighborElementIndices[n].y(),
+                                                                                                    nFaceType,
+                                                                                                    srcDofIdx,
+                                                                                                    numSrcDofs,
+                                                                                                    level,
+                                                                                                    srcMemLayout )];
+                           }
+
+                           if ( mat == nullptr )
+                           {
+                              // Matrix-vector multiplication.
+                              dstDofs += localMat * nSrcDofs;
+                           }
+                           else
+                           {
+                              // Sparse assembly.
+#if 1
+                              {
+                                 addLocalToGlobalMatrix( numSrcDofs,
+                                                         numDstDofs,
+                                                         srcDofMemory,
+                                                         dstDofMemory,
+                                                         srcMemLayout,
+                                                         dstMemLayout,
+                                                         neighborElementIndices[n],
+                                                         elementIdx,
+                                                         nFaceType,
+                                                         faceType,
+                                                         level,
+                                                         mat,
+                                                         localMat );
+                              }
+
+#endif
+                           }
                         }
                      }
                   }
 
-                  if ( !std::is_same_v< VType, idx_t > || mat == nullptr )
+                  if ( mat == nullptr )
                   {
                      // Write DoFs.
                      for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )

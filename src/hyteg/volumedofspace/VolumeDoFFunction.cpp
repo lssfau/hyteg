@@ -18,7 +18,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
@@ -102,6 +101,122 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
    }
 
    allocateMemory();
+}
+
+/// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::assign(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+    uint_t                                                                               level )
+{
+   WALBERLA_CHECK_EQUAL( scalars.size(),
+                         functions.size(),
+                         "VolumeDoFFunction< ValueType >::assign(): must pass same number of scalars and functions." )
+
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "VolumeDoFFunction::assign() not implemented for 3D." );
+   }
+   else
+   {
+      for ( auto it : storage_->getFaces() )
+      {
+         for ( const auto& faceIt : this->getStorage()->getFaces() )
+         {
+            const auto faceId = faceIt.first;
+            const auto face   = *faceIt.second;
+
+            std::vector< ValueType* >            srcPtrs( functions.size() );
+            std::vector< VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+            for ( uint_t i = 0; i < functions.size(); i++ )
+            {
+               const auto f  = functions.at( i );
+               srcPtrs[i]    = f.get().dofMemory( faceId, level );
+               srcLayouts[i] = f.get().memoryLayout();
+            }
+
+            auto dstMem    = dofMemory( faceId, level );
+            auto dstLayout = memoryLayout_;
+            auto numDofs   = this->numScalarsPerPrimitive_.at( faceId );
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  for ( auto dof = 0; dof < numDofs; dof++ )
+                  {
+                     ValueType sum = 0;
+                     for ( uint_t i = 0; i < functions.size(); i++ )
+                     {
+                        const auto s = scalars.at( i );
+
+                        sum += s * srcPtrs[i][indexing::index(
+                                       elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, srcLayouts[i] )];
+                     }
+                     dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, dstLayout )] = sum;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+/// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
+/// process.
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
+{
+   ValueType sum;
+
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "VolumeDoFFunction::dotLocal() not implemented for 3D." );
+   }
+   else
+   {
+      for ( auto it : storage_->getFaces() )
+      {
+         for ( const auto& faceIt : this->getStorage()->getFaces() )
+         {
+            const auto faceId = faceIt.first;
+            const auto face   = *faceIt.second;
+
+            const auto mem     = dofMemory( faceId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+            const auto otherMem    = rhs.dofMemory( faceId, level );
+            const auto otherLayout = rhs.memoryLayout();
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  for ( auto dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                     const auto otherIdx =
+                         indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, otherLayout );
+
+                     sum += mem[idx] * otherMem[otherIdx];
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return sum;
+}
+
+/// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
+{
+   const auto dLocal = dotLocal( rhs, level );
+   return walberla::mpi::allReduce( dLocal, walberla::mpi::SUM );
 }
 
 /// explicit instantiation

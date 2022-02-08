@@ -164,16 +164,17 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                       uint_t                                     numScalars,
                       VolumeDoFMemoryLayout                      memoryLayout );
 
-   //   /// \brief Sets all DoFs to a specified constant.
-   //   void setConstant( real_t constant, uint_t level );
-   //
-   //   /// \brief Sets all DoFs to 0.
-   //   void setZero( uint_t level );
-   //
-   //   /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
-   //   void assign( const std::vector< ValueType >&                                                      scalars,
-   //                const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-   //                uint_t                                                                               level );
+   /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
+   void assign( const std::vector< ValueType >&                                                      scalars,
+                const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+                uint_t                                                                               level );
+
+   /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
+   /// process.
+   ValueType dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
+
+   /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
+   ValueType dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
 
    /// \brief Returns a pointer to the array that stores all degrees of freedom.
    ///

@@ -28,6 +28,7 @@
 namespace hyteg {
 namespace dg {
 
+using volumedofspace::VolumeDoFFunction;
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
@@ -59,7 +60,29 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
-                uint_t                                                                        level );
+                uint_t                                                                        level )
+   {
+      std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > > vFunctions;
+      for ( const auto& f : functions )
+      {
+         vFunctions.push_back( *( f.get().volumeDoFFunction_ ) );
+      }
+
+      volumeDoFFunction_->assign( scalars, vFunctions, level );
+   }
+
+   /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
+   /// process.
+   ValueType dotLocal( const DGFunction< ValueType >& rhs, uint_t level ) const
+   {
+      return volumeDoFFunction_->dotLocal( *rhs.volumeDoFFunction_, level );
+   }
+
+   /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
+   ValueType dotGlobal( const DGFunction< ValueType >& rhs, uint_t level ) const
+   {
+      return volumeDoFFunction_->dotGlobal( *rhs.volumeDoFFunction_, level );
+   }
 
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
