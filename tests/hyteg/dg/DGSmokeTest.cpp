@@ -27,6 +27,7 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -39,6 +40,185 @@ namespace hyteg {
 
 using walberla::real_t;
 using walberla::math::pi;
+
+void testDiffForm()
+{
+   using namespace dg;
+
+   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+
+   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > coordsElement;
+   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > coordsNeighborElement;
+   std::array< Eigen::Matrix< real_t, 2, 1 >, 2 > coordsFacet;
+   Eigen::Matrix< real_t, 2, 1 >                  normal;
+
+   coordsElement[0]( 0 ) = 0;
+   coordsElement[0]( 1 ) = 0;
+
+   coordsElement[1]( 0 ) = 1;
+   coordsElement[1]( 1 ) = 0;
+
+   coordsElement[2]( 0 ) = 0;
+   coordsElement[2]( 1 ) = 1;
+
+   coordsNeighborElement[0]( 0 ) = 1;
+   coordsNeighborElement[0]( 1 ) = -1;
+
+   coordsNeighborElement[1]( 0 ) = 1;
+   coordsNeighborElement[1]( 1 ) = 0;
+
+   coordsNeighborElement[2]( 0 ) = 0;
+   coordsNeighborElement[2]( 1 ) = 0;
+
+   coordsFacet[0] = coordsElement[0];
+   coordsFacet[1] = coordsElement[1];
+
+   normal( 0 ) = 0;
+   normal( 1 ) = -1;
+
+   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > elMat;
+   elMat.resize( 3, 3 );
+
+   laplaceForm->integrateFacetCoupling( coordsElement,
+                                        coordsNeighborElement,
+                                        coordsFacet,
+                                        coordsElement[2],
+                                        coordsNeighborElement[0],
+                                        normal,
+                                        *basis,
+                                        *basis,
+                                        1,
+                                        1,
+                                        elMat );
+
+   WALBERLA_LOG_INFO_ON_ROOT( elMat );
+
+   elMat.setZero();
+   laplaceForm->integrateFacetCoupling( coordsNeighborElement,
+                                        coordsElement,
+                                        coordsFacet,
+                                        coordsNeighborElement[0],
+                                        coordsElement[2],
+                                        -normal,
+                                        *basis,
+                                        *basis,
+                                        1,
+                                        1,
+                                        elMat );
+
+   WALBERLA_LOG_INFO_ON_ROOT( elMat );
+
+   elMat.setZero();
+   laplaceForm->integrateFacetInner( coordsElement,
+                                     { coordsElement[1], coordsElement[2] },
+                                     coordsElement[0],
+                                     Eigen::Matrix< real_t, 2, 1 >( 1, 1 ).normalized(),
+                                     *basis,
+                                     *basis,
+                                     1,
+                                     1,
+                                     elMat );
+
+   WALBERLA_LOG_INFO_ON_ROOT( elMat );
+}
+
+void testDiffOp( uint_t maxLevel )
+{
+   using namespace dg;
+
+   MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
+
+   auto ff = []( const Point3D& p ) {
+      Matrix3r mat;
+      mat( 0, 0 ) = .34;
+      mat( 0, 1 ) = .678;
+      mat( 0, 2 ) = 0;
+
+      mat( 1, 0 ) = .282;
+      mat( 1, 1 ) = .35353;
+      mat( 1, 2 ) = 0;
+
+      mat( 2, 0 ) = 0;
+      mat( 2, 1 ) = 0;
+      mat( 2, 2 ) = 0;
+
+      return mat.mul( p );
+   };
+
+   // meshInfo.applyCoordinateMap( ff );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const uint_t minLevel = 2;
+
+   std::function< real_t( const Point3D& ) > linearFuncX  = []( const Point3D& x ) { return x[0]; };
+   std::function< real_t( const Point3D& ) > linearFuncY  = []( const Point3D& x ) { return x[1]; };
+   std::function< real_t( const Point3D& ) > linearFuncXY = []( const Point3D& x ) { return 1 - x[0] - x[1]; };
+   std::function< real_t( const Point3D& ) > linearFuncC  = []( const Point3D& x ) { return 1; };
+
+   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto massForm    = std::make_shared< DGMassForm_Example >();
+
+   DGFunction< real_t > u( "u", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > f( "f", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > sol( "sol", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, basis, 1 );
+
+   DGFunction< real_t > err_x( "err_x", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > err_y( "err_y", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > err_xy( "err_xy", storage, minLevel, maxLevel, basis, 1 );
+   DGFunction< real_t > err_c( "err_c", storage, minLevel, maxLevel, basis, 1 );
+
+   DGFunction< idx_t > numerator( "numerator", storage, minLevel, maxLevel, basis, 1 );
+   numerator.enumerate( maxLevel );
+
+   DGOperator A( storage, minLevel, maxLevel, laplaceForm );
+   DGOperator M( storage, minLevel, maxLevel, massForm );
+
+   std::string                     fileName = "/tmp/diffusion.m";
+   PETScSparseMatrix< DGOperator > mat;
+   mat.createMatrixFromOperator( A, maxLevel, numerator, numerator );
+   mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
+
+   tmp.evaluateLinearFunctional( linearFuncX, maxLevel );
+   PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
+   solverM.solve( M, sol, tmp, maxLevel );
+   A.apply( sol, err_x, maxLevel, All, Replace );
+   auto discrL2 = sqrt( err_x.dotGlobal( err_x, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "x: level " << maxLevel << ": L2 error " << discrL2 );
+
+   tmp.evaluateLinearFunctional( linearFuncY, maxLevel );
+   solverM.solve( M, sol, tmp, maxLevel );
+   A.apply( sol, err_y, maxLevel, All, Replace );
+   discrL2 = sqrt( err_y.dotGlobal( err_y, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "y: level " << maxLevel << ": L2 error " << discrL2 );
+
+   tmp.evaluateLinearFunctional( linearFuncXY, maxLevel );
+   solverM.solve( M, sol, tmp, maxLevel );
+   A.apply( sol, err_xy, maxLevel, All, Replace );
+   discrL2 = sqrt( err_xy.dotGlobal( err_xy, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "xy: level " << maxLevel << ": L2 error " << discrL2 );
+
+   tmp.evaluateLinearFunctional( linearFuncC, maxLevel );
+   solverM.solve( M, sol, tmp, maxLevel );
+   A.apply( sol, err_c, maxLevel, All, Replace );
+   discrL2 = sqrt( err_c.dotGlobal( err_c, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "c: level " << maxLevel << ": L2 error " << discrL2 );
+
+   VTKOutput vtkOutput( "../../output", "DGSmokeTestDiffOp", storage );
+
+   vtkOutput.add( u );
+   vtkOutput.add( err_x );
+   vtkOutput.add( err_y );
+   vtkOutput.add( err_xy );
+   vtkOutput.add( err_c );
+   vtkOutput.add( sol );
+
+   vtkOutput.write( maxLevel );
+}
 
 void testMass()
 {
@@ -151,7 +331,7 @@ void testDiffusion( uint_t maxLevel )
 
    PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
    solverM.solve( M, sol, tmp, maxLevel );
-   PETScCGSolver< DGOperator > solverA( storage, maxLevel, numerator );
+   PETScCGSolver< DGOperator > solverA( storage, maxLevel, numerator, 1e-12, 1e-12, 10000 );
    solverA.solve( A, u, f, maxLevel );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
@@ -177,12 +357,18 @@ int main( int argc, char** argv )
 
    hyteg::PETScManager petscManager( &argc, &argv );
 
+   hyteg::testDiffForm();
+
    // hyteg::testMass();
 
    hyteg::testDiffusion( 3 );
-   // hyteg::testDiffusion( 4 );
-   // hyteg::testDiffusion( 5 );
+   hyteg::testDiffusion( 4 );
+   hyteg::testDiffusion( 5 );
    hyteg::testDiffusion( 6 );
-
+#if 0
+   hyteg::testDiffOp( 3 );
+   hyteg::testDiffOp( 4 );
+   hyteg::testDiffOp( 5 );
+#endif
    return EXIT_SUCCESS;
 }

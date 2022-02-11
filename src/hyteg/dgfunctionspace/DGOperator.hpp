@@ -187,7 +187,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   ////////////////////////////////
                   // MatVec or sparse assembly? //
                   ////////////////////////////////
-
+#if 1
                   if ( mat == nullptr )
                   {
                      // Matrix-vector multiplication.
@@ -196,7 +196,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   else
                   {
                      // Sparse assembly.
-#if 1
                      addLocalToGlobalMatrix( numSrcDofs,
                                              numDstDofs,
                                              srcDofMemory,
@@ -210,9 +209,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                              level,
                                              mat,
                                              localMat );
-#endif
                   }
-
+#endif
                   /////////////////////////////
                   // Interface contributions //
                   /////////////////////////////
@@ -233,6 +231,10 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                      std::array< std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >, 3 > neighborElementVertexCoords;
                      std::array< std::array< Index, 2 >, 3 >                         interfaceVertexIndices;
                      std::array< std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >, 3 > interfaceVertexCoords;
+                     std::array< Index, 3 >                                          oppositeVertexIndex;
+                     std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >                  oppositeVertexCoords;
+                     std::array< Index, 3 >                                          neighborOppositeVertexIndex;
+                     std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >                  neighborOppositeVertexCoords;
 
                      facedof::FaceType nFaceType;
 
@@ -244,14 +246,23 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         neighborElementIndices[1] = Index( elementIdx.x(), elementIdx.y() - 1, 0 );
                         neighborElementIndices[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
 
-                        interfaceVertexIndices[0][0] = Index( elementIdx.x(), elementIdx.y(), 0 );
-                        interfaceVertexIndices[0][1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        // left neighbor
+                        interfaceVertexIndices[0][0]   = Index( elementIdx.x(), elementIdx.y(), 0 );
+                        interfaceVertexIndices[0][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        oppositeVertexIndex[0]         = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        neighborOppositeVertexIndex[0] = Index( elementIdx.x() - 1, elementIdx.y() + 1, 0 );
 
-                        interfaceVertexIndices[1][0] = Index( elementIdx.x(), elementIdx.y(), 0 );
-                        interfaceVertexIndices[1][1] = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        // bottom neighbor
+                        interfaceVertexIndices[1][0]   = Index( elementIdx.x(), elementIdx.y(), 0 );
+                        interfaceVertexIndices[1][1]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        oppositeVertexIndex[1]         = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        neighborOppositeVertexIndex[1] = Index( elementIdx.x() + 1, elementIdx.y() - 1, 0 );
 
-                        interfaceVertexIndices[2][0] = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-                        interfaceVertexIndices[2][1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        // diagonal neighbor
+                        interfaceVertexIndices[2][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        interfaceVertexIndices[2][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        oppositeVertexIndex[2]         = Index( elementIdx.x(), elementIdx.y(), 0 );
+                        neighborOppositeVertexIndex[2] = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
                      }
                      else
                      {
@@ -261,14 +272,23 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         neighborElementIndices[1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
                         neighborElementIndices[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
 
-                        interfaceVertexIndices[0][0] = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-                        interfaceVertexIndices[0][1] = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+                        // right neighbor
+                        interfaceVertexIndices[0][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        interfaceVertexIndices[0][1]   = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+                        oppositeVertexIndex[0]         = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        neighborOppositeVertexIndex[0] = Index( elementIdx.x() + 2, elementIdx.y(), 0 );
 
-                        interfaceVertexIndices[1][0] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-                        interfaceVertexIndices[1][1] = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+                        // top neighbor
+                        interfaceVertexIndices[1][0]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        interfaceVertexIndices[1][1]   = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+                        oppositeVertexIndex[1]         = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        neighborOppositeVertexIndex[1] = Index( elementIdx.x(), elementIdx.y() + 2, 0 );
 
-                        interfaceVertexIndices[2][0] = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-                        interfaceVertexIndices[2][1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        // diagonal neighbor
+                        interfaceVertexIndices[2][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
+                        interfaceVertexIndices[2][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
+                        oppositeVertexIndex[2]         = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+                        neighborOppositeVertexIndex[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
                      }
 
                      std::array< bool, 3 > atDirichletBoundary;
@@ -303,28 +323,38 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            interfaceVertexCoords[n][i]( 1 ) = coord[1];
                         }
 
+                        const auto oppCoord = vertexdof::macroface::coordinateFromIndex( level, face, oppositeVertexIndex[n] );
+                        oppositeVertexCoords[n]( 0 ) = oppCoord[0];
+                        oppositeVertexCoords[n]( 1 ) = oppCoord[1];
+
+                        const auto nOppCoord =
+                            vertexdof::macroface::coordinateFromIndex( level, face, neighborOppositeVertexIndex[n] );
+                        neighborOppositeVertexCoords[n]( 0 ) = nOppCoord[0];
+                        neighborOppositeVertexCoords[n]( 1 ) = nOppCoord[1];
+
                         // TODO: outsource the normal computation!
                         Eigen::Matrix< real_t, 2, 1 > outerPoint =
                             ( 1 / 3. ) * ( neighborElementVertexCoords[n][0] + neighborElementVertexCoords[n][1] +
                                            neighborElementVertexCoords[n][2] );
-                        //                        if ( faceType == facedof::FaceType::GRAY )
-                        //                        {
-                        //                           outerPoint = ( 1 / 3. ) * ( vertexCoordsVolume[0] + vertexCoordsVolume[1] + vertexCoordsVolume[2] );
-                        //                        }
                         const auto s = ( outerPoint - interfaceVertexCoords[n][0] )
                                            .template dot( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] ) /
                                        ( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] )
                                            .template dot( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] );
                         const auto proj =
                             interfaceVertexCoords[n][0] + s * ( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] );
-                        Eigen::Matrix< real_t, 2, 1 > outwardNormal = outerPoint - proj;
+                        Eigen::Matrix< real_t, 2, 1 > outwardNormal = ( outerPoint - proj );
                         outwardNormal.normalize();
+//                                                if ( faceType == facedof::FaceType::BLUE )
+//                                                {
+//                                                   outwardNormal = -outwardNormal;
+//                                                }
 
                         if ( atDirichletBoundary[n] )
                         {
                            localMat.setZero();
                            form_->integrateFacetDirichletBoundary( vertexCoordsVolume,
                                                                    interfaceVertexCoords[n],
+                                                                   oppositeVertexCoords[n],
                                                                    outwardNormal,
                                                                    *src.basis(),
                                                                    *dst.basis(),
@@ -332,6 +362,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                    dstPolyDegree,
                                                                    localMat );
 
+#if 1
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -340,7 +371,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            else
                            {
                               // Sparse assembly.
-#if 1
                               addLocalToGlobalMatrix( numSrcDofs,
                                                       numDstDofs,
                                                       srcDofMemory,
@@ -354,21 +384,23 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                       level,
                                                       mat,
                                                       localMat );
-#endif
+
                            }
+#endif
                         }
                         else
                         {
                            localMat.setZero();
                            form_->integrateFacetInner( vertexCoordsVolume,
                                                        interfaceVertexCoords[n],
+                                                       oppositeVertexCoords[n],
                                                        outwardNormal,
                                                        *src.basis(),
                                                        *dst.basis(),
                                                        srcPolyDegree,
                                                        dstPolyDegree,
                                                        localMat );
-
+#if 1
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -377,7 +409,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            else
                            {
                               // Sparse assembly.
-#if 1
                               addLocalToGlobalMatrix( numSrcDofs,
                                                       numDstDofs,
                                                       srcDofMemory,
@@ -391,14 +422,21 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                       level,
                                                       mat,
                                                       localMat );
+                           }
 #endif
+                           auto couplingNormal = outwardNormal;
+                           if ( faceType == facedof::FaceType::BLUE )
+                           {
+                              couplingNormal = couplingNormal;
                            }
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( vertexCoordsVolume,
                                                           neighborElementVertexCoords[n],
                                                           interfaceVertexCoords[n],
-                                                          outwardNormal,
+                                                          oppositeVertexCoords[n],
+                                                          neighborOppositeVertexCoords[n],
+                                                          couplingNormal,
                                                           *src.basis(),
                                                           *dst.basis(),
                                                           srcPolyDegree,
@@ -432,6 +470,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                                     srcMemLayout )];
                            }
 
+                           // localMat.transposeInPlace();
+#if 1
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -440,7 +480,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            else
                            {
                               // Sparse assembly.
-#if 1
                               {
                                  addLocalToGlobalMatrix( numSrcDofs,
                                                          numDstDofs,
@@ -456,9 +495,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                          mat,
                                                          localMat );
                               }
-
-#endif
                            }
+#endif
                         }
                      }
                   }
