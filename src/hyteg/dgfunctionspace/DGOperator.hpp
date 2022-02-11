@@ -111,7 +111,22 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
    ///
    /// Which operation is performed depends on the pointer to the sparse matrix proxy and the value type.
    /// If the pointer is a nullptr, apply is executed.
-   /// If the value type is not idx_t, apply is executed.
+   ///
+   /// Some notes on the implementation:
+   ///
+   /// For DG implementations there are two main possibilities to evaluate the interface integrals.
+   ///
+   /// The "naive" (not necessarily worse) approach is to loop over all interfaces in a dedicated loop e.g. after evaluating all
+   /// volume integrals. Alternatively, the interface integrals are evaluated during the loop over the volumes.
+   ///
+   /// This function implements the latter, with the advantage that each DoF is only written to exactly once, also there is only
+   /// a single loop over the macro-volume. On the downside, each interface integral has to be evaluated twice.
+   ///
+   /// A nice description is found in
+   ///
+   /// Kronbichler, M., & Kormann, K. (2019). Fast matrix-free evaluation of discontinuous Galerkin finite element operators.
+   /// ACM Transactions on Mathematical Software (TOMS), 45(3), 1-40.
+   ///
    template < typename VType >
    inline void assembleAndOrApply( const DGFunction< VType >&                  src,
                                    const DGFunction< VType >&                  dst,
@@ -184,10 +199,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                          elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                   }
 
-                  ////////////////////////////////
-                  // MatVec or sparse assembly? //
-                  ////////////////////////////////
-#if 1
                   if ( mat == nullptr )
                   {
                      // Matrix-vector multiplication.
@@ -210,23 +221,20 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                              mat,
                                              localMat );
                   }
-#endif
+
                   /////////////////////////////
                   // Interface contributions //
                   /////////////////////////////
-
-                  // TODO: This should be done in a more clever and less hardcoded way.
 
                   WALBERLA_CHECK_EQUAL(
                       walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Parallel execution not supported." );
                   WALBERLA_CHECK_EQUAL(
                       storage_->getNumberOfLocalFaces(), 1, "Currently the implementation does not support macro-interfaces." );
 
-                  // If the current element shares a boundary with the macro-element we need to handle that.
                   {
                      // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
+                     // TODO: blending
 
-                     // All micro-interfaces are 'inner' interfaces. So no boundary handling of macro-interface handling required.
                      std::array< Index, 3 >                                          neighborElementIndices;
                      std::array< std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >, 3 > neighborElementVertexCoords;
                      std::array< std::array< Index, 2 >, 3 >                         interfaceVertexIndices;
@@ -344,13 +352,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                             interfaceVertexCoords[n][0] + s * ( interfaceVertexCoords[n][1] - interfaceVertexCoords[n][0] );
                         Eigen::Matrix< real_t, 2, 1 > outwardNormal = ( outerPoint - proj );
                         outwardNormal.normalize();
-//                                                if ( faceType == facedof::FaceType::BLUE )
-//                                                {
-//                                                   outwardNormal = -outwardNormal;
-//                                                }
 
                         if ( atDirichletBoundary[n] )
                         {
+                           ////////////////////////
+                           // Dirichlet boundary //
+                           ////////////////////////
                            localMat.setZero();
                            form_->integrateFacetDirichletBoundary( vertexCoordsVolume,
                                                                    interfaceVertexCoords[n],
@@ -362,7 +369,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                    dstPolyDegree,
                                                                    localMat );
 
-#if 1
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -384,12 +390,18 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                       level,
                                                       mat,
                                                       localMat );
-
                            }
-#endif
                         }
                         else
                         {
+                           /////////////////////////////////////
+                           // Interface not on macro-boundary //
+                           /////////////////////////////////////
+
+                           ///////////////////////////////////
+                           // a) inner element contribution //
+                           ///////////////////////////////////
+
                            localMat.setZero();
                            form_->integrateFacetInner( vertexCoordsVolume,
                                                        interfaceVertexCoords[n],
@@ -400,7 +412,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                        srcPolyDegree,
                                                        dstPolyDegree,
                                                        localMat );
-#if 1
+
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -423,12 +435,10 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                       mat,
                                                       localMat );
                            }
-#endif
-                           auto couplingNormal = outwardNormal;
-                           if ( faceType == facedof::FaceType::BLUE )
-                           {
-                              couplingNormal = couplingNormal;
-                           }
+
+                           ////////////////////////////////////////
+                           // b) coupling to neighboring element //
+                           ////////////////////////////////////////
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( vertexCoordsVolume,
@@ -436,24 +446,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                           interfaceVertexCoords[n],
                                                           oppositeVertexCoords[n],
                                                           neighborOppositeVertexCoords[n],
-                                                          couplingNormal,
+                                                          outwardNormal,
                                                           *src.basis(),
                                                           *dst.basis(),
                                                           srcPolyDegree,
                                                           dstPolyDegree,
                                                           localMat );
-
-                           //                           WALBERLA_LOG_INFO_ON_ROOT( "n: " << n );
-                           //                           WALBERLA_LOG_INFO_ON_ROOT( "ft: " << ( faceType == FaceType::GRAY ? "gray" : "blue" ) );
-                           //                           for ( auto vvv : vertexCoordsVolume )
-                           //                           {
-                           //                              WALBERLA_LOG_INFO_ON_ROOT( "vol: " << vvv );
-                           //                           }
-                           //                           for ( auto inf : interfaceVertexCoords[n] )
-                           //                           {
-                           //                              WALBERLA_LOG_INFO_ON_ROOT( "iface: " << inf );
-                           //                           }
-                           //                           WALBERLA_LOG_INFO_ON_ROOT( localMat );
 
                            // Now we need the DoFs from the neighboring element.
                            Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
@@ -470,8 +468,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                                     srcMemLayout )];
                            }
 
-                           // localMat.transposeInPlace();
-#if 1
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
@@ -480,23 +476,20 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            else
                            {
                               // Sparse assembly.
-                              {
-                                 addLocalToGlobalMatrix( numSrcDofs,
-                                                         numDstDofs,
-                                                         srcDofMemory,
-                                                         dstDofMemory,
-                                                         srcMemLayout,
-                                                         dstMemLayout,
-                                                         neighborElementIndices[n],
-                                                         elementIdx,
-                                                         nFaceType,
-                                                         faceType,
-                                                         level,
-                                                         mat,
-                                                         localMat );
-                              }
+                              addLocalToGlobalMatrix( numSrcDofs,
+                                                      numDstDofs,
+                                                      srcDofMemory,
+                                                      dstDofMemory,
+                                                      srcMemLayout,
+                                                      dstMemLayout,
+                                                      neighborElementIndices[n],
+                                                      elementIdx,
+                                                      nFaceType,
+                                                      faceType,
+                                                      level,
+                                                      mat,
+                                                      localMat );
                            }
-#endif
                         }
                      }
                   }
