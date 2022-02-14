@@ -28,91 +28,11 @@
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
+#include "hyteg/volumedofspace/VolumeDoFPackInfo.hpp"
 
 namespace hyteg {
 namespace volumedofspace {
-
-/// \brief Defines the memory layout for a VolumeDoFFunction.
-///
-/// structure-of-arrays (SoA): the innermost variable determines the index of the current micro-volume
-/// array-of-structures (AoS): the innermost variable determines the DoF of the current micro-volume
-enum class VolumeDoFMemoryLayout
-{
-   SoA,
-   AoS
-};
-
-namespace indexing {
-
-/// \brief Converts the refinement level to the 'width' (number of micro-edges on the macro-edge) of the volume.
-inline constexpr uint_t levelToWidth( uint_t level )
-{
-   return levelinfo::num_microedges_per_edge( level );
-}
-
-/// \brief Returns the array-index of the specified 2D volume DoF.
-///
-/// \param x         logical x-coordinate of the micro-volume
-/// \param y         logical y-coordinate of the micro-volume
-/// \param faceType  type of the volume (two types of micro-faces exist)
-/// \param dof       DoF ID (there may be more than one DoF per volume)
-/// \param ndofs     number of DoFs per micro-volume
-/// \param level     refinement level
-/// \param memLayout specifies the memory layout for which the array index is computed
-///
-/// \return array index
-inline constexpr uint_t index( uint_t                x,
-                               uint_t                y,
-                               facedof::FaceType     faceType,
-                               uint_t                dof,
-                               uint_t                ndofs,
-                               uint_t                level,
-                               VolumeDoFMemoryLayout memLayout )
-{
-   const auto numMicroVolumes = levelinfo::num_microfaces_per_face( level );
-
-   const auto microVolume = facedof::macroface::index( level, x, y, faceType );
-
-   if ( memLayout == VolumeDoFMemoryLayout::SoA )
-   {
-      const auto idx = numMicroVolumes * dof + microVolume;
-      return idx;
-   }
-   else
-   {
-      const auto idx = microVolume * ndofs + dof;
-      return idx;
-   }
-}
-
-/// \brief Returns the array-index of the specified 2D volume DoF on a ghost-layer.
-///
-/// \param x         logical x-coordinate of the micro-volume on the ghost layer
-/// \param dof       DoF ID (there may be more than one DoF per volume)
-/// \param ndofs     number of DoFs per micro-volume
-/// \param width     number of micro-edges per edge of the macro-face
-/// \param memLayout specifies the memory layout for which the array index is computed
-///
-/// \return array index
-inline constexpr uint_t indexGhostLayer( uint_t x, uint_t dof, uint_t ndofs, uint_t width, VolumeDoFMemoryLayout memLayout )
-{
-   const auto numMicroVolumes = width;
-
-   const auto microVolume = hyteg::indexing::macroEdgeIndex( width, x );
-
-   if ( memLayout == VolumeDoFMemoryLayout::SoA )
-   {
-      const auto idx = numMicroVolumes * dof + microVolume;
-      return idx;
-   }
-   else
-   {
-      const auto idx = microVolume * ndofs + dof;
-      return idx;
-   }
-}
-
-} // namespace indexing
 
 /// \brief Parallel data structure for degrees of freedom that live in volumes.
 ///
@@ -147,7 +67,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
                       const std::map< PrimitiveID, uint_t >&     numScalarsPerPrimitive,
-                      VolumeDoFMemoryLayout                      memoryLayout );
+                      indexing::VolumeDoFMemoryLayout            memoryLayout );
 
    /// \brief Allocates a VolumeDoFFunction.
    ///
@@ -162,7 +82,10 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
                       uint_t                                     numScalars,
-                      VolumeDoFMemoryLayout                      memoryLayout );
+                      indexing::VolumeDoFMemoryLayout            memoryLayout );
+
+   /// \brief Updates ghost-layers.
+   void communicate( uint_t level );
 
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
    void assign( const std::vector< ValueType >&                                                      scalars,
@@ -198,6 +121,34 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
          WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
          auto fmem = storage_->getFace( primitiveID )->template getData( faceInnerDataID_ );
+         WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
+         auto data = fmem->getPointer( level );
+         return data;
+      }
+   }
+
+   /// \brief Returns a pointer to the array that stores the ghost-layer data.
+   ///
+   /// You better know what you are doing when calling this ...
+   ///
+   /// \param primitiveID macro-primitive (volume primitive) to get the data of
+   /// \return pointer to the array that stores the data
+   ValueType* glMemory( PrimitiveID primitiveID, uint_t level, uint_t glId ) const
+   {
+      if ( storage_->hasGlobalCells() )
+      {
+         WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
+                         "Cannot read/write DoF since macro-cell does not exists (locally)." );
+         auto fmem = storage_->getCell( primitiveID )->template getData( cellGhostLayerDataIDs_.at( glId ) );
+         WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
+         auto data = fmem->getPointer( level );
+         return data;
+      }
+      else
+      {
+         WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
+                         "Cannot read/write DoF since macro-face does not exists (locally)." );
+         auto fmem = storage_->getFace( primitiveID )->template getData( faceGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          auto data = fmem->getPointer( level );
          return data;
@@ -243,10 +194,17 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
           idx.x(), idx.y(), faceType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
    }
 
-   VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
+   indexing::VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
 
  private:
+   using Function< VolumeDoFFunction< ValueType > >::communicators_;
+
    void allocateMemory();
+
+   /// \brief Updates the map holding the number of scalars per primitive with neighborhood information.
+   void communicateNumScalarsPerPrimitive();
+
+   void addPackInfos();
 
    std::string name_;
 
@@ -257,15 +215,16 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 
    std::map< PrimitiveID, uint_t > numScalarsPerPrimitive_;
 
-   VolumeDoFMemoryLayout memoryLayout_;
+   indexing::VolumeDoFMemoryLayout memoryLayout_;
 
    /// Each data ID stores the inner scalar fields for all levels.
    PrimitiveDataID< FunctionMemory< ValueType >, Face > faceInnerDataID_;
    PrimitiveDataID< FunctionMemory< ValueType >, Cell > cellInnerDataID_;
 
    /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
-   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
-   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
+   /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
 };
 
 /// \brief Given an affine coordinate (in computational space) this function locates the micro-element in the macro-face and

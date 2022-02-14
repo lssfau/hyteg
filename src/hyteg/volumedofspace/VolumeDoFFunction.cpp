@@ -41,6 +41,14 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       // Create a data ID for all faces.
       storage_->template addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
 
+      // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+      const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
+
+      // Create three data IDs for all faces.
+      storage_->template addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
+      storage_->template addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
+      storage_->template addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
+
       // Allocate the DoFs.
       for ( auto& it : storage_->getFaces() )
       {
@@ -56,7 +64,60 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
             const auto numMacroLocalScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
             functionMemory->addData( level, numMacroLocalScalars, ValueType( 0 ) );
          }
+
+         // Allocating ghost-layer memory only where necessary.
+         for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDs() )
+         {
+            FunctionMemory< ValueType >* functionGLMemory = face->template getData( faceGhostLayerDataIDs_[localEdgeID] );
+
+            for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+            {
+               const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microedges_per_edge( level );
+               functionGLMemory->addData( level, numGLScalars, ValueType( 0 ) );
+            }
+         }
       }
+   }
+}
+
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::communicateNumScalarsPerPrimitive()
+{
+   walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
+
+   const auto neighboringRanks = storage_->getNeighboringVolumeRanksOfAllVolumes();
+
+   bs.setReceiverInfo( neighboringRanks, true );
+
+   // Complexity is not optimal - sending more data than necessary, but usually we do not need to send that often.
+   for ( auto r : neighboringRanks )
+   {
+      bs.sendBuffer( r ) << numScalarsPerPrimitive_;
+   }
+
+   bs.sendAll();
+
+   for ( auto i = bs.begin(); i != bs.end(); ++i )
+   {
+      std::map< PrimitiveID, uint_t > nScalarsNeighbor;
+      i.buffer() >> nScalarsNeighbor;
+      numScalarsPerPrimitive_.insert( nScalarsNeighbor.begin(), nScalarsNeighbor.end() );
+   }
+}
+
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::addPackInfos()
+{
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      communicators_[level]->addPackInfo( std::make_shared< VolumeDoFPackInfo< ValueType > >( this->getStorage(),
+                                                                                              level,
+                                                                                              numScalarsPerPrimitive_,
+                                                                                              faceInnerDataID_,
+                                                                                              cellInnerDataID_,
+                                                                                              faceGhostLayerDataIDs_,
+                                                                                              cellGhostLayerDataIDs_,
+                                                                                              memoryLayout_ ) );
    }
 }
 
@@ -66,7 +127,7 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
                                                    const std::map< PrimitiveID, uint_t >&     numScalarsPerPrimitive,
-                                                   VolumeDoFMemoryLayout                      memoryLayout )
+                                                   indexing::VolumeDoFMemoryLayout            memoryLayout )
 
 : Function< VolumeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , name_( name )
@@ -76,7 +137,9 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
 , numScalarsPerPrimitive_( numScalarsPerPrimitive )
 , memoryLayout_( memoryLayout )
 {
+   communicateNumScalarsPerPrimitive();
    allocateMemory();
+   addPackInfos();
 }
 
 template < typename ValueType >
@@ -85,7 +148,7 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
                                                    uint_t                                     numScalars,
-                                                   VolumeDoFMemoryLayout                      memoryLayout )
+                                                   indexing::VolumeDoFMemoryLayout            memoryLayout )
 
 : Function< VolumeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , name_( name )
@@ -99,8 +162,24 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
    {
       numScalarsPerPrimitive_[pid] = numScalars;
    }
-
+   communicateNumScalarsPerPrimitive();
    allocateMemory();
+   addPackInfos();
+}
+
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::communicate( uint_t level )
+{
+   if ( !storage_->hasGlobalCells() )
+   {
+      this->communicators_[level]->template startCommunication< Face, Face >();
+      this->communicators_[level]->template endCommunication< Face, Face >();
+   }
+   else
+   {
+      this->communicators_[level]->template startCommunication< Cell, Cell >();
+      this->communicators_[level]->template endCommunication< Cell, Cell >();
+   }
 }
 
 /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
@@ -127,8 +206,8 @@ void VolumeDoFFunction< ValueType >::assign(
             const auto faceId = faceIt.first;
             const auto face   = *faceIt.second;
 
-            std::vector< ValueType* >            srcPtrs( functions.size() );
-            std::vector< VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+            std::vector< ValueType* >                      srcPtrs( functions.size() );
+            std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
             for ( uint_t i = 0; i < functions.size(); i++ )
             {
                const auto f  = functions.at( i );
@@ -168,7 +247,7 @@ void VolumeDoFFunction< ValueType >::assign(
 template < typename ValueType >
 ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
 {
-   ValueType sum;
+   ValueType sum = 0;
 
    if ( storage_->hasGlobalCells() )
    {

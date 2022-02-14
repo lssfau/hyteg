@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -55,7 +56,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
                const std::shared_ptr< DGBasisInfo >&      basis,
-               int                                        initialPolyDegree );
+               int                                        initialPolyDegree,
+               BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
    void assign( const std::vector< ValueType >&                                               scalars,
@@ -204,6 +206,12 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const;
 
+   /// \brief Updates ghost-layers.
+   void communicate( uint_t level ) const { volumeDoFFunction_->communicate( level ); }
+
+   /// \brief Returns the boundary conditions of this function.
+   BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;
@@ -217,6 +225,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction_;
 
    std::map< PrimitiveID, uint_t > polyDegreesPerPrimitive_;
+
+   BoundaryCondition boundaryCondition_;
 };
 
 } // namespace dg

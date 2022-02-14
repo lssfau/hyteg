@@ -39,13 +39,15 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
                                      uint_t                                     minLevel,
                                      uint_t                                     maxLevel,
                                      const std::shared_ptr< DGBasisInfo >&      basis,
-                                     int                                        initialPolyDegree )
+                                     int                                        initialPolyDegree,
+                                     BoundaryCondition                          boundaryCondition )
 : Function< DGFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , name_( name )
 , storage_( storage )
 , minLevel_( minLevel )
 , maxLevel_( maxLevel )
 , basis_( basis )
+, boundaryCondition_( boundaryCondition )
 {
    if ( storage->hasGlobalCells() )
    {
@@ -65,7 +67,7 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
                                                                            minLevel,
                                                                            maxLevel,
                                                                            basis->numDoFsPerElement( initialPolyDegree ),
-                                                                           volumedofspace::VolumeDoFMemoryLayout::SoA );
+                                                                           volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
 }
 
 template < typename ValueType >
@@ -281,8 +283,19 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
 template < typename ValueType >
 void DGFunction< ValueType >::enumerate( uint_t level ) const
 {
-   ValueType offset = 0;
-   this->enumerate( level, offset );
+   uint_t counter = numberOfLocalDoFs( *this, level );
+
+   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+
+   auto startOnRank = ValueType( 0 );
+
+   for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+   {
+      startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
+   }
+
+   this->enumerate( level, startOnRank );
+   communicate( level );
 }
 
 template < typename ValueType >
