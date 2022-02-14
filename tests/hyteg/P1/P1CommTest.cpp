@@ -74,7 +74,8 @@ int main (int argc, char ** argv )
                                       maxLevel);
       for(; it != P1Face::indexIterator(); ++it){
 #endif
-      const indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( face.edge_index(edge->getID()), face.edge_orientation[face.edge_index(edge->getID())] );
+      const indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBoundaryDirection(
+          face.edge_index( edge->getID() ), face.edge_orientation[face.edge_index( edge->getID() )] );
       for ( const auto & it : vertexdof::macroface::BoundaryIterator( maxLevel, faceBorderDirection, 1 ) )
       {
         if(faceIdOnEdge == 0) {

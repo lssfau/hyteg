@@ -205,9 +205,9 @@ void restrict(const uint_t sourceLevel,
   typedef hyteg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBoundaryDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
-  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
-  indexing::FaceBoundaryDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+  indexing::FaceBoundaryDirection firstFaceBorderDirection  = indexing::getFaceBoundaryDirection( 0, face.edge_orientation[0] );
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBoundaryDirection( 1, face.edge_orientation[1] );
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection  = indexing::getFaceBoundaryDirection( 2, face.edge_orientation[2] );
 
   real_t tmp;
 
@@ -418,9 +418,9 @@ void postRestrict(const uint_t sourceLevel,
   typedef hyteg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBoundaryDirection firstFaceBorderDirection = indexing::getFaceBorderDirection(0, face.edge_orientation[0]);
-  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection(1, face.edge_orientation[1]);
-  indexing::FaceBoundaryDirection thirdFaceBorderDirection = indexing::getFaceBorderDirection(2, face.edge_orientation[2]);
+  indexing::FaceBoundaryDirection firstFaceBorderDirection = indexing::getFaceBoundaryDirection( 0, face.edge_orientation[0] );
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBoundaryDirection( 1, face.edge_orientation[1] );
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection = indexing::getFaceBoundaryDirection( 2, face.edge_orientation[2] );
 
   ValueType *vertexDofFineData = face.getData(vertexDoFMemoryID)->getPointer(sourceLevel);
   ValueType *edgeDofFineData = face.getData(edgeDoFMemoryID)->getPointer(sourceLevel);

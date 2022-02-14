@@ -109,7 +109,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;
    switch ( edgeIndexOnFace )
@@ -160,7 +160,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver->getID() );
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;
    switch ( edgeIndexOnFace )
