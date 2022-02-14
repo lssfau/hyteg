@@ -119,11 +119,13 @@ class BufferedCommunicator
 
       FACE_TO_VERTEX,
       FACE_TO_EDGE,
+      FACE_TO_FACE,
       FACE_TO_CELL,
 
       CELL_TO_VERTEX,
       CELL_TO_EDGE,
       CELL_TO_FACE,
+      CELL_TO_CELL,
 
       NUM_COMMUNICATION_DIRECTIONS
    };
@@ -193,6 +195,8 @@ inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCom
       return FACE_TO_VERTEX;
    if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Edge >::value )
       return FACE_TO_EDGE;
+   if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Face >::value )
+      return FACE_TO_FACE;
    if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Cell >::value )
       return FACE_TO_CELL;
 
@@ -202,6 +206,8 @@ inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCom
       return CELL_TO_EDGE;
    if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Face >::value )
       return CELL_TO_FACE;
+   if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Cell >::value )
+      return CELL_TO_CELL;
 
    WALBERLA_ABORT( "Sender and receiver types are invalid" );
 
@@ -270,7 +276,24 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
          SenderType* sender = storage->getPrimitiveGenerically< SenderType >( senderID );
 
          std::vector< PrimitiveID > receivingNeighborhood;
-         sender->template getNeighborPrimitivesGenerically< ReceiverType >( receivingNeighborhood );
+         if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
+         {
+            for ( const auto& [_, pid] : sender->getIndirectNeighborFaceIDs() )
+            {
+               receivingNeighborhood.push_back( pid );
+            }
+         }
+         else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )
+         {
+            for ( const auto& [_, pid] : sender->getIndirectNeighborCellIDs() )
+            {
+               receivingNeighborhood.push_back( pid );
+            }
+         }
+         else
+         {
+            sender->template getNeighborPrimitivesGenerically< ReceiverType >( receivingNeighborhood );
+         }
 
          for ( const PrimitiveID& excludeID : excludeReceivingIDs )
          {
@@ -326,7 +349,24 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
          ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
 
          std::vector< PrimitiveID > sendingNeighborhood;
-         receiver->template getNeighborPrimitivesGenerically< SenderType >( sendingNeighborhood );
+         if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
+         {
+            for ( const auto& [_, pid] : receiver->getIndirectNeighborFaceIDs() )
+            {
+               sendingNeighborhood.push_back( pid );
+            }
+         }
+         else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )
+         {
+            for ( const auto& [_, pid] : receiver->getIndirectNeighborCellIDs() )
+            {
+               sendingNeighborhood.push_back( pid );
+            }
+         }
+         else
+         {
+            receiver->template getNeighborPrimitivesGenerically< SenderType >( sendingNeighborhood );
+         }
 
          for ( const auto& neighborID : sendingNeighborhood )
          {
@@ -452,11 +492,13 @@ void BufferedCommunicator::staticAssertCommunicationDirections() const
 
                       || ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Vertex >::value ) ||
                       ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Edge >::value ) ||
+                      ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Face >::value ) ||
                       ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Cell >::value )
 
                       || ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Vertex >::value ) ||
                       ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Edge >::value ) ||
-                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Face >::value ),
+                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Face >::value ) ||
+                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Cell >::value ),
 
                   "BufferedCommunicator: illegal sender and receiver type combination." );
 }

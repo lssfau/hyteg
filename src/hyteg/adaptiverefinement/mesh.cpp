@@ -27,6 +27,8 @@
 #include <map>
 #include <type_traits>
 
+#include "hyteg/Algorithms.hpp"
+
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
 
@@ -469,46 +471,77 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
 
    for ( const auto& [faceID, face] : faces_sps )
    {
-      std::set< PrimitiveID > indirectNeighborsSet;
+      face->indirectNeighborFaceIDs_.clear();
 
       for ( const auto& vertexID : face->neighborVertices() )
       {
          auto vertex = vertices_sps[vertexID.getID()];
          for ( const auto& neighborFaceID : vertex->neighborFaces() )
          {
-            if ( neighborFaceID != faceID )
+            const auto neighborFaceVertices = faces_sps[neighborFaceID.getID()]->neighborVertices();
+
+            const auto containsV0 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[0] );
+            const auto containsV1 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[1] );
+            const auto containsV2 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[2] );
+
+            if ( neighborFaceID != faceID && ( containsV0 || containsV1 || containsV2 ) )
             {
-               indirectNeighborsSet.insert( neighborFaceID );
+               if ( containsV0 && containsV1 )
+               {
+                  face->indirectNeighborFaceIDs_[0] = neighborFaceID;
+               }
+               else if ( containsV0 && containsV2 )
+               {
+                  face->indirectNeighborFaceIDs_[1] = neighborFaceID;
+               }
+               else if ( containsV1 && containsV2 )
+               {
+                  face->indirectNeighborFaceIDs_[2] = neighborFaceID;
+               }
             }
          }
       }
-
-      face->indirectNeighborFaceIDs_.clear();
-      face->indirectNeighborFaceIDs_.insert(
-          face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
    //****** add indirect neighbor cells ******
 
    for ( const auto& [cellID, cell] : cells_sps )
    {
-      std::set< PrimitiveID > indirectNeighborsSet;
+      cell->indirectNeighborCellIDs_.clear();
 
       for ( const auto& vertexID : cell->neighborVertices() )
       {
          auto vertex = vertices_sps[vertexID.getID()];
          for ( const auto& neighborCellID : vertex->neighborCells() )
          {
-            if ( neighborCellID != cellID )
+            const auto neighborCellVertices = cells_sps[neighborCellID.getID()]->neighborVertices();
+
+            const auto containsV0 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[0] );
+            const auto containsV1 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[1] );
+            const auto containsV2 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
+            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
+
+            if ( neighborCellID != cellID && ( containsV0 || containsV1 || containsV2 || containsV3 ) )
             {
-               indirectNeighborsSet.insert( neighborCellID );
+               if ( containsV0 && containsV1 && containsV2 )
+               {
+                  cell->indirectNeighborCellIDs_[0] = neighborCellID;
+               }
+               else if ( containsV0 && containsV1 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDs_[1] = neighborCellID;
+               }
+               else if ( containsV0 && containsV2 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDs_[2] = neighborCellID;
+               }
+               else if ( containsV1 && containsV2 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDs_[3] = neighborCellID;
+               }
             }
          }
       }
-
-      cell->indirectNeighborCellIDs_.clear();
-      cell->indirectNeighborCellIDs_.insert(
-          cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
    //****** construct new setupStorage ******

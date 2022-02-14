@@ -45,10 +45,10 @@ using namespace walberla::mpistubs;
 void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
 {
    const std::map< uint_t, int64_t > graphEdgeWeightsPerNumCommonVertices = {
-       {0, 0},
-       {1, 1},
-       {2, 10},
-       {3, 100},
+       { 0, 0 },
+       { 1, 1 },
+       { 2, 10 },
+       { 3, 100 },
    };
 
    MPI_Comm     communicator = walberla::mpi::MPIManager::instance()->comm();
@@ -153,7 +153,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       // The chunks correspond to [ vtxdist[rank], vtxdist[rank+1] ).
 
       std::map< PrimitiveID::IDType, int64_t >
-                                       localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
+          localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
       std::map< int64_t, PrimitiveID > globalParmetisIDToLocalPrimitiveIDMap; // reverse of the above map
 
       std::vector< PrimitiveID > localPrimitiveIDs;
@@ -237,7 +237,11 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
          if ( hasGlobalCells )
          {
             const auto cell = setupStorage.getCell( primitiveID );
-            neighborIDs     = cell->getIndirectNeighborCellIDs();
+            neighborIDs.clear();
+            for ( auto itt : cell->getIndirectNeighborCellIDs() )
+            {
+               neighborIDs.push_back( itt.second );
+            }
             std::set< PrimitiveID > neighborIDsUnique( neighborIDs.begin(), neighborIDs.end() );
             neighborIDs = std::vector< PrimitiveID >( neighborIDsUnique.begin(), neighborIDsUnique.end() );
          }
@@ -626,7 +630,6 @@ void roundRobinVolume( SetupPrimitiveStorage& storage )
 {
    roundRobinVolume( storage, storage.getNumberOfProcesses() );
 }
-
 
 void greedy( SetupPrimitiveStorage& storage )
 {

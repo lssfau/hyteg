@@ -33,7 +33,7 @@ class Cell : public Primitive
 {
  public:
    friend class SetupPrimitiveStorage;
-   template <class K_Simplex>
+   template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 
    /// Creates a macro-cell instance
@@ -110,7 +110,9 @@ class Cell : public Primitive
    }
    /// Returns indirect neighbor macro-cell IDs (not including self). An indirect neighbor cell is a cell
    /// that shares at least one macro-vertex with this cell
-   const std::vector< PrimitiveID > & getIndirectNeighborCellIDs() const { return indirectNeighborCellIDs_; }
+   ///
+   /// The indirect neighbors are sorted by the corresponding local interface macro-face IDs.
+   const std::map< uint_t, PrimitiveID >& getIndirectNeighborCellIDs() const { return indirectNeighborCellIDs_; }
 
    uint_t getLocalVertexID( const PrimitiveID& vertexID ) const;
    uint_t getLocalEdgeID( const PrimitiveID& edgeID ) const;
@@ -138,8 +140,8 @@ class Cell : public Primitive
    std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps_;
    std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
    // stores all 4 face inward normals, array idx == opposite vertex
-   std::array< Point3D, 4 >   faceInwardNormals_;
-   std::vector< PrimitiveID > indirectNeighborCellIDs_;
+   std::array< Point3D, 4 >        faceInwardNormals_;
+   std::map< uint_t, PrimitiveID > indirectNeighborCellIDs_;
 };
 
 } // namespace hyteg

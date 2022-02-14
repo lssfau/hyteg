@@ -162,8 +162,10 @@ class Face : public Primitive
    virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
    /// Returns indirect neighbor macro-face IDs (not including self). An indirect neighbor face is a face
-   /// that shares at least one macro-vertex with this cell
-   const std::vector< PrimitiveID >& getIndirectNeighborFaceIDs() const { return indirectNeighborFaceIDs_; }
+   /// that shares at least one macro-vertex with this face.
+   ///
+   /// The indirect neighbors are sorted by the corresponding local interface macro-edge IDs.
+   const std::map< uint_t, PrimitiveID >& getIndirectNeighborFaceIDs() const { return indirectNeighborFaceIDs_; }
 
  protected:
    /// Not public in order to guarantee that data is only added through the governing structure.
@@ -183,8 +185,8 @@ class Face : public Primitive
 
    std::array< Point3D, 3 > coords;
 
-   void                       addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
-   std::vector< PrimitiveID > indirectNeighborFaceIDs_;
+   void                            addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
+   std::map< uint_t, PrimitiveID > indirectNeighborFaceIDs_;
 };
 
 } // namespace hyteg

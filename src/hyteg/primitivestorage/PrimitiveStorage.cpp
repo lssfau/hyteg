@@ -1233,8 +1233,9 @@ std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfFace( const Primit
 
    std::set< uint_t > neighboringRanks;
    const auto face = getFace( facePrimitiveID );
-   for ( const auto & npid : face->getIndirectNeighborFaceIDs() )
+   for ( const auto & it : face->getIndirectNeighborFaceIDs() )
    {
+      const auto npid = it.second;
       WALBERLA_CHECK( faceExistsLocally( npid ) || faceExistsInNeighborhood( npid ),
                       "Neighbor face " << npid << " of " << facePrimitiveID << " does not exist locally, nor in neighborhood." );
       if ( faceExistsInNeighborhood( npid ) )
@@ -1264,8 +1265,9 @@ std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfCell( const Primit
    
    std::set< uint_t > neighboringRanks;
    const auto cell = getCell( cellPrimitiveID );
-   for ( const auto & npid : cell->getIndirectNeighborCellIDs() )
+   for ( const auto & it : cell->getIndirectNeighborCellIDs() )
    {
+      const auto npid = it.second;
       WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ), 
                       "Neighbor cell " << npid << " of " << cellPrimitiveID << " does not exist locally, nor in neighborhood." );
       if ( cellExistsInNeighborhood( npid ) )
