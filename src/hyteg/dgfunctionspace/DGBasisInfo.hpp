@@ -45,7 +45,7 @@ class DGBasisInfo
    /// \brief Returns the number of DoFs per element for the passed polynomial degree.
    virtual uint_t numDoFsPerElement( uint_t degree ) const = 0;
 
-   /// \brief Returns the degree of the quadrature rule that is used for the evaluation of the linear functional \int_T f * phi_i.
+   /// \brief Returns the degree of the quadrature rule that is used for the evaluation of the linear functional \f$\int_T f \phi_i\f$.
    virtual uint_t quadratureDegreeForLinearFunctional() const = 0;
 
    /// \brief Evaluates the polynomial on the reference triangle.
@@ -61,11 +61,15 @@ class DGBasisInfo
 
    /// \brief Evaluates the linear functional
    ///
-   ///   l( v ) = \int_T f * v
+   /// \f{align*}{
+   ///   l( v ) = \int_T f v
+   /// \f}
    ///
-   /// by quadrature over the passed element T for all basis functions, i.e. it returns an approximation to
+   /// by quadrature over the passed element \f$T\f$ for all basis functions, i.e. it returns an approximation to
    ///
-   ///   \int_T f * phi_i.
+   /// \f{align*}{
+   ///   \int_T f \phi_i.
+   /// \f}
    ///
    /// \param degree           degree of the piecewise polynomials
    /// \param coords           coordinates of the affine element (computational space)
