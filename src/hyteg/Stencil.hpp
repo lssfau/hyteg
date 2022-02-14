@@ -47,9 +47,9 @@ struct Directions2D
       uint_t e_south = faceS->vertex_index(edge.neighborVertices()[1]);
       uint_t o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
 
-      Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
-      Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
-      Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
+      Point3D dS_se = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south]);
+      Point3D dS_so = h * (faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south]);
+      Point3D dS_oe = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south]);
 
       S  = -1.0 * dS_oe;
       E  = dS_se;
@@ -66,8 +66,8 @@ struct Directions2D
          e_north = faceN->vertex_index(edge.neighborVertices()[1]);
          o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
 
-         Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
-         Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
+         Point3D dN_so = h * (faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north]);
+         Point3D dN_oe = h * (faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north]);
 
          N  = dN_so;
          NW = -1.0 * dN_oe;
@@ -81,8 +81,8 @@ struct Directions2D
    */
    Directions2D(const real_t h, const Face& face)
    {
-      Point3D d0 = h * (face.coords[1] - face.coords[0]);
-      Point3D d2 = h * (face.coords[2] - face.coords[0]);
+      Point3D d0 = h * (face.getCoordinates()[1] - face.getCoordinates()[0]);
+      Point3D d2 = h * (face.getCoordinates()[2] - face.getCoordinates()[0]);
 
       S  = -1.0 * d2;
       SE = d0 - 1.0 * d2;

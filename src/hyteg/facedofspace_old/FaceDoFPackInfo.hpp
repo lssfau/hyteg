@@ -242,7 +242,7 @@ void FaceDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
    ValueType* faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    uint_t     edgeIndexOnFace = receiver->edge_index( sender );
    for ( auto it =
-             facedof::macroface::indexIterator( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_ );
+             facedof::macroface::indexIterator( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace], CELL_GRAY, level_ );
          it != facedof::macroface::indexIterator();
          ++it )
    {
@@ -270,7 +270,7 @@ void FaceDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
    }
    uint_t pos = 0;
    for ( auto it =
-             facedof::macroface::indexIterator( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_ );
+             facedof::macroface::indexIterator( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace], CELL_GRAY, level_ );
          it != facedof::macroface::indexIterator();
          ++it )
    {
@@ -287,7 +287,7 @@ void FaceDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    ValueType* faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t     edgeIndexOnFace = sender->edge_index( receiver );
    for ( auto it =
-             facedof::macroface::indexIterator( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_ );
+             facedof::macroface::indexIterator( edgeIndexOnFace, sender->getEdgeOrientation()[edgeIndexOnFace], CELL_BLUE, level_ );
          it != facedof::macroface::indexIterator();
          ++it )
    {
@@ -341,7 +341,7 @@ void FaceDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       dirCellBlue = stencilDirection::CELL_BLUE_NW;
    }
    for ( auto it =
-             facedof::macroface::indexIterator( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_ );
+             facedof::macroface::indexIterator( edgeIndexOnFace, sender->getEdgeOrientation()[edgeIndexOnFace], CELL_BLUE, level_ );
          it != facedof::macroface::indexIterator();
          ++it )
    {

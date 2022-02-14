@@ -571,13 +571,13 @@ inline void integrateDG( const uint_t&                                          
 
    Face* face = storage->getFace( edge.neighborFaces()[0] );
 
-   real_t weightedFaceArea0 = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+   real_t weightedFaceArea0 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
    real_t weightedFaceArea1 = real_c( 0 );
 
    if ( edge.getNumNeighborFaces() == 2 )
    {
       face              = storage->getFace( edge.neighborFaces()[1] );
-      weightedFaceArea1 = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+      weightedFaceArea1 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
    }
 
    for ( size_t i = 1; i < rowsize - 1; ++i )

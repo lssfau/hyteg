@@ -71,10 +71,10 @@ void VTKMeshWriter::writePointsForMicroVertices( const VTKOutput&               
             size_t  rowsize = levelinfo::num_microvertices_per_edge( level );
             Point3D x, x0, xBlend;
 
-            x0 = face.coords[0];
+            x0 = face.getCoordinates()[0];
 
-            Point3D d0 = ( face.coords[1] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
-            Point3D d2 = ( face.coords[2] - face.coords[0] ) / ( real_c( rowsize ) - 1 );
+            Point3D d0 = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( real_c( rowsize ) - 1 );
+            Point3D d2 = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( real_c( rowsize ) - 1 );
 
             size_t inner_rowsize = rowsize;
 
@@ -138,9 +138,9 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
       {
          Face& face = *it.second;
 
-         const Point3D faceBottomLeftCoords  = face.coords[0];
-         const Point3D faceBottomRightCoords = face.coords[1];
-         const Point3D faceTopLeftCoords     = face.coords[2];
+         const Point3D faceBottomLeftCoords  = face.getCoordinates()[0];
+         const Point3D faceBottomRightCoords = face.getCoordinates()[1];
+         const Point3D faceTopLeftCoords     = face.getCoordinates()[2];
 
          const Point3D horizontalMicroEdgeOffset =
              ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;

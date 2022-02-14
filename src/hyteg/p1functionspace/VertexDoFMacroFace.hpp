@@ -904,7 +904,7 @@ inline void integrateDG( const uint_t&                                          
    auto rhsP1 = face.getData( rhsP1Id )->getPointer( Level );
    auto dst   = face.getData( dstId )->getPointer( Level );
 
-   real_t faceArea         = std::pow( 4.0, -walberla::real_c( Level ) ) * face.area;
+   real_t faceArea         = std::pow( 4.0, -walberla::real_c( Level ) ) * face.getArea();
    real_t weightedFaceArea = faceArea / 3.0;
 
    real_t tmp;

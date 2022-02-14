@@ -172,7 +172,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender );
    indexing::FaceBoundaryDirection faceDir =
-       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
    for( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
    {
       if( edgeIndexOnFace == 0 )
@@ -204,7 +204,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
    ValueType*                    edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender->getID() );
    indexing::FaceBoundaryDirection faceDir =
-       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
    uint_t indexOnEdge = 0;
    for( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
    {
@@ -239,14 +239,14 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->getEdgeOrientation()[edgeIndexOnFace] );
    stencilDirection faceDirOne;
    stencilDirection faceDirTwo;
    stencilDirection faceDirThree;
    if( edgeIndexOnFace == 0 )
    {
       faceDirOne = stencilDirection::EDGE_HO_C;
-      if( sender->edge_orientation[edgeIndexOnFace] == 1 )
+      if( sender->getEdgeOrientation()[edgeIndexOnFace] == 1 )
       {
          faceDirTwo   = stencilDirection::EDGE_VE_NW;
          faceDirThree = stencilDirection::EDGE_DI_N;
@@ -258,7 +258,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    } else if( edgeIndexOnFace == 2 )
    {
       faceDirOne = stencilDirection::EDGE_DI_N;
-      if( sender->edge_orientation[edgeIndexOnFace] == 1 )
+      if( sender->getEdgeOrientation()[edgeIndexOnFace] == 1 )
       {
          faceDirTwo   = stencilDirection::EDGE_HO_C;
          faceDirThree = stencilDirection::EDGE_VE_NW;
@@ -270,7 +270,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    } else if( edgeIndexOnFace == 1 )
    {
       faceDirOne = stencilDirection::EDGE_VE_NW;
-      if( sender->edge_orientation[edgeIndexOnFace] == -1 )
+      if( sender->getEdgeOrientation()[edgeIndexOnFace] == -1 )
       {
          faceDirTwo   = stencilDirection::EDGE_DI_N;
          faceDirThree = stencilDirection::EDGE_HO_C;
@@ -467,7 +467,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
    uint_t faceLocalVertexIDOfEdge1 = sender->vertex_index( receiver->getVertexID1() );
 
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBoundaryDirection( faceLocalEdgeID, sender->edge_orientation[faceLocalEdgeID] );
+       indexing::getFaceBoundaryDirection( faceLocalEdgeID, sender->getEdgeOrientation()[faceLocalEdgeID] );
 
    /////////// DoFs on Face ///////////
    for( const auto edgeOriOnReferenceEdge : {hyteg::edgedof::EdgeDoFOrientation::Y, hyteg::edgedof::EdgeDoFOrientation::XY} )

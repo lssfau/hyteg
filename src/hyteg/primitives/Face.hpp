@@ -40,7 +40,7 @@ class Face : public Primitive
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
-   template <class K_Simplex>
+   template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 
    Face( const PrimitiveID&                  primitiveID,
@@ -59,7 +59,7 @@ class Face : public Primitive
       neighborEdges_.push_back( edgeIDs[0] );
       neighborEdges_.push_back( edgeIDs[1] );
       neighborEdges_.push_back( edgeIDs[2] );
-      std::array< Point3D, 2 > B( {{coords[1] - coords[0], coords[2] - coords[0]}} );
+      std::array< Point3D, 2 > B( { { coords[1] - coords[0], coords[2] - coords[0] } } );
       area = std::abs( 0.5 * math::det2( B ) );
    }
 
@@ -78,15 +78,11 @@ class Face : public Primitive
    PrimitiveID                getEdgeOppositeToVertex( const PrimitiveID& vertexID ) const;
    PrimitiveID                get_edge_between_vertices( const PrimitiveID& v0, const PrimitiveID& v1 ) const;
 
-   real_t               area;
-   std::array< int, 3 > edge_orientation;
-
-   std::array< Point3D, 3 > coords;
-
    friend std::ostream& operator<<( std::ostream& os, const Face& face );
 
    const std::array< int, 3 >&     getEdgeOrientation() const { return edge_orientation; }
    const std::array< Point3D, 3 >& getCoordinates() const { return coords; }
+   real_t                          getArea() const { return area; }
 
    const PrimitiveID& getVertexID0() const
    {
@@ -182,6 +178,11 @@ class Face : public Primitive
    virtual void deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer );
 
  private:
+   real_t               area;
+   std::array< int, 3 > edge_orientation;
+
+   std::array< Point3D, 3 > coords;
+
    void                       addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
    std::vector< PrimitiveID > indirectNeighborFaceIDs_;
 };
