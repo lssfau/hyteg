@@ -305,18 +305,14 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
             R[i] = local_errors[N_tot - 1 - i].second;
          }
 
-         // apply refinement and update setupStorage
-         setupStorage = mesh.refineRG( R );
+         // apply refinement
+         mesh.refineRG( R );
       }
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
-      // std::stringstream ss;
-      // setupStorage.toStream( ss, true );
-      // WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
-
-      // construct PrimitiveStorage from setupStorage corresponding to current refinement
-      auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+      // construct PrimitiveStorage
+      auto storage = mesh.make_storage();
 
       int vtkname  = ( vtk ) ? int( refinement ) : -1;
       local_errors = solve( storage, pde, lvl, iter, tol, vtkname );

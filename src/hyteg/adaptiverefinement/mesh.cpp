@@ -27,6 +27,8 @@
 #include <map>
 #include <type_traits>
 
+// #include "hyteg/memory/MemoryAllocation.hpp"
+
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
 
@@ -35,7 +37,7 @@ namespace adaptiveRefinement {
 
 template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
-: _setupStorage( setupStorage )
+: _n_processes( setupStorage.getNumberOfProcesses() )
 {
    // copy geometrymaps for each primitive in initial setupStorage
    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
@@ -143,7 +145,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
@@ -173,7 +175,11 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
    }
+}
 
+template < class K_Simplex >
+std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
+{
    // extract connectivity, geometry and boundary data
    EdgeData edges;
    FaceData faces;
@@ -190,10 +196,7 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
    faces.broadcast();
    cells.broadcast();
 
-   // update storage
-   auto id = updateSetupStorage( edges, faces, cells, _setupStorage.getNumberOfProcesses() );
-
-   // todo clear vertex data on rank!=0
+   auto [id, storage] = convert_to_storage( edges, faces, cells, _n_processes );
 
    // insert PrimitiveIDs to volume elements
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -204,15 +207,22 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
          ++id;
       }
    }
+   // vertex data is only required by rank 0
+   else
+   {
+      _vertices.clear();
+      _vertexGeometryMap.clear();
+      _vertexBoundaryFlag.clear();
+   }
 
-   return _setupStorage;
+   return storage;
 }
 
 template < class K_Simplex >
-uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
-                                                const FaceData& faces,
-                                                const CellData& cells,
-                                                const uint_t&   n_processes )
+std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::convert_to_storage( const EdgeData& edges,
+                                                                                                  const FaceData& faces,
+                                                                                                  const CellData& cells,
+                                                                                                  const uint_t&   n_processes )
 {
    SetupPrimitiveStorage::VertexMap vertices_sps;
    SetupPrimitiveStorage::EdgeMap   edges_sps;
@@ -511,10 +521,13 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
           cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
    }
 
-   //****** construct new setupStorage ******
-   _setupStorage = SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
+   //****** construct new PrimitiveStorage ******
+   SetupPrimitiveStorage setupStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
+   auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   return ( cells.size() == 0 ) ? face0 : cell0;
+   uint_t id0 = ( cells.size() == 0 ) ? face0 : cell0;
+
+   return { id0, storage };
 }
 
 template < class K_Simplex >
@@ -573,61 +586,15 @@ inline std::set< std::shared_ptr< K_Simplex > >
 {
    std::set< std::shared_ptr< K_Simplex > > R;
 
-   // todo use ids instead of barycenters
-
-   auto barycenter_R = compute_barycenters( primitiveIDs );
-
    for ( auto& el : _T )
    {
-      for ( const auto& bc : barycenter_R )
+      if ( std::find( primitiveIDs.begin(), primitiveIDs.end(), el->getPrimitiveID() ) != primitiveIDs.end() )
       {
-         // ||bc_el - bc||/||bc||
-         auto err = ( el->barycenter( _vertices ) - bc ).norm() / bc.norm();
-         if ( err < 1e-14 )
-         {
-            R.insert( el );
-            break;
-         }
+         R.insert( el );
       }
    }
 
    return R;
-}
-
-template <>
-inline std::vector< Point3D > K_Mesh< Simplex2 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
-{
-   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
-
-   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
-   {
-      auto face = _setupStorage.getFace( primitiveIDs[i] );
-      if ( face == nullptr )
-      {
-         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a face in Mesh::setupStorage()!" );
-      }
-      barycenter_R[i] = Simplex2::barycenter( face->getCoordinates() );
-   }
-
-   return barycenter_R;
-}
-
-template <>
-inline std::vector< Point3D > K_Mesh< Simplex3 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
-{
-   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
-
-   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
-   {
-      auto cell = _setupStorage.getCell( primitiveIDs[i] );
-      if ( cell == nullptr )
-      {
-         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a cell in Mesh::setupStorage()!" );
-      }
-      barycenter_R[i] = Simplex3::barycenter( cell->getCoordinates() );
-   }
-
-   return barycenter_R;
 }
 
 template < class K_Simplex >

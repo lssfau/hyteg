@@ -36,20 +36,19 @@ class K_Mesh
  public:
    /* construct adaptable mesh from setupStorage
       @param setupStorage SetupPrimitiveStorage corresponding to initial coarse grid.
-                           Note that Geometrymaps must be applied to setupStorage
-                           before constructing the adaptive mesh.
+                           Note that Geometrymaps and boundary flags must be applied
+                           to setupStorage before constructing the adaptive mesh.
                            Furthermore, afer calling this constructor, the original
-                           setupStorage should not be used any more. Instead use
-                           this->setupStorage().
+                           setupStorage should not be used to construct a
+                           PrimitiveStorage. Instead use this->make_storage().
    */
    K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
-                                 given by primitiveIDs w.r.t. K_Mesh::setupStorage()
-      @return this->setupStorage(), i.e., setupStorage corresponding to new refinement
+                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
    */
-   SetupPrimitiveStorage& refineRG( const std::vector< PrimitiveID >& elements_to_refine );
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -57,8 +56,8 @@ class K_Mesh
    // compute total volume of the triangulated domain
    real_t volume() const;
 
-   // get SetupPrimitiveStorage corresponding to current refinement
-   inline SetupPrimitiveStorage& setupStorage() { return _setupStorage; };
+   // construct PrimitiveStorage corresponding to current refinement
+   std::shared_ptr< PrimitiveStorage > make_storage();
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -132,27 +131,25 @@ class K_Mesh
    std::set< std::shared_ptr< K_Simplex > > refine_element_red( std::shared_ptr< K_Simplex > element );
 
    /* find elements in _T corresponding to primitiveIDs
-      @param primitiveIDs  set of primitiveIDs w.r.t. _setupStorage
+      @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
       @return subset of _T for red refinement
    */
    std::set< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* compute the barycenter of all primitives given by their IDs */
-   std::vector< Point3D > compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const;
-
    /* extract connectivity, geometrymap and boundaryFlags from all elements */
    void extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const;
 
-   /* update internal _setupStorage and return id of first volume element */
-   uint_t updateSetupStorage( const EdgeData& edges, const FaceData& faces, const CellData& cells, const uint_t& n_processes );
+   /* create PrimitiveStorage and return id of first volume element */
+   std::pair< uint_t, std::shared_ptr< PrimitiveStorage > >
+       convert_to_storage( const EdgeData& edges, const FaceData& faces, const CellData& cells, const uint_t& n_processes );
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
+   uint_t                                             _n_processes;        // number of processes
    std::vector< Point3D >                             _vertices;           // vertex coordinates
    std::vector< uint_t >                              _vertexGeometryMap;  // geometrymap for vertices
    std::vector< uint_t >                              _vertexBoundaryFlag; // boundaryFlag for vertices
    std::set< std::shared_ptr< K_Simplex > >           _T;                  // set of elements of current refinement level
-   SetupPrimitiveStorage                              _setupStorage;       // primitive storage of current refinement level
    std::map< uint_t, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
 };
 
@@ -165,11 +162,11 @@ class Mesh
  public:
    /* construct adaptable mesh from setupStorage
       @param setupStorage SetupPrimitiveStorage corresponding to initial coarse grid.
-                           Note that Geometrymaps must be applied to setupStorage
-                           before constructing the adaptive mesh.
+                           Note that Geometrymaps and boundary flags must be applied
+                           to setupStorage before constructing the adaptive mesh.
                            Furthermore, afer calling this constructor, the original
-                           setupStorage should not be used any more. Instead use
-                           this->setupStorage().
+                           setupStorage should not be used to construct a
+                           PrimitiveStorage. Instead use this->make_storage().
    */
    Mesh( const SetupPrimitiveStorage& setupStorage )
    : _DIM( ( setupStorage.getNumberOfCells() > 0 ) ? 3 : 2 )
@@ -189,9 +186,8 @@ class Mesh
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::setupStorage()
-      @return this->setupStorage(), i.e., setupStorage corresponding to new refinement
    */
-   SetupPrimitiveStorage& refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
    {
       if ( _DIM == 3 )
       {
@@ -229,16 +225,16 @@ class Mesh
       }
    }
 
-   // get SetupPrimitiveStorage corresponding to current refinement
-   inline SetupPrimitiveStorage& setupStorage()
+   // construct PrimitiveStorage corresponding to current refinement
+   std::shared_ptr< PrimitiveStorage > make_storage()
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->setupStorage();
+         return _mesh3D->make_storage();
       }
       else
       {
-         return _mesh2D->setupStorage();
+         return _mesh2D->make_storage();
       }
    };
 
