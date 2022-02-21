@@ -28,10 +28,15 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+// #include "hyteg/memory/MemoryAllocation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -134,28 +139,37 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 }
 
 // solve problem with current refinement and return sorted list of elementwise squared errors
-std::vector< std::pair< real_t, hyteg::PrimitiveID > >
-    solve( std::shared_ptr< PrimitiveStorage > storage, const PDE_data& pde, uint_t lvl, uint_t iter, real_t tol, int vtk )
+std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< PrimitiveStorage > storage,
+                                                              const PDE_data&                     pde,
+                                                              uint_t                              l_min,
+                                                              uint_t                              l_max,
+                                                              uint_t                              max_iter,
+                                                              real_t                              tol,
+                                                              int                                 vtk,
+                                                              bool                                l2_error_each_iteration = true )
 {
-   uint_t l_min = lvl;
-   uint_t l_max = lvl;
-
-   uint_t dim = storage->hasGlobalCells() ? 3 : 2;
+   uint_t dim    = storage->hasGlobalCells() ? 3 : 2;
 
    // operators
    using M_t = P1BlendingMassOperator;
    using A_t = P1BlendingDivkGradOperator;
+   using P_t = P1toP1LinearProlongation;
+   using R_t = P1toP1LinearRestriction;
+
    forms::p1_div_k_grad_blending_q3 form( pde.k, pde.k );
 
-   M_t M( storage, l_min, l_max );
-   A_t A( storage, l_min, l_max, form );
+   auto M = std::make_shared< M_t >( storage, l_min, l_max + 1 );
+   auto A = std::make_shared< A_t >( storage, l_min, l_max + 1, form );
+   auto P = std::make_shared< P_t >();
+   auto R = std::make_shared< R_t >();
 
    // FE functions
    P1Function< real_t > b( "b", storage, l_min, l_max );
-   P1Function< real_t > u( "u", storage, l_min, l_max );
-   P1Function< real_t > u_exact( "u_exact", storage, l_min, l_max );
-   P1Function< real_t > err( "err", storage, l_min, l_max );
-   P1Function< real_t > tmp( "tmp", storage, l_min, l_max );
+   P1Function< real_t > u( "u", storage, l_min, l_max + 1 );
+   P1Function< real_t > r( "r", storage, l_max, l_max );
+   P1Function< real_t > u_anal( "u_anal", storage, l_max, l_max + 1 );
+   P1Function< real_t > err( "err", storage, l_max, l_max + 1 );
+   P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
@@ -164,23 +178,77 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
 
    // rhs
    tmp.interpolate( pde.f, l_max );
-   M.apply( tmp, b, l_max, hyteg::All );
-   // exact solution
-   u_exact.interpolate( pde.u_anal, l_max );
+   M->apply( tmp, b, l_max, hyteg::All );
+   // analytical solution
+   u_anal.interpolate( pde.u_anal, l_max + 1 );
+   // todo remove
+   u_anal.interpolate( pde.u_anal, l_max);
    // initialize u
+   u.setToZero( l_max );
+   u.setToZero( l_max+1 );
    u.interpolate( pde.u_D, l_max, hyteg::DirichletBoundary );
-   u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::Inner );
+   u.interpolate( pde.u_D, l_max+1, hyteg::DirichletBoundary );
+
+   // solver
+   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_min, hyteg::Inner );
+   auto cg_iter  = uint_t( tmp.dotGlobal( tmp, l_min ) ); // cg_iter = DoF son coarse grid -> "exact" solve
+   auto cg       = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_max, cg_iter, tol / 10 );
+   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< A_t > >();
+   GeometricMultigridSolver< A_t > gmg( storage, smoother, cg, R, P, l_min, l_max, 3, 3 );
+
+   // computation of residual and L2 error
+   auto compute_residual = [&]() -> real_t {
+      A->apply( u, tmp, l_max, hyteg::Inner, Replace );
+      r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
+      return std::sqrt( r.dotGlobal( r, l_max, hyteg::Inner ) );
+   };
+   auto compute_L2error = [&]() -> real_t {
+      // u.setToZero( l_max + 1 );
+      // P->prolongate( u, l_max, hyteg::All );
+      P->prolongate( u, l_max, hyteg::Inner );
+      // err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1 );
+      // M->apply( err, tmp, l_max + 1, hyteg::All, Replace );
+      // return std::sqrt( err.dotGlobal( tmp, l_max + 1 ) );
+      // todo remove
+      err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max );
+      M->apply( err, tmp, l_max, hyteg::All, Replace );
+      return std::sqrt( err.dotGlobal( tmp, l_max ) );
+   };
 
    // solve
-   hyteg::CGSolver< A_t > solver( storage, l_min, l_min, iter, tol );
-   solver.solve( A, u, b, l_max );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s |%18s |%13s", "k", "||r_k||/||r_0||", "L2 error" ) );
 
-   // compute total error
-   err.assign( { 1.0, -1.0 }, { u, u_exact }, l_max );
-   M.apply( err, tmp, l_max, hyteg::All, Replace );
-   real_t l2err = std::sqrt( err.dotGlobal( tmp, l_max ) );
+   real_t norm_r0 = compute_residual();
+   real_t norm_r  = 0;
+   real_t l2err   = 0;
+   uint_t iter    = 0;
+   do
+   {
+      ++iter;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "L2-error = " << l2err );
+      gmg.solve( *A, u, b, l_max );
+      // cg->solve( *A, u, b, l_max );
+
+      norm_r = compute_residual();
+
+      if ( l2_error_each_iteration )
+      {
+         l2err = compute_L2error();
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r/norm_r0, l2err ) );
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r/norm_r0 ) );
+      }
+
+   } while ( norm_r / norm_r0 > tol && iter < max_iter );
+
+   if ( !l2_error_each_iteration )
+   {
+      l2err = compute_L2error();
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s  %18s |%13.3e", "", "", l2err ) );
+   }
 
    // compute elementwise error
    std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise_loc;
@@ -189,7 +257,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
+         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
@@ -208,7 +276,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
+         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
@@ -252,6 +320,10 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
       boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
 
+      u_anal.interpolate( pde.u_anal, l_max );
+
+      // todo R->restrict( err, l_max + 1, hyteg::All);
+
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       err_2.multElementwise( { err, err }, l_max, hyteg::All );
 
@@ -261,7 +333,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > >
       vtkOutput.add( k );
       vtkOutput.add( err );
       vtkOutput.add( err_2 );
-      vtkOutput.add( u_exact );
+      vtkOutput.add( u_anal );
       vtkOutput.add( b );
       vtkOutput.add( boundary );
       vtkOutput.write( l_max, uint_t( vtk ) );
@@ -274,14 +346,14 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
                                 const PDE_data&              pde,
                                 uint_t                       n,
                                 real_t                       p,
-                                uint_t                       lvl,
-                                uint_t                       iter,
+                                uint_t                       l_min,
+                                uint_t                       l_max,
+                                uint_t                       max_iter,
                                 real_t                       tol,
                                 bool                         vtk )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( initialStorage );
-   SetupPrimitiveStorage&   setupStorage = mesh.setupStorage();
 
    std::vector< std::pair< real_t, hyteg::PrimitiveID > > local_errors;
 
@@ -315,7 +387,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       auto storage = mesh.make_storage();
 
       int vtkname  = ( vtk ) ? int( refinement ) : -1;
-      local_errors = solve( storage, pde, lvl, iter, tol, vtkname );
+      local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname );
    }
 }
 
@@ -353,17 +425,18 @@ int main( int argc, char* argv[] )
 
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "proportion_of_elements_refined_per_step" );
-   const uint_t lvl           = parameters.getParameter< uint_t >( "microlevel" );
+   const uint_t l_max         = parameters.getParameter< uint_t >( "microlevel" );
+   const uint_t l_min         = ( l_max < 2 ) ? l_max : 2;
 
-   const uint_t iter = parameters.getParameter< uint_t >( "n_iterations" );
-   const real_t tol  = parameters.getParameter< real_t >( "tolerance" );
+   const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
+   const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
    const bool vtkoutput = parameters.getParameter< bool >( "vtkOutput" );
 
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
    auto pde_data     = functions( dim, shape, alpha, beta );
-   solve_for_each_refinement( setupStorage, pde_data, n_refinements, p_refinement, lvl, iter, tol, vtkoutput );
+   solve_for_each_refinement( setupStorage, pde_data, n_refinements, p_refinement, l_min, l_max, max_iter, tol, vtkoutput );
 
    return 0;
 }
