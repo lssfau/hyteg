@@ -70,15 +70,15 @@ using walberla::uint_t;
 ///
 /*! \htmlonly
   <center>
-  <table>
+  <table border="1">
   <tr>
   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
   </tr>
   <tr>
-  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCriss.png"      width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleCross.png"      width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleCrissCross.png" width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleDiamond.png"    width="600" height="600"/></td>
   </tr>
   <tr>
   <td align="center">CRISS</td>
@@ -87,21 +87,31 @@ using walberla::uint_t;
   <td align="center">DIAMOND</td>
   </tr>
   </table>
-  </center>
+  </center></br>
   \endhtmlonly
 */
 /// <b>Details of inline mesh generators for annuli:</b>
 ///
-/// Meshing of a partial annulus is (conceptually) handled by meshing the correspondig
+/// Meshing of a partial annulus is (conceptually) handled by meshing the corresponding
 /// rectangle in cartesian coordinates. In case of a partial annulus this is given by
 /// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
-/// - For a partial annulus the same four flavours as for rectangles can be specified.
-/// - A full annulus is meshed using a CRISSCROSS pattern resulting in
+/// In the case of a full annulus the rectangle is then "glued" together.
 ///
-/// |              |    \#vertices    |\#triangles  |
-/// |:-------------|:----------------:|:-----------:|
-/// | full annulus |  nTan*(2*nRad+1) | 4*nTan*nRad |
+/// For both a full and a partial annulus the same four  meshing flavours as for rectangles
+/// can be specified. Note, however, that blending only works together with CRISS or CROSS,
+/// but not for CRISSCROSS or DIAMOND.
 ///
+/// Number of mesh entities for different flavour and a full annulus
+/// |    \#vertices    |\#triangles  |   flavour  |
+/// |:----------------:|:-----------:|:----------:|
+/// |  nTan*(2*nRad+1) | 4*nTan*nRad | CRISSCROSS |
+/// |  nTan*(nRad+1)   | 2*nTan*nRad | CRISS      |
+/// |  nTan*(nRad+1)   | 2*nTan*nRad | CROSS      |
+/// |  nTan*(2*nRad+1) | 4*nTan*nRad | DIAMOND    |
+///
+/// The boundaryFlags for the full annulus are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+/// #flagInnerBoundary or #flagInterior.
+
 /*! \htmlonly
   <center>
   <table>
@@ -282,6 +292,14 @@ class MeshInfo
       SHELLMESH_ON_THE_FLY, //!< meshing is done on-the-fly
       SHELLMESH_CLASSIC     //!< meshing by midpoint refinement
    } shellMeshType;
+
+   /// Possible boundary flags for a hollow body
+   typedef enum
+   {
+      flagInterior      = 0,
+      flagInnerBoundary = 1,
+      flagOuterBoundary = 2
+   } hollowFlag;
 
    class Vertex
    {
