@@ -608,7 +608,16 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
       // remove green edges
       bool check_subelements = el->kill_children();
 
-      auto subelements = refine_element_red( el );
+      // apply regular refinement to el
+      std::set<std::shared_ptr<K_Simplex>> subelements;
+      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      {
+         subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+      }
+      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      {
+         subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+      }
 
       // mark el as processed
       U.erase( el );
@@ -812,18 +821,6 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
    }
 
    return refined;
-}
-
-template <>
-std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
-{
-   return refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
-}
-
-template <>
-std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
-{
-   return refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
 }
 
 template < class K_Simplex >

@@ -125,10 +125,6 @@ class K_Mesh
    */
    std::set< std::shared_ptr< K_Simplex > > refine_green( std::set< std::shared_ptr< K_Simplex > >& U );
 
-   /* apply red refinement to element
-      @return sub-elements
-   */
-   std::set< std::shared_ptr< K_Simplex > > refine_element_red( std::shared_ptr< K_Simplex > element );
 
    /* find elements in _T corresponding to primitiveIDs
       @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
