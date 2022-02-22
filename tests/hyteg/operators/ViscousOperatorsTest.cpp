@@ -52,10 +52,7 @@ void checkObjectGeneration( std::string                                label,
 }
 
 template < typename oper_t >
-void checkObjectGeneration( std::string                                label,
-                            std::shared_ptr< PrimitiveStorage >        primStore,
-                            uint_t                                     minLevel,
-                            uint_t                                     maxLevel )
+void checkObjectGeneration( std::string label, std::shared_ptr< PrimitiveStorage > primStore, uint_t minLevel, uint_t maxLevel )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Generating object of type '" << label << "'" );
    oper_t op( primStore, minLevel, maxLevel );
@@ -96,6 +93,8 @@ int main( int argc, char** argv )
    checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
        "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
    checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
+   checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
+       "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
 
    // ----------
    //  3D Tests
@@ -112,6 +111,8 @@ int main( int argc, char** argv )
    checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
        "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
    checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
+   checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
+       "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
 
    return EXIT_SUCCESS;
 }
