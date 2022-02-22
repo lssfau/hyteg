@@ -58,7 +58,7 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
       break;
 
     case ANNULUS:
-      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, 4, 2 ) );
+      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, flavour, 4, 2 ) );
       break;
 
     case SPHERICAL_SHELL:
@@ -138,6 +138,9 @@ int main( int argc, char* argv[] )
 
    // Check mesh generator for annuli
    hyteg::testMeshGenerator( ANNULUS, hyteg::MeshInfo::CROSS );
+   hyteg::testMeshGenerator( ANNULUS, hyteg::MeshInfo::CRISS );
+   hyteg::testMeshGenerator( ANNULUS, hyteg::MeshInfo::CRISSCROSS );
+   hyteg::testMeshGenerator( ANNULUS, hyteg::MeshInfo::DIAMOND );
    hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CRISS );
    hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CROSS );
    hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CRISSCROSS );

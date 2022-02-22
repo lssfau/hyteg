@@ -618,10 +618,10 @@ waLBerla_execute_test(NAME PackageBufferSystemTest2 COMMAND $<TARGET_FILE:Packag
 waLBerla_execute_test(NAME PackageBufferSystemTest3 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 3)
 waLBerla_execute_test(NAME PackageBufferSystemTest4 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 4)
 
-waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES meshes/MeshInfoTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest1 COMMAND $<TARGET_FILE:MeshInfoTest>)
 waLBerla_execute_test(NAME MeshInfoTest2 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 2)
-waLBerla_compile_test(FILES MeshGenTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES meshes/MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest>)
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2)
 
