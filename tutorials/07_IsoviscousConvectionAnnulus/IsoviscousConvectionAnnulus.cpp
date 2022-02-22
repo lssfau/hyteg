@@ -586,7 +586,7 @@ void runBenchmark( real_t      cflMax,
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
 
    /// [Max velocity]
-   vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, maxLevel, All );
+   vMax = velocityMaxMagnitude( u.uvw, uTmp, uMagnitudeSquared, maxLevel, All );
    /// [Max velocity]
 
    localTimer.start();
@@ -639,7 +639,7 @@ void runBenchmark( real_t      cflMax,
       // new time step size
 
       /// [CFL]
-      vMax      = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, maxLevel, All );
+      vMax      = velocityMaxMagnitude( u.uvw, uTmp, uTmp2, maxLevel, All );
       real_t dt = ( cflMax / vMax ) * hMin;
       /// [CFL]
 
@@ -696,7 +696,7 @@ void runBenchmark( real_t      cflMax,
 
       timeTotal += dt;
 
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, maxLevel, All );
+      vMax = velocityMaxMagnitude( u.uvw, uTmp, uMagnitudeSquared, maxLevel, All );
 
       localTimer.start();
       if ( vtk )

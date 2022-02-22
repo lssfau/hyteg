@@ -877,14 +877,7 @@ void runBenchmark( real_t     cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-   if ( storage->hasGlobalCells() )
-   {
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
-   }
-   else
-   {
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
-   }
+   vMax = velocityMaxMagnitude( u.uvw, uTmp, uMagnitudeSquared, level, All );
 
    localTimer.start();
    if ( outputInfo.vtk )
@@ -976,15 +969,7 @@ void runBenchmark( real_t     cflMax,
       timeStep++;
 
       // new time step size
-
-      if ( storage->hasGlobalCells() )
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uTmp2, level, All );
-      }
-      else
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
-      }
+      vMax = velocityMaxMagnitude( u.uvw, uTmp, uTmp2, level, All );
 
       real_t dt;
       if ( fixedTimeStep )
@@ -1169,15 +1154,7 @@ void runBenchmark( real_t     cflMax,
       timeTotal += dt;
 
       vRms = velocityRMS( u, stokesTmp, MVelocity, domainInfo.domainVolume(), level );
-
-      if ( storage->hasGlobalCells() )
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
-      }
-      else
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
-      }
+      vMax = velocityMaxMagnitude( u.uvw, uTmp, uMagnitudeSquared, level, All );
 
       localTimer.start();
       if ( outputInfo.vtk )

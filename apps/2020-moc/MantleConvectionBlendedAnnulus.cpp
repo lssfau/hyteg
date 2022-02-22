@@ -280,7 +280,7 @@ void runSimulation( int argc, char** argv )
              walberla::format( " %6s | %12s | %14s | %12s | %8d | %15e ", "", "", "", "", numVCycles, currentResidual ) )
       }
 
-      const auto maxVelocity = velocityMaxMagnitude( u.uvw[0], u.uvw[1], tmp.uvw[0], tmp.uvw[1], maxLevel, All );
+      const auto maxVelocity = velocityMaxMagnitude( u.uvw, tmp.uvw[0], tmp.uvw[1], maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
       transport.step( c, u.uvw, uLast.uvw, maxLevel, Inner, dt, 1, true );
