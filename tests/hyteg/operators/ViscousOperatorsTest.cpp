@@ -218,14 +218,14 @@ void scenario2( std::string label, bool useBlending )
    op.apply( src, dst, maxLevel, Inner );
 
    // compute the rhs of the weak form of the equation (note the conventional minus sign)
-   std::function< real_t( const Point3D& ) > divX = [a, b, c]( const Point3D& x ) {
+   std::function< real_t( const Point3D& ) > divX = [a, b]( const Point3D& x ) {
       real_t denom = ( x[0] * x[0] + x[1] * x[1] ) * ( x[0] * x[0] + x[1] * x[1] );
       real_t numer = -real_c( 2 ) * a * x[0] * x[0] + real_c( 2 ) * a * x[1] * x[1];
       numer += -real_c( 4 ) * b * x[0] * x[1];
       return -numer / denom;
    };
 
-   std::function< real_t( const Point3D& ) > divY = [a, b, c]( const Point3D& x ) {
+   std::function< real_t( const Point3D& ) > divY = [a, b]( const Point3D& x ) {
       real_t denom = ( x[0] * x[0] + x[1] * x[1] ) * ( x[0] * x[0] + x[1] * x[1] );
       real_t numer = +real_c( 2 ) * b * x[0] * x[0] - real_c( 2 ) * b * x[1] * x[1];
       numer += -real_c( 4 ) * a * x[0] * x[1];
