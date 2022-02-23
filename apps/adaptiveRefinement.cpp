@@ -21,6 +21,7 @@
 #include <core/Environment.h>
 #include <core/Format.hpp>
 #include <core/config/Create.h>
+#include <core/math/Constants.h>
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 
@@ -42,7 +43,6 @@ using namespace hyteg;
 using walberla::real_t;
 using walberla::uint_t;
 
-#define PI 3.14159265359
 #define R_min 1.0
 #define R_max 2.0
 
@@ -103,6 +103,7 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
    {
       meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
    }
+
    else if ( dim == 2 && shape == 0 )
    {
       Point2D n( { 1, 1 } );
@@ -148,7 +149,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
                                                               int                                 vtk,
                                                               bool                                l2_error_each_iteration = true )
 {
-   uint_t dim    = storage->hasGlobalCells() ? 3 : 2;
+   uint_t dim = storage->hasGlobalCells() ? 3 : 2;
 
    // operators
    using M_t = P1BlendingMassOperator;
@@ -181,38 +182,36 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
    M->apply( tmp, b, l_max, hyteg::All );
    // analytical solution
    u_anal.interpolate( pde.u_anal, l_max + 1 );
-   // todo remove
-   u_anal.interpolate( pde.u_anal, l_max);
    // initialize u
    u.setToZero( l_max );
-   u.setToZero( l_max+1 );
+   u.setToZero( l_max + 1 );
    u.interpolate( pde.u_D, l_max, hyteg::DirichletBoundary );
-   u.interpolate( pde.u_D, l_max+1, hyteg::DirichletBoundary );
+   u.interpolate( pde.u_D, l_max + 1, hyteg::DirichletBoundary );
 
    // solver
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_min, hyteg::Inner );
-   auto cg_iter  = uint_t( tmp.dotGlobal( tmp, l_min ) ); // cg_iter = DoF son coarse grid -> "exact" solve
-   auto cg       = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_max, cg_iter, tol / 10 );
-   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< A_t > >();
+   // cg_iter >= n coarse grid DoFs -> "exact" solve
+   auto cg_iter  = std::max( max_iter, uint_t( tmp.dotGlobal( tmp, l_min ) ) );
+   auto cg       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_max, cg_iter, tol / 10 );
+   auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
+
    GeometricMultigridSolver< A_t > gmg( storage, smoother, cg, R, P, l_min, l_max, 3, 3 );
 
    // computation of residual and L2 error
+   err.setToZero( l_max );
+   err.setToZero( l_max + 1 );
+   tmp.setToZero( l_max );
+   tmp.setToZero( l_max + 1 );
    auto compute_residual = [&]() -> real_t {
       A->apply( u, tmp, l_max, hyteg::Inner, Replace );
       r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
       return std::sqrt( r.dotGlobal( r, l_max, hyteg::Inner ) );
    };
    auto compute_L2error = [&]() -> real_t {
-      // u.setToZero( l_max + 1 );
-      // P->prolongate( u, l_max, hyteg::All );
       P->prolongate( u, l_max, hyteg::Inner );
-      // err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1 );
-      // M->apply( err, tmp, l_max + 1, hyteg::All, Replace );
-      // return std::sqrt( err.dotGlobal( tmp, l_max + 1 ) );
-      // todo remove
-      err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max );
-      M->apply( err, tmp, l_max, hyteg::All, Replace );
-      return std::sqrt( err.dotGlobal( tmp, l_max ) );
+      err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1, hyteg::Inner );
+      M->apply( err, tmp, l_max + 1, hyteg::All, Replace );
+      return std::sqrt( err.dotGlobal( tmp, l_max + 1 ) );
    };
 
    // solve
@@ -228,18 +227,17 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
       ++iter;
 
       gmg.solve( *A, u, b, l_max );
-      // cg->solve( *A, u, b, l_max );
 
       norm_r = compute_residual();
 
       if ( l2_error_each_iteration )
       {
          l2err = compute_L2error();
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r/norm_r0, l2err ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r / norm_r0, l2err ) );
       }
       else
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r/norm_r0 ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r / norm_r0 ) );
       }
 
    } while ( norm_r / norm_r0 > tol && iter < max_iter );
@@ -322,7 +320,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
 
       u_anal.interpolate( pde.u_anal, l_max );
 
-      // todo R->restrict( err, l_max + 1, hyteg::All);
+      R->restrict( err, l_max + 1, hyteg::Inner );
 
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       err_2.multElementwise( { err, err }, l_max, hyteg::All );

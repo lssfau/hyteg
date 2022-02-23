@@ -17,7 +17,7 @@ Parameters
   n_refinements 3;
   proportion_of_elements_refined_per_step 1;
 
-  // linear solver (cg)
+  // linear solver (GMG)
   microlevel 0;
   n_iterations 30;
   tolerance 1e-12;
