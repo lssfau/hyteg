@@ -443,7 +443,7 @@ void runBenchmark( real_t      cflMax,
    const real_t nusseltDiffH       = 2.5e-1 * hMin;
 
    real_t timeTotal = 0;
-   real_t vMax      = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+   real_t vMax      = velocityMaxMagnitude( u.uvw, uTmp, uTmp2, level, All );
    real_t nu        = 0;
    real_t vRms      = 0;
    real_t residualU = 0;
@@ -503,7 +503,7 @@ void runBenchmark( real_t      cflMax,
    localTimer.end();
    timeStokes = localTimer.last();
 
-   vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+   vMax = velocityMaxMagnitude( u.uvw, uTmp, uTmp2, level, All );
 
    if ( vtk )
    {
@@ -535,7 +535,7 @@ void runBenchmark( real_t      cflMax,
 
       // new time step size
 
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+      vMax = velocityMaxMagnitude( u.uvw, uTmp, uTmp2, level, All );
 
       real_t dt;
       if ( fixedTimeStep )
