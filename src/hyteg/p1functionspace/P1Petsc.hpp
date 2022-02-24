@@ -31,56 +31,6 @@
 
 namespace hyteg {
 
-// ============
-//  P1Function
-// ============
-inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
-{
-   for ( auto& it : numerator.getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = numerator.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, DirichletBoundary ) )
-      {
-         vertexdof::macrovertex::applyDirichletBC( vertex, mat, level, numerator.getVertexDataID() );
-      }
-   }
-
-   for ( auto& it : numerator.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, DirichletBoundary ) )
-      {
-         vertexdof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : numerator.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, DirichletBoundary ) )
-      {
-         vertexdof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
-      }
-   }
-}
-
-// ==================
-//  P1VectorFunction
-// ==================
-inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
-{
-   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
-   {
-      applyDirichletBC( numerator[k], mat, level );
-   }
-}
-
 // =============
 //  P1Operators
 // =============

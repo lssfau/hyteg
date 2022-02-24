@@ -28,11 +28,7 @@
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
-#include "hyteg/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/petsc/PETScVectorProxy.hpp"
 
 namespace hyteg {
