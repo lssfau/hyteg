@@ -50,6 +50,15 @@ class K_Mesh
    */
    void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
 
+   /* apply red-green refinement to this mesh
+      @param elements_to_refine  subset of elements that shall be refined (red)
+                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
+      @param n_el_max            soft upper bound for the total number of elements
+                                 in refined mesh, i.e., it might be slightly exceeded.
+      @return size of that part of elements_to_refine which has been processed before reaching n_el_max
+   */
+   uint_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max );
+
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
 
@@ -125,6 +134,10 @@ class K_Mesh
    */
    std::set< std::shared_ptr< K_Simplex > > refine_green( std::set< std::shared_ptr< K_Simplex > >& U );
 
+   /* predict the number of additional elements that will be
+      added during green refinement step
+   */
+   uint_t predict_n_el_green( const std::set< std::shared_ptr< K_Simplex > >& U ) const;
 
    /* find elements in _T corresponding to primitiveIDs
       @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
@@ -195,6 +208,26 @@ class Mesh
       }
    }
 
+   /* apply red-green refinement to this mesh
+      @param elements_to_refine  subset of elements that shall be refined (red)
+                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
+      @param n_el_max            soft upper bound for the total number of elements
+                                 in refined mesh. The bound is soft in the sense
+                                 that it might be slightly exceeded.
+      @return number of elements that actually where subject to red refinement
+   */
+   uint_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->refineRG( elements_to_refine, n_el_max );
+      }
+      else
+      {
+         return _mesh2D->refineRG( elements_to_refine, n_el_max );
+      }
+   }
+
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const
    {
@@ -259,6 +292,8 @@ class Mesh
          return _mesh2D->n_vtx();
       }
    }
+
+   inline uint_t dim() const { return _DIM; }
 
  private:
    uint_t                    _DIM;    // spacial dimension

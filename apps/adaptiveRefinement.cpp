@@ -342,8 +342,9 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
 
 void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
                                 const PDE_data&              pde,
-                                uint_t                       n,
-                                real_t                       p,
+                                uint_t                       n_ref,
+                                uint_t                       n_el_max,
+                                real_t                       p_ref,
                                 uint_t                       l_min,
                                 uint_t                       l_max,
                                 uint_t                       max_iter,
@@ -353,39 +354,46 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( initialStorage );
 
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > local_errors;
-
-   // loop over refinement levels
-   for ( uint_t refinement = 0; refinement <= n; ++refinement )
+   uint_t refinement = 0;
+   while ( 1 )
    {
-      // apply refinement
-      if ( refinement > 0 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
-
-         uint_t N_tot = local_errors.size();
-         uint_t N_ref = uint_t( std::ceil( real_t( N_tot ) * p ) );
-
-         WALBERLA_LOG_INFO_ON_ROOT( " -> " << N_ref << " of " << N_tot << " elements are being refined ..." );
-
-         // collect elements to refine
-         std::vector< PrimitiveID > R( N_ref );
-         for ( uint_t i = 0; i < N_ref; ++i )
-         {
-            R[i] = local_errors[N_tot - 1 - i].second;
-         }
-
-         // apply refinement
-         mesh.refineRG( R );
-      }
-
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
-      // construct PrimitiveStorage
-      auto storage = mesh.make_storage();
+      // solve for current refinement
+      auto storage      = mesh.make_storage();
+      int  vtkname      = ( vtk ) ? int( refinement ) : -1;
+      auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname );
 
-      int vtkname  = ( vtk ) ? int( refinement ) : -1;
-      local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname );
+      // stop loop when reaching maximum refinement
+      auto N_tot = mesh.n_elements();
+      if ( refinement >= n_ref || N_tot >= n_el_max )
+      {
+         break;
+      }
+
+      ++refinement;
+      WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
+
+      // compute number of elements to refine
+      // real_t growth_est = (mesh.dim() == 2)? 3 : 7; // only considering red refinement
+      // auto N_ref_max = real_t( n_el_max - N_tot ) / growth_est;
+      // auto N_ref     = uint_t( std::ceil( std::min( real_t( N_tot ) * p_ref, N_ref_max ) ) );
+
+      auto N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
+
+      // WALBERLA_LOG_INFO_ON_ROOT( " -> " << N_ref << " of " << N_tot << " elements are being refined ..." );
+
+      // collect ids of elements for refinement
+      std::vector< PrimitiveID > R( N_ref );
+      for ( uint_t i = 0; i < N_ref; ++i )
+      {
+         R[i] = local_errors[N_tot - 1 - i].second;
+      }
+
+      // apply refinement
+      auto n_red = mesh.refineRG( R, n_el_max );
+
+      WALBERLA_LOG_INFO_ON_ROOT( " -> " << n_red << " of " << N_tot << " elements chosen for red refinement" );
    }
 }
 
@@ -422,7 +430,8 @@ int main( int argc, char* argv[] )
    const real_t beta  = parameters.getParameter< real_t >( "beta" );
 
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const real_t p_refinement  = parameters.getParameter< real_t >( "proportion_of_elements_refined_per_step" );
+   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
+   const real_t p_refinement  = parameters.getParameter< real_t >( "n_el_ref_relative" );
    const uint_t l_max         = parameters.getParameter< uint_t >( "microlevel" );
    const uint_t l_min         = ( l_max < 2 ) ? l_max : 2;
 
@@ -434,7 +443,8 @@ int main( int argc, char* argv[] )
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
    auto pde_data     = functions( dim, shape, alpha, beta );
-   solve_for_each_refinement( setupStorage, pde_data, n_refinements, p_refinement, l_min, l_max, max_iter, tol, vtkoutput );
+   solve_for_each_refinement(
+       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkoutput );
 
    return 0;
 }

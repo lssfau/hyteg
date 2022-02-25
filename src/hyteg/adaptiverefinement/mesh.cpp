@@ -162,7 +162,6 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       while ( !R.empty() )
       {
          refined.merge( refine_red( R, U ) );
-
          R = find_elements_for_red_refinement( U );
       }
 
@@ -175,6 +174,88 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
    }
+
+   walberla::mpi::broadcastObject( _n_vertices );
+   walberla::mpi::broadcastObject( _n_elements );
+}
+
+template < class K_Simplex >
+uint_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+{
+   uint_t n_red = 0;
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      auto R = init_R( elements_to_refine );
+
+      remove_green_edges( R );
+
+      // unprocessed elements
+      std::set< std::shared_ptr< K_Simplex > > U = _T;
+      // refined elements
+      std::set< std::shared_ptr< K_Simplex > > refined;
+
+      // convert R to vector, sorted by ordering of input vector
+      std::vector< std::shared_ptr< K_Simplex > > R_all( elements_to_refine.size() );
+      for ( uint_t i = 0; i < elements_to_refine.size(); ++i )
+      {
+         for ( auto& el : R )
+         {
+            if ( el->getPrimitiveID() == elements_to_refine[i] )
+            {
+               R_all[i] = el;
+            }
+         }
+      }
+
+      /* successively apply recursive red-refinement to parts of R
+         until predicted n_el exceeds n_el_max
+      */
+      auto prt_begin = R_all.begin();
+      auto n_predict = refined.size() + U.size();
+      while ( prt_begin != R_all.end() && n_predict < n_el_max )
+      {
+         // pessimistic estimate! in most cases the actual growth will be significantly smaller
+         const real_t est_growth_factor = ( K_Simplex::DIM == 2 ) ? 6 : 70;
+         // choose appropriate part size
+         auto prt_size = uint_t( std::ceil( real_t( n_el_max - n_predict ) / est_growth_factor ) );
+         auto prt_end  = prt_begin + std::min( prt_size, uint_t( R_all.end() - prt_begin ) );
+
+         std::set< std::shared_ptr< K_Simplex > > R_prt( prt_begin, prt_end );
+         n_red += R_prt.size();
+
+         /* recursively apply red refinement for elements
+         that otherwise would be subject to multiple
+         green refinement steps later on
+         */
+         while ( !R_prt.empty() )
+         {
+            refined.merge( refine_red( R_prt, U ) );
+            R_prt = find_elements_for_red_refinement( U );
+         }
+
+         // predict number of elements after required green step
+         n_predict = refined.size() + U.size() + predict_n_el_green( U );
+         // move to next part
+         prt_begin = prt_end;
+      }
+
+      // apply green refinement
+      refined.merge( refine_green( U ) );
+
+      // update current configuration
+      _T = U;
+      _T.merge( refined );
+      _n_vertices = _vertices.size();
+      _n_elements = _T.size();
+   }
+
+   // WALBERLA_LOG_INFO_ON_ROOT("communication");
+   walberla::mpi::broadcastObject( n_red );
+   walberla::mpi::broadcastObject( _n_vertices );
+   walberla::mpi::broadcastObject( _n_elements );
+
+   return n_red;
 }
 
 template < class K_Simplex >
@@ -187,8 +268,6 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    extract_data( edges, faces, cells );
 
    // broadcast data to all processes
-   walberla::mpi::broadcastObject( _n_elements );
-   walberla::mpi::broadcastObject( _n_vertices );
    walberla::mpi::broadcastObject( _vertices );
    walberla::mpi::broadcastObject( _vertexGeometryMap );
    walberla::mpi::broadcastObject( _vertexBoundaryFlag );
@@ -198,7 +277,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 
    auto [id, storage] = convert_to_storage( edges, faces, cells, _n_processes );
 
-   // insert PrimitiveIDs to volume elements
+   // add PrimitiveIDs to volume elements
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       for ( auto& el : _T )
@@ -605,11 +684,18 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
 
    for ( auto& el : R )
    {
+      // mark el as processed
+      if ( U.erase( el ) == 0 )
+      {
+         // for el ∉ U: don't try to refine
+         continue;
+      }
+
       // remove green edges
       bool check_subelements = el->kill_children();
 
       // apply regular refinement to el
-      std::set<std::shared_ptr<K_Simplex>> subelements;
+      std::set< std::shared_ptr< K_Simplex > > subelements;
       if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
       {
          subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
@@ -618,9 +704,6 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
       {
          subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
       }
-
-      // mark el as processed
-      U.erase( el );
 
       // mark subelements as unprocessed if necessary
       if ( check_subelements )
@@ -709,6 +792,21 @@ std::set< std::shared_ptr< Simplex3 > >
    }
 
    return R;
+}
+
+template < class K_Simplex >
+uint_t K_Mesh< K_Simplex >::predict_n_el_green( const std::set< std::shared_ptr< K_Simplex > >& U ) const
+{
+   uint_t n_el_green = 0;
+
+   for ( auto& el : U )
+   {
+      uint_t new_vertices = el->vertices_on_edges();
+
+      n_el_green += ( new_vertices == 2 ) ? 3 : new_vertices;
+   }
+
+   return n_el_green;
 }
 
 template <>

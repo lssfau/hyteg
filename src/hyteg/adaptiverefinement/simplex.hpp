@@ -62,6 +62,8 @@ template < uint_t K, class K_Simplex >
 class Simplex
 {
  public:
+   static constexpr uint_t DIM = K;
+
    /* Ctor
       @param vertices      global indices of the new Simplexes vertices
       @param parent        K-simplex s.th. this is a direct refinement of parent

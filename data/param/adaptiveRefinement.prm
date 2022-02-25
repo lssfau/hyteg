@@ -3,24 +3,30 @@ Parameters
   // spacial dimension of domain
   dim 3;
   // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 0;
+  shape 1;
   // initial mesh (n3 only used for cube)
-  n1 1;
-  n2 1;
+  n1 3;
+  n2 2;
   n3 1;
 
   // diffusion coefficient
   alpha 20; // control slope of the "jump", 5 <= alpha <= 35
   beta 1; // control height of the "jump", 1 <= beta <= 10
 
-  // adaptive refinement
-  n_refinements 3;
-  proportion_of_elements_refined_per_step 1;
+  // adaptive refinement:
+  //  In each step, the specified proportion of elements
+  //  will be refined unless the estimated resulting mesh
+  //  exceeds the given maximum of allowed elements.
+  //  In this case, the number of refined elements is
+  //  reduced as appropriate
+  n_refinements 4; // number of refinement steps
+  n_el_ref_relative 0.2; // proportion of elements to refine in each step
+  n_el_max 40000; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
   n_iterations 30;
-  tolerance 1e-12;
+  tolerance 1e-5;
 
   // vtk
   vtkOutput 0;
