@@ -24,6 +24,7 @@
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/dgfunctionspace/DGForm2D.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
 
@@ -32,15 +33,15 @@
 namespace hyteg {
 namespace dg {
 
-class DGMassForm_Example : public DGForm
+class DGMassForm_Example : public DGForm2D
 {
- public:
-   void integrateVolume( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coords,
-                         const DGBasisInfo&                                       trialBasis,
-                         const DGBasisInfo&                                       testBasis,
-                         int                                                      trialDegree,
-                         int                                                      testDegree,
-                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+ protected:
+   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                           const DGBasisInfo&                                       trialBasis,
+                           const DGBasisInfo&                                       testBasis,
+                           int                                                      trialDegree,
+                           int                                                      testDegree,
+                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
 
@@ -80,15 +81,15 @@ class DGMassForm_Example : public DGForm
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                     const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                     const DGBasisInfo&                                       trialBasis,
-                                     const DGBasisInfo&                                       testBasis,
-                                     int                                                      trialDegree,
-                                     int                                                      testDegree,
-                                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -103,17 +104,17 @@ class DGMassForm_Example : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexInnerElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexOuterElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                        const DGBasisInfo&                                       trialBasis,
-                                        const DGBasisInfo&                                       testBasis,
-                                        int                                                      trialDegree,
-                                        int                                                      testDegree,
-                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       WALBERLA_UNUSED( coordsElementInner );
       WALBERLA_UNUSED( coordsElementOuter );
@@ -130,15 +131,15 @@ class DGMassForm_Example : public DGForm
       // Does nothing.
    };
 
-   virtual void integrateFacetDirichletBoundary( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                                 const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -148,6 +149,25 @@ class DGMassForm_Example : public DGForm
       WALBERLA_UNUSED( testBasis );
       WALBERLA_UNUSED( trialDegree );
       WALBERLA_UNUSED( testDegree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
+
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       basis,
+                                                 int                                                      degree,
+                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( oppositeVertex );
+      WALBERLA_UNUSED( outwardNormal );
+      WALBERLA_UNUSED( basis );
+      WALBERLA_UNUSED( degree );
       WALBERLA_UNUSED( elMat );
 
       // Does nothing.

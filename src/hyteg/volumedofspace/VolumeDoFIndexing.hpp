@@ -20,7 +20,9 @@
 
 #pragma once
 
+#include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -28,6 +30,8 @@
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 
 namespace hyteg {
 namespace volumedofspace {
@@ -182,6 +186,115 @@ inline uint_t indexGhostLayer( uint_t                localEdgeID,
 }
 
 ///@}
+
+/// \brief Simple class that computes and holds information about the neighborhood of a volume element.
+class ElementNeighborInfo
+{
+ public:
+   using Point    = Eigen::Matrix< real_t, 3, 1 >;
+   using Index    = hyteg::indexing::Index;
+   using FaceType = facedof::FaceType;
+
+   ElementNeighborInfo( Index                                      elementIdx,
+                        FaceType                                   faceType,
+                        uint_t                                     level,
+                        BoundaryCondition                          boundaryCondition,
+                        PrimitiveID                                faceID,
+                        const std::shared_ptr< PrimitiveStorage >& storage );
+
+   [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
+
+   Index neighborElementIndices( uint_t neighbor ) const { return neighborElementIndices_[neighbor]; }
+
+   [[nodiscard]] const std::vector< Point >& neighborElementVertexCoords( uint_t neighbor ) const
+   {
+      return neighborElementVertexCoords_[neighbor];
+   }
+
+   void macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,
+                                                  std::vector< Point >& neighborElementVertexCoords,
+                                                  Point&                neighborOppositeVertexCoords ) const;
+
+   [[nodiscard]] const std::vector< Point >& interfaceVertexCoords( uint_t neighbor ) const
+   {
+      return interfaceVertexCoords_[neighbor];
+   }
+
+   [[nodiscard]] const Point& oppositeVertexCoords( uint_t neighbor ) const { return oppositeVertexCoords_[neighbor]; }
+
+   [[nodiscard]] const Point& neighborOppositeVertexCoords( uint_t neighbor ) const
+   {
+      return neighborOppositeVertexCoords_[neighbor];
+   }
+
+   [[nodiscard]] const Point& outwardNormal( uint_t neighbor ) const { return outwardNormal_[neighbor]; }
+
+   FaceType neighborFaceType( uint_t neighbor ) const { return neighborFaceElementTypes_[neighbor]; }
+
+   bool onMacroBoundary( uint_t neighbor ) const { return onMacroBoundary_[neighbor]; }
+
+   DoFType neighborBoundaryType( uint_t neighbor ) const { return neighborBoundaryType_[neighbor]; }
+
+ private:
+   /// Dimensionality of the volume element.
+   int dim_;
+
+   /// Logical index of the element.
+   Index elementIdx_;
+
+   /// Primitive ID of the containing volume primitive.
+   PrimitiveID volumeID_;
+
+   std::shared_ptr< PrimitiveStorage > storage_;
+
+   /// Type of the element (if 2D)
+   FaceType faceType_;
+
+   /// Refinement level.
+   uint_t level_;
+
+   /// Logical indices of the elements' vertices.
+   std::vector< Index > vertexIndicesVolume_;
+
+   /// Coordinates of the elements' vertices.
+   std::vector< Point > vertexCoordsVolume_;
+
+   /// Logical indices of the neighbor elements.
+   std::vector< Index > neighborElementIndices_;
+
+   /// Types of the neighbor elements (if 2D).
+   std::vector< FaceType > neighborFaceElementTypes_;
+
+   /// Coordinates of the neighboring elements' vertices.
+   std::vector< std::vector< Point > > neighborElementVertexCoords_;
+
+   /// Logical vertex indices of the interfaces to the neighboring elements.
+   std::vector< std::vector< Index > > interfaceVertexIndices_;
+
+   /// Coordinates of the vertices at the interfaces to the neighboring elements.
+   std::vector< std::vector< Point > > interfaceVertexCoords_;
+
+   /// Normal to the interface pointing away from the element.
+   std::vector< Point > outwardNormal_;
+
+   /// Logical vertex index of the element's vertex that is not on the interface.
+   std::vector< Index > oppositeVertexIndex_;
+
+   /// Coordinates of the element's vertex that is not on the interface.
+   std::vector< Point > oppositeVertexCoords_;
+
+   /// Logical vertex index of the neighboring element's vertex that is not on the interface.
+   std::vector< Index > neighborOppositeVertexIndex_;
+
+   /// Coordinates of the neighboring element's vertex that is not on the interface.
+   std::vector< Point > neighborOppositeVertexCoords_;
+
+   /// Stores for each element interface if it is on a macro-element boundary.
+   std::vector< bool > onMacroBoundary_;
+
+   /// Stores the DoFType (think boundary condition) for each element interface.
+   std::vector< DoFType > neighborBoundaryType_;
+};
 
 } // namespace indexing
 } // namespace volumedofspace

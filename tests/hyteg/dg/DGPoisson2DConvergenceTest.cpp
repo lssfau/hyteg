@@ -59,7 +59,7 @@ real_t testOnSingleElementHomDirichlet( uint_t level, int degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -113,7 +113,7 @@ real_t testHomDirichlet( uint_t level, int degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -147,6 +147,73 @@ real_t testHomDirichlet( uint_t level, int degree )
    vtk.add( u );
    vtk.add( sol );
    vtk.add( err );
+   vtk.write( level );
+
+   return discrL2;
+}
+
+/// Solves Poisson with rhs == 0 and inhomog. Dirichlet BCs.
+/// Returns the scaled L2 error.
+real_t testDirichlet( uint_t level, int degree )
+{
+   using namespace dg;
+
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) { return 0; };
+
+   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc );
+   auto massForm    = std::make_shared< DGMassForm_Example >();
+
+   DGFunction< real_t > u( "u", storage, level, level, basis, degree );
+   DGFunction< real_t > f( "f", storage, level, level, basis, degree );
+   DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
+   DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
+   DGFunction< real_t > err( "err", storage, level, level, basis, degree );
+
+   DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
+   numerator.enumerate( level );
+
+   DGOperator A( storage, level, level, laplaceForm );
+   DGOperator M( storage, level, level, massForm );
+
+   std::string                     fileName = "../../output/diffusionnn.m";
+   PETScSparseMatrix< DGOperator > mat;
+   mat.createMatrixFromOperator( A, level, numerator, numerator );
+   mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
+
+   // Assemble RHS.
+   f.evaluateLinearFunctional( rhsFunc, level );
+   f.applyDirichletBoundaryConditions( laplaceForm, level );
+
+   std::string                       fileNameRhs = "../../output/rhs.m";
+   PETScVector< real_t, DGFunction > fsparse;
+   fsparse.createVectorFromFunction( f, numerator, level );
+   fsparse.print( fileNameRhs.c_str(), false, PETSC_VIEWER_ASCII_MATLAB );
+
+   // Interpolate solution
+   tmp.evaluateLinearFunctional( solFunc, level );
+   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
+   solverM.solve( M, sol, tmp, level );
+
+   // Solve system.
+   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   solverA.solve( A, u, f, level );
+
+   err.assign( { 1.0, -1.0 }, { u, sol }, level );
+   auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
+
+   VTKOutput vtk( "../../output/", "DGPoisson2DConvergenceTest_testDirichlet", storage );
+   vtk.add( u );
+   vtk.add( sol );
+   vtk.add( err );
+   vtk.add( f );
    vtk.write( level );
 
    return discrL2;
@@ -210,6 +277,34 @@ int main( int argc, char** argv )
                                        "Convergence L2 rate level " << l << " vs level " << l - 1
                                                                     << " not sufficiently small (computed: " << computedRate
                                                                     << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+            err = errFiner;
+         }
+      }
+   }
+
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet ###" );
+      for ( int degree = 1; degree <= 1; degree++ )
+      {
+         uint_t minLevel    = 2;
+         auto   l2ConvRate  = std::pow( 2, -( degree + 1 ) );
+         auto   convRateEps = l2ConvRate * 0.1;
+         auto   err         = hyteg::testOnSingleElementHomDirichlet( minLevel, degree );
+         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
+                                              << ", threshold: " << l2ConvRate + convRateEps );
+         for ( uint_t l = minLevel + 1; l < 7; l++ )
+         {
+            auto errFiner     = hyteg::testDirichlet( l, degree );
+            auto computedRate = errFiner / err;
+
+            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+
+            WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                       l2ConvRate + convRateEps,
+                                       "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                                    << " not sufficiently small (computed: " << computedRate
+                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+
             err = errFiner;
          }
       }

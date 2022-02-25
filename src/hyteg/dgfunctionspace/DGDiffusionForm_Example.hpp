@@ -24,6 +24,7 @@
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/dgfunctionspace/DGForm2D.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
 
@@ -32,15 +33,24 @@
 namespace hyteg {
 namespace dg {
 
-class DGDiffusionForm_Example : public DGForm
+class DGDiffusionForm_Example : public DGForm2D
 {
  public:
-   void integrateVolume( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coords,
-                         const DGBasisInfo&                                       trialBasis,
-                         const DGBasisInfo&                                       testBasis,
-                         int                                                      trialDegree,
-                         int                                                      testDegree,
-                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   DGDiffusionForm_Example()
+   : callback_Scalar_Variable_Coefficient_2D_g( []( const Point3D& ) { return real_c( 0 ); } )
+   {}
+
+   DGDiffusionForm_Example( const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_2D_g )
+   : callback_Scalar_Variable_Coefficient_2D_g( _callback_Scalar_Variable_Coefficient_2D_g )
+   {}
+
+ protected:
+   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                           const DGBasisInfo&                                       trialBasis,
+                           const DGBasisInfo&                                       testBasis,
+                           int                                                      trialDegree,
+                           int                                                      testDegree,
+                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
 
@@ -164,15 +174,15 @@ class DGDiffusionForm_Example : public DGForm
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                     const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                     const DGBasisInfo&                                       trialBasis,
-                                     const DGBasisInfo&                                       testBasis,
-                                     int                                                      trialDegree,
-                                     int                                                      testDegree,
-                                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -307,17 +317,17 @@ class DGDiffusionForm_Example : public DGForm
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexInnerElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexOuterElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                        const DGBasisInfo&                                       trialBasis,
-                                        const DGBasisInfo&                                       testBasis,
-                                        int                                                      trialDegree,
-                                        int                                                      testDegree,
-                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
 
@@ -497,14 +507,136 @@ class DGDiffusionForm_Example : public DGForm
       elMat( 2, 2 ) = a_2_2;
    };
 
-   virtual void integrateFacetDirichletBoundary( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                                 const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t tmp_0 = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_1 = -p_affine_0_1;
+      real_t tmp_2 = p_affine_6_1 + tmp_1;
+      real_t tmp_3 = 0.1127016653792583*tmp_0 + tmp_2;
+      real_t tmp_4 = -p_affine_0_0;
+      real_t tmp_5 = p_affine_1_0 + tmp_4;
+      real_t tmp_6 = p_affine_2_1 + tmp_1;
+      real_t tmp_7 = 1.0 / (tmp_5*tmp_6 - (p_affine_1_1 + tmp_1)*(p_affine_2_0 + tmp_4));
+      real_t tmp_8 = tmp_5*tmp_7;
+      real_t tmp_9 = tmp_3*tmp_8;
+      real_t tmp_10 = tmp_7*(p_affine_0_0 - p_affine_2_0);
+      real_t tmp_11 = tmp_10*tmp_3;
+      real_t tmp_12 = -p_affine_6_0 + p_affine_7_0;
+      real_t tmp_13 = p_affine_6_0 + tmp_4;
+      real_t tmp_14 = 0.1127016653792583*tmp_12 + tmp_13;
+      real_t tmp_15 = tmp_6*tmp_7;
+      real_t tmp_16 = tmp_14*tmp_15;
+      real_t tmp_17 = tmp_7*(p_affine_0_1 - p_affine_1_1);
+      real_t tmp_18 = tmp_14*tmp_17;
+      real_t tmp_19 = -tmp_11 - tmp_16 - tmp_18 - tmp_9 + 1;
+      real_t tmp_20 = std::abs(std::pow((tmp_0*tmp_0) + (tmp_12*tmp_12), 1.0/2.0));
+      real_t tmp_21 = 24/tmp_20;
+      real_t tmp_22 = p_affine_10_0*(-tmp_15 - tmp_17);
+      real_t tmp_23 = p_affine_10_1*(-tmp_10 - tmp_8);
+      real_t tmp_24 = tmp_22 + tmp_23;
+      real_t tmp_25 = -tmp_22 - tmp_23;
+      real_t tmp_26 = 0.27777777777777785*tmp_20;
+      real_t tmp_27 = 0.5*tmp_0 + tmp_2;
+      real_t tmp_28 = tmp_27*tmp_8;
+      real_t tmp_29 = tmp_10*tmp_27;
+      real_t tmp_30 = 0.5*tmp_12 + tmp_13;
+      real_t tmp_31 = tmp_15*tmp_30;
+      real_t tmp_32 = tmp_17*tmp_30;
+      real_t tmp_33 = -tmp_28 - tmp_29 - tmp_31 - tmp_32 + 1;
+      real_t tmp_34 = 0.44444444444444442*tmp_20;
+      real_t tmp_35 = 0.8872983346207417*tmp_0 + tmp_2;
+      real_t tmp_36 = tmp_35*tmp_8;
+      real_t tmp_37 = tmp_10*tmp_35;
+      real_t tmp_38 = 0.8872983346207417*tmp_12 + tmp_13;
+      real_t tmp_39 = tmp_15*tmp_38;
+      real_t tmp_40 = tmp_17*tmp_38;
+      real_t tmp_41 = -tmp_36 - tmp_37 - tmp_39 - tmp_40 + 1;
+      real_t tmp_42 = 0.27777777777777785*tmp_20;
+      real_t tmp_43 = tmp_11 + tmp_16;
+      real_t tmp_44 = p_affine_10_0*tmp_15;
+      real_t tmp_45 = p_affine_10_1*tmp_10;
+      real_t tmp_46 = tmp_44 + tmp_45;
+      real_t tmp_47 = tmp_19*tmp_21;
+      real_t tmp_48 = tmp_43*tmp_47;
+      real_t tmp_49 = tmp_29 + tmp_31;
+      real_t tmp_50 = tmp_21*tmp_33;
+      real_t tmp_51 = tmp_49*tmp_50;
+      real_t tmp_52 = tmp_37 + tmp_39;
+      real_t tmp_53 = tmp_21*tmp_41;
+      real_t tmp_54 = tmp_52*tmp_53;
+      real_t tmp_55 = tmp_18 + tmp_9;
+      real_t tmp_56 = p_affine_10_0*tmp_17;
+      real_t tmp_57 = p_affine_10_1*tmp_8;
+      real_t tmp_58 = tmp_56 + tmp_57;
+      real_t tmp_59 = tmp_47*tmp_55;
+      real_t tmp_60 = tmp_28 + tmp_32;
+      real_t tmp_61 = tmp_50*tmp_60;
+      real_t tmp_62 = tmp_36 + tmp_40;
+      real_t tmp_63 = tmp_53*tmp_62;
+      real_t tmp_64 = -tmp_44 - tmp_45;
+      real_t tmp_65 = tmp_21*tmp_43*tmp_55;
+      real_t tmp_66 = tmp_21*tmp_49*tmp_60;
+      real_t tmp_67 = tmp_21*tmp_52*tmp_62;
+      real_t tmp_68 = -tmp_56 - tmp_57;
+      real_t a_0_0 = tmp_26*((tmp_19*tmp_19)*tmp_21 - tmp_19*tmp_24 + tmp_19*tmp_25) + tmp_34*(tmp_21*(tmp_33*tmp_33) - tmp_24*tmp_33 + tmp_25*tmp_33) + tmp_42*(tmp_21*(tmp_41*tmp_41) - tmp_24*tmp_41 + tmp_25*tmp_41);
+      real_t a_0_1 = tmp_26*(-tmp_19*tmp_46 + tmp_25*tmp_43 + tmp_48) + tmp_34*(tmp_25*tmp_49 - tmp_33*tmp_46 + tmp_51) + tmp_42*(tmp_25*tmp_52 - tmp_41*tmp_46 + tmp_54);
+      real_t a_0_2 = tmp_26*(-tmp_19*tmp_58 + tmp_25*tmp_55 + tmp_59) + tmp_34*(tmp_25*tmp_60 - tmp_33*tmp_58 + tmp_61) + tmp_42*(tmp_25*tmp_62 - tmp_41*tmp_58 + tmp_63);
+      real_t a_1_0 = tmp_26*(tmp_19*tmp_64 - tmp_24*tmp_43 + tmp_48) + tmp_34*(-tmp_24*tmp_49 + tmp_33*tmp_64 + tmp_51) + tmp_42*(-tmp_24*tmp_52 + tmp_41*tmp_64 + tmp_54);
+      real_t a_1_1 = tmp_26*(tmp_21*(tmp_43*tmp_43) - tmp_43*tmp_46 + tmp_43*tmp_64) + tmp_34*(tmp_21*(tmp_49*tmp_49) - tmp_46*tmp_49 + tmp_49*tmp_64) + tmp_42*(tmp_21*(tmp_52*tmp_52) - tmp_46*tmp_52 + tmp_52*tmp_64);
+      real_t a_1_2 = tmp_26*(-tmp_43*tmp_58 + tmp_55*tmp_64 + tmp_65) + tmp_34*(-tmp_49*tmp_58 + tmp_60*tmp_64 + tmp_66) + tmp_42*(-tmp_52*tmp_58 + tmp_62*tmp_64 + tmp_67);
+      real_t a_2_0 = tmp_26*(tmp_19*tmp_68 - tmp_24*tmp_55 + tmp_59) + tmp_34*(-tmp_24*tmp_60 + tmp_33*tmp_68 + tmp_61) + tmp_42*(-tmp_24*tmp_62 + tmp_41*tmp_68 + tmp_63);
+      real_t a_2_1 = tmp_26*(tmp_43*tmp_68 - tmp_46*tmp_55 + tmp_65) + tmp_34*(-tmp_46*tmp_60 + tmp_49*tmp_68 + tmp_66) + tmp_42*(-tmp_46*tmp_62 + tmp_52*tmp_68 + tmp_67);
+      real_t a_2_2 = tmp_26*(tmp_21*(tmp_55*tmp_55) - tmp_55*tmp_58 + tmp_55*tmp_68) + tmp_34*(tmp_21*(tmp_60*tmp_60) - tmp_58*tmp_60 + tmp_60*tmp_68) + tmp_42*(tmp_21*(tmp_62*tmp_62) - tmp_58*tmp_62 + tmp_62*tmp_68);
+
+
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
+   }
+
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       basis,
+                                                 int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -528,115 +660,67 @@ class DGDiffusionForm_Example : public DGForm
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      real_t tmp_0  = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_1  = -p_affine_0_1;
-      real_t tmp_2  = p_affine_6_1 + tmp_1;
-      real_t tmp_3  = 0.1127016653792583 * tmp_0 + tmp_2;
-      real_t tmp_4  = -p_affine_0_0;
-      real_t tmp_5  = p_affine_1_0 + tmp_4;
-      real_t tmp_6  = p_affine_2_1 + tmp_1;
-      real_t tmp_7  = 1.0 / ( tmp_5 * tmp_6 - ( p_affine_1_1 + tmp_1 ) * ( p_affine_2_0 + tmp_4 ) );
-      real_t tmp_8  = tmp_5 * tmp_7;
-      real_t tmp_9  = tmp_3 * tmp_8;
-      real_t tmp_10 = tmp_7 * ( p_affine_0_0 - p_affine_2_0 );
-      real_t tmp_11 = tmp_10 * tmp_3;
+      real_t Scalar_Variable_Coefficient_2D_g_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g_out0_id2 = 0;
+      Scalar_Variable_Coefficient_2D_g( 0.8872983346207417*p_affine_6_0 + 0.1127016653792583*p_affine_7_0, 0.8872983346207417*p_affine_6_1 + 0.1127016653792583*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g_out0_id0 );
+      Scalar_Variable_Coefficient_2D_g( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g_out0_id1 );
+      Scalar_Variable_Coefficient_2D_g( 0.1127016653792583*p_affine_6_0 + 0.8872983346207417*p_affine_7_0, 0.1127016653792583*p_affine_6_1 + 0.8872983346207417*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g_out0_id2 );
+      real_t tmp_0 = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_1 = -p_affine_0_1;
+      real_t tmp_2 = p_affine_6_1 + tmp_1;
+      real_t tmp_3 = 0.1127016653792583*tmp_0 + tmp_2;
+      real_t tmp_4 = -p_affine_0_0;
+      real_t tmp_5 = p_affine_1_0 + tmp_4;
+      real_t tmp_6 = p_affine_2_1 + tmp_1;
+      real_t tmp_7 = 1.0 / (tmp_5*tmp_6 - (p_affine_1_1 + tmp_1)*(p_affine_2_0 + tmp_4));
+      real_t tmp_8 = tmp_5*tmp_7;
+      real_t tmp_9 = tmp_3*tmp_8;
+      real_t tmp_10 = tmp_7*(p_affine_0_0 - p_affine_2_0);
+      real_t tmp_11 = tmp_10*tmp_3;
       real_t tmp_12 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_13 = p_affine_6_0 + tmp_4;
-      real_t tmp_14 = 0.1127016653792583 * tmp_12 + tmp_13;
-      real_t tmp_15 = tmp_6 * tmp_7;
-      real_t tmp_16 = tmp_14 * tmp_15;
-      real_t tmp_17 = tmp_7 * ( p_affine_0_1 - p_affine_1_1 );
-      real_t tmp_18 = tmp_14 * tmp_17;
-      real_t tmp_19 = -tmp_11 - tmp_16 - tmp_18 - tmp_9 + 1;
-      real_t tmp_20 = std::abs( std::pow( ( tmp_0 * tmp_0 ) + ( tmp_12 * tmp_12 ), 1.0 / 2.0 ) );
-      real_t tmp_21 = 12 / tmp_20;
-      real_t tmp_22 = p_affine_10_0 * ( -tmp_15 - tmp_17 );
-      real_t tmp_23 = p_affine_10_1 * ( -tmp_10 - tmp_8 );
-      real_t tmp_24 = tmp_22 + tmp_23;
-      real_t tmp_25 = -tmp_22 - tmp_23;
-      real_t tmp_26 = 0.27777777777777785 * tmp_20;
-      real_t tmp_27 = 0.5 * tmp_0 + tmp_2;
-      real_t tmp_28 = tmp_27 * tmp_8;
-      real_t tmp_29 = tmp_10 * tmp_27;
-      real_t tmp_30 = 0.5 * tmp_12 + tmp_13;
-      real_t tmp_31 = tmp_15 * tmp_30;
-      real_t tmp_32 = tmp_17 * tmp_30;
-      real_t tmp_33 = -tmp_28 - tmp_29 - tmp_31 - tmp_32 + 1;
-      real_t tmp_34 = 0.44444444444444442 * tmp_20;
-      real_t tmp_35 = 0.8872983346207417 * tmp_0 + tmp_2;
-      real_t tmp_36 = tmp_35 * tmp_8;
-      real_t tmp_37 = tmp_10 * tmp_35;
-      real_t tmp_38 = 0.8872983346207417 * tmp_12 + tmp_13;
-      real_t tmp_39 = tmp_15 * tmp_38;
-      real_t tmp_40 = tmp_17 * tmp_38;
-      real_t tmp_41 = -tmp_36 - tmp_37 - tmp_39 - tmp_40 + 1;
-      real_t tmp_42 = 0.27777777777777785 * tmp_20;
-      real_t tmp_43 = tmp_11 + tmp_16;
-      real_t tmp_44 = p_affine_10_0 * tmp_15;
-      real_t tmp_45 = p_affine_10_1 * tmp_10;
-      real_t tmp_46 = tmp_44 + tmp_45;
-      real_t tmp_47 = tmp_19 * tmp_21;
-      real_t tmp_48 = tmp_43 * tmp_47;
-      real_t tmp_49 = tmp_29 + tmp_31;
-      real_t tmp_50 = tmp_21 * tmp_33;
-      real_t tmp_51 = tmp_49 * tmp_50;
-      real_t tmp_52 = tmp_37 + tmp_39;
-      real_t tmp_53 = tmp_21 * tmp_41;
-      real_t tmp_54 = tmp_52 * tmp_53;
-      real_t tmp_55 = tmp_18 + tmp_9;
-      real_t tmp_56 = p_affine_10_0 * tmp_17;
-      real_t tmp_57 = p_affine_10_1 * tmp_8;
-      real_t tmp_58 = tmp_56 + tmp_57;
-      real_t tmp_59 = tmp_47 * tmp_55;
-      real_t tmp_60 = tmp_28 + tmp_32;
-      real_t tmp_61 = tmp_50 * tmp_60;
-      real_t tmp_62 = tmp_36 + tmp_40;
-      real_t tmp_63 = tmp_53 * tmp_62;
-      real_t tmp_64 = -tmp_44 - tmp_45;
-      real_t tmp_65 = tmp_21 * tmp_43 * tmp_55;
-      real_t tmp_66 = tmp_21 * tmp_49 * tmp_60;
-      real_t tmp_67 = tmp_21 * tmp_52 * tmp_62;
-      real_t tmp_68 = -tmp_56 - tmp_57;
-      real_t a_0_0  = tmp_26 * ( ( tmp_19 * tmp_19 ) * tmp_21 - tmp_19 * tmp_24 + tmp_19 * tmp_25 ) +
-                     tmp_34 * ( tmp_21 * ( tmp_33 * tmp_33 ) - tmp_24 * tmp_33 + tmp_25 * tmp_33 ) +
-                     tmp_42 * ( tmp_21 * ( tmp_41 * tmp_41 ) - tmp_24 * tmp_41 + tmp_25 * tmp_41 );
-      real_t a_0_1 = tmp_26 * ( -tmp_19 * tmp_46 + tmp_25 * tmp_43 + tmp_48 ) +
-                     tmp_34 * ( tmp_25 * tmp_49 - tmp_33 * tmp_46 + tmp_51 ) +
-                     tmp_42 * ( tmp_25 * tmp_52 - tmp_41 * tmp_46 + tmp_54 );
-      real_t a_0_2 = tmp_26 * ( -tmp_19 * tmp_58 + tmp_25 * tmp_55 + tmp_59 ) +
-                     tmp_34 * ( tmp_25 * tmp_60 - tmp_33 * tmp_58 + tmp_61 ) +
-                     tmp_42 * ( tmp_25 * tmp_62 - tmp_41 * tmp_58 + tmp_63 );
-      real_t a_1_0 = tmp_26 * ( tmp_19 * tmp_64 - tmp_24 * tmp_43 + tmp_48 ) +
-                     tmp_34 * ( -tmp_24 * tmp_49 + tmp_33 * tmp_64 + tmp_51 ) +
-                     tmp_42 * ( -tmp_24 * tmp_52 + tmp_41 * tmp_64 + tmp_54 );
-      real_t a_1_1 = tmp_26 * ( tmp_21 * ( tmp_43 * tmp_43 ) - tmp_43 * tmp_46 + tmp_43 * tmp_64 ) +
-                     tmp_34 * ( tmp_21 * ( tmp_49 * tmp_49 ) - tmp_46 * tmp_49 + tmp_49 * tmp_64 ) +
-                     tmp_42 * ( tmp_21 * ( tmp_52 * tmp_52 ) - tmp_46 * tmp_52 + tmp_52 * tmp_64 );
-      real_t a_1_2 = tmp_26 * ( -tmp_43 * tmp_58 + tmp_55 * tmp_64 + tmp_65 ) +
-                     tmp_34 * ( -tmp_49 * tmp_58 + tmp_60 * tmp_64 + tmp_66 ) +
-                     tmp_42 * ( -tmp_52 * tmp_58 + tmp_62 * tmp_64 + tmp_67 );
-      real_t a_2_0 = tmp_26 * ( tmp_19 * tmp_68 - tmp_24 * tmp_55 + tmp_59 ) +
-                     tmp_34 * ( -tmp_24 * tmp_60 + tmp_33 * tmp_68 + tmp_61 ) +
-                     tmp_42 * ( -tmp_24 * tmp_62 + tmp_41 * tmp_68 + tmp_63 );
-      real_t a_2_1 = tmp_26 * ( tmp_43 * tmp_68 - tmp_46 * tmp_55 + tmp_65 ) +
-                     tmp_34 * ( -tmp_46 * tmp_60 + tmp_49 * tmp_68 + tmp_66 ) +
-                     tmp_42 * ( -tmp_46 * tmp_62 + tmp_52 * tmp_68 + tmp_67 );
-      real_t a_2_2 = tmp_26 * ( tmp_21 * ( tmp_55 * tmp_55 ) - tmp_55 * tmp_58 + tmp_55 * tmp_68 ) +
-                     tmp_34 * ( tmp_21 * ( tmp_60 * tmp_60 ) - tmp_58 * tmp_60 + tmp_60 * tmp_68 ) +
-                     tmp_42 * ( tmp_21 * ( tmp_62 * tmp_62 ) - tmp_58 * tmp_62 + tmp_62 * tmp_68 );
+      real_t tmp_14 = 0.1127016653792583*tmp_12 + tmp_13;
+      real_t tmp_15 = tmp_6*tmp_7;
+      real_t tmp_16 = tmp_14*tmp_15;
+      real_t tmp_17 = tmp_7*(p_affine_0_1 - p_affine_1_1);
+      real_t tmp_18 = tmp_14*tmp_17;
+      real_t tmp_19 = std::abs(std::pow((tmp_0*tmp_0) + (tmp_12*tmp_12), 1.0/2.0));
+      real_t tmp_20 = 24/tmp_19;
+      real_t tmp_21 = -p_affine_10_0*(-tmp_15 - tmp_17) - p_affine_10_1*(-tmp_10 - tmp_8);
+      real_t tmp_22 = 0.27777777777777785*Scalar_Variable_Coefficient_2D_g_out0_id0*tmp_19;
+      real_t tmp_23 = 0.5*tmp_0 + tmp_2;
+      real_t tmp_24 = tmp_23*tmp_8;
+      real_t tmp_25 = tmp_10*tmp_23;
+      real_t tmp_26 = 0.5*tmp_12 + tmp_13;
+      real_t tmp_27 = tmp_15*tmp_26;
+      real_t tmp_28 = tmp_17*tmp_26;
+      real_t tmp_29 = 0.44444444444444442*Scalar_Variable_Coefficient_2D_g_out0_id1*tmp_19;
+      real_t tmp_30 = 0.8872983346207417*tmp_0 + tmp_2;
+      real_t tmp_31 = tmp_30*tmp_8;
+      real_t tmp_32 = tmp_10*tmp_30;
+      real_t tmp_33 = 0.8872983346207417*tmp_12 + tmp_13;
+      real_t tmp_34 = tmp_15*tmp_33;
+      real_t tmp_35 = tmp_17*tmp_33;
+      real_t tmp_36 = 0.27777777777777785*Scalar_Variable_Coefficient_2D_g_out0_id2*tmp_19;
+      real_t tmp_37 = -p_affine_10_0*tmp_15 - p_affine_10_1*tmp_10;
+      real_t tmp_38 = -p_affine_10_0*tmp_17 - p_affine_10_1*tmp_8;
+      real_t a_0_0 = tmp_22*(tmp_20*(-tmp_11 - tmp_16 - tmp_18 - tmp_9 + 1) + tmp_21) + tmp_29*(tmp_20*(-tmp_24 - tmp_25 - tmp_27 - tmp_28 + 1) + tmp_21) + tmp_36*(tmp_20*(-tmp_31 - tmp_32 - tmp_34 - tmp_35 + 1) + tmp_21);
+      real_t a_1_0 = tmp_22*(tmp_20*(tmp_11 + tmp_16) + tmp_37) + tmp_29*(tmp_20*(tmp_25 + tmp_27) + tmp_37) + tmp_36*(tmp_20*(tmp_32 + tmp_34) + tmp_37);
+      real_t a_2_0 = tmp_22*(tmp_20*(tmp_18 + tmp_9) + tmp_38) + tmp_29*(tmp_20*(tmp_24 + tmp_28) + tmp_38) + tmp_36*(tmp_20*(tmp_31 + tmp_35) + tmp_38);
 
       elMat( 0, 0 ) = a_0_0;
-      elMat( 0, 1 ) = a_0_1;
-      elMat( 0, 2 ) = a_0_2;
-
       elMat( 1, 0 ) = a_1_0;
-      elMat( 1, 1 ) = a_1_1;
-      elMat( 1, 2 ) = a_1_2;
-
       elMat( 2, 0 ) = a_2_0;
-      elMat( 2, 1 ) = a_2_1;
-      elMat( 2, 2 ) = a_2_2;
    }
+
+ private:
+   void Scalar_Variable_Coefficient_2D_g( real_t in_0, real_t in_1, real_t* out_0 ) const
+   {
+      *out_0 = callback_Scalar_Variable_Coefficient_2D_g( Point3D( { in_0, in_1, 0 } ) );
+   }
+
+   std::function< real_t( const Point3D& ) > callback_Scalar_Variable_Coefficient_2D_g;
 };
 
 } // namespace dg

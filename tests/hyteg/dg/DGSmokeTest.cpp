@@ -33,13 +33,110 @@
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 using walberla::math::pi;
+
+void testDirichletBC()
+{
+   using namespace dg;
+
+   auto f = []( const Point3D& x ) { return 1 - x[0] - x[1]; };
+
+   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( f );
+
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsElement( 3 );
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsFacet0( 2 );
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsFacet1( 2 );
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsFacet2( 2 );
+   Eigen::Matrix< real_t, 3, 1 >                normal0, normal1, normal2;
+
+   coordsElement[0]( 0 ) = 0;
+   coordsElement[0]( 1 ) = 0;
+   coordsElement[0]( 2 ) = 0;
+
+   coordsElement[1]( 0 ) = 2;
+   coordsElement[1]( 1 ) = 0;
+   coordsElement[1]( 2 ) = 0;
+
+   coordsElement[2]( 0 ) = 0;
+   coordsElement[2]( 1 ) = 2;
+   coordsElement[2]( 2 ) = 0;
+
+   coordsFacet0[0] = coordsElement[0];
+   coordsFacet0[1] = coordsElement[1];
+
+   coordsFacet1[0] = coordsElement[0];
+   coordsFacet1[1] = coordsElement[2];
+
+   coordsFacet2[0] = coordsElement[1];
+   coordsFacet2[1] = coordsElement[2];
+
+   normal0( 0 ) = 0;
+   normal0( 1 ) = -1;
+   normal0( 2 ) = 0;
+
+   normal1( 0 ) = -1;
+   normal1( 1 ) = 0;
+   normal1( 2 ) = 0;
+
+   normal2( 0 ) = 1;
+   normal2( 1 ) = 1;
+   normal2( 2 ) = 0;
+   normal2.normalize();
+
+   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > mat;
+   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > tmpMat;
+   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > rhs;
+   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > tmpRhs;
+   mat.resize( 3, 3 );
+   tmpMat.resize( 3, 3 );
+   rhs.resize( 3, 1 );
+   tmpRhs.resize( 3, 1 );
+
+   mat.setZero();
+   tmpMat.setZero();
+   rhs.setZero();
+   tmpRhs.setZero();
+
+   laplaceForm->integrateVolume( 2, coordsElement, *basis, *basis, 1, 1, tmpMat );
+   mat += tmpMat;
+   tmpMat.setZero();
+
+   laplaceForm->integrateFacetDirichletBoundary(
+       2, coordsElement, coordsFacet0, coordsElement[2], normal0, *basis, *basis, 1, 1, tmpMat );
+   mat += tmpMat;
+   tmpMat.setZero();
+   laplaceForm->integrateFacetDirichletBoundary(
+       2, coordsElement, coordsFacet1, coordsElement[1], normal1, *basis, *basis, 1, 1, tmpMat );
+   mat += tmpMat;
+   tmpMat.setZero();
+   laplaceForm->integrateFacetDirichletBoundary(
+       2, coordsElement, coordsFacet2, coordsElement[0], normal2, *basis, *basis, 1, 1, tmpMat );
+   mat += tmpMat;
+
+   laplaceForm->integrateRHSDirichletBoundary( 2, coordsElement, coordsFacet0, coordsElement[2], normal0, *basis, 1, tmpRhs );
+   rhs += tmpRhs;
+   tmpRhs.setZero();
+   laplaceForm->integrateRHSDirichletBoundary( 2, coordsElement, coordsFacet1, coordsElement[1], normal1, *basis, 1, tmpRhs );
+   rhs += tmpRhs;
+   tmpRhs.setZero();
+   laplaceForm->integrateRHSDirichletBoundary( 2, coordsElement, coordsFacet2, coordsElement[0], normal2, *basis, 1, tmpRhs );
+   rhs += tmpRhs;
+
+   WALBERLA_LOG_INFO_ON_ROOT( mat );
+   WALBERLA_LOG_INFO_ON_ROOT( rhs );
+
+   WALBERLA_LOG_INFO_ON_ROOT( mat.inverse() * rhs );
+
+} // namespace hyteg
 
 void testDiffForm()
 {
@@ -48,10 +145,10 @@ void testDiffForm()
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
    auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
 
-   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > coordsElement;
-   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > coordsNeighborElement;
-   std::array< Eigen::Matrix< real_t, 2, 1 >, 2 > coordsFacet;
-   Eigen::Matrix< real_t, 2, 1 >                  normal;
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsElement;
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsNeighborElement;
+   std::vector< Eigen::Matrix< real_t, 3, 1 > > coordsFacet;
+   Eigen::Matrix< real_t, 3, 1 >                normal;
 
    coordsElement[0]( 0 ) = 0;
    coordsElement[0]( 1 ) = 0;
@@ -80,7 +177,8 @@ void testDiffForm()
    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > elMat;
    elMat.resize( 3, 3 );
 
-   laplaceForm->integrateFacetCoupling( coordsElement,
+   laplaceForm->integrateFacetCoupling( 2,
+                                        coordsElement,
                                         coordsNeighborElement,
                                         coordsFacet,
                                         coordsElement[2],
@@ -95,7 +193,8 @@ void testDiffForm()
    WALBERLA_LOG_INFO_ON_ROOT( elMat );
 
    elMat.setZero();
-   laplaceForm->integrateFacetCoupling( coordsNeighborElement,
+   laplaceForm->integrateFacetCoupling( 2,
+                                        coordsNeighborElement,
                                         coordsElement,
                                         coordsFacet,
                                         coordsNeighborElement[0],
@@ -110,10 +209,11 @@ void testDiffForm()
    WALBERLA_LOG_INFO_ON_ROOT( elMat );
 
    elMat.setZero();
-   laplaceForm->integrateFacetInner( coordsElement,
+   laplaceForm->integrateFacetInner( 2,
+                                     coordsElement,
                                      { coordsElement[1], coordsElement[2] },
                                      coordsElement[0],
-                                     Eigen::Matrix< real_t, 2, 1 >( 1, 1 ).normalized(),
+                                     Eigen::Matrix< real_t, 3, 1 >( 1, 1 ).normalized(),
                                      *basis,
                                      *basis,
                                      1,
@@ -127,7 +227,8 @@ void testDiffOp( uint_t maxLevel )
 {
    using namespace dg;
 
-   MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
+   // MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
+   MeshInfo meshInfo = MeshInfo::meshFaceChain( 2 );
 
    auto ff = []( const Point3D& p ) {
       Matrix3r mat;
@@ -149,17 +250,18 @@ void testDiffOp( uint_t maxLevel )
    // meshInfo.applyCoordinateMap( ff );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    const uint_t minLevel = 2;
 
+   std::function< real_t( const Point3D& ) > linearFunc0  = []( const Point3D& x ) { return 0; };
    std::function< real_t( const Point3D& ) > linearFuncX  = []( const Point3D& x ) { return x[0]; };
    std::function< real_t( const Point3D& ) > linearFuncY  = []( const Point3D& x ) { return x[1]; };
    std::function< real_t( const Point3D& ) > linearFuncXY = []( const Point3D& x ) { return 1 - x[0] - x[1]; };
    std::function< real_t( const Point3D& ) > linearFuncC  = []( const Point3D& x ) { return 1; };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( linearFunc0 );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, minLevel, maxLevel, basis, 1 );
@@ -178,7 +280,7 @@ void testDiffOp( uint_t maxLevel )
    DGOperator A( storage, minLevel, maxLevel, laplaceForm );
    DGOperator M( storage, minLevel, maxLevel, massForm );
 
-   std::string                     fileName = "/tmp/diffusion.m";
+   std::string                     fileName = "../../output/diffusion.m";
    PETScSparseMatrix< DGOperator > mat;
    mat.createMatrixFromOperator( A, maxLevel, numerator, numerator );
    mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
@@ -207,6 +309,8 @@ void testDiffOp( uint_t maxLevel )
    A.apply( sol, err_c, maxLevel, All, Replace );
    discrL2 = sqrt( err_c.dotGlobal( err_c, maxLevel ) / real_c( numberOfGlobalDoFs( u, maxLevel ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "c: level " << maxLevel << ": L2 error " << discrL2 );
+
+   writeDomainPartitioningVTK( *storage, "../../output", "DGSmokeTestDiffOp_Domain" );
 
    VTKOutput vtkOutput( "../../output", "DGSmokeTestDiffOp", storage );
 
@@ -292,7 +396,7 @@ void testDiffusion( uint_t maxLevel )
 
    // meshInfo.applyCoordinateMap( ff );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    const uint_t minLevel = 2;
@@ -306,7 +410,7 @@ void testDiffusion( uint_t maxLevel )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >();
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, minLevel, maxLevel, basis, 1 );
@@ -357,18 +461,20 @@ int main( int argc, char** argv )
 
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::testDiffForm();
+   // hyteg::testDiffForm();
 
    // hyteg::testMass();
 
-   hyteg::testDiffusion( 3 );
-   hyteg::testDiffusion( 4 );
-   hyteg::testDiffusion( 5 );
-   hyteg::testDiffusion( 6 );
+   // hyteg::testDiffusion( 3 );
+   // hyteg::testDiffusion( 4 );
+   // hyteg::testDiffusion( 5 );
+   // hyteg::testDiffusion( 6 );
 #if 0
    hyteg::testDiffOp( 3 );
-   hyteg::testDiffOp( 4 );
-   hyteg::testDiffOp( 5 );
+   // hyteg::testDiffOp( 4 );
+   // hyteg::testDiffOp( 5 );
 #endif
+
+   hyteg::testDirichletBC();
    return EXIT_SUCCESS;
 }

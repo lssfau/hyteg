@@ -377,6 +377,66 @@ uint_t DGFunction< ValueType >::getNumberOfGlobalDoFs( uint_t level, const MPI_C
    return ndofs;
 }
 
+template < typename ValueType >
+void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::shared_ptr< DGForm >& form, uint_t level )
+{
+   using indexing::Index;
+
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Dirichlet BCs not implemented for 3D." );
+   }
+   else
+   {
+      const int dim = 2;
+
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
+      {
+         const auto faceId = faceIt.first;
+         const auto face   = *faceIt.second;
+
+         const auto polyDegree = polynomialDegree( faceId );
+         const auto numDofs    = basis()->numDoFsPerElement( polyDegree );
+         const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
+         const auto memLayout  = volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+            {
+               volumedofspace::indexing::ElementNeighborInfo neighborInfo(
+                   elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
+
+               for ( uint_t n = 0; n < 3; n++ )
+               {
+                  if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  {
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                     localMat.resize( numDofs, 1 );
+                     localMat.setZero();
+                     form->integrateRHSDirichletBoundary( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *basis(),
+                                                          polyDegree,
+                                                          localMat );
+
+                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
+                     {
+                        dofMemory[volumedofspace::indexing::index(
+                            elementIdx.x(), elementIdx.y(), faceType, dofIdx, numDofs, level, memLayout )] +=
+                            ValueType( localMat( dofIdx, 0 ) );
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
 /// explicit instantiation
 template class DGFunction< double >;
 template class DGFunction< float >;

@@ -36,21 +36,38 @@ class DGForm
  public:
    /// \brief Integrates the volume contribution on a triangle element (2D).
    ///
+   /// \param dim         2 for 2D volumes, 3 for 3D volumes
    /// \param coords      coordinates of the triangle element vertices
    /// \param trialBasis  trial function basis - determines the number of columns of the element matrix
    /// \param testBasis   test function basis - determines the number of rows of the element matrix
    /// \param trialDegree polynomial degree of the trial function on this element
    /// \param testDegree  polynomial degree of the test function on this element
    /// \param elMat       computed local element matrix
-   virtual void integrateVolume( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coords,
-                                 const DGBasisInfo&                                       trialBasis,
-                                 const DGBasisInfo&                                       testBasis,
-                                 int                                                      trialDegree,
-                                 int                                                      testDegree,
-                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+   void integrateVolume( int                                                      dim,
+                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                         const DGBasisInfo&                                       trialBasis,
+                         const DGBasisInfo&                                       testBasis,
+                         int                                                      trialDegree,
+                         int                                                      testDegree,
+                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      if ( dim == 2 )
+      {
+         integrateVolume2D( coords, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else if ( dim == 3 )
+      {
+         integrateVolume3D( coords, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Only supporting 2D and 3D." );
+      }
+   };
 
    /// \brief Integrates the inner part of the facet contribution on a triangle element (2D).
    ///
+   /// \param dim                2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElement      coordinates of the triangle element vertices
    /// \param coordsFacet        coordinates of the interface edge
    /// \param oppositeVertex     coordinates of the vertex that is part of the inner element and opposite of the interface
@@ -60,18 +77,36 @@ class DGForm
    /// \param trialDegree        polynomial degree of the trial function on this element
    /// \param testDegree         polynomial degree of the test function on this element
    /// \param elMat              computed local element matrix
-   virtual void integrateFacetInner( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                     const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                     const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                     const DGBasisInfo&                                       trialBasis,
-                                     const DGBasisInfo&                                       testBasis,
-                                     int                                                      trialDegree,
-                                     int                                                      testDegree,
-                                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+   void integrateFacetInner( int                                                      dim,
+                             const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                             const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                             const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                             const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                             const DGBasisInfo&                                       trialBasis,
+                             const DGBasisInfo&                                       testBasis,
+                             int                                                      trialDegree,
+                             int                                                      testDegree,
+                             Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      if ( dim == 2 )
+      {
+         integrateFacetInner2D(
+             coordsElement, coordsFacet, oppositeVertex, outwardNormal, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else if ( dim == 3 )
+      {
+         integrateFacetInner3D(
+             coordsElement, coordsFacet, oppositeVertex, outwardNormal, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Only supporting 2D and 3D." );
+      }
+   }
 
    /// \brief Integrates the facet contributions from both sides on a triangle element (2D) - writing to the inner DoFs.
    ///
+   /// \param dim                        2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElementInner         coordinates of the triangle element vertices of the inner (dst) element
    /// \param coordsElementOuter         coordinates of the triangle element vertices of the outer (src) element
    /// \param coordsFacet                coordinates of the interface edge
@@ -83,20 +118,56 @@ class DGForm
    /// \param trialDegree                polynomial degree of the trial function on this element
    /// \param testDegree                 polynomial degree of the test function on this element
    /// \param elMat                      computed local element matrix
-   virtual void integrateFacetCoupling( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementInner,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElementOuter,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexInnerElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertexOuterElement,
-                                        const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                        const DGBasisInfo&                                       trialBasis,
-                                        const DGBasisInfo&                                       testBasis,
-                                        int                                                      trialDegree,
-                                        int                                                      testDegree,
-                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+   void integrateFacetCoupling( int                                                      dim,
+                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                const DGBasisInfo&                                       trialBasis,
+                                const DGBasisInfo&                                       testBasis,
+                                int                                                      trialDegree,
+                                int                                                      testDegree,
+                                Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      if ( dim == 2 )
+      {
+         integrateFacetCoupling2D( coordsElementInner,
+                                   coordsElementOuter,
+                                   coordsFacet,
+                                   oppositeVertexInnerElement,
+                                   oppositeVertexOuterElement,
+                                   outwardNormal,
+                                   trialBasis,
+                                   testBasis,
+                                   trialDegree,
+                                   testDegree,
+                                   elMat );
+      }
+      else if ( dim == 3 )
+      {
+         integrateFacetCoupling3D( coordsElementInner,
+                                   coordsElementOuter,
+                                   coordsFacet,
+                                   oppositeVertexInnerElement,
+                                   oppositeVertexOuterElement,
+                                   outwardNormal,
+                                   trialBasis,
+                                   testBasis,
+                                   trialDegree,
+                                   testDegree,
+                                   elMat );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Only supporting 2D and 3D." );
+      }
+   }
 
    /// \brief Integrates the facet contributions at Dirichlet boundaries (2D) - writing to the inner DoFs.
    ///
+   /// \param dim                     2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElement           coordinates of the triangle element vertices of the inner (dst) element
    /// \param coordsFacet             coordinates of the interface edge
    /// \param oppositeVertex          coordinates of the vertex that is part of the inner element and opposite of the interface
@@ -106,14 +177,159 @@ class DGForm
    /// \param trialDegree             polynomial degree of the trial function on this element
    /// \param testDegree              polynomial degree of the test function on this element
    /// \param elMat                   computed local element matrix
-   virtual void integrateFacetDirichletBoundary( const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >&    coordsElement,
-                                                 const std::array< Eigen::Matrix< real_t, 2, 1 >, 2 >&    coordsFacet,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 2, 1 >&                     outwardNormal,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
+   void integrateFacetDirichletBoundary( int                                                      dim,
+                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                         const DGBasisInfo&                                       trialBasis,
+                                         const DGBasisInfo&                                       testBasis,
+                                         int                                                      trialDegree,
+                                         int                                                      testDegree,
+                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      if ( dim == 2 )
+      {
+         integrateFacetDirichletBoundary2D(
+             coordsElement, coordsFacet, oppositeVertex, outwardNormal, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else if ( dim == 3 )
+      {
+         integrateFacetDirichletBoundary3D(
+             coordsElement, coordsFacet, oppositeVertex, outwardNormal, trialBasis, testBasis, trialDegree, testDegree, elMat );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Only supporting 2D and 3D." );
+      }
+   }
+
+   /// \brief Integrates the facet contributions at Dirichlet boundaries (2D) for the right-hand side.
+   ///
+   /// \param dim                     2 for 2D volumes, 3 for 3D volumes
+   /// \param coordsElement           coordinates of the triangle element vertices of the inner (dst) element
+   /// \param coordsFacet             coordinates of the interface edge
+   /// \param oppositeVertex          coordinates of the vertex that is part of the inner element and opposite of the interface
+   /// \param outwardNormal           (normalized) normal vector to the interface in direction of the outer element
+   /// \param asis                    function basis - determines the number of rows of the element matrix
+   /// \param degree                  polynomial degree of the function on this element
+   /// \param elMat                   computed local element matrix - returned as a column vector
+   void integrateRHSDirichletBoundary( int                                                      dim,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       basis,
+                                       int                                                      degree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      if ( dim == 2 )
+      {
+         integrateRHSDirichletBoundary2D( coordsElement, coordsFacet, oppositeVertex, outwardNormal, basis, degree, elMat );
+      }
+      else if ( dim == 3 )
+      {
+         integrateRHSDirichletBoundary3D( coordsElement, coordsFacet, oppositeVertex, outwardNormal, basis, degree, elMat );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Only supporting 2D and 3D." );
+      }
+   }
+
+ protected:
+   virtual void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                                   const DGBasisInfo&                                       trialBasis,
+                                   const DGBasisInfo&                                       testBasis,
+                                   int                                                      trialDegree,
+                                   int                                                      testDegree,
+                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                                   const DGBasisInfo&                                       trialBasis,
+                                   const DGBasisInfo&                                       testBasis,
+                                   int                                                      trialDegree,
+                                   int                                                      testDegree,
+                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateFacetDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       basis,
+                                                 int                                                      degree,
+                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+
+   virtual void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                 const DGBasisInfo&                                       basis,
+                                                 int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
 };
 

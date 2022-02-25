@@ -155,6 +155,10 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// where \phi_i is the basis function associated with the DoF u_i and f a given analytical function.
    void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level );
 
+   /// \brief Applies the Dirichlet boundary conditions to this function, treating it as the right-hand side of the linear system
+   ///        that corresponds to the form object.
+   void applyDirichletBoundaryConditions( const std::shared_ptr< DGForm > & form, uint_t level );
+
    /// \brief Returns the internally stored VolumeDoFFunction.
    [[nodiscard]] std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction() const
    {
