@@ -26,9 +26,7 @@
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/operators/Operator.hpp"
-#include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 
 namespace hyteg {
 

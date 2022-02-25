@@ -502,29 +502,4 @@ inline void saveCellIdentityOperator( const uint_t&                             
    }
 }
 
-inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
-{
-   for ( auto& it : numerator.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, DirichletBoundary ) )
-      {
-         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : numerator.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, DirichletBoundary ) )
-      {
-         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
-      }
-   }
-}
-
 } // namespace hyteg
