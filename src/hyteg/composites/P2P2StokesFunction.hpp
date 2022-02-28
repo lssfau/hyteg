@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -27,7 +28,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P2P2StokesFunction
+class P2P2StokesFunction : public BlockFunction< ValueType >
 {
  public:
    using valueType = ValueType;
@@ -44,138 +45,39 @@ class P2P2StokesFunction
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        size_t                                     minLevel,
                        size_t                                     maxLevel )
-   : uvwFunc( _name + "_vector", storage, minLevel, maxLevel )
-   , pFunc( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+   : P2P2StokesFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvwFunc.getStorage(); }
-
-   bool isDummy() const { return false; }
-
-   void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
+   P2P2StokesFunction( const std::string&                         _name,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       size_t                                     minLevel,
+                       size_t                                     maxLevel,
+                       BoundaryCondition                          velocityBC )
+   : BlockFunction< ValueType >( _name )
    {
-      uvwFunc.interpolate( expr, level, flag );
-      pFunc.interpolate( expr, level, flag );
+      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P2VectorFunction< ValueType > > >(
+          _name + "_uvw", storage, minLevel, maxLevel, velocityBC ) );
+      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P2Function< ValueType > > >(
+          _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
-   void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
-   {
-      uvwFunc.interpolate( constant, level, flag );
-      pFunc.interpolate( constant, level, flag );
+   [[nodiscard]] const P2VectorFunction< ValueType >& uvw() const {
+      return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
-   void swap( const P2P2StokesFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   [[nodiscard]] P2VectorFunction< ValueType >& uvw()
    {
-      uvwFunc.swap( other.uvwFunc, level, flag );
-      pFunc.swap( other.pFunc, level, flag );
+      return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
-   void assign( const std::vector< walberla::real_t >                                                 scalars,
-                const std::vector< std::reference_wrapper< const P2P2StokesFunction< ValueType > > >& functions,
-                size_t                                                                                level,
-                DoFType                                                                               flag = All ) const
-   {
-      std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
-      std::vector< std::reference_wrapper< const P2Function< ValueType > > >       functions_p;
-
-      for ( const P2P2StokesFunction< ValueType >& function : functions )
-      {
-         functions_uvw.push_back( function.uvwFunc );
-         functions_p.push_back( function.pFunc );
-      }
-
-      uvwFunc.assign( scalars, functions_uvw, level, flag );
-      pFunc.assign( scalars, functions_p, level, flag );
+   [[nodiscard]] const P2Function< ValueType >& p() const {
+      return this->subFunc_[1]->template unwrap< P2Function< ValueType > >();
    }
 
-   void add( const std::vector< walberla::real_t >                                                 scalars,
-             const std::vector< std::reference_wrapper< const P2P2StokesFunction< ValueType > > >& functions,
-             size_t                                                                                level,
-             DoFType                                                                               flag = All ) const
+   [[nodiscard]] P2Function< ValueType >& p()
    {
-      std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
-      std::vector< std::reference_wrapper< const P2Function< ValueType > > >       functions_p;
-
-      for ( const P2P2StokesFunction< ValueType >& function : functions )
-      {
-         functions_uvw.push_back( function.uvwFunc );
-         functions_p.push_back( function.pFunc );
-      }
-
-      uvwFunc.add( scalars, functions_uvw, level, flag );
-      pFunc.add( scalars, functions_p, level, flag );
+      return this->subFunc_[1]->template unwrap< P2Function< ValueType > >();
    }
-
-   walberla::real_t dotGlobal( const P2P2StokesFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
-   {
-      walberla::real_t sum = uvwFunc.dotLocal( rhs.uvwFunc, level, flag );
-      sum += pFunc.dotLocal( rhs.pFunc, level, flag );
-      walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      return sum;
-   }
-
-   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree )
-   {
-      uvwFunc.enableTiming( timingTree );
-      pFunc.enableTiming( timingTree );
-   }
-
-   void enumerate( uint_t level )
-   {
-      uint_t counterVertexDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
-
-      std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
-
-      ValueType offset = 0;
-
-      for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
-      {
-         offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
-      }
-
-      for ( uint_t k = 0; k < uvwFunc.getDimension(); k++ )
-      {
-         uvwFunc[k].enumerate( level, offset );
-      }
-      pFunc.enumerate( level, offset );
-   }
-
-   /// conversion to/from linear algebra representation
-   /// @{
-   void toVector( const P2P2StokesFunction< idx_t >&      numerator,
-                  const std::shared_ptr< VectorProxy >& vec,
-                  uint_t                                level,
-                  DoFType                               flag ) const
-   {
-      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
-      {
-         uvwFunc[k].toVector( numerator.uvw()[k], vec, level, flag );
-      }
-      pFunc.toVector( numerator.p(), vec, level, flag );
-   }
-
-   void fromVector( const P2P2StokesFunction< idx_t >&      numerator,
-                    const std::shared_ptr< VectorProxy >& vec,
-                    uint_t                                level,
-                    DoFType                               flag ) const
-   {
-      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
-      {
-         uvwFunc[k].fromVector( numerator.uvw()[k], vec, level, flag );
-      }
-      pFunc.fromVector( numerator.p(), vec, level, flag );
-   };
-   /// @}
-
-   const P2VectorFunction< ValueType >& uvw() const { return uvwFunc; };
-   P2VectorFunction< ValueType >& uvw() { return uvwFunc; };
-
-   const P2Function< ValueType >& p() const { return pFunc; };
-   P2Function< ValueType >& p() { return pFunc; };
-
-private:
-   P2VectorFunction< ValueType > uvwFunc;
-   P2Function< ValueType >       pFunc;
 };
 
 } // namespace hyteg
