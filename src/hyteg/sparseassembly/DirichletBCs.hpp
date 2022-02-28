@@ -125,25 +125,25 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
 // ==================
 inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   for ( uint_t k = 0; k < numerator.uvw.getDimension(); ++k )
+   for ( uint_t k = 0; k < numerator.uvw().getDimension(); ++k )
    {
-      applyDirichletBC( numerator.uvw[k], mat, level );
+      applyDirichletBC( numerator.uvw()[k], mat, level );
    }
 }
 
 inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   for ( uint_t k = 0; k < numerator.uvw.getDimension(); ++k )
+   for ( uint_t k = 0; k < numerator.uvw().getDimension(); ++k )
    {
-      applyDirichletBC( numerator.uvw[k], mat, level );
+      applyDirichletBC( numerator.uvw()[k], mat, level );
    }
 }
 
 inline void applyDirichletBC( const P2P2StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   for ( uint_t k = 0; k < numerator.uvw.getDimension(); ++k )
+   for ( uint_t k = 0; k < numerator.uvw().getDimension(); ++k )
    {
-      applyDirichletBC( numerator.uvw[k], mat, level );
+      applyDirichletBC( numerator.uvw()[k], mat, level );
    }
 }
 

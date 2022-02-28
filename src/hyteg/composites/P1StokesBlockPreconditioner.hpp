@@ -23,15 +23,12 @@ class P1StokesBlockPreconditioner : public Operator< P1StokesFunction< real_t >,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      for ( uint_t k = 0; k < src.uvw().getDimension(); ++k )
       {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         A.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
       }
 
-      P.toMatrix( mat, src.p, dst.p, level, flag );
+      P.toMatrix( mat, src.p(), dst.p(), level, flag );
    }
 
    P1ConstantLaplaceOperator A;

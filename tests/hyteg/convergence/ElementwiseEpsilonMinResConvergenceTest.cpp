@@ -172,23 +172,23 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    if ( ThreeDim )
    {
-     u.uvw.interpolate( { exactU, exactV, exactW }, maxLevel, hyteg::DirichletBoundary );
-     uExact.uvw.interpolate( { exactU, exactV, exactW }, maxLevel );
-     tmp.uvw.interpolate( { rhsU, rhsV, rhsW }, maxLevel );
+     u.uvw().interpolate( { exactU, exactV, exactW }, maxLevel, hyteg::DirichletBoundary );
+     uExact.uvw().interpolate( { exactU, exactV, exactW }, maxLevel );
+     tmp.uvw().interpolate( { rhsU, rhsV, rhsW }, maxLevel );
    }
    else {
-     u.uvw.interpolate( { exactU, exactV }, maxLevel, hyteg::DirichletBoundary );
-     uExact.uvw.interpolate( { exactU, exactV }, maxLevel );
-     tmp.uvw.interpolate( { rhsU, rhsV }, maxLevel );
+     u.uvw().interpolate( { exactU, exactV }, maxLevel, hyteg::DirichletBoundary );
+     uExact.uvw().interpolate( { exactU, exactV }, maxLevel );
+     tmp.uvw().interpolate( { rhsU, rhsV }, maxLevel );
    }
 
-   uExact.p.interpolate( exactP, maxLevel );
+   uExact.p().interpolate( exactP, maxLevel );
 
-   M.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
-   M.apply( tmp.uvw[1], f.uvw[1], maxLevel, All );
+   M.apply( tmp.uvw()[0], f.uvw()[0], maxLevel, All );
+   M.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, All );
    if ( ThreeDim )
    {
-      M.apply( tmp.uvw[2], f.uvw[2], maxLevel, All );
+      M.apply( tmp.uvw()[2], f.uvw()[2], maxLevel, All );
    }
 
    std::shared_ptr< Solver< StokesOperator > > solver;
@@ -207,8 +207,8 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    solver->solve( A, u, f, maxLevel );
 
-   hyteg::vertexdof::projectMean( u.p, maxLevel );
-   hyteg::vertexdof::projectMean( uExact.p, maxLevel );
+   hyteg::vertexdof::projectMean( u.p(), maxLevel );
+   hyteg::vertexdof::projectMean( uExact.p(), maxLevel );
 
    A.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
@@ -225,10 +225,10 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    real_t discr_l2_err_u = real_c(0);
    real_t discr_l2_err_v = real_c(0);
    real_t discr_l2_err_w = real_c(0);
-   for( uint_t k = 0; k < err.uvw.getDimension(); k++ ) {
-     discr_l2_err_u = std::sqrt( err.uvw[k].dotGlobal( err.uvw[k], maxLevel ) / real_c( velocityCompDoFs ) );
+   for( uint_t k = 0; k < err.uvw().getDimension(); k++ ) {
+     discr_l2_err_u = std::sqrt( err.uvw()[k].dotGlobal( err.uvw()[k], maxLevel ) / real_c( velocityCompDoFs ) );
    }
-   real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / real_c( pressureCompDoFs ) );
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel ) / real_c( pressureCompDoFs ) );
    real_t residuum_l2    = std::sqrt( r.dotGlobal( r, maxLevel ) / real_c( 3 * velocityCompDoFs + pressureCompDoFs ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );

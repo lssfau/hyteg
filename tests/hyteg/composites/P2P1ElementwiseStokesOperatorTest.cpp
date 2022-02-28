@@ -82,18 +82,18 @@ void compareApplyCC( const MeshInfo & meshInfo, const uint_t level, bool precomp
       return p[0] * p[0] * p[0] + std::cos( p[1] * p[2] );
    };
 
-   src.uvw.interpolate( { vel_x, vel_y, vel_z }, level, All );
-   src.p.interpolate( pressure, level, All );
+   src.uvw().interpolate( { vel_x, vel_y, vel_z }, level, All );
+   src.p().interpolate( pressure, level, All );
 
    stencilOp.apply( src, dstStencilCC, level, Inner | NeumannBoundary );
    elemWiseOp.apply( src, dstElementwiseCC, level, Inner | NeumannBoundary );
 
    error.assign( {1.0, -1.0}, {dstStencilCC, dstElementwiseCC}, level, All );
 
-   auto errorMaxMagnitudeU = error.uvw[0].getMaxMagnitude( level );
-   auto errorMaxMagnitudeV = error.uvw[1].getMaxMagnitude( level );
-   auto errorMaxMagnitudeW = error.uvw.getDimension() == 3 ? error.uvw[2].getMaxMagnitude( level ) : real_c( 0 );
-   auto errorMaxMagnitudeP = error.p.getMaxMagnitude( level );
+   auto errorMaxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
+   auto errorMaxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
+   auto errorMaxMagnitudeW = error.uvw().getDimension() == 3 ? error.uvw()[2].getMaxMagnitude( level ) : real_c( 0 );
+   auto errorMaxMagnitudeP = error.p().getMaxMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude u: " << errorMaxMagnitudeU );
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude v: " << errorMaxMagnitudeV );

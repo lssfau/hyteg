@@ -44,30 +44,30 @@ class P2P2StokesFunction
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        size_t                                     minLevel,
                        size_t                                     maxLevel )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel )
-   , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+   : uvwFunc( _name + "_vector", storage, minLevel, maxLevel )
+   , pFunc( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
    {}
 
-   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
+   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvwFunc.getStorage(); }
 
    bool isDummy() const { return false; }
 
    void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( expr, level, flag );
-      p.interpolate( expr, level, flag );
+      uvwFunc.interpolate( expr, level, flag );
+      pFunc.interpolate( expr, level, flag );
    }
 
    void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( constant, level, flag );
-      p.interpolate( constant, level, flag );
+      uvwFunc.interpolate( constant, level, flag );
+      pFunc.interpolate( constant, level, flag );
    }
 
    void swap( const P2P2StokesFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      uvw.swap( other.uvw, level, flag );
-      p.swap( other.p, level, flag );
+      uvwFunc.swap( other.uvwFunc, level, flag );
+      pFunc.swap( other.pFunc, level, flag );
    }
 
    void assign( const std::vector< walberla::real_t >                                                 scalars,
@@ -80,12 +80,12 @@ class P2P2StokesFunction
 
       for ( const P2P2StokesFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvwFunc );
+         functions_p.push_back( function.pFunc );
       }
 
-      uvw.assign( scalars, functions_uvw, level, flag );
-      p.assign( scalars, functions_p, level, flag );
+      uvwFunc.assign( scalars, functions_uvw, level, flag );
+      pFunc.assign( scalars, functions_p, level, flag );
    }
 
    void add( const std::vector< walberla::real_t >                                                 scalars,
@@ -98,26 +98,26 @@ class P2P2StokesFunction
 
       for ( const P2P2StokesFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvwFunc );
+         functions_p.push_back( function.pFunc );
       }
 
-      uvw.add( scalars, functions_uvw, level, flag );
-      p.add( scalars, functions_p, level, flag );
+      uvwFunc.add( scalars, functions_uvw, level, flag );
+      pFunc.add( scalars, functions_p, level, flag );
    }
 
    walberla::real_t dotGlobal( const P2P2StokesFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
-      walberla::real_t sum = uvw.dotLocal( rhs.uvw, level, flag );
-      sum += p.dotLocal( rhs.p, level, flag );
+      walberla::real_t sum = uvwFunc.dotLocal( rhs.uvwFunc, level, flag );
+      sum += pFunc.dotLocal( rhs.pFunc, level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
       return sum;
    }
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree )
    {
-      uvw.enableTiming( timingTree );
-      p.enableTiming( timingTree );
+      uvwFunc.enableTiming( timingTree );
+      pFunc.enableTiming( timingTree );
    }
 
    void enumerate( uint_t level )
@@ -133,11 +133,11 @@ class P2P2StokesFunction
          offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
       }
 
-      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); k++ )
       {
-         uvw[k].enumerate( level, offset );
+         uvwFunc[k].enumerate( level, offset );
       }
-      p.enumerate( level, offset );
+      pFunc.enumerate( level, offset );
    }
 
    /// conversion to/from linear algebra representation
@@ -147,11 +147,11 @@ class P2P2StokesFunction
                   uint_t                                level,
                   DoFType                               flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
       {
-         uvw[k].toVector( numerator.uvw[k], vec, level, flag );
+         uvwFunc[k].toVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.toVector( numerator.p, vec, level, flag );
+      pFunc.toVector( numerator.p(), vec, level, flag );
    }
 
    void fromVector( const P2P2StokesFunction< idx_t >&      numerator,
@@ -159,16 +159,23 @@ class P2P2StokesFunction
                     uint_t                                level,
                     DoFType                               flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
       {
-         uvw[k].fromVector( numerator.uvw[k], vec, level, flag );
+         uvwFunc[k].fromVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.fromVector( numerator.p, vec, level, flag );
+      pFunc.fromVector( numerator.p(), vec, level, flag );
    };
    /// @}
 
-   P2VectorFunction< ValueType > uvw;
-   P2Function< ValueType >       p;
+   const P2VectorFunction< ValueType >& uvw() const { return uvwFunc; };
+   P2VectorFunction< ValueType >& uvw() { return uvwFunc; };
+
+   const P2Function< ValueType >& p() const { return pFunc; };
+   P2Function< ValueType >& p() { return pFunc; };
+
+private:
+   P2VectorFunction< ValueType > uvwFunc;
+   P2Function< ValueType >       pFunc;
 };
 
 } // namespace hyteg

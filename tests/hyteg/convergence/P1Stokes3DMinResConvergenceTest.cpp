@@ -164,10 +164,10 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
 #if 1
-   u.uvw[2].interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
+   u.uvw()[2].interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw.u.interpolate( { collidingFlow_x, collidingFlow_y}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
+   u.uvw().u.interpolate( { collidingFlow_x, collidingFlow_y}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
 #endif
 
 //   vtkOutput.write( maxLevel, 0 );

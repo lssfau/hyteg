@@ -110,10 +110,10 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
       auto matProxyProjectionPost = mat->createCopy();
 
-      projOp_->toMatrix( matProxyProjectionPost, numeratorSrc.uvw, numeratorDst.uvw, level, projFlag_ );
+      projOp_->toMatrix( matProxyProjectionPost, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
 
       // we need the Id also in the pressure block
-      saveIdentityOperator( numeratorDst.p, matProxyProjectionPost, level, All );
+      saveIdentityOperator( numeratorDst.p(), matProxyProjectionPost, level, All );
 
       std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
       matrices.push_back( matProxyProjectionPost );
@@ -123,9 +123,9 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       {
          auto matProxyProjectionPre = mat->createCopy();
 
-         projOp_->toMatrix( matProxyProjectionPre, numeratorSrc.uvw, numeratorDst.uvw, level, projFlag_ );
+         projOp_->toMatrix( matProxyProjectionPre, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
 
-         saveIdentityOperator( numeratorDst.p, matProxyProjectionPre, level, All );
+         saveIdentityOperator( numeratorDst.p(), matProxyProjectionPre, level, All );
 
          matrices.push_back( matProxyProjectionPre );
       }

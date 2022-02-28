@@ -176,24 +176,24 @@ void runTest()
    StokesOperator L( storage, minLevel, maxLevel );
    MassOperator   M( storage, maxLevel, maxLevel );
 
-   u.uvw.interpolate( { uSolution, vSolution }, maxLevel, DirichletBoundary );
-   f_strong.uvw.interpolate( { uRhs, vRhs }, maxLevel, All );
+   u.uvw().interpolate( { uSolution, vSolution }, maxLevel, DirichletBoundary );
+   f_strong.uvw().interpolate( { uRhs, vRhs }, maxLevel, All );
    T.interpolate( TSolution, maxLevel, All );
 
-   M.apply( f_strong.uvw[0], f.uvw[0], maxLevel, All );
-   M.apply( f_strong.uvw[1], f.uvw[1], maxLevel, All );
+   M.apply( f_strong.uvw()[0], f.uvw()[0], maxLevel, All );
+   M.apply( f_strong.uvw()[1], f.uvw()[1], maxLevel, All );
 
-   Au.uvw[0].setToZero( maxLevel );
-   Au.uvw[1].setToZero( maxLevel );
-   Au.p.setToZero( maxLevel );
+   Au.uvw()[0].setToZero( maxLevel );
+   Au.uvw()[1].setToZero( maxLevel );
+   Au.p().setToZero( maxLevel );
 
-   u_exact.uvw[0].interpolate( uSolution, maxLevel, All );
-   u_exact.uvw[1].interpolate( vSolution, maxLevel, All );
-   u_exact.p.interpolate( pSolution, maxLevel, All );
+   u_exact.uvw()[0].interpolate( uSolution, maxLevel, All );
+   u_exact.uvw()[1].interpolate( vSolution, maxLevel, All );
+   u_exact.p().interpolate( pSolution, maxLevel, All );
 
-   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw[0], maxLevel );
-   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw[1], maxLevel );
-   communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
+   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
+   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[1], maxLevel );
+   communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
    auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, 1e-08, 500 );
 
@@ -219,11 +219,11 @@ void runTest()
 
    err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel, All );
 
-   auto discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel, Inner | NeumannBoundary ) /
+   auto discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, Inner | NeumannBoundary ) /
                                     real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-   auto discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel, Inner | NeumannBoundary ) /
+   auto discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel, Inner | NeumannBoundary ) /
                                     real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-   auto discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel, Inner | NeumannBoundary ) /
+   auto discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel, Inner | NeumannBoundary ) /
                                     real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -232,14 +232,11 @@ void runTest()
        "%15s|%15e|%15s|%15e|%15e|%15e", "initial", oldRes, "-", discr_l2_err_u, discr_l2_err_v, discr_l2_err_p ) )
 
    VTKOutput vtkOutput( "../../output", "P2P1StokesElementwiseAnnulusBlendingTest", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.uvw );
-   vtkOutput.add( u_exact.p );
-   vtkOutput.add( err.uvw );
-   vtkOutput.add( err.p );
-   vtkOutput.add( f.uvw );
-   vtkOutput.add( f_strong.uvw );
+   vtkOutput.add( u );
+   vtkOutput.add( u_exact );
+   vtkOutput.add( err );
+   vtkOutput.add( f.uvw() );
+   vtkOutput.add( f_strong.uvw() );
    vtkOutput.add( T );
 
    if ( writeVTK )
@@ -262,11 +259,11 @@ void runTest()
       oldRes = currRes;
 
       err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
-      discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel, Inner | NeumannBoundary ) /
+      discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, Inner | NeumannBoundary ) /
                                   real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-      discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel, Inner | NeumannBoundary ) /
+      discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel, Inner | NeumannBoundary ) /
                                   real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-      discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel, Inner | NeumannBoundary ) /
+      discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel, Inner | NeumannBoundary ) /
                                   real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -292,11 +289,11 @@ void runTest()
    currRes = std::sqrt( r.dotGlobal( r, maxLevel, All ) ) / real_c( npoints );
 
    err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
-   discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel, Inner | NeumannBoundary ) /
+   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, Inner | NeumannBoundary ) /
                                real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-   discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel, Inner | NeumannBoundary ) /
+   discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel, Inner | NeumannBoundary ) /
                                real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-   discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel, Inner | NeumannBoundary ) /
+   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel, Inner | NeumannBoundary ) /
                                real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(

@@ -50,24 +50,24 @@ class P2P2UnstableStokesOperator : public Operator< P2P2StokesFunction< real_t >
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      A.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
-      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
+      A.apply( src.uvw()[0], dst.uvw()[0], level, flag, Replace );
+      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
 
-      A.apply( src.uvw[1], dst.uvw[1], level, flag, Replace );
-      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
+      A.apply( src.uvw()[1], dst.uvw()[1], level, flag, Replace );
+      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.apply( src.uvw[2], dst.uvw[2], level, flag, Replace );
-         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
+         A.apply( src.uvw()[2], dst.uvw()[2], level, flag, Replace );
+         divT_z.apply( src.p(), dst.uvw()[2], level, flag, Add );
       }
 
-      div_x.apply( src.uvw[0], dst.p, level, flag, Replace );
-      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
+      div_x.apply( src.uvw()[0], dst.p(), level, flag, Replace );
+      div_y.apply( src.uvw()[1], dst.p(), level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
+         div_z.apply( src.uvw()[2], dst.p(), level, flag, Add );
       }
    }
 
@@ -77,23 +77,23 @@ class P2P2UnstableStokesOperator : public Operator< P2P2StokesFunction< real_t >
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+      A.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
+      divT_x.toMatrix( mat, src.p(), dst.uvw()[0], level, flag );
 
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+      A.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
+      divT_y.toMatrix( mat, src.p(), dst.uvw()[1], level, flag );
 
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      if ( src.uvw()[0].getStorage()->hasGlobalCells() )
       {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
-         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
+         A.toMatrix( mat, src.uvw()[2], dst.uvw()[2], level, flag );
+         divT_z.toMatrix( mat, src.p(), dst.uvw()[2], level, flag );
       }
 
-      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag | DirichletBoundary );
-      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag | DirichletBoundary );
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      div_x.toMatrix( mat, src.uvw()[0], dst.p(), level, flag | DirichletBoundary );
+      div_y.toMatrix( mat, src.uvw()[1], dst.p(), level, flag | DirichletBoundary );
+      if ( src.uvw()[0].getStorage()->hasGlobalCells() )
       {
-         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag | DirichletBoundary );
+         div_z.toMatrix( mat, src.uvw()[2], dst.p(), level, flag | DirichletBoundary );
       }
    }
 

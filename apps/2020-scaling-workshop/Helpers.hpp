@@ -155,8 +155,8 @@ inline void errorAndResidual( const StokesOperator&               A,
    {
       tmp.interpolate( 0, level );
       residualNegativeRHS0( u, A, level, flag, tmp );
-      residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-      residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw(), level );
+      residualL2Pressure = pointwiseScaledL2Norm( tmp.p(), level );
 
       auto errorU = [&]( const Point3D& p, const std::vector< real_t >& values )
       {
@@ -182,30 +182,30 @@ inline void errorAndResidual( const StokesOperator&               A,
         return sol - values[0];
       };
 
-      tmp.uvw[0].interpolate( errorU, {u.uvw[0]}, level, flag );
-      tmp.uvw[1].interpolate( errorV, {u.uvw[1]}, level, flag );
-      tmp.uvw[2].interpolate( errorW, {u.uvw[2]}, level, flag );
-      tmp.p.interpolate( errorP, {u.p}, level, flag );
+      tmp.uvw()[0].interpolate( errorU, {u.uvw()[0]}, level, flag );
+      tmp.uvw()[1].interpolate( errorV, {u.uvw()[1]}, level, flag );
+      tmp.uvw()[2].interpolate( errorW, {u.uvw()[2]}, level, flag );
+      tmp.p().interpolate( errorP, {u.p()}, level, flag );
 
-      errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-      errorL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw(), level );
+      errorL2Pressure = pointwiseScaledL2Norm( tmp.p(), level );
       tmp.interpolate( 0, level );
    }
    else
    {
       tmp.interpolate( 0, level );
       residual( u, f, A, tmp, level, flag, r );
-      residualL2Velocity = pointwiseScaledL2Norm( r.uvw, level );
-      residualL2Pressure = pointwiseScaledL2Norm( r.p, level );
+      residualL2Velocity = pointwiseScaledL2Norm( r.uvw(), level );
+      residualL2Pressure = pointwiseScaledL2Norm( r.p(), level );
 
-      tmp.uvw[0].interpolate( solutionU, level, All );
-      tmp.uvw[1].interpolate( solutionV, level, All );
-      tmp.uvw[2].interpolate( solutionW, level, All );
-      tmp.p.interpolate( solutionP, level, All );
+      tmp.uvw()[0].interpolate( solutionU, level, All );
+      tmp.uvw()[1].interpolate( solutionV, level, All );
+      tmp.uvw()[2].interpolate( solutionW, level, All );
+      tmp.p().interpolate( solutionP, level, All );
       error( u, tmp, level, flag, r );
 
-      errorL2Velocity = pointwiseScaledL2Norm( r.uvw, level );
-      errorL2Pressure = pointwiseScaledL2Norm( r.p, level );
+      errorL2Velocity = pointwiseScaledL2Norm( r.uvw(), level );
+      errorL2Pressure = pointwiseScaledL2Norm( r.p(), level );
       tmp.interpolate( 0, level );
    }
 

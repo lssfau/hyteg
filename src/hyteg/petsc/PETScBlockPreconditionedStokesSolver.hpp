@@ -288,24 +288,24 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                        uint_t                           level,
                        const P1StokesFunction< idx_t >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[0], level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[0], level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
 
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[1], level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[1], level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
 
       if ( storage.hasGlobalCells() )
       {
-         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[2], level ) )
+         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[2], level ) )
          {
             velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p(), level ) )
       {
          pressureIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
@@ -318,36 +318,36 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                        const P2P1TaylorHoodFunction< idx_t >& numerator )
    {
       for ( auto dof :
-            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[0].getVertexDoFFunction(), level ) )
+            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[0].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw[0].getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[0].getEdgeDoFFunction(), level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
       for ( auto dof :
-            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[1].getVertexDoFFunction(), level ) )
+            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[1].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw[1].getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[1].getEdgeDoFFunction(), level ) )
       {
          velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
       if ( storage.hasGlobalCells() )
       {
          for ( auto dof :
-               FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw[2].getVertexDoFFunction(), level ) )
+               FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[2].getVertexDoFFunction(), level ) )
          {
             velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
-         for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw[2].getEdgeDoFFunction(), level ) )
+         for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[2].getEdgeDoFFunction(), level ) )
          {
             velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p(), level ) )
       {
          pressureIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }

@@ -109,9 +109,9 @@ inline real_t normL2Velocity( const StokesFunctionType< real_t >& u,
                               uint_t                              level,
                               DoFType                             flag )
 {
-   auto normUSquare = normL2ScalarSquare( u.uvw[0], M, tmp.uvw[0], level, flag );
-   auto normVSquare = normL2ScalarSquare( u.uvw[1], M, tmp.uvw[1], level, flag );
-   auto normWSquare = normL2ScalarSquare( u.uvw[2], M, tmp.uvw[2], level, flag );
+   auto normUSquare = normL2ScalarSquare( u.uvw()[0], M, tmp.uvw()[0], level, flag );
+   auto normVSquare = normL2ScalarSquare( u.uvw()[1], M, tmp.uvw()[1], level, flag );
+   auto normWSquare = normL2ScalarSquare( u.uvw()[2], M, tmp.uvw()[2], level, flag );
 
    return std::sqrt( normUSquare + normVSquare + normWSquare );
 }

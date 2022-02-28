@@ -52,30 +52,30 @@ class P2P1TaylorHoodFunction
                            size_t                                     minLevel,
                            size_t                                     maxLevel,
                            BoundaryCondition                          velocityBC )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
-   , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+   : uvwFunc( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
+   , pFunc( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
    {}
 
-   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
+   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvwFunc.getStorage(); }
 
    bool isDummy() const { return false; }
 
    void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( expr, level, flag );
-      p.interpolate( expr, level, flag );
+      uvwFunc.interpolate( expr, level, flag );
+      pFunc.interpolate( expr, level, flag );
    }
 
    void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( constant, level, flag );
-      p.interpolate( constant, level, flag );
+      uvwFunc.interpolate( constant, level, flag );
+      pFunc.interpolate( constant, level, flag );
    }
 
    void swap( const P2P1TaylorHoodFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      uvw.swap( other.uvw, level, flag );
-      p.swap( other.p, level, flag );
+      uvwFunc.swap( other.uvw(), level, flag );
+      pFunc.swap( other.pFunc, level, flag );
    }
 
    /// \brief Copies all values function data from other to this.
@@ -97,8 +97,8 @@ class P2P1TaylorHoodFunction
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
-      uvw.copyFrom( other.uvw, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
-      p.copyFrom( other.p, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      uvwFunc.copyFrom( other.uvw(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      pFunc.copyFrom( other.pFunc, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    }
 
    void assign( const std::vector< walberla::real_t >                                                     scalars,
@@ -111,18 +111,18 @@ class P2P1TaylorHoodFunction
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvw() );
+         functions_p.push_back( function.p() );
       }
 
-      uvw.assign( scalars, functions_uvw, level, flag );
-      p.assign( scalars, functions_p, level, flag );
+      uvwFunc.assign( scalars, functions_uvw, level, flag );
+      pFunc.assign( scalars, functions_p, level, flag );
    }
 
    void add( real_t scalar, size_t level, DoFType flag = All ) const
    {
-      uvw.add( scalar, level, flag );
-      p.add( scalar, level, flag );
+      uvwFunc.add( scalar, level, flag );
+      pFunc.add( scalar, level, flag );
    }
 
    void add( const std::vector< walberla::real_t >                                                     scalars,
@@ -135,39 +135,39 @@ class P2P1TaylorHoodFunction
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvw() );
+         functions_p.push_back( function.pFunc );
       }
 
-      uvw.add( scalars, functions_uvw, level, flag );
-      p.add( scalars, functions_p, level, flag );
+      uvwFunc.add( scalars, functions_uvw, level, flag );
+      pFunc.add( scalars, functions_p, level, flag );
    }
 
    walberla::real_t
        dotGlobal( const P2P1TaylorHoodFunction< ValueType >& rhs, const size_t level, const DoFType flag = All ) const
    {
-      walberla::real_t sum = uvw.dotLocal( rhs.uvw, level, flag );
-      sum += p.dotLocal( rhs.p, level, flag | DirichletBoundary );
+      walberla::real_t sum = uvwFunc.dotLocal( rhs.uvwFunc, level, flag );
+      sum += pFunc.dotLocal( rhs.pFunc, level, flag | DirichletBoundary );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
       return sum;
    }
 
    void prolongate( const size_t level, const DoFType flag = All ) const
    {
-      uvw.prolongate( level, flag );
-      p.prolongate( level, flag );
+      uvwFunc.prolongate( level, flag );
+      pFunc.prolongate( level, flag );
    }
 
    void restrict( const size_t level, const DoFType flag = All ) const
    {
-      uvw.restrict( level, flag );
-      p.restrict( level, flag );
+      uvwFunc.restrict( level, flag );
+      pFunc.restrict( level, flag );
    }
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) const
    {
-      uvw.enableTiming( timingTree );
-      p.enableTiming( timingTree );
+      uvwFunc.enableTiming( timingTree );
+      pFunc.enableTiming( timingTree );
    }
 
    void enumerate( uint_t level ) const
@@ -183,34 +183,34 @@ class P2P1TaylorHoodFunction
          offset += static_cast< ValueType >( doFsPerRank[i] );
       }
 
-      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); k++ )
       {
-         uvw[k].enumerate( level, offset );
+         uvwFunc[k].enumerate( level, offset );
       }
-      p.enumerate( level, offset );
+      pFunc.enumerate( level, offset );
    }
 
    BoundaryCondition getVelocityBoundaryCondition() const
    {
-      auto bc_u = uvw[0].getBoundaryCondition();
+      auto bc_u = uvwFunc[0].getBoundaryCondition();
       WALBERLA_DEBUG_SECTION()
       {
-         auto bc_v = uvw[1].getBoundaryCondition();
+         auto bc_v = uvwFunc[1].getBoundaryCondition();
          WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
-         if ( uvw[0].getStorage()->hasGlobalCells() )
+         if ( uvwFunc[0].getStorage()->hasGlobalCells() )
          {
-            auto bc_w = uvw[2].getBoundaryCondition();
+            auto bc_w = uvwFunc[2].getBoundaryCondition();
             WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
          }
       }
       return bc_u;
    }
 
-   BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
+   BoundaryCondition getPressureBoundaryCondition() const { return pFunc.getBoundaryCondition(); }
 
-   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw.setBoundaryCondition( bc ); }
+   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvwFunc.setBoundaryCondition( bc ); }
 
-   void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
+   void setPressureBoundaryCondition( BoundaryCondition bc ) { pFunc.setBoundaryCondition( bc ); }
 
    template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const P2P1TaylorHoodFunction< OtherFunctionValueType >& other )
@@ -226,11 +226,11 @@ class P2P1TaylorHoodFunction
                   uint_t                                 level,
                   DoFType                                flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
       {
-         uvw[k].toVector( numerator.uvw[k], vec, level, flag );
+         uvwFunc[k].toVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.toVector( numerator.p, vec, level, flag );
+      pFunc.toVector( numerator.p(), vec, level, flag );
    }
 
    void fromVector( const P2P1TaylorHoodFunction< idx_t >& numerator,
@@ -238,16 +238,23 @@ class P2P1TaylorHoodFunction
                     uint_t                                 level,
                     DoFType                                flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvwFunc.getDimension(); ++k )
       {
-         uvw[k].fromVector( numerator.uvw[k], vec, level, flag );
+         uvwFunc[k].fromVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.fromVector( numerator.p, vec, level, flag );
+      pFunc.fromVector( numerator.p(), vec, level, flag );
    };
    /// @}
 
-   VelocityFunction_T uvw;
-   PressureFunction_T p;
+   const P2VectorFunction< ValueType >& uvw() const { return uvwFunc; };
+   P2VectorFunction< ValueType >& uvw() { return uvwFunc; };
+
+   const P1Function< ValueType >& p() const { return pFunc; };
+   P1Function< ValueType >& p() { return pFunc; };
+
+private:
+   VelocityFunction_T uvwFunc;
+   PressureFunction_T pFunc;
 };
 
 inline unsigned long long p2p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )

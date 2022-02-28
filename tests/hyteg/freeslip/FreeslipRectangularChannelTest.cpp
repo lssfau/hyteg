@@ -82,8 +82,8 @@ void interpolateTrueSolutionVelocity( const double,
 {
    auto dirichletInterpolantX = [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); };
 
-   u.uvw[0].interpolate( dirichletInterpolantX, level, flag );
-   u.uvw[1].interpolate( 0, level, flag );
+   u.uvw()[0].interpolate( dirichletInterpolantX, level, flag );
+   u.uvw()[1].interpolate( 0, level, flag );
 }
 
 template < typename StokesFunctionType, typename StokesOperatorType, typename ProjectNormalOperatorType >
@@ -108,7 +108,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    StokesFunctionType f( "f", storage, minLevel, maxLevel );
 
    f.interpolate( 0, maxLevel, All );
-   u_exact.uvw[0].interpolate( [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); }, maxLevel, All );
+   u_exact.uvw()[0].interpolate( [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); }, maxLevel, All );
    interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u_exact, All );
    interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u, DirichletBoundary );
 
@@ -137,7 +137,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    solver->solve( L, u, f, maxLevel );
 
    // the pressure is only defined up to constants (and for P1P1 it is not even the "true" pressure), thus we ignore it.
-   u.p.interpolate( 0, maxLevel, All );
+   u.p().interpolate( 0, maxLevel, All );
    diff.assign( { 1, -1 }, { u, u_exact }, maxLevel, All );
    auto norm = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
 

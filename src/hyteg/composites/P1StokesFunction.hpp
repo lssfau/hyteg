@@ -53,24 +53,24 @@ class P1StokesFunction
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
                      BoundaryCondition                          velocityBC )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
-   , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+   : uvwFunc( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
+   , pFunc( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
    {}
 
-   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
+   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw().getStorage(); }
 
    bool isDummy() const { return false; }
 
    void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( expr, level, flag );
-      p.interpolate( expr, level, flag );
+      uvw().interpolate( expr, level, flag );
+      p().interpolate( expr, level, flag );
    }
 
    void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
    {
-      uvw.interpolate( constant, level, flag );
-      p.interpolate( constant, level, flag );
+      uvw().interpolate( constant, level, flag );
+      p().interpolate( constant, level, flag );
    }
 
    /// \brief Copies all values function data from other to this.
@@ -92,14 +92,14 @@ class P1StokesFunction
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
-      uvw.copyFrom( other.uvw, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
-      p.copyFrom( other.p, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      uvw().copyFrom( other.uvw(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      p().copyFrom( other.p(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    }
 
    void swap( const P1StokesFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      uvw.swap( other.uvw, level, flag );
-      p.swap( other.p, level, flag );
+      uvw().swap( other.uvw(), level, flag );
+      p().swap( other.p(), level, flag );
    }
 
    void assign( const std::vector< walberla::real_t >                                               scalars,
@@ -112,18 +112,18 @@ class P1StokesFunction
 
       for ( const P1StokesFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvw() );
+         functions_p.push_back( function.p() );
       }
 
-      uvw.assign( scalars, functions_uvw, level, flag );
-      p.assign( scalars, functions_p, level, flag );
+      uvw().assign( scalars, functions_uvw, level, flag );
+      p().assign( scalars, functions_p, level, flag );
    }
 
    void add( real_t scalar, size_t level, DoFType flag = All ) const
    {
-      uvw.add( scalar, level, flag );
-      p.add( scalar, level, flag );
+      uvw().add( scalar, level, flag );
+      p().add( scalar, level, flag );
    }
 
    void add( const std::vector< walberla::real_t >                                               scalars,
@@ -136,26 +136,26 @@ class P1StokesFunction
 
       for ( const P1StokesFunction< ValueType >& function : functions )
       {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
+         functions_uvw.push_back( function.uvw() );
+         functions_p.push_back( function.p() );
       }
 
-      uvw.add( scalars, functions_uvw, level, flag );
-      p.add( scalars, functions_p, level, flag );
+      uvw().add( scalars, functions_uvw, level, flag );
+      p().add( scalars, functions_p, level, flag );
    }
 
    walberla::real_t dotGlobal( const P1StokesFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
-      walberla::real_t sum = uvw.dotLocal( rhs.uvw, level, flag );
-      sum += p.dotLocal( rhs.p, level, flag );
+      walberla::real_t sum = uvw().dotLocal( rhs.uvw(), level, flag );
+      sum += p().dotLocal( rhs.p(), level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
       return sum;
    }
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree )
    {
-      uvw.enableTiming( timingTree );
-      p.enableTiming( timingTree );
+      uvw().enableTiming( timingTree );
+      p().enableTiming( timingTree );
    }
 
    void enumerate( uint_t level )
@@ -171,20 +171,20 @@ class P1StokesFunction
          offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
       }
 
-      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < uvw().getDimension(); k++ )
       {
-         uvw[k].enumerate( level, offset );
+         uvw()[k].enumerate( level, offset );
       }
-      p.enumerate( level, offset );
+      p().enumerate( level, offset );
    }
 
-   BoundaryCondition getVelocityBoundaryCondition() const { return uvw.getBoundaryCondition(); }
+   BoundaryCondition getVelocityBoundaryCondition() const { return uvw().getBoundaryCondition(); }
 
-   BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
+   BoundaryCondition getPressureBoundaryCondition() const { return p().getBoundaryCondition(); }
 
-   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw.setBoundaryCondition( bc ); }
+   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw().setBoundaryCondition( bc ); }
 
-   void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
+   void setPressureBoundaryCondition( BoundaryCondition bc ) { p().setBoundaryCondition( bc ); }
 
    template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const P1StokesFunction< OtherFunctionValueType >& other )
@@ -200,11 +200,11 @@ class P1StokesFunction
                   uint_t                                level,
                   DoFType                               flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvw().getDimension(); ++k )
       {
-         uvw[k].toVector( numerator.uvw[k], vec, level, flag );
+         uvw()[k].toVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.toVector( numerator.p, vec, level, flag );
+      p().toVector( numerator.p(), vec, level, flag );
    }
 
    void fromVector( const P1StokesFunction< idx_t >&      numerator,
@@ -212,16 +212,23 @@ class P1StokesFunction
                     uint_t                                level,
                     DoFType                               flag ) const
    {
-      for ( uint_t k = 0; k < uvw.getDimension(); ++k )
+      for ( uint_t k = 0; k < uvw().getDimension(); ++k )
       {
-         uvw[k].fromVector( numerator.uvw[k], vec, level, flag );
+         uvw()[k].fromVector( numerator.uvw()[k], vec, level, flag );
       }
-      p.fromVector( numerator.p, vec, level, flag );
+      p().fromVector( numerator.p(), vec, level, flag );
    };
    /// @}
 
-   P1VectorFunction< ValueType > uvw;
-   P1Function< ValueType >       p;
+   const P1VectorFunction< ValueType >& uvw() const { return uvwFunc; };
+   P1VectorFunction< ValueType >& uvw() { return uvwFunc; };
+
+   const P1Function< ValueType >& p() const { return pFunc; };
+   P1Function< ValueType >& p() { return pFunc; };
+
+private:
+   P1VectorFunction< ValueType > uvwFunc;
+   P1Function< ValueType >       pFunc;
 };
 
 inline unsigned long long p1p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )

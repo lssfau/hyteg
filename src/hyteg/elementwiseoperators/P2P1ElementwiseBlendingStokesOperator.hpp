@@ -77,23 +77,23 @@ class P2P1ElementwiseBlendingStokesOperator
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      A.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
-      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
+      A.apply( src.uvw()[0], dst.uvw()[0], level, flag, Replace );
+      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
 
-      A.apply( src.uvw[1], dst.uvw[1], level, flag, Replace );
-      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
+      A.apply( src.uvw()[1], dst.uvw()[1], level, flag, Replace );
+      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.apply( src.uvw[2], dst.uvw[2], level, flag, Replace );
-         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
+         A.apply( src.uvw()[2], dst.uvw()[2], level, flag, Replace );
+         divT_z.apply( src.p(), dst.uvw()[2], level, flag, Add );
       }
 
-      div_x.apply( src.uvw[0], dst.p, level, flag, Replace );
-      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
+      div_x.apply( src.uvw()[0], dst.p(), level, flag, Replace );
+      div_y.apply( src.uvw()[1], dst.p(), level, flag, Add );
       if ( hasGlobalCells_ )
       {
-         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
+         div_z.apply( src.uvw()[2], dst.p(), level, flag, Add );
       }
    }
 
@@ -103,20 +103,20 @@ class P2P1ElementwiseBlendingStokesOperator
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+      A.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
+      A.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
 
-      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
-      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+      divT_x.toMatrix( mat, src.p(), dst.uvw()[0], level, flag );
+      divT_y.toMatrix( mat, src.p(), dst.uvw()[1], level, flag );
 
-      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag );
-      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag );
+      div_x.toMatrix( mat, src.uvw()[0], dst.p(), level, flag );
+      div_y.toMatrix( mat, src.uvw()[1], dst.p(), level, flag );
 
       if ( src.getStorage()->hasGlobalCells() )
       {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
-         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
-         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag );
+         A.toMatrix( mat, src.uvw()[2], dst.uvw()[2], level, flag );
+         divT_z.toMatrix( mat, src.p(), dst.uvw()[2], level, flag );
+         div_z.toMatrix( mat, src.uvw()[2], dst.p(), level, flag );
       }
    }
 
