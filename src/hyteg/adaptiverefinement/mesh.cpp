@@ -150,7 +150,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // pessimistic estimate! in most cases the actual growth will be significantly smaller
-      const uint_t est_growth_factor = ( K_Simplex::DIM == 2 ) ? 18 : 100;
+      const uint_t est_growth_factor = ( K_Simplex::DIM == 2 ) ? 18 : 138;
 
       uint_t predict = _T.size();
 
