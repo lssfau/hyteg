@@ -145,14 +145,14 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-RefinedElements K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
 {
-   RefinedElements ref{ _T.size(), 0, 0 };
-
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // pessimistic estimate! in most cases the actual growth will be significantly smaller
       const uint_t est_growth_factor = ( K_Simplex::DIM == 2 ) ? 18 : 100;
+
+      uint_t predict = _T.size();
 
       /* green elements must not be refined any further to
          prevent mesh degeneration
@@ -167,19 +167,16 @@ RefinedElements K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >&
       // refined elements
       std::set< std::shared_ptr< K_Simplex > > refined;
 
-      ref.n_G = ref.n_el() - U.size();
-      ref.n_U = U.size();
-
       /* successively apply recursive red-refinement to parts of R
          until predicted n_el exceeds n_el_max
       */
       auto prt      = R.begin();
       auto prt_size = R.size();
-      while ( prt_size > 0 && prt != R.end() && ref.n_el() < n_el_max )
+      while ( prt_size > 0 && prt != R.end() && predict < n_el_max )
       {
          // move to next chunk
          auto done = prt;
-         prt_size  = ( n_el_max - ref.n_el() ) / est_growth_factor;
+         prt_size  = ( n_el_max - predict ) / est_growth_factor;
          prt       = done + std::min( prt_size, uint_t( R.end() - done ) );
 
          std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
@@ -196,9 +193,7 @@ RefinedElements K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >&
          }
 
          // predict number of elements after required green step
-         ref.n_U = U.size();
-         ref.n_R = refined.size();
-         ref.n_G = predict_n_el_green( U );
+         predict = U.size() + refined.size() + predict_n_el_green( U );
       }
 
       // apply green refinement
@@ -211,13 +206,8 @@ RefinedElements K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >&
       _n_elements = _T.size();
    }
 
-   walberla::mpi::broadcastObject( ref.n_U );
-   walberla::mpi::broadcastObject( ref.n_R );
-   walberla::mpi::broadcastObject( ref.n_G );
    walberla::mpi::broadcastObject( _n_vertices );
    walberla::mpi::broadcastObject( _n_elements );
-
-   return ref;
 }
 
 template < class K_Simplex >
@@ -690,13 +680,15 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
          subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
       }
 
-      // if green refinement was just replaced by red step, subelements must be checked again
+      // if this red step only replaced a green step, subelements must be checked again
       if ( check_subelements )
       {
          U.merge( subelements );
       }
-
-      refined.merge( subelements );
+      else
+      {
+         refined.merge( subelements );
+      }
    }
 
    return refined;

@@ -373,7 +373,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
 
       ++refinement;
       WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot);
+      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot );
 
       // compute number of elements to refine
       // real_t growth_est = (mesh.dim() == 2)? 3 : 7; // only considering red refinement
@@ -392,11 +392,12 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       }
 
       // apply refinement
-      auto ref = mesh.refineRG( R, n_el_max );
+      mesh.refineRG( R, n_el_max );
 
-      WALBERLA_LOG_INFO_ON_ROOT( " -> unrefined: " << ref.n_U << ", red: " << ref.n_R << ", green: " << ref.n_G << " -> n_el_new = " << ref.n_el());
+      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
 
-      if ( ref.n_R == 0 )
+      // stop iteration if no new elements were added
+      if ( mesh.n_elements() == N_tot )
       {
          break;
       }

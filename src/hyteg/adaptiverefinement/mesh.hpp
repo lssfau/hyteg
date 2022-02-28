@@ -64,9 +64,8 @@ class K_Mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
       @param n_el_max            upper bound for number of elements in refined mesh
-      @return [n_U, n_R, n_G], number of elements in the refined mesh
    */
-   RefinedElements refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) );
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -221,9 +220,8 @@ class Mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
       @param n_el_max            upper bound for number of elements in refined mesh
-      @return [n_U, n_R, n_G], number of elements in the refined mesh
    */
-   RefinedElements refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) )
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) )
    {
       if ( _DIM == 3 )
       {

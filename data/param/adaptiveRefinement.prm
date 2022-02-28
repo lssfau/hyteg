@@ -3,10 +3,10 @@ Parameters
   // spacial dimension of domain
   dim 3;
   // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 1;
+  shape 0;
   // initial mesh (n3 only used for cube)
-  n1 3;
-  n2 2;
+  n1 1;
+  n2 1;
   n3 1;
 
   // diffusion coefficient
@@ -21,13 +21,13 @@ Parameters
   //  reduced as appropriate
   n_refinements 80; // number of refinement steps
   n_el_ref_relative 0.2; // proportion of elements to refine in each step
-  n_el_max 59000; // max number of macro elements
+  n_el_max 50000; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
   n_iterations 30;
-  tolerance 1e-5;
+  tolerance 1e-10;
 
   // vtk
-  vtkName adref_sphericalshell;
+  vtkName adref_cube;
 }
