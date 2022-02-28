@@ -19,9 +19,9 @@ Parameters
   //  exceeds the given maximum of allowed elements.
   //  In this case, the number of refined elements is
   //  reduced as appropriate
-  n_refinements 4; // number of refinement steps
+  n_refinements 80; // number of refinement steps
   n_el_ref_relative 0.2; // proportion of elements to refine in each step
-  n_el_max 40000; // max number of macro elements
+  n_el_max 59000; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
@@ -29,5 +29,5 @@ Parameters
   tolerance 1e-5;
 
   // vtk
-  vtkOutput 0;
+  vtkName adref_sphericalshell;
 }

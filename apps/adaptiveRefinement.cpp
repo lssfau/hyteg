@@ -146,7 +146,8 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
                                                               uint_t                              l_max,
                                                               uint_t                              max_iter,
                                                               real_t                              tol,
-                                                              int                                 vtk,
+                                                              std::string                         vtkname,
+                                                              uint_t                              refinement_step,
                                                               bool                                l2_error_each_iteration = true )
 {
    uint_t dim = storage->hasGlobalCells() ? 3 : 2;
@@ -309,7 +310,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
    std::sort( err_2_elwise.begin(), err_2_elwise.end() );
 
    // export to vtk
-   if ( vtk >= 0 )
+   if ( vtkname != "" )
    {
       P1Function< real_t > k( "k", storage, l_min, l_max );
       k.interpolate( pde.k, l_max );
@@ -325,7 +326,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       err_2.multElementwise( { err, err }, l_max, hyteg::All );
 
-      VTKOutput vtkOutput( "output", "adaptive_" + std::to_string( dim ) + "d", storage );
+      VTKOutput vtkOutput( "output", vtkname, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
       vtkOutput.add( k );
@@ -334,7 +335,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
       vtkOutput.add( u_anal );
       vtkOutput.add( b );
       vtkOutput.add( boundary );
-      vtkOutput.write( l_max, uint_t( vtk ) );
+      vtkOutput.write( l_max, refinement_step );
    }
 
    return err_2_elwise;
@@ -349,7 +350,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
                                 uint_t                       l_max,
                                 uint_t                       max_iter,
                                 real_t                       tol,
-                                bool                         vtk )
+                                std::string                  vtkname )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( initialStorage );
@@ -361,8 +362,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
 
       // solve for current refinement
       auto storage      = mesh.make_storage();
-      int  vtkname      = ( vtk ) ? int( refinement ) : -1;
-      auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname );
+      auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname, refinement );
 
       // stop loop when reaching maximum refinement
       auto N_tot = mesh.n_elements();
@@ -373,6 +373,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
 
       ++refinement;
       WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot);
 
       // compute number of elements to refine
       // real_t growth_est = (mesh.dim() == 2)? 3 : 7; // only considering red refinement
@@ -391,9 +392,14 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       }
 
       // apply refinement
-      auto n_red = mesh.refineRG( R, n_el_max );
+      auto ref = mesh.refineRG( R, n_el_max );
 
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << n_red << " of " << N_tot << " elements chosen for red refinement" );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> unrefined: " << ref.n_U << ", red: " << ref.n_R << ", green: " << ref.n_G << " -> n_el_new = " << ref.n_el());
+
+      if ( ref.n_R == 0 )
+      {
+         break;
+      }
    }
 }
 
@@ -438,13 +444,13 @@ int main( int argc, char* argv[] )
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
-   const bool vtkoutput = parameters.getParameter< bool >( "vtkOutput" );
+   const std::string vtkname = parameters.getParameter< std::string >( "vtkName" );
 
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
    auto pde_data     = functions( dim, shape, alpha, beta );
    solve_for_each_refinement(
-       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkoutput );
+       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkname );
 
    return 0;
 }

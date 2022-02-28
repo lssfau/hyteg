@@ -29,6 +29,16 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
+// number of elements in the refined mesh by type of origin
+struct RefinedElements
+{
+   uint_t n_U; // unrefined elements w.r.t. previous mesh
+   uint_t n_R; // resulting from red refinement step
+   uint_t n_G; // resulting from green refinement step (including green elements from the previous mesh)
+   // return n_el = n_U + n_R + n_G
+   inline uint_t n_el() const { return n_U + n_R + n_G; }
+};
+
 // adaptively refinable mesh for K-dimensional domains
 template < class K_Simplex >
 class K_Mesh
@@ -48,16 +58,15 @@ class K_Mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
+   // void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
-      @param n_el_max            soft upper bound for the total number of elements
-                                 in refined mesh, i.e., it might be slightly exceeded.
-      @return size of that part of elements_to_refine which has been processed before reaching n_el_max
+      @param n_el_max            upper bound for number of elements in refined mesh
+      @return [n_U, n_R, n_G], number of elements in the refined mesh
    */
-   uint_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max );
+   RefinedElements refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -106,9 +115,9 @@ class K_Mesh
    using FaceData = SimplexData< 2 >;
    using CellData = SimplexData< 3 >;
 
-   /* remove green edges from _T and replace the corresponding faces in R with their parents
+   /* remove green edges from _T and replace them with their parents
    */
-   void remove_green_edges( std::set< std::shared_ptr< K_Simplex > >& R );
+   void remove_green_edges();
 
    /* find all elements in U which require a red refinement step
       @param U set of unprocessed elements
@@ -143,7 +152,7 @@ class K_Mesh
       @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
       @return subset of _T for red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
+   std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements */
    void extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const;
@@ -192,31 +201,29 @@ class Mesh
       }
    }
 
-   /* apply red-green refinement to this mesh
-      @param elements_to_refine  subset of elements that shall be refined (red)
-                                 given by primitiveIDs w.r.t. K_Mesh::setupStorage()
-   */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
-   {
-      if ( _DIM == 3 )
-      {
-         return _mesh3D->refineRG( elements_to_refine );
-      }
-      else
-      {
-         return _mesh2D->refineRG( elements_to_refine );
-      }
-   }
+   // /* apply red-green refinement to this mesh
+   //    @param elements_to_refine  subset of elements that shall be refined (red)
+   //                               given by primitiveIDs w.r.t. K_Mesh::setupStorage()
+   // */
+   // void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+   // {
+   //    if ( _DIM == 3 )
+   //    {
+   //       return _mesh3D->refineRG( elements_to_refine );
+   //    }
+   //    else
+   //    {
+   //       return _mesh2D->refineRG( elements_to_refine );
+   //    }
+   // }
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
-      @param n_el_max            soft upper bound for the total number of elements
-                                 in refined mesh. The bound is soft in the sense
-                                 that it might be slightly exceeded.
-      @return number of elements that actually where subject to red refinement
+      @param n_el_max            upper bound for number of elements in refined mesh
+      @return [n_U, n_R, n_G], number of elements in the refined mesh
    */
-   uint_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+   RefinedElements refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) )
    {
       if ( _DIM == 3 )
       {
