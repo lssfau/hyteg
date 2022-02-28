@@ -177,7 +177,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
          // move to next chunk
          auto done = prt;
          prt_size  = ( n_el_max - predict ) / est_growth_factor;
-         prt       = done + std::min( prt_size, uint_t( R.end() - done ) );
+         prt       = done + std::min( int64_t( prt_size ), int64_t( R.end() - done ) );
 
          std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
          R_prt.erase( nullptr );
