@@ -136,7 +136,7 @@ int main( int argc, char* argv[] )
    hyteg::VTKOutput vtkOutput("./output", "StokesCubeTransport", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( u.uvw );
+      vtkOutput.add( u.uvw() );
 //      vtkOutput.add( &u.p );
 //      vtkOutput.add( &f.u );
 //      vtkOutput.add( &f.v );
@@ -213,8 +213,8 @@ int main( int argc, char* argv[] )
 
    for (uint_t step = 0; step < steps; ++step)
    {
-      M.apply( temp, f.uvw[2], maxLevel, All );
-      f.uvw[2].assign({mainConf.getParameter< real_t >( "convectivity" )}, {f.uvw[2]}, maxLevel, All);
+      M.apply( temp, f.uvw()[2], maxLevel, All );
+      f.uvw()[2].assign({mainConf.getParameter< real_t >( "convectivity" )}, {f.uvw()[2]}, maxLevel, All);
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -245,7 +245,7 @@ int main( int argc, char* argv[] )
          time += dt;
          WALBERLA_LOG_INFO("time = " << time);
 
-         transportOperator.step( temp, u.uvw, maxLevel, Inner, dt, viscosity );
+         transportOperator.step( temp, u.uvw(), maxLevel, Inner, dt, viscosity );
          ++transportStep;
 
          if( transportStep % plotFrequency == 0 && mainConf.getParameter< bool >( "VTKOutput" ) )

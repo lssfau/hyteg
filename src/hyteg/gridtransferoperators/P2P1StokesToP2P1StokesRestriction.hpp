@@ -42,15 +42,15 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    void
        restrict( const P2P1TaylorHoodFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         quadraticRestrictionOperator_.restrict( function.uvw[k], sourceLevel, flag );
+         quadraticRestrictionOperator_.restrict( function.uvw()[k], sourceLevel, flag );
       }
-      linearRestrictionOperator_.restrict( function.p, sourceLevel, flag );
+      linearRestrictionOperator_.restrict( function.p(), sourceLevel, flag );
 
       if ( projectMeanAfterRestriction_ )
       {
-         vertexdof::projectMean( function.p, sourceLevel - 1 );
+         vertexdof::projectMean( function.p(), sourceLevel - 1 );
       }
    }
 

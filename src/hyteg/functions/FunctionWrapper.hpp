@@ -56,10 +56,18 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    FunctionWrapper( const std::string&                         name,
                     const std::shared_ptr< PrimitiveStorage >& storage,
                     size_t                                     minLevel,
-                    size_t                                     maxLevel )
+                    size_t                                     maxLevel,
+                    BoundaryCondition                          boundaryCondition )
    {
-      wrappedFunc_ = std::make_unique< func_t >( name, storage, minLevel, maxLevel );
+      wrappedFunc_ = std::make_unique< func_t >( name, storage, minLevel, maxLevel, boundaryCondition );
    };
+
+   /// Constructor that constructs the function which the class wraps itself around
+   FunctionWrapper( const std::string&                         name,
+                    const std::shared_ptr< PrimitiveStorage >& storage,
+                    size_t                                     minLevel,
+                    size_t                                     maxLevel )
+   : FunctionWrapper( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ){};
 
    ~FunctionWrapper()
    {

@@ -149,10 +149,8 @@ int main( int argc, char* argv[] )
    hyteg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( u.uvw );
-      vtkOutput.add( u.p );
-      vtkOutput.add( f.uvw );
-      vtkOutput.add( f.p );
+      vtkOutput.add( u );
+      vtkOutput.add( f );
    }
 
    hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
@@ -184,7 +182,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   f.uvw.interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
+   f.uvw().interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {

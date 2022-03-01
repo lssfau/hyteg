@@ -43,20 +43,20 @@ class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1S
 
    void apply( const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
    {
-      WALBERLA_CHECK( !src.uvw[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
+      WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      A_uu.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
-      A_uv.apply( src.uvw[1], dst.uvw[0], level, flag, Add );
-      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
+      A_uu.apply( src.uvw()[0], dst.uvw()[0], level, flag, Replace );
+      A_uv.apply( src.uvw()[1], dst.uvw()[0], level, flag, Add );
+      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
 
-      A_vu.apply( src.uvw[0], dst.uvw[1], level, flag, Replace );
-      A_vv.apply( src.uvw[1], dst.uvw[1], level, flag, Add );
-      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
+      A_vu.apply( src.uvw()[0], dst.uvw()[1], level, flag, Replace );
+      A_vv.apply( src.uvw()[1], dst.uvw()[1], level, flag, Add );
+      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
 
-      div_x.apply( src.uvw[0], dst.p, level, flag | DirichletBoundary, Replace );
-      div_y.apply( src.uvw[1], dst.p, level, flag | DirichletBoundary, Add );
-      pspg.apply( src.p, dst.p, level, flag | DirichletBoundary, Add );
+      div_x.apply( src.uvw()[0], dst.p(), level, flag | DirichletBoundary, Replace );
+      div_y.apply( src.uvw()[1], dst.p(), level, flag | DirichletBoundary, Add );
+      pspg.apply( src.p(), dst.p(), level, flag | DirichletBoundary, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -65,20 +65,20 @@ class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1S
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      WALBERLA_CHECK( !src.uvw[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
+      WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
 
-      A_uu.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      A_uv.toMatrix( mat, src.uvw[1], dst.uvw[0], level, flag );
-      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+      A_uu.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
+      A_uv.toMatrix( mat, src.uvw()[1], dst.uvw()[0], level, flag );
+      divT_x.toMatrix( mat, src.p(), dst.uvw()[0], level, flag );
 
-      A_vu.toMatrix( mat, src.uvw[0], dst.uvw[1], level, flag );
-      A_vv.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+      A_vu.toMatrix( mat, src.uvw()[0], dst.uvw()[1], level, flag );
+      A_vv.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
+      divT_y.toMatrix( mat, src.p(), dst.uvw()[1], level, flag );
 
-      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag | DirichletBoundary );
-      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag | DirichletBoundary );
+      div_x.toMatrix( mat, src.uvw()[0], dst.p(), level, flag | DirichletBoundary );
+      div_y.toMatrix( mat, src.uvw()[1], dst.p(), level, flag | DirichletBoundary );
 
-      pspg.toMatrix( mat, src.p, dst.p, level, flag | DirichletBoundary );
+      pspg.toMatrix( mat, src.p(), dst.p(), level, flag | DirichletBoundary );
    }
 
    P1ConstantEpsilonOperator_11 A_uu;

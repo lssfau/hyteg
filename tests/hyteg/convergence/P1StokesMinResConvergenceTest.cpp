@@ -71,7 +71,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
+   u.uvw().interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
 
    auto solver = hyteg::MinResSolver< hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
    solver.solve( L, u, f, maxLevel );
@@ -83,6 +83,5 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
    WALBERLA_CHECK_LESS( final_residuum, 9.1e-07 );
-   //hyteg::VTKWriter<hyteg::P1Function< real_t >>({ u.u, u.v, u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
 }

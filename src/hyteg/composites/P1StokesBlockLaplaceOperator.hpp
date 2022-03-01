@@ -38,9 +38,9 @@ class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >
                const DoFType                     flag,
                const UpdateType                  updateType ) const
    {
-      for ( uint_t k = 0; k < src.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < src.uvw().getDimension(); k++ )
       {
-         A.apply( src.uvw[k], dst.uvw[k], level, flag, updateType );
+         A.apply( src.uvw()[k], dst.uvw()[k], level, flag, updateType );
       }
    }
 
@@ -50,12 +50,9 @@ class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      for ( uint_t k = 0; k < src.uvw().getDimension(); k++ )
       {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         A.toMatrix( mat, src.uvw()[k], dst.uvw()[k], level, flag );
       }
    }
 

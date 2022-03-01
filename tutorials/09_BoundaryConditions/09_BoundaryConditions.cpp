@@ -312,8 +312,8 @@ int main( int argc, char** argv )
    velocity.interpolate( {real_c( 2 ), real_c( 0 )}, maxLevel, idTopWallVel );
 
    // to set the boundary values on our TaylorHood funcion, we extract its velocity component
-   uAndp.uvw.interpolate( {real_c( 0 ), real_c( 0 )}, maxLevel, idBotWallVel );
-   uAndp.uvw.interpolate( {real_c( 2 ), real_c( 0 )}, maxLevel, idTopWallVel );
+   uAndp.uvw().interpolate( {real_c( 0 ), real_c( 0 )}, maxLevel, idBotWallVel );
+   uAndp.uvw().interpolate( {real_c( 2 ), real_c( 0 )}, maxLevel, idTopWallVel );
 
    /// [Setting_BC_Vel]
 

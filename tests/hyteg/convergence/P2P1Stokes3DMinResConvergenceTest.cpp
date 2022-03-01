@@ -118,15 +118,15 @@ void stokesMinResConvergenceTest()
 //   vtkOutput.add( u.u );
 //   vtkOutput.add( u.v );
 //   // vtkOutput.add( u.w );
-//   vtkOutput.add( u.p );
+//   vtkOutput.add( u.p() );
 //   vtkOutput.add( uExact.u );
 //   vtkOutput.add( uExact.v );
 //   // vtkOutput.add( uExact.w );
-//   vtkOutput.add( uExact.p );
+//   vtkOutput.add( uExact.p() );
 //   vtkOutput.add( err.u );
 //   vtkOutput.add( err.v );
 //   // vtkOutput.add( err.w );
-//   vtkOutput.add( err.p );
+//   vtkOutput.add( err.p() );
 
    P2P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -164,9 +164,9 @@ void stokesMinResConvergenceTest()
 #if 0
    u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
-   uExact.p.interpolate( collidingFlow_p, maxLevel );
+   u.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
+   uExact.p().interpolate( collidingFlow_p, maxLevel );
 #endif
 
    //   vtkOutput.write( maxLevel, 0 );
@@ -179,8 +179,8 @@ void stokesMinResConvergenceTest()
 
    solver.solve( L, u, f, maxLevel );
 
-   hyteg::vertexdof::projectMean( u.p, maxLevel );
-   hyteg::vertexdof::projectMean( uExact.p, maxLevel );
+   hyteg::vertexdof::projectMean( u.p(), maxLevel );
+   hyteg::vertexdof::projectMean( uExact.p(), maxLevel );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
@@ -188,10 +188,10 @@ void stokesMinResConvergenceTest()
 
    uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
 
-   real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_w = std::sqrt( err.uvw()[2].dotGlobal( err.uvw()[2], maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1    = std::sqrt( r.dotGlobal( r, maxLevel ) / (real_t) globalDoFs1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );

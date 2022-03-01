@@ -56,28 +56,28 @@ class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A_0_0.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      A_0_1.toMatrix( mat, src.uvw[1], dst.uvw[0], level, flag );
+      A_0_0.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
+      A_0_1.toMatrix( mat, src.uvw()[1], dst.uvw()[0], level, flag );
       if ( src.getStorage()->hasGlobalCells() )
       {
-         A_0_2.toMatrix( mat, src.uvw[2], dst.uvw[0], level, flag );
+         A_0_2.toMatrix( mat, src.uvw()[2], dst.uvw()[0], level, flag );
       }
 
-      A_1_0.toMatrix( mat, src.uvw[0], dst.uvw[1], level, flag );
-      A_1_1.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+      A_1_0.toMatrix( mat, src.uvw()[0], dst.uvw()[1], level, flag );
+      A_1_1.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
       if ( src.getStorage()->hasGlobalCells() )
       {
-         A_1_2.toMatrix( mat, src.uvw[2], dst.uvw[1], level, flag );
+         A_1_2.toMatrix( mat, src.uvw()[2], dst.uvw()[1], level, flag );
       }
 
       if ( src.getStorage()->hasGlobalCells() )
       {
-         A_2_0.toMatrix( mat, src.uvw[0], dst.uvw[2], level, flag );
-         A_2_1.toMatrix( mat, src.uvw[1], dst.uvw[2], level, flag );
-         A_2_2.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         A_2_0.toMatrix( mat, src.uvw()[0], dst.uvw()[2], level, flag );
+         A_2_1.toMatrix( mat, src.uvw()[1], dst.uvw()[2], level, flag );
+         A_2_2.toMatrix( mat, src.uvw()[2], dst.uvw()[2], level, flag );
       }
 
-      P.toMatrix( mat, src.p, dst.p, level, flag );
+      P.toMatrix( mat, src.p(), dst.p(), level, flag );
    }
 
    P2ElementwiseOperator< forms::p2_epsiloncc_0_0_affine_q2 > A_0_0;

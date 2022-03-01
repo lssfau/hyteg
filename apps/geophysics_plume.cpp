@@ -116,12 +116,12 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   std::array< hyteg::P1Function< real_t >, 2 >           velocity{ u->uvw[0], u->uvw[1] };
+   std::array< hyteg::P1Function< real_t >, 2 >           velocity{ u->uvw()[0], u->uvw()[1] };
    hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
    hyteg::P1StokesOperator                                L( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator                          M( storage, minLevel, maxLevel );
 
-   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw[0], &u->uvw[1] } }, maxLevel );
+   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
    const real_t minimalEdgeLength    = hyteg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
@@ -176,9 +176,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Total DoFs on all level :" << ( totalGlobalDofsTemp + totalGlobalDofsStokes ) );
 
    hyteg::VTKOutput vtkOutput( "../output", "plume", storage, plotModulo );
-   vtkOutput.add( u->uvw );
-   vtkOutput.add( u->p );
-   vtkOutput.add( f->uvw );
+   vtkOutput.add( *u );
+   vtkOutput.add( f->uvw() );
    vtkOutput.add( *c );
 
    uint_t plotIter = 0;
@@ -192,16 +191,16 @@ int main( int argc, char* argv[] )
 
          f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
-         f->uvw[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
-         f->uvw[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
+         f->uvw()[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
+         f->uvw()[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
 
          for ( uint_t outer = 0; outer < 2; ++outer )
          {
             solver.solve( L, *u, *f, maxLevel );
-            hyteg::vertexdof::projectMean( u->p, maxLevel );
+            hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
             L.apply( *u, *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-            hyteg::vertexdof::projectMean( u->p, maxLevel );
+            hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
             r->assign( { 1.0, -1.0 }, { *f, *r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
@@ -225,7 +224,7 @@ int main( int argc, char* argv[] )
       time += dt;
 
       // compute new dt by CFL condition
-      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw[0], &u->uvw[1] } }, maxLevel );
+      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
       dt                   = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
    }
 

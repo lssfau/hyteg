@@ -37,22 +37,22 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
                     const uint_t&                           sourceLevel,
                     const DoFType&                          flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         quadraticProlongationOperator_.prolongate( function.uvw[k], sourceLevel, flag );
+         quadraticProlongationOperator_.prolongate( function.uvw()[k], sourceLevel, flag );
       }
-      linearProlongationOperator_.prolongate( function.p, sourceLevel, flag );
+      linearProlongationOperator_.prolongate( function.p(), sourceLevel, flag );
    }
 
    void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
                           const uint_t&                           sourceLevel,
                           const DoFType&                          flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         quadraticProlongationOperator_.prolongateAndAdd( function.uvw[k], sourceLevel, flag );
+         quadraticProlongationOperator_.prolongateAndAdd( function.uvw()[k], sourceLevel, flag );
       }
-      linearProlongationOperator_.prolongateAndAdd( function.p, sourceLevel, flag );
+      linearProlongationOperator_.prolongateAndAdd( function.p(), sourceLevel, flag );
    }
 
  private:

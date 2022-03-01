@@ -41,15 +41,15 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
 
    void restrict( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         restrictionOperator_.restrict( function.uvw[k], sourceLevel, flag );
+         restrictionOperator_.restrict( function.uvw()[k], sourceLevel, flag );
       }
-      restrictionOperator_.restrict( function.p, sourceLevel, flag );
+      restrictionOperator_.restrict( function.p(), sourceLevel, flag );
 
       if ( projectMeanAfterRestriction_ )
       {
-         vertexdof::projectMean( function.p, sourceLevel - 1 );
+         vertexdof::projectMean( function.p(), sourceLevel - 1 );
       }
    }
 

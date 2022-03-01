@@ -59,9 +59,9 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      Lapl.apply( src.uvw, dst.uvw, level, flag, Replace );
-      divT.apply( src.p, dst.uvw, level, flag, Add );
-      div.apply( src.uvw, dst.p, level, flag, Replace );
+      Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -70,9 +70,9 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      Lapl.toMatrix( mat, src.uvw, dst.uvw, level, flag );
-      divT.toMatrix( mat, src.p, dst.uvw, level, flag );
-      div.toMatrix( mat, src.uvw, dst.p, level, flag );
+      Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
    VelocityBlockOperator_T    Lapl;
