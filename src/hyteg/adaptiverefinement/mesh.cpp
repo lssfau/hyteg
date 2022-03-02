@@ -25,9 +25,11 @@
 #include <core/mpi/Broadcast.h>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <type_traits>
 
 // #include "hyteg/memory/MemoryAllocation.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
@@ -213,19 +215,28 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
-   // extract connectivity, geometry and boundary data
-   EdgeData edges;
-   FaceData faces;
-   CellData cells;
+   // extract connectivity, geometry and boundary data and add PrimitiveIDs
+   // std::vector< int > vertexIDs( _vertices.size() );
+   // std::iota( vertexIDs.begin(), vertexIDs.end(), 0 );
+   std::vector< EdgeData > edges;
+   std::vector< FaceData > faces;
+   std::vector< CellData > cells;
    extract_data( edges, faces, cells );
+
+   // std::shared_ptr< SetupPrimitiveStorage > setupStorage;
+   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   // {
+   //    setupStorage = make_setupStorage( vertexIDs, edges, faces, cells, _n_processes );
+   //    loadbalancing::roundRobin( *setupStorage );
+   // }
 
    // broadcast data to all processes
    walberla::mpi::broadcastObject( _vertices );
    walberla::mpi::broadcastObject( _vertexGeometryMap );
    walberla::mpi::broadcastObject( _vertexBoundaryFlag );
-   edges.broadcast();
-   faces.broadcast();
-   cells.broadcast();
+   walberla::mpi::broadcastObject(edges);
+   walberla::mpi::broadcastObject(faces);
+   walberla::mpi::broadcastObject(cells);
 
    auto [id, storage] = convert_to_storage( edges, faces, cells, _n_processes );
 
@@ -250,10 +261,11 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 }
 
 template < class K_Simplex >
-std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::convert_to_storage( const EdgeData& edges,
-                                                                                                  const FaceData& faces,
-                                                                                                  const CellData& cells,
-                                                                                                  const uint_t&   n_processes )
+std::pair< uint_t, std::shared_ptr< PrimitiveStorage > >
+    K_Mesh< K_Simplex >::convert_to_storage( const std::vector< EdgeData >& edges,
+                                             const std::vector< FaceData >& faces,
+                                             const std::vector< CellData >& cells,
+                                             const uint_t&                  n_processes )
 {
    SetupPrimitiveStorage::VertexMap vertices_sps;
    SetupPrimitiveStorage::EdgeMap   edges_sps;
@@ -292,9 +304,9 @@ std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::co
       PrimitiveID edgeID( id );
 
       // simplexData
-      auto v             = edges.get_vertices( e );
-      auto geometryMapID = edges.getGeometryMap( e );
-      auto boundaryFlag  = edges.getBoundaryFlag( e );
+      auto v             = edges[e].get_vertices();
+      auto geometryMapID = edges[e].getGeometryMap();
+      auto boundaryFlag  = edges[e].getBoundaryFlag();
 
       // vertex coordinates and IDs
       std::array< Point3D, K + 1 >     coords;
@@ -340,9 +352,9 @@ std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::co
       PrimitiveID faceID( id );
 
       // simplexData
-      auto v             = faces.get_vertices( f );
-      auto geometryMapID = faces.getGeometryMap( f );
-      auto boundaryFlag  = faces.getBoundaryFlag( f );
+      auto v             = faces[f].get_vertices();
+      auto geometryMapID = faces[f].getGeometryMap();
+      auto boundaryFlag  = faces[f].getBoundaryFlag();
 
       // vertex coordinates and IDs
       std::array< Point3D, K + 1 >     coords;
@@ -413,9 +425,9 @@ std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::co
       PrimitiveID cellID( id );
 
       // simplexData
-      auto v             = cells.get_vertices( c );
-      auto geometryMapID = cells.getGeometryMap( c );
-      auto boundaryFlag  = cells.getBoundaryFlag( c );
+      auto v             = cells[c].get_vertices();
+      auto geometryMapID = cells[c].getGeometryMap();
+      auto boundaryFlag  = cells[c].getBoundaryFlag();
 
       // vertex coordinates and IDs
       std::array< Point3D, K + 1 > coords;
@@ -562,7 +574,9 @@ std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > K_Mesh< K_Simplex >::co
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const
+void K_Mesh< K_Simplex >::extract_data( std::vector< EdgeData >& edgeData,
+                                        std::vector< FaceData >& faceData,
+                                        std::vector< CellData >& cellData ) const
 {
    std::set< std::shared_ptr< Simplex1 > > edges;
    std::set< std::shared_ptr< Simplex2 > > faces;
@@ -594,20 +608,28 @@ void K_Mesh< K_Simplex >::extract_data( EdgeData& edgeData, FaceData& faceData, 
       }
    }
 
-   // collect celldata
-   for ( auto& cell : cells )
+   // collect data and add PrimitiveIDs
+   uint_t id = _vertices.size();
+   // collect edgedata
+   for ( auto& edge : edges )
    {
-      cellData.add( cell.get() );
+      edge->setPrimitiveID( id );
+      edgeData.push_back( EdgeData( edge.get() ) );
+      ++id;
    }
    // collect facedata
    for ( auto& face : faces )
    {
-      faceData.add( face.get() );
+      face->setPrimitiveID( id );
+      faceData.push_back( FaceData( face.get() ) );
+      ++id;
    }
-   // collect edgedata
-   for ( auto& edge : edges )
+   // collect celldata
+   for ( auto& cell : cells )
    {
-      edgeData.add( edge.get() );
+      cell->setPrimitiveID( id );
+      cellData.push_back( CellData( cell.get() ) );
+      ++id;
    }
 }
 
@@ -937,17 +959,6 @@ real_t K_Mesh< K_Simplex >::volume() const
 
 template class K_Mesh< Simplex2 >;
 template class K_Mesh< Simplex3 >;
-
-// SimplexData
-
-template < class K_Simplex >
-template < size_t J >
-inline void K_Mesh< K_Simplex >::SimplexData< J >::broadcast()
-{
-   walberla::mpi::broadcastObject( this->vertices );
-   walberla::mpi::broadcastObject( this->geometryMap );
-   walberla::mpi::broadcastObject( this->boundaryFlag );
-}
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

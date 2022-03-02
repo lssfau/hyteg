@@ -24,7 +24,7 @@
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "simplex.hpp"
+#include "simplexData.hpp"
 
 namespace hyteg {
 namespace adaptiveRefinement {
@@ -85,35 +85,6 @@ class K_Mesh
    const std::vector< Point3D >& get_vertices() const { return _vertices; }
 
  private:
-   template < uint_t J >
-   class SimplexData
-   {
-    public:
-      template < class J_Simplex >
-      void add( const Simplex< J, J_Simplex >* simplex )
-      {
-         vertices.push_back( simplex->get_vertices() );
-         geometryMap.push_back( simplex->getGeometryMap() );
-         boundaryFlag.push_back( simplex->getBoundaryFlag() );
-      }
-
-      void broadcast();
-
-      const std::array< uint_t, J + 1 >& get_vertices( uint_t i ) const { return vertices[i]; }
-      const uint_t&                      getGeometryMap( uint_t i ) const { return geometryMap[i]; }
-      const uint_t&                      getBoundaryFlag( uint_t i ) const { return boundaryFlag[i]; }
-      uint_t                             size() const { return vertices.size(); }
-
-    private:
-      std::vector< std::array< uint_t, J + 1 > > vertices;
-      std::vector< uint_t >                      geometryMap;
-      std::vector< uint_t >                      boundaryFlag;
-   };
-
-   using EdgeData = SimplexData< 1 >;
-   using FaceData = SimplexData< 2 >;
-   using CellData = SimplexData< 3 >;
-
    /* remove green edges from _T and replace them with their parents
    */
    void remove_green_edges();
@@ -153,12 +124,19 @@ class K_Mesh
    */
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* extract connectivity, geometrymap and boundaryFlags from all elements */
-   void extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const;
+   /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
+   void extract_data( std::vector<EdgeData>& edgeData, std::vector<FaceData>& faceData, std::vector<CellData>& cellData ) const;
 
    /* create PrimitiveStorage and return id of first volume element */
    std::pair< uint_t, std::shared_ptr< PrimitiveStorage > >
-       convert_to_storage( const EdgeData& edges, const FaceData& faces, const CellData& cells, const uint_t& n_processes );
+       convert_to_storage( const std::vector<EdgeData>& edges, const std::vector<FaceData>& faces, const std::vector<CellData>& cells, const uint_t& n_processes );
+
+   /* create SetupPrimitiveStorage*/
+   std::shared_ptr< SetupPrimitiveStorage > make_setupStorage( const std::vector< uint_t >& vertexIDs,
+                                                               const EdgeData&              edges,
+                                                               const FaceData&              faces,
+                                                               const CellData&              cells,
+                                                               const uint_t&                n_processes );
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
