@@ -48,7 +48,8 @@ class SimplexData
    inline const uint_t&                      getGeometryMap() const { return _geometryMap; }
    inline const uint_t&                      getBoundaryFlag() const { return _boundaryFlag; }
    inline const PrimitiveID&                 getPrimitiveID() const { return _id; }
-   inline const int&                         getTargetRank() const { return _targetRank; }
+   inline const uint_t&                      getTargetRank() const { return _targetRank; }
+   inline void                               setTargetRank( uint_t rnk ) { _targetRank = rnk; }
 
    inline void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
@@ -67,13 +68,12 @@ class SimplexData
       recvBuffer >> _targetRank;
    }
 
-   inline std::array< Point3D, J + 1 >
-       get_coordinates( const std::vector< Point3D >& global_coordinates ) const
+   inline std::array< Point3D, J + 1 > get_coordinates( const std::vector< Point3D >& global_coordinates ) const
    {
-      std::array< Point3D, J + 1 >     coords;
+      std::array< Point3D, J + 1 > coords;
       for ( uint_t i = 0; i <= J; ++i )
       {
-         coords[i]    = global_coordinates[_vertices[i]];
+         coords[i] = global_coordinates[_vertices[i]];
       }
       return coords;
    }
@@ -85,13 +85,19 @@ class SimplexData
    uint_t                      _geometryMap;
    uint_t                      _boundaryFlag;
    PrimitiveID                 _id;
-   int                         _targetRank;
+   uint_t                      _targetRank;
 };
 
 using EdgeData = SimplexData< 1 >;
 using FaceData = SimplexData< 2 >;
 using CellData = SimplexData< 3 >;
 
+/* apply loadbalancing directly on our datastructures */
+void loadbalancing( std::vector< uint_t >&   vertices_targetRank,
+                    std::vector< EdgeData >& edges,
+                    std::vector< FaceData >& faces,
+                    std::vector< CellData >& cells,
+                    const uint_t&            n_processes );
 } // namespace adaptiveRefinement
 } // namespace hyteg
 

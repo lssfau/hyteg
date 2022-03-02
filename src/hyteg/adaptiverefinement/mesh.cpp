@@ -215,31 +215,63 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
-   // broadcast data to all processes
-   walberla::mpi::broadcastObject( _vertices );
-   walberla::mpi::broadcastObject( _vertexGeometryMap );
-   walberla::mpi::broadcastObject( _vertexBoundaryFlag );
-
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::vector< EdgeData > edges;
    std::vector< FaceData > faces;
    std::vector< CellData > cells;
    extract_data( edges, faces, cells );
 
-   // std::shared_ptr< SetupPrimitiveStorage > setupStorage;
-   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-   // {
-   //    setupStorage = make_setupStorage( vertexIDs, edges, faces, cells, _n_processes );
-   //    loadbalancing::roundRobin( *setupStorage );
-   // }
-
    // broadcast data to all processes
+   walberla::mpi::broadcastObject( _vertices );
+   walberla::mpi::broadcastObject( _vertexGeometryMap );
+   walberla::mpi::broadcastObject( _vertexBoundaryFlag );
    walberla::mpi::broadcastObject( edges );
    walberla::mpi::broadcastObject( faces );
    walberla::mpi::broadcastObject( cells );
 
-   auto setupStorage = make_setupStorage( edges, faces, cells, _n_processes );
-   loadbalancing::roundRobin( *setupStorage );
+   // apply loadbalancing
+   std::vector< uint_t > vertices_targetRank( _vertices.size() );
+   loadbalancing( vertices_targetRank, edges, faces, cells, _n_processes );
+
+   // create local primitives and associated setupStorage
+   auto setupStorage = make_localSetupStorage( vertices_targetRank, edges, faces, cells );
+
+   // copy targetrank to setupStorage
+   for ( uint_t id = 0; id < vertices_targetRank.size(); ++id )
+   {
+      setupStorage->setTargetRank( PrimitiveID( id ), vertices_targetRank[id] );
+   }
+   for ( auto& p : edges )
+   {
+      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   }
+   for ( auto& p : faces )
+   {
+      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   }
+   for ( auto& p : cells )
+   {
+      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   }
+
+   // SetupPrimitiveStorage::VertexMap vertices_sps;
+   // SetupPrimitiveStorage::EdgeMap   edges_sps;
+   // SetupPrimitiveStorage::FaceMap   faces_sps;
+   // SetupPrimitiveStorage::CellMap   cells_sps;
+
+   // make_setupPrimitives( vertices_sps, edges_sps, faces_sps, cells_sps );
+
+   // std::shared_ptr< SetupPrimitiveStorage > setupStorage;
+
+   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   // {
+   //    SetupPrimitiveStorage setupStorage0( vertices_sps, edges_sps, faces_sps, cells_sps, _n_processes );
+   //    setupStorage = std::make_shared< SetupPrimitiveStorage >( setupStorage0 );
+   // }
+   // else
+   // {
+   //    setupStorage = std::make_shared< SetupPrimitiveStorage >( vertices_sps, edges_sps, faces_sps, cells_sps, _n_processes );
+   // }
 
    // setupStorage->toStream( std::cout, true );
 
@@ -257,14 +289,600 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    // }
    // vertex data is only required by rank 0
    // else
-   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-   {
-      _vertices.clear();
-      _vertexGeometryMap.clear();
-      _vertexBoundaryFlag.clear();
-   }
+   // if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
+   // {
+   //    _vertices.clear();
+   //    _vertexGeometryMap.clear();
+   //    _vertexBoundaryFlag.clear();
+   // }
 
    return storage;
+}
+
+template < class K_Simplex >
+std::shared_ptr< SetupPrimitiveStorage >
+    K_Mesh< K_Simplex >::make_localSetupStorage( const std::vector< uint_t >&   vertices_targetRank,
+                                                 const std::vector< EdgeData >& edges,
+                                                 const std::vector< FaceData >& faces,
+                                                 const std::vector< CellData >& cells ) const
+{
+   // todo only create local primitives
+
+   SetupPrimitiveStorage::VertexMap vertices_sps;
+   SetupPrimitiveStorage::EdgeMap   edges_sps;
+   SetupPrimitiveStorage::FaceMap   faces_sps;
+   SetupPrimitiveStorage::CellMap   cells_sps;
+
+   // identify edges with their vertex IDs
+   std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
+   // identify faces with their vertex IDs
+   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
+
+   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+
+   // convenient acces to SimplexData
+   auto get_edge = [&]( uint_t id ) -> const EdgeData& {
+      const uint_t id0 = edges[0].getPrimitiveID().getID();
+      return edges[id - id0];
+   };
+   auto get_face = [&]( uint_t id ) -> const FaceData& {
+      const uint_t id0 = faces[0].getPrimitiveID().getID();
+      return faces[id - id0];
+   };
+   auto get_cell = [&]( uint_t id ) -> const CellData& {
+      const uint_t id0 = cells[0].getPrimitiveID().getID();
+      return cells[id - id0];
+   };
+
+   auto add_vertex = [&]( uint_t id ) {
+      // add new vertex
+      vertices_sps[id] = std::make_shared< Vertex >( PrimitiveID( id ), _vertices[id] );
+      // add properties
+      vertices_sps[id]->meshBoundaryFlag_ = _vertexBoundaryFlag[id];
+      vertices_sps[id]->geometryMap_      = _geometryMap.at( _vertexGeometryMap[id] );
+   };
+
+   auto add_edge = [&]( const EdgeData& edge ) {
+      constexpr uint_t K = 1;
+
+      // vertex coordinates and IDs
+      auto v      = edge.get_vertices();
+      auto coords = edge.get_coordinates( _vertices );
+
+      std::array< PrimitiveID, K + 1 > vertexIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // add new edge
+      auto id       = edge.getPrimitiveID().getID();
+      edges_sps[id] = std::make_shared< Edge >( edge.getPrimitiveID(), vertexIDs[0], vertexIDs[1], coords );
+
+      // add properties
+      edges_sps[id]->meshBoundaryFlag_ = edge.getBoundaryFlag();
+      edges_sps[id]->geometryMap_      = _geometryMap.at( edge.getGeometryMap() );
+
+      // Adding edge ID as neighbor to SetupVertices
+      for ( const auto& vertexID : vertexIDs )
+      {
+         if ( vertices_sps.count( vertexID.getID() ) == 0 )
+         {
+            add_vertex( vertexID.getID() );
+         }
+         vertices_sps[vertexID.getID()]->addEdge( edge.getPrimitiveID() );
+      }
+
+      // Caching neighboring vertices
+      vertexIDsToEdgeID[v] = edge.getPrimitiveID();
+   };
+
+   auto add_face = [&]( const FaceData& face ) {
+      constexpr uint_t K = 2;
+
+      // vertex coordinates and IDs
+      auto v      = face.get_vertices();
+      auto coords = face.get_coordinates( _vertices );
+
+      std::array< PrimitiveID, K + 1 > vertexIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, K + 1 > edgeOrder{ { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul } } };
+
+      // edge IDs
+      std::array< PrimitiveID, K + 1 > edgeIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+
+      // edge orientation
+      std::array< int, K + 1 > edgeOrientation;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         std::vector< PrimitiveID > edgeVertices;
+         edges_sps[edgeIDs[i].getID()]->getNeighborVertices( edgeVertices );
+
+         if ( edgeVertices[0].getID() == v[edgeOrder[i][0]] )
+            edgeOrientation[i] = 1;
+         else
+            edgeOrientation[i] = -1;
+      }
+
+      // add new face
+      auto id       = face.getPrimitiveID().getID();
+      faces_sps[id] = std::make_shared< Face >( face.getPrimitiveID(), vertexIDs, edgeIDs, edgeOrientation, coords );
+
+      // add properties
+      faces_sps[id]->meshBoundaryFlag_ = face.getBoundaryFlag();
+      faces_sps[id]->geometryMap_      = _geometryMap.at( face.getGeometryMap() );
+
+      // Adding face ID to edges as neighbors
+      for ( const auto& edgeID : edgeIDs )
+      {
+         if ( edges_sps.count( edgeID.getID() ) == 0 )
+         {
+            add_edge( get_edge( edgeID.getID() ) );
+         }
+         edges_sps[edgeID.getID()]->addFace( face.getPrimitiveID() );
+      }
+      // Adding face ID to vertices as neighbors
+      for ( const auto& vertexID : vertexIDs )
+      {
+         // note: if vertex didn't exist before, it has been added along with the edge
+         vertices_sps[vertexID.getID()]->addFace( face.getPrimitiveID() );
+      }
+
+      // Caching neighboring vertices
+      vertexIDsToFaceID[v] = face.getPrimitiveID();
+   };
+
+   auto add_cell = [&]( const CellData& cell ) {
+      constexpr uint_t K = 3;
+
+      // vertex coordinates and IDs
+      auto v      = cell.get_vertices();
+      auto coords = cell.get_coordinates( _vertices );
+
+      std::vector< PrimitiveID > vertexIDs( K + 1 );
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, 6 > edgeOrder{
+          { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul }, { 0ul, 3ul }, { 1ul, 3ul }, { 2ul, 3ul } } };
+
+      // edge IDs
+      std::vector< PrimitiveID > edgeIDs( 6 );
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+
+      // ordering of faces
+      constexpr std::array< std::array< uint_t, 3 >, K + 1 > faceOrder{
+          { { 0ul, 1ul, 2ul }, { 0ul, 1ul, 3ul }, { 0ul, 2ul, 3ul }, { 1ul, 2ul, 3ul } } };
+
+      // face IDs
+      std::vector< PrimitiveID > faceIDs( K + 1 );
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         faceIDs[i] = vertexIDsToFaceID[{ v[faceOrder[i][0]], v[faceOrder[i][1]], v[faceOrder[i][2]] }];
+      }
+
+      std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
+
+      // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
+
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         for ( const auto& j : edgeOrder[i] )
+         {
+            edgeLocalVertexToCellLocalVertexMaps[i][edges_sps.at( edgeIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
+
+      std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
+
+      // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
+
+      for ( uint_t i = 0; i < K + 1; ++i )
+      {
+         for ( auto& j : faceOrder[i] )
+         {
+            faceLocalVertexToCellLocalVertexMaps[i][faces_sps.at( faceIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
+
+      // add new cell
+      auto id       = cell.getPrimitiveID().getID();
+      cells_sps[id] = std::make_shared< Cell >( cell.getPrimitiveID(),
+                                                vertexIDs,
+                                                edgeIDs,
+                                                faceIDs,
+                                                coords,
+                                                edgeLocalVertexToCellLocalVertexMaps,
+                                                faceLocalVertexToCellLocalVertexMaps );
+
+      // add properties
+      cells_sps[id]->meshBoundaryFlag_ = cell.getBoundaryFlag();
+      cells_sps[id]->geometryMap_      = _geometryMap.at( cell.getGeometryMap() );
+
+      // Adding cell ID to faces as neighbors
+      for ( const auto& faceID : faceIDs )
+      {
+         if ( faces_sps.count( faceID.getID() ) == 0 )
+         {
+            add_face( get_face( faceID.getID() ) );
+         }
+         faces_sps[faceID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+      // Adding cell ID to edges as neighbors
+      for ( const auto& edgeID : edgeIDs )
+      {
+         edges_sps[edgeID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+      // Adding cell ID to vertices as neighbors
+      for ( const auto& vertexID : vertexIDs )
+      {
+         vertices_sps[vertexID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+   };
+
+   //****** add vertices to storage ******
+
+   for ( uint_t id = 0; id < _vertices.size(); ++id )
+   {
+      add_vertex( id );
+   }
+
+   //****** add edges to storage ******
+
+   for ( auto& edge : edges )
+   {
+      add_edge( edge );
+   }
+
+   //****** add faces to storage ******
+
+   for ( auto& face : faces )
+   {
+      add_face( face );
+   }
+
+   //****** add cells to storage ******
+
+   for ( auto& cell : cells )
+   {
+      add_cell( cell );
+   }
+
+   // todo
+
+   //****** add indirect neighbor faces ******
+
+   for ( const auto& [faceID, face] : faces_sps )
+   {
+      std::set< PrimitiveID > indirectNeighborsSet;
+
+      for ( const auto& vertexID : face->neighborVertices() )
+      {
+         auto vertex = vertices_sps[vertexID.getID()];
+         for ( const auto& neighborFaceID : vertex->neighborFaces() )
+         {
+            if ( neighborFaceID != faceID )
+            {
+               indirectNeighborsSet.insert( neighborFaceID );
+            }
+         }
+      }
+
+      face->indirectNeighborFaceIDs_.clear();
+      face->indirectNeighborFaceIDs_.insert(
+          face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+   }
+
+   //****** add indirect neighbor cells ******
+
+   for ( const auto& [cellID, cell] : cells_sps )
+   {
+      std::set< PrimitiveID > indirectNeighborsSet;
+
+      for ( const auto& vertexID : cell->neighborVertices() )
+      {
+         auto vertex = vertices_sps[vertexID.getID()];
+         for ( const auto& neighborCellID : vertex->neighborCells() )
+         {
+            if ( neighborCellID != cellID )
+            {
+               indirectNeighborsSet.insert( neighborCellID );
+            }
+         }
+      }
+
+      cell->indirectNeighborCellIDs_.clear();
+      cell->indirectNeighborCellIDs_.insert(
+          cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+   }
+
+   //****** construct new SetupPrimitiveStorage ******
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( vertices_sps, edges_sps, faces_sps, cells_sps, _n_processes );
+   return setupStorage;
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::make_setupPrimitives( SetupPrimitiveStorage::VertexMap& vertices_sps,
+                                                SetupPrimitiveStorage::EdgeMap&   edges_sps,
+                                                SetupPrimitiveStorage::FaceMap&   faces_sps,
+                                                SetupPrimitiveStorage::CellMap&   cells_sps )
+{
+   //****** collect primitive data ******
+
+   std::vector< EdgeData > edges;
+   std::vector< FaceData > faces;
+   std::vector< CellData > cells;
+   extract_data( edges, faces, cells );
+
+   //****** create vertices ******
+
+   for ( uint_t id = 0; id < _vertices.size(); ++id )
+   {
+      // add new vertex
+      auto primitive   = std::make_shared< Vertex >( PrimitiveID( id ), _vertices[id] );
+      vertices_sps[id] = primitive;
+
+      // add properties
+      primitive->meshBoundaryFlag_ = _vertexBoundaryFlag[id];
+      primitive->geometryMap_      = _geometryMap[_vertexGeometryMap[id]];
+   }
+
+   //****** create edges ******
+
+   // identify edges with their vertex IDs
+   std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
+
+   for ( auto& edge : edges )
+   {
+      constexpr uint_t K = 1;
+
+      // vertex coordinates and IDs
+      auto v      = edge.get_vertices();
+      auto coords = edge.get_coordinates( _vertices );
+
+      std::array< PrimitiveID, K + 1 > vertexIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // add new edge
+      auto primitive = std::make_shared< Edge >( edge.getPrimitiveID(), vertexIDs[0], vertexIDs[1], coords );
+      edges_sps[edge.getPrimitiveID().getID()] = primitive;
+
+      // add properties
+      primitive->meshBoundaryFlag_ = edge.getBoundaryFlag();
+      primitive->geometryMap_      = _geometryMap[edge.getGeometryMap()];
+
+      // Adding edge ID as neighbor to SetupVertices
+      for ( const auto& vertexID : vertexIDs )
+      {
+         vertices_sps[vertexID.getID()]->addEdge( edge.getPrimitiveID() );
+      }
+
+      // Caching neighboring vertices
+      vertexIDsToEdgeID[v] = edge.getPrimitiveID();
+   }
+
+   //****** create faces ******
+
+   // identify faces with their vertex IDs
+   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
+
+   for ( auto& face : faces )
+   {
+      constexpr uint_t K = 2;
+
+      // vertex coordinates and IDs
+      auto v      = face.get_vertices();
+      auto coords = face.get_coordinates( _vertices );
+
+      std::array< PrimitiveID, K + 1 > vertexIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, K + 1 > edgeOrder{ { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul } } };
+
+      // edge IDs
+      std::array< PrimitiveID, K + 1 > edgeIDs;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+
+      // edge orientation
+      std::array< int, K + 1 > edgeOrientation;
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         std::vector< PrimitiveID > edgeVertices;
+         edges_sps[edgeIDs[i].getID()]->getNeighborVertices( edgeVertices );
+
+         if ( edgeVertices[0].getID() == v[edgeOrder[i][0]] )
+            edgeOrientation[i] = 1;
+         else
+            edgeOrientation[i] = -1;
+      }
+
+      // add new face
+      auto primitive = std::make_shared< Face >( face.getPrimitiveID(), vertexIDs, edgeIDs, edgeOrientation, coords );
+      faces_sps[face.getPrimitiveID().getID()] = primitive;
+
+      // add properties
+      primitive->meshBoundaryFlag_ = face.getBoundaryFlag();
+      primitive->geometryMap_      = _geometryMap[face.getGeometryMap()];
+
+      // Adding face ID to vertices as neighbors
+      for ( const auto& vertexID : vertexIDs )
+      {
+         vertices_sps[vertexID.getID()]->addFace( face.getPrimitiveID() );
+      }
+      // Adding face ID to edges as neighbors
+      for ( const auto& edgeID : edgeIDs )
+      {
+         edges_sps[edgeID.getID()]->addFace( face.getPrimitiveID() );
+      }
+
+      // Caching neighboring vertices
+      vertexIDsToFaceID[v] = face.getPrimitiveID();
+   }
+
+   //****** create cells ******
+
+   for ( auto& cell : cells )
+   {
+      constexpr uint_t K = 3;
+
+      // vertex coordinates and IDs
+      auto v      = cell.get_vertices();
+      auto coords = cell.get_coordinates( _vertices );
+
+      std::vector< PrimitiveID > vertexIDs( K + 1 );
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         vertexIDs[i] = PrimitiveID( v[i] );
+      }
+
+      // ordering of edges
+      constexpr std::array< std::array< uint_t, 2 >, 6 > edgeOrder{
+          { { 0ul, 1ul }, { 0ul, 2ul }, { 1ul, 2ul }, { 0ul, 3ul }, { 1ul, 3ul }, { 2ul, 3ul } } };
+
+      // edge IDs
+      std::vector< PrimitiveID > edgeIDs( 6 );
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
+      }
+
+      // ordering of faces
+      constexpr std::array< std::array< uint_t, 3 >, K + 1 > faceOrder{
+          { { 0ul, 1ul, 2ul }, { 0ul, 1ul, 3ul }, { 0ul, 2ul, 3ul }, { 1ul, 2ul, 3ul } } };
+
+      // face IDs
+      std::vector< PrimitiveID > faceIDs( K + 1 );
+      for ( uint_t i = 0; i <= K; ++i )
+      {
+         faceIDs[i] = vertexIDsToFaceID[{ v[faceOrder[i][0]], v[faceOrder[i][1]], v[faceOrder[i][2]] }];
+      }
+
+      std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
+
+      // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
+
+      for ( uint_t i = 0; i < 6; ++i )
+      {
+         for ( const auto& j : edgeOrder[i] )
+         {
+            edgeLocalVertexToCellLocalVertexMaps[i][edges_sps.at( edgeIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
+
+      std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
+
+      // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
+
+      for ( uint_t i = 0; i < K + 1; ++i )
+      {
+         for ( auto& j : faceOrder[i] )
+         {
+            faceLocalVertexToCellLocalVertexMaps[i][faces_sps.at( faceIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+         }
+      }
+
+      // add new cell
+      auto primitive = std::make_shared< Cell >( cell.getPrimitiveID(),
+                                                 vertexIDs,
+                                                 edgeIDs,
+                                                 faceIDs,
+                                                 coords,
+                                                 edgeLocalVertexToCellLocalVertexMaps,
+                                                 faceLocalVertexToCellLocalVertexMaps );
+
+      cells_sps[cell.getPrimitiveID().getID()] = primitive;
+
+      // add properties
+      primitive->meshBoundaryFlag_ = cell.getBoundaryFlag();
+      primitive->geometryMap_      = _geometryMap[cell.getGeometryMap()];
+
+      // Adding cell ID to vertices as neighbors
+      for ( const auto& vertexID : vertexIDs )
+      {
+         vertices_sps[vertexID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+      // Adding cell ID to edges as neighbors
+      for ( const auto& edgeID : edgeIDs )
+      {
+         edges_sps[edgeID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+      // Adding cell ID to faces as neighbors
+      for ( const auto& faceID : faceIDs )
+      {
+         faces_sps[faceID.getID()]->addCell( cell.getPrimitiveID() );
+      }
+   }
+
+   //****** add indirect neighbor faces ******
+
+   for ( const auto& [faceID, face] : faces_sps )
+   {
+      std::set< PrimitiveID > indirectNeighborsSet;
+
+      for ( const auto& vertexID : face->neighborVertices() )
+      {
+         auto vertex = vertices_sps[vertexID.getID()];
+         for ( const auto& neighborFaceID : vertex->neighborFaces() )
+         {
+            if ( neighborFaceID != faceID )
+            {
+               indirectNeighborsSet.insert( neighborFaceID );
+            }
+         }
+      }
+
+      face->indirectNeighborFaceIDs_.clear();
+      face->indirectNeighborFaceIDs_.insert(
+          face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+   }
+
+   //****** add indirect neighbor cells ******
+
+   for ( const auto& [cellID, cell] : cells_sps )
+   {
+      std::set< PrimitiveID > indirectNeighborsSet;
+
+      for ( const auto& vertexID : cell->neighborVertices() )
+      {
+         auto vertex = vertices_sps[vertexID.getID()];
+         for ( const auto& neighborCellID : vertex->neighborCells() )
+         {
+            if ( neighborCellID != cellID )
+            {
+               indirectNeighborsSet.insert( neighborCellID );
+            }
+         }
+      }
+
+      cell->indirectNeighborCellIDs_.clear();
+      cell->indirectNeighborCellIDs_.insert(
+          cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+   }
 }
 
 template < class K_Simplex >
@@ -534,8 +1152,7 @@ std::shared_ptr< SetupPrimitiveStorage > K_Mesh< K_Simplex >::make_setupStorage(
    }
 
    //****** construct new SetupPrimitiveStorage ******
-   auto setupStorage =
-       std::make_shared< SetupPrimitiveStorage >( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes);
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
    return setupStorage;
 }
 
@@ -847,7 +1464,7 @@ std::pair< uint_t, std::shared_ptr< PrimitiveStorage > >
    SetupPrimitiveStorage setupStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
    setupStorage.toStream( std::cout, true );
 
-   auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    uint_t id0 = ( cells.size() == 0 ) ? face0 : cell0;
 
@@ -890,7 +1507,7 @@ void K_Mesh< K_Simplex >::extract_data( std::vector< EdgeData >& edgeData,
    }
 
    // collect data and add PrimitiveIDs
-   uint_t id = _vertices.size();
+   uint_t id = _n_vertices;
    // collect edgedata
    for ( auto& edge : edges )
    {

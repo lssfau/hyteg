@@ -141,6 +141,18 @@ class K_Mesh
                                                                const std::vector< CellData >& cells,
                                                                const uint_t&                  n_processes );
 
+   /* create local part of SetupPrimitiveStorage*/
+   std::shared_ptr< SetupPrimitiveStorage > make_localSetupStorage( const std::vector< uint_t >&   vertices_targetRank,
+                                                                    const std::vector< EdgeData >& edges,
+                                                                    const std::vector< FaceData >& faces,
+                                                                    const std::vector< CellData >& cells ) const;
+
+   /* create SetupPrimitives*/
+   void make_setupPrimitives( SetupPrimitiveStorage::VertexMap& vertices,
+                              SetupPrimitiveStorage::EdgeMap&   edges,
+                              SetupPrimitiveStorage::FaceMap&   faces,
+                              SetupPrimitiveStorage::CellMap&   cells );
+
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
    uint_t                                             _n_processes;        // number of processes

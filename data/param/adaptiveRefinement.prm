@@ -21,7 +21,7 @@ Parameters
   //  reduced as appropriate
   n_refinements 80; // number of refinement steps
   n_el_ref_relative 0.2; // proportion of elements to refine in each step
-  n_el_max 50000; // max number of macro elements
+  n_el_max 2000; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
