@@ -36,6 +36,8 @@ namespace hyteg {
 // Tag dispatching //
 /////////////////////
 
+struct P0FunctionTag
+{};
 struct VertexDoFFunctionTag
 {};
 typedef VertexDoFFunctionTag P1FunctionTag;
@@ -65,6 +67,9 @@ struct P2VectorFunctionTag
 //////////////////////////
 // Forward declarations //
 //////////////////////////
+
+template < typename VType >
+class P0Function;
 
 namespace vertexdof {
 
@@ -123,6 +128,7 @@ namespace functionTraits {
 
 typedef enum
 {
+   P0_FUNCTION,
    P1_FUNCTION,
    P2_FUNCTION,
    EDGE_DOF_FUNCTION,
@@ -143,6 +149,18 @@ typedef enum
 /// Empty trait
 template < typename FunctionType >
 struct FunctionTrait;
+
+/// P0 DoF specialization
+template < typename VType >
+struct FunctionTrait< P0Function< VType > >
+{
+   typedef VType         ValueType;
+   typedef P0FunctionTag Tag;
+
+   static std::string getTypeName() { return "P0Function"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P0_FUNCTION;
+};
 
 /// Vertex DoF specialization
 template < typename VType >
