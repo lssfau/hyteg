@@ -24,11 +24,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/trilinos/KokkosWrapper.hpp"
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
@@ -73,7 +69,7 @@ class TrilinosVector
                           DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
-      hyteg::createVectorFromFunction( function, numerator, proxy, level_, flag );
+      function.toVector( numerator, proxy, level_, flag );
    }
 
    RCP< VectorType > getTpetraVector() const { return vector_; }
@@ -83,7 +79,7 @@ class TrilinosVector
                          DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
-      hyteg::createFunctionFromVector( function, numerator, proxy, level_, flag );
+      function.fromVector( numerator, proxy, level_, flag );
    }
 
    /// \brief Returns a string representation of this vector.

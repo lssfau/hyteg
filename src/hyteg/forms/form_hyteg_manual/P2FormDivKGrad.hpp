@@ -18,6 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4189)  //unused variable - L1 is not always used apparently
+#endif 
 
 #include "hyteg/forms/form_hyteg_base/P2FormHyTeG.hpp"
 #include "hyteg/forms/form_hyteg_manual/QuadratureRules.hpp"
@@ -133,3 +137,7 @@ class P2Form_divKgrad : public P2FormHyTeG
 };
 
 } // namespace hyteg
+
+#ifdef _MSC_VER
+#pragma warning( pop ) 
+#endif 

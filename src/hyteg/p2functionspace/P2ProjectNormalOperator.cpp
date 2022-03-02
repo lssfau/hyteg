@@ -47,8 +47,8 @@ void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& d
    // project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
 
    // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
-   uint_t idx = dst.uvw.getDimension() == 2 ? 0 : 2;
-   project( dst.uvw[0], dst.uvw[1], dst.uvw[idx], level, flag );
+   uint_t idx = dst.uvw().getDimension() == 2 ? 0 : 2;
+   project( dst.uvw()[0], dst.uvw()[1], dst.uvw()[idx], level, flag );
 }
 
 void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

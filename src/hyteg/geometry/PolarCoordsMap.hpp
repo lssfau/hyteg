@@ -20,42 +20,64 @@
 #pragma once
 
 #include <cmath>
-#include "GeometryMap.hpp"
+
+#include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
 
-  /// Class providing geometry mapping based on polar coordinates; convention is x[0] = \f$\rho\f$, x[1] = \f$\varphi\f$
-  class PolarCoordsMap : public GeometryMap
-  {
-  public:
+/// Class providing geometry mapping based on polar coordinates; convention is x[0] = \f$\rho\f$, x[1] = \f$\varphi\f$
+class PolarCoordsMap : public GeometryMap
+{
+ public:
+   PolarCoordsMap() {}
 
-    PolarCoordsMap(){}
+   static void setMap( SetupPrimitiveStorage& setupStorage )
+   {
+      auto blend = std::make_shared< PolarCoordsMap >();
 
-    void evalF( const Point3D& x, Point3D& Fx ) const {
+      for ( auto it : setupStorage.getFaces() )
+      {
+         Face& face = *it.second;
+         setupStorage.setGeometryMap( face.getID(), blend );
+      }
+
+      for ( auto it : setupStorage.getEdges() )
+      {
+         Edge& edge = *it.second;
+         setupStorage.setGeometryMap( edge.getID(), blend );
+      }
+
+      for ( auto it : setupStorage.getVertices() )
+      {
+         Vertex& vertex = *it.second;
+         setupStorage.setGeometryMap( vertex.getID(), blend );
+      }
+   }
+
+   void evalF( const Point3D& x, Point3D& Fx ) const
+   {
       Fx[0] = x[0] * std::cos( x[1] );
       Fx[1] = x[0] * std::sin( x[1] );
-    }
+   }
 
-    void evalDF( const Point3D& x, Matrix2r& DFx ) const
-    {
-      DFx( 0, 0 ) =          std::cos( x[1] );
-      DFx( 0, 1 ) = - x[0] * std::sin( x[1] );
-      DFx( 1, 0 ) =          std::sin( x[1] );
-      DFx( 1, 1 ) =   x[0] * std::cos( x[1] );
-    }
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const
+   {
+      DFx( 0, 0 ) = std::cos( x[1] );
+      DFx( 0, 1 ) = -x[0] * std::sin( x[1] );
+      DFx( 1, 0 ) = std::sin( x[1] );
+      DFx( 1, 1 ) = x[0] * std::cos( x[1] );
+   }
 
-    void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const
-    {
-      DFinvx( 0, 0 ) =   std::cos( x[1] );
-      DFinvx( 0, 1 ) =   std::sin( x[1] );
-      DFinvx( 1, 0 ) = - std::sin( x[1] ) / x[0];
-      DFinvx( 1, 1 ) =   std::cos( x[1] ) / x[0];
-    }
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const
+   {
+      DFinvx( 0, 0 ) = std::cos( x[1] );
+      DFinvx( 0, 1 ) = std::sin( x[1] );
+      DFinvx( 1, 0 ) = -std::sin( x[1] ) / x[0];
+      DFinvx( 1, 1 ) = std::cos( x[1] ) / x[0];
+   }
 
-    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const {
-      sendBuffer << Type::POLAR_COORDS;
-    }
-
-  };
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << Type::POLAR_COORDS; }
+};
 
 } // namespace hyteg

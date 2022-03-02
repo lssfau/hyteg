@@ -57,9 +57,9 @@ void stokesMinResConvergenceTest()
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw[0].interpolate( zero, level );
-   u.uvw[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
-   u.uvw[1].interpolate( zero, level, hyteg::DirichletBoundary );
+   u.uvw()[0].interpolate( zero, level );
+   u.uvw()[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
+   u.uvw()[1].interpolate( zero, level, hyteg::DirichletBoundary );
 
    auto solver = hyteg::MinResSolver< P2P1StokesOperator >( storage, level, level, maxiter );
    solver.solve( L, u, f, level );

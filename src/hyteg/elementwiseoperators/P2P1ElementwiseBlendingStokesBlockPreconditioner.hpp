@@ -32,11 +32,11 @@ class P2P1ElementwiseBlendingStokesBlockPreconditioner
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      for ( uint_t dim = 0; dim < src.uvw.getDimension(); dim++ )
+      for ( uint_t dim = 0; dim < src.uvw().getDimension(); dim++ )
       {
-         A.toMatrix( mat, src.uvw[dim], dst.uvw[dim], level, flag );
+         A.toMatrix( mat, src.uvw()[dim], dst.uvw()[dim], level, flag );
       }
-      P.toMatrix( mat, src.p, dst.p, level, flag );
+      P.toMatrix( mat, src.p(), dst.p(), level, flag );
    }
 
    P2ElementwiseBlendingLaplaceOperator A;

@@ -151,6 +151,25 @@ class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
 
    void swap( const FaceDoFFunction_old< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const FaceDoFFunction< idx_t >&       numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+   }
+
+   void fromVector( const FaceDoFFunction< idx_t >&       numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+   }
+   /// @}
+
  private:
    using Function< FaceDoFFunction_old< ValueType > >::communicators_;
 

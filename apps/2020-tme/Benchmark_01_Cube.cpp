@@ -105,11 +105,11 @@ void benchmark( int argc, char** argv )
    auto meshInfo =
        MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
-   auto onBoundary = []( const Point3D& ) { return true; };
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
-
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   auto onBoundary = []( const Point3D& ) { return true; };
+   setupStorage->setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
    setupStorage->setMeshBoundaryFlagsInner( 0, true );
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );

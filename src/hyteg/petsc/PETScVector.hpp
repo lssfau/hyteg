@@ -28,11 +28,7 @@
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
-#include "hyteg/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/petsc/PETScVectorProxy.hpp"
 
 namespace hyteg {
@@ -78,7 +74,7 @@ class PETScVector
       allocateVector( localSize );
 
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::createVectorFromFunction( src, numerator, proxy, level, flag );
+      src.toVector( numerator, proxy, level, flag );
 
       VecAssemblyBegin( vec );
       VecAssemblyEnd( vec );
@@ -92,7 +88,7 @@ class PETScVector
       WALBERLA_CHECK( allocated_, "Cannot create function from PETSc vector - the vector wasn't even allocated." );
 
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::createFunctionFromVector( dst, numerator, proxy, level, flag );
+      dst.fromVector( numerator, proxy, level, flag );
    }
 
    void print( const char filename[], bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )

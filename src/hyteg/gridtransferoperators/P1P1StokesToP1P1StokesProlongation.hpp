@@ -33,22 +33,22 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
 
    void prolongate( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         prolongationOperator_.prolongate( function.uvw[k], sourceLevel, flag );
+         prolongationOperator_.prolongate( function.uvw()[k], sourceLevel, flag );
       }
-      prolongationOperator_.prolongate( function.p, sourceLevel, flag );
+      prolongationOperator_.prolongate( function.p(), sourceLevel, flag );
    }
 
    void prolongateAndAdd( const P1StokesFunction< real_t >& function,
                           const uint_t&                     sourceLevel,
                           const DoFType&                    flag ) const override
    {
-      for ( uint_t k = 0; k < function.uvw.getDimension(); k++ )
+      for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
-         prolongationOperator_.prolongateAndAdd( function.uvw[k], sourceLevel, flag );
+         prolongationOperator_.prolongateAndAdd( function.uvw()[k], sourceLevel, flag );
       }
-      prolongationOperator_.prolongateAndAdd( function.p, sourceLevel, flag );
+      prolongationOperator_.prolongateAndAdd( function.p(), sourceLevel, flag );
    }
 
  private:

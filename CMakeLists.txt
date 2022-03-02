@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.14)
 
 PROJECT ( hyteg )
 enable_testing()
@@ -13,6 +13,8 @@ set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"   
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
+include_directories ( ${EIGEN_DIR} )
+link_directories    ( ${EIGEN_DIR} )
 
 include_directories ( src )
 
@@ -23,25 +25,6 @@ if ( HYTEG_USE_GENERATED_KERNELS )
     message(STATUS "Using generated HyTeG kernels.")
 else()
     message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
-endif()
-
-if ( HYTEG_BUILD_WITH_PETSC )
-    find_package( PETSc )
-    include_directories ( ${PETSC_INCLUDES} )
-    link_directories    ( ${PETSC_LIBRARIES} )
-    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
-    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
-    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
-endif()
-
-include_directories ( ${EIGEN_DIR} )
-link_directories    ( ${EIGEN_DIR} )
-
-if ( HYTEG_BUILD_WITH_TRILINOS)
-   find_package( Trilinos )
-   message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
-   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
-   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
 endif()
 
 find_package( waLBerla )
@@ -70,6 +53,23 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
     #suppress warning about missing case labels which are not present in generated kernels
     add_flag( CMAKE_CXX_FLAGS "/wd4065" )
 endif()
+
+if ( HYTEG_BUILD_WITH_PETSC )
+    find_package( PETSc REQUIRED )
+    include_directories ( ${PETSC_INCLUDES} )
+    link_directories    ( ${PETSC_LIBRARIES} )
+    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
+endif()
+
+if ( HYTEG_BUILD_WITH_TRILINOS)
+   find_package( Trilinos REQUIRED )
+   message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
+   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
+   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
+endif()
+
 
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
                  src/hyteg/HytegDefinitions.hpp )

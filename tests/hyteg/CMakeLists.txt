@@ -1,5 +1,16 @@
 waLBerla_link_files_to_builddir(*.msh)
 
+## adaptive refinement ##
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementTest)
+
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
+
+waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
+
+
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
@@ -408,8 +419,10 @@ waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P2PetscSolveTest1 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 1)
-    #waLBerla_execute_test(NAME P2PetscSolveTest2 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 2)
+    waLBerla_execute_test(NAME P2PetscSolveTest2 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 2)
+if(NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM )
     waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
+endif()
 endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
@@ -607,10 +620,10 @@ waLBerla_execute_test(NAME PackageBufferSystemTest2 COMMAND $<TARGET_FILE:Packag
 waLBerla_execute_test(NAME PackageBufferSystemTest3 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 3)
 waLBerla_execute_test(NAME PackageBufferSystemTest4 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 4)
 
-waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES meshes/MeshInfoTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest1 COMMAND $<TARGET_FILE:MeshInfoTest>)
 waLBerla_execute_test(NAME MeshInfoTest2 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 2)
-waLBerla_compile_test(FILES MeshGenTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES meshes/MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest>)
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2)
 

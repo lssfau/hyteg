@@ -160,20 +160,20 @@ static void defectCorrection( int argc, char** argv )
    // vtkP2.add( Au_P2 );
 
    // boundary conditions and setup
-   u.uvw.interpolate( { exactU, exactV }, maxLevel, DirichletBoundary );
+   u.uvw().interpolate( { exactU, exactV }, maxLevel, DirichletBoundary );
 
-   exact.uvw.interpolate( { exactU, exactV }, maxLevel, All );
-   exact.p.interpolate( exactP, maxLevel, All );
-   vertexdof::projectMean( exact.p, maxLevel );
+   exact.uvw().interpolate( { exactU, exactV }, maxLevel, All );
+   exact.p().interpolate( exactP, maxLevel, All );
+   vertexdof::projectMean( exact.p(), maxLevel );
 
-   tmp_P2.uvw.interpolate( { rhsU, rhsV }, maxLevel - 1, All );
-   M_P2.apply( tmp_P2.uvw[0], f_P2.uvw[0], maxLevel - 1, All );
-   M_P2.apply( tmp_P2.uvw[1], f_P2.uvw[1], maxLevel - 1, All );
-   P2toP1Conversion( f_P2.uvw, f_P2_on_P1_space.uvw, maxLevel, All );
+   tmp_P2.uvw().interpolate( { rhsU, rhsV }, maxLevel - 1, All );
+   M_P2.apply( tmp_P2.uvw()[0], f_P2.uvw()[0], maxLevel - 1, All );
+   M_P2.apply( tmp_P2.uvw()[1], f_P2.uvw()[1], maxLevel - 1, All );
+   P2toP1Conversion( f_P2.uvw(), f_P2_on_P1_space.uvw(), maxLevel, All );
 
-   tmp.uvw.interpolate( { rhsU, rhsV }, maxLevel, All );
-   M_P1.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
-   M_P1.apply( tmp.uvw[1], f.uvw[1], maxLevel, All );
+   tmp.uvw().interpolate( { rhsU, rhsV }, maxLevel, All );
+   M_P1.apply( tmp.uvw()[0], f.uvw()[0], maxLevel, All );
+   M_P1.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, All );
 
    // solver
    // auto petscSolver           = std::make_shared< PETScMinResSolver< P1StokesOperator > >( storage, maxLevel, 1e-14 );
@@ -193,7 +193,7 @@ static void defectCorrection( int argc, char** argv )
 
 
   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
-  auto       l2ErrorU  = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
+  auto       l2ErrorU  = std::sqrt( error.uvw()[0].dotGlobal( error.uvw()[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -202,7 +202,7 @@ static void defectCorrection( int argc, char** argv )
   error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
   // vtkP1.write( maxLevel, i+1 );
   // vtkP2.write( maxLevel-1, i+1 );
-  l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
+  l2ErrorU = std::sqrt( error.uvw()[0].dotGlobal( error.uvw()[0], maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -218,13 +218,13 @@ static void defectCorrection( int argc, char** argv )
      for ( uint_t i = 0; i < 5; i++ )
      {
        gmgSolver->solve( A_P1, u, f, maxLevel );
-       vertexdof::projectMean( u.p, maxLevel );
+       vertexdof::projectMean( u.p(), maxLevel );
 
        // calculate error (should be lower than linear discretization error!)
        error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
        // vtkP1.write( maxLevel, i+1 );
        // vtkP2.write( maxLevel-1, i+1 );
-       l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
+       l2ErrorU = std::sqrt( error.uvw()[0].dotGlobal( error.uvw()[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -235,13 +235,13 @@ static void defectCorrection( int argc, char** argv )
 
      }
 
-     vertexdof::projectMean( u.p, maxLevel );
+     vertexdof::projectMean( u.p(), maxLevel );
    }
    else
    {
       // minresSolver->solve( A_P1, u, f, maxLevel );
       // petscSolver->solve( A_P1, u, f, maxLevel );
-      vertexdof::projectMean( u.p, maxLevel );
+      vertexdof::projectMean( u.p(), maxLevel );
    }
 
    // calculate error (= discretization error)
@@ -260,13 +260,13 @@ static void defectCorrection( int argc, char** argv )
 
       // A_higher_order * u (quadratic)
       // u_quadratic is given by direct injection of the linear coefficients
-      P1toP2Conversion( u.uvw, u_P2.uvw, maxLevel - 1, All );
-      P1toP2Conversion( u.p, u_P2.p, maxLevel - 1, All );
+      P1toP2Conversion( u.uvw(), u_P2.uvw(), maxLevel - 1, All );
+      P1toP2Conversion( u.p(), u_P2.p(), maxLevel - 1, All );
 
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
 
-      P2toP1Conversion( Au_P2.uvw, Au_P2_converted_to_P1.uvw, maxLevel, All );
-      P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw(), Au_P2_converted_to_P1.uvw(), maxLevel, All );
+      P2toP1Conversion( Au_P2.p(), Au_P2_converted_to_P1.p(), maxLevel, All );
 
       // defect correction
       // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
@@ -281,13 +281,13 @@ static void defectCorrection( int argc, char** argv )
             for ( uint_t ii = 0; ii < 10; ii++ )
             {
                gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
-               vertexdof::projectMean( u.p, maxLevel );
+               vertexdof::projectMean( u.p(), maxLevel );
 
               // calculate error (should be lower than linear discretization error!)
               error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
               // vtkP1.write( maxLevel, i+1 );
               // vtkP2.write( maxLevel-1, i+1 );
-              l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
+              l2ErrorU = std::sqrt( error.uvw()[0].dotGlobal( error.uvw()[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -301,13 +301,13 @@ static void defectCorrection( int argc, char** argv )
          else
             gmgSolver->solve( A_P1, u, f, maxLevel );
 
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
       else
       {
          // petscSolver->solve( A_P1, u, fCorrection, maxLevel );
          // minresSolver->solve( A_P1, u, fCorrection, maxLevel );
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
 
 

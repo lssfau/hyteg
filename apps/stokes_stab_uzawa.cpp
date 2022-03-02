@@ -88,12 +88,12 @@ int main(int argc, char* argv[])
   uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
   r.interpolate(zero, maxLevel);
 
-  u.uvw[0].interpolate(rand, maxLevel, hyteg::Inner);
-  u.uvw[1].interpolate(rand, maxLevel, hyteg::Inner);
-  u.p.interpolate(rand, maxLevel, hyteg::All);
+  u.uvw()[0].interpolate(rand, maxLevel, hyteg::Inner);
+  u.uvw()[1].interpolate(rand, maxLevel, hyteg::Inner);
+  u.p().interpolate(rand, maxLevel, hyteg::All);
 
-  u.uvw[0].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
-  u.uvw[1].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw()[0].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw()[1].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
 
   L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     auto start = walberla::timing::getWcTime();
     solver.solve(L, u, f, maxLevel);
     auto end = walberla::timing::getWcTime();
-    hyteg::vertexdof::projectMean(u.p, maxLevel);
+    hyteg::vertexdof::projectMean(u.p(), maxLevel);
 
 
     L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(outer+1-convergenceStartIter));
 
-//  hyteg::VTKWriter<hyteg::P1Function<real_t>, hyteg::DGFunction<real_t >>({&u.u, &u.v, &u.p, &f.u, &f->v, &f->p}, {}, maxLevel,
+//  hyteg::VTKWriter<hyteg::P1Function<real_t>, hyteg::DGFunction<real_t >>({&u.u, &u.v, &u.p(), &f.u, &f->v, &f->p}, {}, maxLevel,
 //                                                                    "../output", "after");
   return EXIT_SUCCESS;
 }

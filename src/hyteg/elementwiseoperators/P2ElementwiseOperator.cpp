@@ -990,4 +990,17 @@ template class P2ElementwiseOperator< forms::p2_epsilonvar_2_0_blending_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsilonvar_2_1_blending_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsilonvar_2_2_blending_q2 >;
 
+// Instantiations required for P2FullViscousOperator.hpp
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_0_0_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_0_1_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_0_2_blending_q3 >;
+
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_1_0_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_1_1_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_1_2_blending_q3 >;
+
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_2_0_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_2_1_blending_q3 >;
+template class P2ElementwiseOperator< forms::p2_full_stokesvar_2_2_blending_q3 >;
+
 } // namespace hyteg

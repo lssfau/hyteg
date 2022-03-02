@@ -27,16 +27,14 @@
 
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScSparseMatrixInfo.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/sparseassembly/DirichletBCs.hpp"
 
 namespace hyteg {
 

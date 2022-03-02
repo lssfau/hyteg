@@ -19,14 +19,23 @@
  */
 #pragma once
 
+
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4244) // should be fixed otherwise... 
+#endif 
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokes_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
@@ -35,6 +44,8 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+
+
 
 namespace hyteg {
 

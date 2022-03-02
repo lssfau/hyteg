@@ -116,12 +116,12 @@ int main( int argc, char* argv[] )
 
    hyteg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
 
-   u.uvw[0].interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
-   u_exact.uvw[0].interpolate( solutionU, maxLevel );
-   u_exact.p.interpolate( solutionP, maxLevel );
+   u.uvw()[0].interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
+   u_exact.uvw()[0].interpolate( solutionU, maxLevel );
+   u_exact.p().interpolate( solutionP, maxLevel );
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( u_exact.uvw[0], maxLevel );
-   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
    auto gmgSolver = hyteg::solvertemplates::stokesGMGUzawaSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
 
@@ -140,12 +140,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "initial L2 error = " << discr_l2_err );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P2P1UzawaConvergence", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.uvw );
-   vtkOutput.add( u_exact.p );
-   vtkOutput.add( err.uvw );
-   vtkOutput.add( err.p );
+   vtkOutput.add( u );
+   vtkOutput.add( u_exact );
+   vtkOutput.add( err );
 
    if( writeVTK )
    {
