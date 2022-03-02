@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2022 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,13 +44,13 @@ class SimplexData
    , _targetRank( 0 )
    {}
 
-   const std::array< uint_t, J + 1 >& get_vertices() const { return _vertices; }
-   const uint_t&                      getGeometryMap() const { return _geometryMap; }
-   const uint_t&                      getBoundaryFlag() const { return _boundaryFlag; }
-   const PrimitiveID&                 getPrimitiveID() const { return _id; }
-   const int&                         getTargetRank() const { return _targetRank; }
+   inline const std::array< uint_t, J + 1 >& get_vertices() const { return _vertices; }
+   inline const uint_t&                      getGeometryMap() const { return _geometryMap; }
+   inline const uint_t&                      getBoundaryFlag() const { return _boundaryFlag; }
+   inline const PrimitiveID&                 getPrimitiveID() const { return _id; }
+   inline const int&                         getTargetRank() const { return _targetRank; }
 
-   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
+   inline void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
       sendBuffer << _vertices;
       sendBuffer << _geometryMap;
@@ -58,13 +58,24 @@ class SimplexData
       sendBuffer << _id;
       sendBuffer << _targetRank;
    }
-   void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
+   inline void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
    {
       recvBuffer >> _vertices;
       recvBuffer >> _geometryMap;
       recvBuffer >> _boundaryFlag;
       recvBuffer >> _id;
       recvBuffer >> _targetRank;
+   }
+
+   inline std::array< Point3D, J + 1 >
+       get_coordinates( const std::vector< Point3D >& global_coordinates ) const
+   {
+      std::array< Point3D, J + 1 >     coords;
+      for ( uint_t i = 0; i <= J; ++i )
+      {
+         coords[i]    = global_coordinates[_vertices[i]];
+      }
+      return coords;
    }
 
    friend bool operator<( const SimplexData& lhs, const SimplexData& rhs ) { return lhs.getTargetRank() < rhs.getTargetRank(); }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2021-2022 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -125,18 +125,21 @@ class K_Mesh
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::vector<EdgeData>& edgeData, std::vector<FaceData>& faceData, std::vector<CellData>& cellData ) const;
+   void extract_data( std::vector< EdgeData >& edgeData,
+                      std::vector< FaceData >& faceData,
+                      std::vector< CellData >& cellData ) const;
 
    /* create PrimitiveStorage and return id of first volume element */
-   std::pair< uint_t, std::shared_ptr< PrimitiveStorage > >
-       convert_to_storage( const std::vector<EdgeData>& edges, const std::vector<FaceData>& faces, const std::vector<CellData>& cells, const uint_t& n_processes );
+   std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > convert_to_storage( const std::vector< EdgeData >& edges,
+                                                                                const std::vector< FaceData >& faces,
+                                                                                const std::vector< CellData >& cells,
+                                                                                const uint_t&                  n_processes );
 
    /* create SetupPrimitiveStorage*/
-   std::shared_ptr< SetupPrimitiveStorage > make_setupStorage( const std::vector< uint_t >& vertexIDs,
-                                                               const EdgeData&              edges,
-                                                               const FaceData&              faces,
-                                                               const CellData&              cells,
-                                                               const uint_t&                n_processes );
+   std::shared_ptr< SetupPrimitiveStorage > make_setupStorage( const std::vector< EdgeData >& edges,
+                                                               const std::vector< FaceData >& faces,
+                                                               const std::vector< CellData >& cells,
+                                                               const uint_t&                  n_processes );
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
