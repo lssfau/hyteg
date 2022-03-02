@@ -157,7 +157,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    /// \brief Applies the Dirichlet boundary conditions to this function, treating it as the right-hand side of the linear system
    ///        that corresponds to the form object.
-   void applyDirichletBoundaryConditions( const std::shared_ptr< DGForm > & form, uint_t level );
+   void applyDirichletBoundaryConditions( const std::shared_ptr< DGForm >& form, uint_t level );
 
    /// \brief Returns the internally stored VolumeDoFFunction.
    [[nodiscard]] std::shared_ptr< volumedofspace::VolumeDoFFunction< ValueType > > volumeDoFFunction() const
@@ -215,6 +215,19 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    /// \brief Returns the boundary conditions of this function.
    BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const DGFunction< idx_t >&            numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const DGFunction< idx_t >&            numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
  private:
    using Function< DGFunction< ValueType > >::communicators_;

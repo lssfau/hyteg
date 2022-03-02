@@ -437,21 +437,13 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
    }
 }
 
-/// explicit instantiation
-template class DGFunction< double >;
-template class DGFunction< float >;
-template class DGFunction< int32_t >;
-template class DGFunction< int64_t >;
-
-} // namespace dg
-
-void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
-                               const dg::DGFunction< idx_t >&        numerator,
-                               const std::shared_ptr< VectorProxy >& vec,
-                               uint_t                                level,
-                               DoFType                               flag )
+template < typename ValueType >
+void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            numerator,
+                                        const std::shared_ptr< VectorProxy >& vec,
+                                        uint_t                                level,
+                                        DoFType                               flag ) const
 {
-   if ( function.getStorage()->hasGlobalCells() )
+   if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
       WALBERLA_ABORT( "enumerate() not implemented in 3D." );
@@ -459,17 +451,17 @@ void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
    else
    {
       // 2D
-      for ( const auto& it : function.getStorage()->getFaces() )
+      for ( const auto& it : this->getStorage()->getFaces() )
       {
          const auto faceID = it.first;
          const auto face   = *it.second;
 
-         const auto degree  = function.polynomialDegree( faceID );
-         const auto numDofs = function.basis()->numDoFsPerElement( degree );
+         const auto degree  = polynomialDegree( faceID );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
-         const auto dofs      = function.volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = function.volumeDoFFunction()->memoryLayout();
+         const auto dofs      = volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
 
          for ( auto faceType : facedof::allFaceTypes )
          {
@@ -491,13 +483,13 @@ void createVectorFromFunction( const dg::DGFunction< real_t >&       function,
    WALBERLA_UNUSED( flag );
 }
 
-void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
-                               const dg::DGFunction< idx_t >&        numerator,
-                               const std::shared_ptr< VectorProxy >& vec,
-                               uint_t                                level,
-                               DoFType                               flag )
+template < typename ValueType >
+void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            numerator,
+                                          const std::shared_ptr< VectorProxy >& vec,
+                                          uint_t                                level,
+                                          DoFType                               flag ) const
 {
-   if ( function.getStorage()->hasGlobalCells() )
+   if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
       WALBERLA_ABORT( "enumerate() not implemented in 3D." );
@@ -505,17 +497,17 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
    else
    {
       // 2D
-      for ( const auto& it : function.getStorage()->getFaces() )
+      for ( const auto& it : this->getStorage()->getFaces() )
       {
          const auto faceID = it.first;
          const auto face   = *it.second;
 
-         const auto degree  = function.polynomialDegree( faceID );
-         const auto numDofs = function.basis()->numDoFsPerElement( degree );
+         const auto degree  = polynomialDegree( faceID );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
-         auto       dofs      = function.volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = function.volumeDoFFunction()->memoryLayout();
+         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
 
          for ( auto faceType : facedof::allFaceTypes )
          {
@@ -535,6 +527,14 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
 
    WALBERLA_UNUSED( flag );
 }
+
+/// explicit instantiation
+template class DGFunction< double >;
+template class DGFunction< float >;
+template class DGFunction< int32_t >;
+template class DGFunction< int64_t >;
+
+} // namespace dg
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
