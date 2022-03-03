@@ -53,7 +53,7 @@ void petscSolveTest( const uint_t&   level,
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
    writeDomainPartitioningVTK( storage, "../../output", "P1P0Stokes2DPetscSolve_Domain" );
 
    P1P0StokesFunction< real_t > x( "x", storage, level, level );
@@ -68,8 +68,11 @@ void petscSolveTest( const uint_t&   level,
    // output matrix
    std::string                             fileName = "../../output/p1p0stokes.m";
    PETScSparseMatrix< P1P0StokesOperator > mat;
-   P1P0StokesFunction< idx_t >             numerator( "numerator", storage, level, level );
-   mat.createMatrixFromOperator( A, level, numerator, numerator );
+   P1P0StokesFunction< idx_t >             numeratorSrc( "numerator", storage, level, level );
+   P1P0StokesFunction< idx_t >             numeratorDst( "numerator", storage, level, level );
+   numeratorSrc.enumerate( level );
+   numeratorDst.enumerate( level );
+   mat.createMatrixFromOperator( A, level, numeratorSrc, numeratorDst );
    mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
    return;
 #endif

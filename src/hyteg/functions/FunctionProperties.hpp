@@ -194,7 +194,8 @@ inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
 {
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > )
+                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfLocalDoFs( level );
    }
@@ -231,7 +232,8 @@ inline uint_t numberOfGlobalDoFs( const func_t&   func,
 {
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > )
+                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }

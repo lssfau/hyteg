@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"

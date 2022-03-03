@@ -98,8 +98,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
          for ( const auto& faceIt : this->getStorage()->getFaces() )
          {
-            const auto faceId = faceIt.first;
-            const auto face   = *faceIt.second;
+            const auto  faceId = faceIt.first;
+            const auto& face   = *faceIt.second;
 
             const auto srcPolyDegree = 0;
             const auto dstPolyDegree = 1;
@@ -121,7 +121,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
                   // This object does the heavy lifting of computing all required coordinates and normals.
                   volumedofspace::indexing::ElementNeighborInfo neighborInfo(
-                      elementIdx, faceType, level, src.getBoundaryCondition(), faceId, storage_ );
+                      elementIdx, faceType, level, src.getBoundaryCondition(), faceId, this->getStorage() );
 
                   // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
                   Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
@@ -185,8 +185,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
       WALBERLA_UNUSED( flag );
    }
 
-   std::shared_ptr< PrimitiveStorage > storage_;
-   std::shared_ptr< Form >             form_;
+   std::shared_ptr< Form > form_;
 };
 
 typedef P0ToP1Operator< forms::p0_to_p1_divt_0_affine_q0 > P0ToP1ConstantDivTxOperator;

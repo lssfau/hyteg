@@ -231,6 +231,15 @@ class P0Function : public Function< P0Function< ValueType > >
    }
    /// @}
 
+   uint_t getNumberOfLocalDoFs( uint_t level ) const { return dgFunction_->getNumberOfLocalDoFs( level ); }
+
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+   }
+
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
 };
