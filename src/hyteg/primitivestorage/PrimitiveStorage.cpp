@@ -323,7 +323,7 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
    // Let's make it simple: send all local primitives to all neighbor ranks.
    // Receive from all neighbor ranks all their local primitives and store ranks as well.
    // Now we could drop information we do not need, but we simply keep it.
-   
+
    walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
    std::set< MPIRank > nranks;
    for ( const auto & it : getNeighboringRanks() )
@@ -332,10 +332,10 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
    }
 
    bs.setReceiverInfo( nranks, true );
-   
+
    for ( auto nbrank : getNeighboringRanks() )
    {
-      bs.sendBuffer( nbrank ) << getNumberOfLocalVertices(); 
+      bs.sendBuffer( nbrank ) << getNumberOfLocalVertices();
       for ( const auto & it : getVertices() )
       {
          bs.sendBuffer( nbrank ) << it.first;
@@ -363,13 +363,13 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
          bs.sendBuffer( nbrank ) << *it.second;
       }
    }
-   
+
    bs.sendAll();
-   
+
    for ( auto msg = bs.begin(); msg != bs.end(); ++msg )
    {
       const auto nbrank = msg.rank();
-      
+
       uint_t numVertices;
       msg.buffer() >> numVertices;
       for ( uint_t i = 0; i < numVertices; i++ )
@@ -415,6 +415,38 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth )
 : PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
 {}
+
+PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
+                                    const EdgeMap&        edges,
+                                    const FaceMap&        faces,
+                                    const CellMap&        cells,
+                                    const VertexMap&      nbrvtxs,
+                                    const EdgeMap&        nbredges,
+                                    const FaceMap&        nbrfaces,
+                                    const CellMap&        nbrcells,
+                                    const MigrationMap_T& neighborRanks,
+                                    const bool&           hasGlobalCells )
+: vertices_( vtxs )
+, edges_( edges )
+, faces_( faces )
+, cells_( cells )
+, neighborVertices_( nbrvtxs )
+, neighborEdges_( nbredges )
+, neighborFaces_( nbrfaces )
+, neighborCells_( nbrcells )
+, primitiveDataHandlers_( 0 )
+, neighborRanks_( neighborRanks )
+, modificationStamp_( 0 )
+, timingTree_( std::make_shared< walberla::WcTimingTree >() )
+, hasGlobalCells_( hasGlobalCells )
+, additionalHaloDepth_( 0 )
+{
+   splitCommunicatorByPrimitiveDistribution();
+
+#ifndef NDEBUG
+   checkConsistency();
+#endif
+}
 
 std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
 {
@@ -1261,12 +1293,12 @@ std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfCell( const Primit
 {
    WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor cells of cells." );
    WALBERLA_CHECK( cellExistsLocally( cellPrimitiveID ), "Cell " << cellPrimitiveID << "does not exist locally." );
-   
+
    std::set< uint_t > neighboringRanks;
    const auto cell = getCell( cellPrimitiveID );
    for ( const auto & npid : cell->getIndirectNeighborCellIDs() )
    {
-      WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ), 
+      WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ),
                       "Neighbor cell " << npid << " of " << cellPrimitiveID << " does not exist locally, nor in neighborhood." );
       if ( cellExistsInNeighborhood( npid ) )
       {

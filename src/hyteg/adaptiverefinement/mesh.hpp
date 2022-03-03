@@ -129,29 +129,17 @@ class K_Mesh
                       std::vector< FaceData >& faceData,
                       std::vector< CellData >& cellData ) const;
 
-   /* create PrimitiveStorage and return id of first volume element */
-   std::pair< uint_t, std::shared_ptr< PrimitiveStorage > > convert_to_storage( const std::vector< EdgeData >& edges,
-                                                                                const std::vector< FaceData >& faces,
-                                                                                const std::vector< CellData >& cells,
-                                                                                const uint_t&                  n_processes );
-
-   /* create SetupPrimitiveStorage*/
-   std::shared_ptr< SetupPrimitiveStorage > make_setupStorage( const std::vector< EdgeData >& edges,
-                                                               const std::vector< FaceData >& faces,
-                                                               const std::vector< CellData >& cells,
-                                                               const uint_t&                  n_processes );
-
    /* create local part of SetupPrimitiveStorage*/
    std::shared_ptr< SetupPrimitiveStorage > make_localSetupStorage( const std::vector< uint_t >&   vertices_targetRank,
                                                                     const std::vector< EdgeData >& edges,
                                                                     const std::vector< FaceData >& faces,
                                                                     const std::vector< CellData >& cells ) const;
 
-   /* create SetupPrimitives*/
-   void make_setupPrimitives( SetupPrimitiveStorage::VertexMap& vertices,
-                              SetupPrimitiveStorage::EdgeMap&   edges,
-                              SetupPrimitiveStorage::FaceMap&   faces,
-                              SetupPrimitiveStorage::CellMap&   cells );
+   /* create PrimitiveStorage from SimplexData */
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( const std::vector< uint_t >& vertices_targetRank,
+                                                             std::vector< EdgeData >&     edges,
+                                                             std::vector< FaceData >&     faces,
+                                                             std::vector< CellData >&     cells ) const;
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;

@@ -33,7 +33,9 @@ template < uint_t J >
 class SimplexData
 {
  public:
-   SimplexData() {}
+   SimplexData()
+   : _onHalo( false )
+   {}
 
    template < class J_Simplex >
    SimplexData( const Simplex< J, J_Simplex >* simplex )
@@ -42,6 +44,7 @@ class SimplexData
    , _boundaryFlag( simplex->getBoundaryFlag() )
    , _id( simplex->getPrimitiveID() )
    , _targetRank( 0 )
+   , _onHalo( false )
    {}
 
    inline const std::array< uint_t, J + 1 >& get_vertices() const { return _vertices; }
@@ -50,6 +53,8 @@ class SimplexData
    inline const PrimitiveID&                 getPrimitiveID() const { return _id; }
    inline const uint_t&                      getTargetRank() const { return _targetRank; }
    inline void                               setTargetRank( uint_t rnk ) { _targetRank = rnk; }
+   inline const bool&                        getHaloInfo() const { return _onHalo; }
+   inline void                               setHaloInfo( bool onHalo ) { _onHalo = onHalo; }
 
    inline void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
@@ -86,6 +91,7 @@ class SimplexData
    uint_t                      _boundaryFlag;
    PrimitiveID                 _id;
    uint_t                      _targetRank;
+   bool                        _onHalo;
 };
 
 using EdgeData = SimplexData< 1 >;
