@@ -41,7 +41,8 @@ class SimplexData
 {
  public:
    SimplexData( uint_t geometryMap = 0, uint_t boundaryFlag = 0, uint_t id = 0 )
-   : _geometryMap( geometryMap )
+   : _vertices( {} )
+   , _geometryMap( geometryMap )
    , _boundaryFlag( boundaryFlag )
    , _id( PrimitiveID( id ) )
    , _targetRank( 0 )

@@ -28,7 +28,6 @@
 #include <numeric>
 #include <type_traits>
 
-
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
 

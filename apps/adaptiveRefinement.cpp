@@ -29,9 +29,9 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
-// #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -361,7 +361,10 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
       // solve for current refinement
-      auto storage      = mesh.make_storage();
+      auto storage = mesh.make_storage();
+
+      printCurrentMemoryUsage();
+
       auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname, refinement );
 
       // stop loop when reaching maximum refinement
@@ -375,16 +378,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot );
 
-      // compute number of elements to refine
-      // real_t growth_est = (mesh.dim() == 2)? 3 : 7; // only considering red refinement
-      // auto N_ref_max = real_t( n_el_max - N_tot ) / growth_est;
-      // auto N_ref     = uint_t( std::ceil( std::min( real_t( N_tot ) * p_ref, N_ref_max ) ) );
-
-      auto N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
-
-      // WALBERLA_LOG_INFO_ON_ROOT( " -> " << N_ref << " of " << N_tot << " elements are being refined ..." );
-
       // collect ids of elements for refinement
+      auto N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
       std::vector< PrimitiveID > R( N_ref );
       for ( uint_t i = 0; i < N_ref; ++i )
       {
