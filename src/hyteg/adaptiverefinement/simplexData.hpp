@@ -40,8 +40,11 @@ template < uint_t J >
 class SimplexData
 {
  public:
-   SimplexData()
-   : _targetRank( 0 )
+   SimplexData( uint_t geometryMap = 0, uint_t boundaryFlag = 0, uint_t id = 0 )
+   : _geometryMap( geometryMap )
+   , _boundaryFlag( boundaryFlag )
+   , _id( PrimitiveID( id ) )
+   , _targetRank( 0 )
    , _locality( NONE )
    {}
 
@@ -92,8 +95,6 @@ class SimplexData
       return coords;
    }
 
-   friend bool operator<( const SimplexData& lhs, const SimplexData& rhs ) { return lhs.getTargetRank() < rhs.getTargetRank(); }
-
  private:
    std::array< uint_t, J + 1 > _vertices;
    uint_t                      _geometryMap;
@@ -103,62 +104,36 @@ class SimplexData
    Locality                    _locality;
 };
 
-using EdgeData = SimplexData< 1 >;
-using FaceData = SimplexData< 2 >;
-using CellData = SimplexData< 3 >;
+using VertexData = SimplexData< 0 >;
+using EdgeData   = SimplexData< 1 >;
+using FaceData   = SimplexData< 2 >;
+using CellData   = SimplexData< 3 >;
 
 /* apply loadbalancing directly on our datastructures */
-void loadbalancing( std::vector< uint_t >&   vertices_targetRank,
-                    std::vector< EdgeData >& edges,
-                    std::vector< FaceData >& faces,
-                    std::vector< CellData >& cells,
-                    const uint_t&            n_processes );
+void loadbalancing( std::vector< VertexData >& vtxs,
+                    std::vector< EdgeData >&   edges,
+                    std::vector< FaceData >&   faces,
+                    std::vector< CellData >&   cells,
+                    const uint_t&              n_processes );
+
 } // namespace adaptiveRefinement
 } // namespace hyteg
 
 namespace walberla {
 namespace mpi {
 
-template < typename T,  // Element type of SendBuffer
+template < uint_t J,    // spacial dimension
+           typename T,  // Element type of SendBuffer
            typename G > // Growth policy of SendBuffer
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::adaptiveRefinement::EdgeData& sd )
+GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::adaptiveRefinement::SimplexData< J >& sd )
 {
    sd.serialize( buf );
    return buf;
 }
 
-template < typename T > // Element type  of RecvBuffer
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::adaptiveRefinement::EdgeData& sd )
-{
-   sd.deserialize( buf );
-   return buf;
-}
-
-template < typename T,  // Element type of SendBuffer
-           typename G > // Growth policy of SendBuffer
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::adaptiveRefinement::FaceData& sd )
-{
-   sd.serialize( buf );
-   return buf;
-}
-
-template < typename T > // Element type  of RecvBuffer
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::adaptiveRefinement::FaceData& sd )
-{
-   sd.deserialize( buf );
-   return buf;
-}
-
-template < typename T,  // Element type of SendBuffer
-           typename G > // Growth policy of SendBuffer
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::adaptiveRefinement::CellData& sd )
-{
-   sd.serialize( buf );
-   return buf;
-}
-
-template < typename T > // Element type  of RecvBuffer
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::adaptiveRefinement::CellData& sd )
+template < uint_t J,    // spacial dimension
+           typename T > // Element type  of RecvBuffer
+GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::adaptiveRefinement::SimplexData< J >& sd )
 {
    sd.deserialize( buf );
    return buf;

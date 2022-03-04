@@ -24,34 +24,34 @@ namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply loadbalancing directly on our datastructures */
-void loadbalancing( std::vector< uint_t >&   vertices_targetRank,
-                    std::vector< EdgeData >& edges,
-                    std::vector< FaceData >& faces,
-                    std::vector< CellData >& cells,
-                    const uint_t&            n_processes )
+void loadbalancing( std::vector< VertexData >& vtxs,
+                    std::vector< EdgeData >&   edges,
+                    std::vector< FaceData >&   faces,
+                    std::vector< CellData >&   cells,
+                    const uint_t&              n_processes )
 {
    // roundrobin
-   uint_t cur = 0;
+   uint_t i = 0;
 
-   for ( auto& rnk : vertices_targetRank )
+   for ( auto& vtx : vtxs )
    {
-      rnk = cur % n_processes;
-      ++cur;
+      vtx.setTargetRank( i % n_processes );
+      ++i;
    }
    for ( auto& edge : edges )
    {
-      edge.setTargetRank( cur % n_processes );
-      ++cur;
+      edge.setTargetRank( i % n_processes );
+      ++i;
    }
    for ( auto& face : faces )
    {
-      face.setTargetRank( cur % n_processes );
-      ++cur;
+      face.setTargetRank( i % n_processes );
+      ++i;
    }
    for ( auto& cell : cells )
    {
-      cell.setTargetRank( cur % n_processes );
-      ++cur;
+      cell.setTargetRank( i % n_processes );
+      ++i;
    }
 }
 

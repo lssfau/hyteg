@@ -125,21 +125,16 @@ class K_Mesh
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::vector< EdgeData >& edgeData,
-                      std::vector< FaceData >& faceData,
-                      std::vector< CellData >& cellData ) const;
-
-   /* create local part of SetupPrimitiveStorage*/
-   std::shared_ptr< SetupPrimitiveStorage > make_localSetupStorage( const std::vector< uint_t >&   vertices_targetRank,
-                                                                    const std::vector< EdgeData >& edges,
-                                                                    const std::vector< FaceData >& faces,
-                                                                    const std::vector< CellData >& cells ) const;
+   void extract_data( std::vector< VertexData >& vtxData,
+                      std::vector< EdgeData >&   edgeData,
+                      std::vector< FaceData >&   faceData,
+                      std::vector< CellData >&   cellData ) const;
 
    /* create PrimitiveStorage from SimplexData */
-   std::shared_ptr< PrimitiveStorage > make_localPrimitives( const std::vector< uint_t >& vertices_targetRank,
-                                                             std::vector< EdgeData >&     edges,
-                                                             std::vector< FaceData >&     faces,
-                                                             std::vector< CellData >&     cells ) const;
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,
+                                                             std::vector< EdgeData >&   edges,
+                                                             std::vector< FaceData >&   faces,
+                                                             std::vector< CellData >&   cells ) const;
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;
