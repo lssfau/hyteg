@@ -90,6 +90,12 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
    timer["Dot"].end();
    WALBERLA_LOG_INFO_ON_ROOT( "dot product = " << scalarProduct );
 
+   // try manipulating boundary conditions
+   BoundaryCondition fsBC;
+   fsBC.createFreeslipBC( "free-slip", 1 );
+   vec_f.setBoundaryCondition( fsBC );
+   aux_f.copyBoundaryConditionFromFunction( vec_f );
+
    // Output VTK
    if ( beVerbose )
    {
