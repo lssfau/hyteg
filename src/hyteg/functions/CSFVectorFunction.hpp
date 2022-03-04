@@ -228,7 +228,7 @@ class CSFVectorFunction
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         compFunc_[k]->setBoundaryCondition( vectorFunctionTools::filter( k, other ).getBoundaryCondition() );
+         compFunc_[k]->setBoundaryCondition( other[k].getBoundaryCondition() );
       }
    }
    /// @}
