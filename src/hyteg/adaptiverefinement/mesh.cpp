@@ -234,29 +234,29 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    loadbalancing( vertices_targetRank, edges, faces, cells, _n_processes );
 
    // todo use this method instead
-   // return make_localPrimitives( vertices_targetRank, edges, faces, cells );
+   return make_localPrimitives( vertices_targetRank, edges, faces, cells );
 
-   // create local primitives and associated setupStorage
-   auto setupStorage = make_localSetupStorage( vertices_targetRank, edges, faces, cells );
+   // // create local primitives and associated setupStorage
+   // auto setupStorage = make_localSetupStorage( vertices_targetRank, edges, faces, cells );
 
-   // copy targetrank to setupStorage
-   for ( uint_t id = 0; id < vertices_targetRank.size(); ++id )
-   {
-      setupStorage->setTargetRank( PrimitiveID( id ), vertices_targetRank[id] );
-   }
-   for ( auto& p : edges )
-   {
-      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
-   }
-   for ( auto& p : faces )
-   {
-      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
-   }
-   for ( auto& p : cells )
-   {
-      setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
-   }
-   return std::make_shared< PrimitiveStorage >( *setupStorage );
+   // // copy targetrank to setupStorage
+   // for ( uint_t id = 0; id < vertices_targetRank.size(); ++id )
+   // {
+   //    setupStorage->setTargetRank( PrimitiveID( id ), vertices_targetRank[id] );
+   // }
+   // for ( auto& p : edges )
+   // {
+   //    setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   // }
+   // for ( auto& p : faces )
+   // {
+   //    setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   // }
+   // for ( auto& p : cells )
+   // {
+   //    setupStorage->setTargetRank( p.getPrimitiveID(), p.getTargetRank() );
+   // }
+   // return std::make_shared< PrimitiveStorage >( *setupStorage );
 }
 
 template < class K_Simplex >
@@ -278,7 +278,7 @@ std::shared_ptr< SetupPrimitiveStorage >
    // identify faces with their vertex IDs
    std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
 
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+   // auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
    // convenient acces to SimplexData
    auto get_edge = [&]( uint_t id ) -> const EdgeData& {
@@ -289,10 +289,10 @@ std::shared_ptr< SetupPrimitiveStorage >
       const uint_t id0 = faces[0].getPrimitiveID().getID();
       return faces[id - id0];
    };
-   auto get_cell = [&]( uint_t id ) -> const CellData& {
-      const uint_t id0 = cells[0].getPrimitiveID().getID();
-      return cells[id - id0];
-   };
+   // auto get_cell = [&]( uint_t id ) -> const CellData& {
+   //    const uint_t id0 = cells[0].getPrimitiveID().getID();
+   //    return cells[id - id0];
+   // };
 
    auto add_vertex = [&]( uint_t id ) {
       // add new vertex
@@ -576,9 +576,9 @@ std::shared_ptr< SetupPrimitiveStorage >
 
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( const std::vector< uint_t >& vertices_targetRank,
-                                                                          std::vector< EdgeData >&     edges,
-                                                                          std::vector< FaceData >&     faces,
-                                                                          std::vector< CellData >&     cells ) const
+                                                                               std::vector< EdgeData >&     edges,
+                                                                               std::vector< FaceData >&     faces,
+                                                                               std::vector< CellData >&     cells ) const
 {
    // todo FIX THIS METHOD
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
@@ -596,10 +596,10 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
       return &( faces[id - id0] );
    };
    // acces CellData via PrimitiveID
-   auto get_cell = [&]( uint_t id ) -> CellData* {
-      const uint_t id0 = cells[0].getPrimitiveID().getID();
-      return &( cells[id - id0] );
-   };
+   // auto get_cell = [&]( uint_t id ) -> CellData* {
+   //    const uint_t id0 = cells[0].getPrimitiveID().getID();
+   //    return &( cells[id - id0] );
+   // };
 
    // ****** create maps M: vertexIds -> primitiveID ******
 
@@ -624,7 +624,24 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
 
    // ****** find simplices required for halos ******
 
-   std::vector< bool > vtxOnHalo( _vertices.size(), false );
+   std::vector< bool >   vtxOnHalo( _vertices.size(), false );
+   hyteg::MigrationMap_T nbrRanks;
+   // for ( uint_t i = 0; i < _vertices.size(); ++i )
+   // {
+   //    nbrRanks[vtx] = vertices_targetRank[vtx];
+   // }
+   // for ( auto& edge : edges )
+   // {
+   //    nbrRanks[edge.getPrimitiveID().getID()] = edge.getTargetRank();
+   // }
+   // for ( auto& face : faces )
+   // {
+   //    nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
+   // }
+   // for ( auto& cell : cells )
+   // {
+   //    nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
+   // }
 
    for ( auto& edge : edges )
    {
@@ -635,10 +652,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          if ( edge.getTargetRank() == rank && vertices_targetRank[vtx] != rank )
          {
             vtxOnHalo[vtx] = true;
+            nbrRanks[vtx]  = vertices_targetRank[vtx];
          }
          if ( edge.getTargetRank() != rank && vertices_targetRank[vtx] == rank )
          {
             edge.setHaloInfo( true );
+            nbrRanks[edge.getPrimitiveID().getID()] = edge.getTargetRank();
          }
       }
    }
@@ -652,10 +671,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          if ( face.getTargetRank() == rank && vertices_targetRank[vtx] != rank )
          {
             vtxOnHalo[vtx] = true;
+            nbrRanks[vtx]  = vertices_targetRank[vtx];
          }
          if ( face.getTargetRank() != rank && vertices_targetRank[vtx] == rank )
          {
             face.setHaloInfo( true );
+            nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
          }
       }
 
@@ -667,10 +688,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          if ( face.getTargetRank() == rank && edge->getTargetRank() != rank )
          {
             edge->setHaloInfo( true );
+            nbrRanks[edge->getPrimitiveID().getID()] = edge->getTargetRank();
          }
          if ( face.getTargetRank() != rank && edge->getTargetRank() == rank )
          {
             face.setHaloInfo( true );
+            nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
          }
       }
    }
@@ -684,10 +707,29 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          if ( cell.getTargetRank() == rank && vertices_targetRank[vtx] != rank )
          {
             vtxOnHalo[vtx] = true;
+            nbrRanks[vtx]  = vertices_targetRank[vtx];
          }
          if ( cell.getTargetRank() != rank && vertices_targetRank[vtx] == rank )
          {
             cell.setHaloInfo( true );
+            nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
+         }
+      }
+
+      for ( uint_t i = 0; i < 4; ++i )
+      {
+         Idx< 2 >  edgeVtxs{ v[i], v[( i + 1 ) % 4] };
+         EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+         if ( cell.getTargetRank() == rank && edge->getTargetRank() != rank )
+         {
+            edge->setHaloInfo( true );
+            nbrRanks[edge->getPrimitiveID().getID()] = edge->getTargetRank();
+         }
+         if ( cell.getTargetRank() != rank && edge->getTargetRank() == rank )
+         {
+            cell.setHaloInfo( true );
+            nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
          }
       }
 
@@ -699,25 +741,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          if ( cell.getTargetRank() == rank && face->getTargetRank() != rank )
          {
             face->setHaloInfo( true );
+            nbrRanks[face->getPrimitiveID().getID()] = face->getTargetRank();
          }
          if ( cell.getTargetRank() != rank && face->getTargetRank() == rank )
          {
             cell.setHaloInfo( true );
-         }
-
-         for ( uint_t i = 0; i < 3; ++i )
-         {
-            Idx< 2 >  edgeVtxs{ faceVtxs[i], faceVtxs[( i + 1 ) % 3] };
-            EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
-
-            if ( cell.getTargetRank() == rank && edge->getTargetRank() != rank )
-            {
-               edge->setHaloInfo( true );
-            }
-            if ( cell.getTargetRank() != rank && edge->getTargetRank() == rank )
-            {
-               cell.setHaloInfo( true );
-            }
+            nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
          }
       }
    }
@@ -973,6 +1002,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
 
    // ****** add neighborhood information to primitives ******
 
+   // add neighbor edges to vertices
    for ( auto& edge : edges )
    {
       auto& v = edge.get_vertices();
@@ -983,13 +1013,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          {
             vtxs_ps[vtx]->addEdge( edge.getPrimitiveID() );
          }
-         else
+         if ( vtxOnHalo[vtx] )
          {
             nbrVtxs_ps[vtx]->addEdge( edge.getPrimitiveID() );
          }
       }
    }
 
+   // add neighbor faces to vertices and edges
    for ( auto& face : faces )
    {
       auto& v = face.get_vertices();
@@ -1000,7 +1031,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          {
             vtxs_ps[vtx]->addFace( face.getPrimitiveID() );
          }
-         else
+         if ( vtxOnHalo[vtx] )
          {
             nbrVtxs_ps[vtx]->addFace( face.getPrimitiveID() );
          }
@@ -1015,13 +1046,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          {
             edges_ps[edge->getPrimitiveID().getID()]->addFace( face.getPrimitiveID() );
          }
-         else
+         if ( edge->getHaloInfo() )
          {
             nbrEdges_ps[edge->getPrimitiveID().getID()]->addFace( face.getPrimitiveID() );
          }
       }
    }
 
+   // add neighbor cells to vertices, edges and faces
    for ( auto& cell : cells )
    {
       auto& v = cell.get_vertices();
@@ -1032,9 +1064,27 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          {
             vtxs_ps[vtx]->addCell( cell.getPrimitiveID() );
          }
-         else
+         if ( vtxOnHalo[vtx] )
          {
             nbrVtxs_ps[vtx]->addCell( cell.getPrimitiveID() );
+         }
+      }
+
+      for ( uint_t i = 0; i < 4; ++i )
+      {
+         for ( uint_t j = i + 1; j < 4; ++j )
+         {
+            Idx< 2 >  edgeVtxs{ v[i], v[j] };
+            EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+            if ( edge->getTargetRank() == rank )
+            {
+               edges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+            }
+            if ( edge->getHaloInfo() )
+            {
+               nbrEdges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+            }
          }
       }
 
@@ -1047,47 +1097,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( c
          {
             faces_ps[face->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
          }
-         else
+         if ( face->getHaloInfo() )
          {
             nbrFaces_ps[face->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
-         }
-
-         for ( uint_t i = 0; i < 3; ++i )
-         {
-            Idx< 2 >  edgeVtxs{ faceVtxs[i], faceVtxs[( i + 1 ) % 3] };
-            EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
-
-            if ( edge->getTargetRank() == rank )
-            {
-               edges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
-            }
-            else
-            {
-               nbrEdges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
-            }
          }
       }
    }
 
    // ****** create PrimitiveStorage ******
-
-   hyteg::MigrationMap_T nbrRanks;
-   for ( uint_t i = 0; i < _vertices.size(); ++i )
-   {
-      nbrRanks[i] = vertices_targetRank[i];
-   }
-   for ( auto& edge : edges )
-   {
-      nbrRanks[edge.getPrimitiveID().getID()] = edge.getTargetRank();
-   }
-   for ( auto& face : faces )
-   {
-      nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
-   }
-   for ( auto& cell : cells )
-   {
-      nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
-   }
 
    return std::make_shared< PrimitiveStorage >(
        vtxs_ps, edges_ps, faces_ps, cells_ps, nbrVtxs_ps, nbrEdges_ps, nbrFaces_ps, nbrCells_ps, nbrRanks, cells.size() > 0 );
