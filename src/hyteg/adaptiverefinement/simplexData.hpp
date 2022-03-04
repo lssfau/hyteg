@@ -28,13 +28,21 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
+enum Locality
+{
+   NONE  = 0,
+   HALO  = 1,
+   LOCAL = 2
+};
+
 // stores only essential data of a simplex to create PrimitiveStorage
 template < uint_t J >
 class SimplexData
 {
  public:
    SimplexData()
-   : _onHalo( false )
+   : _targetRank( 0 )
+   , _locality( NONE )
    {}
 
    template < class J_Simplex >
@@ -44,7 +52,7 @@ class SimplexData
    , _boundaryFlag( simplex->getBoundaryFlag() )
    , _id( simplex->getPrimitiveID() )
    , _targetRank( 0 )
-   , _onHalo( false )
+   , _locality( NONE )
    {}
 
    inline const std::array< uint_t, J + 1 >& get_vertices() const { return _vertices; }
@@ -53,8 +61,9 @@ class SimplexData
    inline const PrimitiveID&                 getPrimitiveID() const { return _id; }
    inline const uint_t&                      getTargetRank() const { return _targetRank; }
    inline void                               setTargetRank( uint_t rnk ) { _targetRank = rnk; }
-   inline const bool&                        getHaloInfo() const { return _onHalo; }
-   inline void                               setHaloInfo( bool onHalo ) { _onHalo = onHalo; }
+   inline bool                               onHalo() const { return _locality == HALO; }
+   inline bool                               isLocal() const { return _locality == LOCAL; }
+   inline void                               setLocality( Locality loc ) { _locality = loc; }
 
    inline void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
@@ -91,7 +100,7 @@ class SimplexData
    uint_t                      _boundaryFlag;
    PrimitiveID                 _id;
    uint_t                      _targetRank;
-   bool                        _onHalo;
+   Locality                    _locality;
 };
 
 using EdgeData = SimplexData< 1 >;
