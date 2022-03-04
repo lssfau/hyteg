@@ -528,7 +528,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
             EdgeData* edge     = get_edge( edgeIDs[cellLocalEdgeID].getID() );
             auto&     edgeVtxs = edge->get_vertices();
             auto      edgeLocalVtxID =
-                std::find( edgeVtxs.begin(), edgeVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - edgeVtxs.begin();
+                uint_t( std::find( edgeVtxs.begin(), edgeVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - edgeVtxs.begin() );
 
             WALBERLA_ASSERT_LESS( edgeLocalVtxID, edgeVtxs.size() );
 
@@ -545,7 +545,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
             FaceData* face     = get_face( faceIDs[cellLocalFaceID].getID() );
             auto&     faceVtxs = face->get_vertices();
             auto      faceLocalVtxID =
-                std::find( faceVtxs.begin(), faceVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - faceVtxs.begin();
+                uint_t( std::find( faceVtxs.begin(), faceVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - faceVtxs.begin() );
 
             WALBERLA_ASSERT_LESS( faceLocalVtxID, faceVtxs.size() );
 
