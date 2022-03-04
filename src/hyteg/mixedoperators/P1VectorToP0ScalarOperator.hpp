@@ -20,11 +20,11 @@
 #pragma once
 
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
+#include "hyteg/mixedoperators/P0ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/mixedoperators/P1ToP0Operator.hpp"
-#include "hyteg/mixedoperators/P0ToP1Operator.hpp"
 
 namespace hyteg {
 
@@ -73,7 +73,7 @@ class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, 
 };
 
 //// Some operators we might use more often than others
-//typedef P1VectorToP0ScalarOperator< P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator >
-//    P1ToP0ConstantDivOperator;
+typedef P1VectorToP0ScalarOperator< P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator >
+    P1ToP0ConstantDivOperator;
 
 } // namespace hyteg

@@ -216,6 +216,9 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// \brief Returns the boundary conditions of this function.
    BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
+   /// \brief Sets the boundary conditions of this function.
+   void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
+
    /// conversion to/from linear algebra representation
    /// @{
    void toVector( const DGFunction< idx_t >&            numerator,

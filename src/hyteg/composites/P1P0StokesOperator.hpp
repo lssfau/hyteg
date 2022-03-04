@@ -21,8 +21,9 @@
 
 #include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
-#include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP0Operator.hpp"
+#include "hyteg/mixedoperators/P0ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 
 namespace hyteg {
@@ -37,7 +38,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    P1P0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
-   // , div( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -49,7 +50,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    {
       Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
-      // div.apply( src.uvw(), dst.p(), level, flag, Replace );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -60,11 +61,11 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    {
       Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
-      // div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
    VelocityBlockOperator_T    Lapl;
-   // P1ToP0ConstantDivOperator  div;
+   P1ToP0ConstantDivOperator  div;
    P0ToP1ConstantDivTOperator divT;
 
    bool hasGlobalCells_;

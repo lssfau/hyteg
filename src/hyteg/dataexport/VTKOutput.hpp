@@ -78,6 +78,12 @@ class VTKOutput
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
    template < typename value_t >
+   inline void add( const P0Function< value_t >& function )
+   {
+      dgFunctions_.push_back( *function.getDGFunction() );
+   }
+
+   template < typename value_t >
    inline void add( const P1Function< value_t >& function )
    {
       p1Functions_.push_back( function );

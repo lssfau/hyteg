@@ -56,7 +56,7 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
       switch ( degree )
       {
       case 0: {
-         value = 1;
+         value = dofs[0];
          break;
       }
 

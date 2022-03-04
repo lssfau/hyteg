@@ -29,6 +29,7 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -64,7 +65,6 @@ void petscSolveTest( const uint_t&   level,
 
    P1P0StokesOperator A( storage, level, level );
 
-#if 1
    // output matrix
    std::string                             fileName = "../../output/p1p0stokes.m";
    PETScSparseMatrix< P1P0StokesOperator > mat;
@@ -74,8 +74,6 @@ void petscSolveTest( const uint_t&   level,
    numeratorDst.enumerate( level );
    mat.createMatrixFromOperator( A, level, numeratorSrc, numeratorDst );
    mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
-   return;
-#endif
 
    std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
       return real_c( 20 ) * xx[0] * std::pow( xx[1], 3.0 );
@@ -94,36 +92,37 @@ void petscSolveTest( const uint_t&   level,
    x_exact.uvw().interpolate( { exactU, exactV }, level );
    x_exact.p().interpolate( exactP, level );
 
-   //  VTKOutput vtkOutput("../../output", "P1P0Stokes2DPetscSolve", storage);
-   //  vtkOutput.add( x.u );
-   //  vtkOutput.add( x.v );
-   //  vtkOutput.add( x.p );
-   //  vtkOutput.add( x_exact.u );
-   //  vtkOutput.add( x_exact.v );
-   //  vtkOutput.add( x_exact.p );
-   //  vtkOutput.add( err.u );
-   //  vtkOutput.add( err.v );
-   //  vtkOutput.add( err.p );
-   //  vtkOutput.add( b.u );
-   //  vtkOutput.add( b.v );
-   //  vtkOutput.add( b.p );
-   //  vtkOutput.write( level, 0 );
+   VTKOutput vtkOutput( "../../output", "P1P0Stokes2DPetscSolve", storage );
+   vtkOutput.add( x.uvw() );
+   vtkOutput.add( x.p() );
+   vtkOutput.add( x_exact.uvw() );
+   vtkOutput.add( x_exact.p() );
+   vtkOutput.add( err.uvw() );
+   vtkOutput.add( err.p() );
+   vtkOutput.add( b.uvw() );
+   vtkOutput.add( b.p() );
+   vtkOutput.write( level, 0 );
 
-   uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
-   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
+   //   uint_t localDoFs  = hyteg::numberOfLocalDoFs< P1P0StokesFunctionTag >( *storage, level );
+   //   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< P1P0StokesFunctionTag >( *storage, level );
+   //
+   //   WALBERLA_LOG_INFO( "local DoFs: " << localDoFs << " global DoFs: " << globalDoFs );
 
-   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
-
-   PETScLUSolver< P1P0StokesOperator > solver_1( storage, level );
+   PETScMinResSolver< P1P0StokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
 
    walberla::WcTimer timer;
-   solver_1.solve( A, x, b, level );
+   solver.solve( A, x, b, level );
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   A.apply( x, residuum, level, hyteg::Inner );
+
+   // A.apply( x, residuum, level, hyteg::Inner );
 
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
+
+   vtkOutput.write( level, 1 );
+
+#if 0
 
    real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
    real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
@@ -135,11 +134,10 @@ void petscSolveTest( const uint_t&   level,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-   //  vtkOutput.write( level, 1 );
-
    WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
    WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP );
+#endif
 }
 
 } // namespace hyteg
@@ -152,7 +150,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   petscSolveTest( 5, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 1.7e-13, 0.025, 0.366 );
+   petscSolveTest( 5,
+                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   1.7e-13,
+                   0.025,
+                   0.366 );
 
    return EXIT_SUCCESS;
 }

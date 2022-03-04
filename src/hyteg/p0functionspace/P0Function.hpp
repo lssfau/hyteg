@@ -53,7 +53,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
-   void setBoundaryCondition( BoundaryCondition bc ) { WALBERLA_ABORT( "Not implemented." ); }
+   void setBoundaryCondition( BoundaryCondition bc ) { dgFunction_->setBoundaryCondition( bc ); }
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
@@ -92,8 +92,8 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          for ( auto& it : this->getStorage()->getFaces() )
          {
-            const auto faceID = it.first;
-            const auto face   = *it.second;
+            const auto  faceID = it.first;
+            const auto& face   = *it.second;
 
             WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( faceID ), 0 );
             WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 0 ), 1 );
@@ -124,8 +124,8 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          for ( auto& it : this->getStorage()->getFaces() )
          {
-            const auto faceID = it.first;
-            const auto face   = *it.second;
+            const auto  faceID = it.first;
+            const auto& face   = *it.second;
 
             WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( faceID ), 0 );
             WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 0 ), 1 );

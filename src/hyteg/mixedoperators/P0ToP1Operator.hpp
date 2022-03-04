@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <hyteg/communication/Syncing.hpp>
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/forms/form_hyteg_generated/p0_to_p1/p0_to_p1_divt_affine_q0.hpp"
@@ -87,6 +88,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
       WALBERLA_CHECK( updateType == Replace );
 
       auto srcDGF = src.getDGFunction();
+
+      communication::syncFunctionBetweenPrimitives( dst, level );
 
       if ( this->getStorage()->hasGlobalCells() )
       {
