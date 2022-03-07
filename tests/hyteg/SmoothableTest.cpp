@@ -51,6 +51,7 @@ bool smootherThrowsException( SmootherType& smoother, OperatorType& op, Function
       smoother.solve( op, dst, src, level );
    } catch ( const std::runtime_error& e )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( e.what() );
       return true;
    }
    return false;
@@ -119,13 +120,15 @@ int main( int argc, char** argv )
 
    P2ConstantVectorLaplaceOperator p2VecConstOp( storage, minLevel, maxLevel );
 
-   WeightedJacobiSmoother< P2ConstantVectorLaplaceOperator >       wJacVecConst( storage, minLevel, maxLevel, maxLevel );
+   WeightedJacobiSmoother< P2ConstantVectorLaplaceOperator >       wJacVecConst( storage, minLevel, maxLevel, real_c(0.5) );
    GaussSeidelSmoother< P2ConstantVectorLaplaceOperator >          gsVecConst;
    SymmetricGaussSeidelSmoother< P2ConstantVectorLaplaceOperator > sgsVecConst;
    SORSmoother< P2ConstantVectorLaplaceOperator >                  sorVecConst( real_c( 1 ) );
+   ChebyshevSmoother< P2ConstantVectorLaplaceOperator >            chebVecConst( storage, minLevel, maxLevel );
 
    WALBERLA_CHECK( !smootherThrowsException( wJacVecConst, p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
    WALBERLA_CHECK( !smootherThrowsException( gsVecConst  , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( sgsVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
+   // WALBERLA_CHECK( smootherThrowsException( sgsVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
    WALBERLA_CHECK( !smootherThrowsException( sorVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
+   WALBERLA_CHECK( smootherThrowsException( chebVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
 }

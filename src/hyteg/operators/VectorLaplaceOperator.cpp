@@ -57,6 +57,116 @@ VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::VectorLaplaceOperato
    }
 }
 
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_jac( const VecFuncKind< ValueType >& dst,
+                                                                             const VecFuncKind< ValueType >& rhs,
+                                                                             const VecFuncKind< ValueType >& src,
+                                                                             real_t                          relax,
+                                                                             size_t                          level,
+                                                                             DoFType                         flag ) const
+{
+   for ( uint_t k = 0; k < this->dim_; ++k )
+   {
+      if ( const auto subOp =
+               std::dynamic_pointer_cast< WeightedJacobiSmoothable< typename SubOpType::srcType > >( this->subOper_[k][k] ) )
+      {
+         subOp->smooth_jac( dst[k], rhs[k], src[k], relax, level, flag );
+      }
+      else
+      {
+         throw std::runtime_error(
+             "Jacobi smoothing of a VectorLaplaceOperator requires its diagonal blocks to have the WeightedJacobiSmoothable interface." );
+      }
+   }
+}
+
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_gs( const VecFuncKind< ValueType >& dst,
+                                                                            const VecFuncKind< ValueType >& rhs,
+                                                                            size_t                          level,
+                                                                            DoFType                         flag ) const
+{
+   for ( uint_t k = 0; k < this->dim_; ++k )
+   {
+      if ( const auto* subOp = dynamic_cast< const GSSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
+      {
+         subOp->smooth_gs( dst[k], rhs[k], level, flag );
+      }
+      else
+      {
+         throw std::runtime_error(
+             "Gauss-Seidel smoothing of a VectorLaplaceOperator requires its diagonal blocks to have the GSSmoothable interface." );
+      }
+   }
+}
+
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_gs_backwards( const VecFuncKind< ValueType >& dst,
+                                                                                      const VecFuncKind< ValueType >& rhs,
+                                                                                      size_t                          level,
+                                                                                      DoFType                         flag ) const
+{
+   for ( uint_t k = 0; k < this->dim_; ++k )
+   {
+      if ( const auto* subOp =
+               dynamic_cast< const GSBackwardsSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
+      {
+         subOp->smooth_gs_backwards( dst[k], rhs[k], level, flag );
+      }
+      else
+      {
+         throw std::runtime_error(
+             "Backwards Gauss-Seidel smoothing of a VectorLaplaceOperator requires its diagonal blocks to have the GSBackwardsSmoothable interface." );
+      }
+   }
+}
+
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_sor( const VecFuncKind< ValueType >& dst,
+                                                                             const VecFuncKind< ValueType >& rhs,
+                                                                             real_t                          relax,
+                                                                             size_t                          level,
+                                                                             DoFType                         flag ) const
+{
+   for ( uint_t k = 0; k < this->dim_; ++k )
+   {
+      if ( const auto* subOp = dynamic_cast< const SORSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
+      {
+         subOp->smooth_sor( dst[k], rhs[k], relax, level, flag );
+      }
+      else
+      {
+         throw std::runtime_error(
+             "SOR smoothing of a VectorLaplaceOperator requires its diagonal blocks to have the SORSmoothable interface." );
+      }
+   }
+}
+
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_sor_backwards( const VecFuncKind< ValueType >& dst,
+                                                                                       const VecFuncKind< ValueType >& rhs,
+                                                                                       real_t                          relax,
+                                                                                       size_t                          level,
+                                                                                       DoFType                         flag ) const
+{
+   for ( uint_t k = 0; k < this->dim_; ++k )
+   {
+      if ( const auto* subOp = dynamic_cast< const SORBackwardsSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
+      {
+         subOp->smooth_sor_backwards( dst[k], rhs[k], relax, level, flag );
+      }
+      else
+      {
+         throw std::runtime_error(
+             "Backward SOR smoothing of a VectorLaplaceOperator requires its diagonal blocks to have the SORBackwardsSmoothable interface." );
+      }
+   }
+}
+
+// =========================
+//  Explicit Instantiations
+// =========================
+
 // P1ConstantVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator >;
 
