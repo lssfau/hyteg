@@ -150,8 +150,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
          for ( const auto& faceIt : this->getStorage()->getFaces() )
          {
-            const auto faceId = faceIt.first;
-            const auto face   = *faceIt.second;
+            const auto  faceId = faceIt.first;
+            const auto& face   = *faceIt.second;
 
             const auto srcPolyDegree = src.polynomialDegree( faceId );
             const auto dstPolyDegree = dst.polynomialDegree( faceId );

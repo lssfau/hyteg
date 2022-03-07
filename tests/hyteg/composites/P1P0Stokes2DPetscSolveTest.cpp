@@ -63,7 +63,7 @@ void petscSolveTest( const uint_t&   level,
    P1P0StokesFunction< real_t > err( "err", storage, level, level );
    P1P0StokesFunction< real_t > residuum( "res", storage, level, level );
 
-   P1P0StokesOperator A( storage, level, level );
+   P1P0StokesOperator A( storage, level, level, 0.1 );
 
    // output matrix
    std::string                             fileName = "../../output/p1p0stokes.m";
@@ -150,7 +150,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   petscSolveTest( 5,
+   petscSolveTest( 4,
                    hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
                    1.7e-13,
                    0.025,

@@ -220,7 +220,7 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       const auto face = storage_->getFace( volumeID_ );
 
       WALBERLA_ASSERT_GREATER(
-          face->getIndirectNeighborFaceIDs().count( neighbor ), 0, "Neighborface should exist but doesn't ..." );
+          face->getIndirectNeighborFaceIDs().count( neighbor ), 0, "Neighbor face should exist but doesn't ..." );
       const auto neighborFace = storage_->getFace( face->getIndirectNeighborFaceIDs().at( neighbor ) );
 
       // PID of the opposite macro-vertex.

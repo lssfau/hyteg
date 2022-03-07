@@ -215,7 +215,7 @@ real_t testDirichletAndRhs( uint_t level, int degree )
 {
    using namespace dg;
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -225,7 +225,7 @@ real_t testDirichletAndRhs( uint_t level, int degree )
       return std::exp( -x[0] - ( x[1] * x[1] ) );
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsFunc = []( const hyteg::Point3D& x ) {
-      return -(4 * x[1] * x[1] - 1) * std::exp( -x[0] - ( x[1] * x[1] ) );
+      return -( 4 * x[1] * x[1] - 1 ) * std::exp( -x[0] - ( x[1] * x[1] ) );
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();

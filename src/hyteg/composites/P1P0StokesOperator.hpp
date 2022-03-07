@@ -20,13 +20,87 @@
 #pragma once
 
 #include "hyteg/composites/P1P0StokesFunction.hpp"
+#include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/dgfunctionspace/DGStokesP1P0PressureStabForm_Example.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divdiv_affine_q2.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
-#include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/mixedoperators/P0ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 
 namespace hyteg {
+
+/// \brief Implements the discrete operator for the form
+///
+///     mu ( div(u), div(v) )
+///
+/// with a constant mu.
+///
+class P1DivDivOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >
+{
+ public:
+   P1DivDivOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, real_t mu )
+   : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
+   , mu_( mu )
+   {
+      divdiv_0_0 = std::make_shared< forms::p1_divdiv_0_0_affine_q2 >();
+      divdiv_0_1 = std::make_shared< forms::p1_divdiv_0_1_affine_q2 >();
+      divdiv_0_2 = std::make_shared< forms::p1_divdiv_0_2_affine_q2 >();
+
+      divdiv_1_0 = std::make_shared< forms::p1_divdiv_1_0_affine_q2 >();
+      divdiv_1_1 = std::make_shared< forms::p1_divdiv_1_1_affine_q2 >();
+      divdiv_1_2 = std::make_shared< forms::p1_divdiv_1_2_affine_q2 >();
+
+      divdiv_2_0 = std::make_shared< forms::p1_divdiv_2_0_affine_q2 >();
+      divdiv_2_1 = std::make_shared< forms::p1_divdiv_2_1_affine_q2 >();
+      divdiv_2_2 = std::make_shared< forms::p1_divdiv_2_2_affine_q2 >();
+
+      P1LinearCombinationForm mudivdiv_0_0( { mu }, { divdiv_0_0.get() } );
+      P1LinearCombinationForm mudivdiv_0_1( { mu }, { divdiv_0_1.get() } );
+
+      P1LinearCombinationForm mudivdiv_1_0( { mu }, { divdiv_1_0.get() } );
+      P1LinearCombinationForm mudivdiv_1_1( { mu }, { divdiv_1_1.get() } );
+
+      auto A_0_0 =
+          std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_0_0 );
+      auto A_0_1 =
+          std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_0_1 );
+      auto A_1_0 =
+          std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_1_0 );
+      auto A_1_1 =
+          std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_1_1 );
+
+      if ( this->dim_ == 3 )
+      {
+         WALBERLA_ABORT( "Not implemented." );
+      }
+      else
+      {
+         this->subOper_[0][0] = A_0_0;
+         this->subOper_[0][1] = A_0_1;
+
+         this->subOper_[1][0] = A_1_0;
+         this->subOper_[1][1] = A_1_1;
+      }
+   }
+
+ private:
+   std::shared_ptr< forms::p1_divdiv_0_0_affine_q2 > divdiv_0_0;
+   std::shared_ptr< forms::p1_divdiv_0_1_affine_q2 > divdiv_0_1;
+   std::shared_ptr< forms::p1_divdiv_0_2_affine_q2 > divdiv_0_2;
+
+   std::shared_ptr< forms::p1_divdiv_1_0_affine_q2 > divdiv_1_0;
+   std::shared_ptr< forms::p1_divdiv_1_1_affine_q2 > divdiv_1_1;
+   std::shared_ptr< forms::p1_divdiv_1_2_affine_q2 > divdiv_1_2;
+
+   std::shared_ptr< forms::p1_divdiv_2_0_affine_q2 > divdiv_2_0;
+   std::shared_ptr< forms::p1_divdiv_2_1_affine_q2 > divdiv_2_1;
+   std::shared_ptr< forms::p1_divdiv_2_2_affine_q2 > divdiv_2_2;
+
+   real_t mu_;
+};
 
 class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0StokesFunction< real_t > >
 {
@@ -35,11 +109,13 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    typedef P1ConstantLaplaceOperator       VelocityOperator_T;
    // typedef P1P0StokesBlockPreconditioner BlockPreconditioner_T;
 
-   P1P0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P1P0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, real_t mu )
    : Operator( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
+   , mudivdiv( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
+   , stab( storage, minLevel, maxLevel, std::make_shared< DGStokesP1P0PressureStabForm_Example >() )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -49,8 +125,10 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
                const DoFType                       flag ) const
    {
       Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      mudivdiv.apply( src.uvw(), dst.uvw(), level, flag, Add );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
       div.apply( src.uvw(), dst.p(), level, flag, Replace );
+      stab.apply( *src.p().getDGFunction(), *dst.p().getDGFunction(), level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -60,13 +138,17 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
                   DoFType                                     flag ) const
    {
       Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      mudivdiv.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+      stab.toMatrix( mat, *src.p().getDGFunction(), *dst.p().getDGFunction(), level, flag );
    }
 
    VelocityBlockOperator_T    Lapl;
+   P1DivDivOperator           mudivdiv;
    P1ToP0ConstantDivOperator  div;
    P0ToP1ConstantDivTOperator divT;
+   dg::DGOperator             stab;
 
    bool hasGlobalCells_;
 };

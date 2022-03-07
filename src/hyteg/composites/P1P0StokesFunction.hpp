@@ -44,7 +44,7 @@ class P1P0StokesFunction : public BlockFunction< ValueType >
       this->subFunc_.push_back(
           std::make_shared< FunctionWrapper< P1VectorFunction< ValueType > > >( name + "_uvw", storage, minLevel, maxLevel ) );
       this->subFunc_.push_back(
-          std::make_shared< FunctionWrapper< P0Function< ValueType > > >( name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
+          std::make_shared< FunctionWrapper< P0Function< ValueType > > >( name + "_p", storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ) );
    };
 
    [[nodiscard]] const P1VectorFunction< ValueType >& uvw() const
