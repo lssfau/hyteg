@@ -20,6 +20,8 @@
 // #include <core/Environment.h>
 // #include <core/Format.hpp>
 // #include <core/logging/all.h>
+#include <core/mpi/Broadcast.h>
+#include <core/mpi/Reduce.h>
 
 #include "simplexData.hpp"
 
@@ -63,7 +65,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                     std::vector< EdgeData >&      edges,
                     std::vector< FaceData >&      faces,
                     std::vector< CellData >&      cells,
-                    const uint_t&                 n_processes )
+                    const uint_t&                 n_processes,
+                    const uint_t&                 rank )
 {
    /* we assume that the elements in the input vectors are ordered by PrimitiveID
       and that for each vertex v, edge e, face f and cell c it holds
@@ -118,7 +121,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
    // find an appropriate cluster of primitives for each rank
    std::vector< bool > hasRank( n_all, false );
-   for ( uint_t rnk = 0; rnk < n_processes; ++rnk )
+   for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
    {
       uint_t vtxs_in_cluster  = 0;
       uint_t edges_in_cluster = 0;
@@ -156,22 +159,22 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          // add element
          if ( pType == 0 )
          {
-            vtxs[id].setTargetRank( rnk );
+            vtxs[id].setTargetRank( clusterID );
             ++vtxs_in_cluster;
          }
          else if ( pType == 1 )
          {
-            edges[id - edgeID0].setTargetRank( rnk );
+            edges[id - edgeID0].setTargetRank( clusterID );
             ++edges_in_cluster;
          }
          else if ( pType == 2 )
          {
-            faces[id - faceID0].setTargetRank( rnk );
+            faces[id - faceID0].setTargetRank( clusterID );
             ++faces_in_cluster;
          }
          else if ( pType == 3 )
          {
-            cells[id - cellID0].setTargetRank( rnk );
+            cells[id - cellID0].setTargetRank( clusterID );
             ++cells_in_cluster;
          }
 
@@ -179,40 +182,47 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          hasRank[id] = true;
 
          // update center
-         center *= real_t( cluster_size );
-         center += barycenter[id];
-         ++cluster_size;
-         center /= real_t( cluster_size );
+         center *= real_t( cluster_size ); // undo previous scaling
+         center += barycenter[id];         // add new point
+         ++cluster_size;                   // increase cluster size
+         center /= real_t( cluster_size ); // apply scaling
 
          // choose type of next element
          uint_t begin = n_all;
          uint_t end   = n_all;
-         if ( vtxs_in_cluster < vtxs_on_rnk[rnk] )
+         if ( vtxs_in_cluster < vtxs_on_rnk[clusterID] )
          {
             pType = 0;
             begin = 0;
             end   = edgeID0;
          }
-         else if ( edges_in_cluster < edges_on_rnk[rnk] )
+         else if ( edges_in_cluster < edges_on_rnk[clusterID] )
          {
             pType = 1;
             begin = edgeID0;
             end   = faceID0;
          }
-         else if ( faces_in_cluster < faces_on_rnk[rnk] )
+         else if ( faces_in_cluster < faces_on_rnk[clusterID] )
          {
             pType = 2;
             begin = faceID0;
             end   = cellID0;
          }
-         else if ( cells_in_cluster < cells_on_rnk[rnk] )
+         else if ( cells_in_cluster < cells_on_rnk[clusterID] )
          {
             pType = 3;
             begin = cellID0;
             end   = n_all;
          }
 
-         // choose element with its barycenter closest to center of cluster
+         // distribute range of possible elements over processes
+         auto range_tot = end - begin;
+         auto range     = range_tot / n_processes;
+         auto mod       = range_tot % n_processes;
+         begin += ( rank < mod ) ? ( range + 1 ) * rank : range * rank + mod;
+         end = ( rank < mod ) ? begin + range + 1 : begin + range;
+
+         // choose element with its barycenter closest to center of cluster (MPI parallel)
          real_t d_min = std::numeric_limits< real_t >::infinity();
          id           = n_all;
          for ( uint_t i = begin; i < end; ++i )
@@ -227,6 +237,12 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                }
             }
          }
+         auto global_min = walberla::mpi::allReduce( d_min, walberla::mpi::MIN );
+         if ( global_min < d_min )
+         {
+            id = n_all;
+         }
+         id = walberla::mpi::allReduce( id, walberla::mpi::MIN );
       }
    }
 }

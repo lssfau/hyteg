@@ -128,7 +128,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                     std::vector< EdgeData >&      edges,
                     std::vector< FaceData >&      faces,
                     std::vector< CellData >&      cells,
-                    const uint_t&                 n_processes );
+                    const uint_t&                 n_processes,
+                    const uint_t&                 rank );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

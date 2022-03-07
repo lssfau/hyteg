@@ -215,20 +215,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
+   // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::vector< VertexData > vtxs;
    std::vector< EdgeData >   edges;
    std::vector< FaceData >   faces;
    std::vector< CellData >   cells;
    if ( rank == 0 )
    {
-      // extract connectivity, geometry and boundary data and add PrimitiveIDs
       extract_data( vtxs, edges, faces, cells );
-
-      // apply loadbalancing
-      if ( _loadbalancing == ROUND_ROBIN )
-         loadbalancing( vtxs, edges, faces, cells, _n_processes );
-      if ( _loadbalancing == CLUSTERING )
-         loadbalancing( _vertices, vtxs, edges, faces, cells, _n_processes );
    }
 
    // broadcast data to all processes
@@ -237,6 +231,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    walberla::mpi::broadcastObject( edges );
    walberla::mpi::broadcastObject( faces );
    walberla::mpi::broadcastObject( cells );
+
+   // apply loadbalancing
+   if ( _loadbalancing == ROUND_ROBIN )
+      loadbalancing( vtxs, edges, faces, cells, _n_processes );
+   if ( _loadbalancing == CLUSTERING )
+      loadbalancing( _vertices, vtxs, edges, faces, cells, _n_processes, rank );
 
    // create storage
    auto storage = make_localPrimitives( vtxs, edges, faces, cells );
