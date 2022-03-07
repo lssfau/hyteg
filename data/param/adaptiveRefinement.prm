@@ -20,14 +20,15 @@ Parameters
   //  In this case, the number of refined elements is
   //  reduced as appropriate
   n_refinements 80; // number of refinement steps
-  n_el_ref_relative 0.2; // proportion of elements to refine in each step
-  n_el_max 2000; // max number of macro elements
+  n_el_ref_relative 1; // proportion of elements to refine in each step
+  n_el_max 80000; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
-  n_iterations 30;
+  n_iterations 20;
   tolerance 1e-10;
 
-  // vtk
-  vtkName adref_cube;
+  // misc
+  // vtkName adref_cube;
+  loadbalancing 1;
 }

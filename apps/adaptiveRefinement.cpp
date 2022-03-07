@@ -341,19 +341,20 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
    return err_2_elwise;
 }
 
-void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
-                                const PDE_data&              pde,
-                                uint_t                       n_ref,
-                                uint_t                       n_el_max,
-                                real_t                       p_ref,
-                                uint_t                       l_min,
-                                uint_t                       l_max,
-                                uint_t                       max_iter,
-                                real_t                       tol,
-                                std::string                  vtkname )
+void solve_for_each_refinement( const SetupPrimitiveStorage&      initialStorage,
+                                const PDE_data&                   pde,
+                                uint_t                            n_ref,
+                                uint_t                            n_el_max,
+                                real_t                            p_ref,
+                                uint_t                            l_min,
+                                uint_t                            l_max,
+                                uint_t                            max_iter,
+                                real_t                            tol,
+                                std::string                       vtkname,
+                                adaptiveRefinement::Loadbalancing loadbalancing )
 {
    // construct adaptive mesh
-   adaptiveRefinement::Mesh mesh( initialStorage );
+   adaptiveRefinement::Mesh mesh( initialStorage, loadbalancing );
 
    uint_t refinement = 0;
    while ( 1 )
@@ -379,7 +380,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& initialStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot );
 
       // collect ids of elements for refinement
-      auto N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
+      auto                       N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
       std::vector< PrimitiveID > R( N_ref );
       for ( uint_t i = 0; i < N_ref; ++i )
       {
@@ -440,13 +441,19 @@ int main( int argc, char* argv[] )
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
-   const std::string vtkname = parameters.getParameter< std::string >( "vtkName" );
+   const std::string vtkname = parameters.getParameter< std::string >( "vtkName", "" );
+   const uint_t      lb      = parameters.getParameter< uint_t >( "loadbalancing" );
+   if ( lb > 1 )
+   {
+      WALBERLA_ABORT( "loadbalancing scheme must be either 0 (round robin) or 1 (clustering)" );
+   }
+   const auto loadbalancing = adaptiveRefinement::Loadbalancing( lb );
 
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
    auto pde_data     = functions( dim, shape, alpha, beta );
    solve_for_each_refinement(
-       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkname );
+       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkname, loadbalancing );
 
    return 0;
 }

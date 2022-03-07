@@ -47,7 +47,12 @@ class SimplexData
    , _id( PrimitiveID( id ) )
    , _targetRank( 0 )
    , _locality( NONE )
-   {}
+   {
+      if constexpr ( J == 0 )
+      {
+         _vertices[0] = id;
+      }
+   }
 
    template < class J_Simplex >
    SimplexData( const Simplex< J, J_Simplex >* simplex )
@@ -110,12 +115,20 @@ using EdgeData   = SimplexData< 1 >;
 using FaceData   = SimplexData< 2 >;
 using CellData   = SimplexData< 3 >;
 
-/* apply loadbalancing directly on our datastructures */
+/* apply loadbalancing (round robin) directly on our datastructures */
 void loadbalancing( std::vector< VertexData >& vtxs,
                     std::vector< EdgeData >&   edges,
                     std::vector< FaceData >&   faces,
                     std::vector< CellData >&   cells,
                     const uint_t&              n_processes );
+
+/* apply neighborhood aware loadbalancing directly on our datastructures */
+void loadbalancing( const std::vector< Point3D >& coordinates,
+                    std::vector< VertexData >&    vtxs,
+                    std::vector< EdgeData >&      edges,
+                    std::vector< FaceData >&      faces,
+                    std::vector< CellData >&      cells,
+                    const uint_t&                 n_processes );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg
