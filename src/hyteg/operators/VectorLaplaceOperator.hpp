@@ -30,20 +30,59 @@ namespace hyteg {
 using walberla::real_t;
 
 template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
-class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >
+class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >,
+                              public WeightedJacobiSmoothable< VecFuncKind< ValueType > >,
+                              public GSSmoothable< VecFuncKind< ValueType > >,
+                              public GSBackwardsSmoothable< VecFuncKind< ValueType > >,
+                              public SORSmoothable< VecFuncKind< ValueType > >,
+                              public SORBackwardsSmoothable< VecFuncKind< ValueType > >
 {
  public:
    VectorLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+
+   void smooth_jac( const VecFuncKind< ValueType >& dst,
+                    const VecFuncKind< ValueType >& rhs,
+                    const VecFuncKind< ValueType >& src,
+                    real_t                          relax,
+                    size_t                          level,
+                    DoFType                         flag ) const final;
+
+   void smooth_gs( const VecFuncKind< ValueType >& dst,
+                   const VecFuncKind< ValueType >& rhs,
+                   size_t                          level,
+                   DoFType                         flag ) const final;
+
+   void smooth_gs_backwards( const VecFuncKind< ValueType >& dst,
+                             const VecFuncKind< ValueType >& rhs,
+                             size_t                          level,
+                             DoFType                         flag ) const final;
+
+   void smooth_sor( const VecFuncKind< ValueType >& dst,
+                    const VecFuncKind< ValueType >& rhs,
+                    real_t                          relax,
+                    size_t                          level,
+                    DoFType                         flag ) const final;
+
+   void smooth_sor_backwards( const VecFuncKind< ValueType >& dst,
+                              const VecFuncKind< ValueType >& rhs,
+                              real_t                          relax,
+                              size_t                          level,
+                              DoFType                         flag ) const final;
 };
 
-// P1 versions
-typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator >    P1ConstantVectorLaplaceOperator;
+// ------------------------
+//  stencil-based versions
+// ------------------------
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator > P1ConstantVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator > P2ConstantVectorLaplaceOperator;
+
+// ----------------------
+//  elementwise versions
+// ----------------------
 typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator > P1ElementwiseVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >
     P1ElementwiseBlendingVectorLaplaceOperator;
 
-// P2 versions
-typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator >    P2ConstantVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator > P2ElementwiseVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >
     P2ElementwiseBlendingVectorLaplaceOperator;
