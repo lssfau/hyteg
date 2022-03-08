@@ -210,6 +210,55 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
 }
 
 template < class K_Simplex >
+void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                                    uint_t                                                     n_el_max )
+{
+   // communication
+   ErrorVector errors_all, errors_other;
+
+   walberla::mpi::SendBuffer send;
+   walberla::mpi::RecvBuffer recv;
+
+   send << errors_local;
+   walberla::mpi::allGathervBuffer( send, recv );
+   for ( uint_t rnk = 0; rnk < _n_processes; ++rnk )
+   {
+      recv >> errors_other;
+      errors_all.insert( errors_all.end(), errors_other.begin(), errors_other.end() );
+   }
+
+   if ( errors_all.size() != _n_elements )
+   {
+      WALBERLA_ABORT( "total number of error values must be equal to number of macro elements (cells/faces)" );
+   }
+
+   // sort by errors
+   std::sort( errors_all.begin(), errors_all.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+
+   // apply criterion
+   std::vector< PrimitiveID > elements_to_refine;
+   for ( uint_t i = 0; i < _n_elements; ++i )
+   {
+      if ( criterion( errors_all, i ) )
+      {
+         elements_to_refine.push_back( errors_all[i].second );
+      }
+   }
+
+   // apply refinement
+   refineRG( elements_to_refine, n_el_max );
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
+{
+   auto N_ref     = uint_t( std::ceil( real_t( _n_elements ) * ratio_to_refine ) );
+   auto criterion = [=]( const ErrorVector&, uint_t i ) { return i < N_ref; };
+   refineRG( errors_local, criterion, n_el_max );
+}
+
+template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loadbalancing& lb )
 {
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
@@ -831,7 +880,7 @@ inline std::vector< std::shared_ptr< K_Simplex > >
       }
    };
 
-   std::vector< std::shared_ptr< K_Simplex > > R( primitiveIDs.size() );
+   std::vector< std::shared_ptr< K_Simplex > > R( primitiveIDs.size(), nullptr );
    for ( auto& el : _T )
    {
       for ( uint_t i = 0; i < R.size(); ++i )

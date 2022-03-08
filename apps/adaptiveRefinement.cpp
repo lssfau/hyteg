@@ -139,16 +139,16 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
    return setupStorage;
 }
 
-// solve problem with current refinement and return sorted list of elementwise squared errors
-std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< PrimitiveStorage > storage,
-                                                              const PDE_data&                     pde,
-                                                              uint_t                              l_min,
-                                                              uint_t                              l_max,
-                                                              uint_t                              max_iter,
-                                                              real_t                              tol,
-                                                              std::string                         vtkname,
-                                                              uint_t                              refinement_step,
-                                                              bool                                l2_error_each_iteration = true )
+// solve problem with current refinement and return list of elementwise squared errors of local elements
+adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > storage,
+                                       const PDE_data&                     pde,
+                                       uint_t                              l_min,
+                                       uint_t                              l_max,
+                                       uint_t                              max_iter,
+                                       real_t                              tol,
+                                       std::string                         vtkname,
+                                       uint_t                              refinement_step,
+                                       bool                                l2_error_each_iteration = true )
 {
    uint_t dim = storage->hasGlobalCells() ? 3 : 2;
 
@@ -250,7 +250,7 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
    }
 
    // compute elementwise error
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise_loc;
+   adaptiveRefinement::ErrorVector err_2_elwise_loc;
 
    if ( dim == 3 )
    {
@@ -291,24 +291,6 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
       }
    }
 
-   // communication
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise;
-   std::vector< std::pair< real_t, hyteg::PrimitiveID > > err_2_elwise_other;
-
-   walberla::mpi::SendBuffer send;
-   walberla::mpi::RecvBuffer recv;
-
-   send << err_2_elwise_loc;
-   walberla::mpi::allGathervBuffer( send, recv );
-   for ( int rnk = 0; rnk < walberla::mpi::MPIManager::instance()->numProcesses(); ++rnk )
-   {
-      recv >> err_2_elwise_other;
-      err_2_elwise.insert( err_2_elwise.end(), err_2_elwise_other.begin(), err_2_elwise_other.end() );
-   }
-
-   // sort by errors
-   std::sort( err_2_elwise.begin(), err_2_elwise.end() );
-
    // export to vtk
    if ( vtkname != "" )
    {
@@ -338,10 +320,10 @@ std::vector< std::pair< real_t, hyteg::PrimitiveID > > solve( std::shared_ptr< P
       vtkOutput.write( l_max, refinement_step );
    }
 
-   return err_2_elwise;
+   return err_2_elwise_loc;
 }
 
-void solve_for_each_refinement( const SetupPrimitiveStorage&      initialStorage,
+void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
                                 const PDE_data&                   pde,
                                 uint_t                            n_ref,
                                 uint_t                            n_el_max,
@@ -354,47 +336,35 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      initialStorage
                                 adaptiveRefinement::Loadbalancing loadbalancing )
 {
    // construct adaptive mesh
-   adaptiveRefinement::Mesh mesh( initialStorage );
+   adaptiveRefinement::Mesh mesh( setupStorage );
 
    uint_t refinement = 0;
    while ( 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
-
-      // solve for current refinement
+      WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing and create PrimitiveStorage ..." );
       auto storage = mesh.make_storage( loadbalancing );
-
       printCurrentMemoryUsage();
 
+      WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
       auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname, refinement );
 
-      // stop loop when reaching maximum refinement
-      auto N_tot = mesh.n_elements();
-      if ( refinement >= n_ref || N_tot >= n_el_max )
+      if ( refinement >= n_ref )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of refinements!" );
          break;
       }
 
+      auto n_el_old = mesh.n_elements();
       ++refinement;
-      WALBERLA_LOG_INFO_ON_ROOT( "* refinement " << refinement );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << N_tot );
+      WALBERLA_LOG_INFO_ON_ROOT( "* apply refinement " << refinement );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
-      // collect ids of elements for refinement
-      auto                       N_ref = uint_t( std::ceil( real_t( N_tot ) * p_ref ) );
-      std::vector< PrimitiveID > R( N_ref );
-      for ( uint_t i = 0; i < N_ref; ++i )
-      {
-         R[i] = local_errors[N_tot - 1 - i].second;
-      }
-
-      // apply refinement
-      mesh.refineRG( R, n_el_max );
-
+      mesh.refineRG( local_errors, p_ref, n_el_max );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
 
-      // stop iteration if no new elements were added
-      if ( mesh.n_elements() == N_tot )
+      if ( mesh.n_elements() == n_el_old )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of elements!" );
          break;
       }
    }

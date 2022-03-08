@@ -45,6 +45,8 @@ enum Loadbalancing
    CLUSTERING   // assign clusters of primitives to each process
 };
 
+using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
+
 // adaptively refinable mesh for K-dimensional domains
 template < class K_Simplex >
 class K_Mesh
@@ -63,15 +65,28 @@ class K_Mesh
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
-   */
-   // void refineRG( const std::vector< PrimitiveID >& elements_to_refine );
-
-   /* apply red-green refinement to this mesh
-      @param elements_to_refine  subset of elements that shall be refined (red)
-                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
       @param n_el_max            upper bound for number of elements in refined mesh
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) );
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() );
+
+   /* apply red-green refinement to this mesh
+      @param local_errors     list of elementwise errors for all local macro cells/faces
+      @param criterion        criterion w.r.t. sorted global error list whether an element should be refined
+      @param n_el_max         upper bound for number of elements in refined mesh
+   */
+   void refineRG( const ErrorVector&                                         local_errors,
+                  const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                  uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() );
+
+   /* apply red-green refinement to this mesh
+      @param local_errors     list of elementwise errors for all local macro cells/faces
+      @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
+                              ratio*n_elements elements with the largest error will be refined
+      @param n_el_max         upper bound for number of elements in refined mesh
+   */
+   void refineRG( const ErrorVector& local_errors,
+                  real_t             ratio_to_refine,
+                  uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -184,28 +199,12 @@ class Mesh
       }
    }
 
-   // /* apply red-green refinement to this mesh
-   //    @param elements_to_refine  subset of elements that shall be refined (red)
-   //                               given by primitiveIDs w.r.t. K_Mesh::setupStorage()
-   // */
-   // void refineRG( const std::vector< PrimitiveID >& elements_to_refine )
-   // {
-   //    if ( _DIM == 3 )
-   //    {
-   //       return _mesh3D->refineRG( elements_to_refine );
-   //    }
-   //    else
-   //    {
-   //       return _mesh2D->refineRG( elements_to_refine );
-   //    }
-   // }
-
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
       @param n_el_max            upper bound for number of elements in refined mesh
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = uint_t( -1 ) )
+   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
    {
       if ( _DIM == 3 )
       {
@@ -214,6 +213,44 @@ class Mesh
       else
       {
          return _mesh2D->refineRG( elements_to_refine, n_el_max );
+      }
+   }
+
+   /* apply red-green refinement to this mesh
+      @param local_errors     list of elementwise errors for all local macro cells/faces
+      @param criterion        criterion whether an element should be refined
+      @param n_el_max         upper bound for number of elements in refined mesh
+   */
+   void refineRG( const ErrorVector&                                         local_errors,
+                  const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                  uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->refineRG( local_errors, criterion, n_el_max );
+      }
+      else
+      {
+         return _mesh2D->refineRG( local_errors, criterion, n_el_max );
+      }
+   }
+
+   /* apply red-green refinement to this mesh
+      @param local_errors     list of elementwise errors for all local macro cells/faces
+      @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
+                              ratio*n_elements elements with the largest error will be refined
+      @param n_el_max         upper bound for number of elements in refined mesh
+   */
+   void
+       refineRG( const ErrorVector& local_errors, real_t ratio_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->refineRG( local_errors, ratio_to_refine, n_el_max );
+      }
+      else
+      {
+         return _mesh2D->refineRG( local_errors, ratio_to_refine, n_el_max );
       }
    }
 
