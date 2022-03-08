@@ -22,8 +22,11 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
+#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 
 namespace hyteg {
@@ -35,7 +38,9 @@ class P2P1BlendingTaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunc
 
    P2P1BlendingTaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel )
+   , Lapl( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
@@ -53,28 +58,21 @@ class P2P1BlendingTaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunc
    {
       WALBERLA_CHECK( !hasGlobalCells_, "Variable Stokes operator not implemented for 3D." );
 
-      A.apply( src.uvw()[0], dst.uvw()[0], level, flag, Replace );
-      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
-
-      A.apply( src.uvw()[1], dst.uvw()[1], level, flag, Replace );
-      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         A.apply( src.uvw()[2], dst.uvw()[2], level, flag, Replace );
-         divT_z.apply( src.p(), dst.uvw()[2], level, flag, Add );
-      }
-
-      div_x.apply( src.uvw()[0], dst.p(), level, flag, Replace );
-      div_y.apply( src.uvw()[1], dst.p(), level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw()[2], dst.p(), level, flag, Add );
-      }
+      Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
-   P2BlendingLaplaceOperator   A;
+   const P2BlendingLaplaceOperator& getA() const
+   {
+      auto ptr = Lapl.getSubOperator( 0, 0 );
+      return dynamic_cast< const P2BlendingLaplaceOperator& >( *ptr );
+   }
+
+   P2BlendingVectorLaplaceOperator Lapl;
+   P2ToP1VariableDivOperator       div;
+   P1ToP2VariableDivTOperator      divT;
+
    P2ToP1BlendingDivxOperator  div_x;
    P2ToP1BlendingDivyOperator  div_y;
    P2ToP1BlendingDivzOperator  div_z;
@@ -83,9 +81,9 @@ class P2P1BlendingTaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunc
    P1ToP2BlendingDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
-   // P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
-   bool                  hasGlobalCells_;
+
+   bool hasGlobalCells_;
 };
 
 } // namespace hyteg

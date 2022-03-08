@@ -96,6 +96,8 @@ class P2P1SurrogateTaylorHoodStokesOperator
       }
    }
 
+   const P2SurrogateLaplaceOperator& getA() const { return A; }
+
    P2SurrogateLaplaceOperator   A;
    P2ToP1SurrogateDivxOperator  div_x;
    P2ToP1SurrogateDivyOperator  div_y;

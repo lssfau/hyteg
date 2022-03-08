@@ -75,6 +75,8 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
+   const P2ConstantLaplaceOperator& getA() const { return A; }
+
    VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;

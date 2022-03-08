@@ -185,4 +185,7 @@ template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLap
 // P2ElementwiseBlendingVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >;
 
+// P2BlendingVectorLaplaceOperator
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >;
+
 } // namespace hyteg

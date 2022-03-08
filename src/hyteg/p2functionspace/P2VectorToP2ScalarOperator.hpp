@@ -19,27 +19,27 @@
  */
 #pragma once
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
 template < class operX_t, class operY_t, class operZ_t >
-class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, P1Function< real_t > >
+class P2VectorToP2ScalarOperator : public Operator< P2VectorFunction< real_t >, P2Function< real_t > >
 {
  public:
-   P1VectorToP1ScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P2VectorToP2ScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , operX( storage, minLevel, maxLevel )
    , operY( storage, minLevel, maxLevel )
    , operZ( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1VectorFunction< real_t >& src,
-               const P1Function< real_t >&       dst,
+   void apply( const P2VectorFunction< real_t >& src,
+               const P2Function< real_t >&       dst,
                size_t                            level,
                DoFType                           flag,
                UpdateType                        updateType = Replace ) const override final
@@ -52,8 +52,8 @@ class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, 
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1VectorFunction< idx_t >&            src,
-                  const P1Function< idx_t >&                  dst,
+                  const P2VectorFunction< idx_t >&            src,
+                  const P2Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -70,7 +70,7 @@ class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, 
 };
 
 // Some operators we might use more often than others
-typedef P1VectorToP1ScalarOperator< P1DivxOperator, P1DivyOperator, P1DivzOperator >
-    P1ConstantDivOperator;
+typedef P2VectorToP2ScalarOperator< P2ConstantDivxOperator, P2ConstantDivyOperator, P2ConstantDivzOperator >
+    P2ConstantDivOperator;
 
 } // namespace hyteg

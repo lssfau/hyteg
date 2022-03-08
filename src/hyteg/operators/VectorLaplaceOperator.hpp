@@ -24,6 +24,7 @@
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2VariableOperator.hpp"
 
 namespace hyteg {
 
@@ -86,5 +87,11 @@ typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLa
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator > P2ElementwiseVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >
     P2ElementwiseBlendingVectorLaplaceOperator;
+
+// ------------------
+//  special versions
+// ------------------
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator > P2BlendingVectorLaplaceOperator;
+
 
 } // namespace hyteg

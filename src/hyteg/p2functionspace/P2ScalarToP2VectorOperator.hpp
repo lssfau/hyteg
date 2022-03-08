@@ -19,48 +19,47 @@
  */
 #pragma once
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
 template < class operX_t, class operY_t, class operZ_t >
-class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, P1Function< real_t > >
+class P2ScalarToP2VectorOperator : public Operator< P2Function< real_t >, P2VectorFunction< real_t > >
 {
  public:
-   P1VectorToP1ScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P2ScalarToP2VectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , operX( storage, minLevel, maxLevel )
    , operY( storage, minLevel, maxLevel )
    , operZ( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1VectorFunction< real_t >& src,
-               const P1Function< real_t >&       dst,
+   void apply( const P2Function< real_t >&       src,
+               const P2VectorFunction< real_t >& dst,
                size_t                            level,
                DoFType                           flag,
                UpdateType                        updateType = Replace ) const override final
    {
-      std::array< UpdateType, 3 > ut = {updateType, Add, Add};
-      operX.apply( src[0], dst, level, flag, ut[0] );
-      operY.apply( src[1], dst, level, flag, ut[1] );
-      if ( src.getDimension() == 3 )
-         operZ.apply( src[2], dst, level, flag, ut[2] );
+      operX.apply( src, dst[0], level, flag, updateType );
+      operY.apply( src, dst[1], level, flag, updateType );
+      if ( dst.getDimension() == 3 )
+         operZ.apply( src, dst[2], level, flag, updateType );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1VectorFunction< idx_t >&            src,
-                  const P1Function< idx_t >&                  dst,
+                  const P2Function< idx_t >&                  src,
+                  const P2VectorFunction< idx_t >&            dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      operX.toMatrix( mat, src[0], dst, level, flag );
-      operY.toMatrix( mat, src[1], dst, level, flag );
-      if ( src.getDimension() == 3 )
-         operZ.toMatrix( mat, src[2], dst, level, flag );
+      operX.toMatrix( mat, src, dst[0], level, flag );
+      operY.toMatrix( mat, src, dst[1], level, flag );
+      if ( dst.getDimension() == 3 )
+         operZ.toMatrix( mat, src, dst[2], level, flag );
    }
 
  private:
@@ -70,7 +69,7 @@ class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, 
 };
 
 // Some operators we might use more often than others
-typedef P1VectorToP1ScalarOperator< P1DivxOperator, P1DivyOperator, P1DivzOperator >
-    P1ConstantDivOperator;
+typedef P2ScalarToP2VectorOperator< P2ConstantDivTxOperator, P2ConstantDivTyOperator, P2ConstantDivTzOperator >
+    P2ConstantDivTOperator;
 
 } // namespace hyteg
