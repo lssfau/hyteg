@@ -57,9 +57,8 @@ class K_Mesh
                            Furthermore, afer calling this constructor, the original
                            setupStorage should not be used to construct a
                            PrimitiveStorage. Instead use this->make_storage().
-      @param loadbalancing scheme used for load balancing
    */
-   K_Mesh( const SetupPrimitiveStorage& setupStorage, const Loadbalancing& loadbalancing = ROUND_ROBIN );
+   K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
    /* apply red-green refinement to this mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
@@ -80,8 +79,10 @@ class K_Mesh
    // compute total volume of the triangulated domain
    real_t volume() const;
 
-   // construct PrimitiveStorage corresponding to current refinement
-   std::shared_ptr< PrimitiveStorage > make_storage();
+   /* construct PrimitiveStorage corresponding to current refinement
+      @param loadbalancing scheme used for load balancing
+   */
+   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = ROUND_ROBIN );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -151,7 +152,6 @@ class K_Mesh
    std::vector< uint_t >                              _vertexBoundaryFlag; // boundaryFlag for vertices
    std::set< std::shared_ptr< K_Simplex > >           _T;                  // set of elements of current refinement level
    std::map< uint_t, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
-   Loadbalancing                                      _loadbalancing;      // load balancing scheme
 };
 
 using Mesh2D = K_Mesh< Simplex2 >;
@@ -168,19 +168,18 @@ class Mesh
                            Furthermore, afer calling this constructor, the original
                            setupStorage should not be used to construct a
                            PrimitiveStorage. Instead use this->make_storage().
-      @param loadbalancing scheme used for load balancing
    */
-   Mesh( const SetupPrimitiveStorage& setupStorage, const Loadbalancing& loadbalancing = ROUND_ROBIN )
+   Mesh( const SetupPrimitiveStorage& setupStorage )
    : _DIM( ( setupStorage.getNumberOfCells() > 0 ) ? 3 : 2 )
    {
       if ( _DIM == 3 )
       {
          _mesh2D = nullptr;
-         _mesh3D = std::make_shared< Mesh3D >( setupStorage, loadbalancing );
+         _mesh3D = std::make_shared< Mesh3D >( setupStorage );
       }
       else
       {
-         _mesh2D = std::make_shared< Mesh2D >( setupStorage, loadbalancing );
+         _mesh2D = std::make_shared< Mesh2D >( setupStorage );
          _mesh3D = nullptr;
       }
    }
@@ -244,16 +243,18 @@ class Mesh
       }
    }
 
-   // construct PrimitiveStorage corresponding to current refinement
-   std::shared_ptr< PrimitiveStorage > make_storage()
+   /* construct PrimitiveStorage corresponding to current refinement
+      @param loadbalancing scheme used for load balancing
+   */
+   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = ROUND_ROBIN )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->make_storage();
+         return _mesh3D->make_storage( loadbalancing );
       }
       else
       {
-         return _mesh2D->make_storage();
+         return _mesh2D->make_storage( loadbalancing );
       }
    };
 

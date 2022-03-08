@@ -35,9 +35,8 @@ namespace hyteg {
 namespace adaptiveRefinement {
 
 template < class K_Simplex >
-K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage, const Loadbalancing& loadbalancing )
+K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 : _n_processes( setupStorage.getNumberOfProcesses() )
-, _loadbalancing( loadbalancing )
 {
    // copy geometrymaps for each primitive in initial setupStorage
    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
@@ -211,7 +210,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
 }
 
 template < class K_Simplex >
-std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
+std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loadbalancing& lb )
 {
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
@@ -233,10 +232,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    walberla::mpi::broadcastObject( cells );
 
    // apply loadbalancing
-   if ( _loadbalancing == ROUND_ROBIN )
+   if ( lb == ROUND_ROBIN )
+   {
       loadbalancing( vtxs, edges, faces, cells, _n_processes );
-   if ( _loadbalancing == CLUSTERING )
+   }
+   if ( lb == CLUSTERING )
+   {
       loadbalancing( _vertices, vtxs, edges, faces, cells, _n_processes, rank );
+   }
 
    // create storage
    auto storage = make_localPrimitives( vtxs, edges, faces, cells );

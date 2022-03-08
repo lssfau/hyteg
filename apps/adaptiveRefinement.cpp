@@ -354,7 +354,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      initialStorage
                                 adaptiveRefinement::Loadbalancing loadbalancing )
 {
    // construct adaptive mesh
-   adaptiveRefinement::Mesh mesh( initialStorage, loadbalancing );
+   adaptiveRefinement::Mesh mesh( initialStorage );
 
    uint_t refinement = 0;
    while ( 1 )
@@ -362,7 +362,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      initialStorage
       WALBERLA_LOG_INFO_ON_ROOT( "* solving system with " << mesh.n_elements() << " macro elements ..." );
 
       // solve for current refinement
-      auto storage = mesh.make_storage();
+      auto storage = mesh.make_storage( loadbalancing );
 
       printCurrentMemoryUsage();
 
