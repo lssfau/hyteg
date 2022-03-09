@@ -68,7 +68,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    // type of primitive
    enum PT
    {
-      NONE = -1,
+      NIL = -1,
       VTX  = 0,
       EDGE = 1,
       FACE = 2,
@@ -89,7 +89,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
    // distribute number of primitives for each primitive type (round robin)
    std::vector< std::array< uint_t, ALL > > primitives_on_rank( n_processes, std::array< uint_t, ALL >{} );
-   for ( auto pType = CELL; pType != NONE; pType = PT( pType - 1 ) )
+   for ( auto pType = CELL; pType != NIL; pType = PT( pType - 1 ) )
    {
       for ( uint_t i = id0[pType]; i < id0[pType + 1]; ++i )
       {
@@ -133,12 +133,12 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          // select type of next primitive
 
          auto pType = CELL;
-         while ( pType != NONE && n_assigned[clusterID][pType] >= primitives_on_rank[clusterID][pType] )
+         while ( pType != NIL && n_assigned[clusterID][pType] >= primitives_on_rank[clusterID][pType] )
          {
             pType = PT( pType - 1 );
          }
 
-         if ( pType == NONE ) // no elements left to insert
+         if ( pType == NIL ) // no elements left to insert
          {
             continue;
          }
