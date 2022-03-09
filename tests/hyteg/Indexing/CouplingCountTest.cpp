@@ -31,7 +31,6 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/indexing/CouplingCountFreeFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScManager.hpp"

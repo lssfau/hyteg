@@ -24,6 +24,9 @@
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 
@@ -38,6 +41,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
                                                      size_t                                     maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , lapl( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
@@ -52,6 +57,14 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    {
       auto scalarA = dynamic_cast< P2ElementwiseLaplaceOperator& >( *lapl.getSubOperator( 0, 0 ) );
       scalarA.computeAndStoreLocalElementMatrices();
+
+      div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+
+      divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
 
       div_x.computeAndStoreLocalElementMatrices();
       div_y.computeAndStoreLocalElementMatrices();
@@ -70,20 +83,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
       lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
-
-      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
-      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         divT_z.apply( src.p(), dst.uvw()[2], level, flag, Add );
-      }
-
-      div_x.apply( src.uvw()[0], dst.p(), level, flag, Replace );
-      div_y.apply( src.uvw()[1], dst.p(), level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw()[2], dst.p(), level, flag, Add );
-      }
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -93,18 +94,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
                   DoFType                                     flag ) const
    {
       lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-
-      divT_x.toMatrix( mat, src.p(), dst.uvw()[0], level, flag );
-      divT_y.toMatrix( mat, src.p(), dst.uvw()[1], level, flag );
-
-      div_x.toMatrix( mat, src.uvw()[0], dst.p(), level, flag );
-      div_y.toMatrix( mat, src.uvw()[1], dst.p(), level, flag );
-
-      if ( src.getStorage()->hasGlobalCells() )
-      {
-         divT_z.toMatrix( mat, src.p(), dst.uvw()[2], level, flag );
-         div_z.toMatrix( mat, src.uvw()[2], dst.p(), level, flag );
-      }
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
    const P2ElementwiseLaplaceOperator& getA() const
@@ -113,12 +104,9 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
       return dynamic_cast< const P2ElementwiseLaplaceOperator& >( *ptr );
    }
 
-   P2ElementwiseVectorLaplaceOperator    lapl;
-
-   // Not feasible, yet, because of problem in calling
-   // computeAndStoreLocalElementMatrices()
-   // P2ToP1ElementwiseDivOperator  div;
-   // P1ToP2ElementwiseDivTOperator divT;
+   P2ElementwiseVectorLaplaceOperator lapl;
+   P2ToP1ElementwiseDivOperator       div;
+   P1ToP2ElementwiseDivTOperator      divT;
 
    P2ToP1ElementwiseDivxOperator  div_x;
    P2ToP1ElementwiseDivyOperator  div_y;

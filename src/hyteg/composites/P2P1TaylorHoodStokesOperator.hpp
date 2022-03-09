@@ -21,11 +21,11 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
-#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {

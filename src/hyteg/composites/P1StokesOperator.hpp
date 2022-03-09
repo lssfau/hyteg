@@ -23,9 +23,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1ScalarToP1VectorOperator.hpp"
-#include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 
 namespace hyteg {
 
