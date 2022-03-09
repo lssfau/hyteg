@@ -34,6 +34,7 @@
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -294,20 +295,26 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    // export to vtk
    if ( vtkname != "" )
    {
+      // coefficient
       P1Function< real_t > k( "k", storage, l_min, l_max );
       k.interpolate( pde.k, l_max );
 
+      // boundary flag
       P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
       boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
 
+      // analytic solution
       u_anal.interpolate( pde.u_anal, l_max );
 
+      // error
       R->restrict( err, l_max + 1, hyteg::Inner );
 
+      // squared error
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
       err_2.multElementwise( { err, err }, l_max, hyteg::All );
 
+      // write vtkfile
       VTKOutput vtkOutput( "output", vtkname, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( u );
@@ -333,16 +340,19 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
                                 uint_t                            max_iter,
                                 real_t                            tol,
                                 std::string                       vtkname,
-                                adaptiveRefinement::Loadbalancing loadbalancing )
+                                adaptiveRefinement::Loadbalancing loadbalancing,
+                                bool                              writePartitioning )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
+   // PrimitiveStorage
+   std::shared_ptr< PrimitiveStorage > storage = nullptr;
 
    uint_t refinement = 0;
    while ( 1 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing and create PrimitiveStorage ..." );
-      auto storage = mesh.make_storage( loadbalancing );
+      storage = mesh.make_storage( loadbalancing );
       printCurrentMemoryUsage();
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
@@ -367,6 +377,11 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
          WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of elements!" );
          break;
       }
+   }
+
+   if ( writePartitioning )
+   {
+      writeDomainPartitioningVTK( storage, "output", vtkname + "_partitioning" );
    }
 }
 
@@ -411,8 +426,9 @@ int main( int argc, char* argv[] )
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
-   const std::string vtkname = parameters.getParameter< std::string >( "vtkName", "" );
-   const uint_t      lb      = parameters.getParameter< uint_t >( "loadbalancing" );
+   const std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
+   const uint_t      lb                = parameters.getParameter< uint_t >( "loadbalancing" );
+   const bool        writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning" );
    if ( lb > 1 )
    {
       WALBERLA_ABORT( "loadbalancing scheme must be either 0 (round robin) or 1 (clustering)" );
@@ -422,8 +438,18 @@ int main( int argc, char* argv[] )
    // solve
    auto setupStorage = domain( dim, shape, N1, N2, N3 );
    auto pde_data     = functions( dim, shape, alpha, beta );
-   solve_for_each_refinement(
-       setupStorage, pde_data, n_refinements, n_el_max, p_refinement, l_min, l_max, max_iter, tol, vtkname, loadbalancing );
+   solve_for_each_refinement( setupStorage,
+                              pde_data,
+                              n_refinements,
+                              n_el_max,
+                              p_refinement,
+                              l_min,
+                              l_max,
+                              max_iter,
+                              tol,
+                              vtkname,
+                              loadbalancing,
+                              writePartitioning );
 
    return 0;
 }

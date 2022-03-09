@@ -19,16 +19,17 @@ Parameters
   //  exceeds the given maximum of allowed elements.
   //  In this case, the number of refined elements is
   //  reduced as appropriate
-  n_refinements 80; // number of refinement steps
-  n_el_ref_relative 0.2; // proportion of elements to refine in each step
-  n_el_max 30000; // max number of macro elements
+  n_refinements 2; // number of refinement steps
+  n_el_ref_relative 1; // proportion of elements to refine in each step
+  n_el_max -1; // max number of macro elements
 
   // linear solver (GMG)
   microlevel 0;
-  n_iterations 20;
-  tolerance 1e-10;
+  n_iterations 0;
+  tolerance 1e10;
 
   // misc
-  // vtkName adref_cube;
+  // vtkName no_lb;
   loadbalancing 1;
+  writeDomainPartitioning 1;
 }

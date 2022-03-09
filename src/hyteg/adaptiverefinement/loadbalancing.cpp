@@ -68,27 +68,28 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    // type of primitive
    enum PT
    {
-      VTX,
-      EDGE,
-      FACE,
-      CELL,
-      ALL
+      NONE = -1,
+      VTX  = 0,
+      EDGE = 1,
+      FACE = 2,
+      CELL = 3,
+      ALL  = 4
    };
    /* we assume that the elements in the input vectors are ordered by PrimitiveID
       and that for each vertex v, edge e, face f and cell c it holds
                id_v < id_e < id_f < id_c
    */
-   std::array< uint_t, 6 > id0;
-   id0[VTX]  = 0;                        // vtxID0
-   id0[EDGE] = id0[VTX] + vtxs.size();   // edgeID0
-   id0[FACE] = id0[EDGE] + edges.size(); // faceID0
-   id0[CELL] = id0[FACE] + faces.size(); // cellID0
-   id0[ALL]  = id0[CELL] + cells.size(); // n_all
-   id0[5]    = id0[ALL];                 // n_all
+   std::array< uint_t, ALL + 2 > id0;
+   id0[VTX]     = 0;                        // vtxID0
+   id0[EDGE]    = id0[VTX] + vtxs.size();   // edgeID0
+   id0[FACE]    = id0[EDGE] + edges.size(); // faceID0
+   id0[CELL]    = id0[FACE] + faces.size(); // cellID0
+   id0[ALL]     = id0[CELL] + cells.size(); // n_all
+   id0[ALL + 1] = id0[ALL];                 // n_all
 
    // distribute number of primitives for each primitive type (round robin)
-   std::vector< std::array< uint_t, 4 > > primitives_on_rank( n_processes, std::array< uint_t, 4 >{} );
-   for ( auto pType = VTX; pType < ALL; pType = PT( pType + 1 ) )
+   std::vector< std::array< uint_t, ALL > > primitives_on_rank( n_processes, std::array< uint_t, ALL >{} );
+   for ( auto pType = CELL; pType != NONE; pType = PT( pType - 1 ) )
    {
       for ( uint_t i = id0[pType]; i < id0[pType + 1]; ++i )
       {
@@ -115,32 +116,115 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       barycenter[p.getPrimitiveID().getID()] = Simplex3::barycenter( p.get_coordinates( coordinates ) );
    }
 
-   // find an appropriate cluster of primitives for each rank
+   // which primitives are assigned to some process
    std::vector< bool > isAssigned( id0[ALL], false );
-   for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
+   // how many primitives of each type are assigned to each process
+   std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes, std::array< uint_t, ALL + 1 >{} );
+   // barycenter of the primitive cluster corresponding to each process
+   std::vector< Point3D > clusterCenter( n_processes, Point3D() );
+
+   // add elements
+   bool done = false;
+   while ( !done )
    {
-      // number of primitives assigned to this cluster [v, e, f, c, all]
-      std::array< uint_t, 5 > n_assigned{};
-      // center of cluster
-      Point3D center;
+      done = true;
+      for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
+      {
+         // select type of next primitive
 
-      // choose first element
-      uint_t id = 0;
-      while ( id < id0[ALL] && isAssigned[id] )
-      {
-         ++id;
-      }
-      // type of primitive
-      auto pType = CELL;
-      while ( id < id0[pType] )
-      {
-         pType = PT( pType - 1 );
-      }
+         auto pType = CELL;
+         while ( pType != NONE && n_assigned[clusterID][pType] >= primitives_on_rank[clusterID][pType] )
+         {
+            pType = PT( pType - 1 );
+         }
 
-      // add elements
-      while ( id < id0[ALL] )
-      {
-         // assign primitive to this cluster
+         if ( pType == NONE ) // no elements left to insert
+         {
+            continue;
+         }
+         else
+         {
+            done = false;
+         }
+
+         // range of PrimitiveIDs
+         auto begin = id0[pType];
+         auto end   = id0[pType + 1];
+         // distribute range over processes
+         auto range = ( end - begin ) / n_processes;
+         auto mod   = ( end - begin ) % n_processes;
+         begin += ( rank < mod ) ? ( range + 1 ) * rank : range * rank + mod;
+         end = ( rank < mod ) ? begin + range + 1 : begin + range;
+
+         auto id = begin;
+
+         // select next primitive to add
+
+         if ( n_assigned[clusterID][ALL] == 0 )
+         {
+            /* the initial element of each cluster is chosen s.th.
+             id = arg max_i min_j ||barycenter[i] - clusterCenter[j]||
+            */
+            real_t d_max = -1.0;
+
+            for ( uint_t i = begin; i < end; ++i )
+            {
+               if ( !isAssigned[i] )
+               {
+                  // find d_min = min_j ||barycenter[i] - clusterCenter[j]||
+                  real_t d_min = std::numeric_limits< real_t >::max();
+                  for ( uint_t j = 0; j < clusterID; ++j )
+                  {
+                     auto d = ( clusterCenter[j] - barycenter[i] ).normSq();
+                     if ( d < d_min )
+                     {
+                        d_min = d;
+                     }
+                  }
+
+                  if ( d_min > d_max )
+                  {
+                     d_max = d_min;
+                     id    = i;
+                  }
+               }
+            }
+            auto global_max = walberla::mpi::allReduce( d_max, walberla::mpi::MAX );
+            if ( global_max > d_max )
+            {
+               id = id0[ALL];
+            }
+         }
+         else
+         {
+            // choose element with its barycenter closest to center of cluster
+            real_t d_min = std::numeric_limits< real_t >::infinity();
+
+            for ( uint_t i = begin; i < end; ++i )
+            {
+               if ( !isAssigned[i] )
+               {
+                  auto d = ( clusterCenter[clusterID] - barycenter[i] ).normSq();
+                  if ( d < d_min )
+                  {
+                     d_min = d;
+                     id    = i;
+                  }
+               }
+            }
+            auto global_min = walberla::mpi::allReduce( d_min, walberla::mpi::MIN );
+            if ( global_min < d_min )
+            {
+               id = id0[ALL];
+            }
+         }
+
+         id = walberla::mpi::allReduce( id, walberla::mpi::MIN );
+
+         WALBERLA_ASSERT( id > id0[ALL] );
+
+         // assign primitive to cluster
+
          if ( pType == VTX )
          {
             vtxs[id].setTargetRank( clusterID );
@@ -157,53 +241,14 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          {
             cells[id - id0[CELL]].setTargetRank( clusterID );
          }
-
          // mark as assigned
-         ++n_assigned[pType];
-         ++n_assigned[ALL];
+         ++n_assigned[clusterID][pType];
+         ++n_assigned[clusterID][ALL];
          isAssigned[id] = true;
-
          // update center
-         center *= real_t( n_assigned[ALL] - 1 ); // undo previous scaling
-         center += barycenter[id];                // add new point
-         center /= real_t( n_assigned[ALL] );     // apply scaling
-
-         // choose type of next element
-         pType = VTX;
-         while ( pType < ALL && n_assigned[pType] >= primitives_on_rank[clusterID][pType] )
-         {
-            pType = PT( pType + 1 );
-         }
-         auto begin = id0[pType];
-         auto end   = id0[pType + 1];
-
-         // parallelize
-         auto range = ( end - begin ) / n_processes;
-         auto mod   = ( end - begin ) % n_processes;
-         begin += ( rank < mod ) ? ( range + 1 ) * rank : range * rank + mod;
-         end = ( rank < mod ) ? begin + range + 1 : begin + range;
-
-         // choose element with its barycenter closest to center of cluster (MPI parallel)
-         real_t d_min = std::numeric_limits< real_t >::infinity();
-         id           = id0[ALL];
-         for ( uint_t i = begin; i < end; ++i )
-         {
-            if ( !isAssigned[i] )
-            {
-               auto d = ( center - barycenter[i] ).normSq();
-               if ( d < d_min )
-               {
-                  d_min = d;
-                  id    = i;
-               }
-            }
-         }
-         auto global_min = walberla::mpi::allReduce( d_min, walberla::mpi::MIN );
-         if ( global_min < d_min )
-         {
-            id = id0[ALL];
-         }
-         id = walberla::mpi::allReduce( id, walberla::mpi::MIN );
+         clusterCenter[clusterID] *= real_t( n_assigned[clusterID][ALL] - 1 ); // undo previous scaling
+         clusterCenter[clusterID] += barycenter[id];                           // add new point
+         clusterCenter[clusterID] /= real_t( n_assigned[clusterID][ALL] );     // apply scaling
       }
    }
 }
