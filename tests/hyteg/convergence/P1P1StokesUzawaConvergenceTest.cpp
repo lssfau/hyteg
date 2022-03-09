@@ -24,7 +24,7 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -115,7 +115,7 @@ int main( int argc, char* argv[] )
 
    const auto solutionP = []( const hyteg::Point3D& x ) -> real_t { return real_c( -2.0 * x[0] + 2.0 ); };
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    u.uvw()[0].interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
    u_exact.uvw()[0].interpolate( solutionU, maxLevel );
@@ -124,7 +124,7 @@ int main( int argc, char* argv[] )
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
-   auto gmgSolver = solvertemplates::stokesGMGUzawaSolver< P1StokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
+   auto gmgSolver = solvertemplates::stokesGMGUzawaSolver< P1P1StokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
 
    const uint_t npoints = hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err_u, discr_l2_err_p, currRes, oldRes = 0;

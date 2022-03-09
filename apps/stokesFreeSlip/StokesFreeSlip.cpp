@@ -222,7 +222,7 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
       vtkOutput.add( u );
    }
 
-   // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
+   // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
    auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };

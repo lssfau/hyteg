@@ -43,7 +43,7 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-template < typename P2P1StokesOperator >
+template < typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
    const std::string meshFileName  = "../../data/meshes/3D/cube_24el.msh";
@@ -128,7 +128,7 @@ void stokesMinResConvergenceTest()
 //   // vtkOutput.add( err.w );
 //   vtkOutput.add( err.p() );
 
-   P2P1StokesOperator L( storage, minLevel, maxLevel );
+   P2P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x ) {
       if ( x[2] < 1e-8 )
@@ -171,11 +171,11 @@ void stokesMinResConvergenceTest()
 
    //   vtkOutput.write( maxLevel, 0 );
 
-   typedef hyteg::StokesPressureBlockPreconditioner< P2P1StokesOperator, hyteg::P1LumpedInvMassOperator >
+   typedef hyteg::StokesPressureBlockPreconditioner< P2P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-   auto solver = hyteg::MinResSolver< P2P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
+   auto solver = hyteg::MinResSolver< P2P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
 
    solver.solve( L, u, f, maxLevel );
 

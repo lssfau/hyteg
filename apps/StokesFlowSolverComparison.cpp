@@ -24,7 +24,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -1003,7 +1003,7 @@ int main( int argc, char* argv[] )
   {
     case hyteg::P1P1:
        hyteg::run< hyteg::P1StokesFunction,
-                   hyteg::P1StokesOperator,
+                   hyteg::P1P1StokesOperator,
                    hyteg::P1P1StokesToP1P1StokesRestriction,
                    hyteg::P1P1StokesToP1P1StokesProlongation,
                    hyteg::P1ConstantMassOperator >(

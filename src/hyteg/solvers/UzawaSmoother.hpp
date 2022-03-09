@@ -23,7 +23,7 @@
 
 #include "core/math/Random.h"
 
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
@@ -34,7 +34,7 @@
 namespace hyteg {
 
 inline real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&           storage,
-                                                const std::shared_ptr< Solver< P1StokesOperator > >& velocitySmoother,
+                                                const std::shared_ptr< Solver< P1P1StokesOperator > >& velocitySmoother,
                                                 const uint_t&                                        level,
                                                 const uint_t&                                        numPowerIterations,
                                                 const uint_t&                                        numGSIterationsVelocity )

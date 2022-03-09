@@ -28,7 +28,7 @@
 
 namespace hyteg {
 
-class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
+class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
    typedef P1ConstantVectorLaplaceOperator VelocityBlockOperator_T;
@@ -36,7 +36,7 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
    typedef P1ConstantLaplaceOperator       PressureOperator_T;
    typedef P1StokesBlockPreconditioner     BlockPreconditioner_T;
 
-   P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P1P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
@@ -102,7 +102,7 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
 };
 
 template <>
-struct has_pspg_block< P1StokesOperator >
+struct has_pspg_block< P1P1StokesOperator >
 {
    static const bool value = true;
 };

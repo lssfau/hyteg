@@ -26,7 +26,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1Transport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -145,7 +145,7 @@ int main( int argc, char* argv[] )
       vtkOutput.add( temp );
    }
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator   M( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > temperature = []( const hyteg::Point3D& x )
@@ -167,21 +167,21 @@ int main( int argc, char* argv[] )
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
    ///// MinRes coarse grid solver for UZAWA /////
-   typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >
+   typedef StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, minLevel );
-   typedef hyteg::MinResSolver< hyteg::P1StokesOperator > PressurePreconditionedMinRes_T;
+   typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator > PressurePreconditionedMinRes_T;
    auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >(
        storage, minLevel, minLevel, uzawaMaxIter, uzawaTolerance, pressurePrec );
 
    ///// UZAWA solver /////
-   typedef GeometricMultigridSolver< hyteg::P1StokesOperator > UzawaSolver_T;
+   typedef GeometricMultigridSolver< hyteg::P1P1StokesOperator > UzawaSolver_T;
    auto stokesRestriction  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1StokesOperator > >( storage, gaussSeidel );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1P1StokesOperator > >( storage, gaussSeidel );
    auto uzawaSmoother =
-       std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< P1P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
 
    UzawaSolver_T uzawaSolver( storage,
                               uzawaSmoother,

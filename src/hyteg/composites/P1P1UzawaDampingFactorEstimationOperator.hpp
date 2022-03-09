@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
@@ -46,7 +46,7 @@ class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
 {
  public:
    P1P1UzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >&           storage,
-                                             const std::shared_ptr< Solver< P1StokesOperator > >& velocitySmoother,
+                                             const std::shared_ptr< Solver< P1P1StokesOperator > >& velocitySmoother,
                                              uint_t                                               minLevel,
                                              uint_t                                               maxLevel,
                                              const uint_t                                         numGSIterationsVelocity = 2 )
@@ -90,12 +90,12 @@ class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
       mass_inv_diag_.apply( tmp_schur_, dst, level, flag, Replace );
    }
 
-   P1StokesOperator A;
+   P1P1StokesOperator A;
    P1PSPGOperator   C;
 
    P1LumpedInvMassOperator                       mass_inv_diag_;
    bool                                          hasGlobalCells_;
-   std::shared_ptr< Solver< P1StokesOperator > > velocitySmoother_;
+   std::shared_ptr< Solver< P1P1StokesOperator > > velocitySmoother_;
 
    uint_t numGSIterationsVelocity_;
 

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -103,8 +103,8 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesGMGUzawaSolver( const std:
 }
 
 template <>
-std::shared_ptr< Solver< P1StokesOperator > >
-    stokesGMGUzawaSolver< P1StokesOperator >( const std::shared_ptr< PrimitiveStorage >& storage,
+std::shared_ptr< Solver< P1P1StokesOperator > >
+    stokesGMGUzawaSolver< P1P1StokesOperator >( const std::shared_ptr< PrimitiveStorage >& storage,
                                               const uint_t&                              minLevel,
                                               const uint_t&                              maxLevel,
                                               const uint_t&                              preSmoothingSteps,
@@ -112,20 +112,20 @@ std::shared_ptr< Solver< P1StokesOperator > >
                                               const real_t&                              uzawaSmootherOmega )
 {
    auto pressurePreconditioner =
-       std::make_shared< StokesPressureBlockPreconditioner< P1StokesOperator, P1LumpedInvMassOperator > >(
+       std::make_shared< StokesPressureBlockPreconditioner< P1P1StokesOperator, P1LumpedInvMassOperator > >(
            storage, minLevel, minLevel );
    auto pressurePreconditionedMinResSolver =
-       std::make_shared< MinResSolver< P1StokesOperator > >( storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
+       std::make_shared< MinResSolver< P1P1StokesOperator > >( storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
 
    auto stokesRestriction  = std::make_shared< P1P1StokesToP1P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
-   auto gaussSeidel        = std::make_shared< GaussSeidelSmoother< P1StokesOperator::VelocityOperator_T > >();
+   auto gaussSeidel        = std::make_shared< GaussSeidelSmoother< P1P1StokesOperator::VelocityOperator_T > >();
    auto uzawaVelocityPreconditioner =
-       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< P1StokesOperator > >( storage, gaussSeidel );
-   auto uzawaSmoother = std::make_shared< UzawaSmoother< P1StokesOperator > >(
+       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< P1P1StokesOperator > >( storage, gaussSeidel );
+   auto uzawaSmoother = std::make_shared< UzawaSmoother< P1P1StokesOperator > >(
        storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaSmootherOmega );
 
-   auto gmgSolver = std::make_shared< GeometricMultigridSolver< P1StokesOperator > >( storage,
+   auto gmgSolver = std::make_shared< GeometricMultigridSolver< P1P1StokesOperator > >( storage,
                                                                                       uzawaSmoother,
                                                                                       pressurePreconditionedMinResSolver,
                                                                                       stokesRestriction,

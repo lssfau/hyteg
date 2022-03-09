@@ -735,7 +735,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >& storage,
       if ( calculateDiscretizationError )
       {
          solveImplementation< P1StokesFunction,
-                              P1StokesOperator,
+                              P1P1StokesOperator,
                               P1ConstantMassOperator,
                               P1ConstantMassOperator,
                               P1P1StokesToP1P1StokesRestriction,
@@ -767,7 +767,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >& storage,
       }
 
       solveImplementation< P1StokesFunction,
-                           P1StokesOperator,
+                           P1P1StokesOperator,
                            P1ConstantMassOperator,
                            P1ConstantMassOperator,
                            P1P1StokesToP1P1StokesRestriction,

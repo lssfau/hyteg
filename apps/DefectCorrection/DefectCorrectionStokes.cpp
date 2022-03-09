@@ -24,7 +24,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -143,7 +143,7 @@ static void defectCorrection( int argc, char** argv )
    P2P2StokesFunction< real_t > tmp_P2( "tmp_P2", storage, maxLevel - 1, maxLevel - 1 );
    P2P2StokesFunction< real_t > f_P2( "f_P2", storage, maxLevel - 1, maxLevel - 1 );
 
-   P1StokesOperator             A_P1( storage, minLevel, maxLevel );
+   P1P1StokesOperator             A_P1( storage, minLevel, maxLevel );
    P1ConstantMassOperator       M_P1( storage, minLevel, maxLevel );
    P2P2UnstableStokesOperator   A_P2( storage, maxLevel - 1, maxLevel - 1 );
    P2ConstantMassOperator       M_P2( storage, maxLevel - 1, maxLevel - 1 );
@@ -176,20 +176,20 @@ static void defectCorrection( int argc, char** argv )
    M_P1.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, All );
 
    // solver
-   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1StokesOperator > >( storage, maxLevel, 1e-14 );
-   auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1StokesOperator > >( storage, minLevel );
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1StokesOperator > >( storage, gaussSeidel );
-   auto smoother              = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
+   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1P1StokesOperator > >( storage, maxLevel, 1e-14 );
+   auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1P1StokesOperator > >( storage, minLevel );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1P1StokesOperator > >( storage, gaussSeidel );
+   auto smoother              = std::make_shared< UzawaSmoother< P1P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    auto restriction           = std::make_shared< P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation          = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
    // auto quadraticProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
-   auto gmgSolver             = std::make_shared< GeometricMultigridSolver< P1StokesOperator > >(
+   auto gmgSolver             = std::make_shared< GeometricMultigridSolver< P1P1StokesOperator > >(
        storage, smoother, petscCoarseGridSolver, restriction, prolongation, minLevel, maxLevel, 2, 2, 2 );
-   // auto fmgSolver             = std::make_shared< FullMultigridSolver< P1StokesOperator > >( storage, gmgSolver, quadraticProlongation, minLevel, maxLevel );
+   // auto fmgSolver             = std::make_shared< FullMultigridSolver< P1P1StokesOperator > >( storage, gmgSolver, quadraticProlongation, minLevel, maxLevel );
 
-   auto minresPrec   = std::make_shared< StokesPressureBlockPreconditioner< P1StokesOperator, P1LumpedInvMassOperator > >( storage, minLevel, maxLevel );
-   auto minresSolver = std::make_shared< MinResSolver< P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, minresPrec );
+   auto minresPrec   = std::make_shared< StokesPressureBlockPreconditioner< P1P1StokesOperator, P1LumpedInvMassOperator > >( storage, minLevel, maxLevel );
+   auto minresSolver = std::make_shared< MinResSolver< P1P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, minresPrec );
 
 
   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
