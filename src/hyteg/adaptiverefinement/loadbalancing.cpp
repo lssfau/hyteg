@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <core/logging/all.h>
 #include <core/mpi/Reduce.h>
 
 #include "simplexData.hpp"
@@ -68,7 +69,6 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    // type of primitive
    enum PT
    {
-      NIL = -1,
       VTX  = 0,
       EDGE = 1,
       FACE = 2,
@@ -85,16 +85,22 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    id0[FACE]    = id0[EDGE] + edges.size(); // faceID0
    id0[CELL]    = id0[FACE] + faces.size(); // cellID0
    id0[ALL]     = id0[CELL] + cells.size(); // n_all
-   id0[ALL + 1] = id0[ALL];                 // n_all
+   id0[ALL + 1] = id0[ALL] + 1;             // n_all+1
 
-   // distribute number of primitives for each primitive type (round robin)
-   std::vector< std::array< uint_t, ALL > > primitives_on_rank( n_processes, std::array< uint_t, ALL >{} );
-   for ( auto pType = CELL; pType != NIL; pType = PT( pType - 1 ) )
+   // max number of primitives on one rank for each primitive type
+   std::array< uint_t, ALL > n_max;
+   // distributed id range for each primitive type
+   std::array< uint_t, ALL > begin, end;
+   for ( auto pt = VTX; pt <= CELL; pt = PT( pt + 1 ) )
    {
-      for ( uint_t i = id0[pType]; i < id0[pType + 1]; ++i )
-      {
-         ++primitives_on_rank[i % n_processes][pType];
-      }
+      auto n_tot = id0[pt + 1] - id0[pt];
+      auto n_min = n_tot / n_processes;
+      auto mod   = n_tot % n_processes;
+
+      begin[pt] = id0[pt] + n_min * rank + ( ( rank < mod ) ? rank : mod );
+      end[pt]   = begin[pt] + n_min + ( ( rank < mod ) ? 1 : 0 );
+
+      n_max[pt] = n_min + ( ( 0 < mod ) ? 1 : 0 );
    }
 
    // compute barycenter of all primitives
@@ -116,61 +122,78 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       barycenter[p.getPrimitiveID().getID()] = Simplex3::barycenter( p.get_coordinates( coordinates ) );
    }
 
+   // barycenter of the primitive cluster corresponding to each process
+   std::vector< Point3D > clusterCenter( n_processes, Point3D() );
    // which primitives are assigned to some process
    std::vector< bool > isAssigned( id0[ALL], false );
    // how many primitives of each type are assigned to each process
    std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes, std::array< uint_t, ALL + 1 >{} );
-   // barycenter of the primitive cluster corresponding to each process
-   std::vector< Point3D > clusterCenter( n_processes, Point3D() );
+   // total number of assigned primitives
+   uint_t n_assigned_total = 0;
+   // assign primitive to cluster
+   auto assign = [&]( uint_t id, uint_t clusterID ) -> bool {
+      // type of primitive
+      PT pt = VTX;
+      while ( id >= id0[pt + 1] )
+      {
+         pt = PT( pt + 1 );
+      }
+      // assign primitive to cluster
+      if ( pt == VTX )
+      {
+         vtxs[id].setTargetRank( clusterID );
+      }
+      else if ( pt == EDGE )
+      {
+         edges[id - id0[EDGE]].setTargetRank( clusterID );
+      }
+      else if ( pt == FACE )
+      {
+         faces[id - id0[FACE]].setTargetRank( clusterID );
+      }
+      else if ( pt == CELL )
+      {
+         cells[id - id0[CELL]].setTargetRank( clusterID );
+      }
+      else
+      {
+         return false;
+      }
+      // mark as assigned
+      ++n_assigned[clusterID][pt];
+      ++n_assigned[clusterID][ALL];
+      ++n_assigned_total;
+      isAssigned[id] = true;
+
+      return true;
+   };
 
    // add elements
-   bool done = false;
-   while ( !done )
+   while ( n_assigned_total < id0[ALL] )
    {
-      done = true;
       for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
       {
-         // select type of next primitive
+         // select next primitive
 
-         auto pType = CELL;
-         while ( pType != NIL && n_assigned[clusterID][pType] >= primitives_on_rank[clusterID][pType] )
-         {
-            pType = PT( pType - 1 );
-         }
-
-         if ( pType == NIL ) // no elements left to insert
-         {
-            continue;
-         }
-         else
-         {
-            done = false;
-         }
-
-         // range of PrimitiveIDs
-         auto begin = id0[pType];
-         auto end   = id0[pType + 1];
-         // distribute range over processes
-         auto range = ( end - begin ) / n_processes;
-         auto mod   = ( end - begin ) % n_processes;
-         begin += ( rank < mod ) ? ( range + 1 ) * rank : range * rank + mod;
-         end = ( rank < mod ) ? begin + range + 1 : begin + range;
-
-         auto id = begin;
-
-         // select next primitive to add
+         auto next = id0[ALL];
 
          if ( n_assigned[clusterID][ALL] == 0 )
          {
             /* the initial element of each cluster is chosen s.th.
-             id = arg max_i min_j ||barycenter[i] - clusterCenter[j]||
+                  next = arg max_i min_j ||barycenter[i] - clusterCenter[j]||
             */
             real_t d_max = -1.0;
 
-            for ( uint_t i = begin; i < end; ++i )
+            for ( auto pt = VTX; pt <= CELL; pt = PT( pt + 1 ) )
             {
-               if ( !isAssigned[i] )
+               if ( n_assigned[clusterID][pt] >= n_max[pt] )
+                  continue;
+
+               for ( uint_t i = begin[pt]; i < end[pt]; ++i )
                {
+                  if ( isAssigned[i] )
+                     continue;
+
                   // find d_min = min_j ||barycenter[i] - clusterCenter[j]||
                   real_t d_min = std::numeric_limits< real_t >::max();
                   for ( uint_t j = 0; j < clusterID; ++j )
@@ -185,70 +208,55 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                   if ( d_min > d_max )
                   {
                      d_max = d_min;
-                     id    = i;
+                     next  = i;
                   }
                }
             }
             auto global_max = walberla::mpi::allReduce( d_max, walberla::mpi::MAX );
             if ( global_max > d_max )
             {
-               id = id0[ALL];
+               next = id0[ALL];
             }
          }
          else
          {
             // choose element with its barycenter closest to center of cluster
-            real_t d_min = std::numeric_limits< real_t >::infinity();
+            real_t d_min = std::numeric_limits< real_t >::max();
 
-            for ( uint_t i = begin; i < end; ++i )
+            for ( auto pt = VTX; pt <= CELL; pt = PT( pt + 1 ) )
             {
-               if ( !isAssigned[i] )
+               if ( n_assigned[clusterID][pt] >= n_max[pt] )
+                  continue;
+
+               for ( uint_t i = begin[pt]; i < end[pt]; ++i )
                {
+                  if ( isAssigned[i] )
+                     continue;
+
                   auto d = ( clusterCenter[clusterID] - barycenter[i] ).normSq();
                   if ( d < d_min )
                   {
                      d_min = d;
-                     id    = i;
+                     next  = i;
                   }
                }
             }
             auto global_min = walberla::mpi::allReduce( d_min, walberla::mpi::MIN );
             if ( global_min < d_min )
             {
-               id = id0[ALL];
+               next = id0[ALL];
             }
          }
 
-         id = walberla::mpi::allReduce( id, walberla::mpi::MIN );
+         next = walberla::mpi::allReduce( next, walberla::mpi::MIN );
 
-         WALBERLA_ASSERT( id > id0[ALL] );
-
-         // assign primitive to cluster
-
-         if ( pType == VTX )
+         if ( assign( next, clusterID ) )
          {
-            vtxs[id].setTargetRank( clusterID );
+            // update center
+            clusterCenter[clusterID] *= real_t( n_assigned[clusterID][ALL] - 1 ); // undo previous scaling
+            clusterCenter[clusterID] += barycenter[next];                         // add new point
+            clusterCenter[clusterID] /= real_t( n_assigned[clusterID][ALL] );     // apply scaling
          }
-         else if ( pType == EDGE )
-         {
-            edges[id - id0[EDGE]].setTargetRank( clusterID );
-         }
-         else if ( pType == FACE )
-         {
-            faces[id - id0[FACE]].setTargetRank( clusterID );
-         }
-         else if ( pType == CELL )
-         {
-            cells[id - id0[CELL]].setTargetRank( clusterID );
-         }
-         // mark as assigned
-         ++n_assigned[clusterID][pType];
-         ++n_assigned[clusterID][ALL];
-         isAssigned[id] = true;
-         // update center
-         clusterCenter[clusterID] *= real_t( n_assigned[clusterID][ALL] - 1 ); // undo previous scaling
-         clusterCenter[clusterID] += barycenter[id];                           // add new point
-         clusterCenter[clusterID] /= real_t( n_assigned[clusterID][ALL] );     // apply scaling
       }
    }
 }
