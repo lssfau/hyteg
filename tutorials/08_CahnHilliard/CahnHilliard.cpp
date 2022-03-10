@@ -919,7 +919,7 @@ int main( int argc, char** argv )
    /// [main evolution-operator]
 
    /// [main initial-values]
-   walberla::math::seedRandomGenerator( static_cast< uint_t >( walberla::mpi::MPIManager::instance()->rank() ) );
+   walberla::math::seedRandomGenerator( static_cast< std::mt19937::result_type >( walberla::mpi::MPIManager::instance()->rank() ) );
 
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );

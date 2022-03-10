@@ -54,9 +54,12 @@ waLBerla_add_executable(NAME gmg_blending
       FILES gmg_blending.cpp
       DEPENDS hyteg)
 
-waLBerla_add_executable(NAME adaptiveRefinement
-      FILES adaptiveRefinement.cpp
-      DEPENDS hyteg)
+if (NOT APPLE)
+   # apple clang does not contain expint which is used in this app
+   waLBerla_add_executable(NAME adaptiveRefinement
+         FILES adaptiveRefinement.cpp
+         DEPENDS hyteg)
+endif ()
 
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
