@@ -89,7 +89,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    id0[ALL + 1] = id0[ALL] + 1;             // n_all+1
 
    // we only use this algorithm if there are more volume elements than processes
-   if ( id0[VOL + 1] - id0[VOL] < n_processes )
+   if ( id0[VOL + 1] - id0[VOL] < n_processes || n_processes < 2 )
    {
       return loadbalancing( vtxs, edges, faces, cells, n_processes );
    }
@@ -144,7 +144,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    // set value of uninitialized center to max
    barycenter[id0[ALL]].setAll( std::numeric_limits< real_t >::max() );
    // which primitives are assigned to some process
-   std::vector< bool > isAssigned( id0[ALL], false );
+   std::vector< bool > isAssigned( id0[ALL] + 1, false );
    // how many primitives of each type are assigned to each process
    std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes, std::array< uint_t, ALL + 1 >{} );
    // total number of assigned primitives
@@ -181,110 +181,85 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       return true;
    };
 
-   // primitive types considered as initial elements
-   const PT pt_INIT = primitiveType( n_processes );
    // IDs of initial elements
    std::vector< uint_t > initID( n_processes, id0[ALL] );
 
-   // select initial elements s.th. the distance between the clusters is maximized
-   real_t d_sum     = 0.0;
-   real_t d_sum_old = -1.0;
-   while ( d_sum > d_sum_old )
+   /* select initial elements for each cluster to maximize
+       min_j!=k||clusterCenter[j] - clusterCenter[k]||
+   */
+   for ( uint_t cycle = 0; cycle < 100; ++cycle ) // backup stopping criterion in case of cyclic states
    {
-      d_sum_old = d_sum;
+      bool stateChange = false;
 
-      WALBERLA_LOG_INFO_ON_ROOT( "update initial cluster elements" );
-      // update initial element of each cluster
-      for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
+      /* loop over all clusters k and move their ceinter to barycenter[i_max]
+         for an element i_max maximizing
+            min_j ||clusterCenter[j] - barycenter[i]||
+      */
+      for ( uint_t k = 0; k < n_processes; ++k )
       {
-         /* the initial element of each cluster is chosen s.th.
-            id = arg max_i min_j ||barycenter[i] - clusterCenter[j]||
-         */
-         auto   id    = initID[clusterID];
-         real_t d_max = -0.0;
+         real_t max_i = 0.0;      // max_i min_j ||clusterCenter[j] - barycenter[i]||
+         uint_t i_max = id0[ALL]; // arg max_i min_j ||clusterCenter[j] - barycenter[i]||
 
-         for ( auto pt = VTX; pt <= pt_INIT; pt = PT( pt + 1 ) )
+         // loop over all volume elements
+         for ( uint_t i = begin[VOL]; i < end[VOL]; ++i )
          {
-            for ( uint_t i = begin[pt]; i < end[pt]; ++i )
+            // skip elements that are occupied by another cluster
+            if ( isAssigned[i] && i != initID[k] )
+               continue;
+
+            // min_j ||clusterCenter[j] - barycenter[i]||
+            real_t min_j = std::numeric_limits< real_t >::max();
+
+            // loop over all clusters j
+            for ( uint_t j = 0; j < n_processes; ++j )
             {
-               // skip elements that are occupied by another cluster
-               if ( isAssigned[i] && i != initID[clusterID] )
+               // skip j==k and j uninitialized
+               if ( j == k || initID[j] == id0[ALL] )
+               {
                   continue;
-
-               // find d_i = min_j ||clusterCenter[j] - barycenter[i]||
-               real_t d_i = std::numeric_limits< real_t >::max();
-               for ( uint_t j = 0; j < n_processes; ++j )
-               {
-                  if ( j == clusterID )
-                     continue;
-
-                  auto d = ( barycenter[initID[j]] - barycenter[i] ).normSq();
-                  if ( d < d_i )
-                  {
-                     d_i = d;
-                  }
                }
-               if ( d_i > d_max )
+
+               // ||clusterCenter[j] - barycenter[i]||
+               auto d = ( barycenter[initID[j]] - barycenter[i] ).normSq();
+
+               // find minimum over j
+               if ( d < min_j )
                {
-                  d_max = d_i;
-                  id    = i;
+                  min_j = d;
                }
+            }
+
+            // find maximum over i
+            if ( min_j > max_i )
+            {
+               max_i = min_j;
+               i_max = i;
             }
          }
-         auto global_max = walberla::mpi::allReduce( d_max, walberla::mpi::MAX );
-         if ( global_max > d_max )
+         // global maximum
+         auto global_max = walberla::mpi::allReduce( max_i, walberla::mpi::MAX );
+         if ( global_max > max_i )
          {
-            id = id0[ALL];
+            i_max = id0[ALL];
          }
+         i_max = walberla::mpi::allReduce( i_max, walberla::mpi::MIN );
 
-         id = walberla::mpi::allReduce( id, walberla::mpi::MIN );
+         WALBERLA_ASSERT( i_max < id0[ALL] );
 
-         if ( id < id0[ALL] && id != initID[clusterID] )
+         if ( i_max != initID[k] )
          {
-            auto initID_old   = initID[clusterID];
-            initID[clusterID] = id;
-
-            // check if this is actually an improvement
-            real_t d_sum_tst = 0.0;
-            for ( uint_t k = 0; k < n_processes; ++k )
-            {
-               // find d_k = min_j ||clusterCenter[j] - clusterCenter[k]|| for j!=k
-               real_t d_k = std::numeric_limits< real_t >::max();
-               for ( uint_t j = 0; j < n_processes; ++j )
-               {
-                  if ( j == k )
-                     continue;
-
-                  auto d = ( barycenter[initID[j]] - barycenter[initID[k]] ).normSq();
-                  if ( d < d_k )
-                  {
-                     d_k = d;
-                  }
-               }
-
-               d_sum_tst += d_k;
-            }
-
-            if ( d_sum_tst > d_sum_old )
-            {
-               d_sum = d_sum_tst;
-               WALBERLA_LOG_INFO_ON_ROOT( "clusterID: " << clusterID << " updated from " << initID_old << " to " << id );
-
-               // swap initial element for this one
-               if ( initID_old < id0[ALL] )
-               {
-                  isAssigned[initID_old] = false;
-               }
-               isAssigned[id] = true;
-            }
-            else
-            {
-               initID[clusterID] = initID_old;
-            }
+            stateChange = true;
+            // update cluster k
+            isAssigned[initID[k]] = false;
+            initID[k]             = i_max;
+            isAssigned[initID[k]] = true;
          }
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "sum(d) = " << d_sum );
+      if ( !stateChange )
+      {
+         break;
+      }
    }
 
    // add initial elements
