@@ -75,6 +75,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       CELL = 3,
       ALL  = 4
    };
+   const PT VOL = ( cells.size() == 0 ) ? FACE : CELL;
    /* we assume that the elements in the input vectors are ordered by PrimitiveID
       and that for each vertex v, edge e, face f and cell c it holds
                id_v < id_e < id_f < id_c
@@ -86,6 +87,12 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    id0[CELL]    = id0[FACE] + faces.size(); // cellID0
    id0[ALL]     = id0[CELL] + cells.size(); // n_all
    id0[ALL + 1] = id0[ALL] + 1;             // n_all+1
+
+   // we only use this algorithm if there are more volume elements than processes
+   if ( id0[VOL + 1] - id0[VOL] < n_processes )
+   {
+      return loadbalancing( vtxs, edges, faces, cells, n_processes );
+   }
 
    // get primitive type of id
    auto primitiveType = [&]( uint_t id ) -> PT {
