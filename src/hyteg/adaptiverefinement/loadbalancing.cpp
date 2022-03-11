@@ -259,6 +259,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
          WALBERLA_ASSERT( i_max < id0[ALL] );
 
+         // apply changes
          if ( i_max != initID[k] )
          {
             stateChange = true;
@@ -276,24 +277,26 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    }
 
    // add initial elements
-   for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
+   for ( uint_t k = 0; k < n_processes; ++k )
    {
-      assign( initID[clusterID], clusterID );
+      assign( initID[k], k );
    }
 
    // add elements
    while ( n_assigned_total < id0[ALL] )
    {
-      for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
+      // loop over all clusters k and add the next closest element
+      for ( uint_t k = 0; k < n_processes; ++k )
       {
-         // select next primitive
-         auto next = id0[ALL];
-         // choose element with its barycenter closest to center of cluster
-         real_t d_min = std::numeric_limits< real_t >::max();
+         // min_i ||clusterCenter[k] - barycenter[i]||
+         real_t min_i = std::numeric_limits< real_t >::max();
+         // arg min_i ||clusterCenter[k] - barycenter[i]||
+         uint_t i_min = id0[ALL];
 
+         // loop over all elements
          for ( auto pt : VEFC )
          {
-            if ( n_assigned[clusterID][pt] >= n_max[pt] )
+            if ( n_assigned[k][pt] >= n_max[pt] )
                continue;
 
             for ( uint_t i = begin[pt]; i < end[pt]; ++i )
@@ -301,23 +304,27 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                if ( isAssigned[i] )
                   continue;
 
-               auto d = ( clusterCenter[clusterID] - barycenter[i] ).normSq();
-               if ( d < d_min )
+               // ||clusterCenter[k] - barycenter[i]||
+               auto d = ( clusterCenter[k] - barycenter[i] ).normSq();
+
+               // find minimum over i
+               if ( d < min_i )
                {
-                  d_min = d;
-                  next  = i;
+                  min_i = d;
+                  i_min = i;
                }
             }
          }
-         auto global_min = walberla::mpi::allReduce( d_min, walberla::mpi::MIN );
-         if ( global_min < d_min )
+         // global minimum
+         auto global_min = walberla::mpi::allReduce( min_i, walberla::mpi::MIN );
+         if ( global_min < min_i )
          {
-            next = id0[ALL];
+            i_min = id0[ALL];
          }
+         i_min = walberla::mpi::allReduce( i_min, walberla::mpi::MIN );
 
-         next = walberla::mpi::allReduce( next, walberla::mpi::MIN );
-
-         assign( next, clusterID );
+         // assign element i_min to cluster k
+         assign( i_min, k );
       }
    }
 }
