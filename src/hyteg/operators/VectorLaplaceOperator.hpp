@@ -24,6 +24,7 @@
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 
 namespace hyteg {
@@ -39,7 +40,39 @@ class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncK
                               public SORBackwardsSmoothable< VecFuncKind< ValueType > >
 {
  public:
-   VectorLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+   template < typename... SpecialCtorArgs >
+   VectorLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
+                          size_t                                     maxLevel,
+                          SpecialCtorArgs... extraArgs )
+   : VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >( storage, minLevel, maxLevel )
+   {
+      std::shared_ptr< SubOpType > zero( nullptr );
+      std::shared_ptr< SubOpType > lapl = std::make_shared< SubOpType >( storage, minLevel, maxLevel, extraArgs... );
+
+      if ( this->dim_ == 3 )
+      {
+         this->subOper_[0][0] = lapl;
+         this->subOper_[0][1] = zero;
+         this->subOper_[0][2] = zero;
+
+         this->subOper_[1][0] = zero;
+         this->subOper_[1][1] = lapl;
+         this->subOper_[1][2] = zero;
+
+         this->subOper_[2][0] = zero;
+         this->subOper_[2][1] = zero;
+         this->subOper_[2][2] = lapl;
+      }
+      else
+      {
+         this->subOper_[0][0] = lapl;
+         this->subOper_[0][1] = zero;
+
+         this->subOper_[1][0] = zero;
+         this->subOper_[1][1] = lapl;
+      }
+   }
 
    void smooth_jac( const VecFuncKind< ValueType >& dst,
                     const VecFuncKind< ValueType >& rhs,
@@ -91,7 +124,7 @@ typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLa
 // ------------------
 //  special versions
 // ------------------
-typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator > P2BlendingVectorLaplaceOperator;
-
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >  P2BlendingVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator > P2SurrogateVectorLaplaceOperator;
 
 } // namespace hyteg

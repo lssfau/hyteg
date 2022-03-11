@@ -22,6 +22,7 @@
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P2ToP1SurrogateOperator.hpp"
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -35,18 +36,23 @@ namespace hyteg {
 using walberla::real_t;
 
 template < template < typename > class vKind_t,
-           template < typename > class sKind_t,
+           template < typename >
+           class sKind_t,
            typename operX_t,
            typename operY_t,
            typename operZ_t >
 class VectorToScalarOperator : public Operator< vKind_t< real_t >, sKind_t< real_t > >
 {
  public:
-   VectorToScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   template < typename... SpecialCtorArgs >
+   VectorToScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                           size_t                                     minLevel,
+                           size_t                                     maxLevel,
+                           SpecialCtorArgs... extraArgs )
    : Operator< vKind_t< real_t >, sKind_t< real_t > >( storage, minLevel, maxLevel )
-   , operX( storage, minLevel, maxLevel )
-   , operY( storage, minLevel, maxLevel )
-   , operZ( storage, minLevel, maxLevel )
+   , operX( storage, minLevel, maxLevel, extraArgs... )
+   , operY( storage, minLevel, maxLevel, extraArgs... )
+   , operZ( storage, minLevel, maxLevel, extraArgs... )
    {}
 
    void apply( const vKind_t< real_t >& src,
@@ -154,5 +160,12 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ConstantDivyOperator,
                                 P2ConstantDivzOperator >
     P2ConstantDivOperator;
+
+typedef VectorToScalarOperator< P2VectorFunction,
+                                P1Function,
+                                P2ToP1SurrogateDivxOperator,
+                                P2ToP1SurrogateDivyOperator,
+                                P2ToP1SurrogateDivzOperator >
+    P2ToP1SurrogateDivOperator;
 
 } // namespace hyteg

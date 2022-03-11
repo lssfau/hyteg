@@ -22,6 +22,7 @@
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
+#include "hyteg/mixedoperators/P1ToP2SurrogateOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -38,11 +39,15 @@ template < template < typename > class sKind_t, template < typename > class vKin
 class ScalarToVectorOperator : public Operator< sKind_t< real_t >, vKind_t< real_t > >
 {
  public:
-   ScalarToVectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   template < typename... SpecialCtorArgs >
+   ScalarToVectorOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                           size_t                                     minLevel,
+                           size_t                                     maxLevel,
+                           SpecialCtorArgs... extraArgs )
    : Operator< sKind_t< real_t >, vKind_t< real_t > >( storage, minLevel, maxLevel )
-   , operX( storage, minLevel, maxLevel )
-   , operY( storage, minLevel, maxLevel )
-   , operZ( storage, minLevel, maxLevel )
+   , operX( storage, minLevel, maxLevel, extraArgs... )
+   , operY( storage, minLevel, maxLevel, extraArgs... )
+   , operZ( storage, minLevel, maxLevel, extraArgs... )
    {}
 
    void apply( const sKind_t< real_t >& src,
@@ -150,5 +155,12 @@ typedef ScalarToVectorOperator< P2Function,
                                 P2ConstantDivTyOperator,
                                 P2ConstantDivTzOperator >
     P2ConstantDivTOperator;
+
+typedef ScalarToVectorOperator< P1Function,
+                                P2VectorFunction,
+                                P1ToP2SurrogateDivTxOperator,
+                                P1ToP2SurrogateDivTyOperator,
+                                P1ToP2SurrogateDivTzOperator >
+    P1ToP2SurrogateDivTOperator;
 
 } // namespace hyteg

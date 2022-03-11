@@ -39,7 +39,6 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
@@ -75,14 +74,16 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   const P2ConstantLaplaceOperator& getA() const { return A; }
+   const P2ConstantLaplaceOperator& getA() const {
+     auto ptr = Lapl.getSubOperator( 0, 0 );
+     return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
+   }
 
    VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
 
    // currently, need these for being able to integrate into the framework until the block operator is completed
-   P2ConstantLaplaceOperator   A;
    P2ToP1ConstantDivxOperator  div_x;
    P2ToP1ConstantDivyOperator  div_y;
    P2ToP1ConstantDivzOperator  div_z;
