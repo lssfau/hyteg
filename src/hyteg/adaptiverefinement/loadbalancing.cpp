@@ -75,7 +75,11 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       CELL = 3,
       ALL  = 4
    };
+   constexpr std::array< PT, ALL > VEFC{ VTX, EDGE, FACE, CELL };
+   constexpr std::array< PT, ALL > CFEV{ CELL, FACE, EDGE, VTX };
+
    const PT VOL = ( cells.size() == 0 ) ? FACE : CELL;
+
    /* we assume that the elements in the input vectors are ordered by PrimitiveID
       and that for each vertex v, edge e, face f and cell c it holds
                id_v < id_e < id_f < id_c
@@ -108,7 +112,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    std::array< uint_t, ALL > n_max;
    // distributed id range for each primitive type
    std::array< uint_t, ALL > begin, end;
-   for ( auto pt = VTX; pt <= CELL; pt = PT( pt + 1 ) )
+   for ( auto pt : VEFC )
    {
       auto n_tot = id0[pt + 1] - id0[pt];
       auto n_min = n_tot / n_processes;
@@ -149,34 +153,43 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes, std::array< uint_t, ALL + 1 >{} );
    // total number of assigned primitives
    uint_t n_assigned_total = 0;
-   // assign primitive to cluster
-   auto assign = [&]( uint_t id, uint_t clusterID ) -> bool {
-      PT pt = primitiveType( id );
+   // assign primitive i to cluster k
+   auto assign = [&]( uint_t i, uint_t k ) -> bool {
+      PT     pt  = primitiveType( i );
+      uint_t idx = i - id0[pt];
       if ( pt == VTX )
       {
-         vtxs[id].setTargetRank( clusterID );
+         vtxs[idx].setTargetRank( k );
       }
       else if ( pt == EDGE )
       {
-         edges[id - id0[EDGE]].setTargetRank( clusterID );
+         edges[idx].setTargetRank( k );
       }
       else if ( pt == FACE )
       {
-         faces[id - id0[FACE]].setTargetRank( clusterID );
+         faces[idx].setTargetRank( k );
       }
       else if ( pt == CELL )
       {
-         cells[id - id0[CELL]].setTargetRank( clusterID );
+         cells[idx].setTargetRank( k );
       }
       else
       {
          return false;
       }
       // mark as assigned
-      ++n_assigned[clusterID][pt];
-      ++n_assigned[clusterID][ALL];
+      ++n_assigned[k][pt];
+      ++n_assigned[k][ALL];
       ++n_assigned_total;
-      isAssigned[id] = true;
+      isAssigned[i] = true;
+
+      // update center
+      if ( pt == VOL )
+      {
+         clusterCenter[k] *= real_t( n_assigned[k][ALL] - 1 ); // undo previous scaling
+         clusterCenter[k] += barycenter[i];                    // add barycenter of new point
+         clusterCenter[k] /= real_t( n_assigned[k][ALL] );     // apply scaling
+      }
 
       return true;
    };
@@ -265,10 +278,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    // add initial elements
    for ( uint_t clusterID = 0; clusterID < n_processes; ++clusterID )
    {
-      if ( assign( initID[clusterID], clusterID ) )
-      {
-         clusterCenter[clusterID] = barycenter[initID[clusterID]];
-      }
+      assign( initID[clusterID], clusterID );
    }
 
    // add elements
@@ -281,7 +291,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          // choose element with its barycenter closest to center of cluster
          real_t d_min = std::numeric_limits< real_t >::max();
 
-         for ( auto pt = VTX; pt <= CELL; pt = PT( pt + 1 ) )
+         for ( auto pt : VEFC )
          {
             if ( n_assigned[clusterID][pt] >= n_max[pt] )
                continue;
@@ -307,13 +317,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
          next = walberla::mpi::allReduce( next, walberla::mpi::MIN );
 
-         if ( assign( next, clusterID ) )
-         {
-            // update center
-            clusterCenter[clusterID] *= real_t( n_assigned[clusterID][ALL] - 1 ); // undo previous scaling
-            clusterCenter[clusterID] += barycenter[next];                         // add new point
-            clusterCenter[clusterID] /= real_t( n_assigned[clusterID][ALL] );     // apply scaling
-         }
+         assign( next, clusterID );
       }
    }
 }
