@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.14)
 
 PROJECT ( hyteg )
 enable_testing()
+set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
@@ -204,4 +205,26 @@ configure_file(
         ${CMAKE_BINARY_DIR}/src/hyteg/BuildInfo.hpp
 )
 
+
+# this returns all targets within one folder
+function(get_all_targets _result _dir)
+   get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
+   foreach (_subdir IN LISTS _subdirs)
+      get_all_targets(${_result} "${_subdir}")
+   endforeach ()
+   get_property(_sub_targets DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
+   set(${_result} ${${_result}} ${_sub_targets} PARENT_SCOPE)
+endfunction()
+
+get_all_targets(_tests_targets "tests")
+add_custom_target(hyteg_all_tests)
+add_dependencies(hyteg_all_tests ${_tests_targets})
+
+get_all_targets(_apps_targets "apps")
+get_all_targets(_tutorials_targets "tutorials")
+add_custom_target(hyteg_all_apps)
+add_dependencies(hyteg_all_apps ${_apps_targets} ${_tutorials_targets})
+
+add_custom_target(hyteg_all)
+add_dependencies(hyteg_all ${_apps_targets} ${_tutorials_targets} ${_tests_targets})
 ############################################################################################################################
