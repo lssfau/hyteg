@@ -80,20 +80,52 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
    const PT VOL = ( cells.size() == 0 ) ? FACE : CELL;
 
-   /* we assume that the elements in the input vectors are ordered by PrimitiveID
-      and that for each vertex v, edge e, face f and cell c it holds
+   // number of primitives of each type
+   std::array< uint_t, ALL + 1 > n_prim;
+   n_prim[VTX]  = vtxs.size();
+   n_prim[EDGE] = edges.size();
+   n_prim[FACE] = faces.size();
+   n_prim[CELL] = cells.size();
+   n_prim[ALL]  = n_prim[VTX] + n_prim[EDGE] + n_prim[FACE] + n_prim[CELL];
+
+   // first Primitive ID for each primitive type
+   std::array< uint_t, ALL + 1 > id0{};
+   for ( auto pt : VEFC )
+   {
+      id0[pt + 1] = id0[pt] + n_prim[pt];
+   }
+
+   /* We assume that the elements in the input vectors are ordered by
+      PrimitiveID and that for each vertex v, edge e, face f and cell c it holds
                id_v < id_e < id_f < id_c
    */
-   std::array< uint_t, ALL + 2 > id0;
-   id0[VTX]     = 0;                        // vtxID0
-   id0[EDGE]    = id0[VTX] + vtxs.size();   // edgeID0
-   id0[FACE]    = id0[EDGE] + edges.size(); // faceID0
-   id0[CELL]    = id0[FACE] + faces.size(); // cellID0
-   id0[ALL]     = id0[CELL] + cells.size(); // n_all
-   id0[ALL + 1] = id0[ALL] + 1;             // n_all+1
+   uint_t check_id = 0;
+   auto   check    = [&]( PrimitiveID id ) {
+      if ( id.getID() != check_id )
+      {
+         WALBERLA_ABORT( "Wrong numbering of primitives!" );
+      }
+      ++check_id;
+   };
+   for ( auto& p : vtxs )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : edges )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : faces )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : cells )
+   {
+      check( p.getPrimitiveID() );
+   }
 
    // we only use this algorithm if there are more volume elements than processes
-   if ( id0[VOL + 1] - id0[VOL] < n_processes || n_processes < 2 )
+   if ( n_prim[VOL] < n_processes || n_processes < 2 )
    {
       return loadbalancing( vtxs, edges, faces, cells, n_processes );
    }
@@ -114,9 +146,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    std::array< uint_t, ALL > begin, end;
    for ( auto pt : VEFC )
    {
-      auto n_tot = id0[pt + 1] - id0[pt];
-      auto n_min = n_tot / n_processes;
-      auto mod   = n_tot % n_processes;
+      auto n_min = n_prim[pt] / n_processes;
+      auto mod   = n_prim[pt] % n_processes;
 
       begin[pt] = id0[pt] + n_min * rank + ( ( rank < mod ) ? rank : mod );
       end[pt]   = begin[pt] + n_min + ( ( rank < mod ) ? 1 : 0 );
@@ -125,7 +156,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    }
 
    // compute barycenter of all primitives
-   std::vector< Point3D > barycenter( id0[ALL] + 1 );
+   std::vector< Point3D > barycenter( n_prim[ALL] );
    for ( auto& p : vtxs )
    {
       barycenter[p.getPrimitiveID().getID()] = coordinates[p.getPrimitiveID().getID()];
@@ -145,16 +176,17 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
    // barycenter of the primitive cluster corresponding to each process
    std::vector< Point3D > clusterCenter( n_processes );
-   // set value of uninitialized center to max
-   barycenter[id0[ALL]].setAll( std::numeric_limits< real_t >::max() );
    // which primitives are assigned to some process
-   std::vector< bool > isAssigned( id0[ALL] + 1, false );
+   std::vector< bool > isAssigned( n_prim[ALL] + 1, false );
    // how many primitives of each type are assigned to each process
-   std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes, std::array< uint_t, ALL + 1 >{} );
-   // total number of assigned primitives
-   uint_t n_assigned_total = 0;
+   std::vector< std::array< uint_t, ALL + 1 > > n_assigned( n_processes + 1, std::array< uint_t, ALL + 1 >{} );
    // assign primitive i to cluster k
    auto assign = [&]( uint_t i, uint_t k ) -> bool {
+      if ( isAssigned[i] )
+      {
+         return false;
+      }
+
       PT     pt  = primitiveType( i );
       uint_t idx = i - id0[pt];
       if ( pt == VTX )
@@ -180,22 +212,107 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       // mark as assigned
       ++n_assigned[k][pt];
       ++n_assigned[k][ALL];
-      ++n_assigned_total;
+      ++n_assigned[n_processes][pt];
+      ++n_assigned[n_processes][ALL];
       isAssigned[i] = true;
 
       // update center
       if ( pt == VOL )
       {
-         clusterCenter[k] *= real_t( n_assigned[k][ALL] - 1 ); // undo previous scaling
-         clusterCenter[k] += barycenter[i];                    // add barycenter of new point
-         clusterCenter[k] /= real_t( n_assigned[k][ALL] );     // apply scaling
+         clusterCenter[k] *= real_t( n_assigned[k][VOL] - 1 ); // undo previous scaling
+         clusterCenter[k] += barycenter[i];                    // add barycenter of new element
+         clusterCenter[k] /= real_t( n_assigned[k][VOL] );     // apply scaling
       }
 
       return true;
    };
 
+   // unassign primitive i from its current cluster
+   auto unassign = [&]( uint_t i ) -> uint_t {
+      if ( !isAssigned[i] )
+      {
+         return n_processes;
+      }
+
+      PT     pt  = primitiveType( i );
+      uint_t idx = i - id0[pt];
+      uint_t k   = n_processes;
+      if ( pt == VTX )
+      {
+         k = vtxs[idx].getTargetRank();
+         vtxs[idx].setTargetRank( n_processes );
+      }
+      else if ( pt == EDGE )
+      {
+         k = edges[idx].getTargetRank();
+         edges[idx].setTargetRank( n_processes );
+      }
+      else if ( pt == FACE )
+      {
+         k = faces[idx].getTargetRank();
+         faces[idx].setTargetRank( n_processes );
+      }
+      else if ( pt == CELL )
+      {
+         k = cells[idx].getTargetRank();
+         cells[idx].setTargetRank( n_processes );
+      }
+      else
+      {
+         return n_processes;
+      }
+
+      // mark as unassigned
+      --n_assigned[k][pt];
+      --n_assigned[k][ALL];
+      --n_assigned[n_processes][pt];
+      --n_assigned[n_processes][ALL];
+      isAssigned[i] = false;
+
+      // update center
+      if ( pt == VOL )
+      {
+         clusterCenter[k] *= real_t( n_assigned[k][VOL] + 1 ); // undo previous scaling
+         clusterCenter[k] -= barycenter[i];                    // substract barycenter of removed element
+         clusterCenter[k] /= real_t( n_assigned[k][VOL] );     // apply scaling
+      }
+
+      return k;
+   };
+
+   // which rank is primitive i currently assigned to
+   auto assigned_to = [&]( uint_t i ) -> uint_t {
+      if ( !isAssigned[i] )
+      {
+         return n_processes;
+      }
+
+      PT     pt  = primitiveType( i );
+      uint_t idx = i - id0[pt];
+      if ( pt == VTX )
+      {
+         return vtxs[idx].getTargetRank();
+      }
+      else if ( pt == EDGE )
+      {
+         return edges[idx].getTargetRank();
+      }
+      else if ( pt == FACE )
+      {
+         return faces[idx].getTargetRank();
+      }
+      else if ( pt == CELL )
+      {
+         return cells[idx].getTargetRank();
+      }
+      else
+      {
+         return n_processes;
+      }
+   };
+
    // IDs of initial elements
-   std::vector< uint_t > initID( n_processes, id0[ALL] );
+   std::vector< uint_t > initID( n_processes, n_prim[ALL] );
 
    /* select initial elements for each cluster to maximize
        min_j!=k||clusterCenter[j] - clusterCenter[k]||
@@ -210,8 +327,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       */
       for ( uint_t k = 0; k < n_processes; ++k )
       {
-         real_t max_i = 0.0;      // max_i min_j ||clusterCenter[j] - barycenter[i]||
-         uint_t i_max = id0[ALL]; // arg max_i min_j ||clusterCenter[j] - barycenter[i]||
+         real_t max_i = 0.0;         // max_i min_j ||clusterCenter[j] - barycenter[i]||
+         uint_t i_max = n_prim[ALL]; // arg max_i min_j ||clusterCenter[j] - barycenter[i]||
 
          // loop over all volume elements
          for ( uint_t i = begin[VOL]; i < end[VOL]; ++i )
@@ -227,7 +344,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
             for ( uint_t j = 0; j < n_processes; ++j )
             {
                // skip j==k and j uninitialized
-               if ( j == k || initID[j] == id0[ALL] )
+               if ( j == k || initID[j] == n_prim[ALL] )
                {
                   continue;
                }
@@ -253,11 +370,11 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          auto global_max = walberla::mpi::allReduce( max_i, walberla::mpi::MAX );
          if ( global_max > max_i )
          {
-            i_max = id0[ALL];
+            i_max = n_prim[ALL];
          }
          i_max = walberla::mpi::allReduce( i_max, walberla::mpi::MIN );
 
-         WALBERLA_ASSERT( i_max < id0[ALL] );
+         WALBERLA_ASSERT( i_max < n_prim[ALL] );
 
          // apply changes
          if ( i_max != initID[k] )
@@ -276,6 +393,9 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       }
    }
 
+   // reset flag
+   std::fill( isAssigned.begin(), isAssigned.end(), false );
+
    // add initial elements
    for ( uint_t k = 0; k < n_processes; ++k )
    {
@@ -283,48 +403,56 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    }
 
    // add elements
-   while ( n_assigned_total < id0[ALL] )
-   {
-      // loop over all clusters k and add the next closest element
-      for ( uint_t k = 0; k < n_processes; ++k )
-      {
-         // min_i ||clusterCenter[k] - barycenter[i]||
-         real_t min_i = std::numeric_limits< real_t >::max();
-         // arg min_i ||clusterCenter[k] - barycenter[i]||
-         uint_t i_min = id0[ALL];
 
-         // loop over all elements
-         for ( auto pt : VEFC )
+   // loop over all element types
+   for ( auto pt : CFEV )
+   {
+      // assign elements of type pt until all are assigned
+      while ( n_assigned[n_processes][pt] < n_prim[pt] )
+      {
+         // loop over all clusters k and add the next closest element
+         for ( uint_t k = 0; k < n_processes; ++k )
          {
             if ( n_assigned[k][pt] >= n_max[pt] )
                continue;
 
+            // min_i ||clusterCenter[k] - barycenter[i]||
+            real_t min_i = std::numeric_limits< real_t >::max();
+            // arg min_i ||clusterCenter[k] - barycenter[i]||
+            uint_t i_min = n_prim[ALL];
+
             for ( uint_t i = begin[pt]; i < end[pt]; ++i )
             {
-               if ( isAssigned[i] )
+               // i is currently assigned to j
+               auto j = assigned_to( i );
+               if ( j == k )
                   continue;
 
                // ||clusterCenter[k] - barycenter[i]||
-               auto d = ( clusterCenter[k] - barycenter[i] ).normSq();
+               auto d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
 
                // find minimum over i
-               if ( d < min_i )
+               if ( d_ik < min_i &&                                            // d_ik is new minimum AND
+                    ( !isAssigned[i] ||                                        // (i is still free OR
+                      d_ik < ( clusterCenter[j] - barycenter[i] ).normSq() ) ) // i is closer to k than to j)
                {
-                  min_i = d;
+                  min_i = d_ik;
                   i_min = i;
                }
             }
-         }
-         // global minimum
-         auto global_min = walberla::mpi::allReduce( min_i, walberla::mpi::MIN );
-         if ( global_min < min_i )
-         {
-            i_min = id0[ALL];
-         }
-         i_min = walberla::mpi::allReduce( i_min, walberla::mpi::MIN );
+            // global minimum
+            auto global_min = walberla::mpi::allReduce( min_i, walberla::mpi::MIN );
+            if ( global_min < min_i )
+            {
+               i_min = n_prim[ALL];
+            }
+            i_min = walberla::mpi::allReduce( i_min, walberla::mpi::MIN );
 
-         // assign element i_min to cluster k
-         assign( i_min, k );
+            // unassign element from its current cluster if necessary
+            unassign( i_min );
+            // assign element i_min to cluster k
+            assign( i_min, k );
+         }
       }
    }
 }
