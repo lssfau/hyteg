@@ -19,6 +19,7 @@
 */
 
 #include <core/logging/all.h>
+#include <core/mpi/Broadcast.h>
 #include <core/mpi/Reduce.h>
 
 #include "simplexData.hpp"
@@ -402,57 +403,85 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       assign( initID[k], k );
    }
 
-   // add elements
-
-   // loop over all element types
-   for ( auto pt : CFEV )
+   // add remaining volume elements
+   while ( n_assigned[n_processes][VOL] < n_prim[VOL] )
    {
-      // assign elements of type pt until all are assigned
-      while ( n_assigned[n_processes][pt] < n_prim[pt] )
+      // "loop" over all clusters k (MPI)
+      uint_t k = rank;
+
+      // min_i ||clusterCenter[k] - barycenter[i]||
+      real_t min_i = std::numeric_limits< real_t >::max();
+      // arg min_i ||clusterCenter[k] - barycenter[i]||
+      uint_t i_min = n_prim[ALL];
+
+      // loop over all volume elements i to find minimum
+      for ( uint_t i = id0[VOL]; i < id0[VOL + 1] && n_assigned[k][VOL] < n_max[VOL]; ++i )
       {
-         // loop over all clusters k and add the next closest element
-         for ( uint_t k = 0; k < n_processes; ++k )
+         auto j = assigned_to( i );
+
+         // skip elements already assigned to k
+         if ( j == k )
+            continue;
+
+         // ||clusterCenter[k] - barycenter[i]||
+         auto d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
+
+         // find minimum over i
+         if ( d_ik < min_i &&                                            // d_ik is new minimum AND
+              ( !isAssigned[i] ||                                        // (i is still free OR
+                d_ik < ( clusterCenter[j] - barycenter[i] ).normSq() ) ) // i is closer to k than to j)
          {
-            if ( n_assigned[k][pt] >= n_max[pt] )
-               continue;
-
-            // min_i ||clusterCenter[k] - barycenter[i]||
-            real_t min_i = std::numeric_limits< real_t >::max();
-            // arg min_i ||clusterCenter[k] - barycenter[i]||
-            uint_t i_min = n_prim[ALL];
-
-            for ( uint_t i = begin[pt]; i < end[pt]; ++i )
-            {
-               // i is currently assigned to j
-               auto j = assigned_to( i );
-               if ( j == k )
-                  continue;
-
-               // ||clusterCenter[k] - barycenter[i]||
-               auto d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
-
-               // find minimum over i
-               if ( d_ik < min_i &&                                            // d_ik is new minimum AND
-                    ( !isAssigned[i] ||                                        // (i is still free OR
-                      d_ik < ( clusterCenter[j] - barycenter[i] ).normSq() ) ) // i is closer to k than to j)
-               {
-                  min_i = d_ik;
-                  i_min = i;
-               }
-            }
-            // global minimum
-            auto global_min = walberla::mpi::allReduce( min_i, walberla::mpi::MIN );
-            if ( global_min < min_i )
-            {
-               i_min = n_prim[ALL];
-            }
-            i_min = walberla::mpi::allReduce( i_min, walberla::mpi::MIN );
-
-            // unassign element from its current cluster if necessary
-            unassign( i_min );
-            // assign element i_min to cluster k
-            assign( i_min, k );
+            min_i = d_ik;
+            i_min = i;
          }
+      }
+
+      // minimum over k
+      // min_k min_i ||clusterCenter[k] - barycenter[i]||
+      auto min_ik = walberla::mpi::allReduce( min_i, walberla::mpi::MIN );
+      // arg min_k min_i ||clusterCenter[k] - barycenter[i]||
+      auto k_min  = ( min_ik < min_i ) ? n_processes : k;
+      k_min       = walberla::mpi::allReduce( k_min, walberla::mpi::MIN );
+      walberla::mpi::broadcastObject( i_min, k_min );
+
+      // unassign element from its current cluster if necessary
+      unassign( i_min );
+      // assign element i_min to cluster k_min
+      assign( i_min, k_min );
+   }
+
+   // add interface primitives
+   for ( auto pt : VEFC )
+   {
+      if ( n_assigned[n_processes][pt] >= n_prim[pt] )
+      {
+         continue;
+      }
+
+      // "loop" over all clusters k (MPI)
+      uint_t k = rank;
+
+      // loop over all elements i of type pt
+      for ( uint_t i = id0[pt]; i < id0[pt + 1]; ++i )
+      {
+         // skip assigned elements
+         if ( isAssigned[i] )
+            continue;
+
+         // ||clusterCenter[k] - barycenter[i]||
+         real_t d_ik = std::numeric_limits< real_t >::max();
+         if ( n_assigned[k][pt] < n_max[pt] )
+         {
+            d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
+         }
+
+         // minimum over k
+         auto min_k = walberla::mpi::allReduce( d_ik, walberla::mpi::MIN );
+         auto k_min = ( min_k < d_ik ) ? n_processes : k;
+         k_min      = walberla::mpi::allReduce( k_min, walberla::mpi::MIN );
+
+         // assign element i to cluster k_min
+         assign( i, k_min );
       }
    }
 }
