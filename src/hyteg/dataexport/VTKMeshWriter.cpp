@@ -380,10 +380,11 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
    // calculates the position of the point in the VTK list of points from a logical vertex index
    auto calcVTKPointArrayPosition = [width]( const indexing::Index& vertexIndex ) -> uint_t {
       const uint_t zOffset = levelinfo::num_microvertices_per_cell_from_width( width ) -
-                             levelinfo::num_microvertices_per_cell_from_width( width - vertexIndex.z() );
-      const uint_t yOffset = levelinfo::num_microvertices_per_face_from_width( width - vertexIndex.z() ) -
-                             levelinfo::num_microvertices_per_face_from_width( width - vertexIndex.z() - vertexIndex.y() );
-      const uint_t xOffset = vertexIndex.x();
+                             levelinfo::num_microvertices_per_cell_from_width( width - uint_c( vertexIndex.z() ) );
+      const uint_t yOffset =
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) ) -
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) - uint_c( vertexIndex.y() ) );
+      const uint_t xOffset = uint_c( vertexIndex.x() );
       return xOffset + yOffset + zOffset;
    };
 

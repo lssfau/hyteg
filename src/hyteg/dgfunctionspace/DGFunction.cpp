@@ -57,7 +57,7 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
    {
       for ( auto pid : storage->getFaceIDs() )
       {
-         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+         polyDegreesPerPrimitive_[pid] = uint_c( initialPolyDegree );
       }
    }
 
@@ -66,7 +66,7 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
                                                                            storage,
                                                                            minLevel,
                                                                            maxLevel,
-                                                                           basis->numDoFsPerElement( initialPolyDegree ),
+                                                                           basis->numDoFsPerElement( uint_c( initialPolyDegree ) ),
                                                                            volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
 }
 
@@ -396,7 +396,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          const auto face   = *faceIt.second;
 
          const auto polyDegree = polynomialDegree( faceId );
-         const auto numDofs    = basis()->numDoFsPerElement( polyDegree );
+         const auto numDofs    = basis()->numDoFsPerElement( uint_c( polyDegree ) );
          const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
          const auto memLayout  = volumeDoFFunction()->memoryLayout();
 
@@ -473,7 +473,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
                       indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
                   const auto value =
                       dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  vec->setValue( vectorIdx, real_t( value ) );
+                  vec->setValue( uint_c( vectorIdx ), real_t( value ) );
                }
             }
          }
@@ -503,7 +503,7 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( degree );
+         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );

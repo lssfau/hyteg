@@ -141,7 +141,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::horizontalIndex( level, uint_c( itIdx.col() ), uint_c( itIdx.row() ) )];
             }
             break;
          }
@@ -149,7 +149,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::verticalIndex( level, uint_c( itIdx.col() ), uint_c( itIdx.row() ) )];
             }
             break;
          }
@@ -157,7 +157,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::diagonalIndex( level, uint_c( itIdx.col() ), uint_c( itIdx.row() ) )];
             }
             break;
          }
@@ -178,7 +178,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
          {
             for ( const auto& itIdx : edgedof::macrocell::IteratorXYZ( level ) )
             {
-               streamWriter << cellData[edgedof::macrocell::xyzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() )];
+               streamWriter << cellData[edgedof::macrocell::xyzIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) )];
             }
          }
          else
@@ -189,22 +189,22 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
                switch ( dofType )
                {
                case vtk::DoFType::EDGE_X:
-                  idx = edgedof::macrocell::xIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::xIndex( level, uint_c(itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                case vtk::DoFType::EDGE_Y:
-                  idx = edgedof::macrocell::yIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::yIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                case vtk::DoFType::EDGE_Z:
-                  idx = edgedof::macrocell::zIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::zIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                case vtk::DoFType::EDGE_XY:
-                  idx = edgedof::macrocell::xyIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::xyIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                case vtk::DoFType::EDGE_XZ:
-                  idx = edgedof::macrocell::xzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::xzIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                case vtk::DoFType::EDGE_YZ:
-                  idx = edgedof::macrocell::yzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+                  idx = edgedof::macrocell::yzIndex( level, uint_c( itIdx.x() ), uint_c( itIdx.y() ), uint_c( itIdx.z() ) );
                   break;
                default:
                   WALBERLA_ABORT( "[VTK] Invalid DoFType" );

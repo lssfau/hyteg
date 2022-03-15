@@ -194,9 +194,9 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
 
          for ( const auto& idxIt : vertexdof::macrocell::Iterator( level ) )
          {
-            streamWriter << cellData0[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
-            streamWriter << cellData1[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
-            streamWriter << cellData2[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
+            streamWriter << cellData0[vertexdof::macrocell::index( level, uint_c( idxIt.x() ), uint_c( idxIt.y() ), uint_c( idxIt.z() ) )];
+            streamWriter << cellData1[vertexdof::macrocell::index( level, uint_c( idxIt.x() ), uint_c( idxIt.y() ), uint_c( idxIt.z() ) )];
+            streamWriter << cellData2[vertexdof::macrocell::index( level, uint_c( idxIt.x() ), uint_c( idxIt.y() ), uint_c( idxIt.z() ) )];
          }
       }
    }

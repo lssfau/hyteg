@@ -44,9 +44,9 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    const uint_t numberOfPoints = mgr.write2D_ ?
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :
                                      storage->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level + 1 );
-   const uint_t numberOfCells = mgr.write2D_ ?
-                                    storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level + 1 ) :
-                                    storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level + 1 );
+   const uint_t numberOfCells  = mgr.write2D_ ?
+                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level + 1 ) :
+                                     storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level + 1 );
    ;
 
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
@@ -171,10 +171,10 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
 
          for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
          {
-            const auto   x   = it.x();
-            const auto   y   = it.y();
-            const auto   z   = it.z();
-            const uint_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
+            const auto x   = uint_c( it.x() );
+            const auto y   = uint_c( it.y() );
+            const auto z   = uint_c( it.z() );
+            const auto mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
 
             switch ( mod )
             {
@@ -300,9 +300,9 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
 
          for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
          {
-            const auto   x   = it.x();
-            const auto   y   = it.y();
-            const auto   z   = it.z();
+            const auto   x   = uint_c( it.x() );
+            const auto   y   = uint_c( it.y() );
+            const auto   z   = uint_c( it.z() );
             const uint_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
 
             switch ( mod )
