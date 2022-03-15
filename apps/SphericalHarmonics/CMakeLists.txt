@@ -8,9 +8,11 @@ waLBerla_add_executable( NAME SPHdemo
         FILES SPHdemo.cpp
         DEPENDS hyteg)
 
-waLBerla_add_executable( NAME EigFunLaplace
-        FILES EigFunLaplace.cpp
-        DEPENDS hyteg)
+if (NOT APPLE)
+    waLBerla_add_executable(NAME EigFunLaplace
+          FILES EigFunLaplace.cpp
+          DEPENDS hyteg)
+endif ()
 
 waLBerla_add_executable( NAME bmark
         FILES bmark.cpp
