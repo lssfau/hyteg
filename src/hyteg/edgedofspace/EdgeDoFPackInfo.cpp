@@ -36,6 +36,8 @@
 
 namespace hyteg {
 
+using walberla::int_c;
+
 template < typename ValueType >
 EdgeDoFPackInfo< ValueType >::EdgeDoFPackInfo( uint_t                                                 level,
                                                PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex,
@@ -330,35 +332,35 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
             switch ( edgeOrientationOnReferenceEdge )
             {
             case edgedof::EdgeDoFOrientation::X:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 2 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::Y:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::Z:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::XY:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::XZ:
                indexOnEdgeCopy.y()++;
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                break;
             case edgedof::EdgeDoFOrientation::YZ:
                break;
             case edgedof::EdgeDoFOrientation::XYZ:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                break;
             default:
@@ -406,7 +408,7 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
       for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
       {
          if( edgeOrienation == edgedof::EdgeDoFOrientation::X &&
-             indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+             indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
          {
             continue;
          }
@@ -432,13 +434,13 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
             switch ( edgeOrientation )
             {
             case edgedof::EdgeDoFOrientation::X:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 2 ) )
                   continue;
                break;
             case edgedof::EdgeDoFOrientation::YZ:
                break;
             default:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                break;
             }
@@ -537,35 +539,35 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
             switch ( edgeOrientationOnReferenceEdge )
             {
             case edgedof::EdgeDoFOrientation::X:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 2 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::Y:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::Z:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::XY:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::XZ:
                indexOnEdgeCopy.y()++;
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                break;
             case edgedof::EdgeDoFOrientation::YZ:
                break;
             case edgedof::EdgeDoFOrientation::XYZ:
-               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= int_c( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
                   continue;
                break;
             default:

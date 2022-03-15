@@ -473,7 +473,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
                       indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
                   const auto value =
                       dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  vec->setValue( vectorIdx, value );
+                  vec->setValue( vectorIdx, real_t( value ) );
                }
             }
          }
@@ -517,8 +517,8 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
                {
                   const auto vectorIdx =
                       indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  const auto value = vec->getValue( vectorIdx );
-                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] = value;
+                  const auto value = vec->getValue( uint_c( vectorIdx ) );
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] = ValueType( value );
                }
             }
          }

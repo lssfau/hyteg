@@ -82,10 +82,10 @@ class P2ToP1SurrogateOperator : public Operator< P2Function< real_t >, P1Functio
          Face& face = *itF.second;
          form_.setGeometryMap( face.getGeometryMap() );
 
-         Point3D x0( face.coords[0] ), x;
+         Point3D x0( face.getCoordinates()[0] ), x;
 
-         Point3D D0 = face.coords[1] - face.coords[0];
-         Point3D D2 = face.coords[2] - face.coords[0];
+         Point3D D0 = face.getCoordinates()[1] - face.getCoordinates()[0];
+         Point3D D2 = face.getCoordinates()[2] - face.getCoordinates()[0];
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {

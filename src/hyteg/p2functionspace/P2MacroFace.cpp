@@ -29,6 +29,8 @@ namespace hyteg {
 namespace P2 {
 namespace macroface {
 
+using walberla::int_c;
+
 real_t evaluate( const uint_t&                                            level,
                  Face&                                                    face,
                  const Point3D&                                           coordinates,
@@ -193,7 +195,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
              ( 1 - dampingFactor ) *
                  srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), sD::EDGE_HO_C )];
       }
-      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != int_c( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          tmp = rhs[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), sD::EDGE_DI_C )];
          for ( uint_t k = 1; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k )

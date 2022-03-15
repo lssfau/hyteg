@@ -31,6 +31,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;
+using walberla::int_c;
 
 namespace hyteg {
 
@@ -234,7 +235,7 @@ static void testEdgeDoFToEdgeDoFOperator()
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
       }
 
-      if ( idxIt.row() + idxIt.col() < levelinfo::num_microedges_per_edge( maxLevel ) - 1 )
+      if ( idxIt.row() + idxIt.col() < int_c( levelinfo::num_microedges_per_edge( maxLevel ) - 1 ) )
       {
         const auto idx = edgedof::macroface::indexFromDiagonalEdge( maxLevel, idxIt.col(), idxIt.row(), stencilDirection::EDGE_DI_C );
 

@@ -23,6 +23,8 @@
 namespace hyteg {
 namespace volumedofspace {
 
+using walberla::int_c;
+
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::allocateMemory()
 {
@@ -223,7 +225,7 @@ void VolumeDoFFunction< ValueType >::assign(
             {
                for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
                {
-                  for ( auto dof = 0; dof < numDofs; dof++ )
+                  for ( auto dof = 0; dof < int_c( numDofs ); dof++ )
                   {
                      ValueType sum = 0;
                      for ( uint_t i = 0; i < functions.size(); i++ )
@@ -273,7 +275,7 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
             {
                for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
                {
-                  for ( auto dof = 0; dof < numDofs; dof++ )
+                  for ( auto dof = 0; dof < int_c( numDofs ); dof++ )
                   {
                      const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
                      const auto otherIdx =

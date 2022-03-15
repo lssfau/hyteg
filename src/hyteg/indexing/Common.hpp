@@ -25,6 +25,7 @@
 namespace hyteg {
 namespace indexing {
 
+using walberla::int_c;
 using walberla::uint_t;
 
 class IndexIncrement : public PointND< int, 3 >
