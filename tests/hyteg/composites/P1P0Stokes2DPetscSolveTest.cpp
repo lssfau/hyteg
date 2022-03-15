@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
@@ -32,7 +33,6 @@
 #include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -47,7 +47,7 @@ namespace hyteg {
 void petscSolveTest( const uint_t&   level,
                      const MeshInfo& meshInfo,
                      const real_t&   resEps,
-                     const real_t&   errEpsUSum,
+                     const real_t&   errEpsU,
                      const real_t&   errEpsP )
 {
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -103,10 +103,13 @@ void petscSolveTest( const uint_t&   level,
    vtkOutput.add( b.p() );
    vtkOutput.write( level, 0 );
 
-   //   uint_t localDoFs  = hyteg::numberOfLocalDoFs< P1P0StokesFunctionTag >( *storage, level );
-   //   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< P1P0StokesFunctionTag >( *storage, level );
-   //
-   //   WALBERLA_LOG_INFO( "local DoFs: " << localDoFs << " global DoFs: " << globalDoFs );
+   uint_t velocitydofs = numberOfGlobalDoFs( x.uvw(), level );
+   uint_t pressuredofs = numberOfGlobalDoFs( x.p(), level );
+   uint_t dofs         = velocitydofs + pressuredofs;
+
+   WALBERLA_LOG_INFO( "DoFs velocity: " << velocitydofs );
+   WALBERLA_LOG_INFO( "DoFs pressure: " << pressuredofs );
+   WALBERLA_LOG_INFO( "DoFs: " << dofs );
 
    PETScMinResSolver< P1P0StokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
 
@@ -122,22 +125,17 @@ void petscSolveTest( const uint_t&   level,
 
    vtkOutput.write( level, 1 );
 
-#if 0
+   real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) velocitydofs );
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) pressuredofs );
+   real_t residuum_l2    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) dofs );
 
-   real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
-   real_t residuum_l2_1    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
+   WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
-   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
-
-   WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
-   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
-   WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP );
-#endif
+   //   WALBERLA_CHECK_LESS( residuum_l2, resEps );
+   WALBERLA_CHECK_LESS( discr_l2_err_u, errEpsU );
+   WALBERLA_CHECK_LESS( discr_l2_err_p, errEpsP );
 }
 
 } // namespace hyteg
@@ -150,11 +148,29 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
+   const auto l2ErrorUCoarse = 7.8e-2;
+   const auto l2ErrorPCoarse = 6.3e-0;
+
+   const auto l2RateU = .25;
+   const auto l2RateP = .44;
+
+   petscSolveTest( 3,
+                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   1e-13,
+                   l2ErrorUCoarse,
+                   l2ErrorPCoarse );
+
    petscSolveTest( 4,
                    hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
-                   1.7e-13,
-                   0.025,
-                   0.366 );
+                   1e-13,
+                   l2ErrorUCoarse * l2RateU,
+                   l2ErrorPCoarse * l2RateP );
+
+   petscSolveTest( 5,
+                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   1e-13,
+                   l2ErrorUCoarse * l2RateU * l2RateU,
+                   l2ErrorPCoarse * l2RateP * l2RateP );
 
    return EXIT_SUCCESS;
 }
