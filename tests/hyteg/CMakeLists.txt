@@ -800,4 +800,7 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGLaplaceSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGLaplaceSymmetryTest)
+
+    waLBerla_compile_test(FILES dg/DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
 endif()
