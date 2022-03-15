@@ -33,6 +33,7 @@ namespace indexing {
 
 using walberla::uint_t;
 using walberla::uint_c;
+using walberla::int_c;
 
 /// Helper function to create a 'tuple' from two integers taking less than 5 bits of space.
 /// Allows for more readable switch statements in some cases.
@@ -118,9 +119,9 @@ CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter,
 {
   WALBERLA_ASSERT_LESS_EQUAL( offsetToCenter, width, "Offset to center is beyond cell width!" );
 
-  coordinates_.x() = offsetToCenter_;
-  coordinates_.y() = offsetToCenter_;
-  coordinates_.z() = offsetToCenter_;
+  coordinates_.x() = int_c( offsetToCenter_ );
+  coordinates_.y() = int_c( offsetToCenter_ );
+  coordinates_.z() = int_c( offsetToCenter_ );
 
   internalCoordinates_.x() = 0;
   internalCoordinates_.y() = 0;
@@ -205,13 +206,13 @@ CellBoundaryIterator::CellBoundaryIterator( const uint_t & width, const std::arr
     coordinates_ = Index( 0, 0, 0 );
     break;
   case 1:
-    coordinates_ = Index( width_ - 1, 0, 0 );
+    coordinates_ = Index( int_c( width_ - 1 ), 0, 0 );
     break;
   case 2:
-    coordinates_ = Index( 0, width_ - 1, 0 );
+    coordinates_ = Index( 0, int_c( width_ - 1 ), 0 );
     break;
   case 3:
-    coordinates_ = Index( 0, 0, width_ - 1 );
+    coordinates_ = Index( 0, 0, int_c( width_ - 1 ) );
     break;
   default:
     WALBERLA_ASSERT( false, "Invalid coordinates in CellBoundaryIterator!" );

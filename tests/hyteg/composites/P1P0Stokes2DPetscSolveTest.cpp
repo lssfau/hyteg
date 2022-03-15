@@ -44,11 +44,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t&   level,
-                     const MeshInfo& meshInfo,
-                     const real_t&   resEps,
-                     const real_t&   errEpsU,
-                     const real_t&   errEpsP )
+void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t& errEpsU, const real_t& errEpsP )
 {
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -133,7 +129,6 @@ void petscSolveTest( const uint_t&   level,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
-   //   WALBERLA_CHECK_LESS( residuum_l2, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err_u, errEpsU );
    WALBERLA_CHECK_LESS( discr_l2_err_p, errEpsP );
 }
@@ -156,19 +151,16 @@ int main( int argc, char* argv[] )
 
    petscSolveTest( 3,
                    hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
-                   1e-13,
                    l2ErrorUCoarse,
                    l2ErrorPCoarse );
 
    petscSolveTest( 4,
                    hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
-                   1e-13,
                    l2ErrorUCoarse * l2RateU,
                    l2ErrorPCoarse * l2RateP );
 
    petscSolveTest( 5,
                    hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
-                   1e-13,
                    l2ErrorUCoarse * l2RateU * l2RateU,
                    l2ErrorPCoarse * l2RateP * l2RateP );
 
