@@ -22,9 +22,9 @@
 #include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorToScalarOperator.hpp"
-#include "hyteg/operators/ScalarToVectorOperator.hpp"
 
 namespace hyteg {
 
@@ -41,12 +41,6 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
@@ -88,15 +82,8 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
    P1ConstantVectorLaplaceOperator lapl;
    P1ConstantDivOperator           div;
    P1ConstantDivTOperator          divT;
-
-   P1DivxOperator        div_x;
-   P1DivyOperator        div_y;
-   P1DivzOperator        div_z;
-   P1DivTxOperator       divT_x;
-   P1DivTyOperator       divT_y;
-   P1DivTzOperator       divT_z;
-   P1PSPGOperator        pspg;
-   P1PSPGInvDiagOperator pspg_inv_diag_;
+   P1PSPGOperator                  pspg;
+   P1PSPGInvDiagOperator           pspg_inv_diag_;
 
    bool hasGlobalCells_;
 };

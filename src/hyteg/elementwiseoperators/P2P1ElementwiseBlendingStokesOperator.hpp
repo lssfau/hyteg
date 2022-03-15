@@ -49,12 +49,6 @@ class P2P1ElementwiseBlendingStokesOperator
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -70,19 +64,19 @@ class P2P1ElementwiseBlendingStokesOperator
       divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
       divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
 
-      div_x.computeAndStoreLocalElementMatrices();
-      div_y.computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
 
-      divT_x.computeAndStoreLocalElementMatrices();
-      divT_y.computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
 
       if ( hasGlobalCells_ )
       {
          div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
          divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
 
-         div_z.computeAndStoreLocalElementMatrices();
-         divT_z.computeAndStoreLocalElementMatrices();
+         div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+         divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
       }
    }
 
@@ -116,13 +110,6 @@ class P2P1ElementwiseBlendingStokesOperator
    P2ElementwiseBlendingVectorLaplaceOperator lapl;
    P2ToP1ElementwiseBlendingDivOperator       div;
    P1ToP2ElementwiseBlendingDivTOperator      divT;
-
-   P2ToP1ElementwiseBlendingDivxOperator  div_x;
-   P2ToP1ElementwiseBlendingDivyOperator  div_y;
-   P2ToP1ElementwiseBlendingDivzOperator  div_z;
-   P1ToP2ElementwiseBlendingDivTxOperator divT_x;
-   P1ToP2ElementwiseBlendingDivTyOperator divT_y;
-   P1ToP2ElementwiseBlendingDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
    P1PSPGInvDiagOperator pspg_inv_diag_;

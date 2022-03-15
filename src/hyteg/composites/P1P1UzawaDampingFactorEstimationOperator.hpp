@@ -66,24 +66,14 @@ class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    {
       tmp_solution_.uvw().interpolate( 0, level, All );
 
-      A.divT_x.apply( src, tmp_rhs_.uvw()[0], level, flag, Replace );
-      A.divT_y.apply( src, tmp_rhs_.uvw()[1], level, flag, Replace );
-      if ( hasGlobalCells_ )
-      {
-         A.divT_z.apply( src, tmp_rhs_.uvw()[2], level, flag, Replace );
-      }
+      A.divT.apply( src, tmp_rhs_.uvw(), level, flag, Replace );
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
       {
          velocitySmoother_->solve( A, tmp_solution_, tmp_rhs_, level );
       }
 
-      A.div_x.apply( tmp_solution_.uvw()[0], tmp_schur_, level, flag, Replace );
-      A.div_y.apply( tmp_solution_.uvw()[1], tmp_schur_, level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         A.div_z.apply( tmp_solution_.uvw()[2], tmp_schur_, level, flag, Add );
-      }
+      A.div.apply( tmp_solution_.uvw(), tmp_schur_, level, flag, Replace );
 
       C.apply( src, tmp_schur_, level, flag, Add );
 

@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
@@ -26,6 +27,7 @@
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -119,6 +121,13 @@ class ScalarToVectorOperator : public Operator< sKind_t< real_t >, vKind_t< real
 
 // Some operators we might use more often than others
 typedef ScalarToVectorOperator< P1Function,
+                                P1VectorFunction,
+                                P1BlendingDivTOperator_1,
+                                P1BlendingDivTOperator_2,
+                                P1BlendingDivTOperator_1 > // no 3D implementation exists
+    P1ToP1BlendingDivTOperator;
+
+typedef ScalarToVectorOperator< P1Function,
                                 P2VectorFunction,
                                 P1ToP2ConstantDivTxOperator,
                                 P1ToP2ConstantDivTyOperator,
@@ -138,6 +147,13 @@ typedef ScalarToVectorOperator< P1Function,
                                 P1ToP2ElementwiseBlendingDivTyOperator,
                                 P1ToP2ElementwiseBlendingDivTzOperator >
     P1ToP2ElementwiseBlendingDivTOperator;
+
+typedef ScalarToVectorOperator< P1Function,
+                                P1VectorFunction,
+                                P1ElementwiseDivTXOperator,
+                                P1ElementwiseDivTYOperator,
+                                P1ElementwiseDivTZOperator >
+    P1ToP1ElementwiseDivTOperator;
 
 typedef ScalarToVectorOperator< P1Function,
                                 P2VectorFunction,

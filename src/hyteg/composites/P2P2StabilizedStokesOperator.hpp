@@ -38,12 +38,6 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -84,14 +78,7 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
    P2ConstantVectorLaplaceOperator lapl;
    P2ConstantDivOperator           div;
    P2ConstantDivTOperator          divT;
-
-   P2ConstantDivxOperator  div_x;
-   P2ConstantDivyOperator  div_y;
-   P2ConstantDivzOperator  div_z;
-   P2ConstantDivTxOperator divT_x;
-   P2ConstantDivTyOperator divT_y;
-   P2ConstantDivTzOperator divT_z;
-   P2ConstantPSPGOperator  pspg;
+   P2ConstantPSPGOperator          pspg;
 
    bool hasGlobalCells_;
 };

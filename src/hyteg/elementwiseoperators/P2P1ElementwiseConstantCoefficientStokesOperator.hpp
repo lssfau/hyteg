@@ -43,12 +43,6 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -66,13 +60,13 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
       divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
       divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
 
-      div_x.computeAndStoreLocalElementMatrices();
-      div_y.computeAndStoreLocalElementMatrices();
-      div_z.computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
 
-      divT_x.computeAndStoreLocalElementMatrices();
-      divT_y.computeAndStoreLocalElementMatrices();
-      divT_z.computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
    }
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
@@ -107,13 +101,6 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    P2ElementwiseVectorLaplaceOperator lapl;
    P2ToP1ElementwiseDivOperator       div;
    P1ToP2ElementwiseDivTOperator      divT;
-
-   P2ToP1ElementwiseDivxOperator  div_x;
-   P2ToP1ElementwiseDivyOperator  div_y;
-   P2ToP1ElementwiseDivzOperator  div_z;
-   P1ToP2ElementwiseDivTxOperator divT_x;
-   P1ToP2ElementwiseDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
    P1PSPGInvDiagOperator pspg_inv_diag_;

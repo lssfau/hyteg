@@ -40,13 +40,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
@@ -82,14 +76,6 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
-
-   // currently, need these for being able to integrate into the framework until the block operator is completed
-   P2ToP1ConstantDivxOperator  div_x;
-   P2ToP1ConstantDivyOperator  div_y;
-   P2ToP1ConstantDivzOperator  div_z;
-   P1ToP2ConstantDivTxOperator divT_x;
-   P1ToP2ConstantDivTyOperator divT_y;
-   P1ToP2ConstantDivTzOperator divT_z;
 
    // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;

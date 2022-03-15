@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
@@ -26,6 +27,7 @@
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -123,6 +125,13 @@ class VectorToScalarOperator : public Operator< vKind_t< real_t >, sKind_t< real
 };
 
 // Some operators we might use more often than others
+typedef VectorToScalarOperator< P1VectorFunction,
+                                P1Function,
+                                P1BlendingDivOperator_1,
+                                P1BlendingDivOperator_2,
+                                P1BlendingDivOperator_1 > // no 3D implementation exists!
+    P1ToP1BlendingDivOperator;
+
 typedef VectorToScalarOperator< P2VectorFunction,
                                 P1Function,
                                 P2ToP1ConstantDivxOperator,
@@ -143,6 +152,13 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ToP1ElementwiseBlendingDivyOperator,
                                 P2ToP1ElementwiseBlendingDivzOperator >
     P2ToP1ElementwiseBlendingDivOperator;
+
+typedef VectorToScalarOperator< P1VectorFunction,
+                                P1Function,
+                                P1ElementwiseDivXOperator,
+                                P1ElementwiseDivYOperator,
+                                P1ElementwiseDivZOperator >
+    P1ToP1ElementwiseDivOperator;
 
 typedef VectorToScalarOperator< P2VectorFunction,
                                 P1Function,
