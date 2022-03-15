@@ -151,6 +151,7 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::true_type /* PSPG */ ) const
    {
+#ifdef OLD_SCALAR
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
          A.divT_x.apply( x.p(), r_.uvw()[0], level, flag_, Replace );
@@ -206,6 +207,38 @@ class UzawaSmoother : public Solver< OperatorType >
 
       r_.p().assign( {relaxParam_}, {r_.p()}, level, flag_ );
       A.pspg_inv_diag_.apply( r_.p(), x.p(), level, flag_, Add );
+#else
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         A.divT.apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( { -1.0 }, { r_.uvw() }, level, flag_ );
+      }
+      else
+      {
+         A.divT.apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( { 1.0, -1.0 }, { b.uvw(), r_.uvw() }, level, flag_ );
+      }
+
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( A, x, r_, level );
+      }
+
+      A.pspg.apply( x.p(), r_.p(), level, flag_, Replace );
+      A.div.apply( x.uvw(), r_.p(), level, flag_, Add );
+
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         r_.p().assign( { -1.0 }, { r_.p() }, level, flag_ );
+      }
+      else
+      {
+         r_.p().assign( { 1.0, -1.0 }, { b.p(), r_.p() }, level, flag_ );
+      }
+
+      r_.p().assign( { relaxParam_ }, { r_.p() }, level, flag_ );
+      A.pspg_inv_diag_.apply( r_.p(), x.p(), level, flag_, Add );
+#endif
    }
 
    // Tensor variant
@@ -216,6 +249,7 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::true_type /* tensor */,
                      std::true_type /* PSPG */ ) const
    {
+#ifdef OLD_SCALAR
       A.divT_x.apply( x.p(), r_.u, level, flag_, Replace );
       A.A_uv.apply( x.v, r_.u, level, flag_, Add );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
@@ -232,6 +266,22 @@ class UzawaSmoother : public Solver< OperatorType >
       r_.p().assign( {1.0, -1.0}, {b.p(), r_.p()}, level, flag_ );
 
       A.pspg.smooth_sor( x.p(), r_.p(), relaxParam_, level, flag_ );
+#else
+      A.divT.apply( x.p(), r_, level, flag_, Replace );
+
+      A.A_uv.apply( x.v, r_.u, level, flag_, Add );
+      r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
+      A.A_uu.smooth_gs( x.u, r_.u, level, flag_ );
+
+      A.A_vu.apply( x.u, r_.v, level, flag_, Add );
+      r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
+      A.A_vv.smooth_gs( x.v, r_.v, level, flag_ );
+
+      A.div.apply( x, r_.p(), level, flag_, Replace );
+      r_.p().assign( {1.0, -1.0}, {b.p(), r_.p()}, level, flag_ );
+
+      A.pspg.smooth_sor( x.p(), r_.p(), relaxParam_, level, flag_ );
+#endif
    }
 
    // Block-Laplace variant without stabilization
@@ -242,6 +292,8 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::false_type /* PSPG */ ) const
    {
+
+#ifdef OLD_SCALAR
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
          A.divT_x.apply( x.p(), r_.uvw()[0], level, flag_, Replace );
@@ -292,6 +344,34 @@ class UzawaSmoother : public Solver< OperatorType >
       {
          r_.p().assign( {1.0, -1.0}, {b.p(), r_.p()}, level, flag_ );
       }
+#else
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         A.divT.apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( {-1.0}, {r_.uvw()}, level, flag_ );
+      }
+      else
+      {
+         A.divT.apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( {1.0, -1.0}, {b.uvw(), r_.uvw()}, level, flag_ );
+      }
+
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( A, x, r_, level );
+      }
+
+      A.div.apply( x.uvw(), r_.p(), level, flag_, Replace );
+
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         r_.p().assign( {-1.0}, {r_.p()}, level, flag_ );
+      }
+      else
+      {
+         r_.p().assign( {1.0, -1.0}, {b.p(), r_.p()}, level, flag_ );
+      }
+#endif
 
 #if UZAWA_OLD_VARIANT
       tmp_.p().interpolate( 0.0, level );
