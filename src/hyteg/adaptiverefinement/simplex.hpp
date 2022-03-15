@@ -95,16 +95,24 @@ class Simplex
    // @returns children, ordered s.th. vertices[j] \\subset children[j] for all j < children.size()
    const std::vector< std::shared_ptr< K_Simplex > > get_children_sorted( const std::array< uint_t, K + 1 >& vertices ) const;
 
-   /* compute the barycenter of a K simplex given by its vertices
-      @param vertices vertex coordinates
+   /* compute the barycenter of a K simplex S
+      @param vertices vertex coordinates of S
       @return barycenter of conv(vertices)
    */
    static Point3D barycenter( const std::array< Point3D, K + 1 >& vertices );
-   /* compute the volme of a K-simplex given by its vertices
-      @param vertices vertex coordinates
+
+   /* compute the radius of the smallest ball B centered at the
+      barycenter of a K simplex S, s.th. S ⊂ B.
+      @param vertices vertex coordinates of S
+      @return max_i||vertices[i] - barycenter(vertices)||
+   */
+   static real_t radius( const std::array< Point3D, K + 1 >& vertices );
+
+   /* compute the volme of a K-simplex S
+      @param vertices vertex coordinates of S
       @return volume of conv(vertices)
    */
-   static double volume( const std::array< Point3D, K + 1 >& vertices );
+   static real_t volume( const std::array< Point3D, K + 1 >& vertices );
 
    /* get coordinates of the vertices of a simplex
       @param nodes  coordinates of the global vertices
@@ -118,7 +126,7 @@ class Simplex
    /* compute the volme of a simplex
       @param nodes  coordinates of the global vertices
    */
-   double volume( const std::vector< Point3D >& nodes ) const;
+   real_t volume( const std::vector< Point3D >& nodes ) const;
 
    /* remove all children
       @return true if any children have been killed

@@ -21,6 +21,7 @@
 #include <core/logging/all.h>
 #include <core/mpi/Broadcast.h>
 #include <core/mpi/Reduce.h>
+#include <utility>
 
 #include "simplexData.hpp"
 
@@ -156,8 +157,10 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       n_max[pt] = n_min + ( ( 0 < mod ) ? 1 : 0 );
    }
 
-   // compute barycenter of all primitives
+   // compute barycenter, radius and volume of all primitives
    std::vector< Point3D > barycenter( n_prim[ALL] );
+   std::vector< real_t >  radius( n_prim[ALL] );
+   std::vector< real_t >  volume( n_prim[ALL] );
    for ( auto& p : vtxs )
    {
       barycenter[p.getPrimitiveID().getID()] = coordinates[p.getPrimitiveID().getID()];
@@ -169,14 +172,20 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    for ( auto& p : faces )
    {
       barycenter[p.getPrimitiveID().getID()] = Simplex2::barycenter( p.get_coordinates( coordinates ) );
+      radius[p.getPrimitiveID().getID()]     = Simplex2::radius( p.get_coordinates( coordinates ) );
+      volume[p.getPrimitiveID().getID()]     = Simplex2::volume( p.get_coordinates( coordinates ) );
    }
    for ( auto& p : cells )
    {
       barycenter[p.getPrimitiveID().getID()] = Simplex3::barycenter( p.get_coordinates( coordinates ) );
+      radius[p.getPrimitiveID().getID()]     = Simplex3::radius( p.get_coordinates( coordinates ) );
+      volume[p.getPrimitiveID().getID()]     = Simplex3::volume( p.get_coordinates( coordinates ) );
    }
 
    // barycenter of the primitive cluster corresponding to each process
    std::vector< Point3D > clusterCenter( n_processes );
+   // radius of the primitive cluster corresponding to each process
+   std::vector< real_t > clusterRadius( n_processes );
    // which primitives are assigned to some process
    std::vector< bool > isAssigned( n_prim[ALL] + 1, false );
    // how many primitives of each type are assigned to each process
@@ -217,12 +226,14 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       ++n_assigned[n_processes][ALL];
       isAssigned[i] = true;
 
-      // update center
+      // update center and radius
       if ( pt == VOL )
       {
          clusterCenter[k] *= real_t( n_assigned[k][VOL] - 1 ); // undo previous scaling
          clusterCenter[k] += barycenter[i];                    // add barycenter of new element
          clusterCenter[k] /= real_t( n_assigned[k][VOL] );     // apply scaling
+
+         clusterRadius[k] = std::max( clusterRadius[k], ( clusterCenter[k] - barycenter[i] ).norm() + radius[i] );
       }
 
       return true;
@@ -351,7 +362,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                }
 
                // ||clusterCenter[j] - barycenter[i]||
-               auto d = ( barycenter[initID[j]] - barycenter[i] ).normSq();
+               auto d = ( barycenter[initID[j]] - barycenter[i] ).norm();
 
                // find minimum over j
                if ( d < min_j )
@@ -424,12 +435,12 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
             continue;
 
          // ||clusterCenter[k] - barycenter[i]||
-         auto d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
+         auto d_ik = ( clusterCenter[k] - barycenter[i] ).norm();
 
          // find minimum over i
          if ( d_ik < min_i &&                                            // d_ik is new minimum AND
               ( !isAssigned[i] ||                                        // (i is still free OR
-                d_ik < ( clusterCenter[j] - barycenter[i] ).normSq() ) ) // i is closer to k than to j)
+                d_ik < ( clusterCenter[j] - barycenter[i] ).norm() ) ) // i is closer to k than to j)
          {
             min_i = d_ik;
             i_min = i;
@@ -458,6 +469,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          continue;
       }
 
+      // todo swap loops
+
       // "loop" over all clusters k (MPI)
       uint_t k = rank;
 
@@ -472,7 +485,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
          real_t d_ik = std::numeric_limits< real_t >::max();
          if ( n_assigned[k][pt] < n_max[pt] )
          {
-            d_ik = ( clusterCenter[k] - barycenter[i] ).normSq();
+            d_ik = ( clusterCenter[k] - barycenter[i] ).norm();
          }
 
          // minimum over k
