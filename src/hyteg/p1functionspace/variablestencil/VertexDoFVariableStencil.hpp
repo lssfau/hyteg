@@ -82,11 +82,11 @@ inline void applyVariableStencil(uint_t Level,
    auto src = face.getData( srcId )->getPointer( Level );
    auto dst = face.getData( dstId )->getPointer( Level );
 
-   Point3D x0( face.coords[0] ), x;
+   Point3D x0( face.getCoordinates()[0] ), x;
    real_t  h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-   Point3D d0 = h * ( face.coords[1] - face.coords[0] );
-   Point3D d2 = h * ( face.coords[2] - face.coords[0] );
+   Point3D d0 = h * ( face.getCoordinates()[1] - face.getCoordinates()[0] );
+   Point3D d2 = h * ( face.getCoordinates()[2] - face.getCoordinates()[0] );
 
    P1Form form;
    form.setGeometryMap( face.getGeometryMap() );
@@ -164,11 +164,11 @@ inline void smoothGSVariableStencil(uint_t Level,
    auto rhs = face.getData( rhsId )->getPointer( Level );
    auto dst = face.getData( dstId )->getPointer( Level );
 
-   Point3D x0( face.coords[0] ), x;
+   Point3D x0( face.getCoordinates()[0] ), x;
    real_t  h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-   Point3D d0 = h * ( face.coords[1] - face.coords[0] );
-   Point3D d2 = h * ( face.coords[2] - face.coords[0] );
+   Point3D d0 = h * ( face.getCoordinates()[1] - face.getCoordinates()[0] );
+   Point3D d2 = h * ( face.getCoordinates()[2] - face.getCoordinates()[0] );
 
    P1Form form;
    form.setGeometryMap( face.getGeometryMap() );

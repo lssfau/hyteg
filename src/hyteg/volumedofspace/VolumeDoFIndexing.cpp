@@ -138,8 +138,8 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    onMacroBoundary_[0] = faceType == facedof::FaceType::GRAY && elementIdx.y() == 0;
    onMacroBoundary_[1] = faceType == facedof::FaceType::GRAY && elementIdx.x() == 0;
-   onMacroBoundary_[2] = faceType == facedof::FaceType::GRAY &&
-                         elementIdx.x() + elementIdx.y() == int( levelinfo::num_microedges_per_edge( level ) - 1 );
+   onMacroBoundary_[2] =
+       faceType == facedof::FaceType::GRAY && elementIdx.x() + elementIdx.y() == levelinfo::num_microedges_per_edge( level ) - 1;
 
    for ( uint_t n = 0; n < 3; n++ )
    {
