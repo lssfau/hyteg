@@ -35,17 +35,17 @@ class P1ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P1Vecto
    : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
    {
       // clang-format off
-      typedef P1ConstantOperator< P2FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_0_otherwise > > eps_0_0;
-      typedef P1ConstantOperator< P2FenicsForm< p1_stokes_epsilon_cell_integral_1_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_1_otherwise > > eps_0_1;
-      typedef P1ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_2_otherwise > > eps_0_2;
+      typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_0_otherwise > > eps_0_0;
+      typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_1_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_1_otherwise > > eps_0_1;
+      typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_2_otherwise > > eps_0_2;
 
-      typedef P1ConstantOperator< P2FenicsForm< p1_stokes_epsilon_cell_integral_2_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_3_otherwise > > eps_1_0;
-      typedef P1ConstantOperator< P2FenicsForm< p1_stokes_epsilon_cell_integral_3_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_4_otherwise > > eps_1_1;
-      typedef P1ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_5_otherwise > > eps_1_2;
+      typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_2_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_3_otherwise > > eps_1_0;
+      typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_3_otherwise, p1_tet_stokes_epsilon_tet_cell_integral_4_otherwise > > eps_1_1;
+      typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_5_otherwise > > eps_1_2;
 
-      typedef P1ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_6_otherwise > > eps_2_0;
-      typedef P1ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_7_otherwise > > eps_2_1;
-      typedef P1ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_8_otherwise > > eps_2_2;
+      typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_6_otherwise > > eps_2_0;
+      typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_7_otherwise > > eps_2_1;
+      typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble                         , p1_tet_stokes_epsilon_tet_cell_integral_8_otherwise > > eps_2_2;
       // clang-format on
 
       if ( this->dim_ == 3 )
