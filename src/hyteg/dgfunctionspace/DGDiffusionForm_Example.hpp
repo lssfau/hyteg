@@ -33,8 +33,6 @@
 namespace hyteg {
 namespace dg {
 
-using walberla::real_c;
-
 class DGDiffusionForm_Example : public DGForm2D
 {
  public:

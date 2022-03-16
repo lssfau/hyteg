@@ -131,7 +131,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
 
    for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
    {
-      buffer << faceData[edgedof::macroface::index( level_, uint_c( it.x() ), uint_c( it.y() ), orientation )];
+      buffer << faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];
    }
 }
 
@@ -148,7 +148,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge* receiver,
    {
       ValueType tmp;
       buffer >> tmp;
-      edgeData[edgedof::macroedge::index( level_, uint_c( it.x() ) )] += tmp;
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
    }
 }
 
@@ -183,8 +183,8 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    edgedof::macroedge::Iterator edgeIterator( level_, 0 );
    for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
    {
-      edgeData[edgedof::macroedge::index( level_, uint_c( edgeIterator->x() ) )] +=
-          faceData[edgedof::macroface::index( level_, uint_c( it.x() ), uint_c( it.y() ), orientation )];
+      edgeData[edgedof::macroedge::index( level_, edgeIterator->x() )] +=
+          faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];
       edgeIterator++;
    }
 }
@@ -265,11 +265,11 @@ void EdgeDoFAdditivePackInfo< ValueType >::packCellForFace( const Cell*         
          edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
    {
       buffer << cellData[edgedof::macrocell::index(
-          level_, uint_c( cellIterator.x() ), uint_c( cellIterator.y() ), uint_c( cellIterator.z() ), srcEdgeOrientationX )];
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationX )];
       buffer << cellData[edgedof::macrocell::index(
-          level_, uint_c( cellIterator.x() ), uint_c( cellIterator.y() ), uint_c( cellIterator.z() ), srcEdgeOrientationY )];
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationY )];
       buffer << cellData[edgedof::macrocell::index(
-          level_, uint_c( cellIterator.x() ), uint_c( cellIterator.y() ), uint_c( cellIterator.z() ), srcEdgeOrientationXY )];
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationXY )];
    }
 }
 
@@ -289,9 +289,9 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromCell( Face*            
       buffer >> tmpY;
       buffer >> tmpXY;
 
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::X )] += tmpX;
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::Y )] += tmpY;
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::XY )] += tmpXY;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] += tmpX;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] += tmpY;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] += tmpXY;
    }
 }
 
@@ -320,12 +320,12 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace( const Cel
    for ( const auto& faceIdx : edgedof::macroface::Iterator( level_ ) )
    {
       auto cellIdx = *cellIterator;
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::X )] +=
-          cellData[edgedof::macrocell::index( level_, uint_c( cellIdx.x() ), uint_c( cellIdx.y() ), uint_c( cellIdx.z() ), srcEdgeOrientationX )];
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::Y )] +=
-          cellData[edgedof::macrocell::index( level_, uint_c( cellIdx.x() ), uint_c( cellIdx.y() ), uint_c( cellIdx.z() ), srcEdgeOrientationY )];
-      faceData[edgedof::macroface::index( level_, uint_c( faceIdx.x() ), uint_c( faceIdx.y() ), edgedof::EdgeDoFOrientation::XY )] +=
-          cellData[edgedof::macrocell::index( level_, uint_c( cellIdx.x() ), uint_c( cellIdx.y() ), uint_c( cellIdx.z() ), srcEdgeOrientationXY )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationX )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationY )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationXY )];
       cellIterator++;
    }
 
@@ -359,7 +359,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packCellForEdge( const Cell*         
    for ( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level_ ); i++ )
    {
       buffer << cellData[edgedof::macrocell::index(
-          level_, uint_c( cellIterator->x() ), uint_c( cellIterator->y() ), uint_c( cellIterator->z() ), srcEdgeOrientation )];
+          level_, cellIterator->x(), cellIterator->y(), cellIterator->z(), srcEdgeOrientation )];
       cellIterator++;
    }
 }
@@ -380,7 +380,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell( Edge*            
    {
       ValueType tmp;
       buffer >> tmp;
-      edgeData[edgedof::macroedge::index( level_, uint_c( it.x() ) )] += tmp;
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
    }
 }
 
@@ -409,8 +409,8 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge( const Cel
 
    for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
    {
-      edgeData[edgedof::macroedge::index( level_, uint_c( it.x() ) )] += cellData[edgedof::macrocell::index(
-          level_, uint_c( cellIterator->x() ), uint_c( cellIterator->y() ), uint_c( cellIterator->z() ), srcEdgeOrientation )];
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += cellData[edgedof::macrocell::index(
+          level_, cellIterator->x(), cellIterator->y(), cellIterator->z(), srcEdgeOrientation )];
       cellIterator++;
    }
 }

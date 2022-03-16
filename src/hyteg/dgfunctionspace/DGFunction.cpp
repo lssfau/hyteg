@@ -57,17 +57,17 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
    {
       for ( auto pid : storage->getFaceIDs() )
       {
-         polyDegreesPerPrimitive_[pid] = uint_c( initialPolyDegree );
+         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
       }
    }
 
-   volumeDoFFunction_ = std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >(
-       name,
-       storage,
-       minLevel,
-       maxLevel,
-       basis->numDoFsPerElement( uint_c( initialPolyDegree ) ),
-       volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
+   volumeDoFFunction_ =
+       std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >( name,
+                                                                           storage,
+                                                                           minLevel,
+                                                                           maxLevel,
+                                                                           basis->numDoFsPerElement( initialPolyDegree ),
+                                                                           volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
 }
 
 template < typename ValueType >
@@ -396,7 +396,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          const auto face   = *faceIt.second;
 
          const auto polyDegree = polynomialDegree( faceId );
-         const auto numDofs    = basis()->numDoFsPerElement( uint_c( polyDegree ) );
+         const auto numDofs    = basis()->numDoFsPerElement( polyDegree );
          const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
          const auto memLayout  = volumeDoFFunction()->memoryLayout();
 
@@ -412,7 +412,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
                   if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                   {
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                     localMat.resize( Eigen::Index( numDofs ), 1 );
+                     localMat.resize( numDofs, 1 );
                      localMat.setZero();
                      form->integrateRHSDirichletBoundary( dim,
                                                           neighborInfo.elementVertexCoords(),
@@ -427,7 +427,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
                      {
                         dofMemory[volumedofspace::indexing::index(
                             elementIdx.x(), elementIdx.y(), faceType, dofIdx, numDofs, level, memLayout )] +=
-                            ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
+                            ValueType( localMat( dofIdx, 0 ) );
                      }
                   }
                }
@@ -457,7 +457,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          const auto dofs      = volumeDoFFunction()->dofMemory( faceID, level );
@@ -473,7 +473,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
                       indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
                   const auto value =
                       dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  vec->setValue( uint_c( vectorIdx ), real_t( value ) );
+                  vec->setValue( vectorIdx, value );
                }
             }
          }
@@ -503,7 +503,7 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( degree );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
@@ -517,9 +517,8 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
                {
                   const auto vectorIdx =
                       indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  const auto value = vec->getValue( uint_c( vectorIdx ) );
-                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
-                      ValueType( value );
+                  const auto value = vec->getValue( vectorIdx );
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] = value;
                }
             }
          }

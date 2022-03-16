@@ -21,12 +21,10 @@
 #pragma once
 
 #include "hyteg/types/pointnd.hpp"
-#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 namespace indexing {
 
-using walberla::int_c;
 using walberla::uint_t;
 
 class IndexIncrement : public PointND< int, 3 >
@@ -72,46 +70,45 @@ class IndexIncrement : public PointND< int, 3 >
 };
 
 /// Wrapper around Point3D for convenient access to logical indices.
-class Index : public PointND< idx_t, 3 >
+class Index : public PointND< int, 3 >
 {
  public:
    Index()
-   : PointND< idx_t, 3 >()
+   : PointND< int, 3 >()
    {}
    Index( const Index& other )
-   : PointND< idx_t, 3 >( other )
+   : PointND< int, 3 >( other )
    {}
 
    static Index max()
    {
-      return Index(
-          std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max() );
+      return Index( std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() );
    }
 
-   Index( const idx_t& x, const idx_t& y, const idx_t& z )
+   Index( const int& x, const int& y, const int& z )
    {
       x_[0] = x;
       x_[1] = y;
       x_[2] = z;
    }
 
-   const idx_t& x() const { return x_[0]; }
-   idx_t&       x() { return x_[0]; }
+   const int& x() const { return x_[0]; }
+   int&       x() { return x_[0]; }
 
-   const idx_t& y() const { return x_[1]; }
-   idx_t&       y() { return x_[1]; }
+   const int& y() const { return x_[1]; }
+   int&       y() { return x_[1]; }
 
-   const idx_t& z() const { return x_[2]; }
-   idx_t&       z() { return x_[2]; }
+   const int& z() const { return x_[2]; }
+   int&       z() { return x_[2]; }
 
-   const idx_t& col() const { return x_[0]; }
-   idx_t&       col() { return x_[0]; }
+   const int& col() const { return x_[0]; }
+   int&       col() { return x_[0]; }
 
-   const idx_t& row() const { return x_[1]; }
-   idx_t&       row() { return x_[1]; }
+   const int& row() const { return x_[1]; }
+   int&       row() { return x_[1]; }
 
-   const idx_t& dep() const { return x_[2]; }
-   idx_t&       dep() { return x_[2]; }
+   const int& dep() const { return x_[2]; }
+   int&       dep() { return x_[2]; }
 
    Index& operator+=( const IndexIncrement& increment )
    {
@@ -157,17 +154,17 @@ inline IndexIncrement operator+( IndexIncrement lhs, const IndexIncrement& rhs )
 
 inline Index operator*( Index lhs, const uint_t& scalar )
 {
-   lhs.x() *= (idx_t) scalar;
-   lhs.y() *= (idx_t) scalar;
-   lhs.z() *= (idx_t) scalar;
+   lhs.x() *= scalar;
+   lhs.y() *= scalar;
+   lhs.z() *= scalar;
    return lhs;
 }
 
 inline Index operator*( const uint_t& scalar, Index rhs )
 {
-   rhs.x() *= (idx_t) scalar;
-   rhs.y() *= (idx_t) scalar;
-   rhs.z() *= (idx_t) scalar;
+   rhs.x() *= scalar;
+   rhs.y() *= scalar;
+   rhs.z() *= scalar;
    return rhs;
 }
 

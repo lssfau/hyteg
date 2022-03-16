@@ -22,8 +22,6 @@
 
 namespace hyteg {
 
-using walberla::int_c;
-
 template < class P2Form >
 P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
@@ -588,10 +586,8 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    std::array< uint_t, 6 >  dofDataIdx;
    P2Form                   form( form_ );
 
-   using walberla::int_c;
-
    // determine vertices of micro-element
-   nodeIdx = indexing::Index( int_c( xIdx ), int_c( yIdx ), 0 );
+   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
    v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
@@ -823,7 +819,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
    P2Form                   form( form_ );
 
    // determine vertices of micro-element
-   nodeIdx = indexing::Index( int_c( xIdx ), int_c( yIdx ), 0 );
+   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
    v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );

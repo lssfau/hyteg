@@ -70,9 +70,9 @@ int main(int argc, char **argv)
   for(auto faceIter : storage->getFaces())
   {
     auto face = faceIter.second;
-    xStepSize = walberla::real_c(face->getCoordinates()[1][0] - face->getCoordinates()[0][0]) / walberla::real_c((mEperEdge));
-    yStepSize = walberla::real_c(face->getCoordinates()[2][1] - face->getCoordinates()[0][1]) / walberla::real_c((mEperEdge));
-    value = (xStepSize / 2 + face->getCoordinates()[0][0]) * 2 + face->getCoordinates()[0][0];
+    xStepSize = walberla::real_c(face->coords[1][0] - face->coords[0][0]) / walberla::real_c((mEperEdge));
+    yStepSize = walberla::real_c(face->coords[2][1] - face->coords[0][1]) / walberla::real_c((mEperEdge));
+    value = (xStepSize / 2 + face->coords[0][0]) * 2 + face->coords[0][0];
 
     edgedof::macroface::interpolate< real_t >(level, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < mEperEdge; ++i)

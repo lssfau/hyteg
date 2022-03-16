@@ -33,8 +33,6 @@
 
 namespace hyteg {
 
-using walberla::real_c;
-
 SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses )
 : numberOfProcesses_( numberOfProcesses )
 {
@@ -809,60 +807,6 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation( const uint_t& 
          setMeshBoundaryFlag( p.first, meshBoundaryFlag );
    }
 }
-
-void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t& meshBoundaryFlag,
-                                                                    const std::function< bool( const Point3D& x ) >& onBoundary,
-                                                                    bool useGeometryMap )
-{
-   auto centroid = [useGeometryMap]( const std::vector< Point3D >&         coordinates,
-                                     const std::shared_ptr< GeometryMap >& map ) -> Point3D {
-      Point3D c( {real_c( 0 ), real_c( 0 ), real_c( 0 )} );
-      for ( const auto& p : coordinates )
-      {
-         c += p;
-      }
-      c *= real_c( 1 ) / real_c( coordinates.size() );
-      if ( useGeometryMap )
-      {
-         Point3D cMapped;
-         map->evalF( c, cMapped );
-         return cMapped;
-      }
-      return c;
-   };
-
-   for ( const auto& p : vertices_ )
-   {
-      const auto c = centroid( {p.second->getCoordinates()}, p.second->getGeometryMap() );
-      if ( onBoundary( c ) )
-         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
-   }
-
-   for ( const auto& p : edges_ )
-   {
-      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ),
-                               p.second->getGeometryMap() );
-      if ( onBoundary( c ) )
-         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
-   }
-
-   for ( const auto& p : faces_ )
-   {
-      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ),
-                               p.second->getGeometryMap() );
-      if ( onBoundary( c ) )
-         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
-   }
-
-   for ( const auto& p : cells_ )
-   {
-      const auto c = centroid( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ),
-                               p.second->getGeometryMap() );
-      if ( onBoundary( c ) )
-         setMeshBoundaryFlag( p.first, meshBoundaryFlag );
-   }
-}
-
 
 bool SetupPrimitiveStorage::onBoundary( const PrimitiveID& primitiveID, const bool& highestDimensionAlwaysInner ) const
 {

@@ -427,7 +427,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     int *edgeData = firstEdge->getData(x.getEdgeDataID())->getPointer(level);
     uint_t idxCounter = 0;
     /// horizontal Dof on edge 0
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
@@ -438,7 +438,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// horizontal Dof on Face for edge 0; offset 1 to border
     idxCounter = 1;
     stencilDirection edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
               faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
@@ -450,7 +450,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// diagonal Dof on Face for edge 0; offset 0 to border
     idxCounter = 1;
     edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_DI_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
@@ -461,7 +461,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// vertical Dof on Face for edge 0; offset 0 to border
     idxCounter = 1;
     edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_VE_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
@@ -475,7 +475,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     edgeData = secondEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 1
     idxCounter = 0;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
@@ -486,7 +486,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// diagonal Dof on Face = horizontal Dof on edge; offset 1 to border
     idxCounter = 1;
     edgeDir = secondEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
@@ -497,7 +497,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// vertical Dof on Face = diagonal Dof on edge; offset 1 to border
     idxCounter = 1;
     edgeDir = secondEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_DI_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)) {
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)) {
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )],
@@ -508,7 +508,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
       /// horizontal Dof on Face = vertical Dof on edge; offset 1 to border
       idxCounter = 1;
       edgeDir = secondEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_VE_NW;
-      for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+      for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
         WALBERLA_CHECK_EQUAL(
           edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
           faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
@@ -522,7 +522,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     edgeData = thirdEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 2
     idxCounter = 0;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
@@ -533,7 +533,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// vertical Dof on face for edge 2 = horizontal on edge; offset 1 to border
     idxCounter = 1;
     edgeDir = thirdEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
@@ -544,7 +544,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// horizontal Dof on face for edge 2 = diagonal on edge; offset 1 to border
     idxCounter = 1;
     edgeDir = thirdEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_VE_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
@@ -555,7 +555,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     /// diagonal Dof on face for edge 2 = vertical on edge; offset 1 to border
     idxCounter = 1;
     edgeDir = thirdEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_DI_NW;
-    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
+    for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.edge_orientation[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
         faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]

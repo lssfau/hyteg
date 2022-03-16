@@ -28,8 +28,6 @@
 
 namespace hyteg {
 
-using walberla::int_c;
-
 template < class P1Form >
 P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
@@ -504,7 +502,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
    P1Form                   form( form_ );
 
    // determine vertices of micro-element
-   nodeIdx = indexing::Index( int_c( xIdx ), int_c( yIdx ), 0 );
+   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
    v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );

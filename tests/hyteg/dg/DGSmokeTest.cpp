@@ -230,22 +230,22 @@ void testDiffOp( uint_t maxLevel )
    // MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
    MeshInfo meshInfo = MeshInfo::meshFaceChain( 2 );
 
-//   auto ff = []( const Point3D& p ) {
-//      Matrix3r mat;
-//      mat( 0, 0 ) = .34;
-//      mat( 0, 1 ) = .678;
-//      mat( 0, 2 ) = 0;
-//
-//      mat( 1, 0 ) = .282;
-//      mat( 1, 1 ) = .35353;
-//      mat( 1, 2 ) = 0;
-//
-//      mat( 2, 0 ) = 0;
-//      mat( 2, 1 ) = 0;
-//      mat( 2, 2 ) = 0;
-//
-//      return mat.mul( p );
-//   };
+   auto ff = []( const Point3D& p ) {
+      Matrix3r mat;
+      mat( 0, 0 ) = .34;
+      mat( 0, 1 ) = .678;
+      mat( 0, 2 ) = 0;
+
+      mat( 1, 0 ) = .282;
+      mat( 1, 1 ) = .35353;
+      mat( 1, 2 ) = 0;
+
+      mat( 2, 0 ) = 0;
+      mat( 2, 1 ) = 0;
+      mat( 2, 2 ) = 0;
+
+      return mat.mul( p );
+   };
 
    // meshInfo.applyCoordinateMap( ff );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -254,11 +254,11 @@ void testDiffOp( uint_t maxLevel )
 
    const uint_t minLevel = 2;
 
-   std::function< real_t( const Point3D& ) > linearFunc0  = []( const Point3D& ) { return 0; };
+   std::function< real_t( const Point3D& ) > linearFunc0  = []( const Point3D& x ) { return 0; };
    std::function< real_t( const Point3D& ) > linearFuncX  = []( const Point3D& x ) { return x[0]; };
    std::function< real_t( const Point3D& ) > linearFuncY  = []( const Point3D& x ) { return x[1]; };
    std::function< real_t( const Point3D& ) > linearFuncXY = []( const Point3D& x ) { return 1 - x[0] - x[1]; };
-   std::function< real_t( const Point3D& ) > linearFuncC  = []( const Point3D& ) { return 1; };
+   std::function< real_t( const Point3D& ) > linearFuncC  = []( const Point3D& x ) { return 1; };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
    auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( linearFunc0 );
@@ -377,22 +377,22 @@ void testDiffusion( uint_t maxLevel )
 
    MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
 
-//   auto ff = []( const Point3D& p ) {
-//      Matrix3r mat;
-//      mat( 0, 0 ) = .34;
-//      mat( 0, 1 ) = .678;
-//      mat( 0, 2 ) = 0;
-//
-//      mat( 1, 0 ) = .282;
-//      mat( 1, 1 ) = .35353;
-//      mat( 1, 2 ) = 0;
-//
-//      mat( 2, 0 ) = 0;
-//      mat( 2, 1 ) = 0;
-//      mat( 2, 2 ) = 0;
-//
-//      return mat.mul( p );
-//   };
+   auto ff = []( const Point3D& p ) {
+      Matrix3r mat;
+      mat( 0, 0 ) = .34;
+      mat( 0, 1 ) = .678;
+      mat( 0, 2 ) = 0;
+
+      mat( 1, 0 ) = .282;
+      mat( 1, 1 ) = .35353;
+      mat( 1, 2 ) = 0;
+
+      mat( 2, 0 ) = 0;
+      mat( 2, 1 ) = 0;
+      mat( 2, 2 ) = 0;
+
+      return mat.mul( p );
+   };
 
    // meshInfo.applyCoordinateMap( ff );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
