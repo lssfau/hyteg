@@ -114,6 +114,15 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
       vtkOutput2.write( maxLevel );
    }
 
+   // Construction from vector of pointers
+   using sType = typename vfType::VectorComponentType;
+   std::vector< std::shared_ptr< sType > > compFuncs;
+   compFuncs.push_back( std::make_shared< sType >( "scalarFunc1", storage, minLevel, maxLevel ) );
+   compFuncs.push_back( std::make_shared< sType >( "scalarFunc2", storage, minLevel, maxLevel ) );
+   timer["pointer c'tor"].start();
+   vfType tmpVec( "tmpVec", compFuncs );
+   timer["pointer c'tor"].end();
+
    WALBERLA_LOG_INFO_ON_ROOT( timer );
 }
 

@@ -23,6 +23,7 @@
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -114,6 +115,33 @@ class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, Dst
  protected:
    std::vector< std::vector< std::shared_ptr< scalarOpType > > > subOper_;
    uint_t                                                        dim_;
+
+   std::shared_ptr< SrcVecFuncType > extractDiagonal() const
+   {
+      // operator must map between the same spaces
+      bool consistent = std::is_same< SrcVecFuncType, DstVecFuncType >::value;
+      WALBERLA_UNUSED( consistent );
+      WALBERLA_ASSERT( consistent );
+
+      using subType = typename SrcVecFuncType::VectorComponentType;
+      std::vector< std::shared_ptr< subType > > diags;
+
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         if ( const auto* A_with_inv_diag =
+                  dynamic_cast< const OperatorWithInverseDiagonal< subType >* >( subOper_[i][i].get() ) )
+         {
+            diags.push_back( A_with_inv_diag->getInverseDiagonalValues() );
+         }
+         else
+         {
+            throw std::runtime_error(
+                "Diagonal extraction from VectorToVectorOperator requires sub-operators with the OperatorWithInverseDiagonal interface." );
+         }
+      }
+
+      return std::make_shared< SrcVecFuncType >( "diagonal operator part", diags );
+   }
 };
 
 } // namespace hyteg
