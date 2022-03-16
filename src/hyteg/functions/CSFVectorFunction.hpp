@@ -47,6 +47,11 @@ class CSFVectorFunction
    : functionName_( name )
    {}
 
+   CSFVectorFunction( const std::string name, const std::vector< std::shared_ptr< VectorComponentType > >& compFunc )
+   : functionName_( name )
+   , compFunc_( compFunc )
+   {}
+
    /// @name Query Functions
    /// Methods for questioning object for certain properties
    /// @{
