@@ -40,7 +40,7 @@ namespace hyteg {
 static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > > & expectedValues, const indexing::FaceBoundaryDirection & faceBorderDirection,
                                     const uint_t & width, const uint_t & offsetToCenter, const uint_t & offsetFromVertices )
 {
-  std::vector< std::array< int, 2 > > iteratorResult;
+  std::vector< std::array< idx_t, 2 > > iteratorResult;
 
   for ( const auto & it : indexing::FaceBoundaryIterator( width, faceBorderDirection, offsetToCenter, offsetFromVertices ) )
   {
@@ -58,7 +58,7 @@ static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > >
 
 static void testCellIterator( const std::vector< std::array< uint_t, 3 > > & expectedValues, const uint_t & width, const uint_t & offsetToCenter )
 {
-  std::vector< std::array< int, 3 > > iteratorResult;
+  std::vector< std::array< idx_t, 3 > > iteratorResult;
 
   for ( const auto & it : indexing::CellIterator( width, offsetToCenter ) )
   {
@@ -78,7 +78,7 @@ static void testCellIterator( const std::vector< std::array< uint_t, 3 > > & exp
 static void testCellBorderIterator( const std::vector< std::array< uint_t, 3 > > & expectedValues, const uint_t & width,
                                     const std::array< uint_t, 3 > & vertices, const uint_t & offsetToCenter = 0 )
 {
-  std::vector< std::array< int, 3 > > iteratorResult;
+  std::vector< std::array< idx_t, 3 > > iteratorResult;
 
   for ( const auto & it : indexing::CellBoundaryIterator( width, vertices, offsetToCenter ) )
   {
