@@ -165,7 +165,7 @@ real_t testDirichlet( uint_t level, int degree )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) { return 0; };
+   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
    auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc );

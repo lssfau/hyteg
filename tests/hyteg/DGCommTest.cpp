@@ -128,7 +128,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 //////////////////// GRAY CELL //////////////////////
       idxCounter = 0;
       auto it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
-                                                  face.edge_orientation[face.edge_index(edge->getID())],
+                                                  face.getEdgeOrientation()[face.edge_index(edge->getID())],
                                                   facedof::macroface::CELL_GRAY,
                                                   maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){
@@ -148,7 +148,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 //////////////////// BLUE CELL //////////////////////
       idxCounter = 0;
       it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
-                                             face.edge_orientation[face.edge_index(edge->getID())],
+                                             face.getEdgeOrientation()[face.edge_index(edge->getID())],
                                              facedof::macroface::CELL_BLUE,
                                              maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){

@@ -80,11 +80,11 @@ int main(int argc, char **argv)
   for(auto faceIter : storage->getFaces())
   {
     auto face = faceIter.second;
-    value = face->coords[0][0] * 2 + face->coords[0][0];
+    value = face->getCoordinates()[0][0] * 2 + face->getCoordinates()[0][0];
 //    Edge *faceEdge0 = storage->getEdge(face->getEdgeID0().getID());
 //    Edge *faceEdge1 = storage->getEdge(face->getEdgeID1().getID());
-    xStepSize = walberla::real_c(face->coords[1][0] - face->coords[0][0]) / walberla::real_c((v_perEdge-1));
-    yStepSize = walberla::real_c(face->coords[2][1] - face->coords[0][1]) / walberla::real_c((v_perEdge-1));
+    xStepSize = walberla::real_c(face->getCoordinates()[1][0] - face->getCoordinates()[0][0]) / walberla::real_c((v_perEdge-1));
+    yStepSize = walberla::real_c(face->getCoordinates()[2][1] - face->getCoordinates()[0][1]) / walberla::real_c((v_perEdge-1));
 
     vertexdof::macroface::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
