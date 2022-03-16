@@ -249,9 +249,9 @@ inline void applyVariableStencil(uint_t Level,
 
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-   Point3D dS_se = h * ( faceS->coords[e_south] - faceS->coords[s_south] );
-   Point3D dS_so = h * ( faceS->coords[o_south] - faceS->coords[s_south] );
-   Point3D dS_oe = h * ( faceS->coords[e_south] - faceS->coords[o_south] );
+   Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
+   Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
+   Point3D dS_oe = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south] );
 
    Point3D dir_S  = -1.0 * dS_oe;
    Point3D dir_E  = dS_se;
@@ -274,8 +274,8 @@ inline void applyVariableStencil(uint_t Level,
       e_north = faceN->vertex_index( edge.neighborVertices()[1] );
       o_north = faceN->vertex_index( faceN->get_vertex_opposite_to_edge( edge.getID() ) );
 
-      Point3D dN_so = h * ( faceN->coords[o_north] - faceN->coords[s_north] );
-      Point3D dN_oe = h * ( faceN->coords[e_north] - faceN->coords[o_north] );
+      Point3D dN_so = h * ( faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north] );
+      Point3D dN_oe = h * ( faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north] );
 
       dir_N  = dN_so;
       dir_NW = -1.0 * dN_oe;
@@ -358,9 +358,9 @@ inline void smoothGSVariableStencil(uint_t Level,
 
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-   Point3D dS_se = h * ( faceS->coords[e_south] - faceS->coords[s_south] );
-   Point3D dS_so = h * ( faceS->coords[o_south] - faceS->coords[s_south] );
-   Point3D dS_oe = h * ( faceS->coords[e_south] - faceS->coords[o_south] );
+   Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
+   Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
+   Point3D dS_oe = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south] );
 
    Point3D dir_S  = -1.0 * dS_oe;
    Point3D dir_E  = dS_se;
@@ -383,8 +383,8 @@ inline void smoothGSVariableStencil(uint_t Level,
       e_north = faceN->vertex_index( edge.neighborVertices()[1] );
       o_north = faceN->vertex_index( faceN->get_vertex_opposite_to_edge( edge.getID() ) );
 
-      Point3D dN_so = h * ( faceN->coords[o_north] - faceN->coords[s_north] );
-      Point3D dN_oe = h * ( faceN->coords[e_north] - faceN->coords[o_north] );
+      Point3D dN_so = h * ( faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north] );
+      Point3D dN_oe = h * ( faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north] );
 
       dir_N  = dN_so;
       dir_NW = -1.0 * dN_oe;
@@ -478,11 +478,11 @@ inline void applyVariableStencil(uint_t level,
       uint_t                     v_i       = face->vertex_index( vertex.getID() );
       std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-      x = face->coords[v_i];
+      x = face->getCoordinates()[v_i];
       d0 =
-          ( face->coords[face->vertex_index( storage->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          ( face->getCoordinates()[face->vertex_index( storage->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
       d2 =
-          ( face->coords[face->vertex_index( storage->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          ( face->getCoordinates()[face->vertex_index( storage->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
 
       Point3D matrixRow;
       form.integrate( {{x, x + d0, x + d2}}, matrixRow );
@@ -549,11 +549,11 @@ inline void smoothGSVariableStencil(uint_t level,
       uint_t                     v_i       = face->vertex_index( vertex.getID() );
       std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-      x = face->coords[v_i];
+      x = face->getCoordinates()[v_i];
       d0 =
-          ( face->coords[face->vertex_index( storage->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          ( face->getCoordinates()[face->vertex_index( storage->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
       d2 =
-          ( face->coords[face->vertex_index( storage->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          ( face->getCoordinates()[face->vertex_index( storage->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
 
       Point3D matrixRow;
       form.integrate( {{x, x + d0, x + d2}}, matrixRow );

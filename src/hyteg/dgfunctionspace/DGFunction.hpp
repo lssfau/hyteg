@@ -56,7 +56,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
                const std::shared_ptr< DGBasisInfo >&      basis,
-               int                                        initialPolyDegree,
+               uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
