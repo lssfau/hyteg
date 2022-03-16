@@ -142,7 +142,7 @@ void VTKP1Writer::writeScalarFunction( std::ostream&                            
 
          for ( const auto& idxIt : vertexdof::macrocell::Iterator( level ) )
          {
-            streamWriter << cellData[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
+            streamWriter << cellData[vertexdof::macrocell::index( level, uint_c( idxIt.x() ), uint_c( idxIt.y() ), uint_c( idxIt.z() ) )];
          }
       }
    }

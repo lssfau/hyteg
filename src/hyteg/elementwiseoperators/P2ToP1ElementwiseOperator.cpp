@@ -22,6 +22,8 @@
 
 namespace hyteg {
 
+using walberla::int_c;
+
 template < class P2toP1Form >
 P2ToP1ElementwiseOperator< P2toP1Form >::P2ToP1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                     size_t                                     minLevel,
@@ -517,7 +519,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
    P2toP1Form               form;
 
    // determine vertices of micro-element
-   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
+   nodeIdx = indexing::Index( int_c( xIdx ), int_c( yIdx ), 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
    v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );

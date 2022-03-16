@@ -132,30 +132,30 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
                {
                   streamWriter << face.getData( function.getVertexDoFFunction().getFaceDataID() )
                                       ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                                          level, uint_c( uint_c( it.col() ) ) / 2, uint_c( uint_c( it.row() ) ) / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
                   streamWriter
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                                 level )[edgedof::macroface::horizontalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, uint_c( it.row() ) / 2 )];
                }
             }
             else
             {
-               if ( it.col() % 2 == 0 )
+               if ( uint_c( it.col() ) % 2 == 0 )
                {
                   streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                       ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                                          level )[edgedof::macroface::verticalIndex( level, uint_c( it.col() ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                }
                else
                {
                   streamWriter
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                                 level )[edgedof::macroface::diagonalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                }
             }
          }
@@ -241,44 +241,44 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                {
                   streamWriter << face.getData( function[0].getVertexDoFFunction().getFaceDataID() )
                                       ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                                          level, uint_c( it.col() ) / 2, uint_c( it.row() ) / 2, stencilDirection::VERTEX_C )];
                   streamWriter << face.getData( function[1].getVertexDoFFunction().getFaceDataID() )
                                       ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                                          level, uint_c( it.col() ) / 2, uint_c( it.row() ) / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
                   streamWriter
                       << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                                 level )[edgedof::macroface::horizontalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, uint_c( it.row() ) / 2 )];
                   streamWriter
                       << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                                 level )[edgedof::macroface::horizontalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, uint_c( it.row() ) / 2 )];
                }
             }
             else
             {
-               if ( it.col() % 2 == 0 )
+               if ( uint_c( it.col() ) % 2 == 0 )
                {
                   streamWriter << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                                       ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                                          level )[edgedof::macroface::verticalIndex( level, uint_c( it.col() ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                   streamWriter << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                                       ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                                          level )[edgedof::macroface::verticalIndex( level, uint_c( it.col() ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                }
                else
                {
                   streamWriter
                       << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                                 level )[edgedof::macroface::diagonalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                   streamWriter
                       << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                                 level )[edgedof::macroface::diagonalIndex( level, ( uint_c( it.col() ) - 1 ) / 2, ( uint_c( it.row() ) - 1 ) / 2 )];
                }
             }
          }
