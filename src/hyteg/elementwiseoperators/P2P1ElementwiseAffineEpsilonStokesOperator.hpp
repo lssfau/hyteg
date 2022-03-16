@@ -20,10 +20,9 @@
 #pragma once
 
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
+#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
@@ -39,15 +38,7 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
                                                uint_t                                     maxLevel,
                                                std::function< real_t( const Point3D& ) >  mu )
    : Operator( storage, minLevel, maxLevel )
-   , A_0_0( storage, minLevel, maxLevel, forms::p2_epsilonvar_0_0_affine_q2( mu, mu ) )
-   , A_0_1( storage, minLevel, maxLevel, forms::p2_epsilonvar_0_1_affine_q2( mu, mu ) )
-   , A_0_2( storage, minLevel, maxLevel, forms::p2_epsilonvar_0_2_affine_q2( mu ) )
-   , A_1_0( storage, minLevel, maxLevel, forms::p2_epsilonvar_1_0_affine_q2( mu, mu ) )
-   , A_1_1( storage, minLevel, maxLevel, forms::p2_epsilonvar_1_1_affine_q2( mu, mu ) )
-   , A_1_2( storage, minLevel, maxLevel, forms::p2_epsilonvar_1_2_affine_q2( mu ) )
-   , A_2_0( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_0_affine_q2( mu ) )
-   , A_2_1( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_1_affine_q2( mu ) )
-   , A_2_2( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_2_affine_q2( mu ) )
+   , viscOp( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
@@ -66,27 +57,7 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      A_0_0.apply( src.uvw()[0], dst.uvw()[0], level, flag );
-      A_0_1.apply( src.uvw()[1], dst.uvw()[0], level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         A_0_2.apply( src.uvw()[2], dst.uvw()[0], level, flag, Add );
-      }
-
-      A_1_0.apply( src.uvw()[0], dst.uvw()[1], level, flag );
-      A_1_1.apply( src.uvw()[1], dst.uvw()[1], level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         A_1_2.apply( src.uvw()[2], dst.uvw()[1], level, flag, Add );
-      }
-
-      if ( hasGlobalCells_ )
-      {
-         A_2_0.apply( src.uvw()[0], dst.uvw()[2], level, flag );
-         A_2_1.apply( src.uvw()[1], dst.uvw()[2], level, flag, Add );
-         A_2_2.apply( src.uvw()[2], dst.uvw()[2], level, flag, Add );
-      }
-
+      viscOp.apply( src.uvw(), dst.uvw(), level, flag );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
       div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
@@ -97,43 +68,12 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A_0_0.toMatrix( mat, src.uvw()[0], dst.uvw()[0], level, flag );
-      A_0_1.toMatrix( mat, src.uvw()[1], dst.uvw()[0], level, flag );
-      if ( src.getStorage()->hasGlobalCells() )
-      {
-         A_0_2.toMatrix( mat, src.uvw()[2], dst.uvw()[0], level, flag );
-      }
-
-      A_1_0.toMatrix( mat, src.uvw()[0], dst.uvw()[1], level, flag );
-      A_1_1.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
-      if ( src.getStorage()->hasGlobalCells() )
-      {
-         A_1_2.toMatrix( mat, src.uvw()[2], dst.uvw()[1], level, flag );
-      }
-
-      if ( src.getStorage()->hasGlobalCells() )
-      {
-         A_2_0.toMatrix( mat, src.uvw()[0], dst.uvw()[2], level, flag );
-         A_2_1.toMatrix( mat, src.uvw()[1], dst.uvw()[2], level, flag );
-         A_2_2.toMatrix( mat, src.uvw()[2], dst.uvw()[2], level, flag );
-      }
-
+      viscOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   P2ElementwiseOperator< forms::p2_epsilonvar_0_0_affine_q2 > A_0_0;
-   P2ElementwiseOperator< forms::p2_epsilonvar_0_1_affine_q2 > A_0_1;
-   P2ElementwiseOperator< forms::p2_epsilonvar_0_2_affine_q2 > A_0_2;
-
-   P2ElementwiseOperator< forms::p2_epsilonvar_1_0_affine_q2 > A_1_0;
-   P2ElementwiseOperator< forms::p2_epsilonvar_1_1_affine_q2 > A_1_1;
-   P2ElementwiseOperator< forms::p2_epsilonvar_1_2_affine_q2 > A_1_2;
-
-   P2ElementwiseOperator< forms::p2_epsilonvar_2_0_affine_q2 > A_2_0;
-   P2ElementwiseOperator< forms::p2_epsilonvar_2_1_affine_q2 > A_2_1;
-   P2ElementwiseOperator< forms::p2_epsilonvar_2_2_affine_q2 > A_2_2;
-
+   P2ElementwiseAffineEpsilonOperator viscOp;
    P2ToP1ElementwiseDivOperator  div;
    P1ToP2ElementwiseDivTOperator divT;
 
