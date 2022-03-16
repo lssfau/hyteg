@@ -64,16 +64,17 @@ class P1ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P1Vecto
       }
       else
       {
-         this->subOper_[0][0] = std::make_shared< P1ConstantEpsilonOperator_11 >( storage, minLevel, maxLevel );
-         this->subOper_[0][1] = std::make_shared< P1ConstantEpsilonOperator_12 >( storage, minLevel, maxLevel );
+         this->subOper_[0][0] = std::make_shared< eps_0_0 >( storage, minLevel, maxLevel );
+         this->subOper_[0][1] = std::make_shared< eps_0_1 >( storage, minLevel, maxLevel );
 
-         this->subOper_[1][0] = std::make_shared< P1ConstantEpsilonOperator_21 >( storage, minLevel, maxLevel );
-         this->subOper_[1][1] = std::make_shared< P1ConstantEpsilonOperator_22 >( storage, minLevel, maxLevel );
+         this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel );
+         this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel );
       }
    }
 };
 
-class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >
+class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >,
+                                           public OperatorWithInverseDiagonal< P1VectorFunction< real_t > >
 {
  public:
    P1ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -134,6 +135,11 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel, form_1_0 );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
+   }
+
+   std::shared_ptr< P1VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractDiagonal();
    }
 };
 
