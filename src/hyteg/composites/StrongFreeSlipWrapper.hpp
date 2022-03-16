@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -40,8 +40,8 @@ namespace hyteg {
 ///
 /// Usage Example:
 /// \code
-///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
-///     auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
+///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
+///     auto stokes = std::make_shared< hyteg::P1P1StokesOperator > ( storage, minLevel, maxLevel );
 ///     auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
 ///     auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
 ///     StokesOperator L( stokes, projection, FreeslipBoundary );

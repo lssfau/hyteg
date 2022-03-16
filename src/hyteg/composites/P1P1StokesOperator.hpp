@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,33 +19,37 @@
  */
 #pragma once
 
-#include "hyteg/composites/P2P2StokesFunction.hpp"
+#include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/operators/ScalarToVectorOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorToScalarOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
 
-class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t >, P2P2StokesFunction< real_t > >
+class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
-   typedef P2ConstantLaplaceOperator VelocityOperator_T;
-   typedef P2ConstantLaplaceOperator PressureOperator_T;
+   typedef P1ConstantVectorLaplaceOperator VelocityBlockOperator_T;
+   typedef P1ConstantLaplaceOperator       VelocityOperator_T;
+   typedef P1ConstantLaplaceOperator       PressureOperator_T;
+   typedef P1StokesBlockPreconditioner     BlockPreconditioner_T;
 
-   P2P2StabilizedStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P1P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   void apply( const P2P2StokesFunction< real_t >& src,
-               const P2P2StokesFunction< real_t >& dst,
-               const size_t                        level,
-               DoFType                             flag ) const
+   void apply( const P1StokesFunction< real_t >& src,
+               const P1StokesFunction< real_t >& dst,
+               const size_t                      level,
+               DoFType                           flag ) const
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -57,8 +61,8 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P2StokesFunction< idx_t >&          src,
-                  const P2P2StokesFunction< idx_t >&          dst,
+                  const P1StokesFunction< idx_t >&            src,
+                  const P1StokesFunction< idx_t >&            dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -69,22 +73,23 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
       pspg.toMatrix( mat, src.p(), dst.p(), level, flag | DirichletBoundary );
    }
 
-   const P2ConstantLaplaceOperator& getA() const
+   const P1ConstantLaplaceOperator& getA() const
    {
       auto ptr = lapl.getSubOperator( 0, 0 );
-      return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
+      return dynamic_cast< const P1ConstantLaplaceOperator& >( *ptr );
    }
 
-   P2ConstantVectorLaplaceOperator lapl;
-   P2ConstantDivOperator           div;
-   P2ConstantDivTOperator          divT;
-   P2ConstantPSPGOperator          pspg;
+   P1ConstantVectorLaplaceOperator lapl;
+   P1ConstantDivOperator           div;
+   P1ConstantDivTOperator          divT;
+   P1PSPGOperator                  pspg;
+   P1PSPGInvDiagOperator           pspg_inv_diag_;
 
    bool hasGlobalCells_;
 };
 
 template <>
-struct has_pspg_block< P2P2StabilizedStokesOperator >
+struct has_pspg_block< P1P1StokesOperator >
 {
    static const bool value = true;
 };

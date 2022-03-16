@@ -590,7 +590,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
    else
    {
       solveRHS0Implementation< P1StokesFunction,
-                               P1StokesOperator,
+                               P1P1StokesOperator,
                                P1ConstantMassOperator,
                                P1ConstantMassOperator,
                                P1P1StokesToP1P1StokesRestriction,

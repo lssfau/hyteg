@@ -24,40 +24,6 @@ namespace hyteg {
 using walberla::real_t;
 
 template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
-VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::VectorLaplaceOperator(
-    const std::shared_ptr< PrimitiveStorage >& storage,
-    size_t                                     minLevel,
-    size_t                                     maxLevel )
-: VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >( storage, minLevel, maxLevel )
-{
-   std::shared_ptr< SubOpType > zero( nullptr );
-   std::shared_ptr< SubOpType > lapl = std::make_shared< SubOpType >( storage, minLevel, maxLevel );
-
-   if ( this->dim_ == 3 )
-   {
-      this->subOper_[0][0] = lapl;
-      this->subOper_[0][1] = zero;
-      this->subOper_[0][2] = zero;
-
-      this->subOper_[1][0] = zero;
-      this->subOper_[1][1] = lapl;
-      this->subOper_[1][2] = zero;
-
-      this->subOper_[2][0] = zero;
-      this->subOper_[2][1] = zero;
-      this->subOper_[2][2] = lapl;
-   }
-   else
-   {
-      this->subOper_[0][0] = lapl;
-      this->subOper_[0][1] = zero;
-
-      this->subOper_[1][0] = zero;
-      this->subOper_[1][1] = lapl;
-   }
-}
-
-template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
 void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_jac( const VecFuncKind< ValueType >& dst,
                                                                              const VecFuncKind< ValueType >& rhs,
                                                                              const VecFuncKind< ValueType >& src,
@@ -147,11 +113,12 @@ void VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::smooth_sor_back
                                                                                        const VecFuncKind< ValueType >& rhs,
                                                                                        real_t                          relax,
                                                                                        size_t                          level,
-                                                                                       DoFType                         flag ) const
+                                                                                       DoFType flag ) const
 {
    for ( uint_t k = 0; k < this->dim_; ++k )
    {
-      if ( const auto* subOp = dynamic_cast< const SORBackwardsSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
+      if ( const auto* subOp =
+               dynamic_cast< const SORBackwardsSmoothable< typename SubOpType::srcType >* >( this->subOper_[k][k].get() ) )
       {
          subOp->smooth_sor_backwards( dst[k], rhs[k], relax, level, flag );
       }
@@ -184,5 +151,11 @@ template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLap
 
 // P2ElementwiseBlendingVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >;
+
+// P2BlendingVectorLaplaceOperator
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >;
+
+// P2SurrogateVectorLaplaceOperator
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator >;
 
 } // namespace hyteg

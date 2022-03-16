@@ -44,7 +44,7 @@
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp"   <-- see issue 159
 #include "hyteg/composites/P1StokesBlockLaplaceOperator.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
@@ -345,7 +345,7 @@ int main( int argc, char* argv[] )
 
    testAssembly< P1ConstantUnsteadyDiffusionOperator >( storage, level, "P1ConstantUnsteadyDiffusionOperator" );
 
-   testAssembly< P1StokesOperator >( storage, level, "P1StokesOperator" );
+   testAssembly< P1P1StokesOperator >( storage, level, "P1StokesOperator" );
    testAssembly< P2P1TaylorHoodStokesOperator >( storage, level, "P2P1TaylorHoodStokesOperator" );
    testAssembly< P2P2StabilizedStokesOperator >( storage, level, "P2P2StabilizedStokesOperator" );
 

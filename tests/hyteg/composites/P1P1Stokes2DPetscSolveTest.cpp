@@ -22,7 +22,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -62,7 +62,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   hyteg::P1StokesFunction< real_t >                      err( "err", storage, level, level );
   hyteg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
 
-  hyteg::P1StokesOperator A( storage, level, level );
+  hyteg::P1P1StokesOperator A( storage, level, level );
 
   std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * std::pow( xx[1], 3.0 ); };
   std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * std::pow( xx[0], 4.0 ) - real_c(5) * std::pow( xx[1], 4.0 ); };
@@ -98,7 +98,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P1StokesOperator > solver_1( storage, level );
+  PETScLUSolver< P1P1StokesOperator > solver_1( storage, level );
 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );

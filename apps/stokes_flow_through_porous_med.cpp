@@ -23,7 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

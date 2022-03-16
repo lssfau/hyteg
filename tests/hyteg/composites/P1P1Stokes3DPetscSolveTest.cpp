@@ -35,7 +35,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -70,7 +70,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   hyteg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
   hyteg::P1StokesFunction< real_t >                      nullspace( "nullspace", storage, level, level );
 
-  hyteg::P1StokesOperator A( storage, level, level );
+  hyteg::P1P1StokesOperator A( storage, level, level );
   hyteg::P1ConstantMassOperator   M( storage, level, level );
 
 #if 0
@@ -141,9 +141,9 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
   WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1 );
 
-  PETScLUSolver< P1StokesOperator > solver_0( storage, level );
-  PETScMinResSolver< P1StokesOperator > solver_1( storage, level );
-  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level, 1e-12 );
+  PETScLUSolver< P1P1StokesOperator > solver_0( storage, level );
+  PETScMinResSolver< P1P1StokesOperator > solver_1( storage, level );
+  PETScBlockPreconditionedStokesSolver< P1P1StokesOperator > solver_2( storage, level, 1e-12 );
 
   walberla::WcTimer timer;
   switch ( solverType )
