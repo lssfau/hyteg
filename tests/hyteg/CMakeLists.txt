@@ -44,8 +44,8 @@ waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG3DConvergenceTest> PROCESSES 2)
 
-waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1StokesBlockCGTest)
+waLBerla_compile_test(FILES convergence/P1VectorLaplaceCGTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1VectorLaplaceCGTest)
 
 #waLBerla_compile_test(FILES convergence/P1CGTensorVarcoeffConvergenceTest.cpp DEPENDS hyteg core)
 #waLBerla_execute_test(NAME P1CGTensorVarcoeffConvergenceTest)
