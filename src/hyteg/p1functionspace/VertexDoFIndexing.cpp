@@ -48,26 +48,26 @@ uint_t neighborCellGhostLayerSize( const uint_t& level )
    return levelinfo::num_microvertices_per_edge( level ) - 2;
 }
 
-uint_t index( const uint_t& level, const uint_t& x )
+uint_t index( const uint_t& level, const idx_t& x )
 {
    return hyteg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
 }
 
-uint_t innerIndex( const uint_t& level, const uint_t& x )
+uint_t innerIndex( const uint_t& level, const idx_t& x )
 {
    WALBERLA_ASSERT_GREATER( x, 0 );
    const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 2;
    return indexing::macroEdgeIndex( innerWidth, x - 1 );
 }
 
-uint_t indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor )
+uint_t indexOnNeighborFace( const uint_t& level, const idx_t& x, const uint_t& neighbor )
 {
    return hyteg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
           neighbor * hyteg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
           hyteg::indexing::macroEdgeIndex( neighborFaceGhostLayerSize( level ), x );
 }
 
-uint_t indexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& neighbor, const uint_t& numNeighborFaces )
+uint_t indexOnNeighborCell( const uint_t& level, const idx_t& x, const uint_t& neighbor, const uint_t& numNeighborFaces )
 {
    return hyteg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
           numNeighborFaces * hyteg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
@@ -75,7 +75,7 @@ uint_t indexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& 
           hyteg::indexing::macroEdgeIndex( neighborCellGhostLayerSize( level ), x );
 }
 
-uint_t indexFromVertexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& faceID, const stencilDirection& dir )
+uint_t indexFromVertexOnNeighborFace( const uint_t& level, const idx_t& x, const uint_t& faceID, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
    WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
@@ -90,14 +90,14 @@ uint_t indexFromVertexOnNeighborFace( const uint_t& level, const uint_t& x, cons
    }
 }
 
-uint_t indexFromVertexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& cellID, const uint_t& numNeighborFaces )
+uint_t indexFromVertexOnNeighborCell( const uint_t& level, const idx_t& x, const uint_t& cellID, const uint_t& numNeighborFaces )
 {
    WALBERLA_ASSERT_GREATER_EQUAL( x, 1, "The 0th edge idx has no cell neighbor." );
    WALBERLA_ASSERT_LESS_EQUAL( x, neighborCellGhostLayerSize( level ) );
    return indexOnNeighborCell( level, x - 1, cellID, numNeighborFaces );
 }
 
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const stencilDirection& dir )
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -174,7 +174,7 @@ uint_t stencilIndexOnNeighborCell( const uint_t& cellID, const uint_t& numNeighb
    return 3 + 2 * numNeighborFaces + cellID;
 }
 
-uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const stencilDirection& dir )
+uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& x, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -204,12 +204,12 @@ Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter, const boo
 
 namespace macroface {
 
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y )
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y )
 {
    return hyteg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
 }
 
-uint_t innerIndex( const uint_t& level, const uint_t& x, const uint_t& y )
+uint_t innerIndex( const uint_t& level, const idx_t& x, const idx_t& y )
 {
    WALBERLA_ASSERT_GREATER( x, 0 );
    WALBERLA_ASSERT_GREATER( y, 0 );
@@ -217,7 +217,7 @@ uint_t innerIndex( const uint_t& level, const uint_t& x, const uint_t& y )
    return indexing::macroFaceIndex( innerWidth, x - 1, y - 1 );
 }
 
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& neighbor )
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const uint_t& neighbor )
 {
    WALBERLA_ASSERT_LESS_EQUAL( neighbor, 1 );
 
@@ -226,7 +226,7 @@ uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_
           hyteg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x, y );
 }
 
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -279,7 +279,7 @@ uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, c
    }
 }
 
-uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -298,7 +298,7 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const uint
    }
 }
 
-uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromDiagonalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -317,7 +317,7 @@ uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& x, const uint_t
    }
 }
 
-uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromVerticalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -336,7 +336,7 @@ uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& x, const uint_t
    }
 }
 
-uint_t indexFromGrayFace( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromGrayFace( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -353,7 +353,7 @@ uint_t indexFromGrayFace( const uint_t& level, const uint_t& x, const uint_t& y,
    }
 }
 
-uint_t indexFromBlueFace( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
+uint_t indexFromBlueFace( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
@@ -408,12 +408,12 @@ BoundaryIterator::BoundaryIterator( const uint_t&                               
 
 namespace macrocell {
 
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return hyteg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
 }
 
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const stencilDirection& dir )
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
