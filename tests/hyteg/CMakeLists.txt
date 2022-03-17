@@ -534,7 +534,7 @@ waLBerla_execute_test(NAME DGMinMaxTest)
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
 
-waLBerla_compile_test(FILES SmoothableTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SmoothableTest)
 
 waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS hyteg core)
