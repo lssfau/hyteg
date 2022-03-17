@@ -19,7 +19,7 @@
  */
 #include <core/math/Constants.h>
 
-#include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
+#include "hyteg/dgfunctionspace_old/DGUpwindOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -121,11 +121,11 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< real_t > res( "res", storage, minLevel, maxLevel );
    hyteg::P1Function< real_t > ones( "ones", storage, minLevel, maxLevel );
 
-   auto u_dg = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   auto u_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
    hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hyteg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );

@@ -46,9 +46,9 @@ inline void interpolateStdFunction( Face&                                       
    uint_t                       rowsize    = levelinfo::num_microvertices_per_edge( Level );
    Point3D                      x, x0;
    auto                         dstPtr = faceMemory->getPointer( Level );
-   x0                                  = face.coords[0];
-   Point3D d0                          = ( face.coords[1] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
-   Point3D d2                          = ( face.coords[2] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   x0                                  = face.getCoordinates()[0];
+   Point3D d0                          = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d2                          = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
    uint_t  inner_rowsize               = rowsize;
 
    for( uint_t i = 1; i < rowsize - 2; ++i )
@@ -74,9 +74,9 @@ inline void
    uint_t                       rowsize    = levelinfo::num_microvertices_per_edge( Level );
    Point3D                      x, x0;
    auto                         dstPtr = faceMemory->getPointer( Level );
-   x0                                  = face.coords[0];
-   Point3D d0                          = ( face.coords[1] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
-   Point3D d2                          = ( face.coords[2] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   x0                                  = face.getCoordinates()[0];
+   Point3D d0                          = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d2                          = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
    uint_t  inner_rowsize               = rowsize;
 
    for( uint_t i = 1; i < rowsize - 2; ++i )
@@ -103,9 +103,9 @@ inline void interpolateFunctor( Face&                                           
    uint_t                       rowsize    = levelinfo::num_microvertices_per_edge( Level );
    Point3D                      x, x0;
    auto                         dstPtr = faceMemory->getPointer( Level );
-   x0                                  = face.coords[0];
-   Point3D d0                          = ( face.coords[1] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
-   Point3D d2                          = ( face.coords[2] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   x0                                  = face.getCoordinates()[0];
+   Point3D d0                          = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d2                          = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
    uint_t  inner_rowsize               = rowsize;
 
    for( uint_t i = 1; i < rowsize - 2; ++i )
@@ -130,9 +130,9 @@ inline void interpolateWithoutFunction( Face& face, const PrimitiveDataID< Funct
    uint_t                       rowsize    = levelinfo::num_microvertices_per_edge( Level );
    Point3D                      x, x0;
    auto                         dstPtr = faceMemory->getPointer( Level );
-   x0                                  = face.coords[0];
-   Point3D d0                          = ( face.coords[1] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
-   Point3D d2                          = ( face.coords[2] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   x0                                  = face.getCoordinates()[0];
+   Point3D d0                          = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d2                          = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
 
    uint_t inner_rowsize = rowsize;
 
