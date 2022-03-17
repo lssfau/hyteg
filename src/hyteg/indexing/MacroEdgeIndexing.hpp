@@ -37,10 +37,10 @@ constexpr uint_t linearMacroEdgeSize( const uint_t & width )
 }
 
 /// General linear memory layout indexing function for macro edges
-constexpr uint_t linearMacroEdgeIndex( const uint_t & width, const uint_t & x )
+constexpr uint_t linearMacroEdgeIndex( const uint_t & width, const idx_t & x )
 {
   WALBERLA_UNUSED( width );
-  return x;
+  return uint_t( x );
 }
 
 }
@@ -52,7 +52,7 @@ constexpr uint_t macroEdgeSize( const uint_t & width )
 }
 
 
-constexpr uint_t macroEdgeIndex( const uint_t & width, const uint_t & x )
+constexpr uint_t macroEdgeIndex( const uint_t & width, const idx_t & x )
 {
   return layout::linearMacroEdgeIndex( width, x );
 }

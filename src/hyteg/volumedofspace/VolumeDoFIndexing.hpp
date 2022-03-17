@@ -64,13 +64,8 @@ inline constexpr uint_t levelToWidth( uint_t level )
 /// \param memLayout specifies the memory layout for which the array index is computed
 ///
 /// \return array index
-inline constexpr uint_t index( uint_t                x,
-                               uint_t                y,
-                               facedof::FaceType     faceType,
-                               uint_t                dof,
-                               uint_t                ndofs,
-                               uint_t                level,
-                               VolumeDoFMemoryLayout memLayout )
+inline constexpr uint_t
+    index( idx_t x, idx_t y, facedof::FaceType faceType, uint_t dof, uint_t ndofs, uint_t level, VolumeDoFMemoryLayout memLayout )
 {
    const auto numMicroVolumes = levelinfo::num_microfaces_per_face( level );
 
@@ -108,7 +103,7 @@ inline constexpr uint_t index( uint_t                x,
 /// \param memLayout   specifies the memory layout for which the array index is computed
 ///
 /// \return array index
-inline uint_t indexGhostLayerDirectly( uint_t x, uint_t dof, uint_t ndofs, uint_t level, VolumeDoFMemoryLayout memLayout )
+inline uint_t indexGhostLayerDirectly( idx_t x, uint_t dof, uint_t ndofs, uint_t level, VolumeDoFMemoryLayout memLayout )
 {
    const auto numMicroVolumes = levelinfo::num_microedges_per_edge( level );
    const auto microVolume     = hyteg::indexing::macroEdgeIndex( numMicroVolumes, x );
@@ -154,8 +149,8 @@ inline uint_t indexGhostLayerDirectly( uint_t x, uint_t dof, uint_t ndofs, uint_
 ///
 /// \return array index
 inline uint_t indexGhostLayer( uint_t                localEdgeID,
-                               uint_t                x,
-                               uint_t                y,
+                               idx_t                 x,
+                               idx_t                 y,
                                facedof::FaceType     faceType,
                                uint_t                dof,
                                uint_t                ndofs,

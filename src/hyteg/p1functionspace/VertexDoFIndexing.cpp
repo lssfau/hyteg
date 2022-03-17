@@ -380,7 +380,7 @@ bool isVertexOnBoundary( const uint_t& level, const hyteg::indexing::Index& idx 
    {
       return true;
    }
-   else if ( ( idx.row() + idx.col() ) == hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 )
+   else if ( ( idx.row() + idx.col() ) == idx_t( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
    {
       return true;
    }

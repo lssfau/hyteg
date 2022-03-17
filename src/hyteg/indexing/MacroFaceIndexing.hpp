@@ -42,10 +42,10 @@ inline constexpr uint_t linearMacroFaceSize( const uint_t& width )
 }
 
 /// General linear memory layout indexing function for macro faces
-inline constexpr uint_t linearMacroFaceIndex( const uint_t& width, const uint_t& x, const uint_t& y )
+inline constexpr uint_t linearMacroFaceIndex( const uint_t& width, const idx_t& x, const idx_t& y )
 {
-   const uint_t rowOffset = y * ( width + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
-   return rowOffset + x;
+   const idx_t rowOffset = y * ( idx_t( width ) + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
+   return uint_t( rowOffset + x );
 }
 
 } // namespace layout
@@ -55,7 +55,7 @@ inline constexpr uint_t macroFaceSize( const uint_t& width )
    return layout::linearMacroFaceSize( width );
 }
 
-inline constexpr uint_t macroFaceIndex( const uint_t& width, const uint_t& x, const uint_t& y )
+inline constexpr uint_t macroFaceIndex( const uint_t& width, const idx_t& x, const idx_t& y )
 {
    return layout::linearMacroFaceIndex( width, x, y );
 }

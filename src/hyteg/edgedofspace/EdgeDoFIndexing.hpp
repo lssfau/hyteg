@@ -25,8 +25,8 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
@@ -55,26 +55,26 @@ const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = {
     EdgeDoFOrientation::XYZ,
 };
 
-const std::array< EdgeDoFOrientation, 3 > faceLocalEdgeDoFOrientations = {EdgeDoFOrientation::X,
-                                                                          EdgeDoFOrientation::Y,
-                                                                          EdgeDoFOrientation::XY};
+const std::array< EdgeDoFOrientation, 3 > faceLocalEdgeDoFOrientations = { EdgeDoFOrientation::X,
+                                                                           EdgeDoFOrientation::Y,
+                                                                           EdgeDoFOrientation::XY };
 
-const std::array< EdgeDoFOrientation, 6 > allEdgeDoFOrientationsWithoutXYZ = {EdgeDoFOrientation::X,
-                                                                              EdgeDoFOrientation::Y,
-                                                                              EdgeDoFOrientation::Z,
-                                                                              EdgeDoFOrientation::XY,
-                                                                              EdgeDoFOrientation::XZ,
-                                                                              EdgeDoFOrientation::YZ};
+const std::array< EdgeDoFOrientation, 6 > allEdgeDoFOrientationsWithoutXYZ = { EdgeDoFOrientation::X,
+                                                                               EdgeDoFOrientation::Y,
+                                                                               EdgeDoFOrientation::Z,
+                                                                               EdgeDoFOrientation::XY,
+                                                                               EdgeDoFOrientation::XZ,
+                                                                               EdgeDoFOrientation::YZ };
 
 const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
-    {EdgeDoFOrientation::X, "X"},
-    {EdgeDoFOrientation::Y, "Y"},
-    {EdgeDoFOrientation::Z, "Z"},
-    {EdgeDoFOrientation::XY, "XY"},
-    {EdgeDoFOrientation::XZ, "XZ"},
-    {EdgeDoFOrientation::YZ, "YZ"},
-    {EdgeDoFOrientation::XYZ, "XYZ"},
-    {EdgeDoFOrientation::INVALID, "INVALID"},
+    { EdgeDoFOrientation::X, "X" },
+    { EdgeDoFOrientation::Y, "Y" },
+    { EdgeDoFOrientation::Z, "Z" },
+    { EdgeDoFOrientation::XY, "XY" },
+    { EdgeDoFOrientation::XZ, "XZ" },
+    { EdgeDoFOrientation::YZ, "YZ" },
+    { EdgeDoFOrientation::XYZ, "XYZ" },
+    { EdgeDoFOrientation::INVALID, "INVALID" },
 };
 
 inline std::ostream& operator<<( std::ostream& out, const EdgeDoFOrientation ornt )
@@ -173,7 +173,7 @@ inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices
        indexing::IndexIncrement(
            std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ),
        indexing::IndexIncrement(
-           std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() )};
+           std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ) };
    vertexIndices[0] = indexing::IndexIncrement( 0, 0, 0 );
 
    switch ( orientation )
@@ -324,7 +324,7 @@ inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrie
                                                                const uint_t&             cellLocalID1,
                                                                const uint_t&             cellLocalID2 )
 {
-   uint_t                     v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
+   uint_t                            v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
    static std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;
    cellLocalToFaceLocalIDs[cellLocalID0] = 0;
    cellLocalToFaceLocalIDs[cellLocalID1] = 1;
@@ -361,7 +361,7 @@ namespace macroedge {
 typedef stencilDirection sD;
 
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
-inline constexpr uint_t index( const uint_t& level, const uint_t& x )
+inline constexpr uint_t index( const uint_t& level, const idx_t& x )
 {
    return ::hyteg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), x );
 }
@@ -380,10 +380,10 @@ inline uint_t
 
    WALBERLA_DEBUG_SECTION()
    {
-     if ( level == 0 )
-     {
-       WALBERLA_ASSERT( orientation != EdgeDoFOrientation::X );
-     }
+      if ( level == 0 )
+      {
+         WALBERLA_ASSERT( orientation != EdgeDoFOrientation::X );
+      }
    }
 
    const uint_t numHorizontalDoFsOnEdge       = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
@@ -392,20 +392,17 @@ inline uint_t
 
    switch ( orientation )
    {
-   case EdgeDoFOrientation::X:
-   {
+   case EdgeDoFOrientation::X: {
       const uint_t offset =
           numHorizontalDoFsOnEdge + neighbor * ( numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer );
       return offset + index( level, x );
    }
-   case EdgeDoFOrientation::Y:
-   {
+   case EdgeDoFOrientation::Y: {
       const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer +
                             neighbor * ( numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer );
       return offset + x;
    }
-   case EdgeDoFOrientation::XY:
-   {
+   case EdgeDoFOrientation::XY: {
       const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer +
                             neighbor * ( numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer );
       return offset + x;
@@ -426,16 +423,16 @@ inline uint_t
 /// \param numNeighborFaces Number of neighboring faces
 /// \param orientation of the desired micro-edge
 inline uint_t indexOnNeighborCell( const uint_t&             level,
-                                   const uint_t&             x,
+                                   const idx_t&              x,
                                    const uint_t&             neighbor,
                                    const uint_t&             numNeighborFaces,
                                    const EdgeDoFOrientation& orientation )
 {
    if ( level == 0 )
    {
-     WALBERLA_ASSERT_EQUAL( orientation, EdgeDoFOrientation::YZ );
-     WALBERLA_ASSERT_EQUAL( x, 0 );
-     return 1 + 2 * numNeighborFaces + neighbor;
+      WALBERLA_ASSERT_EQUAL( orientation, EdgeDoFOrientation::YZ );
+      WALBERLA_ASSERT_EQUAL( x, 0 );
+      return 1 + 2 * numNeighborFaces + neighbor;
    }
 
    const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) +
@@ -549,15 +546,15 @@ inline uint_t indexFromVertex( const uint_t& level, const uint_t& col, const ste
    }
 }
 
-constexpr std::array< stencilDirection, 2 > neighborsOnEdgeFromVertex      = {{sD::EDGE_HO_E, sD::EDGE_HO_W}};
+constexpr std::array< stencilDirection, 2 > neighborsOnEdgeFromVertex      = { { sD::EDGE_HO_E, sD::EDGE_HO_W } };
 constexpr std::array< stencilDirection, 5 > neighborsOnSouthFaceFromVertex = {
-    {sD::EDGE_DI_SW, sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE}};
+    { sD::EDGE_DI_SW, sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE } };
 constexpr std::array< stencilDirection, 5 > neighborsOnNorthFaceFromVertex = {
-    {sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW, sD::EDGE_DI_NW, sD::EDGE_VE_NW}};
+    { sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW, sD::EDGE_DI_NW, sD::EDGE_VE_NW } };
 
-constexpr std::array< stencilDirection, 1 > neighborsOnEdgeFromHorizontalEdge      = {{sD::EDGE_HO_C}};
-constexpr std::array< stencilDirection, 2 > neighborsOnSouthFaceFromHorizontalEdge = {{sD::EDGE_DI_S, sD::EDGE_VE_SE}};
-constexpr std::array< stencilDirection, 2 > neighborsOnNorthFaceFromHorizontalEdge = {{sD::EDGE_DI_N, sD::EDGE_VE_NW}};
+constexpr std::array< stencilDirection, 1 > neighborsOnEdgeFromHorizontalEdge      = { { sD::EDGE_HO_C } };
+constexpr std::array< stencilDirection, 2 > neighborsOnSouthFaceFromHorizontalEdge = { { sD::EDGE_DI_S, sD::EDGE_VE_SE } };
+constexpr std::array< stencilDirection, 2 > neighborsOnNorthFaceFromHorizontalEdge = { { sD::EDGE_DI_N, sD::EDGE_VE_NW } };
 
 class Iterator : public indexing::EdgeIterator
 {
@@ -580,7 +577,7 @@ namespace macroface {
 typedef stencilDirection sD;
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-inline uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const EdgeDoFOrientation& orientation )
+inline uint_t index( const idx_t& level, const idx_t& x, const idx_t& y, const EdgeDoFOrientation& orientation )
 {
    switch ( orientation )
    {
@@ -691,10 +688,10 @@ inline uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& col, c
 }
 
 constexpr std::array< stencilDirection, 5 > neighborsFromHorizontalEdge = {
-    {sD::EDGE_HO_C, sD::EDGE_DI_S, sD::EDGE_VE_SE, sD::EDGE_DI_N, sD::EDGE_VE_NW}};
+    { sD::EDGE_HO_C, sD::EDGE_DI_S, sD::EDGE_VE_SE, sD::EDGE_DI_N, sD::EDGE_VE_NW } };
 
 constexpr std::array< stencilDirection, 4 > neighborsFromHorizontalEdgeWithoutCenter = {
-    {sD::EDGE_DI_S, sD::EDGE_VE_SE, sD::EDGE_DI_N, sD::EDGE_VE_NW}};
+    { sD::EDGE_DI_S, sD::EDGE_VE_SE, sD::EDGE_DI_N, sD::EDGE_VE_NW } };
 
 inline uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
 {
@@ -717,10 +714,10 @@ inline uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& col, con
 }
 
 constexpr std::array< stencilDirection, 5 > neighborsFromDiagonalEdge = {
-    {sD::EDGE_DI_C, sD::EDGE_HO_S, sD::EDGE_VE_E, sD::EDGE_HO_N, sD::EDGE_VE_W}};
+    { sD::EDGE_DI_C, sD::EDGE_HO_S, sD::EDGE_VE_E, sD::EDGE_HO_N, sD::EDGE_VE_W } };
 
 constexpr std::array< stencilDirection, 4 > neighborsFromDiagonalEdgeWithoutCenter = {
-    {sD::EDGE_HO_S, sD::EDGE_VE_E, sD::EDGE_HO_N, sD::EDGE_VE_W}};
+    { sD::EDGE_HO_S, sD::EDGE_VE_E, sD::EDGE_HO_N, sD::EDGE_VE_W } };
 
 inline uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
 {
@@ -743,10 +740,10 @@ inline uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& col, con
 }
 
 constexpr std::array< stencilDirection, 5 > neighborsFromVerticalEdge = {
-    {sD::EDGE_VE_C, sD::EDGE_HO_SE, sD::EDGE_DI_E, sD::EDGE_HO_NW, sD::EDGE_DI_W}};
+    { sD::EDGE_VE_C, sD::EDGE_HO_SE, sD::EDGE_DI_E, sD::EDGE_HO_NW, sD::EDGE_DI_W } };
 
 constexpr std::array< stencilDirection, 4 > neighborsFromVerticalEdgeWithoutCenter = {
-    {sD::EDGE_HO_SE, sD::EDGE_DI_E, sD::EDGE_HO_NW, sD::EDGE_DI_W}};
+    { sD::EDGE_HO_SE, sD::EDGE_DI_E, sD::EDGE_HO_NW, sD::EDGE_DI_W } };
 
 inline uint_t indexFromVertex( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
 {
@@ -785,18 +782,18 @@ inline uint_t indexFromVertex( const uint_t& level, const uint_t& col, const uin
    }
 }
 
-constexpr std::array< stencilDirection, 12 > neighborsFromVertex = {{sD::EDGE_VE_S,
-                                                                     sD::EDGE_HO_SE,
-                                                                     sD::EDGE_DI_SE,
-                                                                     sD::EDGE_VE_SE,
-                                                                     sD::EDGE_HO_E,
-                                                                     sD::EDGE_DI_NE,
-                                                                     sD::EDGE_VE_N,
-                                                                     sD::EDGE_HO_NW,
-                                                                     sD::EDGE_DI_NW,
-                                                                     sD::EDGE_VE_NW,
-                                                                     sD::EDGE_HO_W,
-                                                                     sD::EDGE_DI_SW}};
+constexpr std::array< stencilDirection, 12 > neighborsFromVertex = { { sD::EDGE_VE_S,
+                                                                       sD::EDGE_HO_SE,
+                                                                       sD::EDGE_DI_SE,
+                                                                       sD::EDGE_VE_SE,
+                                                                       sD::EDGE_HO_E,
+                                                                       sD::EDGE_DI_NE,
+                                                                       sD::EDGE_VE_N,
+                                                                       sD::EDGE_HO_NW,
+                                                                       sD::EDGE_DI_NW,
+                                                                       sD::EDGE_VE_NW,
+                                                                       sD::EDGE_HO_W,
+                                                                       sD::EDGE_DI_SW } };
 
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are randomly chosen but need to be kept this way
@@ -1298,72 +1295,67 @@ constexpr inline uint_t stencilIndexFromVerticalEdge( const stencilDirection dir
 }
 
 /// Return data indices for the edge dofs of a given micro-cell in a macro-cell
-inline void getEdgeDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
-                                                const celldof::CellType & cellType,
-                                                const uint_t level,
-                                                std::array<uint_t, 6>& edgeDoFIndices )
+inline void getEdgeDoFDataIndicesFromMicroCell( const indexing::Index&   microCellIndex,
+                                                const celldof::CellType& cellType,
+                                                const uint_t             level,
+                                                std::array< uint_t, 6 >& edgeDoFIndices )
 {
-
-  // get indices of micro-vertices forming the micro-cell
-  std::array<indexing::Index, 4> verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
-
-  // loop over micro-vertex pairs
-  std::array< std::pair<uint_t, uint_t>, 6 > pairs = {
-    std::make_pair(0,1),
-    std::make_pair(0,2),
-    std::make_pair(0,3),
-    std::make_pair(1,2),
-    std::make_pair(1,3),
-    std::make_pair(2,3)
-  };
-
-  for( uint_t k = 0; k < 6; ++k ) {
-
-    // generate IndexIncrements for vertices in the current pair
-    uint_t n1 = pairs[k].first;
-    uint_t n2 = pairs[k].second;
-
-    indexing::IndexIncrement vertexIdx1( (int)verts[n1].x(), (int)verts[n1].y(), (int)verts[n1].z() );
-    indexing::IndexIncrement vertexIdx2( (int)verts[n2].x(), (int)verts[n2].y(), (int)verts[n2].z() );
-
-    // get edge orientation
-    EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
-    // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
-
-    // get index for this edgeDoF
-    indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
-
-    // finally get the data index of the edgeDoF
-    edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
-  }
-  
-}
-
-/// Return data indices for the edge dofs of a given micro-face in a macro-face
-inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::Index & microFaceIndex,
-                                                              const facedof::FaceType & faceType,
-                                                              const uint_t level,
-                                                              std::array<uint_t, 3>& edgeDoFIndices )
-{
-
    // get indices of micro-vertices forming the micro-cell
-   std::array<indexing::Index, 3> verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
 
    // loop over micro-vertex pairs
-   std::array< std::pair<uint_t, uint_t>, 3 > pairs = {
-       std::make_pair(1,2),
-       std::make_pair(0,2),
-       std::make_pair(0,1),
-   };
+   std::array< std::pair< uint_t, uint_t >, 6 > pairs = { std::make_pair( 0, 1 ),
+                                                          std::make_pair( 0, 2 ),
+                                                          std::make_pair( 0, 3 ),
+                                                          std::make_pair( 1, 2 ),
+                                                          std::make_pair( 1, 3 ),
+                                                          std::make_pair( 2, 3 ) };
 
-   for( uint_t k = 0; k < 3; ++k ) {
-
+   for ( uint_t k = 0; k < 6; ++k )
+   {
       // generate IndexIncrements for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 
-      indexing::IndexIncrement vertexIdx1( (int)verts[n1].x(), (int)verts[n1].y(), 0 );
-      indexing::IndexIncrement vertexIdx2( (int)verts[n2].x(), (int)verts[n2].y(), 0 );
+      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
+      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
+
+      // get edge orientation
+      EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
+      // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
+
+      // get index for this edgeDoF
+      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
+
+      // finally get the data index of the edgeDoF
+      edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
+   }
+}
+
+/// Return data indices for the edge dofs of a given micro-face in a macro-face
+inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::Index&   microFaceIndex,
+                                                              const facedof::FaceType& faceType,
+                                                              const uint_t             level,
+                                                              std::array< uint_t, 3 >& edgeDoFIndices )
+{
+   // get indices of micro-vertices forming the micro-cell
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+
+   // loop over micro-vertex pairs
+   std::array< std::pair< uint_t, uint_t >, 3 > pairs = {
+       std::make_pair( 1, 2 ),
+       std::make_pair( 0, 2 ),
+       std::make_pair( 0, 1 ),
+   };
+
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      // generate IndexIncrements for vertices in the current pair
+      uint_t n1 = pairs[k].first;
+      uint_t n2 = pairs[k].second;
+
+      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), 0 );
+      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), 0 );
 
       // get edge orientation
       EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
@@ -1374,49 +1366,44 @@ inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::In
       // finally get the data index of the edgeDoF
       edgeDoFIndices[k] = macroface::index( level, eIdx.x(), eIdx.y(), orientation );
    }
-
 }
 
 /// Return data indices for the edge dofs of a given micro-cell in a macro-cell
-inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index & microCellIndex,
-                                                              const celldof::CellType & cellType,
-                                                              const uint_t level,
-                                                              std::array<uint_t, 6>& edgeDoFIndices )
+inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
+                                                              const celldof::CellType& cellType,
+                                                              const uint_t             level,
+                                                              std::array< uint_t, 6 >& edgeDoFIndices )
 {
+   // get indices of micro-vertices forming the micro-cell
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
 
-  // get indices of micro-vertices forming the micro-cell
-  std::array<indexing::Index, 4> verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+   // loop over micro-vertex pairs
+   std::array< std::pair< uint_t, uint_t >, 6 > pairs = { std::make_pair( 2, 3 ),
+                                                          std::make_pair( 1, 3 ),
+                                                          std::make_pair( 1, 2 ),
+                                                          std::make_pair( 0, 3 ),
+                                                          std::make_pair( 0, 2 ),
+                                                          std::make_pair( 0, 1 ) };
 
-  // loop over micro-vertex pairs
-  std::array< std::pair<uint_t, uint_t>, 6 > pairs = {
-    std::make_pair(2,3),
-    std::make_pair(1,3),
-    std::make_pair(1,2),
-    std::make_pair(0,3),
-    std::make_pair(0,2),
-    std::make_pair(0,1)
-  };
+   for ( uint_t k = 0; k < 6; ++k )
+   {
+      // generate IndexIncrements for vertices in the current pair
+      uint_t n1 = pairs[k].first;
+      uint_t n2 = pairs[k].second;
 
-  for( uint_t k = 0; k < 6; ++k ) {
+      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
+      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
 
-    // generate IndexIncrements for vertices in the current pair
-    uint_t n1 = pairs[k].first;
-    uint_t n2 = pairs[k].second;
+      // get edge orientation
+      EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
+      // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
 
-    indexing::IndexIncrement vertexIdx1( (int)verts[n1].x(), (int)verts[n1].y(), (int)verts[n1].z() );
-    indexing::IndexIncrement vertexIdx2( (int)verts[n2].x(), (int)verts[n2].y(), (int)verts[n2].z() );
+      // get index for this edgeDoF
+      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
 
-    // get edge orientation
-    EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
-    // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
-
-    // get index for this edgeDoF
-    indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
-
-    // finally get the data index of the edgeDoF
-    edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
-  }
-  
+      // finally get the data index of the edgeDoF
+      edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
+   }
 }
 
 } // namespace edgedof
