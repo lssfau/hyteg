@@ -8,6 +8,7 @@ stages:
    - pretest
    - test
    - benchmark
+   - no_werror
 
 variables:
    GIT_SUBMODULE_STRATEGY: normal
@@ -34,7 +35,7 @@ variables:
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
       - cmake ..
-        -DWARNING_ERROR=ON
+        -DWARNING_ERROR=$WARNING_ERROR
         -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI
         -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
@@ -67,6 +68,7 @@ variables:
      WALBERLA_DOUBLE_ACCURACY: "ON"
      WALBERLA_BUILD_WITH_METIS: "ON"
      WALBERLA_BUILD_WITH_PARMETIS: "ON"
+     WARNING_ERROR: "ON"
 
 
 ###############################################################################
@@ -151,6 +153,22 @@ intel_19_mpionly_eigen_petsc_trilinos:
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+      - intel
+
+intel_19_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
    tags:
       - docker
       - intel
@@ -561,6 +579,21 @@ gcc_11_mpionly_eigen_petsc_trilinos:
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+
+gcc_11_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
    tags:
       - docker
 
@@ -1222,6 +1255,21 @@ clang_13.0_mpionly_eigen_petsc_trilinos:
    tags:
       - docker
 
+clang_13.0_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
+   tags:
+      - docker
+
 inteloneapi_22.1_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
@@ -1291,6 +1339,21 @@ inteloneapi_22.1_mpionly_eigen_petsc_trilinos:
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
    tags:
       - docker
 
