@@ -48,12 +48,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    , A_2_0( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_0_affine_q2( mu ) )
    , A_2_1( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_1_affine_q2( mu ) )
    , A_2_2( storage, minLevel, maxLevel, forms::p2_epsilonvar_2_2_affine_q2( mu ) )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -77,30 +73,22 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
          A_0_2.apply( src.uvw()[2], dst.uvw()[0], level, flag, Add );
       }
 
-      divT_x.apply( src.p(), dst.uvw()[0], level, flag, Add );
-
       A_1_0.apply( src.uvw()[0], dst.uvw()[1], level, flag );
       A_1_1.apply( src.uvw()[1], dst.uvw()[1], level, flag, Add );
       if ( hasGlobalCells_ )
       {
          A_1_2.apply( src.uvw()[2], dst.uvw()[1], level, flag, Add );
       }
-      divT_y.apply( src.p(), dst.uvw()[1], level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
          A_2_0.apply( src.uvw()[0], dst.uvw()[2], level, flag );
          A_2_1.apply( src.uvw()[1], dst.uvw()[2], level, flag, Add );
          A_2_2.apply( src.uvw()[2], dst.uvw()[2], level, flag, Add );
-         divT_z.apply( src.p(), dst.uvw()[2], level, flag, Add );
       }
 
-      div_x.apply( src.uvw()[0], dst.p(), level, flag );
-      div_y.apply( src.uvw()[1], dst.p(), level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw()[2], dst.p(), level, flag, Add );
-      }
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -115,7 +103,6 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
       {
          A_0_2.toMatrix( mat, src.uvw()[2], dst.uvw()[0], level, flag );
       }
-      divT_x.toMatrix( mat, src.p(), dst.uvw()[0], level, flag );
 
       A_1_0.toMatrix( mat, src.uvw()[0], dst.uvw()[1], level, flag );
       A_1_1.toMatrix( mat, src.uvw()[1], dst.uvw()[1], level, flag );
@@ -123,23 +110,16 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
       {
          A_1_2.toMatrix( mat, src.uvw()[2], dst.uvw()[1], level, flag );
       }
-      divT_y.toMatrix( mat, src.p(), dst.uvw()[1], level, flag );
 
       if ( src.getStorage()->hasGlobalCells() )
       {
          A_2_0.toMatrix( mat, src.uvw()[0], dst.uvw()[2], level, flag );
          A_2_1.toMatrix( mat, src.uvw()[1], dst.uvw()[2], level, flag );
          A_2_2.toMatrix( mat, src.uvw()[2], dst.uvw()[2], level, flag );
-
-         divT_z.toMatrix( mat, src.p(), dst.uvw()[2], level, flag );
       }
 
-      div_x.toMatrix( mat, src.uvw()[0], dst.p(), level, flag );
-      div_y.toMatrix( mat, src.uvw()[1], dst.p(), level, flag );
-      if ( src.getStorage()->hasGlobalCells() )
-      {
-         div_z.toMatrix( mat, src.uvw()[2], dst.p(), level, flag );
-      }
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
    P2ElementwiseOperator< forms::p2_epsilonvar_0_0_affine_q2 > A_0_0;
@@ -154,13 +134,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    P2ElementwiseOperator< forms::p2_epsilonvar_2_1_affine_q2 > A_2_1;
    P2ElementwiseOperator< forms::p2_epsilonvar_2_2_affine_q2 > A_2_2;
 
-   P2ToP1ElementwiseDivxOperator div_x;
-   P2ToP1ElementwiseDivyOperator div_y;
-   P2ToP1ElementwiseDivzOperator div_z;
-
-   P1ToP2ElementwiseDivTxOperator divT_x;
-   P1ToP2ElementwiseDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator divT_z;
+   P2ToP1ElementwiseDivOperator  div;
+   P1ToP2ElementwiseDivTOperator divT;
 
    bool hasGlobalCells_;
 };

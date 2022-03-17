@@ -1,0 +1,34 @@
+target_sources( hyteg
+    PRIVATE
+    p2_div_k_grad_affine_q4.hpp
+    p2_full_stokesvar_blending_q3.hpp
+    p2_epsilon_all_forms.hpp
+    p2_epsiloncc_blending_q3.hpp
+    p2_full_stokescc_affine_q3.cpp
+    p2_diffusion_blending_q3.hpp
+    p2_epsiloncc_blending_q2.hpp
+    p2_epsiloncc_affine_q2.cpp
+    p2_epsilonvar_affine_q2.hpp
+    p2_mass_affine_qe.cpp
+    p2_k_mass_affine_q4.hpp
+    p2_diffusion_affine_q2.cpp
+    p2_mass_blending_q4.hpp
+    p2_mass_blending_q5.hpp
+    p2_epsilonvar_blending_q2.cpp
+    p2_mass_affine_qe.hpp
+    p2_k_mass_affine_q4.cpp
+    p2_mass_blending_q4.cpp
+    p2_diffusion_affine_q2.hpp
+    p2_mass_blending_q5.cpp
+    p2_full_stokes_all_forms.hpp
+    p2_epsilonvar_blending_q2.hpp
+    p2_full_stokesvar_blending_q3.cpp
+    p2_div_k_grad_affine_q4.cpp
+    p2_epsiloncc_blending_q3.cpp
+    p2_full_stokescc_affine_q3.hpp
+    p2_diffusion_blending_q3.cpp
+    p2_epsiloncc_affine_q2.hpp
+    p2_epsiloncc_blending_q2.cpp
+    p2_epsilonvar_affine_q2.cpp     
+)
+

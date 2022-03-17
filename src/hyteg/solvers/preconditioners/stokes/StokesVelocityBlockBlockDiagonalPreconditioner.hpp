@@ -53,7 +53,7 @@ class StokesVelocityBlockBlockDiagonalPreconditioner : public Solver< OperatorTy
    {
       for ( uint_t k = 0; k < x.uvw().getDimension(); k++ )
       {
-         scalarVelocityPreconditioner_->solve( A.A, x.uvw()[k], b.uvw()[k], level );
+         scalarVelocityPreconditioner_->solve( A.getA(), x.uvw()[k], b.uvw()[k], level );
       }
    }
 

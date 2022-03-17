@@ -79,7 +79,14 @@ class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, Dst
       subOper_[i][j] = subOp;
    }
 
-   const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
+   const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j ) const
+   {
+      WALBERLA_ASSERT_LESS( i, dim_ );
+      WALBERLA_ASSERT_LESS( j, dim_ );
+      return subOper_[i][j];
+   }
+
+   std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
    {
       WALBERLA_ASSERT_LESS( i, dim_ );
       WALBERLA_ASSERT_LESS( j, dim_ );

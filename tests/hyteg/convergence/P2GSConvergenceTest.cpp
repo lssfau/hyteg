@@ -78,7 +78,10 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   p2function.interpolate(rand, level, hyteg::Inner);
   p2Exact.interpolate(exactFunction, level);
 
-  real_t begin_res, abs_res_old, rel_res, abs_res = 0;
+  real_t begin_res   = real_c( 0 );
+  real_t abs_res_old = real_c( 0 );
+  real_t rel_res     = real_c( 0 );
+  real_t abs_res     = real_c( 0 );
 
   WALBERLA_LOG_INFO_ON_ROOT( walberla::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
 

@@ -30,7 +30,7 @@
 #include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
@@ -720,9 +720,9 @@ void DCStokesRHSSetup( const std::shared_ptr< PrimitiveStorage >&,
 }
 
 template <>
-void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std::shared_ptr< PrimitiveStorage >& storage,
+void DCStokesRHSSetup< P1P1StokesOperator, P1StokesFunction< real_t > >( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                        const uint_t&                              p1Level,
-                                                                       const P1StokesOperator&           p1StokesOperator,
+                                                                       const P1P1StokesOperator&           p1StokesOperator,
                                                                        const P1StokesFunction< real_t >& u,
                                                                        const P1StokesFunction< real_t >& p1DefectCorrectionRHS,
                                                                        const std::function< real_t( const Point3D& ) >& rhsU,
@@ -788,9 +788,9 @@ void DCStokesRunCycle( const std::shared_ptr< GeometricMultigridSolver< StokesOp
 }
 
 template <>
-void DCStokesRunCycle< P1StokesOperator, P1StokesFunction< real_t > >(
-    const std::shared_ptr< GeometricMultigridSolver< P1StokesOperator > >& solver,
-    const P1StokesOperator&                                                p1StokesOperator,
+void DCStokesRunCycle< P1P1StokesOperator, P1StokesFunction< real_t > >(
+    const std::shared_ptr< GeometricMultigridSolver< P1P1StokesOperator > >& solver,
+    const P1P1StokesOperator&                                                p1StokesOperator,
     const P1StokesFunction< real_t >&                                      u,
     const P1StokesFunction< real_t >&                                      f_dc,
     const uint_t&                                                          level )
@@ -2368,7 +2368,7 @@ void setup( int argc, char** argv )
       {
          MultigridStokes< P1StokesFunction< real_t >,
                           P1StokesFunction< int >,
-                          P1StokesOperator,
+                          P1P1StokesOperator,
                           P1ConstantMassOperator,
                           P1P1StokesToP1P1StokesRestriction,
                           P1P1StokesToP1P1StokesProlongation,

@@ -24,7 +24,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -83,7 +83,7 @@ int main( int argc, char* argv[] )
    vtkOutput.add( uExact );
    vtkOutput.add( err );
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x ) {
       if ( x[2] < 1e-8 )
@@ -123,18 +123,18 @@ int main( int argc, char* argv[] )
    if ( writeVTK )
       vtkOutput.write( maxLevel, 0 );
 
-   typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >
+   typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage, gaussSeidel );
    auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    auto restriction      = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-   auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P1StokesOperator > >( storage, minLevel );
-   hyteg::GeometricMultigridSolver< hyteg::P1StokesOperator > solver(
+   auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P1P1StokesOperator > >( storage, minLevel );
+   hyteg::GeometricMultigridSolver< hyteg::P1P1StokesOperator > solver(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3, 2 );
 
    const uint_t globalDoFsVelocity = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, maxLevel );

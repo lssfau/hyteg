@@ -52,10 +52,11 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
       // copy vertices from old mesh
       newMesh.vertices_ = oldMesh.vertices_;
       // create tmpMap for lookup of vertices:
-      std::unordered_map< walberla::Vector3< real_t >, IDType > vertexLookUp;
+      std::map< std::array< real_t,3 >, IDType > vertexLookUp;
       for ( auto& it : newMesh.vertices_ )
       {
-         vertexLookUp[toVec3( it.second.getCoordinates() )] = it.first;
+         const auto coords = it.second.getCoordinates();
+         vertexLookUp[{coords[0],coords[1],coords[2]}] = it.first;
       }
       for ( const auto& cell : oldMesh.cells_ )
       {
@@ -73,9 +74,9 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
          for ( uint_t i = 0; i < 6; i++ )
          {
             // check if newPoint already exists in MeshInfo
-            if ( vertexLookUp.count( toVec3( newPoints[i] ) ) != 0 )
+            if ( vertexLookUp.count( {newPoints[i][0], newPoints[i][1], newPoints[i][2] } ) != 0 )
             {
-               newVertexIds[i] = vertexLookUp[toVec3( newPoints[i] )];
+               newVertexIds[i] = vertexLookUp[{newPoints[i][0], newPoints[i][1], newPoints[i][2] }];
             }
             else
             {
@@ -83,7 +84,8 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
                newVertexIdStart++;
                auto newVertex = MeshInfo::Vertex( newVertexIds[i], newPoints[i], 0 );
                newMesh.addVertex( newVertex );
-               vertexLookUp[toVec3( newVertex.getCoordinates() )] = newVertexIds[i];
+               const auto coords = newVertex.getCoordinates();
+               vertexLookUp[{coords[0],coords[1],coords[2]}] = newVertexIds[i];
             }
          }
 

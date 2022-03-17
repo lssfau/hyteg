@@ -187,7 +187,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1Transport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -250,7 +250,7 @@ int main( int argc, char* argv[] )
 
    /// [Discretization]
 
-   P1StokesOperator       L( storage, minLevel, maxLevel );
+   P1P1StokesOperator       L( storage, minLevel, maxLevel );
    P1ConstantMassOperator M( storage, minLevel, maxLevel );
    P1Transport            transportOperator( storage, minLevel, maxLevel );
 
@@ -302,7 +302,7 @@ int main( int argc, char* argv[] )
 
    /// [Solvers]
 
-   auto uzawaSolver = solvertemplates::stokesGMGUzawaSolver< P1StokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
+   auto uzawaSolver = solvertemplates::stokesGMGUzawaSolver< P1P1StokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
 
    /// [Solvers]
 
