@@ -90,7 +90,7 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
       const bool success = u.evaluate( coordinates, level, value );
       WALBERLA_CHECK( success, "Could not evaluate successfully." );
 
-      const real_t err = value - f( coordinates );
+      const real_t err = std::abs( value - f( coordinates ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Checking function at " << coordinates << ", value: " << value << ", error: " << err );
 
@@ -111,9 +111,9 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    hyteg::test(
-       2, 4, 1, []( const hyteg::Point3D& ) { return 1; }, 1e-14 );
+       2, 4, 1, []( const hyteg::Point3D& ) { return 1; }, 1e-12 );
    hyteg::test(
-       2, 4, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1]; }, 1e-14 );
+       2, 4, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1]; }, 1e-12 );
 
    return EXIT_SUCCESS;
 }
