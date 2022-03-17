@@ -37,6 +37,10 @@ class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, Dst
    typedef DstVecFuncKind< ValueType >                                                                            DstVecFuncType;
    typedef Operator< typename SrcVecFuncType::VectorComponentType, typename DstVecFuncType::VectorComponentType > scalarOpType;
 
+   // for compatibility with Operator class
+   typedef SrcVecFuncKind< ValueType >                                                                            srcType;
+   typedef DstVecFuncKind< ValueType >                                                                            dstType;
+
    VectorToVectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator< SrcVecFuncType, DstVecFuncType >( storage, minLevel, maxLevel )
    {
