@@ -281,7 +281,7 @@ int main( int argc, char** argv )
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testOnSingleElementHomDirichlet ###" );
-      for ( int degree = 1; degree <= 1; degree++ )
+      for ( uint_t degree = 1; degree <= 1; degree++ )
       {
          uint_t minLevel    = 3;
          auto   l2ConvRate  = std::pow( 2, -( degree + 1 ) );
@@ -308,7 +308,7 @@ int main( int argc, char** argv )
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testHomDirichlet ###" );
-      for ( int degree = 1; degree <= 1; degree++ )
+      for ( uint_t degree = 1; degree <= 1; degree++ )
       {
          uint_t minLevel    = 3;
          auto   l2ConvRate  = std::pow( 2, -( degree + 1 ) );
@@ -335,7 +335,7 @@ int main( int argc, char** argv )
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet ###" );
-      for ( int degree = 1; degree <= 1; degree++ )
+      for ( uint_t degree = 1; degree <= 1; degree++ )
       {
          uint_t minLevel    = 2;
          auto   l2ConvRate  = std::pow( 2, -( degree + 1 ) );
@@ -363,7 +363,7 @@ int main( int argc, char** argv )
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet + RHS ###" );
-      for ( int degree = 1; degree <= 1; degree++ )
+      for ( uint_t degree = 1; degree <= 1; degree++ )
       {
          uint_t minLevel    = 3;
          auto   l2ConvRate  = std::pow( 2, -( degree + 1 ) );
