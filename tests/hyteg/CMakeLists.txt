@@ -534,9 +534,6 @@ waLBerla_execute_test(NAME DGMinMaxTest)
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
 
-waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME SmoothableTest)
-
 waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGCommTest)
 
@@ -782,3 +779,10 @@ waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SphereToolsTest1 COMMAND $<TARGET_FILE:SphereToolsTest>)
 waLBerla_execute_test(NAME SphereToolsTest2 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 2)
 waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 4)
+
+## Basic Smoothing and Solving
+waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME SmoothableTest)
+
+waLBerla_compile_test(FILES smooth+solve/VectorToVectorOperatorCGTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorToVectorOperatorCGTest)
