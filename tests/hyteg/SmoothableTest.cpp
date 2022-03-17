@@ -26,6 +26,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
@@ -58,7 +59,7 @@ bool smootherThrowsException( SmootherType& smoother, OperatorType& op, Function
    return false;
 }
 
-template < typename opType, bool providesInverse = true, bool needsViscosity = false >
+template < typename opType, bool forceComputeInvDiag = true, bool needsViscosity = false >
 void runCheck( const std::array< bool, 6 > properties, std::string opName )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------------\n"
@@ -105,8 +106,9 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    ChebyshevSmoother< opType >            chebSmoother( storage, minLevel, maxLevel );
 
    // Chebyshev needs additional preparations
-   if constexpr ( providesInverse )
+   if constexpr ( forceComputeInvDiag )
    {
+      // WALBERLA_LOG_INFO_ON_ROOT( "Executing <operator>::computeInverseDiagonalOperatorValues" );
       oper->computeInverseDiagonalOperatorValues();
    }
    chebSmoother.setupCoefficients( 1, 1 );
@@ -149,19 +151,23 @@ int main( int argc, char** argv )
 
    runCheck< P1BlendingLaplaceOperator >( {true, true, true, false, false, true}, "P1BlendingLaplaceOperator" );
 
-   runCheck< P1ElementwiseLaplaceOperator >( {true, false, false, false, false, true}, "P1ElementwiseLaplaceOperator" );
-   runCheck< P2ElementwiseLaplaceOperator >( {true, false, false, false, false, true}, "P2ElementwiseLaplaceOperator" );
+   runCheck< P1ElementwiseLaplaceOperator, false >( {true, false, false, false, false, true}, "P1ElementwiseLaplaceOperator" );
+   runCheck< P2ElementwiseLaplaceOperator, false >( {true, false, false, false, false, true}, "P2ElementwiseLaplaceOperator" );
 
    // =========================
    //  VectorToVectorOperators
    // =========================
-   runCheck< P2ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
-                                                              "P2ConstantVectorLaplaceOperator (in 2D)" );
+   runCheck< P1ConstantVectorLaplaceOperator >( {true, true, true, true, true, true}, "P1ConstantVectorLaplaceOperator" );
 
-   // With the following two we have a design problem w.r.t. the non-automatic computation of the diagonal values of
-   // the operator:
-   // runCheck< P1ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
-   //                                                            "P1ConstantVectorLaplaceOperator" );
-   // runCheck< P2ElementwiseBlendingFullViscousOperator, true, true >( {false, false, false, false, false, true},
-   //                                                                   "P2ElementwiseBlendingFullViscousOperator" );
+   runCheck< P2ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
+                                                       "P2ConstantVectorLaplaceOperator (in 2D)" );
+
+   runCheck< P1ElementwiseAffineEpsilonOperator, true, true >( {false, false, false, false, false, true},
+                                                               "P1ElementwiseAffineEpsilonOperator" );
+
+   runCheck< P1ElementwiseBlendingEpsilonOperator, true, true >( {false, false, false, false, false, true},
+                                                                 "P1ElementwiseBlendingEpsilonOperator" );
+
+   runCheck< P2ElementwiseBlendingFullViscousOperator, true, true >( {false, false, false, false, false, true},
+                                                                     "P2ElementwiseBlendingFullViscousOperator" );
 }

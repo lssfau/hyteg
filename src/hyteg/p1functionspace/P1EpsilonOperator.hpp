@@ -139,11 +139,17 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
 
    std::shared_ptr< P1VectorFunction< real_t > > getInverseDiagonalValues() const override final
    {
-      return this->extractDiagonal();
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 
-class P1ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >
+class P1ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >,
+                                             public OperatorWithInverseDiagonal< P1VectorFunction< real_t > >
 {
  public:
    P1ElementwiseBlendingEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -204,6 +210,16 @@ class P1ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel, form_1_0 );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
+   }
+
+   std::shared_ptr< P1VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 

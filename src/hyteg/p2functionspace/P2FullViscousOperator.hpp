@@ -75,7 +75,8 @@ class P2ConstantFullViscousOperator : public VectorToVectorOperator< real_t, P2V
    }
 };
 
-class P2ElementwiseBlendingFullViscousOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+class P2ElementwiseBlendingFullViscousOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >,
+                                                 public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
    P2ElementwiseBlendingFullViscousOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -136,6 +137,16 @@ class P2ElementwiseBlendingFullViscousOperator : public VectorToVectorOperator< 
          this->subOper_[1][0] = std::make_shared< visc_1_0 >( storage, minLevel, maxLevel, form_1_0 );
          this->subOper_[1][1] = std::make_shared< visc_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
+   }
+
+   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 
