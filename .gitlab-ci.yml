@@ -169,6 +169,7 @@ intel_19_mpionly_eigen_petsc_trilinos_no_werror:
       PETSC_DIR: "/opt/petsc"
       WARNING_ERROR: "OFF"
    when: manual
+   needs: [ ]
    tags:
       - docker
       - intel
@@ -594,6 +595,7 @@ gcc_11_mpionly_eigen_petsc_trilinos_no_werror:
       PETSC_DIR: "/opt/petsc"
       WARNING_ERROR: "OFF"
    when: manual
+   needs: [ ]
    tags:
       - docker
 
@@ -1267,6 +1269,7 @@ clang_13.0_mpionly_eigen_petsc_trilinos_no_werror:
       PETSC_DIR: "/opt/petsc"
       WARNING_ERROR: "OFF"
    when: manual
+   needs: [ ]
    tags:
       - docker
 
@@ -1354,6 +1357,7 @@ inteloneapi_22.1_mpionly_eigen_petsc_trilinos_no_werror:
       PETSC_DIR: "/opt/petsc"
       WARNING_ERROR: "OFF"
    when: manual
+   needs: [ ]
    tags:
       - docker
 
