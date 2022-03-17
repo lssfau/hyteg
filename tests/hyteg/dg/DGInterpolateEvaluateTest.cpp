@@ -37,7 +37,7 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::math::pi;
 
-void test( int dim, uint_t level, int degree, std::function< real_t( const Point3D& ) > f, real_t maxPointwiseError )
+void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Point3D& ) > f, real_t maxPointwiseError )
 {
    using namespace dg;
 

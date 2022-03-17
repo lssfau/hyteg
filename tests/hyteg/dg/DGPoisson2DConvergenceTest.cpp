@@ -40,7 +40,7 @@ using walberla::math::pi;
 
 /// Solves Poisson on single macro-face with rhs != 0 and hom. Dirichlet BCs.
 /// Returns the scaled L2 error.
-real_t testOnSingleElementHomDirichlet( uint_t level, int degree )
+real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
 {
    using namespace dg;
 
@@ -94,7 +94,7 @@ real_t testOnSingleElementHomDirichlet( uint_t level, int degree )
 
 /// Solves Poisson with rhs != 0 and hom. Dirichlet BCs.
 /// Returns the scaled L2 error.
-real_t testHomDirichlet( uint_t level, int degree )
+real_t testHomDirichlet( uint_t level, uint_t degree )
 {
    using namespace dg;
 
@@ -154,7 +154,7 @@ real_t testHomDirichlet( uint_t level, int degree )
 
 /// Solves Poisson with rhs == 0 and inhomog. Dirichlet BCs.
 /// Returns the scaled L2 error.
-real_t testDirichlet( uint_t level, int degree )
+real_t testDirichlet( uint_t level, uint_t degree )
 {
    using namespace dg;
 
@@ -211,7 +211,7 @@ real_t testDirichlet( uint_t level, int degree )
 
 /// Solves Poisson with rhs == f and inhomog. Dirichlet BCs.
 /// Returns the scaled L2 error.
-real_t testDirichletAndRhs( uint_t level, int degree )
+real_t testDirichletAndRhs( uint_t level, uint_t degree )
 {
    using namespace dg;
 
