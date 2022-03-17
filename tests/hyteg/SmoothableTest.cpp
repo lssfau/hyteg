@@ -28,6 +28,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -51,10 +52,88 @@ bool smootherThrowsException( SmootherType& smoother, OperatorType& op, Function
       smoother.solve( op, dst, src, level );
    } catch ( const std::runtime_error& e )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( e.what() );
+      // WALBERLA_LOG_INFO_ON_ROOT( e.what() );
       return true;
    }
    return false;
+}
+
+template < typename opType, bool providesInverse = true, bool needsViscosity = false >
+void runCheck( const std::array< bool, 6 > properties, std::string opName )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------------\n"
+                              << "Testing Properties of " << opName << "\n-----------------------------------------------" );
+
+   bool wJacSmoothable = properties[0];
+   bool gsSmoothable   = properties[1];
+   bool sorSmoothable  = properties[2];
+   bool sgsSmoothable  = properties[3];
+   bool ssorSmoothable = properties[4];
+   bool chebSmoothable = properties[5];
+
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
+   // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( {-1, -1, 0} ), Point3D( {1, 1, 2} ), 2, 2, 2 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage  = std::make_shared< PrimitiveStorage >( setupStorage );
+   const uint_t                        minLevel = 2;
+   const uint_t                        maxLevel = 3;
+
+   using fType = typename opType::srcType;
+
+   fType src( "srcFunc", storage, minLevel, maxLevel );
+   fType dst( "dstFunc", storage, minLevel, maxLevel );
+
+   std::shared_ptr< opType > oper;
+
+   if constexpr ( needsViscosity )
+   {
+      std::function< real_t( const Point3D& ) > mu = []( const Point3D& x ) { return real_c( 3 ) * x[0] + x[1]; };
+
+      oper = std::make_shared< opType >( storage, minLevel, maxLevel, mu );
+   }
+   else
+   {
+      oper = std::make_shared< opType >( storage, minLevel, maxLevel );
+   }
+
+   WeightedJacobiSmoother< opType >       wJacSmoother( storage, minLevel, maxLevel, real_c( 0.5 ) );
+   GaussSeidelSmoother< opType >          gsSmoother;
+   SymmetricGaussSeidelSmoother< opType > sgsSmoother;
+   SORSmoother< opType >                  sorSmoother( real_c( 1.5 ) );
+   SymmetricSORSmoother< opType >         ssorSmoother( real_c( 1.5 ) );
+   ChebyshevSmoother< opType >            chebSmoother( storage, minLevel, maxLevel );
+
+   // Chebyshev needs additional preparations
+   if constexpr ( providesInverse )
+   {
+      oper->computeInverseDiagonalOperatorValues();
+   }
+   chebSmoother.setupCoefficients( 1, 1 );
+
+   bool hasProperty = !smootherThrowsException( wJacSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == wJacSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* weighted Jacobi smoothable .......... " << ( hasProperty ? "yes" : "no" ) );
+
+   hasProperty = !smootherThrowsException( gsSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == gsSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* Gauss-Seidel smoothable ............. " << ( hasProperty ? "yes" : "no" ) );
+
+   hasProperty = !smootherThrowsException( sorSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == sorSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* SOR smoothable ...................... " << ( hasProperty ? "yes" : "no" ) );
+
+   hasProperty = !smootherThrowsException( sgsSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == sgsSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* symmetric Gauss-Seidel smoothable ... " << ( hasProperty ? "yes" : "no" ) );
+
+   hasProperty = !smootherThrowsException( ssorSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == ssorSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* symmetric SOR smoothable ............ " << ( hasProperty ? "yes" : "no" ) );
+
+   hasProperty = !smootherThrowsException( chebSmoother, *oper, src, dst, minLevel );
+   WALBERLA_CHECK( hasProperty == chebSmoothable );
+   WALBERLA_LOG_INFO_ON_ROOT( "* Chebyshev ........................... " << ( hasProperty ? "yes" : "no" ) );
 }
 
 int main( int argc, char** argv )
@@ -62,73 +141,27 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::mpi::MPIManager::instance()->useWorldComm();
 
-   const uint_t minLevel = 2;
-   const uint_t maxLevel = 3;
+   // =================
+   //  ScalarOperators
+   // =================
+   runCheck< P1ConstantLaplaceOperator >( {true, true, true, true, true, true}, "P1ConstantLaplaceOperator" );
+   runCheck< P2ConstantLaplaceOperator, false >( {true, true, true, false, false, false}, "P2ConstantLaplaceOperator (in 2D)" );
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   runCheck< P1BlendingLaplaceOperator >( {true, true, true, false, false, true}, "P1BlendingLaplaceOperator" );
 
-   P1Function< real_t > p1Src( "p1Src", storage, minLevel, maxLevel );
-   P1Function< real_t > p1Dst( "p1Dst", storage, minLevel, maxLevel );
-
-   using P1ElOp    = P1ElementwiseLaplaceOperator;
-   using P1ConstOp = P1ConstantLaplaceOperator;
-   using P1VarOp   = P1BlendingLaplaceOperator;
-
-   P1ElOp p1ElOp( storage, minLevel, maxLevel );
-   p1ElOp.computeInverseDiagonalOperatorValues();
-   P1ConstOp p1ConstOp( storage, minLevel, maxLevel );
-   P1VarOp   p1VarOp( storage, minLevel, maxLevel );
-   p1VarOp.computeInverseDiagonalOperatorValues();
-
-   GaussSeidelSmoother< P1ElOp >    gsEl;
-   WeightedJacobiSmoother< P1ElOp > wJacEl( storage, minLevel, maxLevel, maxLevel );
-   ChebyshevSmoother< P1ElOp >      chebEl( storage, minLevel, maxLevel );
-   chebEl.setupCoefficients( 1, 1 );
-   WALBERLA_CHECK( !smootherThrowsException( wJacEl, p1ElOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( chebEl, p1ElOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( smootherThrowsException( gsEl, p1ElOp, p1Src, p1Dst, minLevel ) );
-
-   GaussSeidelSmoother< P1ConstOp >          gsConst;
-   SymmetricGaussSeidelSmoother< P1ConstOp > sgsConst;
-   SymmetricSORSmoother< P1ConstOp >         ssorConst( real_c( 1 ) );
-   SORSmoother< P1ConstOp >                  sorConst( real_c( 1 ) );
-   WALBERLA_CHECK( !smootherThrowsException( gsConst, p1ConstOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( sgsConst, p1ConstOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( ssorConst, p1ConstOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( sorConst, p1ConstOp, p1Src, p1Dst, minLevel ) );
-
-   ChebyshevSmoother< P1VarOp > chebVar( storage, minLevel, maxLevel );
-   chebVar.setupCoefficients( 1, 1 );
-   SymmetricGaussSeidelSmoother< P1VarOp > sgsVar;
-   SymmetricSORSmoother< P1VarOp >         ssorVar( real_c( 1 ) );
-   SORSmoother< P1VarOp >                  sorVar( real_c( 1 ) );
-   WeightedJacobiSmoother< P1VarOp >       wJacVar( storage, minLevel, maxLevel, maxLevel );
-   WALBERLA_CHECK( !smootherThrowsException( chebVar, p1VarOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( smootherThrowsException( sgsVar, p1VarOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( smootherThrowsException( ssorVar, p1VarOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( sorVar, p1VarOp, p1Src, p1Dst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( wJacVar, p1VarOp, p1Src, p1Dst, minLevel ) );
+   runCheck< P1ElementwiseLaplaceOperator >( {true, false, false, false, false, true}, "P1ElementwiseLaplaceOperator" );
+   runCheck< P2ElementwiseLaplaceOperator >( {true, false, false, false, false, true}, "P2ElementwiseLaplaceOperator" );
 
    // =========================
    //  VectorToVectorOperators
    // =========================
-   P2VectorFunction< real_t > p2VecSrc( "p2VecSrc", storage, minLevel, maxLevel );
-   P2VectorFunction< real_t > p2VecDst( "p2VecDst", storage, minLevel, maxLevel );
+   runCheck< P2ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
+                                                              "P2ConstantVectorLaplaceOperator (in 2D)" );
 
-   P2ConstantVectorLaplaceOperator p2VecConstOp( storage, minLevel, maxLevel );
-
-   WeightedJacobiSmoother< P2ConstantVectorLaplaceOperator >       wJacVecConst( storage, minLevel, maxLevel, real_c(0.5) );
-   GaussSeidelSmoother< P2ConstantVectorLaplaceOperator >          gsVecConst;
-   SymmetricGaussSeidelSmoother< P2ConstantVectorLaplaceOperator > sgsVecConst;
-   SORSmoother< P2ConstantVectorLaplaceOperator >                  sorVecConst( real_c( 1 ) );
-   ChebyshevSmoother< P2ConstantVectorLaplaceOperator >            chebVecConst( storage, minLevel, maxLevel );
-
-   WALBERLA_CHECK( !smootherThrowsException( wJacVecConst, p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( gsVecConst  , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
-   // WALBERLA_CHECK( smootherThrowsException( sgsVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
-   WALBERLA_CHECK( !smootherThrowsException( sorVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
-   WALBERLA_CHECK( smootherThrowsException( chebVecConst , p2VecConstOp, p2VecSrc, p2VecDst, minLevel ) );
+   // With the following two we have a design problem w.r.t. the non-automatic computation of the diagonal values of
+   // the operator:
+   // runCheck< P1ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
+   //                                                            "P1ConstantVectorLaplaceOperator" );
+   // runCheck< P2ElementwiseBlendingFullViscousOperator, true, true >( {false, false, false, false, false, true},
+   //                                                                   "P2ElementwiseBlendingFullViscousOperator" );
 }
