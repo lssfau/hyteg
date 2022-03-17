@@ -98,7 +98,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
 
    std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
    {
