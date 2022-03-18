@@ -579,7 +579,7 @@ namespace macroface {
 typedef stencilDirection sD;
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-inline uint_t index( const idx_t& level, const idx_t& x, const idx_t& y, const EdgeDoFOrientation& orientation )
+inline uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const EdgeDoFOrientation& orientation )
 {
    switch ( orientation )
    {
