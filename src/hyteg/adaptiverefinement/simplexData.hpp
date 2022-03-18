@@ -146,14 +146,14 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                     const uint_t&                 rank );
 
 /* apply neighborhood aware loadbalancing directly on our datastructures */
-void loadbalancing( const std::vector< Point3D >& coordinates,
-                    std::vector< VertexData >&    vtxs,
-                    std::vector< EdgeData >&      edges,
-                    std::vector< FaceData >&      faces,
-                    std::vector< CellData >&      cells,
-                    std::vector< Neighborhood >   nbrHood,
-                    const uint_t&                 n_processes,
-                    const uint_t&                 rank );
+void loadbalancing( const std::vector< Point3D >&      coordinates,
+                    std::vector< VertexData >&         vtxs,
+                    std::vector< EdgeData >&           edges,
+                    std::vector< FaceData >&           faces,
+                    std::vector< CellData >&           cells,
+                    const std::vector< Neighborhood >& nbrHood,
+                    const uint_t&                      n_processes,
+                    const uint_t&                      rank );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

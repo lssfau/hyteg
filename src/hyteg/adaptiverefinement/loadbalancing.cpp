@@ -532,14 +532,14 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    }
 }
 
-void loadbalancing( const std::vector< Point3D >& coordinates,
-                    std::vector< VertexData >&    vtxs,
-                    std::vector< EdgeData >&      edges,
-                    std::vector< FaceData >&      faces,
-                    std::vector< CellData >&      cells,
-                    std::vector< Neighborhood >   nbrHood,
-                    const uint_t&                 n_processes,
-                    const uint_t&                 rank )
+void loadbalancing( const std::vector< Point3D >&      coordinates,
+                    std::vector< VertexData >&         vtxs,
+                    std::vector< EdgeData >&           edges,
+                    std::vector< FaceData >&           faces,
+                    std::vector< CellData >&           cells,
+                    const std::vector< Neighborhood >& nbrHood,
+                    const uint_t&                      n_processes,
+                    const uint_t&                      rank )
 {
    using PT = PrimitiveType;
    constexpr std::array< PT, ALL > VEFC{ VTX, EDGE, FACE, CELL };
@@ -623,6 +623,19 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       n_max[pt] = n_min + ( ( 0 < mod ) ? 1 : 0 );
    }
 
+   // compute neighboring volume primitives of all primitives
+   std::vector< std::vector< uint_t > > nbrVolumes( n_prim[ALL] );
+   for ( uint_t idx = 0; idx < nbrHood.size(); ++idx )
+   {
+      uint_t i = id0[VOL] + idx;
+      for ( PT pt : VEFC )
+      {
+         for ( uint_t j : nbrHood[idx][pt] )
+         {
+            nbrVolumes[j].push_back( i );
+         }
+      }
+   }
    // todo: check if this is still required
    // compute barycenter, radius and volume of all primitives
    std::vector< Point3D > barycenter( n_prim[ALL] );
@@ -743,8 +756,8 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
       if ( pt == VOL )
       {
          volume_elements[k].erase( std::find( volume_elements[k].begin(), volume_elements[k].end(), i ) );
-         history[k].push_back( i );
       }
+      history[k].push_back( i );
 
       return k;
    };
@@ -780,7 +793,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    };
    // IDs of initial elements
    std::vector< uint_t > initID( n_processes, n_prim[ALL] );
-   WALBERLA_LOG_INFO_ON_ROOT("initial elements");
+   WALBERLA_LOG_INFO_ON_ROOT( "initial elements" );
    /* select initial elements for each cluster to maximize
        min_j!=k||clusterCenter[j] - clusterCenter[k]||
    */ // todo: use weighted norm s.th. smaller clusters elements increase the effective distance
@@ -863,7 +876,7 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
    std::fill( isAssigned.begin(), isAssigned.end(), false );
 
    // add initial elements
-   WALBERLA_LOG_INFO_ON_ROOT("assign");
+   WALBERLA_LOG_INFO_ON_ROOT( "assign" );
    for ( uint_t k = 0; k < n_processes; ++k )
    {
       assign( initID[k], k );
@@ -871,22 +884,41 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
 
    // recall whether a cluster stole from another
    std::vector< std::vector< uint_t > > stole_from( n_processes );
+   // compute the number of neighbors of i, assigned to k
+   auto connectivity = [&]( uint_t i, uint_t k ) -> int {
+      int conn = 0;
+      for ( uint_t ii : nbrVolumes[i] )
+      {
+         if ( assigned_to( ii ) == k )
+            ++conn;
+      }
+      return conn;
+   };
    // find next primitive of type pt for cluster k
    auto find_next = [&]( uint_t k, PT pt ) -> uint_t {
-      uint_t steal = n_prim[ALL];
+      std::pair< uint_t, int > free  = { n_prim[ALL], 0 };
+      std::pair< uint_t, int > steal = { n_prim[ALL], -100 };
 
       // loop over all volume elements owned by k
       for ( uint_t id : volume_elements[k] )
       {
          uint_t elIdx = id - id0[VOL];
-         // loop over all neighbor primitives i of el
+         // loop over all primitives i of type pt in the neighborhood of el
          for ( uint_t i : nbrHood[elIdx][pt] )
          {
-            // if i is not owned by any cluster, assign it to k
-            if ( !isAssigned[i] )
+            // connectivity factor
+            int conn = connectivity( i, k );
+
+            // i is not owned by any cluster and strongly connected to k
+            if ( !isAssigned[i] && free.second < conn )
             {
-               return i;
+               free.first  = i;
+               free.second = conn;
             }
+
+            // only consider stealing if necessary
+            if ( free.second > 0 )
+               continue;
 
             // i is currently assigned to j
             auto j = assigned_to( i );
@@ -895,36 +927,53 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
             if ( j == k )
                continue;
 
-            // only steal from bigger clusters
-            if ( n_assigned[k][pt] >= n_assigned[j][pt] )
+            // only steal volumes from bigger clusters
+            if ( pt == VOL && n_assigned[k][VOL] >= n_assigned[j][VOL] )
                continue;
 
             // we do not allow stealing back
-            if ( pt == VOL )
-            {
-               if ( std::find( history[k].begin(), history[k].end(), i ) != history[k].end() )
-                  continue;
-               if ( std::find( stole_from[k].begin(), stole_from[k].end(), j ) != stole_from[k].end() )
-                  continue;
-            }
+            if ( std::find( history[k].begin(), history[k].end(), i ) != history[k].end() )
+               continue;
 
-            // mark the first possible element for stealing
-            if ( steal == n_prim[ALL] )
-               steal = i;
+            // only consider the connectivity gain
+            conn -= connectivity( i, j );
+
+            // mark element for stealing if its sufficiently strongly connected to k
+            if ( conn > steal.second )
+            {
+               steal.first  = i;
+               steal.second = conn;
+            }
          }
       }
 
-      // if no free element was found, steal the best fitting one
-      return steal;
+      // return best fitting element, prioritizing free elements
+      if ( free.second > 0 )
+      {
+         return free.first;
+      }
+      else
+      {
+         return steal.first;
+      }
    };
 
    // add remaining primitives
    for ( PT pt : CFEV )
    {
-      WALBERLA_LOG_INFO_ON_ROOT("add elements of type " << pt);
+      WALBERLA_LOG_INFO_ON_ROOT( "add elements of type " << pt );
+
+      for ( auto& clusterHist : history )
+      {
+         clusterHist.clear();
+      }
+
+      uint_t n_iter = 0;
 
       while ( n_assigned[n_processes][pt] < n_prim[pt] )
       {
+         ++n_iter;
+         bool progress = false;
          // loop over all clusters k
          for ( uint_t k = 0; k < n_processes; ++k )
          {
@@ -936,17 +985,31 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
             if ( i < id0[pt + 1] )
             {
                // unassign element from its current cluster if necessary
-               auto j = unassign( i );
-               if ( j < n_processes )
+               if ( isAssigned[i] )
                {
+                  auto j = unassign( i );
                   stole_from[j].push_back( k );
+                  // WALBERLA_LOG_INFO_ON_ROOT( "steal: " << j << " --" << i << "--> " << k );
                }
                // assign element i to cluster k
                assign( i, k );
+
+               progress = true;
+            }
+            else // no valid elements found
+            {
+               // in the next iteration, we allow cluster k to steal back elements
+               history[k].clear();
             }
          }
-         WALBERLA_LOG_INFO_ON_ROOT("assigned: " <<  n_assigned[n_processes][pt] << "/" << n_prim[pt]);
-
+         // WALBERLA_LOG_INFO_ON_ROOT( "assigned: " << n_assigned[n_processes][pt] << "/" << n_prim[pt] );
+         if ( !progress )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "after n=" << n_iter << " iterations:" );
+            for ( uint_t k = 0; k < n_processes; ++k )
+               WALBERLA_LOG_INFO_ON_ROOT( "assigned to k=" << k << ": " << n_assigned[k][pt] << "/" << n_max[pt] );
+            WALBERLA_LOG_INFO_ON_ROOT( "no progress" );
+         }
       }
    }
 }
