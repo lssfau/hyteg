@@ -372,7 +372,7 @@ inline constexpr uint_t index( const uint_t& level, const idx_t& x )
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
 /// \param orientation of the desired micro-edge
 inline uint_t
-    indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor, const EdgeDoFOrientation& orientation )
+    indexOnNeighborFace( const uint_t& level, const idx_t& x, const uint_t& neighbor, const EdgeDoFOrientation& orientation )
 {
    WALBERLA_ASSERT_EQUAL( std::count( faceLocalEdgeDoFOrientations.begin(), faceLocalEdgeDoFOrientations.end(), orientation ),
                           1,
@@ -400,12 +400,12 @@ inline uint_t
    case EdgeDoFOrientation::Y: {
       const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer +
                             neighbor * ( numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer );
-      return offset + x;
+      return offset + uint_c( x );
    }
    case EdgeDoFOrientation::XY: {
       const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer +
                             neighbor * ( numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer );
-      return offset + x;
+      return offset + uint_c( x );
    }
    default:
       return std::numeric_limits< uint_t >::max();
@@ -464,29 +464,29 @@ inline uint_t indexOnNeighborCell( const uint_t&             level,
    }
 }
 
-inline uint_t horizontalIndex( const uint_t& level, const uint_t& col )
+inline uint_t horizontalIndex( const uint_t& level, const idx_t& col )
 {
    return index( level, col );
 };
 
-inline uint_t horizontalIndex( const uint_t& level, const uint_t& col, const uint_t& neighbor )
+inline uint_t horizontalIndex( const uint_t& level, const idx_t& col, const uint_t& neighbor )
 {
    return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::X );
 };
 
-inline uint_t verticalIndex( const uint_t& level, const uint_t& col, const uint_t& neighbor )
+inline uint_t verticalIndex( const uint_t& level, const idx_t& col, const uint_t& neighbor )
 {
    return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::Y );
 };
 
-inline uint_t diagonalIndex( const uint_t& level, const uint_t& col, const uint_t& neighbor )
+inline uint_t diagonalIndex( const uint_t& level, const idx_t& col, const uint_t& neighbor )
 {
    return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::XY );
 };
 
 // Stencil access functions
 
-inline uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& col, const stencilDirection& dir )
+inline uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& col, const stencilDirection& dir )
 {
    // first  neighbor == south
    // second neighbor == north
@@ -509,7 +509,7 @@ inline uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& col, c
    }
 }
 
-inline uint_t indexFromVertex( const uint_t& level, const uint_t& col, const stencilDirection& dir )
+inline uint_t indexFromVertex( const uint_t& level, const idx_t& col, const stencilDirection& dir )
 {
    // first  neighbor == south
    // second neighbor == north
@@ -611,7 +611,7 @@ inline uint_t index( const idx_t& level, const idx_t& x, const idx_t& y, const E
 /// \param orientation of the desired micro-edge
 /// \param neighbor 0 or 1 for the respective cell neighbor
 inline constexpr uint_t
-    index( const uint_t& level, const uint_t& x, const uint_t& y, const EdgeDoFOrientation& orientation, const uint_t& neighbor )
+    index( const uint_t& level, const idx_t& x, const idx_t& y, const EdgeDoFOrientation& orientation, const uint_t& neighbor )
 {
    uint_t ownDoFs = levelinfo::num_microedges_per_face( level );
    uint_t ghostOnParallelFace =
@@ -650,24 +650,24 @@ inline constexpr uint_t
    }
 }
 
-inline uint_t horizontalIndex( const uint_t& level, const uint_t& col, const uint_t& row )
+inline uint_t horizontalIndex( const uint_t& level, const idx_t& col, const idx_t& row )
 {
    return index( level, col, row, EdgeDoFOrientation::X );
 };
 
-inline uint_t verticalIndex( const uint_t& level, const uint_t& col, const uint_t& row )
+inline uint_t verticalIndex( const uint_t& level, const idx_t& col, const idx_t& row )
 {
    return index( level, col, row, EdgeDoFOrientation::Y );
 }
 
-inline uint_t diagonalIndex( const uint_t& level, const uint_t& col, const uint_t& row )
+inline uint_t diagonalIndex( const uint_t& level, const idx_t& col, const idx_t& row )
 {
    return index( level, col, row, EdgeDoFOrientation::XY );
 }
 
 // Stencil access functions
 
-inline uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
+inline uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& col, const idx_t& row, const stencilDirection& dir )
 {
    switch ( dir )
    {
@@ -693,7 +693,7 @@ constexpr std::array< stencilDirection, 5 > neighborsFromHorizontalEdge = {
 constexpr std::array< stencilDirection, 4 > neighborsFromHorizontalEdgeWithoutCenter = {
     { sD::EDGE_DI_S, sD::EDGE_VE_SE, sD::EDGE_DI_N, sD::EDGE_VE_NW } };
 
-inline uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
+inline uint_t indexFromDiagonalEdge( const uint_t& level, const idx_t& col, const idx_t& row, const stencilDirection& dir )
 {
    switch ( dir )
    {
@@ -719,7 +719,7 @@ constexpr std::array< stencilDirection, 5 > neighborsFromDiagonalEdge = {
 constexpr std::array< stencilDirection, 4 > neighborsFromDiagonalEdgeWithoutCenter = {
     { sD::EDGE_HO_S, sD::EDGE_VE_E, sD::EDGE_HO_N, sD::EDGE_VE_W } };
 
-inline uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
+inline uint_t indexFromVerticalEdge( const uint_t& level, const idx_t& col, const idx_t& row, const stencilDirection& dir )
 {
    switch ( dir )
    {
@@ -745,7 +745,7 @@ constexpr std::array< stencilDirection, 5 > neighborsFromVerticalEdge = {
 constexpr std::array< stencilDirection, 4 > neighborsFromVerticalEdgeWithoutCenter = {
     { sD::EDGE_HO_SE, sD::EDGE_DI_E, sD::EDGE_HO_NW, sD::EDGE_DI_W } };
 
-inline uint_t indexFromVertex( const uint_t& level, const uint_t& col, const uint_t& row, const stencilDirection& dir )
+inline uint_t indexFromVertex( const uint_t& level, const idx_t& col, const idx_t& row, const stencilDirection& dir )
 {
    // first  neighbor == south
    // second neighbor == north
@@ -920,49 +920,49 @@ namespace macrocell {
 
 typedef stencilDirection sD;
 
-inline constexpr uint_t xIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t xIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t yIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t yIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t zIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t zIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return 2 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t xyIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t xyIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return 3 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t xzIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t xzIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return 4 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t yzIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t yzIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return 5 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
 }
 
-inline constexpr uint_t xyzIndex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
+inline constexpr uint_t xyzIndex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z )
 {
    return 6 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) +
           indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ) - 1, x, y, z );
 }
 
 inline constexpr uint_t
-    index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const EdgeDoFOrientation& orientation )
+    index( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z, const EdgeDoFOrientation& orientation )
 {
    switch ( orientation )
    {
