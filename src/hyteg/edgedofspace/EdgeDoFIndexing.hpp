@@ -35,6 +35,8 @@
 namespace hyteg {
 namespace edgedof {
 
+using walberla::uint_c;
+
 constexpr uint_t levelToWidthAnyEdgeDoF( const uint_t& level )
 {
    return levelinfo::num_microedges_per_edge( level );
