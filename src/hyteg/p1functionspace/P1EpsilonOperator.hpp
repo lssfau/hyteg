@@ -28,7 +28,8 @@ namespace hyteg {
 
 using walberla::real_t;
 
-class P1ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >
+class P1ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >,
+                                  public OperatorWithInverseDiagonal< P1VectorFunction< real_t > >
 {
  public:
    P1ConstantEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -70,6 +71,16 @@ class P1ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P1Vecto
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel );
       }
+   }
+
+   std::shared_ptr< P1VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 

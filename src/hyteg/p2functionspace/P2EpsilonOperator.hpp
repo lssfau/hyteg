@@ -73,7 +73,8 @@ class P2ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P2Vecto
    }
 };
 
-class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >,
+                                           public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
    P2ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -135,10 +136,21 @@ class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
    }
+
+   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
+   }
 };
 
 /// Uses forms::p2_epsilonvar_*_*_blending_q2, if that is insufficient upgrade to q3
-class P2ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+class P2ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >,
+                                             public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
    P2ElementwiseBlendingEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -199,6 +211,16 @@ class P2ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel, form_1_0 );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
+   }
+
+   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 
