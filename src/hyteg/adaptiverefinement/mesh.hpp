@@ -148,10 +148,11 @@ class K_Mesh
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::vector< VertexData >& vtxData,
-                      std::vector< EdgeData >&   edgeData,
-                      std::vector< FaceData >&   faceData,
-                      std::vector< CellData >&   cellData ) const;
+   void extract_data( std::vector< VertexData >&   vtxData,
+                      std::vector< EdgeData >&     edgeData,
+                      std::vector< FaceData >&     faceData,
+                      std::vector< CellData >&     cellData,
+                      std::vector< Neighborhood >& nbrHood ) const;
 
    /* create PrimitiveStorage from SimplexData */
    std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,

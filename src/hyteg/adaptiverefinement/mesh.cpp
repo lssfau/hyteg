@@ -149,7 +149,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // pessimistic estimate! in most cases the actual growth will be significantly smaller
-      const uint_t est_growth_factor = ( K_Simplex::DIM == 2 ) ? 18 : 138;
+      const uint_t est_growth_factor = ( K_Simplex::TYPE == FACE ) ? 18 : 138;
 
       uint_t predict = _T.size();
 
@@ -264,13 +264,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
-   std::vector< VertexData > vtxs;
-   std::vector< EdgeData >   edges;
-   std::vector< FaceData >   faces;
-   std::vector< CellData >   cells;
+   std::vector< VertexData >   vtxs;
+   std::vector< EdgeData >     edges;
+   std::vector< FaceData >     faces;
+   std::vector< CellData >     cells;
+   std::vector< Neighborhood > nbrHood;
    if ( rank == 0 )
    {
-      extract_data( vtxs, edges, faces, cells );
+      extract_data( vtxs, edges, faces, cells, nbrHood );
    }
 
    // broadcast data to all processes
@@ -279,6 +280,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    walberla::mpi::broadcastObject( edges );
    walberla::mpi::broadcastObject( faces );
    walberla::mpi::broadcastObject( cells );
+   walberla::mpi::broadcastObject( nbrHood );
 
    // apply loadbalancing
    if ( lb == ROUND_ROBIN )
@@ -287,7 +289,8 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    }
    if ( lb == CLUSTERING )
    {
-      loadbalancing( _vertices, vtxs, edges, faces, cells, _n_processes, rank );
+      // loadbalancing( _vertices, vtxs, edges, faces, cells, _n_processes, rank );
+      loadbalancing( _vertices, vtxs, edges, faces, cells, nbrHood, _n_processes, rank );
    }
 
    // create storage
@@ -791,10 +794,11 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >& vtxData,
-                                        std::vector< EdgeData >&   edgeData,
-                                        std::vector< FaceData >&   faceData,
-                                        std::vector< CellData >&   cellData ) const
+void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >&   vtxData,
+                                        std::vector< EdgeData >&     edgeData,
+                                        std::vector< FaceData >&     faceData,
+                                        std::vector< CellData >&     cellData,
+                                        std::vector< Neighborhood >& nbrHood ) const
 {
    std::set< std::shared_ptr< Simplex1 > > edges;
    std::set< std::shared_ptr< Simplex2 > > faces;
@@ -829,11 +833,13 @@ void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >& vtxData,
    // collect data and add PrimitiveIDs
    uint_t id;
    // collect vertexdata
+   vtxData.clear();
    for ( id = 0; id < _vertices.size(); ++id )
    {
       vtxData.push_back( VertexData( _vertexGeometryMap[id], _vertexBoundaryFlag[id], id ) );
    }
    // collect edgedata
+   edgeData.clear();
    for ( auto& edge : edges )
    {
       edge->setPrimitiveID( id );
@@ -841,6 +847,7 @@ void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >& vtxData,
       ++id;
    }
    // collect facedata
+   faceData.clear();
    for ( auto& face : faces )
    {
       face->setPrimitiveID( id );
@@ -848,12 +855,60 @@ void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >& vtxData,
       ++id;
    }
    // collect celldata
+   cellData.clear();
    for ( auto& cell : cells )
    {
       cell->setPrimitiveID( id );
       cellData.push_back( CellData( cell.get() ) );
       ++id;
    }
+
+   // collect neighborhood data of volume primitives
+   WALBERLA_LOG_INFO_ON_ROOT( "assemble nbrhood" )
+   nbrHood.clear();
+   nbrHood.resize( _T.size() );
+   uint_t id0 =
+       ( K_Simplex::TYPE == CELL ) ? cellData.begin()->getPrimitiveID().getID() : faceData.begin()->getPrimitiveID().getID();
+   for ( uint_t i = 0; i < nbrHood.size(); ++i )
+   {
+      for ( uint_t j = 0; j < nbrHood.size(); ++j )
+      {
+         uint_t d = 0;
+         if constexpr ( K_Simplex::TYPE == CELL )
+         {
+            d = cellData[i].diff( cellData[j] );
+         }
+         if constexpr ( K_Simplex::TYPE == FACE )
+         {
+            d = faceData[i].diff( faceData[j] );
+         }
+         if ( d == 1 )
+         {
+            nbrHood[i][K_Simplex::TYPE].push_back( id0 + j );
+         }
+      }
+   }
+   for ( auto& el : _T )
+   {
+      uint_t i = el->getPrimitiveID().getID() - id0;
+
+      if constexpr ( K_Simplex::TYPE == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            nbrHood[i][FACE].push_back( face->getPrimitiveID().getID() );
+         }
+      }
+      for ( auto& edge : el->get_edges() )
+      {
+         nbrHood[i][EDGE].push_back( edge->getPrimitiveID().getID() );
+      }
+      for ( auto& vtx : el->get_vertices() )
+      {
+         nbrHood[i][VTX].push_back( vtx );
+      }
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "done" )
 }
 
 template < class K_Simplex >

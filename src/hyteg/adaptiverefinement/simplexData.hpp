@@ -74,6 +74,17 @@ class SimplexData
    inline bool                               isLocal() const { return _locality == LOCAL; }
    inline void                               setLocality( Locality loc ) { _locality = loc; }
 
+   inline uint_t diff( const SimplexData& other ) const
+   {
+      uint_t d = 0;
+      for ( auto& v : _vertices )
+      {
+         if ( std::find( other.get_vertices().begin(), other.get_vertices().end(), v ) == other.get_vertices().end() )
+            ++d;
+      }
+      return d;
+   }
+
    inline void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
       sendBuffer << _vertices;
@@ -110,10 +121,13 @@ class SimplexData
    Locality                    _locality;
 };
 
-using VertexData = SimplexData< 0 >;
-using EdgeData   = SimplexData< 1 >;
-using FaceData   = SimplexData< 2 >;
-using CellData   = SimplexData< 3 >;
+using VertexData = SimplexData< VTX >;
+using EdgeData   = SimplexData< EDGE >;
+using FaceData   = SimplexData< FACE >;
+using CellData   = SimplexData< CELL >;
+
+// stores IDs of neighbor primitives
+using Neighborhood = std::array< std::vector< uint_t >, ALL >;
 
 /* apply loadbalancing (round robin) directly on our datastructures */
 void loadbalancing( std::vector< VertexData >& vtxs,
@@ -128,6 +142,16 @@ void loadbalancing( const std::vector< Point3D >& coordinates,
                     std::vector< EdgeData >&      edges,
                     std::vector< FaceData >&      faces,
                     std::vector< CellData >&      cells,
+                    const uint_t&                 n_processes,
+                    const uint_t&                 rank );
+
+/* apply neighborhood aware loadbalancing directly on our datastructures */
+void loadbalancing( const std::vector< Point3D >& coordinates,
+                    std::vector< VertexData >&    vtxs,
+                    std::vector< EdgeData >&      edges,
+                    std::vector< FaceData >&      faces,
+                    std::vector< CellData >&      cells,
+                    std::vector< Neighborhood >   nbrHood,
                     const uint_t&                 n_processes,
                     const uint_t&                 rank );
 
