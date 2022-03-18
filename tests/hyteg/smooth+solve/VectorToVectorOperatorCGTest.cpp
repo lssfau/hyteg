@@ -73,17 +73,21 @@ void runCheck( std::string opName, bool verbose = false )
    typename opType::srcType u( "u", storage, level, level );
    typename opType::srcType f( "f", storage, level, level );
 
-   std::function< real_t( const hyteg::Point3D& ) > guess = []( const hyteg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > guessX = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
-   u.interpolate( guess, level );
+   std::function< real_t( const hyteg::Point3D& ) > guessY = []( const hyteg::Point3D& x ) {
+      return ( 1.0 / 2.0 ) * sin( 2 * x[1] ) * sinh( x[2] );
+   };
+
+   u.interpolate( {guessX, guessY}, level );
    u.interpolate( real_c( 0 ), level, DirichletBoundary );
    f.interpolate( real_c( 0 ), level );
 
-   uint_t maxIter = 150;
-   real_t tol = 1e-10;
-   auto cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, tol );
+   uint_t maxIter  = 150;
+   real_t tol      = 1e-10;
+   auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, tol );
    cgSolver.setPrintInfo( verbose );
 
    cgSolver.solve( *oper, u, f, level );
@@ -98,7 +102,7 @@ void runCheck( std::string opName, bool verbose = false )
    if ( verbose )
    {
       std::string fName = "VectorToVectorOperatorCGTest_for_" + opName;
-      VTKOutput vtkOutput( "../../output", fName, storage );
+      VTKOutput   vtkOutput( "../../output", fName, storage );
       vtkOutput.add( u );
       vtkOutput.add( f );
       vtkOutput.write( level );
