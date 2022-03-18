@@ -786,3 +786,6 @@ waLBerla_execute_test(NAME SmoothableTest)
 
 waLBerla_compile_test(FILES smooth+solve/VectorToVectorOperatorCGTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorToVectorOperatorCGTest)
+
+waLBerla_compile_test(FILES smooth+solve/VectorToVectorOperatorChebyshevTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
