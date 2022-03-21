@@ -83,6 +83,43 @@ inline constexpr uint_t
    }
 }
 
+/// \brief Returns the array-index of the specified 3D volume DoF.
+///
+/// \param x         logical x-coordinate of the micro-volume
+/// \param y         logical y-coordinate of the micro-volume
+/// \param z         logical z-coordinate of the micro-volume
+/// \param cellType  type of the volume (six types of micro-cells exist)
+/// \param dof       DoF ID (there may be more than one DoF per volume)
+/// \param ndofs     number of DoFs per micro-volume
+/// \param level     refinement level
+/// \param memLayout specifies the memory layout for which the array index is computed
+///
+/// \return array index
+inline constexpr uint_t index( idx_t                 x,
+                               idx_t                 y,
+                               idx_t                 z,
+                               celldof::CellType     cellType,
+                               uint_t                dof,
+                               uint_t                ndofs,
+                               uint_t                level,
+                               VolumeDoFMemoryLayout memLayout )
+{
+   const auto numMicroVolumes = levelinfo::num_microcells_per_cell( level );
+
+   const auto microVolume = celldof::macrocell::index( level, x, y, z, cellType );
+
+   if ( memLayout == VolumeDoFMemoryLayout::SoA )
+   {
+      const auto idx = numMicroVolumes * dof + microVolume;
+      return idx;
+   }
+   else
+   {
+      const auto idx = microVolume * ndofs + dof;
+      return idx;
+   }
+}
+
 ///@{
 /// @name Ghost-layer indexing functions.
 ///
@@ -194,12 +231,22 @@ class ElementNeighborInfo
    using Point    = Eigen::Matrix< real_t, 3, 1 >;
    using Index    = hyteg::indexing::Index;
    using FaceType = facedof::FaceType;
+   using CellType = celldof::CellType;
+
+   ElementNeighborInfo() = default;
 
    ElementNeighborInfo( Index                                      elementIdx,
                         FaceType                                   faceType,
                         uint_t                                     level,
                         BoundaryCondition                          boundaryCondition,
                         PrimitiveID                                faceID,
+                        const std::shared_ptr< PrimitiveStorage >& storage );
+
+   ElementNeighborInfo( Index                                      elementIdx,
+                        CellType                                   faceType,
+                        uint_t                                     level,
+                        BoundaryCondition                          boundaryCondition,
+                        PrimitiveID                                cellID,
                         const std::shared_ptr< PrimitiveStorage >& storage );
 
    [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
@@ -231,6 +278,8 @@ class ElementNeighborInfo
 
    FaceType neighborFaceType( uint_t neighbor ) const { return neighborFaceElementTypes_[neighbor]; }
 
+   CellType neighborCellType( uint_t neighbor ) const { return neighborCellElementTypes_[neighbor]; }
+
    bool onMacroBoundary( uint_t neighbor ) const { return onMacroBoundary_[neighbor]; }
 
    DoFType neighborBoundaryType( uint_t neighbor ) const { return neighborBoundaryType_[neighbor]; }
@@ -250,6 +299,9 @@ class ElementNeighborInfo
    /// Type of the element (if 2D)
    FaceType faceType_;
 
+   /// Type of the element (if 3D)
+   CellType cellType_;
+
    /// Refinement level.
    uint_t level_;
 
@@ -264,6 +316,9 @@ class ElementNeighborInfo
 
    /// Types of the neighbor elements (if 2D).
    std::vector< FaceType > neighborFaceElementTypes_;
+
+   /// Types of the neighbor elements (if 3D).
+   std::vector< CellType > neighborCellElementTypes_;
 
    /// Coordinates of the neighboring elements' vertices.
    std::vector< std::vector< Point > > neighborElementVertexCoords_;

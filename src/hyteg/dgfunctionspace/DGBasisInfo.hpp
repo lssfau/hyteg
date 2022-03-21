@@ -42,8 +42,8 @@ class DGBasisInfo
    /// \brief Returns the maximum polynomial degree for which basis functions are implemented.
    virtual uint_t maxPolynomialDegree() const = 0;
 
-   /// \brief Returns the number of DoFs per element for the passed polynomial degree.
-   virtual uint_t numDoFsPerElement( uint_t degree ) const = 0;
+   /// \brief Returns the number of DoFs per element for the passed polynomial degree and type of the element.
+   virtual uint_t numDoFsPerElement( uint_t dim, uint_t degree ) const = 0;
 
    /// \brief Returns the degree of the quadrature rule that is used for the evaluation of the linear functional \f$\int_T f \phi_i\f$.
    virtual uint_t quadratureDegreeForLinearFunctional() const = 0;
@@ -65,7 +65,7 @@ class DGBasisInfo
    ///   l( v ) = \int_T f v
    /// \f}
    ///
-   /// by quadrature over the passed element \f$T\f$ for all basis functions, i.e. it returns an approximation to
+   /// by quadrature over the passed face element \f$T\f$ for all basis functions, i.e. it returns an approximation to
    ///
    /// \f{align*}{
    ///   \int_T f \phi_i.
@@ -77,6 +77,27 @@ class DGBasisInfo
    /// \param value            result of the integration (all DoFs)
    virtual void integrateBasisFunction( uint_t                                                degree,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >& coords,
+                                        const std::function< real_t( const Point3D& ) >&      f,
+                                        std::vector< real_t >&                                values ) = 0;
+
+   /// \brief Evaluates the linear functional
+   ///
+   /// \f{align*}{
+   ///   l( v ) = \int_T f v
+   /// \f}
+   ///
+   /// by quadrature over the passed cell element \f$T\f$ for all basis functions, i.e. it returns an approximation to
+   ///
+   /// \f{align*}{
+   ///   \int_T f \phi_i.
+   /// \f}
+   ///
+   /// \param degree           degree of the piecewise polynomials
+   /// \param coords           coordinates of the affine element (computational space)
+   /// \param f                function to multiply with the basis functions
+   /// \param value            result of the integration (all DoFs)
+   virtual void integrateBasisFunction( uint_t                                                degree,
+                                        const std::array< Eigen::Matrix< real_t, 3, 1 >, 4 >& coords,
                                         const std::function< real_t( const Point3D& ) >&      f,
                                         std::vector< real_t >&                                values ) = 0;
 };

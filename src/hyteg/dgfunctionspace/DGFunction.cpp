@@ -49,12 +49,18 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
 , basis_( basis )
 , boundaryCondition_( boundaryCondition )
 {
+   uint_t dim;
    if ( storage->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for cells yet." )
+      dim = 3;
+      for ( auto pid : storage->getCellIDs() )
+      {
+         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+      }
    }
    else
    {
+      dim = 2;
       for ( auto pid : storage->getFaceIDs() )
       {
          polyDegreesPerPrimitive_[pid] = initialPolyDegree;
@@ -66,7 +72,7 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
                                                                            storage,
                                                                            minLevel,
                                                                            maxLevel,
-                                                                           basis->numDoFsPerElement( initialPolyDegree ),
+                                                                           basis->numDoFsPerElement( dim, initialPolyDegree ),
                                                                            volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
 }
 
@@ -88,7 +94,7 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
          Face&       face   = *it.second;
 
          const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-         const auto ndofs      = uint_c( basis_->numDoFsPerElement( polyDegree ) );
+         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
 
          Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
          Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
@@ -190,7 +196,7 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
       const Face& face = *storage_->getFace( faceID );
 
       const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-      const auto ndofs      = uint_c( basis_->numDoFsPerElement( polyDegree ) );
+      const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
 
       Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
 
@@ -237,7 +243,43 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
 {
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Linear functional evaluation not implemented." )
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               const std::array< indexing::Index, 4 > vertexIndices =
+                   celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+               std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+               for ( uint_t i = 0; i < 4; i++ )
+               {
+                  const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                  elementVertices[i]( 0 )  = elementVertex[0];
+                  elementVertices[i]( 1 )  = elementVertex[1];
+                  elementVertices[i]( 2 )  = elementVertex[2];
+               }
+
+               std::vector< real_t > dofValues( numDofs );
+               basis()->integrateBasisFunction( degree, elementVertices, f, dofValues );
+
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( dofValues[i] );
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -247,7 +289,7 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
          const auto face   = *it.second;
 
          const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( degree );
+         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
 
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
          const auto memLayout = volumeDoFFunction()->memoryLayout();
@@ -304,7 +346,29 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
    if ( storage_->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : storage_->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = offset++;
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -315,7 +379,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
          const auto face   = *it.second;
 
          const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( degree );
+         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
 
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
          const auto memLayout = volumeDoFFunction()->memoryLayout();
@@ -342,7 +406,17 @@ uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "getNumberOfLocalDoFs not implemented for 3D." );
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto numElements       = levelinfo::num_microcells_per_cell( level );
+         const auto degree            = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDoFsPerElement = basis()->numDoFsPerElement( 3, degree );
+
+         ndofs += numElements * numDoFsPerElement;
+      }
    }
    else
    {
@@ -353,7 +427,7 @@ uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
 
          const auto numElements       = levelinfo::num_microfaces_per_face( level );
          const auto degree            = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDoFsPerElement = basis()->numDoFsPerElement( degree );
+         const auto numDoFsPerElement = basis()->numDoFsPerElement( 2, degree );
 
          ndofs += numElements * numDoFsPerElement;
       }
@@ -396,7 +470,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          const auto face   = *faceIt.second;
 
          const auto polyDegree = polynomialDegree( faceId );
-         const auto numDofs    = basis()->numDoFsPerElement( uint_c( polyDegree ) );
+         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
          const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
          const auto memLayout  = volumeDoFFunction()->memoryLayout();
 
@@ -446,7 +520,33 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
    if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polynomialDegree( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
+         const auto dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -457,7 +557,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          const auto dofs      = volumeDoFFunction()->dofMemory( faceID, level );
@@ -503,7 +603,7 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );

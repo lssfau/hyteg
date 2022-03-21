@@ -29,7 +29,50 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
    if ( storage_->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "DG not implemented in 3D" );
+
+      // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+      const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+      // Create a data ID for all cells.
+      storage_->template addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
+
+      // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+      const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+      // Create three data IDs for all faces.
+      storage_->template addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
+      storage_->template addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
+      storage_->template addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
+      storage_->template addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
+
+      // Allocate the DoFs.
+      for ( auto& it : storage_->getCells() )
+      {
+         const auto pid  = it.first;
+         const auto cell = it.second;
+
+         // Fetching the FunctionMemory instance from each macro-face.
+         FunctionMemory< ValueType >* functionMemory = cell->template getData( cellInnerDataID_ );
+
+         for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+         {
+            // Allocating the specified number of scalars on each micro-element for the entire macro-primitive.
+            const auto numMacroLocalScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microcells_per_cell( level );
+            functionMemory->addData( level, numMacroLocalScalars, ValueType( 0 ) );
+         }
+
+         // Allocating ghost-layer memory only where necessary.
+         for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDs() )
+         {
+            FunctionMemory< ValueType >* functionGLMemory = cell->template getData( cellGhostLayerDataIDs_[localFaceID] );
+
+            for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+            {
+               const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
+               functionGLMemory->addData( level, numGLScalars, ValueType( 0 ) );
+            }
+         }
+      }
    }
    else
    {

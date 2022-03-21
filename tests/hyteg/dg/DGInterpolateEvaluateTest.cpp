@@ -115,5 +115,10 @@ int main( int argc, char** argv )
    hyteg::test(
        2, 4, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1]; }, 1e-12 );
 
+   hyteg::test(
+       3, 4, 1, []( const hyteg::Point3D& ) { return 1; }, 1e-12 );
+   hyteg::test(
+       3, 4, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1] + 3 * x[2]; }, 1e-12 );
+
    return EXIT_SUCCESS;
 }
