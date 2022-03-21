@@ -506,22 +506,18 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
    };
 
    // add remaining primitives
-   // todo: parallelize
    for ( PT pt : CFEV )
    {
-      // WALBERLA_LOG_INFO_ON_ROOT( "add elements of type " << pt );
-
-      uint_t n_iter = 0;
-
       while ( n_assigned[n_processes][pt] < n_prim[pt] )
       {
-         ++n_iter;
+         // find best fitting element i for cluster k=rank
+         auto i_rnk = find_next( rank, pt );
 
          // loop over all clusters k
          for ( uint_t k = 0; k < n_processes; ++k )
          {
-            // find best fitting element i for cluster k
-            auto i = find_next( k, pt );
+            uint_t i = i_rnk;
+            walberla::mpi::broadcastObject( i, int(k) );
 
             if ( i < id0[pt + 1] )
             {
@@ -531,10 +527,6 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
                   auto j = unassign( i );
                   if ( j < n_processes )
                   {
-                     // if ( attraction[j] < n_processes )
-                     // {
-                     //    WALBERLA_LOG_INFO_ON_ROOT( "cluster " << j << " just donated an element to cluster " << k );
-                     // }
                      // j just gave up an element -> restore the forces of attraction
                      auto threshold = attraction[j];
                      for ( uint_t m = 0; m < n_processes; ++m )
@@ -546,8 +538,6 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
 
                   // assign element i to cluster k
                   assign( i, k );
-
-                  // WALBERLA_LOG_INFO_ON_ROOT(" " << j << " --" << i << "-->" << k);
                }
                else
                {
@@ -556,32 +546,10 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
                      Therefore, we decrease its force of attraction.
                   */
                   attraction[k] = attraction[assigned_to( i )] + 1;
-                  // WALBERLA_LOG_INFO_ON_ROOT( "cluster " << k << "'s attraction decreased to " << attraction[k]
-                  //                                       << " to claim element " << i );
                }
             }
          }
-         // WALBERLA_LOG_INFO_ON_ROOT( "iter " << n_iter << ": assigned: " << n_assigned[n_processes][pt] << "/" << n_prim[pt] );
-         // if ( n_iter%n_ == 0)
-         // {
-         //    for ( uint_t i = id0[pt]; i < id0[pt + 1]; ++i )
-         //    {
-         //       if ( !isAssigned[i] )
-         //       {
-         //          WALBERLA_LOG_INFO_ON_ROOT( "iter=" << n_iter << ": Element with id=" << i << " of type " << pt
-         //                                             << " has not been assigned!" )
-         //       }
-         //    }
-         // }
       }
-      WALBERLA_LOG_INFO_ON_ROOT( "after n=" << n_iter << " iterations:" );
-      for ( uint_t k = 0; k < n_processes; ++k )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "assigned to k=" << k << ": " << n_assigned[k][pt] << "/" << n_max[pt] );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------------------" );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "total : " << n_assigned[n_processes][pt] << "/" << n_prim[pt] );
    }
 }
 
