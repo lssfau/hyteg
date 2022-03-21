@@ -234,11 +234,11 @@ void P1ElementwiseOperator< P1Form >::smooth_jac( const P1Function< real_t >& ds
 
    // compute the current residual
    this->apply( src, dst, level, flag );
-   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
+   dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
-   dst.assign( {1.0, omega}, {src, dst}, level, flag );
+   dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
+   dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -489,8 +489,8 @@ void P1ElementwiseOperator< P1Form >::computeAndStoreLocalElementMatrices()
 template < class P1Form >
 void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const Face&                                face,
                                                                            const uint_t                               level,
-                                                                           const uint_t                               xIdx,
-                                                                           const uint_t                               yIdx,
+                                                                           const idx_t                                xIdx,
+                                                                           const idx_t                                yIdx,
                                                                            const P1Elements::P1Elements2D::P1Element& element,
                                                                            real_t* const dstVertexData )
 {
@@ -511,7 +511,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -649,8 +649,8 @@ template < class P1Form >
 void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                              const Face&                                 face,
                                                              const uint_t                                level,
-                                                             const uint_t                                xIdx,
-                                                             const uint_t                                yIdx,
+                                                             const idx_t                                 xIdx,
+                                                             const idx_t                                 yIdx,
                                                              const P1Elements::P1Elements2D::P1Element&  element,
                                                              const idx_t* const                          srcIdx,
                                                              const idx_t* const                          dstIdx ) const
@@ -672,7 +672,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );

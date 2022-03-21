@@ -44,6 +44,8 @@ target_sources( hyteg
     p1_div_affine_q1.cpp
     p1_div_blending_q1.cpp
     p1_diffusion_affine_q1.hpp
-    p1_full_stokescc_affine_q1.cpp     
+    p1_full_stokescc_affine_q1.cpp
+    p1_divdiv_affine_q2.cpp
+    p1_divdiv_affine_q2.hpp
 )
 

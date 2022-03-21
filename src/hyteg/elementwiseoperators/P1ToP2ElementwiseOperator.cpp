@@ -537,8 +537,8 @@ template < class P1toP2Form >
 void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                                      const Face&                                 face,
                                                                      const uint_t                                level,
-                                                                     const uint_t                                xIdx,
-                                                                     const uint_t                                yIdx,
+                                                                     const idx_t                                 xIdx,
+                                                                     const idx_t                                 yIdx,
                                                                      const P2Elements::P2Element&                element,
                                                                      const idx_t* const                          srcVertexIdx,
                                                                      const idx_t* const                          dstVertexIdx,
@@ -561,7 +561,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );

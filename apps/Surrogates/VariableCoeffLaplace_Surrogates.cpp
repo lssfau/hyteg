@@ -412,8 +412,8 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
 
       P2::variablestencil::macroface::assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                                                       VtVStencil, EtVStencil, VtEStencil, EtEStencil);
-      uint_t i = it.col();
-      uint_t j = it.row();
+      idx_t i = it.col();
+      idx_t j = it.row();
 
       // VERTEX DoF
       if (!vertexdof::macroface::isVertexOnBoundary(level, it))

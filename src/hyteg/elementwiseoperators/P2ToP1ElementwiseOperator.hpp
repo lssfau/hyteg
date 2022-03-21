@@ -24,12 +24,12 @@
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_div.h"
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
 
 namespace hyteg {
 
@@ -109,8 +109,8 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P2Elements::P2Element&                element,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,

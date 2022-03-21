@@ -19,7 +19,6 @@
  */
 #pragma once
 
-
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
@@ -27,8 +26,8 @@
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #ifdef _MSC_VER
 #pragma warning( push )
-#pragma warning( disable : 4244) // should be fixed otherwise... 
-#endif 
+#pragma warning( disable : 4244 ) // should be fixed otherwise...
+#endif
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -44,8 +43,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-
-
 
 namespace hyteg {
 
@@ -173,8 +170,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
    void computeLocalDiagonalContributions2D( const Face&                  face,
                                              const uint_t                 level,
-                                             const uint_t                 xIdx,
-                                             const uint_t                 yIdx,
+                                             const idx_t                  xIdx,
+                                             const idx_t                  yIdx,
                                              const P2Elements::P2Element& element,
                                              real_t* const                dstVertexData,
                                              real_t* const                dstEdgeData );
@@ -197,8 +194,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P2Elements::P2Element&                element,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,
@@ -361,8 +358,8 @@ typedef P2ElementwiseOperator<
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
 
-typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 >    P2ElementwiseBlendingMassOperator;
-typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
+typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 > P2ElementwiseBlendingMassOperator;
+typedef P2ElementwiseOperator< P2Form_laplace >             P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 

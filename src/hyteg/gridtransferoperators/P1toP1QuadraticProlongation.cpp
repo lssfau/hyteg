@@ -60,10 +60,10 @@ void P1toP1QuadraticProlongation::prolongateMacroFace( const real_t *src, real_t
   uint_t N_c = levelinfo::num_microvertices_per_edge(sourceLevel);
   uint_t N_c_i = N_c;
 
-  uint_t i, j;
+  idx_t i, j;
   real_t linearx, lineary, linearxy, offx, offy, offxy;
   i = 0;
-  for ( j = 2; j <= N_c - 1; j += 2 ) {
+  for ( j = 2; j <= idx_t( N_c ) - 1; j += 2 ) {
 // upper triangle inner points
 //calculate offsets
     linearx = 0.5 * ( src[indexFromVertex( sourceLevel, i, j - 2, SD::VERTEX_C )] + src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] );
@@ -86,8 +86,8 @@ void P1toP1QuadraticProlongation::prolongateMacroFace( const real_t *src, real_t
 
   N_c_i -= 1;
 
-  for ( j = 2; j < N_c - 1; j += 2 ) {
-    for ( i = 2; i < N_c_i - 1; i += 2 ) {
+  for ( j = 2; j < idx_t( N_c ) - 1; j += 2 ) {
+    for ( i = 2; i < idx_t( N_c_i ) - 1; i += 2 ) {
 
 // upper triangle inner points
 //calculate offsets

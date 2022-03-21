@@ -97,7 +97,7 @@ inline constexpr uint_t numMicroCellsPerMacroCellTotal( const uint_t& level )
    return totalNumCells;
 }
 
-inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const CellType& cellType )
+inline constexpr uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z, const CellType& cellType )
 {
    const auto width = numCellsPerRowByType( level, cellType );
    switch ( cellType )
@@ -128,9 +128,9 @@ inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_
 /// Returns an array of the four logical micro-vertex-indices that span the micro-cell of the given indices and cell type.
 inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microCellIndex, const CellType& microCellType )
 {
-   const uint_t cellX = microCellIndex.x();
-   const uint_t cellY = microCellIndex.y();
-   const uint_t cellZ = microCellIndex.z();
+   const idx_t cellX = microCellIndex.x();
+   const idx_t cellY = microCellIndex.y();
+   const idx_t cellZ = microCellIndex.z();
 
    switch ( microCellType )
    {

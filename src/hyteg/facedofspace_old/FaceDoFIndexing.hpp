@@ -63,7 +63,7 @@ inline constexpr uint_t numMicroFacesPerMacroFace( const uint_t& level, const Fa
    return levelinfo::num_microvertices_per_face_from_width( numFacesPerRowByType( level, faceType ) );
 }
 
-inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const FaceType& faceType )
+inline constexpr uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const FaceType& faceType )
 {
    const auto width = numFacesPerRowByType( level, faceType );
    switch ( faceType )
@@ -80,8 +80,8 @@ inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_
 /// Returns an array of the three logical micro-vertex-indices that span the micro-face of the given indices and face type.
 inline std::array< Index, 3 > getMicroVerticesFromMicroFace( const Index& microFaceIndex, const FaceType& microFaceType )
 {
-   const uint_t cellX = microFaceIndex.x();
-   const uint_t cellY = microFaceIndex.y();
+   const idx_t cellX = microFaceIndex.x();
+   const idx_t cellY = microFaceIndex.y();
 
    switch ( microFaceType )
    {
@@ -191,7 +191,7 @@ inline bool sharesBoundaryWithMacro( Index microFaceIdx, FaceType faceType, uint
 {
    return ( faceType == FaceType::GRAY ) &&
           ( microFaceIdx.x() == 0 || microFaceIdx.y() == 0 ||
-            microFaceIdx.x() + microFaceIdx.y() == levelinfo::num_microedges_per_edge( level ) - 1 );
+            microFaceIdx.x() + microFaceIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) ) - 1 );
 }
 
 // Do we still need the indexFaceStencil? It is currently not used anywhere
