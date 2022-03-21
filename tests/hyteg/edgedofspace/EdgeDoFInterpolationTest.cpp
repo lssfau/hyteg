@@ -75,9 +75,9 @@ int main(int argc, char **argv)
     value = (xStepSize / 2 + face->getCoordinates()[0][0]) * 2 + face->getCoordinates()[0][0];
 
     edgedof::macroface::interpolate< real_t >(level, *face, x.getFaceDataID(), emptyFaceIds, exact);
-    for (uint_t i = 0; i < mEperEdge; ++i)
+    for (idx_t i = 0; i < idx_t( mEperEdge ); ++i)
     {
-      for (uint_t j = 0; j < mEperEdge - i; ++j)
+      for (idx_t j = 0; j < idx_t( mEperEdge ) - i; ++j)
       {
         uint_t idx_ho = edgedof::macroface::indexFromHorizontalEdge( level, j, i, stencilDirection::EDGE_HO_C );
         uint_t idx_di = edgedof::macroface::indexFromDiagonalEdge( level, j, i, stencilDirection::EDGE_DI_C );
