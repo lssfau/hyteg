@@ -183,7 +183,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                const Face&                                 face,
                                const uint_t                                level,
                                const idx_t                                 xIdx,
-                               const idx_t_t                               yIdx,
+                               const idx_t                                 yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
                                const idx_t* const                          srcIdx,
                                const idx_t* const                          dstIdx ) const;
