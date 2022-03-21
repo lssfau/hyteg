@@ -27,7 +27,7 @@ namespace hyteg {
 
 using indexing::Index;
 
-void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
+void checkIndices(idx_t col, idx_t row, std::vector<uint_t> ref, uint_t type){
   std::vector<size_t> result;
   switch(type){
     //vertex

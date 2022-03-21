@@ -145,7 +145,7 @@ void check1tet( bool bufferComm = false )
 
    ////// EDGE 0 /////
    ///// X /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t faceIdx = edgedof::macroface::index( level, i, 1, edgedof::EdgeDoFOrientation::X, 0 );
@@ -155,7 +155,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// Y /////
-   for( uint_t i = 0; i <= 2; ++i )
+   for( idx_t i = 0; i <= 2; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::Y );
       uint_t faceIdx = edgedof::macroface::index( level, i, 0, edgedof::EdgeDoFOrientation::Y, 0 );
@@ -165,7 +165,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// Z /////
-   for( uint_t i = 0; i <= 2; ++i )
+   for( idx_t i = 0; i <= 2; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::Z );
       uint_t faceIdx = edgedof::macroface::index( level, i, 1, edgedof::EdgeDoFOrientation::Z, 0 );
@@ -175,7 +175,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// XY /////
-   for( uint_t i = 0; i <= 2; ++i )
+   for( idx_t i = 0; i <= 2; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::XY );
       uint_t faceIdx = edgedof::macroface::index( level, i, 0, edgedof::EdgeDoFOrientation::XY, 0 );
@@ -185,7 +185,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// XZ /////
-   for( uint_t i = 0; i <= 2; ++i )
+   for( idx_t i = 0; i <= 2; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::XZ );
       uint_t faceIdx = edgedof::macroface::index( level, i, 1, edgedof::EdgeDoFOrientation::XZ, 0 );
@@ -195,7 +195,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// YZ /////
-   for( uint_t i = 0; i <= 3; ++i )
+   for( idx_t i = 0; i <= 3; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::YZ );
       uint_t faceIdx = edgedof::macroface::index( level, i, 0, edgedof::EdgeDoFOrientation::YZ, 0 );
@@ -205,7 +205,7 @@ void check1tet( bool bufferComm = false )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// XYZ /////
-   for( uint_t i = 0; i <= 2; ++i )
+   for( idx_t i = 0; i <= 2; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::XYZ );
       uint_t faceIdx = edgedof::macroface::index( level, i, 0, edgedof::EdgeDoFOrientation::XYZ, 0 );
@@ -216,7 +216,7 @@ void check1tet( bool bufferComm = false )
    }
 
    ///// X EDGE 1 /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t faceIdx = edgedof::macroface::index( level, 1, i, edgedof::EdgeDoFOrientation::Y, 0 );
@@ -227,14 +227,14 @@ void check1tet( bool bufferComm = false )
    }
 
    ///// X EDGE 2 /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t cellIdx = edgedof::macrocell::index( level, 1, 1, i, edgedof::EdgeDoFOrientation::Z );
       WALBERLA_CHECK_EQUAL( edge2Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
    ///// X EDGE 3 /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t cellIdx = edgedof::macrocell::index( level, 1 - i, i, 1, edgedof::EdgeDoFOrientation::XY );
@@ -242,7 +242,7 @@ void check1tet( bool bufferComm = false )
    }
 
    ///// X EDGE 4 /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t cellIdx = edgedof::macrocell::index( level, 1 - i, 1, i, edgedof::EdgeDoFOrientation::XZ );
@@ -250,7 +250,7 @@ void check1tet( bool bufferComm = false )
    }
 
    ///// X EDGE 5 /////
-   for( uint_t i = 0; i <= 1; ++i )
+   for( idx_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t cellIdx = edgedof::macrocell::index( level, 1, 1 - i, i, edgedof::EdgeDoFOrientation::YZ );
@@ -425,7 +425,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
 
     Edge *firstEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
     int *edgeData = firstEdge->getData(x.getEdgeDataID())->getPointer(level);
-    uint_t idxCounter = 0;
+    idx_t idxCounter = 0;
     /// horizontal Dof on edge 0
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
@@ -600,14 +600,14 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
       } else if (face->getVertexID1() == vertex.getID()){
         uint_t nbrEdgeDoFs = levelinfo::num_microedges_per_edge( level );
         WALBERLA_CHECK_EQUAL(
-          faceData[edgedof::macroface::indexFromVerticalEdge( level, nbrEdgeDoFs - 1, 0, stencilDirection::EDGE_VE_C )],
+          faceData[edgedof::macroface::indexFromVerticalEdge( level, idx_t( nbrEdgeDoFs - 1 ), 0, stencilDirection::EDGE_VE_C )],
           vertexData[vertex.getNumNeighborEdges() + vertex.face_index(faceId)],
           " index: " << vertex.getNumNeighborEdges() + vertex.face_index(faceId))
         numberOfChecks++;
       } else if (face->getVertexID2() == vertex.getID()){
         uint_t nbrEdgeDoFs = levelinfo::num_microedges_per_edge( level );
         WALBERLA_CHECK_EQUAL(
-          faceData[edgedof::macroface::indexFromHorizontalEdge( level, 0, nbrEdgeDoFs - 1, stencilDirection::EDGE_HO_C )],
+          faceData[edgedof::macroface::indexFromHorizontalEdge( level, 0, idx_t( nbrEdgeDoFs - 1 ), stencilDirection::EDGE_HO_C )],
           vertexData[vertex.getNumNeighborEdges() + vertex.face_index(faceId)],
           " faceIndex: " << vertex.getNumNeighborEdges() + vertex.face_index(faceId))
         numberOfChecks++;

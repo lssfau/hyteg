@@ -87,9 +87,9 @@ int main(int argc, char **argv)
     yStepSize = walberla::real_c(face->getCoordinates()[2][1] - face->getCoordinates()[0][1]) / walberla::real_c((v_perEdge-1));
 
     vertexdof::macroface::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
-    for (uint_t i = 0; i < v_perEdge; ++i)
+    for (idx_t i = 0; i < idx_t( v_perEdge ); ++i)
     {
-      for (uint_t j = 0; j < v_perEdge - i; ++j)
+      for (idx_t j = 0; j < idx_t( v_perEdge ) - i; ++j)
       {
         uint_t idx = vertexdof::macroface::indexFromVertex( maxLevel, j, i,
                                                             stencilDirection::VERTEX_C );

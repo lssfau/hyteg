@@ -446,7 +446,6 @@ waLBerla_execute_test(NAME ConcatenatedOperator)
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES composites/P1P0Stokes2DPetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
-    waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest2 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 2)
 endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
