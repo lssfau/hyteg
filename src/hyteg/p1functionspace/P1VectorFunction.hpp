@@ -45,7 +45,8 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel )
-   : P1VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ) {}
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+   {}
 
    P1VectorFunction( const std::string&                         _name,
                      const std::shared_ptr< PrimitiveStorage >& storage,
@@ -63,6 +64,10 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
          this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
       }
    }
+
+   P1VectorFunction( const std::string name, const std::vector< std::shared_ptr< P1Function< ValueType > > >& compFunc )
+   : CSFVectorFunction< P1VectorFunction< ValueType > >( name, compFunc )
+   {}
 };
 
 } // namespace hyteg

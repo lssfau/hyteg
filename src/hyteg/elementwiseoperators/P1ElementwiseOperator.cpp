@@ -806,6 +806,16 @@ template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
+
 template class P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >;
 
 } // namespace hyteg

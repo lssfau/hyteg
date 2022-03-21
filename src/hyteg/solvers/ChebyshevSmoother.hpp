@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Andreas Wagner
+ * Copyright (c) 2020-2022 Andreas Wagner, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -208,8 +208,13 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
                       DoFType                flag,
                       UpdateType             updateType = Replace ) const
    {
-      auto inverseDiagonalValues = wrappedOperator_.getInverseDiagonalValues();
-      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      auto A_with_inv_diag = dynamic_cast< const OperatorWithInverseDiagonal< SrcFunctionType >* >( &wrappedOperator_ );
+      auto inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
+      // CSFVectorFunctions currently do not support getMaxMagnitude()
+      if constexpr ( !std::is_base_of< CSFVectorFunction< SrcFunctionType >, SrcFunctionType >::value )
+      {
+         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      }
       wrappedOperator_.apply( src, dst, level, flag, updateType );
       dst.multElementwise( {*inverseDiagonalValues, dst}, level, flag );
    }

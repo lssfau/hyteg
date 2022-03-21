@@ -64,6 +64,10 @@ class P2VectorFunction final : public CSFVectorFunction< P2VectorFunction< Value
          this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
       }
    }
+
+   P2VectorFunction( const std::string name, const std::vector< std::shared_ptr< P2Function< ValueType > > >& compFunc )
+   : CSFVectorFunction< P2VectorFunction< ValueType > >( name, compFunc )
+   {}
 };
 
 } // namespace hyteg
