@@ -519,6 +519,8 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
             uint_t i = i_rnk;
             walberla::mpi::broadcastObject( i, int(k) );
 
+            // todo: check if another cluster also chose element i and only reassign it if k is the better fit!
+
             if ( i < id0[pt + 1] )
             {
                if ( n_assigned[k][pt] < n_max[pt] )

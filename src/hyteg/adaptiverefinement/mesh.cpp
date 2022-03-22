@@ -144,8 +144,10 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
 {
+   real_t ratio = 1;
+
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // pessimistic estimate! in most cases the actual growth will be significantly smaller
@@ -203,16 +205,29 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       _T.merge( refined );
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
+
+      // compute ratio |R\U|/|R|
+      auto card_R       = R.size();
+      auto card_diff_RU = card_R;
+      for ( auto& el : R )
+      {
+         if ( U.count( el ) > 0 )
+            --card_diff_RU;
+      }
+      ratio = real_t( card_diff_RU ) / real_t( card_R );
    }
 
    walberla::mpi::broadcastObject( _n_vertices );
    walberla::mpi::broadcastObject( _n_elements );
+   walberla::mpi::broadcastObject( ratio );
+
+   return ratio;
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
-                                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                                    uint_t                                                     n_el_max )
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                                      uint_t                                                     n_el_max )
 {
    // communication
    ErrorVector errors_all, errors_other;
@@ -247,15 +262,15 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                          
    }
 
    // apply refinement
-   refineRG( elements_to_refine, n_el_max );
+   return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
 {
    auto N_ref     = uint_t( std::ceil( real_t( _n_elements ) * ratio_to_refine ) );
    auto criterion = [=]( const ErrorVector&, uint_t i ) { return i < N_ref; };
-   refineRG( errors_local, criterion, n_el_max );
+   return refineRG( errors_local, criterion, n_el_max );
 }
 
 template < class K_Simplex >

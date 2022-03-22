@@ -369,12 +369,28 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( "* apply refinement " << refinement );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
-      mesh.refineRG( local_errors, p_ref, n_el_max );
+      // refinement strategy
+      const auto p_idx     = std::min( uint_t( std::ceil( real_t( n_el_old ) * p_ref ) ), n_el_old - 1 );
+      auto       criterion = [&]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
+         if ( i == 0 )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i = " << err_global.back().first );
+            WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i = " << err_global.front().first );
+            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << 0.5 * err_global[p_idx].first );
+         }
+         return err_global[i].first >= 0.5 * err_global[p_idx].first;
+      };
+
+      // mesh.refineRG( local_errors, p_ref, n_el_max );
+      auto ratio = mesh.refineRG( local_errors, criterion, n_el_max );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
 
-      if ( mesh.n_elements() == n_el_old )
+      // if ( mesh.n_elements() == n_el_old )
+      if ( ratio < 0.95 )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of elements!" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of elements!" );
+         WALBERLA_LOG_INFO_ON_ROOT(
+             "* refinement can't be applied to all required elements\n  without breaking the max number of elements!" );
          break;
       }
    }
@@ -419,7 +435,7 @@ int main( int argc, char* argv[] )
 
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
-   const real_t p_refinement  = parameters.getParameter< real_t >( "n_el_ref_relative" );
+   const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
    const uint_t l_max         = parameters.getParameter< uint_t >( "microlevel" );
    const uint_t l_min         = ( l_max < 2 ) ? l_max : 2;
 

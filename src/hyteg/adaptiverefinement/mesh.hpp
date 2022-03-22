@@ -63,30 +63,39 @@ class K_Mesh
    K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
    /* apply red-green refinement to this mesh
-      @param elements_to_refine  subset of elements that shall be refined (red)
-                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
-      @param n_el_max            upper bound for number of elements in refined mesh
+      @param el_to_refine     subset of elements that shall be refined (red)
+                              given by primitiveIDs w.r.t. K_Mesh::make_storage()
+      @param n_el_max         upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() );
+   real_t refineRG( const std::vector< PrimitiveID >& el_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() );
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param criterion        criterion w.r.t. sorted global error list whether an element should be refined
+      @param criterion        criterion w.r.t. sorted (greatest first) global error list whether an element should be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void refineRG( const ErrorVector&                                         local_errors,
-                  const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                  uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() );
+   real_t refineRG( const ErrorVector&                                         local_errors,
+                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                    uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() );
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
       @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
                               ratio*n_elements elements with the largest error will be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void refineRG( const ErrorVector& local_errors,
-                  real_t             ratio_to_refine,
-                  uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
+   real_t refineRG( const ErrorVector& local_errors,
+                    real_t             ratio_to_refine,
+                    uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
 
    // get minimum and maximum angle of the elements in T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -204,8 +213,11 @@ class Mesh
       @param elements_to_refine  subset of elements that shall be refined (red)
                                  given by primitiveIDs w.r.t. K_Mesh::make_storage()
       @param n_el_max            upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
+   real_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
    {
       if ( _DIM == 3 )
       {
@@ -221,10 +233,13 @@ class Mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
       @param criterion        criterion whether an element should be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void refineRG( const ErrorVector&                                         local_errors,
-                  const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                  uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() )
+   real_t refineRG( const ErrorVector&                                         local_errors,
+                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                    uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() )
    {
       if ( _DIM == 3 )
       {
@@ -241,8 +256,11 @@ class Mesh
       @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
                               ratio*n_elements elements with the largest error will be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
+                              remain unrefined, respectively. Note that the result will be 1
+                              unless n_el_max has been reached.
    */
-   void
+   real_t
        refineRG( const ErrorVector& local_errors, real_t ratio_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
    {
       if ( _DIM == 3 )
