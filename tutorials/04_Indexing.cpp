@@ -122,9 +122,9 @@ void IndexingTutorial()
   /// [FirstLoop]
   uint_t innerRowSize = numMicroverticesOnEdge;
 
-  for ( uint_t row = 0; row < numMicroverticesOnEdge; row++ )
+  for ( idx_t row = 0; row < idx_t( numMicroverticesOnEdge ); row++ )
   {
-    for ( uint_t col = 0; col < innerRowSize; col++ )
+    for ( idx_t col = 0; col < idx_t( innerRowSize ); col++ )
     {
       // Calculate the array index using the appropriate index function.
       // For vertex DoFs (P1) on a macro face:
