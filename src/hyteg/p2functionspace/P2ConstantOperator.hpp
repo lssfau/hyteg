@@ -67,6 +67,10 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                              size_t                      level,
                              DoFType                     flag ) const override
    {
+      if ( !storage_->hasGlobalCells() )
+      {
+         throw std::runtime_error( "P2ConstantOperator: Backward GS currently only implemented for 3D." );
+      }
       smooth_sor_backwards( dst, rhs, 1.0, level, flag );
    }
 
@@ -92,6 +96,10 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                               size_t                      level,
                               DoFType                     flag ) const override
    {
+      if ( !storage_->hasGlobalCells() )
+      {
+         throw std::runtime_error( "P2ConstantOperator: Backward SOR currently only implemented for 3D." );
+      }
       smooth_sor( dst, rhs, relax, level, flag, true );
    }
 

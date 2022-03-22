@@ -1255,7 +1255,7 @@ void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "P2ConstantOperator::smooth_jac() not implemented for 3D, yet!" );
+      throw std::runtime_error( "P2ConstantOperator::smooth_jac() not implemented for 3D, yet!" );
    }
    else
    {

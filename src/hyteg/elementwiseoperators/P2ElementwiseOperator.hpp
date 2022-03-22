@@ -79,7 +79,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
 
    std::shared_ptr< P2Function< real_t > > getDiagonalValues() const
    {

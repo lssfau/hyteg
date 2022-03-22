@@ -450,15 +450,19 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   // void computeDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   void computeDiagonalOperatorValues()
    {
+      bool use_variable_stencil_assembly = false;
       computeDiagonalOperatorValues( false, use_variable_stencil_assembly );
    }
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   // void computeInverseDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   void computeInverseDiagonalOperatorValues()
    {
+      bool use_variable_stencil_assembly = false;
       computeDiagonalOperatorValues( true, use_variable_stencil_assembly );
    }
 

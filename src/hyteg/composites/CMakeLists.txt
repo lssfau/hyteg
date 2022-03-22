@@ -5,7 +5,6 @@ target_sources( hyteg
     P2P1TaylorHoodBlockFunction.hpp
     P2P1TaylorHoodFunction.hpp
     P2P1SurrogateTaylorHoodStokesOperator.hpp
-    P1StokesBlockLaplaceOperator.hpp
     P1P1StokesOperator.hpp
     P2P2UnstableStokesOperator.hpp
     P2P1TaylorHoodStokesOperator.hpp

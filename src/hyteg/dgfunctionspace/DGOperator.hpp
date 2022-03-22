@@ -42,9 +42,7 @@ using volumedofspace::indexing::VolumeDoFMemoryLayout;
 using walberla::int_c;
 using walberla::real_t;
 
-class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >,
-                   public WeightedJacobiSmoothable< DGFunction< real_t > >,
-                   public OperatorWithInverseDiagonal< DGFunction< real_t > >
+class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 {
  public:
    DGOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -63,15 +61,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   const DGFunction< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override;
-
-   void smooth_jac( const DGFunction< real_t >& dst,
-                    const DGFunction< real_t >& rhs,
-                    const DGFunction< real_t >& tmp,
-                    real_t                      relax,
-                    size_t                      level,
-                    DoFType                     flag ) const override;
-
-   [[nodiscard]] std::shared_ptr< DGFunction< real_t > > getInverseDiagonalValues() const override;
 
  private:
    /// Just a small helper method that writes the local matrix into the global sparse system.

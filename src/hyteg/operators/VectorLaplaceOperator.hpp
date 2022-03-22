@@ -26,6 +26,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -37,7 +38,8 @@ class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncK
                               public GSSmoothable< VecFuncKind< ValueType > >,
                               public GSBackwardsSmoothable< VecFuncKind< ValueType > >,
                               public SORSmoothable< VecFuncKind< ValueType > >,
-                              public SORBackwardsSmoothable< VecFuncKind< ValueType > >
+                              public SORBackwardsSmoothable< VecFuncKind< ValueType > >,
+                              public OperatorWithInverseDiagonal< VecFuncKind< ValueType > >
 {
  public:
    template < typename... SpecialCtorArgs >
@@ -102,6 +104,17 @@ class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncK
                               real_t                          relax,
                               size_t                          level,
                               DoFType                         flag ) const final;
+
+   std::shared_ptr< VecFuncKind< ValueType > > getInverseDiagonalValues() const final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() final
+   {
+      this->VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >::computeInverseDiagonalOperatorValues();
+   }
+
 };
 
 // ------------------------

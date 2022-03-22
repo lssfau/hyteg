@@ -69,8 +69,8 @@ class CGSolver : public Solver< OperatorType >
       if ( maxIter_ == 0 )
          return;
 
-      if ( x.isDummy() || b.isDummy() )
-         return;
+      // if ( x.isDummy() || b.isDummy() )
+      //    return;
 
       timingTree_->start( "CG Solver" );
 

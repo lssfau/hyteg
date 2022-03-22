@@ -56,26 +56,5 @@ void DGOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
    assembleAndOrApply< idx_t >( src, dst, level, flag, mat, Replace );
 }
 
-void DGOperator::smooth_jac( const DGFunction< real_t >& dst,
-                             const DGFunction< real_t >& rhs,
-                             const DGFunction< real_t >& tmp,
-                             real_t                      relax,
-                             size_t                      level,
-                             DoFType                     flag ) const
-{
-   WALBERLA_ABORT( "DGOperator: weighted Jacobi not implemented." );
-   WALBERLA_UNUSED( dst );
-   WALBERLA_UNUSED( rhs );
-   WALBERLA_UNUSED( tmp );
-   WALBERLA_UNUSED( relax );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
-}
-
-std::shared_ptr< DGFunction< real_t > > DGOperator::getInverseDiagonalValues() const
-{
-   WALBERLA_ABORT( "DGOperator: inverse diagonal not implemented." );
-}
-
 } // namespace dg
 } // namespace hyteg
