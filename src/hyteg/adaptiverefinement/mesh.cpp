@@ -471,13 +471,20 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
 
    for ( const auto& [faceID, face] : faces_sps )
    {
-      face->indirectNeighborFaceIDs_.clear();
+      face->indirectNeighborFaceIDsOverEdges_.clear();
+
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : face->neighborVertices() )
       {
          auto vertex = vertices_sps[vertexID.getID()];
          for ( const auto& neighborFaceID : vertex->neighborFaces() )
          {
+            if ( neighborFaceID != faceID )
+            {
+               idSet.insert( neighborFaceID );
+            }
+
             const auto neighborFaceVertices = faces_sps[neighborFaceID.getID()]->neighborVertices();
 
             const auto containsV0 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[0] );
@@ -488,60 +495,75 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
             {
                if ( containsV0 && containsV1 )
                {
-                  face->indirectNeighborFaceIDs_[0] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[0] = neighborFaceID;
                }
                else if ( containsV0 && containsV2 )
                {
-                  face->indirectNeighborFaceIDs_[1] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[1] = neighborFaceID;
                }
                else if ( containsV1 && containsV2 )
                {
-                  face->indirectNeighborFaceIDs_[2] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[2] = neighborFaceID;
                }
             }
          }
       }
+
+      face->indirectNeighborFaceIDsOverVertices_.clear();
+      face->indirectNeighborFaceIDsOverVertices_.insert(
+          face->indirectNeighborFaceIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    //****** add indirect neighbor cells ******
 
    for ( const auto& [cellID, cell] : cells_sps )
    {
-      cell->indirectNeighborCellIDs_.clear();
+      cell->indirectNeighborCellIDsOverFaces_.clear();
+
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : cell->neighborVertices() )
       {
          auto vertex = vertices_sps[vertexID.getID()];
          for ( const auto& neighborCellID : vertex->neighborCells() )
          {
+            if ( neighborCellID != cellID )
+            {
+               idSet.insert( neighborCellID );
+            }
+
             const auto neighborCellVertices = cells_sps[neighborCellID.getID()]->neighborVertices();
 
             const auto containsV0 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[0] );
             const auto containsV1 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[1] );
             const auto containsV2 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
-            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
+            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[3] );
 
             if ( neighborCellID != cellID && ( containsV0 || containsV1 || containsV2 || containsV3 ) )
             {
                if ( containsV0 && containsV1 && containsV2 )
                {
-                  cell->indirectNeighborCellIDs_[0] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[0] = neighborCellID;
                }
                else if ( containsV0 && containsV1 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[1] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[1] = neighborCellID;
                }
                else if ( containsV0 && containsV2 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[2] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[2] = neighborCellID;
                }
                else if ( containsV1 && containsV2 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[3] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[3] = neighborCellID;
                }
             }
          }
       }
+
+      cell->indirectNeighborCellIDsOverVertices_.clear();
+      cell->indirectNeighborCellIDsOverVertices_.insert(
+          cell->indirectNeighborCellIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    //****** construct new setupStorage ******

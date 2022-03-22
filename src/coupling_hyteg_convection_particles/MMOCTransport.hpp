@@ -263,7 +263,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
          else
          {
             // check for neighbor cells if we did not find it in its previous cell
-            for ( const auto& [_, neighborCellID] : cell->getIndirectNeighborCellIDs() )
+            for ( const auto& neighborCellID : cell->getIndirectNeighborCellIDsOverVertices() )
             {
                WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
                                 storage.cellExistsInNeighborhood( neighborCellID ) );
@@ -308,7 +308,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
             }
             else
             {
-               for ( const auto& [_, neighborCellID] : cell->getIndirectNeighborCellIDs() )
+               for ( const auto& neighborCellID : cell->getIndirectNeighborCellIDsOverVertices() )
                {
                   WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
                                    storage.cellExistsInNeighborhood( neighborCellID ) );
@@ -523,10 +523,10 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
    particleStorage.clear();
 
-   const uint_t                                rank     = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    // const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme ); //this seems to be unused?
-   const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
-   const uint_t                                rkStages = b.size();
+   const std::vector< real_t >& b        = RK_b.at( timeSteppingScheme );
+   const uint_t                 rkStages = b.size();
 
    if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
    {
@@ -943,15 +943,22 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       const int TAG = 98234;
 #ifdef _MSC_VER
       //need a first receive to avoid blocking on windows while communicating with itself
-      int selfCommMessage = 0;
+      int         selfCommMessage = 0;
       MPI_Request selfCommRequest;
-      MPI_Irecv(&selfCommMessage, 1, MPI_INT, walberla::mpi::MPIManager::instance()->rank(), TAG, walberla::mpi::MPIManager::instance()->comm(), &selfCommRequest);
+      MPI_Irecv( &selfCommMessage,
+                 1,
+                 MPI_INT,
+                 walberla::mpi::MPIManager::instance()->rank(),
+                 TAG,
+                 walberla::mpi::MPIManager::instance()->comm(),
+                 &selfCommRequest );
 #endif
       for ( const auto& p : particleStorage )
       {
-         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 ){
+         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
+         {
             numParticlesToSendToRank[p.getStartProcess()] = 0;
-            sendRequests[p.getStartProcess()] = MPI_Request();
+            sendRequests[p.getStartProcess()]             = MPI_Request();
          }
          numParticlesToSendToRank[p.getStartProcess()]++;
       }
@@ -976,21 +983,23 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       }
 
       int numReceivedParticleLocations = 0;
-      #ifdef _MSC_VER
+#ifdef _MSC_VER
       //get self communication
       {
-         int ready;
+         int        ready;
          MPI_Status status;
-         MPI_Test(&selfCommRequest, &ready, &status);
-         if(ready){
-            numReceivedParticleLocations = selfCommMessage;
+         MPI_Test( &selfCommRequest, &ready, &status );
+         if ( ready )
+         {
+            numReceivedParticleLocations                               = selfCommMessage;
             numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numReceivedParticleLocations;
-         }else{
-            WALBERLA_LOG_INFO("somethings very wrong here");
          }
-
+         else
+         {
+            WALBERLA_LOG_INFO( "somethings very wrong here" );
+         }
       }
-      #endif
+#endif
       while ( numReceivedParticleLocations < numberOfCreatedParticles )
       {
          MPI_Status status;

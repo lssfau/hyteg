@@ -66,7 +66,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          }
 
          // Allocating ghost-layer memory only where necessary.
-         for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDs() )
+         for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDsOverEdges() )
          {
             FunctionMemory< ValueType >* functionGLMemory = face->template getData( faceGhostLayerDataIDs_[localEdgeID] );
 

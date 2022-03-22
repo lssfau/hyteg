@@ -169,7 +169,7 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
    uint_t senderLocalEdgeID   = std::numeric_limits< uint_t >::max();
    uint_t receiverLocalEdgeID = std::numeric_limits< uint_t >::max();
 
-   for ( const auto& [edgeID, npid] : sender->getIndirectNeighborFaceIDs() )
+   for ( const auto& [edgeID, npid] : sender->getIndirectNeighborFaceIDsOverEdges() )
    {
       if ( receiver->getID() == npid )
       {
@@ -180,7 +180,7 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
 
    WALBERLA_ASSERT_LESS_EQUAL( senderLocalEdgeID, 2, "Couldn't find receiver face in neighborhood." );
 
-   for ( const auto& [edgeID, npid] : receiver->getIndirectNeighborFaceIDs() )
+   for ( const auto& [edgeID, npid] : receiver->getIndirectNeighborFaceIDsOverEdges() )
    {
       if ( sender->getID() == npid )
       {

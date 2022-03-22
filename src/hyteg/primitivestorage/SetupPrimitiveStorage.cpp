@@ -369,13 +369,20 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
    // Also sort them by local edge IDs.
    for ( auto& [faceID, face] : faces_ )
    {
-      face->indirectNeighborFaceIDs_.clear();
+      face->indirectNeighborFaceIDsOverEdges_.clear();
+
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : face->neighborVertices() )
       {
          auto vertex = getVertex( vertexID );
          for ( const auto& neighborFaceID : vertex->neighborFaces() )
          {
+            if ( neighborFaceID != faceID )
+            {
+               idSet.insert( neighborFaceID );
+            }
+
             const auto neighborFaceVertices = faces_[neighborFaceID.getID()]->neighborVertices();
 
             const auto containsV0 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[0] );
@@ -386,59 +393,74 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
             {
                if ( containsV0 && containsV1 )
                {
-                  face->indirectNeighborFaceIDs_[0] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[0] = neighborFaceID;
                }
                else if ( containsV0 && containsV2 )
                {
-                  face->indirectNeighborFaceIDs_[1] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[1] = neighborFaceID;
                }
                else if ( containsV1 && containsV2 )
                {
-                  face->indirectNeighborFaceIDs_[2] = neighborFaceID;
+                  face->indirectNeighborFaceIDsOverEdges_[2] = neighborFaceID;
                }
             }
          }
       }
+
+      face->indirectNeighborFaceIDsOverVertices_.clear();
+      face->indirectNeighborFaceIDsOverVertices_.insert(
+          face->indirectNeighborFaceIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    // add indirect neighbor cells
    for ( auto& [cellID, cell] : cells_ )
    {
-      cell->indirectNeighborCellIDs_.clear();
+      cell->indirectNeighborCellIDsOverFaces_.clear();
+
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : cell->neighborVertices() )
       {
          auto vertex = getVertex( vertexID );
          for ( const auto& neighborCellID : vertex->neighborCells() )
          {
+            if ( neighborCellID != cellID )
+            {
+               idSet.insert( neighborCellID );
+            }
+
             const auto neighborCellVertices = cells_[neighborCellID.getID()]->neighborVertices();
 
             const auto containsV0 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[0] );
             const auto containsV1 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[1] );
             const auto containsV2 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
-            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
+            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[3] );
 
             if ( neighborCellID != cellID && ( containsV0 || containsV1 || containsV2 || containsV3 ) )
             {
                if ( containsV0 && containsV1 && containsV2 )
                {
-                  cell->indirectNeighborCellIDs_[0] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[0] = neighborCellID;
                }
                else if ( containsV0 && containsV1 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[1] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[1] = neighborCellID;
                }
                else if ( containsV0 && containsV2 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[2] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[2] = neighborCellID;
                }
                else if ( containsV1 && containsV2 && containsV3 )
                {
-                  cell->indirectNeighborCellIDs_[3] = neighborCellID;
+                  cell->indirectNeighborCellIDsOverFaces_[3] = neighborCellID;
                }
             }
          }
       }
+
+      cell->indirectNeighborCellIDsOverVertices_.clear();
+      cell->indirectNeighborCellIDsOverVertices_.insert(
+          cell->indirectNeighborCellIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    loadbalancing::roundRobin( *this );
@@ -816,7 +838,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
 {
    auto centroid = [useGeometryMap]( const std::vector< Point3D >&         coordinates,
                                      const std::shared_ptr< GeometryMap >& map ) -> Point3D {
-      Point3D c( {real_c( 0 ), real_c( 0 ), real_c( 0 )} );
+      Point3D c( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
       for ( const auto& p : coordinates )
       {
          c += p;
@@ -833,7 +855,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
 
    for ( const auto& p : vertices_ )
    {
-      const auto c = centroid( {p.second->getCoordinates()}, p.second->getGeometryMap() );
+      const auto c = centroid( { p.second->getCoordinates() }, p.second->getGeometryMap() );
       if ( onBoundary( c ) )
          setMeshBoundaryFlag( p.first, meshBoundaryFlag );
    }
@@ -862,7 +884,6 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
          setMeshBoundaryFlag( p.first, meshBoundaryFlag );
    }
 }
-
 
 bool SetupPrimitiveStorage::onBoundary( const PrimitiveID& primitiveID, const bool& highestDimensionAlwaysInner ) const
 {

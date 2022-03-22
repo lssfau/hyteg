@@ -238,9 +238,9 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
          {
             const auto cell = setupStorage.getCell( primitiveID );
             neighborIDs.clear();
-            for ( auto itt : cell->getIndirectNeighborCellIDs() )
+            for ( auto npid : cell->getIndirectNeighborCellIDsOverVertices() )
             {
-               neighborIDs.push_back( itt.second );
+               neighborIDs.push_back( npid );
             }
             std::set< PrimitiveID > neighborIDsUnique( neighborIDs.begin(), neighborIDs.end() );
             neighborIDs = std::vector< PrimitiveID >( neighborIDsUnique.begin(), neighborIDsUnique.end() );

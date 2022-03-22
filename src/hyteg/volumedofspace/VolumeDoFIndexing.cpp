@@ -220,8 +220,8 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       const auto face = storage_->getFace( volumeID_ );
 
       WALBERLA_ASSERT_GREATER(
-          face->getIndirectNeighborFaceIDs().count( neighbor ), 0, "Neighbor face should exist but doesn't ..." );
-      const auto neighborFace = storage_->getFace( face->getIndirectNeighborFaceIDs().at( neighbor ) );
+          face->getIndirectNeighborFaceIDsOverEdges().count( neighbor ), 0, "Neighbor face should exist but doesn't ..." );
+      const auto neighborFace = storage_->getFace( face->getIndirectNeighborFaceIDsOverEdges().at( neighbor ) );
 
       // PID of the opposite macro-vertex.
       const auto oppositeMacroVertexID = neighborFace->get_vertex_opposite_to_edge( face->neighborEdges()[neighbor] );
@@ -268,7 +268,7 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       // Eventually we need to know the coordinates of the micro-vertex that is opposite to the interface.
       // First find out what the local interface ID of the other macro-volume is.
       uint_t neighborInterfaceID;
-      for ( const auto& [nifID, pid] : neighborFace->getIndirectNeighborFaceIDs() )
+      for ( const auto& [nifID, pid] : neighborFace->getIndirectNeighborFaceIDsOverEdges() )
       {
          if ( pid == volumeID_ )
          {

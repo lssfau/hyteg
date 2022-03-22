@@ -163,7 +163,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
             auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( faceId, level );
 
             std::map< uint_t, VType* > glMemory;
-            for ( const auto& [n, _] : face.getIndirectNeighborFaceIDs() )
+            for ( const auto& [n, _] : face.getIndirectNeighborFaceIDsOverEdges() )
             {
                glMemory[n] = src.volumeDoFFunction()->glMemory( faceId, level, n );
             }
