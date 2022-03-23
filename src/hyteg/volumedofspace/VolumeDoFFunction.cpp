@@ -62,7 +62,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          }
 
          // Allocating ghost-layer memory only where necessary.
-         for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDs() )
+         for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
          {
             FunctionMemory< ValueType >* functionGLMemory = cell->template getData( cellGhostLayerDataIDs_[localFaceID] );
 

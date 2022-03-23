@@ -195,7 +195,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 ElementNeighborInfo::ElementNeighborInfo( Index                                      elementIdx,
                                           CellType                                   cellType,
                                           uint_t                                     level,
-                                          BoundaryCondition                          boundaryCondition,
+                                          BoundaryCondition                          ,
                                           PrimitiveID                                cellID,
                                           const std::shared_ptr< PrimitiveStorage >& storage )
 : dim_( 3 )
