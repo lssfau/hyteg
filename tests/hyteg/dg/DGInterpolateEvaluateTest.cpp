@@ -48,6 +48,7 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
    if ( dim == 3 )
    {
       meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 2, 2, 2 );
+      // meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -66,6 +67,10 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
 
    DGOperator M( storage, level, level, massForm );
 
+   PETScSparseMatrix< DGOperator > spmat;
+   spmat.createMatrixFromOperator( M, level, numerator );
+   spmat.print( "/Users/nilskohl/Desktop/mass_dg_3d.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
    // Interpolate solution into u
    tmp.evaluateLinearFunctional( f, level );
    PETScCGSolver< DGOperator > solverM( storage, level, numerator );
@@ -76,6 +81,7 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
 
    VTKOutput vtk( "../../output/", "DGInterpolateEvaluateTest", storage );
    vtk.add( u );
+   vtk.add( tmp );
    vtk.add( interpolatedP1 );
    vtk.write( level );
 
@@ -115,8 +121,8 @@ int main( int argc, char** argv )
 //   hyteg::test(
 //       2, 4, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1]; }, 1e-12 );
 
-   hyteg::test(
-       3, 3, 1, []( const hyteg::Point3D& ) { return 1; }, 1e-12 );
+//   hyteg::test(
+//       3, 3, 1, []( const hyteg::Point3D& ) { return 1; }, 1e-12 );
    hyteg::test(
        3, 3, 1, []( const hyteg::Point3D& x ) { return x[0] - 2 * x[1] + 3 * x[2]; }, 1e-12 );
 

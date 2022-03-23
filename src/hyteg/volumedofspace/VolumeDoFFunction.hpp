@@ -196,6 +196,45 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
           idx.x(), idx.y(), faceType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
    }
 
+   /// \brief Read access to a degree of freedom on a macro-cell (for debugging / testing).
+   ///
+   /// This way of accessing the DoFs introduces indirections for every call. So better not use this in performance critical code.
+   /// When iterating over a macro-face in performance critical code, it's better to first get the data pointer and _then_ iterate
+   /// over the memory.
+   ///
+   /// \param primitiveID volume primitive to get the data from
+   /// \param idx         index of the micro-volume
+   /// \param dofID       index of the DoF on the micro-volume
+   /// \param cellType    cell type of the micro-volume
+   /// \param level       refinement level
+   /// \return value of the DoF
+   ValueType
+       dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, celldof::CellType cellType, uint_t level ) const
+   {
+      auto data = dofMemory( primitiveID, level );
+      return data[indexing::index(
+          idx.x(), idx.y(), idx.z(), cellType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
+   }
+
+   /// \brief Access to a degree of freedom on a macro-cell (for debugging / testing).
+   ///
+   /// This way of accessing the DoFs introduces indirections for every call. So better not use this in performance critical code.
+   /// When iterating over a macro-face in performance critical code, it's better to first get the data pointer and _then_ iterate
+   /// over the memory.
+   ///
+   /// \param primitiveID volume primitive to get the data from
+   /// \param idx         index of the micro-volume
+   /// \param dofID       index of the DoF on the micro-volume
+   /// \param cellType    cell type of the micro-volume
+   /// \param level       refinement level
+   /// \return reference to the DoF
+   ValueType& dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, celldof::CellType cellType, uint_t level )
+   {
+      auto data = dofMemory( primitiveID, level );
+      return data[indexing::index(
+          idx.x(), idx.y(), idx.z(), cellType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
+   }
+
    indexing::VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
 
  private:

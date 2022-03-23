@@ -243,7 +243,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    const auto vertexIndicesVolume = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
 
-   for ( uint_t i = 0; i < 3; i++ )
+   for ( uint_t i = 0; i < 4; i++ )
    {
       const auto coord            = vertexdof::macrocell::coordinateFromIndex( level, *cell, vertexIndicesVolume[i] );
       vertexCoordsVolume_[i]( 0 ) = coord[0];

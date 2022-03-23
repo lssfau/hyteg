@@ -59,6 +59,17 @@ class DGBasisInfo
                           const std::vector< real_t >&         dofs,
                           real_t&                              value ) const = 0;
 
+   /// \brief Evaluates the polynomial on the reference tetrahedron.
+   ///
+   /// \param degree degree of the piecewise polynomials
+   /// \param pos    where to evaluate on the micro-element (in reference space)
+   /// \param dofs   DoFs that correspond to the basis functions
+   /// \param value  value of the polynomial
+   virtual void evaluate( uint_t                               degree,
+                          const Eigen::Matrix< real_t, 3, 1 >& pos,
+                          const std::vector< real_t >&         dofs,
+                          real_t&                              value ) const = 0;
+
    /// \brief Evaluates the linear functional
    ///
    /// \f{align*}{

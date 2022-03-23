@@ -187,55 +187,114 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
                                                       facedof::FaceType      faceType,
                                                       ValueType&             value ) const
 {
-   if ( !this->storage_->hasGlobalCells() )
+   // 2D
+
+   WALBERLA_ASSERT( !storage_->hasGlobalCells() );
+
+   Point2D coordinates2D( { coordinates[0], coordinates[1] } );
+
+   WALBERLA_ASSERT( storage_->faceExistsLocally( faceID ) );
+   const Face& face = *storage_->getFace( faceID );
+
+   const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
+   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
+
+   Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
+
+   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+   auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+   for ( uint_t i = 0; i < 3; i++ )
    {
-      // 2D
-
-      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
-      const Face& face = *storage_->getFace( faceID );
-
-      const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-      const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
-
-      Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
-
-      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
-      auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
-      for ( uint_t i = 0; i < 3; i++ )
-      {
-         const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-         affineElementVertices[i]( 0 ) = coord[0];
-         affineElementVertices[i]( 1 ) = coord[1];
-      }
-
-      // trafo from affine to reference space
-      Eigen::Matrix< real_t, 2, 2 > A;
-      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-      const auto Ainv = A.inverse();
-
-      const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
-
-      const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
-
-      std::vector< real_t > dofs( ndofs );
-      for ( uint_t i = 0; i < ndofs; i++ )
-      {
-         dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
-      }
-
-      real_t value_r;
-      basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-      value = ValueType( value_r );
+      const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+      affineElementVertices[i]( 0 ) = coord[0];
+      affineElementVertices[i]( 1 ) = coord[1];
    }
-   else
+
+   // trafo from affine to reference space
+   Eigen::Matrix< real_t, 2, 2 > A;
+   A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+   A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+   A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+   A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+   const auto Ainv = A.inverse();
+
+   const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+   const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
+
+   std::vector< real_t > dofs( ndofs );
+   for ( uint_t i = 0; i < ndofs; i++ )
    {
-      WALBERLA_ABORT( "not implemented" );
+      dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
    }
+
+   real_t value_r;
+   basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+   value = ValueType( value_r );
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
+                                                      uint_t                 level,
+                                                      const PrimitiveID&     cellID,
+                                                      hyteg::indexing::Index elementIndex,
+                                                      celldof::CellType      cellType,
+                                                      ValueType&             value ) const
+{
+   // 2D
+
+   WALBERLA_ASSERT( storage_->hasGlobalCells() );
+
+   WALBERLA_ASSERT( storage_->cellExistsLocally( cellID ) );
+   const Cell& cell = *storage_->getCell( cellID );
+
+   const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
+   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
+
+   Eigen::Matrix< real_t, 3, 1 > affineCoordinates( { coordinates[0], coordinates[1], coordinates[2] } );
+
+   std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
+   auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
+   for ( uint_t i = 0; i < 4; i++ )
+   {
+      const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+      affineElementVertices[i]( 0 ) = coord[0];
+      affineElementVertices[i]( 1 ) = coord[1];
+      affineElementVertices[i]( 2 ) = coord[2];
+   }
+
+   // trafo from affine to reference space
+   Eigen::Matrix< real_t, 3, 3 > A;
+
+   A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+   A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+   A( 0, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
+
+   A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+   A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+   A( 1, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
+
+   A( 2, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
+   A( 2, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
+   A( 2, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
+
+   const auto Ainv = A.inverse();
+
+   const Eigen::Matrix< real_t, 3, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+   const Eigen::Matrix< real_t, 3, 1 > refPos = Ainv * affineCoordsTranslated;
+
+   std::vector< real_t > dofs( ndofs );
+   for ( uint_t i = 0; i < ndofs; i++ )
+   {
+      dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
+   }
+
+   real_t value_r;
+   basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+   value = ValueType( value_r );
 }
 
 template < typename ValueType >

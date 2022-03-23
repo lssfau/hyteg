@@ -47,15 +47,11 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    auto storage = mgr.storage_;
 
-   WALBERLA_CHECK( !storage->hasGlobalCells(), "DG VTK output not implemented for 3D" );
-
-   const std::map< uint_t, uint_t > degreeToEvalPoints2D = {
-       { 1, 3 },
-       { 2, 6 },
-   };
-
    const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level ) * 3;
    const uint_t numberOfCells2D  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
+
+   const uint_t numberOfPoints3D = storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level ) * 4;
+   const uint_t numberOfCells3D  = storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level );
 
    if ( mgr.write2D_ )
    {
@@ -63,7 +59,7 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
    }
    else
    {
-      // TODO
+      vtk::writePieceHeader( output, numberOfPoints3D, numberOfCells3D );
    }
 
    output << "<Points>\n";
@@ -143,7 +139,27 @@ void VTKDGWriter::writeScalarFunction( std::ostream&                            
    }
    else
    {
-      WALBERLA_ABORT( "DGFunction VTK not implemented in 3D." );
+      for ( const auto& it : storage->getCells() )
+      {
+         const PrimitiveID cellID = it.first;
+         const Cell&       cell   = *it.second;
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               const std::array< indexing::Index, 4 > vertexIndices =
+                   celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+               for ( uint_t i = 0; i < 4; i++ )
+               {
+                  const auto vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                  value_t    value;
+                  function.evaluateOnMicroElement( vtkPoint, level, cellID, idxIt, cellType, value );
+                  streamWriter << value;
+               }
+            }
+         }
+      }
    }
 
    streamWriter.toStream( output );

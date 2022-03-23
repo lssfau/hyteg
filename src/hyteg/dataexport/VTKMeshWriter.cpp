@@ -99,7 +99,25 @@ void VTKMeshWriter::writePointsForMicroVertices( const VTKOutput&               
    {
       if ( discontinuous )
       {
-         WALBERLA_ABORT( "Discontinuous points not implemented for 3D." );
+         for ( const auto& it : storage->getCells() )
+         {
+            const Cell& cell = *it.second;
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                  for ( auto vIdx : vertexIndices )
+                  {
+                     const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, vIdx );
+                     Point3D       xBlend;
+                     cell.getGeometryMap()->evalF( vtkPoint, xBlend );
+                     streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
+                  }
+               }
+            }
+         }
       }
       else
       {
@@ -368,8 +386,6 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
                                   uint_t                                     width,
                                   bool                                       discontinuous )
 {
-   WALBERLA_CHECK( !discontinuous, "Discontinuous VTK cells not implemented in 3D." );
-
    using CellIdx_T = int32_t;
 
    output << "<Cells>\n";
@@ -381,8 +397,9 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
    auto calcVTKPointArrayPosition = [width]( const indexing::Index& vertexIndex ) -> uint_t {
       const uint_t zOffset = levelinfo::num_microvertices_per_cell_from_width( width ) -
                              levelinfo::num_microvertices_per_cell_from_width( width - uint_c( vertexIndex.z() ) );
-      const uint_t yOffset = levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) ) -
-                             levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) - uint_c( vertexIndex.y() ) );
+      const uint_t yOffset =
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) ) -
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) - uint_c( vertexIndex.y() ) );
       const uint_t xOffset = uint_c( vertexIndex.x() );
       return xOffset + yOffset + zOffset;
    };
@@ -390,67 +407,90 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
    const uint_t numberOfVertices = levelinfo::num_microvertices_per_cell_from_width( width );
    const uint_t numberOfCells    = levelinfo::num_microcells_per_cell_from_width( width );
 
+   CellIdx_T offset = 0;
+
    for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
    {
-      for ( const auto& it : indexing::CellIterator( width - 1 ) )
+      if ( discontinuous )
       {
-         const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( auto cellType : celldof::allCellTypes )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            celldof::macrocell::numCellsPerRowByTypeFromWidth( width, cellType );
+            const uint_t numMicroCellsAtBoundary = celldof::macrocell::numCellsPerRowByTypeFromWidth( width, cellType );
+            for ( const auto& idxIt : indexing::CellIterator( numMicroCellsAtBoundary ) )
+            {
+               streamWriterCells << offset << offset + 1 << offset + 2 << offset + 3;
+               offset += 4;
+               WALBERLA_UNUSED( idxIt );
+            }
          }
       }
-
-      for ( const auto& it : indexing::CellIterator( width - 2 ) )
+      else
       {
-         const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( const auto& it : indexing::CellIterator( width - 1 ) )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
          }
-      }
 
-      for ( const auto& it : indexing::CellIterator( width - 2 ) )
-      {
-         const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( const auto& it : indexing::CellIterator( width - 2 ) )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
          }
-      }
 
-      for ( const auto& it : indexing::CellIterator( width - 3 ) )
-      {
-         const auto spanningVertexIndices =
-             celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( const auto& it : indexing::CellIterator( width - 2 ) )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
          }
-      }
 
-      for ( const auto& it : indexing::CellIterator( width - 2 ) )
-      {
-         const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( const auto& it : indexing::CellIterator( width - 3 ) )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
          }
-      }
 
-      for ( const auto& it : indexing::CellIterator( width - 2 ) )
-      {
-         const auto spanningVertexIndices =
-             celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
-
-         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         for ( const auto& it : indexing::CellIterator( width - 2 ) )
          {
-            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
+         }
+
+         for ( const auto& it : indexing::CellIterator( width - 2 ) )
+         {
+            const auto spanningVertexIndices =
+                celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
+
+            for ( const auto& spanningVertexIndex : spanningVertexIndices )
+            {
+               streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
+            }
          }
       }
    }
@@ -465,7 +505,7 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
    VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( mgr.vtkDataFormat_ );
 
    // offsets
-   uint_t offset = 4;
+   offset = 4;
    for ( const auto& it : storage->getCells() )
    {
       WALBERLA_UNUSED( it );

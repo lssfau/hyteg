@@ -144,6 +144,31 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                 facedof::FaceType      faceType,
                                 ValueType&             value ) const;
 
+   /// \brief Evaluate finite element function on a specific micro-cell.
+   ///
+   /// The standard evaluate() function does not take the discontinuity of the function into account.
+   /// If the function is evaluated at a discontinuity with evaluate(), it is kind of "random" which of the neighboring elements
+   /// is used to evaluate the polynom.
+   ///
+   /// This is for example an issue for accurate visualization of discontinuities.
+   ///
+   /// The present method solves this issue by taking a specific (micro-)element as input argument. This way the function can be
+   /// evaluated on _different_ elements at the same coordinate. Note that regardless of whether the specified coordinate is
+   /// located on the element or not - the local polynomial is extrapolated.
+   ///
+   /// \param coordinates  where the function shall be evaluated
+   /// \param level        refinement level
+   /// \param cellID       the macro-cell where the (micro-)element is located on
+   /// \param elementIndex the logical index of the micro-element
+   /// \param cellType     the type of the local micro-element
+   /// \param value        the evaluation
+   void evaluateOnMicroElement( const Point3D&         coordinates,
+                                uint_t                 level,
+                                const PrimitiveID&     cellID,
+                                hyteg::indexing::Index elementIndex,
+                                celldof::CellType      cellType,
+                                ValueType&             value ) const;
+
    /// Evaluates the linear functional
    ///
    ///   l( v ) = \int_\Omega f * v

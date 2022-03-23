@@ -117,6 +117,37 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
       }
    };
 
+   virtual void
+       evaluate( uint_t degree, const Eigen::Matrix< real_t, 3, 1 >& pos, const std::vector< real_t >& dofs, real_t& value ) const
+   {
+      WALBERLA_CHECK_EQUAL( dofs.size(), numDoFsPerElement( 3, degree ), "Number of DoFs does not match degree." );
+
+      switch ( degree )
+      {
+      case 0: {
+         value = dofs[0];
+         break;
+      }
+
+      case 1: {
+         const auto dof_0 = dofs[0];
+         const auto dof_1 = dofs[1];
+         const auto dof_2 = dofs[2];
+         const auto dof_3 = dofs[3];
+
+         // ref space
+
+         const auto x_ref_0 = pos( 0 );
+         const auto x_ref_1 = pos( 1 );
+         const auto x_ref_2 = pos( 2 );
+
+         real_t a_0_0 = dof_0 * ( -x_ref_0 - x_ref_1 - x_ref_2 + 1 ) + dof_1 * x_ref_0 + dof_2 * x_ref_1 + dof_3 * x_ref_2;
+
+         value = a_0_0;
+      }
+      }
+   };
+
    virtual void integrateBasisFunction( uint_t                                                degree,
                                         const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >& coords,
                                         const std::function< real_t( const Point3D& ) >&      f,

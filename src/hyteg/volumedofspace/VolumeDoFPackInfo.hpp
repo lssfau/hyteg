@@ -249,7 +249,7 @@ void VolumeDoFPackInfo< ValueType >::unpackCellFromCell( Cell*                  
 template < typename ValueType >
 void VolumeDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const
 {
-   WALBERLA_LOG_WARNING_ON_ROOT( "Macro-cell to macro-cell communication not implemented!" );
+   // WALBERLA_LOG_WARNING_ON_ROOT( "Macro-cell to macro-cell communication not implemented!" );
 }
 ///@}
 
