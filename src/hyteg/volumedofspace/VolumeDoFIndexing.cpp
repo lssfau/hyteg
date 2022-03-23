@@ -138,8 +138,8 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    onMacroBoundary_[0] = faceType == facedof::FaceType::GRAY && elementIdx.y() == 0;
    onMacroBoundary_[1] = faceType == facedof::FaceType::GRAY && elementIdx.x() == 0;
-   onMacroBoundary_[2] =
-       faceType == facedof::FaceType::GRAY && elementIdx.x() + elementIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) - 1 );
+   onMacroBoundary_[2] = faceType == facedof::FaceType::GRAY &&
+                         elementIdx.x() + elementIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) - 1 );
 
    for ( uint_t n = 0; n < 3; n++ )
    {
@@ -182,11 +182,12 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       // TODO: improve normal computation!
       Point      outerPoint = ( 1 / 3. ) * ( neighborElementVertexCoords_[n][0] + neighborElementVertexCoords_[n][1] +
                                         neighborElementVertexCoords_[n][2] );
-      const auto s          = ( outerPoint - interfaceVertexCoords_[n][0] )
-                         .template dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) /
-                     ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
-                         .template dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
-      const Point proj  = interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
+      const auto s =
+          ( outerPoint - interfaceVertexCoords_[n][0] ).dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) /
+          ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
+              .dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
+      const Point proj =
+          Point( interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) );
       outwardNormal_[n] = ( outerPoint - proj );
       outwardNormal_[n].normalize();
    }

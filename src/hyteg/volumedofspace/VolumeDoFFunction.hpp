@@ -139,18 +139,20 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       {
          WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-cell does not exists (locally)." );
-         auto fmem = storage_->getCell( primitiveID )->template getData( cellGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem =
+             storage_->getCell( primitiveID )->template getData( cellGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
-         auto data = fmem->getPointer( level );
+         ValueType* data = fmem->getPointer( level );
          return data;
       }
       else
       {
          WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
-         auto fmem = storage_->getFace( primitiveID )->template getData( faceGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem =
+             storage_->getFace( primitiveID )->template getData( faceGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
-         auto data = fmem->getPointer( level );
+         ValueType* data = fmem->getPointer( level );
          return data;
       }
    }

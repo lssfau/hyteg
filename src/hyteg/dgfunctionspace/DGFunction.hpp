@@ -232,6 +232,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                     DoFType                               flag ) const;
    /// @}
 
+   void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+   {
+      WALBERLA_UNUSED( other );
+      WALBERLA_UNUSED( level );
+      WALBERLA_ABORT( "DGFunction::copyFrom() not implemented." );
+   }
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;

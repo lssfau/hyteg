@@ -43,7 +43,7 @@ void DGOperator::apply( const DGFunction< real_t >& src,
    // TODO: communicate
 
    assembleAndOrApply< real_t >( src, dst, level, flag, nullptr, updateType );
-};
+}
 
 void DGOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                            const DGFunction< idx_t >&                  src,

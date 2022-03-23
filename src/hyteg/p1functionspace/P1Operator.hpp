@@ -2071,7 +2071,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroface::getIndexInNeighboringMacroCell( { i, j, 0 }, *face_, neighborCellID, *storage_, level_ );
+             vertexdof::macroface::getIndexInNeighboringMacroCell( { idx_t( i ), idx_t( j ), 0 }, *face_, neighborCellID, *storage_, level_ );
          face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
