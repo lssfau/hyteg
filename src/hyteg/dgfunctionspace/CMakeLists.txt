@@ -5,6 +5,7 @@ target_sources( hyteg
     DGDiffusionForm_Example.hpp
     DGForm.hpp
     DGForm2D.hpp
+    DGFormVolume.hpp
     DGFunction.cpp
     DGFunction.hpp
     DGMassForm_Example.hpp

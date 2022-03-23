@@ -592,7 +592,33 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
    if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polynomialDegree( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = vec->getValue( uint_c( vectorIdx ) );
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( value );
+               }
+            }
+         }
+      }
    }
    else
    {

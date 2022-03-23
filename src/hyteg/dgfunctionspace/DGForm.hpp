@@ -34,6 +34,10 @@ namespace dg {
 class DGForm
 {
  public:
+   /// \brief Returns true if only volume integrals are non-zero.
+   ///        The integration of facet integrals can then be skipped altogether.
+   [[nodiscard]] virtual bool onlyVolumeIntegrals() const { return false; }
+
    /// \brief Integrates the volume contribution on a triangle element.
    ///
    /// \param dim         2 for 2D volumes, 3 for 3D volumes

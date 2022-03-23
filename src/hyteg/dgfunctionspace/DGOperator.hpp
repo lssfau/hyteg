@@ -221,7 +221,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
             }
          }
 
-         const uint_t numMicroVolTypes = storage->hasGlobalCells() ? 6 : 2;
+         const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
          {
@@ -230,13 +230,13 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                break;
             }
 
-            auto faceType = facedof::allFaceTypes.at( microVolType );
-            auto cellType = celldof::allCellTypes.at( microVolType );
+            auto faceType = facedof::allFaceTypes[microVolType];
+            auto cellType = celldof::allCellTypes[microVolType];
 
-            auto itFace = facedof::macroface::Iterator( level, faceType );
-            auto itCell = celldof::macrocell::Iterator( level, cellType );
+            auto itFace = facedof::macroface::Iterator( level, faceType ).begin();
+            auto itCell = celldof::macrocell::Iterator( level, cellType ).begin();
 
-            while ( itFace != itFace.end() && itCell != itCell.end() )
+            while ( ( dim == 2 && itFace != itFace.end() ) || ( dim == 3 && itCell != itCell.end() ) )
             {
                Index elementIdx;
 
@@ -250,8 +250,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   elementIdx = *itCell;
                   itCell++;
                }
-
-               WALBERLA_LOG_INFO_ON_ROOT( elementIdx );
 
                // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
                // TODO: blending
@@ -280,6 +278,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                /////////////////////////
 
                Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               localMat.resize( numDstDofs, numSrcDofs );
+
                form_->integrateVolume(
                    dim, neighborInfo.elementVertexCoords(), *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
 
@@ -325,291 +325,44 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                           localMat );
                }
 
-               /////////////////////////////
-               // Interface contributions //
-               /////////////////////////////
-
-               for ( uint_t n = 0; n < uint_c( dim + 1 ); n++ )
+               if ( !form_->onlyVolumeIntegrals() )
                {
-                  /////////////////////
-                  // Domain boundary //
-                  /////////////////////
+                  /////////////////////////////
+                  // Interface contributions //
+                  /////////////////////////////
 
-                  if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  // Loop over neighboring volumes.
+                  for ( uint_t n = 0; n < uint_c( dim + 1 ); n++ )
                   {
-                     ////////////////////////
-                     // Dirichlet boundary //
-                     ////////////////////////
+                     /////////////////////
+                     // Domain boundary //
+                     /////////////////////
 
-                     localMat.setZero();
-                     form_->integrateFacetDirichletBoundary( dim,
-                                                             neighborInfo.elementVertexCoords(),
-                                                             neighborInfo.interfaceVertexCoords( n ),
-                                                             neighborInfo.oppositeVertexCoords( n ),
-                                                             neighborInfo.outwardNormal( n ),
-                                                             *src.basis(),
-                                                             *dst.basis(),
-                                                             srcPolyDegree,
-                                                             dstPolyDegree,
-                                                             localMat );
-
-                     if ( mat == nullptr )
+                     if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                      {
-                        // Matrix-vector multiplication.
-                        dstDofs += localMat * srcDofs;
-                     }
-                     else
-                     {
-                        // Sparse assembly.
-                        addLocalToGlobalMatrix( dim,
-                                                numSrcDofs,
-                                                numDstDofs,
-                                                srcDofMemory,
-                                                dstDofMemory,
-                                                srcMemLayout,
-                                                dstMemLayout,
-                                                elementIdx,
-                                                elementIdx,
-                                                microVolType,
-                                                microVolType,
-                                                level,
-                                                mat,
-                                                localMat );
-                     }
-                  }
-                  else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
-                  {
-                     WALBERLA_ABORT( "Neumann boundary handling not implemented." );
-                  }
-                  else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
-                  {
-                     WALBERLA_ABORT( "Free-slip boundary handling not implemented." );
-                  }
-
-                  //////////////////
-                  // Inner domain //
-                  //////////////////
-
-                  else
-                  {
-                     ///////////////////////////////////
-                     // a) inner element contribution //
-                     ///////////////////////////////////
-
-                     localMat.setZero();
-                     form_->integrateFacetInner( dim,
-                                                 neighborInfo.elementVertexCoords(),
-                                                 neighborInfo.interfaceVertexCoords( n ),
-                                                 neighborInfo.oppositeVertexCoords( n ),
-                                                 neighborInfo.outwardNormal( n ),
-                                                 *src.basis(),
-                                                 *dst.basis(),
-                                                 srcPolyDegree,
-                                                 dstPolyDegree,
-                                                 localMat );
-
-                     if ( mat == nullptr )
-                     {
-                        // Matrix-vector multiplication.
-                        dstDofs += localMat * srcDofs;
-                     }
-                     else
-                     {
-                        // Sparse assembly.
-                        addLocalToGlobalMatrix( dim,
-                                                numSrcDofs,
-                                                numDstDofs,
-                                                srcDofMemory,
-                                                dstDofMemory,
-                                                srcMemLayout,
-                                                dstMemLayout,
-                                                elementIdx,
-                                                elementIdx,
-                                                microVolType,
-                                                microVolType,
-                                                level,
-                                                mat,
-                                                localMat );
-                     }
-
-                     ////////////////////////////////////////
-                     // b) coupling to neighboring element //
-                     ////////////////////////////////////////
-
-                     if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
-                     {
-                        ////////////////////////////////////////////////
-                        // i) micro-interface on macro-macro-boundary //
-                        ////////////////////////////////////////////////
-
-                        // The neighboring micro-element coords have to be computed since they are now different as for an
-                        // element on the same macro-volume.
-                        std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
-                        Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
-
-                        neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                            n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+                        ////////////////////////
+                        // Dirichlet boundary //
+                        ////////////////////////
 
                         localMat.setZero();
-                        form_->integrateFacetCoupling( dim,
-                                                       neighborInfo.elementVertexCoords(),
-                                                       neighborElementVertexCoords,
-                                                       neighborInfo.interfaceVertexCoords( n ),
-                                                       neighborInfo.oppositeVertexCoords( n ),
-                                                       neighborOppositeVertexCoords,
-                                                       neighborInfo.outwardNormal( n ),
-                                                       *src.basis(),
-                                                       *dst.basis(),
-                                                       srcPolyDegree,
-                                                       dstPolyDegree,
-                                                       localMat );
-
-                        // Now we need the DoFs from the neighboring element.
-                        Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
-                        nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
-                        std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
-
-                        for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                        {
-                           // This access might seem a little unintuitive, but it does another bit of lifting.
-                           // The ghost-layer data can be accessed with this indexing function by "extending" the macro-volume
-                           // structure. One of the indices may now be -1 for example.
-                           if ( dim == 2 )
-                           {
-                              nSrcDoFArrIndices[srcDofIdx] =
-                                  volumedofspace::indexing::indexGhostLayer( n,
-                                                                             neighborInfo.neighborElementIndices( n ).x(),
-                                                                             neighborInfo.neighborElementIndices( n ).y(),
-                                                                             facedof::FaceType::BLUE,
-                                                                             srcDofIdx,
-                                                                             numSrcDofs,
-                                                                             level,
-                                                                             srcMemLayout );
-                           }
-                           else
-                           {
-                              // TODO
-                           }
-
-                           nSrcDofs( srcDofIdx ) = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
-                        }
+                        form_->integrateFacetDirichletBoundary( dim,
+                                                                neighborInfo.elementVertexCoords(),
+                                                                neighborInfo.interfaceVertexCoords( n ),
+                                                                neighborInfo.oppositeVertexCoords( n ),
+                                                                neighborInfo.outwardNormal( n ),
+                                                                *src.basis(),
+                                                                *dst.basis(),
+                                                                srcPolyDegree,
+                                                                dstPolyDegree,
+                                                                localMat );
 
                         if ( mat == nullptr )
                         {
                            // Matrix-vector multiplication.
-                           dstDofs += localMat * nSrcDofs;
+                           dstDofs += localMat * srcDofs;
                         }
                         else
                         {
-                           // Sparse assembly.
-                           // TODO: maybe there is a nicer way to do the gl stuff ...
-                           for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
-                           {
-                              for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                              {
-                                 uint_t globalRowIdx;
-                                 if ( dim == 2 )
-                                 {
-                                    globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                                        elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-                                 }
-                                 else
-                                 {
-                                    globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                                                 elementIdx.y(),
-                                                                                                 elementIdx.z(),
-                                                                                                 cellType,
-                                                                                                 dstDofIdx,
-                                                                                                 numDstDofs,
-                                                                                                 level,
-                                                                                                 dstMemLayout )];
-                                 }
-                                 const auto globalColIdx = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
-                                 mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
-                              }
-                           }
-                        }
-                     }
-                     else
-                     {
-                        /////////////////////////////////////////
-                        // ii) micro-interface inside of macro //
-                        /////////////////////////////////////////
-
-                        localMat.setZero();
-                        form_->integrateFacetCoupling( dim,
-                                                       neighborInfo.elementVertexCoords(),
-                                                       neighborInfo.neighborElementVertexCoords( n ),
-                                                       neighborInfo.interfaceVertexCoords( n ),
-                                                       neighborInfo.oppositeVertexCoords( n ),
-                                                       neighborInfo.neighborOppositeVertexCoords( n ),
-                                                       neighborInfo.outwardNormal( n ),
-                                                       *src.basis(),
-                                                       *dst.basis(),
-                                                       srcPolyDegree,
-                                                       dstPolyDegree,
-                                                       localMat );
-
-                        // Now we need the DoFs from the neighboring element.
-                        Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
-                        nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
-
-                        for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                        {
-                           if ( dim == 2 )
-                           {
-                              nSrcDofs( srcDofIdx ) =
-                                  srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
-                                                                                neighborInfo.neighborElementIndices( n ).y(),
-                                                                                neighborInfo.neighborFaceType( n ),
-                                                                                srcDofIdx,
-                                                                                numSrcDofs,
-                                                                                level,
-                                                                                srcMemLayout )];
-                           }
-                           else
-                           {
-                              nSrcDofs( srcDofIdx ) =
-                                  srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
-                                                                                neighborInfo.neighborElementIndices( n ).y(),
-                                                                                neighborInfo.neighborElementIndices( n ).z(),
-                                                                                neighborInfo.neighborCellType( n ),
-                                                                                srcDofIdx,
-                                                                                numSrcDofs,
-                                                                                level,
-                                                                                srcMemLayout )];
-                           }
-                        }
-
-                        if ( mat == nullptr )
-                        {
-                           // Matrix-vector multiplication.
-                           dstDofs += localMat * nSrcDofs;
-                        }
-                        else
-                        {
-                           // TODO: improve this monster
-                           std::map< facedof::FaceType, uint_t > invFaceTypeMap;
-                           std::map< celldof::CellType, uint_t > invCellTypeMap;
-
-                           for ( uint_t i = 0; i < 2; i++ )
-                           {
-                              invFaceTypeMap[facedof::allFaceTypes.at( i )] = i;
-                           }
-                           for ( uint_t i = 0; i < 6; i++ )
-                           {
-                              invCellTypeMap[celldof::allCellTypes.at( i )] = i;
-                           }
-
-                           uint_t neighborMicroVolType;
-                           if ( dim == 2 )
-                           {
-                              neighborMicroVolType = invFaceTypeMap[neighborInfo.neighborFaceType( n )];
-                           }
-                           else
-                           {
-                              neighborMicroVolType = invCellTypeMap[neighborInfo.neighborCellType( n )];
-                           }
                            // Sparse assembly.
                            addLocalToGlobalMatrix( dim,
                                                    numSrcDofs,
@@ -618,17 +371,273 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                    dstDofMemory,
                                                    srcMemLayout,
                                                    dstMemLayout,
-                                                   neighborInfo.neighborElementIndices( n ),
                                                    elementIdx,
-                                                   neighborMicroVolType,
+                                                   elementIdx,
+                                                   microVolType,
                                                    microVolType,
                                                    level,
                                                    mat,
                                                    localMat );
                         }
                      }
-                  }
-               }
+                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
+                     {
+                        WALBERLA_ABORT( "Neumann boundary handling not implemented." );
+                     }
+                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
+                     {
+                        WALBERLA_ABORT( "Free-slip boundary handling not implemented." );
+                     }
+
+                     //////////////////
+                     // Inner domain //
+                     //////////////////
+
+                     else
+                     {
+                        ///////////////////////////////////
+                        // a) inner element contribution //
+                        ///////////////////////////////////
+
+                        localMat.setZero();
+                        form_->integrateFacetInner( dim,
+                                                    neighborInfo.elementVertexCoords(),
+                                                    neighborInfo.interfaceVertexCoords( n ),
+                                                    neighborInfo.oppositeVertexCoords( n ),
+                                                    neighborInfo.outwardNormal( n ),
+                                                    *src.basis(),
+                                                    *dst.basis(),
+                                                    srcPolyDegree,
+                                                    dstPolyDegree,
+                                                    localMat );
+
+                        if ( mat == nullptr )
+                        {
+                           // Matrix-vector multiplication.
+                           dstDofs += localMat * srcDofs;
+                        }
+                        else
+                        {
+                           // Sparse assembly.
+                           addLocalToGlobalMatrix( dim,
+                                                   numSrcDofs,
+                                                   numDstDofs,
+                                                   srcDofMemory,
+                                                   dstDofMemory,
+                                                   srcMemLayout,
+                                                   dstMemLayout,
+                                                   elementIdx,
+                                                   elementIdx,
+                                                   microVolType,
+                                                   microVolType,
+                                                   level,
+                                                   mat,
+                                                   localMat );
+                        }
+
+                        ////////////////////////////////////////
+                        // b) coupling to neighboring element //
+                        ////////////////////////////////////////
+
+                        if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
+                        {
+                           ////////////////////////////////////////////////
+                           // i) micro-interface on macro-macro-boundary //
+                           ////////////////////////////////////////////////
+
+                           // The neighboring micro-element coords have to be computed since they are now different as for an
+                           // element on the same macro-volume.
+                           std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
+                           Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
+
+                           neighborInfo.macroBoundaryNeighborElementVertexCoords(
+                               n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+
+                           localMat.setZero();
+                           form_->integrateFacetCoupling( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborElementVertexCoords,
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborOppositeVertexCoords,
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *src.basis(),
+                                                          *dst.basis(),
+                                                          srcPolyDegree,
+                                                          dstPolyDegree,
+                                                          localMat );
+
+                           // Now we need the DoFs from the neighboring element.
+                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+                           std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
+
+                           for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                           {
+                              // This access might seem a little unintuitive, but it does another bit of lifting.
+                              // The ghost-layer data can be accessed with this indexing function by "extending" the macro-volume
+                              // structure. One of the indices may now be -1 for example.
+                              if ( dim == 2 )
+                              {
+                                 nSrcDoFArrIndices[srcDofIdx] =
+                                     volumedofspace::indexing::indexGhostLayer( n,
+                                                                                neighborInfo.neighborElementIndices( n ).x(),
+                                                                                neighborInfo.neighborElementIndices( n ).y(),
+                                                                                facedof::FaceType::BLUE,
+                                                                                srcDofIdx,
+                                                                                numSrcDofs,
+                                                                                level,
+                                                                                srcMemLayout );
+                              }
+                              else
+                              {
+                                 // TODO
+                              }
+
+                              nSrcDofs( srcDofIdx ) = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                           }
+
+                           if ( mat == nullptr )
+                           {
+                              // Matrix-vector multiplication.
+                              dstDofs += localMat * nSrcDofs;
+                           }
+                           else
+                           {
+                              // Sparse assembly.
+                              // TODO: maybe there is a nicer way to do the gl stuff ...
+                              for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
+                              {
+                                 for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                                 {
+                                    uint_t globalRowIdx;
+                                    if ( dim == 2 )
+                                    {
+                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                    elementIdx.y(),
+                                                                                                    faceType,
+                                                                                                    dstDofIdx,
+                                                                                                    numDstDofs,
+                                                                                                    level,
+                                                                                                    dstMemLayout )];
+                                    }
+                                    else
+                                    {
+                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                    elementIdx.y(),
+                                                                                                    elementIdx.z(),
+                                                                                                    cellType,
+                                                                                                    dstDofIdx,
+                                                                                                    numDstDofs,
+                                                                                                    level,
+                                                                                                    dstMemLayout )];
+                                    }
+                                    const auto globalColIdx = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                                    mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+                                 }
+                              }
+                           }
+                        }
+                        else
+                        {
+                           /////////////////////////////////////////
+                           // ii) micro-interface inside of macro //
+                           /////////////////////////////////////////
+
+                           localMat.setZero();
+                           form_->integrateFacetCoupling( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborInfo.neighborElementVertexCoords( n ),
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborInfo.neighborOppositeVertexCoords( n ),
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *src.basis(),
+                                                          *dst.basis(),
+                                                          srcPolyDegree,
+                                                          dstPolyDegree,
+                                                          localMat );
+
+                           // Now we need the DoFs from the neighboring element.
+                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+
+                           for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                           {
+                              if ( dim == 2 )
+                              {
+                                 nSrcDofs( srcDofIdx ) =
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborFaceType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )];
+                              }
+                              else
+                              {
+                                 nSrcDofs( srcDofIdx ) =
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborElementIndices( n ).z(),
+                                                                                   neighborInfo.neighborCellType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )];
+                              }
+                           }
+
+                           if ( mat == nullptr )
+                           {
+                              // Matrix-vector multiplication.
+                              dstDofs += localMat * nSrcDofs;
+                           }
+                           else
+                           {
+                              // TODO: improve this monster
+                              std::map< facedof::FaceType, uint_t > invFaceTypeMap;
+                              std::map< celldof::CellType, uint_t > invCellTypeMap;
+
+                              for ( uint_t i = 0; i < 2; i++ )
+                              {
+                                 invFaceTypeMap[facedof::allFaceTypes.at( i )] = i;
+                              }
+                              for ( uint_t i = 0; i < 6; i++ )
+                              {
+                                 invCellTypeMap[celldof::allCellTypes.at( i )] = i;
+                              }
+
+                              uint_t neighborMicroVolType;
+                              if ( dim == 2 )
+                              {
+                                 neighborMicroVolType = invFaceTypeMap[neighborInfo.neighborFaceType( n )];
+                              }
+                              else
+                              {
+                                 neighborMicroVolType = invCellTypeMap[neighborInfo.neighborCellType( n )];
+                              }
+                              // Sparse assembly.
+                              addLocalToGlobalMatrix( dim,
+                                                      numSrcDofs,
+                                                      numDstDofs,
+                                                      srcDofMemory,
+                                                      dstDofMemory,
+                                                      srcMemLayout,
+                                                      dstMemLayout,
+                                                      neighborInfo.neighborElementIndices( n ),
+                                                      elementIdx,
+                                                      neighborMicroVolType,
+                                                      microVolType,
+                                                      level,
+                                                      mat,
+                                                      localMat );
+                           }
+                        }
+                     }
+                  } // End loop over neighboring volumes.
+               }    // End if( !onlyVolumeIntegrals() )
 
                if ( mat == nullptr )
                {
