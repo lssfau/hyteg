@@ -789,3 +789,7 @@ waLBerla_execute_test(NAME VectorToVectorOperatorCGTest)
 
 waLBerla_compile_test(FILES smooth+solve/VectorToVectorOperatorChebyshevTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
+
+## Structural
+waLBerla_compile_test(FILES PrintInfoTest.cpp)
+waLBerla_execute_test(NAME PrintInfoTest)
