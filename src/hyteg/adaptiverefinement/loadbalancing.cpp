@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <core/Format.hpp>
 #include <core/logging/all.h>
 #include <core/mpi/Broadcast.h>
 #include <core/mpi/Reduce.h>
@@ -135,6 +136,24 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
       }
       return pt;
    };
+
+   // unassign everything
+   for ( auto& p : vtxs )
+   {
+      p.setTargetRank( n_processes );
+   }
+   for ( auto& p : edges )
+   {
+      p.setTargetRank( n_processes );
+   }
+   for ( auto& p : faces )
+   {
+      p.setTargetRank( n_processes );
+   }
+   for ( auto& p : cells )
+   {
+      p.setTargetRank( n_processes );
+   }
 
    // max number of primitives on one rank for each primitive type
    std::array< uint_t, ALL > n_max;
@@ -423,23 +442,21 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
 
    // compute the number of neighbors of i, assigned to k
    auto connectivity = [&]( uint_t i, uint_t k ) -> int {
-      int conn = 0;
-      for ( uint_t ii : nbrVolumes[i] )
+      if ( k >= n_processes )
       {
-         if ( assigned_to( ii ) == k )
+         return 0;
+      }
+      int conn = 0;
+      for ( uint_t nbr : nbrVolumes[i] )
+      {
+         if ( assigned_to( nbr ) == k )
             ++conn;
       }
       return conn;
    };
    // find next primitive of type pt for cluster k
-   auto find_next = [&]( uint_t k, PT pt ) -> uint_t {
-      std::pair< uint_t, int > free  = { n_prim[ALL], 0 };
-      std::pair< uint_t, int > steal = { n_prim[ALL], -100 };
-
-      /* minimum difference in the number of volume elements for a
-         cluster k to be considered richer than another cluster j.
-      */
-      const uint_t OFFSET = ( pt == VOL ) ? 2 : 1;
+   auto find_next = [&]( uint_t k, PT pt ) -> std::pair< uint_t, int > {
+      std::pair< uint_t, int > bestFit = { n_prim[ALL], 0 };
 
       // loop over all volume elements owned by k
       for ( uint_t id : volume_elements[k] )
@@ -455,54 +472,40 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
             if ( j == k )
                continue;
 
-            // if k is saturated, we are only interested in whether there are free elements in the neighborhood
+            // j binds stronger than k
+            if ( attraction[k] < attraction[j] )
+               continue;
+
+            // j has only 1 volume element
+            if ( j < n_processes && n_assigned[j][VOL] == 1u )
+               continue;
+
+            // k is saturated
             if ( n_assigned[k][pt] >= n_max[pt] )
             {
+               // i is considered if k binds stronger than j
                if ( attraction[j] < attraction[k] )
-                  return i;
+                  return { i, 0 };
                else
                   continue;
             }
 
-            // connectivity factor
-            int conn = connectivity( i, k );
+            // total improvement when assigning i to k
+            int improvement = connectivity( i, k ) - connectivity( i, j );
+            // bonus due to stronger attraction
+            if ( attraction[j] < attraction[k] )
+               improvement += 100;
 
-            // i is free to take and strongly connected to k
-            if ( attraction[j] < attraction[k] && free.second < conn )
+            // i is new best fit
+            if ( improvement > bestFit.second )
             {
-               free.first  = i;
-               free.second = conn;
-            }
-
-            // if there are free elements available, we don't consider stealing
-            if ( free.second > 0 )
-               continue;
-
-            // only steal from the rich
-            if ( n_assigned[k][VOL] + OFFSET > n_assigned[j][VOL] )
-               continue;
-
-            // prioritize primitives that are weakly connected to j
-            conn -= connectivity( i, j );
-
-            // mark element for stealing if its sufficiently strongly connected to k
-            if ( conn > steal.second )
-            {
-               steal.first  = i;
-               steal.second = conn;
+               bestFit.first  = i;
+               bestFit.second = improvement;
             }
          }
       }
 
-      // return best fitting element, prioritizing free elements
-      if ( free.second > 0 )
-      {
-         return free.first;
-      }
-      else
-      {
-         return steal.first;
-      }
+      return bestFit;
    };
 
    // add remaining primitives
@@ -511,47 +514,124 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
       while ( n_assigned[n_processes][pt] < n_prim[pt] )
       {
          // find best fitting element i for cluster k=rank
-         auto i_rnk = find_next( rank, pt );
+         auto next_rnk = find_next( rank, pt );
+
+         // collect all elements assigned in the current iteration
+         std::map< uint_t, int > bestFit;
 
          // loop over all clusters k
          for ( uint_t k = 0; k < n_processes; ++k )
          {
-            uint_t i = i_rnk;
-            walberla::mpi::broadcastObject( i, int(k) );
+            auto next = next_rnk;
+            walberla::mpi::broadcastObject( next, int( k ) );
+            auto i = next.first;
 
-            // todo: check if another cluster also chose element i and only reassign it if k is the better fit!
-
-            if ( i < id0[pt + 1] )
+            // no suitable element found
+            if ( primitiveType( i ) != pt )
             {
-               if ( n_assigned[k][pt] < n_max[pt] )
-               {
-                  // unassign element i from its current cluster j
-                  auto j = unassign( i );
-                  if ( j < n_processes )
-                  {
-                     // j just gave up an element -> restore the forces of attraction
-                     auto threshold = attraction[j];
-                     for ( uint_t m = 0; m < n_processes; ++m )
-                     {
-                        if ( attraction[m] >= threshold )
-                           attraction[m] = n_processes;
-                     }
-                  }
+               continue;
+            }
 
-                  // assign element i to cluster k
-                  assign( i, k );
+            if ( n_assigned[k][pt] < n_max[pt] ) // cluster k is not saturated
+            {
+               /* if i has been assigned to another cluster during the same iteration
+                     we only reassign it to k if it this is the better fit
+                  */
+               auto previous = bestFit.find( next.first );
+               if ( previous == bestFit.end() || previous->second < next.second )
+               {
+                  bestFit[next.first] = next.second;
                }
                else
                {
-                  /* there are free elements in the nbrhood, but k is saturated already
-                     -> k must donate some elements before we can continue.
-                     Therefore, we decrease its force of attraction.
-                  */
-                  attraction[k] = attraction[assigned_to( i )] + 1;
+                  continue;
                }
+
+               // unassign element i from its current cluster j
+               auto j = unassign( i );
+               // j just gave up an element -> restore the forces of attraction
+               if ( j < n_processes && pt == VOL )
+               {
+                  auto threshold = attraction[j];
+                  for ( uint_t m = 0; m < n_processes; ++m )
+                  {
+                     if ( attraction[m] >= threshold )
+                        attraction[m] = n_processes;
+                  }
+               }
+
+               // assign element i to cluster k
+               assign( i, k );
+            }
+            else if ( pt == VOL ) // cluster k is saturated
+            {
+               /* there are free elements in the nbrhood, but k is saturated already
+                  -> k must donate some elements before we can continue.
+                  Therefore, we decrease its force of attraction.
+               */
+               attraction[k] = std::min( attraction[assigned_to( i )] + 1, n_processes );
             }
          }
       }
+
+      /* Those clusters with fewer volume elements should be assigned more
+         non-volume elements. We adjust the forces of attraction of each
+         cluster accordingly.
+      */
+      if ( pt == VOL )
+      {
+         for ( uint_t k = 0; k < n_processes; ++k )
+         {
+            attraction[k] = 1 + n_max[VOL] - n_assigned[k][VOL];
+         }
+      }
+   }
+
+   // check that everything got assigned
+   for ( auto& p : vtxs )
+   {
+      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+   }
+   for ( auto& p : edges )
+   {
+      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+   }
+   for ( auto& p : faces )
+   {
+      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+   }
+   for ( auto& p : cells )
+   {
+      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+   }
+
+   WALBERLA_DEBUG_SECTION()
+   {
+      // compute volume and surface of each cluster
+      const uint_t k         = rank;
+      uint_t       surface_k = 0;
+      uint_t       volume_k  = 0;
+      for ( auto& vol : volume_elements[k] )
+      {
+         ++volume_k;
+         surface_k += ( 1 + VOL );
+
+         for ( auto& nbr : nbrVolumes[vol] )
+         {
+            if ( assigned_to( nbr ) == k )
+               --surface_k;
+         }
+      }
+      auto s_min  = walberla::mpi::reduce( surface_k, walberla::mpi::MIN );
+      auto s_max  = walberla::mpi::reduce( surface_k, walberla::mpi::MAX );
+      auto s_mean = real_t( walberla::mpi::reduce( surface_k, walberla::mpi::SUM ) ) / real_t( n_processes );
+      auto v_min  = walberla::mpi::reduce( volume_k, walberla::mpi::MIN );
+      auto v_max  = walberla::mpi::reduce( volume_k, walberla::mpi::MAX );
+      auto v_mean = real_t( walberla::mpi::reduce( volume_k, walberla::mpi::SUM ) ) / real_t( n_processes );
+
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10s |%10s |%10s |", "", "min", "max", "mean" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10d |%10d |%10.1f |", "clustervolume", v_min, v_max, v_mean ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10d |%10d |%10.1f |", "clustersurface", s_min, s_max, s_mean ) );
    }
 }
 
