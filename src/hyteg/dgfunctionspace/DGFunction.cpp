@@ -123,9 +123,6 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
             real_t value_r;
             basis_->evaluate( polyDegree, refPos, dofs, value_r );
 
-            // Eigen::Matrix< real_t, 2, 1 > coords( coordinates2D[0], coordinates2D[1] );
-            // basis_->evaluate( polyDegree, affineElementVertices, coords, dofs, value_r );
-
             value = ValueType( value_r );
             return true;
          }
@@ -133,47 +130,50 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
    }
    else
    {
-      WALBERLA_ABORT( "not implemented" );
-#if 0
+      // 3D
+
       for ( auto& it : this->getStorage()->getCells() )
       {
-         Cell& cell = *it.second;
+         PrimitiveID cellID = it.first;
+         Cell&       cell   = *it.second;
+
+         const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
+         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
 
          if ( isPointInTetrahedron( coordinates,
-
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3],
-                                    cell.getFaceInwardNormal( 0 ),
-                                    cell.getFaceInwardNormal( 1 ),
-                                    cell.getFaceInwardNormal( 2 ),
-                                    cell.getFaceInwardNormal( 3 ) ) )
+                                    cell.getCoordinates()[3] ) ||
+              ( searchToleranceRadius > 0 && sphereTetrahedronIntersection( coordinates,
+                                                                            searchToleranceRadius,
+                                                                            cell.getCoordinates()[0],
+                                                                            cell.getCoordinates()[1],
+                                                                            cell.getCoordinates()[2],
+                                                                            cell.getCoordinates()[3] ) ) )
          {
-            value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
+            indexing::Index   elementIndex;
+            celldof::CellType cellType;
+            Point3D           localCoordinates;
+
+            volumedofspace::getLocalElementFromCoordinates< ValueType >(
+                level, cell, coordinates, elementIndex, cellType, localCoordinates );
+
+            Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
+
+            std::vector< real_t > dofs( ndofs );
+            for ( uint_t i = 0; i < ndofs; i++ )
+            {
+               dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
+            }
+
+            real_t value_r;
+            basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+            value = ValueType( value_r );
             return true;
          }
       }
-
-      if ( searchToleranceRadius > 0 )
-      {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if ( sphereTetrahedronIntersection( coordinates,
-                                                searchToleranceRadius,
-                                                cell.getCoordinates()[0],
-                                                cell.getCoordinates()[1],
-                                                cell.getCoordinates()[2],
-                                                cell.getCoordinates()[3] ) )
-            {
-               value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
-               return true;
-            }
-         }
-      }
-#endif
    }
 
    return false;
@@ -267,17 +267,17 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
    // trafo from affine to reference space
    Eigen::Matrix< real_t, 3, 3 > A;
 
-   A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-   A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-   A( 0, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
+   A( 0, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+   A( 0, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+   A( 0, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
 
-   A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-   A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-   A( 1, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
+   A( 1, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+   A( 1, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+   A( 1, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
 
-   A( 2, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
-   A( 2, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
-   A( 2, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
+   A( 2, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
+   A( 2, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
+   A( 2, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
 
    const auto Ainv = A.inverse();
 
