@@ -435,7 +435,7 @@ int main( int argc, char* argv[] )
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
    const uint_t l_max         = parameters.getParameter< uint_t >( "microlevel" );
-   const uint_t l_min         = ( l_max < 2 ) ? l_max : 2;
+   const uint_t l_min         = 0;
 
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
