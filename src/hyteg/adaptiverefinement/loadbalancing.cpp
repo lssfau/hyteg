@@ -587,33 +587,58 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
       }
    }
 
-   // check that everything got assigned
-   for ( auto& p : vtxs )
-   {
-      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
-   }
-   for ( auto& p : edges )
-   {
-      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
-   }
-   for ( auto& p : faces )
-   {
-      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
-   }
-   for ( auto& p : cells )
-   {
-      WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
-   }
-
    WALBERLA_DEBUG_SECTION()
    {
-      // compute volume and surface of each cluster
-      const uint_t k         = rank;
-      uint_t       surface_k = 0;
-      uint_t       volume_k  = 0;
+      const uint_t k = rank;
+
+      std::array< uint_t, ALL > n_primitives_k{};
+
+      // count primitives per rank and check that everything got assigned
+      for ( auto& p : vtxs )
+      {
+         WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+         if ( p.getTargetRank() == k )
+            ++n_primitives_k[VTX];
+      }
+      for ( auto& p : edges )
+      {
+         WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+         if ( p.getTargetRank() == k )
+            ++n_primitives_k[EDGE];
+      }
+      for ( auto& p : faces )
+      {
+         WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+         if ( p.getTargetRank() == k )
+            ++n_primitives_k[FACE];
+      }
+      for ( auto& p : cells )
+      {
+         WALBERLA_ASSERT_LESS( p.getTargetRank(), n_processes );
+         if ( p.getTargetRank() == k )
+            ++n_primitives_k[CELL];
+      }
+
+      std::array< uint_t, ALL >      p_min{};
+      std::array< uint_t, ALL >      p_max{};
+      std::array< real_t, ALL >      p_mean{};
+      std::array< std::string, ALL > p_name{ "vertex", "edge", "face", "cell" };
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Primitive distribution:" );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10s |%10s |%10s |", "type", "min", "max", "mean" ) );
+      for ( PT pt = VTX; pt < ALL; pt = PT( pt + 1 ) )
+      {
+         p_min[pt]  = walberla::mpi::reduce( n_primitives_k[pt], walberla::mpi::MIN );
+         p_max[pt]  = walberla::mpi::reduce( n_primitives_k[pt], walberla::mpi::MAX );
+         p_mean[pt] = real_t( walberla::mpi::reduce( n_primitives_k[pt], walberla::mpi::SUM ) ) / real_t( n_processes );
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( "%20s |%10d |%10d |%10.1f |", p_name[pt].c_str(), p_min[pt], p_max[pt], p_mean[pt] ) );
+      }
+
+      // compute surface of each cluster to estimate the qualitiy of the clusters
+      uint_t surface_k = 0;
       for ( auto& vol : volume_elements[k] )
       {
-         ++volume_k;
          surface_k += ( 1 + VOL );
 
          for ( auto& nbr : nbrVolumes[vol] )
@@ -625,12 +650,11 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
       auto s_min  = walberla::mpi::reduce( surface_k, walberla::mpi::MIN );
       auto s_max  = walberla::mpi::reduce( surface_k, walberla::mpi::MAX );
       auto s_mean = real_t( walberla::mpi::reduce( surface_k, walberla::mpi::SUM ) ) / real_t( n_processes );
-      auto v_min  = walberla::mpi::reduce( volume_k, walberla::mpi::MIN );
-      auto v_max  = walberla::mpi::reduce( volume_k, walberla::mpi::MAX );
-      auto v_mean = real_t( walberla::mpi::reduce( volume_k, walberla::mpi::SUM ) ) / real_t( n_processes );
 
+      WALBERLA_LOG_INFO_ON_ROOT( "Quality of clusters:" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10s |%10s |%10s |", "", "min", "max", "mean" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10d |%10d |%10.1f |", "clustervolume", v_min, v_max, v_mean ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%20s |%10d |%10d |%10.1f |", "clustervolume", p_min[VOL], p_max[VOL], p_mean[VOL] ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s |%10d |%10d |%10.1f |", "clustersurface", s_min, s_max, s_mean ) );
    }
 }

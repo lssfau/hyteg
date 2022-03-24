@@ -381,14 +381,12 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
          return err_global[i].first >= 0.5 * err_global[p_idx].first;
       };
 
-      // mesh.refineRG( local_errors, p_ref, n_el_max );
+      // apply refinement
       auto ratio = mesh.refineRG( local_errors, criterion, n_el_max );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
 
-      // if ( mesh.n_elements() == n_el_old )
       if ( ratio < 0.95 )
       {
-         // WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of elements!" );
          WALBERLA_LOG_INFO_ON_ROOT(
              "* refinement can't be applied to all required elements\n  without breaking the max number of elements!" );
          break;
