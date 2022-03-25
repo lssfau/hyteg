@@ -58,7 +58,7 @@ std::function< real_t( const hyteg::Point3D& ) > radius = []( const hyteg::Point
 std::function< real_t( const hyteg::Point3D& ) > angle = []( const hyteg::Point3D& x ) { return std::atan2( x[1], x[0] ); };
 
 /// \brief Benchmark taken from Master's thesis of Leonard Schlag.
-void runTest()
+void runTest( bool preCompute )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "P2-P1 Stokes elementwise blending operator on annulus with Uzawa GMG solver" )
 
@@ -70,7 +70,7 @@ void runTest()
    const uint_t innerJacSmooth = 4;
    const real_t uzawaOmega     = 0.37;
    const real_t jacobiOmega    = 0.66;
-   const uint_t numIterations  = 4;
+   const uint_t numIterations  = 2;
 
    const uint_t nTan = 12;
    const uint_t nRad = 2;
@@ -174,7 +174,12 @@ void runTest()
    typedef P2ElementwiseBlendingMassOperator     MassOperator;
 
    StokesOperator L( storage, minLevel, maxLevel );
-   MassOperator   M( storage, maxLevel, maxLevel );
+   if ( preCompute )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " Precomputing local element Matrices." )
+      L.computeAndStoreLocalElementMatrices();
+   }
+   MassOperator M( storage, maxLevel, maxLevel );
 
    u.uvw().interpolate( { uSolution, vSolution }, maxLevel, DirichletBoundary );
    f_strong.uvw().interpolate( { uRhs, vRhs }, maxLevel, All );
@@ -275,7 +280,7 @@ void runTest()
       }
    }
 
-   WALBERLA_CHECK_LESS( currRes, 1.0e-08 );
+   WALBERLA_CHECK_LESS( currRes, 1.0e-06 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
@@ -285,10 +290,10 @@ void runTest()
    fineGridSolver->solve( L, u, f, maxLevel );
 
    L.apply( u, Au, maxLevel, Inner | NeumannBoundary );
-   r.assign( {1.0, -1.0}, {f, Au}, maxLevel, Inner | NeumannBoundary );
+   r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, Inner | NeumannBoundary );
    currRes = std::sqrt( r.dotGlobal( r, maxLevel, All ) ) / real_c( npoints );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
    discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, Inner | NeumannBoundary ) /
                                real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
    discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel, Inner | NeumannBoundary ) /
@@ -315,7 +320,8 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   runTest();
+   runTest( false );
+   runTest( true );
 
    return 0;
 }
