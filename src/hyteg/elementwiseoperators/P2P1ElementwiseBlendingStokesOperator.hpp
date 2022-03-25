@@ -55,7 +55,7 @@ class P2P1ElementwiseBlendingStokesOperator
 
    void computeAndStoreLocalElementMatrices()
    {
-      auto scalarA = dynamic_cast< P2ElementwiseLaplaceOperator& >( *lapl.getSubOperator( 0, 0 ) );
+      auto scalarA = dynamic_cast< P2ElementwiseBlendingLaplaceOperator& >( *lapl.getSubOperator( 0, 0 ) );
       scalarA.computeAndStoreLocalElementMatrices();
 
       div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
