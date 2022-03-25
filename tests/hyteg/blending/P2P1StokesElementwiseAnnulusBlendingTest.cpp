@@ -309,7 +309,7 @@ void runTest( bool preCompute )
       vtkOutput.write( maxLevel, numIterations + 1 );
    }
 
-   WALBERLA_CHECK_LESS( currRes, 5.0e-11 );
+   WALBERLA_CHECK_LESS( currRes, 5.0e-9 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
