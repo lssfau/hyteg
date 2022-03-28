@@ -86,6 +86,10 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes/3D)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes/3D")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/json)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/json")
+endif()
+
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
 endif()
@@ -102,6 +106,7 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles)
    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles")
 endif()
 
+waLBerla_link_files_to_builddir(data/json/*.json)
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
