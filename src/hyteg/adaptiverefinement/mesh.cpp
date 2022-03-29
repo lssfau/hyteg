@@ -1247,6 +1247,52 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
 }
 
 template < class K_Simplex >
+std::pair< real_t, real_t > K_Mesh< K_Simplex >::mean_min_max_angle() const
+{
+   std::pair< real_t, real_t > mm{ 0, 0 };
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         auto mm_el = el->min_max_angle( _vertices );
+
+         mm.first  += mm_el.first;
+         mm.second  += mm_el.second;
+      }
+   }
+
+   mm.first /= real_t(n_elements());
+   mm.second /= real_t(n_elements());
+
+   walberla::mpi::broadcastObject( mm );
+
+   return mm;
+}
+
+
+template < class K_Simplex >
+std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_volume() const
+{
+   std::pair< real_t, real_t > mm{ std::numeric_limits<real_t>::max(), 0 };
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         auto v = el->volume( _vertices );
+
+         mm.first  = std::min( mm.first, v );
+         mm.second = std::max( mm.second, v );
+      }
+   }
+
+   walberla::mpi::broadcastObject( mm );
+
+   return mm;
+}
+
+template < class K_Simplex >
 real_t K_Mesh< K_Simplex >::volume() const
 {
    real_t v_tot = 0;

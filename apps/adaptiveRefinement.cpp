@@ -384,6 +384,16 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
       // apply refinement
       auto ratio = mesh.refineRG( local_errors, criterion, n_el_max );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
+      // compute mesh quality
+      auto v_mean       = mesh.volume() / real_t( mesh.n_elements() );
+      auto v_minmax     = mesh.min_max_volume();
+      auto a_minmax     = mesh.min_max_angle();
+      auto a_meanminmax = mesh.mean_min_max_angle();
+      WALBERLA_LOG_INFO_ON_ROOT( " -> el volume (min, max, mean): " << v_minmax.first << ", " << v_minmax.second << ", "
+                                                                    << v_mean );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) over all elements: " << a_minmax.first << ", " << a_minmax.second );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) mean over all elements: " << a_meanminmax.first << ", "
+                                                                                 << a_meanminmax.second );
 
       if ( ratio < 0.95 )
       {

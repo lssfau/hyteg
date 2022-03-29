@@ -97,11 +97,17 @@ class K_Mesh
                     real_t             ratio_to_refine,
                     uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
 
-   // get minimum and maximum angle of the elements in T
+   // get minimum and maximum angle of the elements of T
    std::pair< real_t, real_t > min_max_angle() const;
+
+   // get mean values of minimum and maximum angle over all elements of T
+   std::pair< real_t, real_t > mean_min_max_angle() const;
 
    // compute total volume of the triangulated domain
    real_t volume() const;
+
+   // compute minimum and maximum volume over all elements of T
+   std::pair< real_t, real_t > min_max_volume() const;
 
    /* construct PrimitiveStorage corresponding to current refinement
       @param loadbalancing scheme used for load balancing
@@ -296,6 +302,32 @@ class Mesh
       else
       {
          return _mesh2D->volume();
+      }
+   }
+
+   // get mean values of minimum and maximum angle over all elements of T
+   std::pair< real_t, real_t > mean_min_max_angle() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->mean_min_max_angle();
+      }
+      else
+      {
+         return _mesh2D->mean_min_max_angle();
+      }
+   }
+
+   // compute minimum and maximum volume over all elements of T
+   std::pair< real_t, real_t > min_max_volume() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->min_max_volume();
+      }
+      else
+      {
+         return _mesh2D->min_max_volume();
       }
    }
 
