@@ -238,7 +238,49 @@ void VolumeDoFFunction< ValueType >::assign(
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "VolumeDoFFunction::assign() not implemented for 3D." );
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            std::vector< ValueType* >                      srcPtrs( functions.size() );
+            std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+            for ( uint_t i = 0; i < functions.size(); i++ )
+            {
+               const auto f  = functions.at( i );
+               srcPtrs[i]    = f.get().dofMemory( cellId, level );
+               srcLayouts[i] = f.get().memoryLayout();
+            }
+
+            auto dstMem    = dofMemory( cellId, level );
+            auto dstLayout = memoryLayout_;
+            auto numDofs   = this->numScalarsPerPrimitive_.at( cellId );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     ValueType sum = 0;
+                     for ( uint_t i = 0; i < functions.size(); i++ )
+                     {
+                        const auto s = scalars.at( i );
+
+                        sum +=
+                            s *
+                            srcPtrs[i][indexing::index(
+                                elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, srcLayouts[i] )];
+                     }
+                     dstMem[indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, dstLayout )] = sum;
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -294,7 +336,37 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "VolumeDoFFunction::dotLocal() not implemented for 3D." );
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            const auto mem     = dofMemory( cellId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+            const auto otherMem    = rhs.dofMemory( cellId, level );
+            const auto otherLayout = rhs.memoryLayout();
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx =
+                         indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                     const auto otherIdx = indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, otherLayout );
+
+                     sum += mem[idx] * otherMem[otherIdx];
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {

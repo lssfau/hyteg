@@ -42,6 +42,7 @@ static void test( const std::string& meshFile, const uint_t& level )
 
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >();
@@ -54,6 +55,8 @@ static void test( const std::string& meshFile, const uint_t& level )
 
    hyteg::PETScSparseMatrix< DGOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+
+   Lpetsc.print( "/Users/nilskohl/Desktop/asdf.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
    WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ), "DG Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
    WALBERLA_LOG_INFO_ON_ROOT( "DG Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
@@ -69,8 +72,11 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
-      hyteg::test( "../../data/meshes/bfs_126el.msh", level );
+      // hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
+      // hyteg::test( "../../data/meshes/bfs_126el.msh", level );
+
+      hyteg::test( "../../data/meshes/3D/tet_1el.msh", level );
+      // hyteg::test( "../../data/meshes/3D/cube_24el.msh", level );
    }
 
    return 0;

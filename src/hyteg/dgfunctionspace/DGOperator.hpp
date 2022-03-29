@@ -101,8 +101,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
       }
       else
       {
-         auto srcCellType = celldof::allCellTypes.at( srcMicroVolType );
-         auto dstCellType = celldof::allCellTypes.at( dstMicroVolType );
+         auto srcCellType = celldof::allCellTypes[srcMicroVolType];
+         auto dstCellType = celldof::allCellTypes[dstMicroVolType];
          for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
          {
             for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
@@ -602,11 +602,11 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                               for ( uint_t i = 0; i < 2; i++ )
                               {
-                                 invFaceTypeMap[facedof::allFaceTypes.at( i )] = i;
+                                 invFaceTypeMap[facedof::allFaceTypes[i]] = i;
                               }
                               for ( uint_t i = 0; i < 6; i++ )
                               {
-                                 invCellTypeMap[celldof::allCellTypes.at( i )] = i;
+                                 invCellTypeMap[celldof::allCellTypes[i]] = i;
                               }
 
                               uint_t neighborMicroVolType;
@@ -618,7 +618,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                               {
                                  neighborMicroVolType = invCellTypeMap[neighborInfo.neighborCellType( n )];
                               }
-                              // Sparse assembly.
                               addLocalToGlobalMatrix( dim,
                                                       numSrcDofs,
                                                       numDstDofs,

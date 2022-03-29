@@ -195,7 +195,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 ElementNeighborInfo::ElementNeighborInfo( Index                                      elementIdx,
                                           CellType                                   cellType,
                                           uint_t                                     level,
-                                          BoundaryCondition                          ,
+                                          BoundaryCondition                          boundaryCondition,
                                           PrimitiveID                                cellID,
                                           const std::shared_ptr< PrimitiveStorage >& storage )
 : dim_( 3 )
@@ -212,7 +212,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    neighborElementIndices_.resize( 4 );
 
    neighborElementVertexCoords_.resize( 4 );
-   for ( uint_t i = 0; i < 3; i++ )
+   for ( uint_t i = 0; i < 4; i++ )
    {
       neighborElementVertexCoords_[i].resize( 4 );
    }
@@ -251,117 +251,307 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       vertexCoordsVolume_[i]( 2 ) = coord[2];
    }
 
-#if 0
-   if ( faceType == FaceType::GRAY )
+   if ( cellType == CellType::WHITE_UP )
    {
-      neighborElementIndices_[0] = Index( elementIdx.x(), elementIdx.y() - 1, 0 );
-      neighborElementIndices_[1] = Index( elementIdx.x() - 1, elementIdx.y(), 0 );
-      neighborElementIndices_[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
+      neighborCellElementTypes_[0]    = CellType::BLUE_UP;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( -1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( -1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
 
-      std::fill( neighborFaceElementTypes_.begin(), neighborFaceElementTypes_.end(), FaceType::BLUE );
+      neighborCellElementTypes_[1]    = CellType::BLUE_DOWN;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( -1 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( -1 ) );
 
-      // bottom neighbor
-      interfaceVertexIndices_[0][0]   = Index( elementIdx.x(), elementIdx.y(), 0 );
-      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      oppositeVertexIndex_[0]         = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + 1, elementIdx.y() - 1, 0 );
+      neighborCellElementTypes_[2]    = CellType::GREEN_DOWN;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( -1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( -1 ), elementIdx.z() + ( 1 ) );
 
-      // left neighbor
-      interfaceVertexIndices_[1][0]   = Index( elementIdx.x(), elementIdx.y(), 0 );
-      interfaceVertexIndices_[1][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      oppositeVertexIndex_[1]         = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() - 1, elementIdx.y() + 1, 0 );
-
-      // diagonal neighbor
-      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      interfaceVertexIndices_[2][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      oppositeVertexIndex_[2]         = Index( elementIdx.x(), elementIdx.y(), 0 );
-      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
-   }
-   else
-   {
-      neighborElementIndices_[0] = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      neighborElementIndices_[1] = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      neighborElementIndices_[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
-
-      std::fill( neighborFaceElementTypes_.begin(), neighborFaceElementTypes_.end(), FaceType::GRAY );
-
-      // right neighbor
-      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
-      oppositeVertexIndex_[0]         = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + 2, elementIdx.y(), 0 );
-
-      // top neighbor
-      interfaceVertexIndices_[1][0]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
-      oppositeVertexIndex_[1]         = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      neighborOppositeVertexIndex_[1] = Index( elementIdx.x(), elementIdx.y() + 2, 0 );
-
-      // diagonal neighbor
-      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
-      interfaceVertexIndices_[2][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
-      oppositeVertexIndex_[2]         = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
-      neighborOppositeVertexIndex_[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
+      neighborCellElementTypes_[3]    = CellType::GREEN_UP;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
    }
 
-   onMacroBoundary_[0] = faceType == facedof::FaceType::GRAY && elementIdx.y() == 0;
-   onMacroBoundary_[1] = faceType == facedof::FaceType::GRAY && elementIdx.x() == 0;
-   onMacroBoundary_[2] =
-       faceType == facedof::FaceType::GRAY && elementIdx.x() + elementIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) - 1 );
+   if ( cellType == CellType::WHITE_DOWN )
+   {
+      neighborCellElementTypes_[0]    = CellType::BLUE_UP;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 2 ) );
 
+      neighborCellElementTypes_[1]    = CellType::GREEN_UP;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 2 ), elementIdx.z() + ( 0 ) );
 
-   for ( uint_t n = 0; n < 3; n++ )
+      neighborCellElementTypes_[2]    = CellType::GREEN_DOWN;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[3]    = CellType::BLUE_DOWN;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 2 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+   }
+
+   if ( cellType == CellType::BLUE_UP )
+   {
+      neighborCellElementTypes_[0]    = CellType::WHITE_UP;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( 2 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[1]    = CellType::WHITE_DOWN;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( -1 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( -1 ) );
+
+      neighborCellElementTypes_[2]    = CellType::GREEN_UP;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+
+      neighborCellElementTypes_[3]    = CellType::GREEN_DOWN;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+   }
+
+   if ( cellType == CellType::BLUE_DOWN )
+   {
+      neighborCellElementTypes_[0]    = CellType::WHITE_DOWN;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( -1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( -1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+
+      neighborCellElementTypes_[1]    = CellType::GREEN_UP;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[2]    = CellType::GREEN_DOWN;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[3]    = CellType::WHITE_UP;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 2 ) );
+   }
+
+   if ( cellType == CellType::GREEN_UP )
+   {
+      neighborCellElementTypes_[0]    = CellType::WHITE_UP;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[1]    = CellType::WHITE_DOWN;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( -1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( -1 ), elementIdx.z() + ( 1 ) );
+
+      neighborCellElementTypes_[2]    = CellType::BLUE_UP;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[3]    = CellType::BLUE_DOWN;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+   }
+
+   if ( cellType == CellType::GREEN_DOWN )
+   {
+      neighborCellElementTypes_[0]    = CellType::WHITE_UP;
+      neighborElementIndices_[0]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[0][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[0]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 2 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[1]    = CellType::BLUE_UP;
+      neighborElementIndices_[1]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[1][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[1][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      oppositeVertexIndex_[1]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      neighborOppositeVertexIndex_[1] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+
+      neighborCellElementTypes_[2]    = CellType::BLUE_DOWN;
+      neighborElementIndices_[2]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[2][1]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[2][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[2]         = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+
+      neighborCellElementTypes_[3]    = CellType::WHITE_DOWN;
+      neighborElementIndices_[3]      = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][0]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 0 ), elementIdx.z() + ( 1 ) );
+      interfaceVertexIndices_[3][1]   = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      interfaceVertexIndices_[3][2]   = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+      oppositeVertexIndex_[3]         = Index( elementIdx.x() + ( 0 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 0 ) );
+      neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
+   }
+
+   for ( uint_t n = 0; n < 4; n++ )
+   {
+      auto interface = interfaceVertexIndices_[n];
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[0][0], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[0][1], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[0][2], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[1][0], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[1][1], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[1][2], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[2][0], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[2][1], 0 );
+      WALBERLA_ASSERT_GREATER_EQUAL( interface[2][2], 0 );
+      bool onFace0 = interface[0][2] + interface[1][2] + interface[2][2] == 0;
+      bool onFace1 = interface[0][1] + interface[1][1] + interface[2][1] == 0;
+      bool onFace2 = interface[0][0] + interface[1][0] + interface[2][0] == 0;
+      bool onFace3 =
+          ( interface[0][0] + interface[0][1] + interface[0][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 &&
+            interface[1][0] + interface[1][1] + interface[1][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 &&
+            interface[2][0] + interface[2][1] + interface[2][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 );
+      onMacroBoundary_[n] = onFace0 || onFace1 || onFace2 || onFace3;
+   }
+
+   for ( uint_t n = 0; n < 4; n++ )
    {
       neighborBoundaryType_[n] =
-          boundaryCondition.getBoundaryType( storage->getEdge( face->neighborEdges()[n] )->getMeshBoundaryFlag() );
+          boundaryCondition.getBoundaryType( storage->getFace( cell->neighborFaces()[n] )->getMeshBoundaryFlag() );
    }
 
    // Looping over neighbor elements.
-   for ( uint_t n = 0; n < 3; n++ )
+   for ( uint_t n = 0; n < 4; n++ )
    {
       const auto vertexIndices =
-          facedof::macroface::getMicroVerticesFromMicroFace( neighborElementIndices_[n], neighborFaceElementTypes_[n] );
+          celldof::macrocell::getMicroVerticesFromMicroCell( neighborElementIndices_[n], neighborCellElementTypes_[n] );
+
+      for ( uint_t i = 0; i < 4; i++ )
+      {
+         const auto coord                        = vertexdof::macrocell::coordinateFromIndex( level, *cell, vertexIndices[i] );
+         neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
+         neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
+         neighborElementVertexCoords_[n][i]( 2 ) = coord[2];
+      }
 
       for ( uint_t i = 0; i < 3; i++ )
       {
-         const auto coord                        = vertexdof::macroface::coordinateFromIndex( level, *face, vertexIndices[i] );
-         neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
-         neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
-         neighborElementVertexCoords_[n][i]( 2 ) = 0;
-      }
-
-      for ( uint_t i = 0; i < 2; i++ )
-      {
-         const auto coord = vertexdof::macroface::coordinateFromIndex( level, *face, interfaceVertexIndices_[n][i] );
+         const auto coord = vertexdof::macrocell::coordinateFromIndex( level, *cell, interfaceVertexIndices_[n][i] );
          interfaceVertexCoords_[n][i]( 0 ) = coord[0];
          interfaceVertexCoords_[n][i]( 1 ) = coord[1];
-         interfaceVertexCoords_[n][i]( 2 ) = 0;
+         interfaceVertexCoords_[n][i]( 2 ) = coord[2];
       }
 
-      const auto oppCoord           = vertexdof::macroface::coordinateFromIndex( level, *face, oppositeVertexIndex_[n] );
+      const auto oppCoord           = vertexdof::macrocell::coordinateFromIndex( level, *cell, oppositeVertexIndex_[n] );
       oppositeVertexCoords_[n]( 0 ) = oppCoord[0];
       oppositeVertexCoords_[n]( 1 ) = oppCoord[1];
-      oppositeVertexCoords_[n]( 2 ) = 0;
+      oppositeVertexCoords_[n]( 2 ) = oppCoord[2];
 
-      const auto nOppCoord = vertexdof::macroface::coordinateFromIndex( level, *face, neighborOppositeVertexIndex_[n] );
+      const auto nOppCoord = vertexdof::macrocell::coordinateFromIndex( level, *cell, neighborOppositeVertexIndex_[n] );
       neighborOppositeVertexCoords_[n]( 0 ) = nOppCoord[0];
       neighborOppositeVertexCoords_[n]( 1 ) = nOppCoord[1];
-      neighborOppositeVertexCoords_[n]( 2 ) = 0;
+      neighborOppositeVertexCoords_[n]( 2 ) = nOppCoord[2];
 
       // TODO: improve normal computation!
-      Point      outerPoint = ( 1 / 3. ) * ( neighborElementVertexCoords_[n][0] + neighborElementVertexCoords_[n][1] +
-                                        neighborElementVertexCoords_[n][2] );
-      const auto s =
-          ( outerPoint - interfaceVertexCoords_[n][0] ).dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) /
-          ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
-              .dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
-      const Point proj =
-          Point( interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) );
+      Point outerPoint = ( 1 / 4. ) * ( neighborElementVertexCoords_[n][0] + neighborElementVertexCoords_[n][1] +
+                                        neighborElementVertexCoords_[n][2] + neighborElementVertexCoords_[n][3] );
+
+      auto x = outerPoint( 0 );
+      auto y = outerPoint( 1 );
+      auto z = outerPoint( 2 );
+
+      auto normal = ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
+                        .cross( interfaceVertexCoords_[n][2] - interfaceVertexCoords_[n][0] )
+                        .normalized();
+
+      auto a = normal( 0 );
+      auto b = normal( 1 );
+      auto c = normal( 2 );
+
+      auto d = interfaceVertexCoords_[n][0]( 0 );
+      auto e = interfaceVertexCoords_[n][0]( 1 );
+      auto f = interfaceVertexCoords_[n][0]( 2 );
+
+      auto t = ( a * d - a * x + b * e - b * y + c * f - c * z ) / ( a * a + b * b + c * c );
+
+      auto proj = outerPoint + t * normal;
+
       outwardNormal_[n] = ( outerPoint - proj );
       outwardNormal_[n].normalize();
+
+      //      WALBERLA_LOG_INFO_ON_ROOT( "eltype: " << celldof::CellTypeToStr.at( cellType )
+      //                                            << ", neighbor: " << celldof::CellTypeToStr.at( neighborCellType( n ) )
+      //                                            << ", normal: " << outwardNormal_[n] );
    }
-#endif
 }
 
 void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,

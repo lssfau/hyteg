@@ -793,6 +793,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES dg/DGPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPoisson2DConvergenceTest)
 
+    waLBerla_compile_test(FILES dg/DGPoisson3DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGPoisson3DConvergenceTest)
+
     waLBerla_compile_test(FILES dg/DGLaplaceSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGLaplaceSymmetryTest)
 

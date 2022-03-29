@@ -219,7 +219,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const DGFunction< OtherValueType >& other )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not copied!" );
+      boundaryCondition_ = other.getBoundaryCondition();
    }
 
    /// \brief Returns the number of DoFs that are allocated on this process.

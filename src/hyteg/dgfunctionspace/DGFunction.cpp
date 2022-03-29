@@ -724,7 +724,6 @@ template class DGFunction< int64_t >;
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not applied to sparse matrix." );
    WALBERLA_UNUSED( numerator );
    WALBERLA_UNUSED( mat );
    WALBERLA_UNUSED( level );
