@@ -60,26 +60,40 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
 {
    PDE_data pde;
 
-   pde.u_anal = [=]( const hyteg::Point3D& x ) {
-      auto x0 = tanh( alpha * ( x.norm() - 1.5 ) );
-      return 0.5 * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) * exp( -beta ) /
-             alpha;
-   };
-
-   pde.k = [=]( const hyteg::Point3D& x ) {
-      auto x0 = x.norm();
-      auto x1 = ( dim == 2 ) ? x0 : x0 * x0;
-      return exp( beta * tanh( alpha * ( x0 - 1.5 ) ) ) / x1;
-   };
-
-   pde.f = [=]( const hyteg::Point3D& ) { return 0; };
-
-   if ( shape == 0 ) // no blending
+   if ( shape == 0 )
    {
+      pde.u_anal = [=]( const hyteg::Point3D& x ) { return 1.0 - tanh( alpha * x.norm() ); };
+
+      pde.k = [=]( const hyteg::Point3D& ) { return 1.0; };
+
+      pde.f = [=]( const hyteg::Point3D& x ) {
+         auto x0  = x.norm();
+         if (x0 < 1e-100)
+            return x0;
+         auto x1  = alpha * x0;
+         auto x12 = cosh( x1 );
+         auto x2  = 1.0 / ( x12 * x12 );
+         return -2.0 * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0;
+      };
+
       pde.u_D = pde.u_anal;
    }
-   else // blending
+   else
    {
+      pde.u_anal = [=]( const hyteg::Point3D& x ) {
+         auto x0 = tanh( alpha * ( x.norm() - 1.5 ) );
+         return 0.5 * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) * exp( -beta ) /
+                alpha;
+      };
+
+      pde.k = [=]( const hyteg::Point3D& x ) {
+         auto x0 = x.norm();
+         auto x1 = ( dim == 2 ) ? x0 : x0 * x0;
+         return exp( beta * tanh( alpha * ( x0 - 1.5 ) ) ) / x1;
+      };
+
+      pde.f = [=]( const hyteg::Point3D& ) { return 0; };
+
       auto R_mid   = ( R_min + R_max ) / 2.0;
       auto u_inner = pde.u_anal( Point3D( { R_min, 0, 0 } ) );
       auto u_outer = pde.u_anal( Point3D( { R_max, 0, 0 } ) );
@@ -94,30 +108,35 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
-   if ( dim == 3 && shape == 0 )
+   if ( dim != 2 && dim != 3 )
    {
-      Point3D n( { 1, 1, 1 } );
-      n /= n.norm();
-      meshInfo = MeshInfo::meshCuboid( R_min * n, R_max * n, N1, N2, N3 );
-   }
-   else if ( dim == 3 && shape == 1 )
-   {
-      meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
+      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
    }
 
-   else if ( dim == 2 && shape == 0 )
+   if ( shape == 0 )
    {
-      Point2D n( { 1, 1 } );
-      n /= n.norm();
-      meshInfo = MeshInfo::meshRectangle( R_min * n, R_max * n, MeshInfo::CRISS, N1, N2 );
-   }
-   else if ( dim == 2 && shape == 1 )
-   {
-      meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
+      if ( dim == 3 )
+      {
+         Point3D n( { 1, 1, 1 } );
+         meshInfo = MeshInfo::meshCuboid( -n, n, N1, N2, N3 );
+      }
+      else
+      {
+         Point2D n( { 1, 1 } );
+         meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N1, N2 );
+      }
    }
    else
    {
-      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
+      if ( dim == 3 )
+      {
+         meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
+      }
+
+      else
+      {
+         meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
+      }
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
