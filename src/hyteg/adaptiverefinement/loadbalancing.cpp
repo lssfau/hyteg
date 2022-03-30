@@ -385,7 +385,7 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
    std::vector< uint_t > initID( n_processes );
    // select initial elements at random
    std::iota( initID.begin(), initID.end(), id0[VOL] );
-   std::fill( isAssigned.begin() + id0[VOL], isAssigned.begin() + id0[VOL] + n_processes, true );
+   std::fill( std::next( isAssigned.begin(), id0[VOL] ), std::next( isAssigned.begin(), id0[VOL] + n_processes ), true );
    // loop over all clusters k and choose initial element maximizing potential cluster size
    for ( uint_t k = 0; k < n_processes; ++k )
    {
