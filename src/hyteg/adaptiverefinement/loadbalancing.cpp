@@ -22,6 +22,7 @@
 #include <core/logging/all.h>
 #include <core/mpi/Broadcast.h>
 #include <core/mpi/Reduce.h>
+#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -347,7 +348,7 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
          return n_processes;
       }
    };
-   // compute potential volume of cluster with initial element i
+   // compute potential volume of cluster built around element i
    auto predict_volume = [&]( uint_t i ) -> uint_t {
       std::vector< uint_t > Q, Q_new;
       std::vector< bool >   visited( n_prim[ALL], false );
@@ -381,61 +382,47 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
    };
 
    // IDs of initial elements
-   std::vector< uint_t > initID( n_processes, n_prim[ALL] );
-   // select initial elements for each cluster to maximize the potential cluster size
-   for ( uint_t cycle = 0; cycle < 100; ++cycle ) // backup stopping criterion in case of cyclic states
+   std::vector< uint_t > initID( n_processes );
+   // select initial elements at random
+   std::iota( initID.begin(), initID.end(), id0[VOL] );
+   std::fill( isAssigned.begin() + id0[VOL], isAssigned.begin() + id0[VOL] + n_processes, true );
+   // loop over all clusters k and choose initial element maximizing potential cluster size
+   for ( uint_t k = 0; k < n_processes; ++k )
    {
-      bool stateChange = false;
+      uint_t max_i = 0;           // max_i predict_volume(i)
+      uint_t i_max = n_prim[ALL]; // arg max_i predict_volume(i)
 
-      // loop over all clusters k and choose new initial element
-      for ( uint_t k = 0; k < n_processes; ++k )
+      isAssigned[initID[k]] = false;
+
+      // loop over all volume elements
+      for ( uint_t i = begin[VOL]; i < end[VOL]; ++i )
       {
-         uint_t max_i = 0;         // max_i predict_volume(i)
-         uint_t i_max = n_prim[ALL]; // arg max_i predict_volume(i)
+         // skip elements that are occupied by another cluster
+         if ( isAssigned[i] )
+            continue;
 
-         isAssigned[initID[k]] = false;
+         auto v_i = predict_volume( i );
 
-         // loop over all volume elements
-         for ( uint_t i = begin[VOL]; i < end[VOL]; ++i )
+         // find maximum over i
+         if ( v_i > max_i )
          {
-            // skip elements that are occupied by another cluster
-            if ( isAssigned[i])
-               continue;
-
-            auto v_i = predict_volume(i);
-
-            // find maximum over i
-            if ( v_i > max_i )
-            {
-               max_i = v_i;
-               i_max = i;
-            }
+            max_i = v_i;
+            i_max = i;
          }
-         // global maximum
-         auto global_max = walberla::mpi::allReduce( max_i, walberla::mpi::MAX );
-         if ( global_max > max_i )
-         {
-            i_max = n_prim[ALL];
-         }
-         i_max = walberla::mpi::allReduce( i_max, walberla::mpi::MIN );
-
-         WALBERLA_ASSERT( i_max < n_prim[ALL] );
-
-         // apply changes
-         if ( i_max != initID[k] )
-         {
-            stateChange = true;
-            // update cluster k
-            initID[k] = i_max;
-         }
-
-         isAssigned[initID[k]] = true;
       }
-
-      if ( !stateChange )
+      // global maximum
+      auto global_max = walberla::mpi::allReduce( max_i, walberla::mpi::MAX );
+      if ( global_max > max_i )
       {
-         break;
+         i_max = n_prim[ALL];
       }
+      i_max = walberla::mpi::allReduce( i_max, walberla::mpi::MIN );
+
+      WALBERLA_ASSERT( i_max < n_prim[ALL] );
+
+      // apply changes
+      initID[k]         = i_max;
+      isAssigned[i_max] = true;
    }
 
    // reset flag
