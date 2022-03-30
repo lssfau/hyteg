@@ -63,8 +63,7 @@ void loadbalancing( std::vector< VertexData >& vtxs,
    }
 }
 
-void loadbalancing( const std::vector< Point3D >&      coordinates,
-                    std::vector< VertexData >&         vtxs,
+void loadbalancing( std::vector< VertexData >&         vtxs,
                     std::vector< EdgeData >&           edges,
                     std::vector< FaceData >&           faces,
                     std::vector< CellData >&           cells,
@@ -158,7 +157,6 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
 
    // max number of primitives on one rank for each primitive type
    std::array< uint_t, ALL > n_max;
-   // todo: check if this is still required
    // distributed id range for each primitive type
    std::array< uint_t, ALL > begin, end;
    for ( auto pt : VEFC )
@@ -192,31 +190,6 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
             nbrVolumes[j].push_back( i );
          }
       }
-   }
-   // todo: check if this is still required
-   // compute barycenter, radius and volume of all primitives
-   std::vector< Point3D > barycenter( n_prim[ALL] );
-   std::vector< real_t >  radius( n_prim[ALL] );
-   std::vector< real_t >  volume( n_prim[ALL] );
-   for ( auto& p : vtxs )
-   {
-      barycenter[p.getPrimitiveID().getID()] = coordinates[p.getPrimitiveID().getID()];
-   }
-   for ( auto& p : edges )
-   {
-      barycenter[p.getPrimitiveID().getID()] = Simplex1::barycenter( p.get_coordinates( coordinates ) );
-   }
-   for ( auto& p : faces )
-   {
-      barycenter[p.getPrimitiveID().getID()] = Simplex2::barycenter( p.get_coordinates( coordinates ) );
-      radius[p.getPrimitiveID().getID()]     = Simplex2::radius( p.get_coordinates( coordinates ) );
-      volume[p.getPrimitiveID().getID()]     = Simplex2::volume( p.get_coordinates( coordinates ) );
-   }
-   for ( auto& p : cells )
-   {
-      barycenter[p.getPrimitiveID().getID()] = Simplex3::barycenter( p.get_coordinates( coordinates ) );
-      radius[p.getPrimitiveID().getID()]     = Simplex3::radius( p.get_coordinates( coordinates ) );
-      volume[p.getPrimitiveID().getID()]     = Simplex3::volume( p.get_coordinates( coordinates ) );
    }
 
    // which primitives are currently assigned to a cluster
@@ -385,7 +358,7 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
    std::vector< uint_t > initID( n_processes );
    // select initial elements at random
    std::iota( initID.begin(), initID.end(), id0[VOL] );
-   std::fill( std::next( isAssigned.begin(), id0[VOL] ), std::next( isAssigned.begin(), id0[VOL] + n_processes ), true );
+   std::fill( isAssigned.begin() + int64_t( id0[VOL] ), isAssigned.begin() + int64_t( id0[VOL] + n_processes ), true );
    // loop over all clusters k and choose initial element maximizing potential cluster size
    for ( uint_t k = 0; k < n_processes; ++k )
    {

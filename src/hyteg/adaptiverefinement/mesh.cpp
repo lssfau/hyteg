@@ -276,8 +276,6 @@ real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ra
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loadbalancing& lb )
 {
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::vector< VertexData >   vtxs;
    std::vector< EdgeData >     edges;
@@ -286,9 +284,6 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
-   // broadcast vertices to all processes
-   walberla::mpi::broadcastObject( _vertices );
-
    // apply loadbalancing
    if ( lb == ROUND_ROBIN )
    {
@@ -296,26 +291,18 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    }
    if ( lb == CLUSTERING )
    {
-      loadbalancing( _vertices, vtxs, edges, faces, cells, nbrHood, _n_processes, rank );
+      loadbalancing( vtxs, edges, faces, cells, nbrHood, _n_processes, uint_t( walberla::mpi::MPIManager::instance()->rank() ) );
    }
 
    // create storage
-   auto storage = make_localPrimitives( vtxs, edges, faces, cells );
-
-   // coordinates only required on rank 0
-   if ( rank != 0 )
-   {
-      _vertices.clear();
-   }
-
-   return storage;
+   return make_localPrimitives( vtxs, edges, faces, cells );
 }
 
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( std::vector< VertexData >& vtxs,
                                                                                std::vector< EdgeData >&   edges,
                                                                                std::vector< FaceData >&   faces,
-                                                                               std::vector< CellData >&   cells ) const
+                                                                               std::vector< CellData >&   cells )
 {
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
@@ -474,6 +461,9 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    }
 
    // ****** create primitives ******
+
+   // broadcast vertices to all processes
+   walberla::mpi::broadcastObject( _vertices );
 
    // create new vertex and add it to map
    auto add_vertex = [&]( PrimitiveStorage::VertexMap& map, const VertexData& vtx ) {
@@ -687,6 +677,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       {
          add_cell( nbrCells_ps, cell );
       }
+   }
+
+   // coordinates only required on rank 0
+   if ( rank != 0 )
+   {
+      _vertices.clear();
    }
 
    // ****** add neighborhood information to primitives ******
@@ -1257,24 +1253,23 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::mean_min_max_angle() const
       {
          auto mm_el = el->min_max_angle( _vertices );
 
-         mm.first  += mm_el.first;
-         mm.second  += mm_el.second;
+         mm.first += mm_el.first;
+         mm.second += mm_el.second;
       }
    }
 
-   mm.first /= real_t(n_elements());
-   mm.second /= real_t(n_elements());
+   mm.first /= real_t( n_elements() );
+   mm.second /= real_t( n_elements() );
 
    walberla::mpi::broadcastObject( mm );
 
    return mm;
 }
 
-
 template < class K_Simplex >
 std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_volume() const
 {
-   std::pair< real_t, real_t > mm{ std::numeric_limits<real_t>::max(), 0 };
+   std::pair< real_t, real_t > mm{ std::numeric_limits< real_t >::max(), 0 };
 
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {

@@ -137,8 +137,7 @@ void loadbalancing( std::vector< VertexData >& vtxs,
                     const uint_t&              n_processes );
 
 /* apply neighborhood aware loadbalancing directly on our datastructures */
-void loadbalancing( const std::vector< Point3D >&      coordinates,
-                    std::vector< VertexData >&         vtxs,
+void loadbalancing( std::vector< VertexData >&         vtxs,
                     std::vector< EdgeData >&           edges,
                     std::vector< FaceData >&           faces,
                     std::vector< CellData >&           cells,

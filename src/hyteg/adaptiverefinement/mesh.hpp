@@ -173,7 +173,7 @@ class K_Mesh
    std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,
                                                              std::vector< EdgeData >&   edges,
                                                              std::vector< FaceData >&   faces,
-                                                             std::vector< CellData >&   cells ) const;
+                                                             std::vector< CellData >&   cells );
 
    uint_t                                             _n_vertices;
    uint_t                                             _n_elements;

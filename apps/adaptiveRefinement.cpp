@@ -210,10 +210,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    u.interpolate( pde.u_D, l_max + 1, hyteg::DirichletBoundary );
 
    // solver
-   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_min, hyteg::Inner );
-   // cg_iter >= n coarse grid DoFs -> "exact" solve
-   auto cg_iter  = std::max( max_iter, uint_t( tmp.dotGlobal( tmp, l_min ) ) );
-   auto cg       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_max, cg_iter, tol / 10 );
+   auto cg       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_max, std::max( max_iter, n_dof ), tol * 1e-1 );
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
 
    GeometricMultigridSolver< A_t > gmg( storage, smoother, cg, R, P, l_min, l_max, 3, 3 );
