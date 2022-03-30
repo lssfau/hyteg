@@ -347,56 +347,67 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
          return n_processes;
       }
    };
+   // compute potential volume of cluster with initial element i
+   auto predict_volume = [&]( uint_t i ) -> uint_t {
+      std::vector< uint_t > Q, Q_new;
+      std::vector< bool >   visited( n_prim[ALL], false );
+      uint_t                v = 0;
+      Q_new.push_back( i );
+      visited[i] = true;
+      // breadth first search to compute the number of free elements before hitting another cluster
+      while ( !Q_new.empty() )
+      {
+         v += Q_new.size();
+         std::swap( Q, Q_new );
+         Q_new.clear();
+
+         for ( auto j : Q )
+         {
+            for ( auto n : nbrVolumes[j] )
+            {
+               if ( !visited[n] )
+               {
+                  if ( isAssigned[n] )
+                  {
+                     return v;
+                  }
+                  Q_new.push_back( n );
+                  visited[n] = true;
+               }
+            }
+         }
+      }
+      return v;
+   };
+
    // IDs of initial elements
    std::vector< uint_t > initID( n_processes, n_prim[ALL] );
-   /* select initial elements for each cluster to maximize
-       min_j!=k||clusterCenter[j] - clusterCenter[k]||
-   */ // todo: use weighted norm s.th. smaller clusters elements increase the effective distance
+   // select initial elements for each cluster to maximize the potential cluster size
    for ( uint_t cycle = 0; cycle < 100; ++cycle ) // backup stopping criterion in case of cyclic states
    {
       bool stateChange = false;
 
-      /* loop over all clusters k and move their ceinter to barycenter[i_max] with
-            i_max = arg max_i min_j ||clusterCenter[j] - barycenter[i]||
-      */
+      // loop over all clusters k and choose new initial element
       for ( uint_t k = 0; k < n_processes; ++k )
       {
-         real_t max_i = 0.0;         // max_i min_j ||clusterCenter[j] - barycenter[i]||
-         uint_t i_max = n_prim[ALL]; // arg max_i min_j ||clusterCenter[j] - barycenter[i]||
+         uint_t max_i = 0;         // max_i predict_volume(i)
+         uint_t i_max = n_prim[ALL]; // arg max_i predict_volume(i)
+
+         isAssigned[initID[k]] = false;
 
          // loop over all volume elements
          for ( uint_t i = begin[VOL]; i < end[VOL]; ++i )
          {
             // skip elements that are occupied by another cluster
-            if ( isAssigned[i] && i != initID[k] )
+            if ( isAssigned[i])
                continue;
 
-            // min_j ||clusterCenter[j] - barycenter[i]||
-            real_t min_j = std::numeric_limits< real_t >::max();
-
-            // loop over all clusters j
-            for ( uint_t j = 0; j < n_processes; ++j )
-            {
-               // skip j==k and j uninitialized
-               if ( j == k || initID[j] == n_prim[ALL] )
-               {
-                  continue;
-               }
-
-               // ||clusterCenter[j] - barycenter[i]||
-               auto d = ( barycenter[initID[j]] - barycenter[i] ).norm();
-
-               // find minimum over j
-               if ( d < min_j )
-               {
-                  min_j = d;
-               }
-            }
+            auto v_i = predict_volume(i);
 
             // find maximum over i
-            if ( min_j > max_i )
+            if ( v_i > max_i )
             {
-               max_i = min_j;
+               max_i = v_i;
                i_max = i;
             }
          }
@@ -415,10 +426,10 @@ void loadbalancing( const std::vector< Point3D >&      coordinates,
          {
             stateChange = true;
             // update cluster k
-            isAssigned[initID[k]] = false;
-            initID[k]             = i_max;
-            isAssigned[initID[k]] = true;
+            initID[k] = i_max;
          }
+
+         isAssigned[initID[k]] = true;
       }
 
       if ( !stateChange )
