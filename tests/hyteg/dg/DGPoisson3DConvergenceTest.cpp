@@ -66,7 +66,7 @@ real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );

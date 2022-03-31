@@ -59,7 +59,7 @@ real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 1, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -113,7 +113,7 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 1, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -168,7 +168,7 @@ real_t testDirichlet( uint_t level, uint_t degree )
    std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 1, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -229,7 +229,7 @@ real_t testDirichletAndRhs( uint_t level, uint_t degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 1, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );

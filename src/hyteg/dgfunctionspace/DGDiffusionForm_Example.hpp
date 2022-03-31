@@ -38,15 +38,20 @@ using walberla::real_c;
 class DGDiffusionForm_Example : public DGForm
 {
  public:
-   DGDiffusionForm_Example()
+   DGDiffusionForm_Example( real_t _beta_0 )
    : callback_Scalar_Variable_Coefficient_2D_g( []( const Point3D& ) { return real_c( 0 ); } )
    , callback_Scalar_Variable_Coefficient_3D_g( []( const Point3D& ) { return real_c( 0 ); } )
+   , sigma_0( 6 )
+   , beta_0( _beta_0 )
    {}
 
-   DGDiffusionForm_Example( const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_2D_g,
+   DGDiffusionForm_Example( real_t                                           _beta_0,
+                            const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_2D_g,
                             const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_3D_g )
    : callback_Scalar_Variable_Coefficient_2D_g( _callback_Scalar_Variable_Coefficient_2D_g )
    , callback_Scalar_Variable_Coefficient_3D_g( _callback_Scalar_Variable_Coefficient_3D_g )
+   , sigma_0( 6 )
+   , beta_0( _beta_0 )
    {}
 
  protected:
@@ -157,6 +162,9 @@ class DGDiffusionForm_Example : public DGForm
 
    std::function< real_t( const Point3D& ) > callback_Scalar_Variable_Coefficient_2D_g;
    std::function< real_t( const Point3D& ) > callback_Scalar_Variable_Coefficient_3D_g;
+
+   real_t sigma_0;
+   real_t beta_0;
 };
 
 } // namespace dg
