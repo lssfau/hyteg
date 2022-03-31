@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -27,7 +28,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P2P1TaylorHoodFunction
+class P2P1TaylorHoodFunction : public BlockFunction< ValueType >
 {
  public:
    using valueType = ValueType;
@@ -52,175 +53,31 @@ class P2P1TaylorHoodFunction
                            size_t                                     minLevel,
                            size_t                                     maxLevel,
                            BoundaryCondition                          velocityBC )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
-   , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
-   {}
-
-   std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
-
-   bool isDummy() const { return false; }
-
-   void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
+   : BlockFunction< ValueType >( _name )
    {
-      uvw.interpolate( expr, level, flag );
-      p.interpolate( expr, level, flag );
+      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P2VectorFunction< ValueType > > >(
+          _name + "_uvw", storage, minLevel, maxLevel, velocityBC ) );
+      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P1Function< ValueType > > >(
+          _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
-   void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
-   {
-      uvw.interpolate( constant, level, flag );
-      p.interpolate( constant, level, flag );
+   [[nodiscard]] const P2VectorFunction< ValueType >& uvw() const {
+      return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
-   void swap( const P2P1TaylorHoodFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   [[nodiscard]] P2VectorFunction< ValueType >& uvw()
    {
-      uvw.swap( other.uvw, level, flag );
-      p.swap( other.p, level, flag );
+      return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
-   /// \brief Copies all values function data from other to this.
-   ///
-   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
-   /// This method also works, if the storages are distributed differently.
-   ///
-   /// \param other another function
-   /// \param level the refinement level
-   /// \param localPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
-   ///                                storage of this function, and as values the MPI ranks of the processes that own these
-   ///                                primitives regarding the storage of the other function
-   /// \param otherPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
-   ///                                storage of the other function, and as values the MPI ranks of the processes that own these
-   ///                                primitives regarding the storage this function lives on.
-   ///
-   void copyFrom( const P2P1TaylorHoodFunction< ValueType >&     other,
-                  const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
-   {
-      uvw.copyFrom( other.uvw, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
-      p.copyFrom( other.p, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+   [[nodiscard]] const P1Function< ValueType >& p() const {
+      return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
    }
 
-   void assign( const std::vector< walberla::real_t >                                                     scalars,
-                const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
-                size_t                                                                                    level,
-                DoFType                                                                                   flag = All ) const
+   [[nodiscard]] P1Function< ValueType >& p()
    {
-      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
-      std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
-
-      for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
-      {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
-      }
-
-      uvw.assign( scalars, functions_uvw, level, flag );
-      p.assign( scalars, functions_p, level, flag );
+      return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
    }
-
-   void add( real_t scalar, size_t level, DoFType flag = All ) const
-   {
-      uvw.add( scalar, level, flag );
-      p.add( scalar, level, flag );
-   }
-
-   void add( const std::vector< walberla::real_t >                                                     scalars,
-             const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
-             size_t                                                                                    level,
-             DoFType                                                                                   flag = All ) const
-   {
-      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
-      std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
-
-      for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
-      {
-         functions_uvw.push_back( function.uvw );
-         functions_p.push_back( function.p );
-      }
-
-      uvw.add( scalars, functions_uvw, level, flag );
-      p.add( scalars, functions_p, level, flag );
-   }
-
-   walberla::real_t
-       dotGlobal( const P2P1TaylorHoodFunction< ValueType >& rhs, const size_t level, const DoFType flag = All ) const
-   {
-      walberla::real_t sum = uvw.dotLocal( rhs.uvw, level, flag );
-      sum += p.dotLocal( rhs.p, level, flag | DirichletBoundary );
-      walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      return sum;
-   }
-
-   void prolongate( const size_t level, const DoFType flag = All ) const
-   {
-      uvw.prolongate( level, flag );
-      p.prolongate( level, flag );
-   }
-
-   void restrict( const size_t level, const DoFType flag = All ) const
-   {
-      uvw.restrict( level, flag );
-      p.restrict( level, flag );
-   }
-
-   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) const
-   {
-      uvw.enableTiming( timingTree );
-      p.enableTiming( timingTree );
-   }
-
-   void enumerate( uint_t level ) const
-   {
-      uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
-
-      std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
-
-      ValueType offset = 0;
-
-      for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
-      {
-         offset += static_cast< ValueType >( doFsPerRank[i] );
-      }
-
-      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
-      {
-         uvw[k].enumerate( level, offset );
-      }
-      p.enumerate( level, offset );
-   }
-
-   BoundaryCondition getVelocityBoundaryCondition() const
-   {
-      auto bc_u = uvw[0].getBoundaryCondition();
-      WALBERLA_DEBUG_SECTION()
-      {
-         auto bc_v = uvw[1].getBoundaryCondition();
-         WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
-         if ( uvw[0].getStorage()->hasGlobalCells() )
-         {
-            auto bc_w = uvw[2].getBoundaryCondition();
-            WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
-         }
-      }
-      return bc_u;
-   }
-
-   BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
-
-   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw.setBoundaryCondition( bc ); }
-
-   void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
-
-   template < typename OtherFunctionValueType >
-   void copyBoundaryConditionFromFunction( const P2P1TaylorHoodFunction< OtherFunctionValueType >& other )
-   {
-      setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
-      setPressureBoundaryCondition( other.getPressureBoundaryCondition() );
-   }
-
-   VelocityFunction_T uvw;
-   PressureFunction_T p;
 };
 
 inline unsigned long long p2p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )

@@ -24,7 +24,7 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -115,16 +115,16 @@ int main( int argc, char* argv[] )
 
    const auto solutionP = []( const hyteg::Point3D& x ) -> real_t { return real_c( -2.0 * x[0] + 2.0 ); };
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
-   u.uvw[0].interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
-   u_exact.uvw[0].interpolate( solutionU, maxLevel );
-   u_exact.p.interpolate( solutionP, maxLevel );
+   u.uvw()[0].interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
+   u_exact.uvw()[0].interpolate( solutionU, maxLevel );
+   u_exact.p().interpolate( solutionP, maxLevel );
 
-   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.uvw[0], maxLevel );
-   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
-   auto gmgSolver = solvertemplates::stokesGMGUzawaSolver< P1StokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
+   auto gmgSolver = solvertemplates::stokesGMGUzawaSolver< P1P1StokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
 
    const uint_t npoints = hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err_u, discr_l2_err_p, currRes, oldRes = 0;
@@ -135,9 +135,9 @@ int main( int argc, char* argv[] )
 
    err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel, hyteg::All );
 
-   discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel, hyteg::Inner ) /
+   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, hyteg::Inner ) /
                                real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
-   discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel, hyteg::Inner ) /
+   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel, hyteg::Inner ) /
                                real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Totalpoints         = " << npoints );
@@ -146,12 +146,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "initial L2 error P  = " << discr_l2_err_p );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P1P1UzawaConvergence", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.uvw );
-   vtkOutput.add( u_exact.p );
-   vtkOutput.add( err.uvw );
-   vtkOutput.add( err.p );
+   vtkOutput.add( u );
+   vtkOutput.add( u_exact );
+   vtkOutput.add( err );
 
    if ( writeVTK )
    {
@@ -172,9 +169,9 @@ int main( int argc, char* argv[] )
       oldRes = currRes;
 
       err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
-      discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel, hyteg::Inner ) /
+      discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, hyteg::Inner ) /
                                   real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
-      discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel, hyteg::Inner ) /
+      discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel, hyteg::Inner ) /
                                   real_c( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "current Err u = " << discr_l2_err_u )

@@ -23,7 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -80,19 +80,14 @@ int main( int argc, char* argv[] )
   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  u.uvw[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
-  u.uvw[1].interpolate( zero, level, hyteg::DirichletBoundary );
+  u.uvw()[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
+  u.uvw()[1].interpolate( zero, level, hyteg::DirichletBoundary );
 
   hyteg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
 
-  vtkOutput.add( r.uvw );
-  vtkOutput.add( r.p );
-
-  vtkOutput.add( f.uvw );
-  vtkOutput.add( f.p );
-
-  vtkOutput.add( u.uvw );
-  vtkOutput.add( u.p );
+  vtkOutput.add( r );
+  vtkOutput.add( f );
+  vtkOutput.add( u );
 
   timingTree->start( "Complete app" );
 
@@ -102,7 +97,7 @@ int main( int argc, char* argv[] )
   if ( usePetsc )
   {
     PETScManager petscManager( &argc, &argv );
-    f.uvw[0].interpolate(bc_x, level, hyteg::DirichletBoundary);
+    f.uvw()[0].interpolate(bc_x, level, hyteg::DirichletBoundary);
     PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator> solver( storage, level );
     solver.solve( L, u, f, level );
   }

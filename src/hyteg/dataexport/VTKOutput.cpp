@@ -63,14 +63,14 @@ VTKOutput::VTKOutput( std::string                                dir,
 
 void VTKOutput::add( const P1StokesFunction< real_t >& function )
 {
-   add( function.uvw );
-   add( function.p );
+   add( function.uvw() );
+   add( function.p() );
 }
 
 void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
 {
-   add( function.uvw );
-   add( function.p );
+   add( function.uvw() );
+   add( function.p() );
 }
 
 template < typename value_t >

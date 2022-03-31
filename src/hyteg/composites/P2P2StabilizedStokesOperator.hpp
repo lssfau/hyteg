@@ -21,6 +21,8 @@
 
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
@@ -33,13 +35,9 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
 
    P2P2StabilizedStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
+   , lapl( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -49,27 +47,13 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
                const size_t                        level,
                DoFType                             flag ) const
    {
-      A.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
-      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      A.apply( src.uvw[1], dst.uvw[1], level, flag, Replace );
-      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
+      lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
 
-      if ( hasGlobalCells_ )
-      {
-         A.apply( src.uvw[2], dst.uvw[2], level, flag, Replace );
-         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
-      }
-
-      div_x.apply( src.uvw[0], dst.p, level, flag, Replace );
-      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
-      }
-
-      pspg.apply( src.p, dst.p, level, flag, Add );
+      pspg.apply( src.p(), dst.p(), level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -78,37 +62,25 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
-      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+      lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
 
-      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
-      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
-
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
-      {
-         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
-         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
-      }
-
-      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag | DirichletBoundary );
-      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag | DirichletBoundary );
-      if ( src.uvw[0].getStorage()->hasGlobalCells() )
-      {
-         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag | DirichletBoundary );
-      }
-
-      pspg.toMatrix( mat, src.p, dst.p, level, flag | DirichletBoundary );
+      pspg.toMatrix( mat, src.p(), dst.p(), level, flag | DirichletBoundary );
    }
 
-   P2ConstantLaplaceOperator A;
-   P2ConstantDivxOperator    div_x;
-   P2ConstantDivyOperator    div_y;
-   P2ConstantDivzOperator    div_z;
-   P2ConstantDivTxOperator   divT_x;
-   P2ConstantDivTyOperator   divT_y;
-   P2ConstantDivTzOperator   divT_z;
-   P2ConstantPSPGOperator    pspg;
-   bool                      hasGlobalCells_;
+   const P2ConstantLaplaceOperator& getA() const
+   {
+      auto ptr = lapl.getSubOperator( 0, 0 );
+      return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
+   }
+
+   P2ConstantVectorLaplaceOperator lapl;
+   P2ConstantDivOperator           div;
+   P2ConstantDivTOperator          divT;
+   P2ConstantPSPGOperator          pspg;
+
+   bool hasGlobalCells_;
 };
 
 template <>

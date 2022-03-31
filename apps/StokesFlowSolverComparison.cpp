@@ -24,7 +24,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -111,9 +111,7 @@ public:
        PETScManager petscManager;
        tmpRHS_->assign( {1.0}, {b}, level, DoFType::Inner | NeumannBoundary );
 
-       //tmpRHS_->u.interpolate(velocityUBC_, level, hyteg::DirichletBoundary);
-       //tmpRHS_->v.interpolate(velocityVBC_, level, hyteg::DirichletBoundary);
-       tmpRHS_->uvw.assign( {1.0}, {x.uvw}, level, hyteg::DirichletBoundary);
+       tmpRHS_->uvw().assign( {1.0}, {x.uvw()}, level, hyteg::DirichletBoundary);
        PETScLUSolver< Operator_T> solver( storage_, level );
        solver.solve(A, x, *tmpRHS_, level );
     }
@@ -263,8 +261,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  exactSolution.uvw.interpolate( { solutionU, solutionV }, maxLevel, DoFType::All );
-  exactSolution.p.interpolate( solutionP, maxLevel, DoFType::All );
+  exactSolution.uvw().interpolate( { solutionU, solutionV }, maxLevel, DoFType::All );
+  exactSolution.p().interpolate( solutionP, maxLevel, DoFType::All );
 
   ////////////////////////
   // Setting up solvers //
@@ -313,18 +311,16 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // Boundary conditions //
   /////////////////////////
 
-  u.uvw.interpolate( { setUVelocityBC, setVVelocityBC }, maxLevel, hyteg::DirichletBoundary );
+  u.uvw().interpolate( { setUVelocityBC, setVVelocityBC }, maxLevel, hyteg::DirichletBoundary );
 
 
   /////////////////////
   // Right-hand side //
   /////////////////////
 
-  tmp.uvw.interpolate( { setUVelocityRHS, setVVelocityRHS }, maxLevel, hyteg::All );
-  MassVelocity.apply( tmp.uvw[0], f.uvw[0], maxLevel, hyteg::All );
-  MassVelocity.apply( tmp.uvw[1], f.uvw[1], maxLevel, hyteg::All );
-  // f.u.interpolate( setUVelocityRHS, maxLevel, hyteg::All );
-  // f.v.interpolate( setVVelocityRHS, maxLevel, hyteg::All );
+  tmp.uvw().interpolate( { setUVelocityRHS, setVVelocityRHS }, maxLevel, hyteg::All );
+  MassVelocity.apply( tmp.uvw()[0], f.uvw()[0], maxLevel, hyteg::All );
+  MassVelocity.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, hyteg::All );
 
 
   /////////
@@ -333,22 +329,14 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   hyteg::VTKOutput vtkOutput("../output", "StokesFlowSolverComparison", storage);
 
-  vtkOutput.add( r.uvw );
-  vtkOutput.add( r.p );
-
-  vtkOutput.add( f.uvw );
-  vtkOutput.add( f.p );
-
-  vtkOutput.add( u.uvw );
-  vtkOutput.add( u.p );
+  vtkOutput.add( r );
+  vtkOutput.add( f );
+  vtkOutput.add( u );
 
   if ( compareWithAnalyticalSolution )
   {
-    vtkOutput.add( exactSolution.uvw );
-    vtkOutput.add( exactSolution.p );
-
-    vtkOutput.add( error.uvw );
-    vtkOutput.add( error.p );
+    vtkOutput.add( exactSolution );
+    vtkOutput.add( error );
   }
 
   ////////////////////////////////
@@ -386,8 +374,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       if ( rescalePressure )
       {
-        const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-        u.p.add( -minPressure, maxLevel, DoFType::All );
+        const real_t minPressure = u.p().getMinValue( maxLevel, DoFType::All );
+        u.p().add( -minPressure, maxLevel, DoFType::All );
       }
 
       if ( compareWithAnalyticalSolution )
@@ -409,8 +397,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       if ( rescalePressure )
       {
-        const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-        u.p.add( -minPressure, maxLevel, DoFType::All );
+        const real_t minPressure = u.p().getMinValue( maxLevel, DoFType::All );
+        u.p().add( -minPressure, maxLevel, DoFType::All );
       }
 
       if ( compareWithAnalyticalSolution )
@@ -461,8 +449,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
               if( rescalePressure )
               {
-                 const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-                 u.p.add( -minPressure, maxLevel, DoFType::All );
+                 const real_t minPressure = u.p().getMinValue( maxLevel, DoFType::All );
+                 u.p().add( -minPressure, maxLevel, DoFType::All );
               }
 
               lastResidualL2 = currentResidualL2;
@@ -520,8 +508,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
             if ( rescalePressure )
             {
-              const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-              u.p.add( -minPressure, maxLevel, DoFType::All );
+              const real_t minPressure = u.p().getMinValue( maxLevel, DoFType::All );
+              u.p().add( -minPressure, maxLevel, DoFType::All );
             }
 
             lastResidualL2 = currentResidualL2;
@@ -577,8 +565,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
             if ( rescalePressure )
             {
-              const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-              u.p.add( -minPressure, maxLevel, DoFType::All );
+              const real_t minPressure = u.p().getMinValue( maxLevel, DoFType::All );
+              u.p().add( -minPressure, maxLevel, DoFType::All );
             }
 
             lastResidualL2 = currentResidualL2;
@@ -1015,7 +1003,7 @@ int main( int argc, char* argv[] )
   {
     case hyteg::P1P1:
        hyteg::run< hyteg::P1StokesFunction,
-                   hyteg::P1StokesOperator,
+                   hyteg::P1P1StokesOperator,
                    hyteg::P1P1StokesToP1P1StokesRestriction,
                    hyteg::P1P1StokesToP1P1StokesProlongation,
                    hyteg::P1ConstantMassOperator >(

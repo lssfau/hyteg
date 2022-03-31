@@ -219,7 +219,7 @@ void runSimulation( int argc, char** argv )
       return std::sin( std::atan2( x[1], x[0] ) );
    };
 
-   outwardNormalField.uvw.interpolate( { normalX, normalY }, maxLevel );
+   outwardNormalField.uvw().interpolate( { normalX, normalY }, maxLevel );
 
    // VTK
 
@@ -260,10 +260,10 @@ void runSimulation( int argc, char** argv )
    {
       uLast.assign( { 1.0 }, { u }, maxLevel, All );
 
-      M.apply( c, f.uvw[0], maxLevel, All );
-      M.apply( c, f.uvw[1], maxLevel, All );
-      f.uvw.multElementwise( { f.uvw, outwardNormalField.uvw }, maxLevel );
-      f.uvw.assign( { rayleighNumber }, { f.uvw }, maxLevel, All );
+      M.apply( c, f.uvw()[0], maxLevel, All );
+      M.apply( c, f.uvw()[1], maxLevel, All );
+      f.uvw().multElementwise( { f.uvw(), outwardNormalField.uvw() }, maxLevel );
+      f.uvw().assign( { rayleighNumber }, { f.uvw() }, maxLevel, All );
 
       uint_t numVCycles      = 0;
       real_t currentResidual = std::numeric_limits< real_t >::max();
@@ -280,10 +280,10 @@ void runSimulation( int argc, char** argv )
              walberla::format( " %6s | %12s | %14s | %12s | %8d | %15e ", "", "", "", "", numVCycles, currentResidual ) )
       }
 
-      const auto maxVelocity = velocityMaxMagnitude( u.uvw[0], u.uvw[1], tmp.uvw[0], tmp.uvw[1], maxLevel, All );
+      const auto maxVelocity = velocityMaxMagnitude( u.uvw(), tmp.uvw()[0], tmp.uvw()[1], maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
-      transport.step( c, u.uvw, uLast.uvw, maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw(), uLast.uvw(), maxLevel, Inner, dt, 1, true );
 
       if ( writeVTK )
       {

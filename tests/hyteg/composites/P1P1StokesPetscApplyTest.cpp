@@ -26,7 +26,7 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -75,7 +75,7 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    petscDst.interpolate( rand, level, location );
    ones.interpolate( one, level, location );
 
-   P1StokesOperator L( storage, level, level );
+   P1P1StokesOperator L( storage, level, level );
 
    numerator.enumerate( level );
 
@@ -89,7 +89,7 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    // PETSc apply
    PETScVector< real_t, P1StokesFunction > srcPetscVec;
    PETScVector< real_t, P1StokesFunction > dstPetscVec;
-   PETScSparseMatrix< P1StokesOperator >   petscMatrix;
+   PETScSparseMatrix< P1P1StokesOperator >   petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );

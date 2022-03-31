@@ -16,10 +16,10 @@ add_subdirectory(P1CGBenchmark)
 add_subdirectory(ApplyPerformanceAnalysis-2D-P2)
 add_subdirectory(ApplyBenchmark)
 add_subdirectory(SnoopFilterIssueBenchmark)
+add_subdirectory(PetscCompare-2D-P2-Apply)
 
 if( HYTEG_BUILD_WITH_PETSC )
     add_subdirectory(PetscCompare)
-    add_subdirectory(PetscCompare-2D-P2-Apply)
     add_subdirectory(PetscCompare-3D-P1-Apply)
 endif()
 

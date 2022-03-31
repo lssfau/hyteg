@@ -25,11 +25,11 @@
 #include "core/timing/all.h"
 
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
-#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
-#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/operators/VectorToVectorOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
+#include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 

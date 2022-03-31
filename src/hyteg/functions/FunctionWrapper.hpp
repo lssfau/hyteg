@@ -22,17 +22,10 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/functions/GenericFunction.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-
-// A whole lot of includes, so that createVectorFromFunction below has
-// a valid prototype for all possible cases
-#include "hyteg/dgfunctionspace/DGPetsc.hpp"
-#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
-#include "hyteg/facedofspace/FaceDoFPetsc.hpp"
-#include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 
 // only needed for using idx_t in to/fromVector() below!
 #include "hyteg/types/types.hpp"
@@ -63,10 +56,18 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    FunctionWrapper( const std::string&                         name,
                     const std::shared_ptr< PrimitiveStorage >& storage,
                     size_t                                     minLevel,
-                    size_t                                     maxLevel )
+                    size_t                                     maxLevel,
+                    BoundaryCondition                          boundaryCondition )
    {
-      wrappedFunc_ = std::make_unique< func_t >( name, storage, minLevel, maxLevel );
+      wrappedFunc_ = std::make_unique< func_t >( name, storage, minLevel, maxLevel, boundaryCondition );
    };
+
+   /// Constructor that constructs the function which the class wraps itself around
+   FunctionWrapper( const std::string&                         name,
+                    const std::shared_ptr< PrimitiveStorage >& storage,
+                    size_t                                     minLevel,
+                    size_t                                     maxLevel )
+   : FunctionWrapper( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ){};
 
    ~FunctionWrapper()
    {
@@ -202,7 +203,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       if constexpr ( std::is_same< value_t, real_t >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
-         createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+         wrappedFunc_->toVector( numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else
       {
@@ -218,7 +219,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       if constexpr ( std::is_same< value_t, real_t >::value )
       {
          using numer_t = typename func_t::template FunctionType< idx_t >;
-         createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+         wrappedFunc_->fromVector( numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else
       {

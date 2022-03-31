@@ -199,36 +199,36 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    //   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
    //   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-   btmp.uvw.interpolate( {forceU, forceV, forceW}, level, Inner );
+   btmp.uvw().interpolate( {forceU, forceV, forceW}, level, Inner );
 
-   M.apply( btmp.uvw[0], b.uvw[0], level, All );
-   M.apply( btmp.uvw[1], b.uvw[1], level, All );
-   M.apply( btmp.uvw[2], b.uvw[2], level, All );
+   M.apply( btmp.uvw()[0], b.uvw()[0], level, All );
+   M.apply( btmp.uvw()[1], b.uvw()[1], level, All );
+   M.apply( btmp.uvw()[2], b.uvw()[2], level, All );
 
-   x.uvw.interpolate( {exactU, exactV, exactW}, level, DirichletBoundary );
+   x.uvw().interpolate( {exactU, exactV, exactW}, level, DirichletBoundary );
 
-   x_exact.uvw.interpolate( {exactU, exactV, exactW}, level );
-   x_exact.p.interpolate( exactP, level );
+   x_exact.uvw().interpolate( {exactU, exactV, exactW}, level );
+   x_exact.p().interpolate( exactP, level );
 
-   vertexdof::projectMean( x_exact.p, level );
+   vertexdof::projectMean( x_exact.p(), level );
 
    //   VTKOutput vtkOutput( "../../output", "P2P1Stokes3DTrilinosSolve", storage );
    //   vtkOutput.add( x.u );
    //   vtkOutput.add( x.v );
    //   vtkOutput.add( x.w );
-   //   vtkOutput.add( x.p );
+   //   vtkOutput.add( x.p() );
    //   vtkOutput.add( x_exact.u );
    //   vtkOutput.add( x_exact.v );
    //   vtkOutput.add( x_exact.w );
-   //   vtkOutput.add( x_exact.p );
+   //   vtkOutput.add( x_exact.p() );
    //   vtkOutput.add( err.u );
    //   vtkOutput.add( err.v );
    //   vtkOutput.add( err.w );
-   //   vtkOutput.add( err.p );
+   //   vtkOutput.add( err.p() );
    //   vtkOutput.add( b.u );
    //   vtkOutput.add( b.v );
    //   vtkOutput.add( b.w );
-   //   vtkOutput.add( b.p );
+   //   vtkOutput.add( b.p() );
    //   vtkOutput.write( level, 0 );
 
    uint_t localDoFs1         = numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -255,7 +255,7 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
 
    timer.end();
 
-   vertexdof::projectMean( x.p, level );
+   vertexdof::projectMean( x.p(), level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    A.apply( x, residuum, level, Inner );
@@ -263,10 +263,10 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
    real_t discr_l2_err     = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_w = std::sqrt( err.uvw()[2].dotGlobal( err.uvw()[2], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );

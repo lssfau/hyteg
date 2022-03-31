@@ -1,7 +1,8 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.14)
 
 PROJECT ( hyteg )
 enable_testing()
+set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
@@ -13,6 +14,8 @@ set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"   
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
+include_directories ( ${EIGEN_DIR} )
+link_directories    ( ${EIGEN_DIR} )
 
 include_directories ( src )
 
@@ -23,25 +26,6 @@ if ( HYTEG_USE_GENERATED_KERNELS )
     message(STATUS "Using generated HyTeG kernels.")
 else()
     message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
-endif()
-
-if ( HYTEG_BUILD_WITH_PETSC )
-    find_package( PETSc )
-    include_directories ( ${PETSC_INCLUDES} )
-    link_directories    ( ${PETSC_LIBRARIES} )
-    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
-    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
-    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
-endif()
-
-include_directories ( ${EIGEN_DIR} )
-link_directories    ( ${EIGEN_DIR} )
-
-if ( HYTEG_BUILD_WITH_TRILINOS)
-   find_package( Trilinos )
-   message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
-   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
-   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
 endif()
 
 find_package( waLBerla )
@@ -70,6 +54,23 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
     #suppress warning about missing case labels which are not present in generated kernels
     add_flag( CMAKE_CXX_FLAGS "/wd4065" )
 endif()
+
+if ( HYTEG_BUILD_WITH_PETSC )
+    find_package( PETSc REQUIRED )
+    include_directories ( ${PETSC_INCLUDES} )
+    link_directories    ( ${PETSC_LIBRARIES} )
+    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
+endif()
+
+if ( HYTEG_BUILD_WITH_TRILINOS)
+   find_package( Trilinos REQUIRED )
+   message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
+   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
+   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
+endif()
+
 
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
                  src/hyteg/HytegDefinitions.hpp )
@@ -196,6 +197,7 @@ endif()
 string( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER )
 
 set      ( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
+set      ( HYTEG_COMPILER_INFO   "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" )
 set      ( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}" )
 string   ( REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS} )
 
@@ -204,4 +206,26 @@ configure_file(
         ${CMAKE_BINARY_DIR}/src/hyteg/BuildInfo.hpp
 )
 
+
+# this returns all targets within one folder
+function(get_all_targets _result _dir)
+   get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
+   foreach (_subdir IN LISTS _subdirs)
+      get_all_targets(${_result} "${_subdir}")
+   endforeach ()
+   get_property(_sub_targets DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
+   set(${_result} ${${_result}} ${_sub_targets} PARENT_SCOPE)
+endfunction()
+
+get_all_targets(_tests_targets "tests")
+add_custom_target(hyteg_all_tests)
+add_dependencies(hyteg_all_tests ${_tests_targets})
+
+get_all_targets(_apps_targets "apps")
+get_all_targets(_tutorials_targets "tutorials")
+add_custom_target(hyteg_all_apps)
+add_dependencies(hyteg_all_apps ${_apps_targets} ${_tutorials_targets})
+
+add_custom_target(hyteg_all)
+add_dependencies(hyteg_all ${_apps_targets} ${_tutorials_targets} ${_tests_targets})
 ############################################################################################################################

@@ -320,14 +320,7 @@ void solve( MeshInfo&               meshInfo,
    real_t     timeTotal   = 0;
    real_t     vMax        = 0;
 
-   if ( storage->hasGlobalCells() )
-   {
-      vMax = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
-   }
-   else
-   {
-      vMax = velocityMaxMagnitude( uvw[0], uvw[1], tmp, tmp2, level, All );
-   }
+   vMax = velocityMaxMagnitude( uvw, tmp, tmp2, level, All );
 
    if ( verbose )
    {
@@ -426,14 +419,7 @@ void solve( MeshInfo&               meshInfo,
 
       real_t advectionTimeStepRunTime;
 
-      if ( storage->hasGlobalCells() )
-      {
-         vMax = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
-      }
-      else
-      {
-         vMax = velocityMaxMagnitude( uvw[0], uvw[1], tmp, tmp2, level, All );
-      }
+      vMax = velocityMaxMagnitude( uvw, tmp, tmp2, level, All );
 
       if ( enableDiffusion && strangSplitting )
       {

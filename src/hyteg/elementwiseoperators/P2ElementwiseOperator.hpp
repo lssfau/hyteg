@@ -35,6 +35,7 @@
 #endif
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokes_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
@@ -81,7 +82,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
 
    std::shared_ptr< P2Function< real_t > > getDiagonalValues() const
    {

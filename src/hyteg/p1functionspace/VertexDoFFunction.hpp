@@ -28,6 +28,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
 #include "hyteg/communication/BufferedCommunication.hpp"
@@ -393,6 +394,19 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const VertexDoFFunction< idx_t >&     numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const VertexDoFFunction< idx_t >&     numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
    using Function< VertexDoFFunction< ValueType > >::isDummy;
 

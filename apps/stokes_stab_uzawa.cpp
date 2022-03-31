@@ -28,7 +28,7 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 
   auto tmp = std::make_shared< hyteg::P1Function<real_t>>("tmp", storage, maxLevel, maxLevel);
 
-  hyteg::P1StokesOperator L(storage, minLevel, maxLevel);
+  hyteg::P1P1StokesOperator L(storage, minLevel, maxLevel);
 
   std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D&) { return 0.0; };
   std::function<real_t(const hyteg::Point3D&)> zero = [](const hyteg::Point3D&) { return 0.0; };
@@ -88,25 +88,25 @@ int main(int argc, char* argv[])
   uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
   r.interpolate(zero, maxLevel);
 
-  u.uvw[0].interpolate(rand, maxLevel, hyteg::Inner);
-  u.uvw[1].interpolate(rand, maxLevel, hyteg::Inner);
-  u.p.interpolate(rand, maxLevel, hyteg::All);
+  u.uvw()[0].interpolate(rand, maxLevel, hyteg::Inner);
+  u.uvw()[1].interpolate(rand, maxLevel, hyteg::Inner);
+  u.p().interpolate(rand, maxLevel, hyteg::All);
 
-  u.uvw[0].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
-  u.uvw[1].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw()[0].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw()[1].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
 
   L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
 
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel);
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >(
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage, gaussSeidel);
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >(
        storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.3 );
-   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
    auto restrictionOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
 
-   auto solver = hyteg::GeometricMultigridSolver< hyteg::P1StokesOperator >(
+   auto solver = hyteg::GeometricMultigridSolver< hyteg::P1P1StokesOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
   WALBERLA_LOG_INFO_ON_ROOT("Num dofs = "<< npoints);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     auto start = walberla::timing::getWcTime();
     solver.solve(L, u, f, maxLevel);
     auto end = walberla::timing::getWcTime();
-    hyteg::vertexdof::projectMean(u.p, maxLevel);
+    hyteg::vertexdof::projectMean(u.p(), maxLevel);
 
 
     L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(outer+1-convergenceStartIter));
 
-//  hyteg::VTKWriter<hyteg::P1Function<real_t>, hyteg::DGFunction<real_t >>({&u.u, &u.v, &u.p, &f.u, &f->v, &f->p}, {}, maxLevel,
+//  hyteg::VTKWriter<hyteg::P1Function<real_t>, hyteg::DGFunction<real_t >>({&u.u, &u.v, &u.p(), &f.u, &f->v, &f->p}, {}, maxLevel,
 //                                                                    "../output", "after");
   return EXIT_SUCCESS;
 }

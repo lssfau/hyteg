@@ -22,10 +22,10 @@
 
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -63,7 +63,8 @@ int main( int argc, char* argv[] )
    std::string meshFileName = "../data/meshes/annulus_fine.msh";
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
@@ -72,10 +73,11 @@ int main( int argc, char* argv[] )
    const uint_t solverMaxiter = 100;
 
    std::function< real_t( const hyteg::Point3D& ) > initialConcentration = []( const hyteg::Point3D& x ) {
-      if( sqrt( x[0] * x[0] + x[1] * x[1] ) < 1.1 )
+      if ( sqrt( x[0] * x[0] + x[1] * x[1] ) < 1.1 )
       {
          return 1.0;
-      } else
+      }
+      else
       {
          return 0.0;
       }
@@ -114,12 +116,12 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   std::array< hyteg::P1Function< real_t >, 2 >         velocity{u->uvw[0], u->uvw[1]};
+   std::array< hyteg::P1Function< real_t >, 2 >           velocity{ u->uvw()[0], u->uvw()[1] };
    hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
-   hyteg::P1StokesOperator                              L( storage, minLevel, maxLevel );
-   hyteg::P1ConstantMassOperator                        M( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator                                L( storage, minLevel, maxLevel );
+   hyteg::P1ConstantMassOperator                          M( storage, minLevel, maxLevel );
 
-   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->uvw[0], &u->uvw[1]}}, maxLevel );
+   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
    const real_t minimalEdgeLength    = hyteg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
@@ -137,70 +139,76 @@ int main( int argc, char* argv[] )
 
    // Interpolate initial functions
    c_old->interpolate( initialConcentration, maxLevel );
-   c->assign( {1.0}, {*c_old}, maxLevel );
+   c->assign( { 1.0 }, { *c_old }, maxLevel );
 
-   auto pressurePreconditioner = std::make_shared< hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel);
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator>  >(storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37);
-   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
-   auto restrictionOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
+   auto pressurePreconditioner =
+       std::make_shared< hyteg::StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator > >(
+           storage, minLevel, maxLevel );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocitySmoother =
+       std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage,
+                                                                                                             gaussSeidel );
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >(
+       storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37 );
+   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >(
+       storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
+   auto restrictionOperator  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();
    auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
 
-   auto solver = hyteg::GeometricMultigridSolver< hyteg::P1StokesOperator >(
+   auto solver = hyteg::GeometricMultigridSolver< hyteg::P1P1StokesOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
-   WALBERLA_LOG_DETAIL_ON_ROOT("Total number of faces: " << storage->getNumberOfLocalFaces());
+   WALBERLA_LOG_DETAIL_ON_ROOT( "Total number of faces: " << storage->getNumberOfLocalFaces() );
 
    uint_t totalGlobalDofsStokes = 0;
-   uint_t totalGlobalDofsTemp = 0;
-   for(uint_t lvl = minLevel; lvl <= maxLevel; ++lvl) {
-      uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag>(*storage, lvl);
-      uint_t tmpDofTemp = numberOfGlobalDoFs< hyteg::DGFunctionTag>(*storage, lvl);
-      WALBERLA_LOG_DETAIL_ON_ROOT("Stokes DoFs on level " << lvl << " : " << tmpDofStokes);
-      WALBERLA_LOG_DETAIL_ON_ROOT("Temperature DoFs on level " << lvl << " : " << tmpDofTemp);
+   uint_t totalGlobalDofsTemp   = 0;
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   {
+      uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, lvl );
+      uint_t tmpDofTemp   = numberOfGlobalDoFs< hyteg::DGFunctionTag >( *storage, lvl );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemp );
       totalGlobalDofsStokes += tmpDofStokes;
       totalGlobalDofsTemp += tmpDofTemp;
    }
-   WALBERLA_LOG_DETAIL_ON_ROOT("Total Stokes DoFs on all level :" << totalGlobalDofsStokes);
-   WALBERLA_LOG_DETAIL_ON_ROOT("Total Temperature DoFs on all level :" << totalGlobalDofsTemp);
-   WALBERLA_LOG_DETAIL_ON_ROOT("Total DoFs on all level :" << (totalGlobalDofsTemp + totalGlobalDofsStokes));
+   WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total Temperature DoFs on all level :" << totalGlobalDofsTemp );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total DoFs on all level :" << ( totalGlobalDofsTemp + totalGlobalDofsStokes ) );
 
-   hyteg::VTKOutput vtkOutput("../output", "plume", storage, plotModulo);
-   vtkOutput.add( u->uvw );
-   vtkOutput.add( u->p );
-   vtkOutput.add( f->uvw );
+   hyteg::VTKOutput vtkOutput( "../output", "plume", storage, plotModulo );
+   vtkOutput.add( *u );
+   vtkOutput.add( f->uvw() );
    vtkOutput.add( *c );
 
    uint_t plotIter = 0;
-   for( uint_t t = 0; t <= timesteps; ++t )
+   for ( uint_t t = 0; t <= timesteps; ++t )
    {
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Current timestep: " << time )
 
-      if( t % 3 == 0 )
+      if ( t % 3 == 0 )
       {
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Solving Stokes system..." )
 
          f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
-         f->uvw[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
-         f->uvw[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
+         f->uvw()[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
+         f->uvw()[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
 
-         for( uint_t outer = 0; outer < 2; ++outer )
+         for ( uint_t outer = 0; outer < 2; ++outer )
          {
             solver.solve( L, *u, *f, maxLevel );
-            hyteg::vertexdof::projectMean( u->p, maxLevel );
+            hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
             L.apply( *u, *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-            hyteg::vertexdof::projectMean( u->p, maxLevel );
+            hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
-            r->assign( {1.0, -1.0}, { *f, *r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+            r->assign( { 1.0, -1.0 }, { *f, *r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
             WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum )
          }
       }
 
-      if( t % plotModulo == 0 )
+      if ( t % plotModulo == 0 )
       {
          timingTree->start( "VTK" );
          vtkOutput.write( maxLevel, plotIter );
@@ -210,13 +218,13 @@ int main( int argc, char* argv[] )
 
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Advecting temperature..." )
       N.apply( *c_old, *c, maxLevel, hyteg::Inner, Replace );
-      c->assign( {1.0, -dt}, {*c_old, *c}, maxLevel, hyteg::Inner );
+      c->assign( { 1.0, -dt }, { *c_old, *c }, maxLevel, hyteg::Inner );
 
       c_old.swap( c );
       time += dt;
 
       // compute new dt by CFL condition
-      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->uvw[0], &u->uvw[1]}}, maxLevel );
+      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
       dt                   = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
    }
 

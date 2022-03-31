@@ -33,11 +33,6 @@ using walberla::math::pi;
 
 namespace hyteg {
 
-// boundary flags for the full annulus
-uint_t flagInterior      = 0;
-uint_t flagInnerBoundary = 1;
-uint_t flagOuterBoundary = 2;
-
 MeshInfo MeshInfo::meshAnnulus( const real_t      rhoMin,
                                 const real_t      rhoMax,
                                 const real_t      phiLeft,
@@ -195,7 +190,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
       if ( replaceEdge )
       {
          edgesToRemove.push_back( it.first );
-         Edge newEdge( newKey, flagInterior );
+         Edge newEdge( newKey, it.second.getBoundaryFlag() );
          newEdges[newKey] = newEdge;
       }
    }
@@ -263,100 +258,6 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
       meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), boundaryFlag );
    }
 
-   return meshInfo;
-}
-
-MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t nTan, uint_t nRad )
-{
-   WALBERLA_ASSERT_LESS( rhoMin, rhoMax );
-   WALBERLA_ASSERT_GREATER( rhoMin, 1e-8 );
-   WALBERLA_ASSERT_GREATER( nTan, 0 );
-   WALBERLA_ASSERT_GREATER( nRad, 0 );
-
-   MeshInfo meshInfo;
-
-   // -------------------
-   //  generate vertices
-   // -------------------
-   IDType                                      id = 0;
-   std::map< std::array< uint_t, 2 >, IDType > indices2id;
-
-   std::array< real_t, 3 > node;
-   node[2] = (real_t) 0.0;
-
-   real_t deltaPhi = 2.0 * pi / (real_t) nTan;
-   real_t deltaRho = ( rhoMax - rhoMin ) / (real_t) nRad;
-
-   for ( uint_t i = 0; i < nTan; ++i )
-   {
-      // inner boundary
-      node[0]                = rhoMin * std::cos( real_c( i ) * deltaPhi );
-      node[1]                = rhoMin * std::sin( real_c( i ) * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInnerBoundary );
-      indices2id.insert( {{i, 0}, id} );
-      ++id;
-
-      // interior nodes
-      for ( uint_t j = 1; j < nRad; ++j )
-      {
-         node[0]                = ( rhoMin + real_c( j ) * deltaRho ) * std::cos( real_c( i ) * deltaPhi );
-         node[1]                = ( rhoMin + real_c( j ) * deltaRho ) * std::sin( real_c( i ) * deltaPhi );
-         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInterior );
-         indices2id.insert( {{i, j}, id} );
-         ++id;
-      }
-
-      // outer boundary
-      node[0]                = rhoMax * std::cos( real_c( i ) * deltaPhi );
-      node[1]                = rhoMax * std::sin( real_c( i ) * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagOuterBoundary );
-      indices2id.insert( {{i, nRad}, id} );
-      ++id;
-   }
-
-   // map node indices to linear id
-   auto getIDX = [indices2id]( uint_t ii, uint_t jj ) -> IDType {
-      std::map< std::array< uint_t, 2 >, IDType >::const_iterator found = indices2id.find( {ii, jj} );
-      WALBERLA_CHECK( found != indices2id.end(), "Could not map tupled to index!" );
-      return found->second;
-   };
-
-   // --------------------
-   //  generate triangles
-   // --------------------
-   real_t midPhi = real_c( 0 );
-   real_t midRho = real_c( 0 );
-   for ( uint_t i = 0; i < nTan; ++i )
-   {
-      for ( uint_t j = 0; j < nRad; ++j )
-      {
-         // add new central vertex
-         midPhi                 = ( real_c( i ) + real_c( 0.5 ) ) * deltaPhi;
-         midRho                 = rhoMin + ( real_c( j ) + real_c( 0.5 ) ) * deltaRho;
-         node[0]                = midRho * std::cos( midPhi );
-         node[1]                = midRho * std::sin( midPhi );
-         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), flagInterior );
-
-         // add four sub-triangles of cell
-         meshInfo.addFace( Face( {getIDX( ( i ), j ), id, getIDX( ( i + 1 ) % nTan, j )}, flagInterior ) );
-         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j ), id, getIDX( ( i + 1 ) % nTan, j + 1 )}, flagInterior ) );
-         meshInfo.addFace( Face( {getIDX( ( i + 1 ) % nTan, j + 1 ), id, getIDX( ( i ), j + 1 )}, flagInterior ) );
-         meshInfo.addFace( Face( {getIDX( ( i ), j + 1 ), id, getIDX( ( i ), j )}, flagInterior ) );
-         ++id;
-      }
-   }
-
-   // generate edges from faces
-   for ( const auto& it : meshInfo.faces_ )
-   {
-      std::vector< IDType > fNode = it.second.getVertices();
-      meshInfo.addEdge( Edge( {fNode[0], fNode[1]}, flagInterior ) );
-      meshInfo.addEdge( Edge( {fNode[0], fNode[2]}, flagInterior ) );
-      meshInfo.addEdge( Edge( {fNode[1], fNode[2]}, flagInterior ) );
-   }
-   meshInfo.deduceEdgeFlagsFromVertices( flagInterior );
-
-   // done
    return meshInfo;
 }
 

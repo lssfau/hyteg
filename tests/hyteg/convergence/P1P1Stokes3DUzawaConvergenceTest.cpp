@@ -24,7 +24,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -79,14 +79,11 @@ int main( int argc, char* argv[] )
    hyteg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P1P1_Stokes_3D_Uzawa_convergence", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( uExact.uvw );
-   vtkOutput.add( uExact.p );
-   vtkOutput.add( err.uvw );
-   vtkOutput.add( err.p );
+   vtkOutput.add( u );
+   vtkOutput.add( uExact );
+   vtkOutput.add( err );
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x ) {
       if ( x[2] < 1e-8 )
@@ -119,25 +116,25 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
-   uExact.p.interpolate( collidingFlow_p, maxLevel );
+   u.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
+   uExact.p().interpolate( collidingFlow_p, maxLevel );
 
    if ( writeVTK )
       vtkOutput.write( maxLevel, 0 );
 
-   typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >
+   typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage, gaussSeidel );
    auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    auto restriction      = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-   auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P1StokesOperator > >( storage, minLevel );
-   hyteg::GeometricMultigridSolver< hyteg::P1StokesOperator > solver(
+   auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P1P1StokesOperator > >( storage, minLevel );
+   hyteg::GeometricMultigridSolver< hyteg::P1P1StokesOperator > solver(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3, 2 );
 
    const uint_t globalDoFsVelocity = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, maxLevel );
@@ -158,8 +155,8 @@ int main( int argc, char* argv[] )
    {
       solver.solve( L, u, f, maxLevel );
 
-      hyteg::vertexdof::projectMean( u.p, maxLevel );
-      hyteg::vertexdof::projectMean( uExact.p, maxLevel );
+      hyteg::vertexdof::projectMean( u.p(), maxLevel );
+      hyteg::vertexdof::projectMean( uExact.p(), maxLevel );
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
@@ -170,10 +167,10 @@ int main( int argc, char* argv[] )
          vtkOutput.write( maxLevel, i );
       }
 
-      discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / (real_t) globalDoFsVelocity );
-      discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / (real_t) globalDoFsVelocity );
-      discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / (real_t) globalDoFsVelocity );
-      discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / (real_t) globalDoFsPressure );
+      discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_w = std::sqrt( err.uvw()[2].dotGlobal( err.uvw()[2], maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel ) / (real_t) globalDoFsPressure );
       residuum_l2_1 =
           std::sqrt( r.dotGlobal( r, maxLevel ) / ( 3 * (real_t) globalDoFsVelocity + real_c( globalDoFsPressure ) ) );
 

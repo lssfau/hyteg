@@ -1722,6 +1722,120 @@ unsigned long long edgedof::edgeDoFGlobalFunctionMemorySize( const uint_t & leve
    return memGlobal;
 }
 
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::toVector( const EdgeDoFFunction< idx_t >&       numerator,
+                                             const std::shared_ptr< VectorProxy >& vec,
+                                             uint_t                                level,
+                                             DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "EdgeDoFFunction< T >::toVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            edgedof::macroedge::createVectorFromFunction< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            edgedof::macroface::createVectorFromFunction< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            edgedof::macrocell::createVectorFromFunction< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::fromVector( const EdgeDoFFunction< idx_t >&       numerator,
+                                               const std::shared_ptr< VectorProxy >& vec,
+                                               uint_t                                level,
+                                               DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "EdgeDoFFunction< T >::fromVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      this->startCommunication< Vertex, Edge >( level );
+      this->endCommunication< Vertex, Edge >( level );
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            edgedof::macroedge::createFunctionFromVector< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Edge, Face >( level );
+      this->endCommunication< Edge, Face >( level );
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            edgedof::macroface::createFunctionFromVector< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            edgedof::macrocell::createFunctionFromVector< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
 // =================
 //  specialisations
 // =================

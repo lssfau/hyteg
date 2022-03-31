@@ -184,14 +184,12 @@ void simulate( int argc, char* argv[] )
    P2Function< real_t >             tmp( "tmp", storage, minLevel, maxLevel );
    P2Function< real_t >             tmp2( "tmp2", storage, minLevel, maxLevel );
 
-   uint_t totalGlobalDofsStokes = 0;
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
       uint_t tmpDofStokes = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
       uint_t tmpDofTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemperature );
-      totalGlobalDofsStokes += tmpDofStokes;
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
@@ -266,7 +264,6 @@ void simulate( int argc, char* argv[] )
    printFunctionAllocationInfo( *storage, 1 );
 
    walberla::WcTimer timer;
-   real_t            time = 0.0;
 
    auto calculateResidualStokes = [&]() {
       L.apply( u, r, maxLevel, Inner | NeumannBoundary );
@@ -311,15 +308,15 @@ void simulate( int argc, char* argv[] )
    auto maxMagnitudeVelocity = [&]() {
       tmp2.interpolate( 0, maxLevel, All );
 
-      tmp.assign( { 1.0 }, { u.uvw[0] }, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw()[0] }, maxLevel, All );
       tmp.multElementwise( { tmp, tmp }, maxLevel, All );
       tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
-      tmp.assign( { 1.0 }, { u.uvw[1] }, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw()[1] }, maxLevel, All );
       tmp.multElementwise( { tmp, tmp }, maxLevel, All );
       tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
-      tmp.assign( { 1.0 }, { u.uvw[2] }, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw()[2] }, maxLevel, All );
       tmp.multElementwise( { tmp, tmp }, maxLevel, All );
       tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
@@ -342,15 +339,15 @@ void simulate( int argc, char* argv[] )
 
       // Updating right-hand side (Boussinesq approximation)
 
-      M.apply( temp, f.uvw[0], maxLevel, All );
-      M.apply( temp, f.uvw[1], maxLevel, All );
-      M.apply( temp, f.uvw[2], maxLevel, All );
+      M.apply( temp, f.uvw()[0], maxLevel, All );
+      M.apply( temp, f.uvw()[1], maxLevel, All );
+      M.apply( temp, f.uvw()[2], maxLevel, All );
 
-      f.uvw[0].multElementwise( { f.uvw[0], normalX }, maxLevel, All );
-      f.uvw[1].multElementwise( { f.uvw[1], normalY }, maxLevel, All );
-      f.uvw[2].multElementwise( { f.uvw[2], normalZ }, maxLevel, All );
+      f.uvw()[0].multElementwise( { f.uvw()[0], normalX }, maxLevel, All );
+      f.uvw()[1].multElementwise( { f.uvw()[1], normalY }, maxLevel, All );
+      f.uvw()[2].multElementwise( { f.uvw()[2], normalZ }, maxLevel, All );
 
-      f.uvw.assign( { rhsScaleFactor }, { f.uvw }, maxLevel, All );
+      f.uvw().assign( { rhsScaleFactor }, { f.uvw() }, maxLevel, All );
 
       // Stokes solver
 
@@ -401,9 +398,7 @@ void simulate( int argc, char* argv[] )
 
       timer.start();
 
-      time += dt;
-
-      transport.step( temp, u.uvw, uLastTimeStep.uvw, maxLevel, All, dt, 1, true );
+      transport.step( temp, u.uvw(), uLastTimeStep.uvw(), maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )

@@ -23,12 +23,11 @@
 #include <vector>
 
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
@@ -41,8 +40,8 @@ namespace hyteg {
 ///
 /// Usage Example:
 /// \code
-///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
-///     auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
+///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
+///     auto stokes = std::make_shared< hyteg::P1P1StokesOperator > ( storage, minLevel, maxLevel );
 ///     auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
 ///     auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
 ///     StokesOperator L( stokes, projection, FreeslipBoundary );
@@ -111,10 +110,10 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
       auto matProxyProjectionPost = mat->createCopy();
 
-      projOp_->toMatrix( matProxyProjectionPost, numeratorSrc.uvw, numeratorDst.uvw, level, projFlag_ );
+      projOp_->toMatrix( matProxyProjectionPost, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
 
       // we need the Id also in the pressure block
-      saveIdentityOperator( numeratorDst.p, matProxyProjectionPost, level, All );
+      saveIdentityOperator( numeratorDst.p(), matProxyProjectionPost, level, All );
 
       std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
       matrices.push_back( matProxyProjectionPost );
@@ -124,9 +123,9 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       {
          auto matProxyProjectionPre = mat->createCopy();
 
-         projOp_->toMatrix( matProxyProjectionPre, numeratorSrc.uvw, numeratorDst.uvw, level, projFlag_ );
+         projOp_->toMatrix( matProxyProjectionPre, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
 
-         saveIdentityOperator( numeratorDst.p, matProxyProjectionPre, level, All );
+         saveIdentityOperator( numeratorDst.p(), matProxyProjectionPre, level, All );
 
          matrices.push_back( matProxyProjectionPre );
       }

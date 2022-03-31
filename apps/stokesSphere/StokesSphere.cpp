@@ -25,7 +25,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -149,13 +149,11 @@ int main( int argc, char* argv[] )
    hyteg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( u.uvw );
-      vtkOutput.add( u.p );
-      vtkOutput.add( f.uvw );
-      vtkOutput.add( f.p );
+      vtkOutput.add( u );
+      vtkOutput.add( f );
    }
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
@@ -184,7 +182,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   f.uvw.interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
+   f.uvw().interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
@@ -203,7 +201,7 @@ int main( int argc, char* argv[] )
       typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >GMGSolver_T;
 
       auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
-      //auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+      //auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
       auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
       auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
@@ -211,35 +209,35 @@ int main( int argc, char* argv[] )
       auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
 
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
 
       /// MinResSolver
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >PreconditionedMinRes_T;
+      typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator  >PreconditionedMinRes_T;
       auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, maxMinResIterations, uzawaTolerance, prec );
       preconditionedMinResSolver.solve( L, u, f, maxLevel );
 
    } else if( solverType == "uzawa" )
    {
       ///// MinRes coarse grid solver for UZAWA /////
-      typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
+      typedef StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
 
       auto pressurePrec = std::make_shared< PressurePreconditioner_T>( storage, minLevel, minLevel );
 
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator >PressurePreconditionedMinRes_T;
+      typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator >PressurePreconditionedMinRes_T;
 
       auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >( storage, minLevel, minLevel, maxMinResIterations, uzawaTolerance, pressurePrec );
 
       ///// UZAWA solver /////
-      typedef GeometricMultigridSolver< hyteg::P1StokesOperator >UzawaSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1P1StokesOperator >UzawaSolver_T;
 
       auto stokesRestriction = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
       auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-      auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-      auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
+      auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+      auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage, gaussSeidel );
 
-      auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >(storage, uzawaVelocityPreconditioner,minLevel, maxLevel, 0.3);
+      auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< P1P1StokesOperator > >(storage, uzawaVelocityPreconditioner,minLevel, maxLevel, 0.3);
 
       UzawaSolver_T uzawaSolver(
           storage, uzawaSmoother, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
@@ -285,7 +283,7 @@ int main( int argc, char* argv[] )
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager( &argc, &argv );
-   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
+   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );

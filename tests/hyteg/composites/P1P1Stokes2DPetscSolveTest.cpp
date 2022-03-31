@@ -22,7 +22,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -62,7 +62,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   hyteg::P1StokesFunction< real_t >                      err( "err", storage, level, level );
   hyteg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
 
-  hyteg::P1StokesOperator A( storage, level, level );
+  hyteg::P1P1StokesOperator A( storage, level, level );
 
   std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * std::pow( xx[1], 3.0 ); };
   std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * std::pow( xx[0], 4.0 ) - real_c(5) * std::pow( xx[1], 4.0 ); };
@@ -73,10 +73,10 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   walberla::math::seedRandomGenerator( 0 );
   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
 
-  b.uvw.interpolate( {exactU, exactV}, level, hyteg::DirichletBoundary );
-  x.uvw.interpolate( {exactU, exactV}, level, DirichletBoundary );
-  x_exact.uvw.interpolate( {exactU, exactV}, level );
-  x_exact.p.interpolate( exactP, level );
+  b.uvw().interpolate( {exactU, exactV}, level, hyteg::DirichletBoundary );
+  x.uvw().interpolate( {exactU, exactV}, level, DirichletBoundary );
+  x_exact.uvw().interpolate( {exactU, exactV}, level );
+  x_exact.p().interpolate( exactP, level );
 
   //  VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
   //  vtkOutput.add( x.u );
@@ -98,23 +98,23 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P1StokesOperator > solver_1( storage, level );
+  PETScLUSolver< P1P1StokesOperator > solver_1( storage, level );
 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hyteg::vertexdof::projectMean( x.p, level );
-  hyteg::vertexdof::projectMean( x_exact.p, level );
+  hyteg::vertexdof::projectMean( x.p(), level );
+  hyteg::vertexdof::projectMean( x_exact.p(), level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hyteg::Inner );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );

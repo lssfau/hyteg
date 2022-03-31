@@ -25,11 +25,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/sparseassembly/DirichletBCs.hpp"
 #include "hyteg/trilinos/KokkosWrapper.hpp"
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
@@ -92,7 +89,6 @@ class TrilinosSparseMatrix
       {
          proxy->addValue( idx, idx, 0 );
       }
-      // hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
       op.toMatrix( proxy, numerator, numerator, level_, All );
       crsMatrix_->fillComplete();
    }

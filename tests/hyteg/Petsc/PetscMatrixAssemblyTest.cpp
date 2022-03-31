@@ -24,7 +24,17 @@
 
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1EpsilonStokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
+// #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
+#include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
+#include "hyteg/composites/P2P2StabilizedStokesOperator.hpp"
+#include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -33,6 +43,8 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/operators/BlockOperator.hpp"
+#include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
@@ -42,19 +54,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
-// #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp"   <-- see issue 159
-#include "hyteg/composites/P1StokesBlockLaplaceOperator.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
-#include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
-#include "hyteg/composites/P2P2StabilizedStokesOperator.hpp"
-#include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
-#include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
@@ -345,13 +344,12 @@ int main( int argc, char* argv[] )
 
    testAssembly< P1ConstantUnsteadyDiffusionOperator >( storage, level, "P1ConstantUnsteadyDiffusionOperator" );
 
-   testAssembly< P1StokesOperator >( storage, level, "P1StokesOperator" );
+   testAssembly< P1P1StokesOperator >( storage, level, "P1StokesOperator" );
    testAssembly< P2P1TaylorHoodStokesOperator >( storage, level, "P2P1TaylorHoodStokesOperator" );
    testAssembly< P2P2StabilizedStokesOperator >( storage, level, "P2P2StabilizedStokesOperator" );
 
    testAssembly< P2P1TaylorHoodStokesOperator >( storage, level, "P2P1TaylorHoodStokesOperator" );
 
-   testAssembly< P1StokesBlockLaplaceOperator >( storage, level, "P1StokesBlockLaplaceOperator" );
    testAssembly< P1BlendingStokesOperator >( storage, level, "P1BlendingStokesOperator", false );
    testAssembly< P1EpsilonStokesOperator >( storage, level, "P1EpsilonStokesOperator" );
    testAssembly< P2P2UnstableStokesOperator >( storage, level, "P2P2UnstableStokesOperator" );

@@ -1,0 +1,36 @@
+target_sources( hyteg
+    PRIVATE
+    prolongate_2D_macroface_P2_push_from_edgedofs_level_0_to_1.hpp
+    prolongate_3D_macrocell_P1_push_additive.hpp
+    restrict_3D_macrocell_P1_pull_additive.cpp
+    prolongate_2D_macroface_P2_push_from_vertexdofs.cpp
+    restrict_2D_macroface_P2_update_edgedofs_level_0_to_1.hpp
+    restrict_3D_macrocell_P2_update_vertexdofs.cpp
+    restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0.hpp
+    prolongate_3D_macrocell_P2_push_from_vertexdofs.hpp
+    prolongate_3D_macrocell_P2_push_from_edgedofs.hpp
+    prolongate_3D_macrocell_P2_push_from_edgedofs_level_0_to_1.cpp
+    prolongate_2D_macroface_P2_push_from_edgedofs.hpp
+    restrict_2D_macroface_P1_pull_additive.cpp
+    prolongate_2D_macroface_P1_push_additive.hpp
+    restrict_2D_macroface_P2_update_vertexdofs.cpp
+    restrict_2D_macroface_P2_update_edgedofs.hpp
+    restrict_3D_macrocell_P2_update_edgedofs.hpp
+    prolongate_2D_macroface_P2_push_from_edgedofs.cpp
+    restrict_2D_macroface_P1_pull_additive.hpp
+    prolongate_2D_macroface_P1_push_additive.cpp
+    restrict_2D_macroface_P2_update_vertexdofs.hpp
+    restrict_2D_macroface_P2_update_edgedofs.cpp
+    restrict_3D_macrocell_P2_update_edgedofs.cpp
+    prolongate_2D_macroface_P2_push_from_edgedofs_level_0_to_1.cpp
+    prolongate_3D_macrocell_P1_push_additive.cpp
+    restrict_3D_macrocell_P1_pull_additive.hpp
+    restrict_2D_macroface_P2_update_edgedofs_level_0_to_1.cpp
+    prolongate_2D_macroface_P2_push_from_vertexdofs.hpp
+    restrict_3D_macrocell_P2_update_vertexdofs.hpp
+    prolongate_3D_macrocell_P2_push_from_edgedofs.cpp
+    prolongate_3D_macrocell_P2_push_from_vertexdofs.cpp
+    restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0.cpp
+    prolongate_3D_macrocell_P2_push_from_edgedofs_level_0_to_1.hpp     
+)
+

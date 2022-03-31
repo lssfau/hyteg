@@ -104,28 +104,28 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
    P2Function< real_t >             T( "T", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > tmp( "", storage, minLevel, maxLevel );
 
-   Lu.uvw[0].setToZero( maxLevel );
-   Lu.uvw[1].setToZero( maxLevel );
-   Lu.p.setToZero( maxLevel );
+   Lu.uvw()[0].setToZero( maxLevel );
+   Lu.uvw()[1].setToZero( maxLevel );
+   Lu.p().setToZero( maxLevel );
 
    // init boundary
-   up.uvw.interpolate( { u_boundary, v_boundary }, maxLevel, DirichletBoundary );
+   up.uvw().interpolate( { u_boundary, v_boundary }, maxLevel, DirichletBoundary );
 
    // init rhs
-   tmp.uvw.interpolate( { rhs_x, rhs_y }, maxLevel, All );
-   M2.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
-   M2.apply( tmp.uvw[1], f.uvw[1], maxLevel, All );
-   f.p.setToZero( maxLevel );
+   tmp.uvw().interpolate( { rhs_x, rhs_y }, maxLevel, All );
+   M2.apply( tmp.uvw()[0], f.uvw()[0], maxLevel, All );
+   M2.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, All );
+   f.p().setToZero( maxLevel );
 
    // init exact solution
    T.interpolate( T_field, maxLevel, All );
-   up_exact.uvw.interpolate( { u_exact, v_exact }, maxLevel, All );
-   up_exact.p.interpolate( p_exact, maxLevel, All );
-   vertexdof::projectMean( up_exact.p, maxLevel );
+   up_exact.uvw().interpolate( { u_exact, v_exact }, maxLevel, All );
+   up_exact.p().interpolate( p_exact, maxLevel, All );
+   vertexdof::projectMean( up_exact.p(), maxLevel );
 
-   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw[0], maxLevel );
-   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw[1], maxLevel );
-   communication::syncFunctionBetweenPrimitives( up_exact.p, maxLevel );
+   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw()[0], maxLevel );
+   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw()[1], maxLevel );
+   communication::syncFunctionBetweenPrimitives( up_exact.p(), maxLevel );
 
    // solver
    const real_t uzawaOmega = 0.37;
@@ -165,23 +165,23 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
    while ( 1 )
    {
       // compute error
-      vertexdof::projectMean( up.p, maxLevel );
+      vertexdof::projectMean( up.p(), maxLevel );
       err.assign( { 1.0, -1.0 }, { up, up_exact }, maxLevel );
-      M2.apply( err.uvw[0], tmp.uvw[0], maxLevel, Inner | NeumannBoundary, Replace );
-      M2.apply( err.uvw[1], tmp.uvw[1], maxLevel, Inner | NeumannBoundary, Replace );
-      M1.apply( err.p, tmp.p, maxLevel, Inner | NeumannBoundary, Replace );
-      discr_l2_err_u  = std::sqrt( err.uvw[0].dotGlobal( tmp.uvw[0], maxLevel, Inner | NeumannBoundary ) );
-      discr_l2_err_v  = std::sqrt( err.uvw[1].dotGlobal( tmp.uvw[1], maxLevel, Inner | NeumannBoundary ) );
-      discr_l2_err_p  = std::sqrt( err.p.dotGlobal( tmp.p, maxLevel, Inner | NeumannBoundary ) );
+      M2.apply( err.uvw()[0], tmp.uvw()[0], maxLevel, Inner | NeumannBoundary, Replace );
+      M2.apply( err.uvw()[1], tmp.uvw()[1], maxLevel, Inner | NeumannBoundary, Replace );
+      M1.apply( err.p(), tmp.p(), maxLevel, Inner | NeumannBoundary, Replace );
+      discr_l2_err_u  = std::sqrt( err.uvw()[0].dotGlobal( tmp.uvw()[0], maxLevel, Inner | NeumannBoundary ) );
+      discr_l2_err_v  = std::sqrt( err.uvw()[1].dotGlobal( tmp.uvw()[1], maxLevel, Inner | NeumannBoundary ) );
+      discr_l2_err_p  = std::sqrt( err.p().dotGlobal( tmp.p(), maxLevel, Inner | NeumannBoundary ) );
       discr_l2_err_uv = std::sqrt( discr_l2_err_u * discr_l2_err_u + discr_l2_err_v * discr_l2_err_v );
 
       // compute residual
       res_old = res;
       L->apply( up, Lu, maxLevel, hyteg::Inner | NeumannBoundary );
       r.assign( { 1.0, -1.0 }, { f, Lu }, maxLevel, hyteg::Inner | NeumannBoundary );
-      M2.apply( r.uvw[0], tmp.uvw[0], maxLevel, hyteg::All, Replace );
-      M2.apply( r.uvw[1], tmp.uvw[1], maxLevel, hyteg::All, Replace );
-      M1.apply( r.p, tmp.p, maxLevel, hyteg::All, Replace );
+      M2.apply( r.uvw()[0], tmp.uvw()[0], maxLevel, hyteg::All, Replace );
+      M2.apply( r.uvw()[1], tmp.uvw()[1], maxLevel, hyteg::All, Replace );
+      M1.apply( r.p(), tmp.p(), maxLevel, hyteg::All, Replace );
       res = std::sqrt( r.dotGlobal( tmp, maxLevel, All ) );
 
       // compute convergence rate
@@ -251,12 +251,9 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
       }
 
       hyteg::VTKOutput vtkOutput( "../../output", name, storage );
-      vtkOutput.add( up.uvw );
-      vtkOutput.add( up.p );
-      vtkOutput.add( up_exact.uvw );
-      vtkOutput.add( up_exact.p );
-      vtkOutput.add( err.uvw );
-      vtkOutput.add( err.p );
+      vtkOutput.add( up );
+      vtkOutput.add( up_exact );
+      vtkOutput.add( err );
       vtkOutput.add( T );
       vtkOutput.write( maxLevel, 0 );
    }
