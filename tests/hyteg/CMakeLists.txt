@@ -787,9 +787,6 @@ waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTes
 
 ## DG ##
 if (HYTEG_BUILD_WITH_PETSC)
-    waLBerla_compile_test(FILES dg/DGSmokeTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME DGSmokeTest)
-
     waLBerla_compile_test(FILES dg/DGPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPoisson2DConvergenceTest)
 
