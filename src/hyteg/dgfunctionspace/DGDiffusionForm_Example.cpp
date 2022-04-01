@@ -2134,135 +2134,160 @@ void DGDiffusionForm_Example::integrateRHSDirichletBoundary3D(
    real_t tmp_4  = p_affine_8_2 + tmp_3;
    real_t tmp_5  = 0.091576213509770743 * tmp_1 + 0.81684757298045851 * tmp_2 + tmp_4;
    real_t tmp_6  = -p_affine_0_0;
-   real_t tmp_7  = p_affine_3_0 + tmp_6;
+   real_t tmp_7  = p_affine_1_0 + tmp_6;
    real_t tmp_8  = -p_affine_0_1;
-   real_t tmp_9  = p_affine_1_1 + tmp_8;
-   real_t tmp_10 = p_affine_1_0 + tmp_6;
-   real_t tmp_11 = p_affine_3_1 + tmp_8;
-   real_t tmp_12 = p_affine_2_1 + tmp_8;
-   real_t tmp_13 = p_affine_3_2 + tmp_3;
-   real_t tmp_14 = tmp_12 * tmp_13;
-   real_t tmp_15 = p_affine_2_0 + tmp_6;
-   real_t tmp_16 = p_affine_1_2 + tmp_3;
-   real_t tmp_17 = tmp_11 * tmp_16;
+   real_t tmp_9  = p_affine_2_1 + tmp_8;
+   real_t tmp_10 = p_affine_2_0 + tmp_6;
+   real_t tmp_11 = p_affine_1_1 + tmp_8;
+   real_t tmp_12 = p_affine_3_2 + tmp_3;
+   real_t tmp_13 = tmp_12 * tmp_9;
+   real_t tmp_14 = p_affine_3_1 + tmp_8;
+   real_t tmp_15 = p_affine_1_2 + tmp_3;
+   real_t tmp_16 = tmp_14 * tmp_15;
+   real_t tmp_17 = p_affine_3_0 + tmp_6;
    real_t tmp_18 = p_affine_2_2 + tmp_3;
-   real_t tmp_19 = tmp_18 * tmp_9;
-   real_t tmp_20 = tmp_11 * tmp_18;
-   real_t tmp_21 = tmp_13 * tmp_9;
-   real_t tmp_22 = tmp_12 * tmp_16;
+   real_t tmp_19 = tmp_11 * tmp_18;
+   real_t tmp_20 = tmp_14 * tmp_18;
+   real_t tmp_21 = tmp_11 * tmp_12;
+   real_t tmp_22 = tmp_15 * tmp_9;
    real_t tmp_23 =
-       1.0 / ( tmp_10 * tmp_14 - tmp_10 * tmp_20 + tmp_15 * tmp_17 - tmp_15 * tmp_21 + tmp_19 * tmp_7 - tmp_22 * tmp_7 );
+       1.0 / ( tmp_10 * tmp_16 - tmp_10 * tmp_21 + tmp_13 * tmp_7 + tmp_17 * tmp_19 - tmp_17 * tmp_22 - tmp_20 * tmp_7 );
    real_t tmp_24 = tmp_23 * ( -tmp_10 * tmp_11 + tmp_7 * tmp_9 );
    real_t tmp_25 = tmp_24 * tmp_5;
-   real_t tmp_26 = -p_affine_8_1;
-   real_t tmp_27 = p_affine_9_1 + tmp_26;
-   real_t tmp_28 = p_affine_10_1 + tmp_26;
-   real_t tmp_29 = p_affine_8_1 + tmp_8;
-   real_t tmp_30 = 0.091576213509770743 * tmp_27 + 0.81684757298045851 * tmp_28 + tmp_29;
-   real_t tmp_31 = tmp_23 * ( tmp_10 * tmp_13 - tmp_16 * tmp_7 );
-   real_t tmp_32 = tmp_30 * tmp_31;
-   real_t tmp_33 = tmp_23 * ( tmp_11 * tmp_15 - tmp_12 * tmp_7 );
-   real_t tmp_34 = tmp_33 * tmp_5;
-   real_t tmp_35 = tmp_23 * ( -tmp_13 * tmp_15 + tmp_18 * tmp_7 );
-   real_t tmp_36 = tmp_30 * tmp_35;
-   real_t tmp_37 = -p_affine_8_0;
-   real_t tmp_38 = p_affine_9_0 + tmp_37;
-   real_t tmp_39 = p_affine_10_0 + tmp_37;
-   real_t tmp_40 = p_affine_8_0 + tmp_6;
-   real_t tmp_41 = 0.091576213509770743 * tmp_38 + 0.81684757298045851 * tmp_39 + tmp_40;
-   real_t tmp_42 = tmp_23 * ( tmp_17 - tmp_21 );
-   real_t tmp_43 = tmp_41 * tmp_42;
-   real_t tmp_44 = tmp_23 * ( tmp_14 - tmp_20 );
-   real_t tmp_45 = tmp_41 * tmp_44;
-   real_t tmp_46 = p_affine_8_1 - p_affine_9_1;
-   real_t tmp_47 = p_affine_8_0 - p_affine_9_0;
-   real_t tmp_48 = p_affine_8_2 - p_affine_9_2;
-   real_t tmp_49 =
-       std::pow( ( std::abs( tmp_2 * tmp_46 - tmp_28 * tmp_48 ) * std::abs( tmp_2 * tmp_46 - tmp_28 * tmp_48 ) ) +
-                     ( std::abs( tmp_2 * tmp_47 - tmp_39 * tmp_48 ) * std::abs( tmp_2 * tmp_47 - tmp_39 * tmp_48 ) ) +
-                     ( std::abs( tmp_28 * tmp_47 - tmp_39 * tmp_46 ) * std::abs( tmp_28 * tmp_47 - tmp_39 * tmp_46 ) ),
+   real_t tmp_26 = tmp_23 * ( tmp_11 * tmp_17 - tmp_14 * tmp_7 );
+   real_t tmp_27 = tmp_26 * tmp_5;
+   real_t tmp_28 = -p_affine_8_1;
+   real_t tmp_29 = p_affine_9_1 + tmp_28;
+   real_t tmp_30 = p_affine_10_1 + tmp_28;
+   real_t tmp_31 = p_affine_8_1 + tmp_8;
+   real_t tmp_32 = 0.091576213509770743 * tmp_29 + 0.81684757298045851 * tmp_30 + tmp_31;
+   real_t tmp_33 = tmp_23 * ( tmp_10 * tmp_15 - tmp_18 * tmp_7 );
+   real_t tmp_34 = tmp_32 * tmp_33;
+   real_t tmp_35 = tmp_23 * ( tmp_12 * tmp_7 - tmp_15 * tmp_17 );
+   real_t tmp_36 = tmp_32 * tmp_35;
+   real_t tmp_37 = tmp_23 * ( tmp_10 * tmp_14 - tmp_17 * tmp_9 );
+   real_t tmp_38 = tmp_37 * tmp_5;
+   real_t tmp_39 = tmp_23 * ( -tmp_10 * tmp_12 + tmp_17 * tmp_18 );
+   real_t tmp_40 = tmp_32 * tmp_39;
+   real_t tmp_41 = -p_affine_8_0;
+   real_t tmp_42 = p_affine_9_0 + tmp_41;
+   real_t tmp_43 = p_affine_10_0 + tmp_41;
+   real_t tmp_44 = p_affine_8_0 + tmp_6;
+   real_t tmp_45 = 0.091576213509770743 * tmp_42 + 0.81684757298045851 * tmp_43 + tmp_44;
+   real_t tmp_46 = tmp_23 * ( tmp_19 - tmp_22 );
+   real_t tmp_47 = tmp_45 * tmp_46;
+   real_t tmp_48 = tmp_23 * ( tmp_16 - tmp_21 );
+   real_t tmp_49 = tmp_45 * tmp_48;
+   real_t tmp_50 = tmp_23 * ( tmp_13 - tmp_20 );
+   real_t tmp_51 = tmp_45 * tmp_50;
+   real_t tmp_52 = p_affine_8_1 - p_affine_9_1;
+   real_t tmp_53 = p_affine_8_0 - p_affine_9_0;
+   real_t tmp_54 = p_affine_8_2 - p_affine_9_2;
+   real_t tmp_55 =
+       std::pow( ( std::abs( tmp_2 * tmp_52 - tmp_30 * tmp_54 ) * std::abs( tmp_2 * tmp_52 - tmp_30 * tmp_54 ) ) +
+                     ( std::abs( tmp_2 * tmp_53 - tmp_43 * tmp_54 ) * std::abs( tmp_2 * tmp_53 - tmp_43 * tmp_54 ) ) +
+                     ( std::abs( tmp_30 * tmp_53 - tmp_43 * tmp_52 ) * std::abs( tmp_30 * tmp_53 - tmp_43 * tmp_52 ) ),
                  1.0 / 2.0 );
-   real_t tmp_50 = 4 * sigma_0 * std::pow( 0.5 * tmp_49, -beta_0 );
-   real_t tmp_51 = tmp_23 * ( tmp_19 - tmp_22 );
-   real_t tmp_52 = tmp_23 * ( -tmp_10 * tmp_18 + tmp_15 * tmp_16 );
-   real_t tmp_53 = tmp_23 * ( tmp_10 * tmp_12 - tmp_15 * tmp_9 );
-   real_t tmp_54 = -p_affine_13_0 * ( -tmp_42 - tmp_44 - tmp_51 ) - p_affine_13_1 * ( -tmp_31 - tmp_35 - tmp_52 ) -
-                   p_affine_13_2 * ( -tmp_24 - tmp_33 - tmp_53 );
-   real_t tmp_55  = 1.0 * tmp_49;
-   real_t tmp_56  = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id0 * tmp_55;
-   real_t tmp_57  = 0.44594849091596489 * tmp_1 + 0.10810301816807022 * tmp_2 + tmp_4;
-   real_t tmp_58  = tmp_24 * tmp_57;
-   real_t tmp_59  = 0.44594849091596489 * tmp_27 + 0.10810301816807022 * tmp_28 + tmp_29;
-   real_t tmp_60  = tmp_31 * tmp_59;
-   real_t tmp_61  = tmp_33 * tmp_57;
-   real_t tmp_62  = tmp_35 * tmp_59;
-   real_t tmp_63  = 0.44594849091596489 * tmp_38 + 0.10810301816807022 * tmp_39 + tmp_40;
-   real_t tmp_64  = tmp_42 * tmp_63;
-   real_t tmp_65  = tmp_44 * tmp_63;
-   real_t tmp_66  = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id1 * tmp_55;
-   real_t tmp_67  = 0.81684757298045851 * tmp_1 + 0.091576213509770743 * tmp_2 + tmp_4;
-   real_t tmp_68  = tmp_24 * tmp_67;
-   real_t tmp_69  = 0.81684757298045851 * tmp_27 + 0.091576213509770743 * tmp_28 + tmp_29;
-   real_t tmp_70  = tmp_31 * tmp_69;
-   real_t tmp_71  = tmp_33 * tmp_67;
-   real_t tmp_72  = tmp_35 * tmp_69;
-   real_t tmp_73  = 0.81684757298045851 * tmp_38 + 0.091576213509770743 * tmp_39 + tmp_40;
-   real_t tmp_74  = tmp_42 * tmp_73;
-   real_t tmp_75  = tmp_44 * tmp_73;
-   real_t tmp_76  = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id2 * tmp_55;
-   real_t tmp_77  = 0.10810301816807022 * tmp_1 + 0.44594849091596489 * tmp_2 + tmp_4;
-   real_t tmp_78  = tmp_24 * tmp_77;
-   real_t tmp_79  = 0.10810301816807022 * tmp_27 + 0.44594849091596489 * tmp_28 + tmp_29;
-   real_t tmp_80  = tmp_31 * tmp_79;
-   real_t tmp_81  = tmp_33 * tmp_77;
-   real_t tmp_82  = tmp_35 * tmp_79;
-   real_t tmp_83  = 0.10810301816807022 * tmp_38 + 0.44594849091596489 * tmp_39 + tmp_40;
-   real_t tmp_84  = tmp_42 * tmp_83;
-   real_t tmp_85  = tmp_44 * tmp_83;
-   real_t tmp_86  = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id3 * tmp_55;
-   real_t tmp_87  = 0.091576213509770743 * tmp_1 + 0.091576213509770743 * tmp_2 + tmp_4;
-   real_t tmp_88  = tmp_24 * tmp_87;
-   real_t tmp_89  = 0.091576213509770743 * tmp_27 + 0.091576213509770743 * tmp_28 + tmp_29;
-   real_t tmp_90  = tmp_31 * tmp_89;
-   real_t tmp_91  = tmp_33 * tmp_87;
-   real_t tmp_92  = tmp_35 * tmp_89;
-   real_t tmp_93  = 0.091576213509770743 * tmp_38 + 0.091576213509770743 * tmp_39 + tmp_40;
-   real_t tmp_94  = tmp_42 * tmp_93;
-   real_t tmp_95  = tmp_44 * tmp_93;
-   real_t tmp_96  = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id4 * tmp_55;
-   real_t tmp_97  = 0.44594849091596489 * tmp_1 + 0.44594849091596489 * tmp_2 + tmp_4;
-   real_t tmp_98  = tmp_24 * tmp_97;
-   real_t tmp_99  = 0.44594849091596489 * tmp_27 + 0.44594849091596489 * tmp_28 + tmp_29;
-   real_t tmp_100 = tmp_31 * tmp_99;
-   real_t tmp_101 = tmp_33 * tmp_97;
-   real_t tmp_102 = tmp_35 * tmp_99;
-   real_t tmp_103 = 0.44594849091596489 * tmp_38 + 0.44594849091596489 * tmp_39 + tmp_40;
-   real_t tmp_104 = tmp_103 * tmp_42;
-   real_t tmp_105 = tmp_103 * tmp_44;
-   real_t tmp_106 = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id5 * tmp_55;
-   real_t tmp_107 = -p_affine_13_0 * tmp_44 - p_affine_13_1 * tmp_35 - p_affine_13_2 * tmp_33;
-   real_t tmp_108 = -p_affine_13_0 * tmp_42 - p_affine_13_1 * tmp_31 - p_affine_13_2 * tmp_24;
-   real_t tmp_109 = -p_affine_13_0 * tmp_51 - p_affine_13_1 * tmp_52 - p_affine_13_2 * tmp_53;
-   real_t a_0_0   = tmp_106 * ( tmp_50 * ( -tmp_100 - tmp_101 - tmp_102 - tmp_104 - tmp_105 - tmp_98 + 1 ) + tmp_54 ) +
-                  tmp_56 * ( tmp_50 * ( -tmp_25 - tmp_32 - tmp_34 - tmp_36 - tmp_43 - tmp_45 + 1 ) + tmp_54 ) +
-                  tmp_66 * ( tmp_50 * ( -tmp_58 - tmp_60 - tmp_61 - tmp_62 - tmp_64 - tmp_65 + 1 ) + tmp_54 ) +
-                  tmp_76 * ( tmp_50 * ( -tmp_68 - tmp_70 - tmp_71 - tmp_72 - tmp_74 - tmp_75 + 1 ) + tmp_54 ) +
-                  tmp_86 * ( tmp_50 * ( -tmp_78 - tmp_80 - tmp_81 - tmp_82 - tmp_84 - tmp_85 + 1 ) + tmp_54 ) +
-                  tmp_96 * ( tmp_50 * ( -tmp_88 - tmp_90 - tmp_91 - tmp_92 - tmp_94 - tmp_95 + 1 ) + tmp_54 );
-   real_t a_1_0 = tmp_106 * ( tmp_107 + tmp_50 * ( tmp_101 + tmp_102 + tmp_105 ) ) +
-                  tmp_56 * ( tmp_107 + tmp_50 * ( tmp_34 + tmp_36 + tmp_45 ) ) +
-                  tmp_66 * ( tmp_107 + tmp_50 * ( tmp_61 + tmp_62 + tmp_65 ) ) +
-                  tmp_76 * ( tmp_107 + tmp_50 * ( tmp_71 + tmp_72 + tmp_75 ) ) +
-                  tmp_86 * ( tmp_107 + tmp_50 * ( tmp_81 + tmp_82 + tmp_85 ) ) +
-                  tmp_96 * ( tmp_107 + tmp_50 * ( tmp_91 + tmp_92 + tmp_95 ) );
-   real_t a_2_0 = tmp_106 * ( tmp_108 + tmp_50 * ( tmp_100 + tmp_104 + tmp_98 ) ) +
-                  tmp_56 * ( tmp_108 + tmp_50 * ( tmp_25 + tmp_32 + tmp_43 ) ) +
-                  tmp_66 * ( tmp_108 + tmp_50 * ( tmp_58 + tmp_60 + tmp_64 ) ) +
-                  tmp_76 * ( tmp_108 + tmp_50 * ( tmp_68 + tmp_70 + tmp_74 ) ) +
-                  tmp_86 * ( tmp_108 + tmp_50 * ( tmp_78 + tmp_80 + tmp_84 ) ) +
-                  tmp_96 * ( tmp_108 + tmp_50 * ( tmp_88 + tmp_90 + tmp_94 ) );
-   real_t a_3_0 =
-       tmp_106 * tmp_109 + tmp_109 * tmp_56 + tmp_109 * tmp_66 + tmp_109 * tmp_76 + tmp_109 * tmp_86 + tmp_109 * tmp_96;
+   real_t tmp_56 = 4 * sigma_0 * std::pow( 0.5 * tmp_55, -beta_0 );
+   real_t tmp_57 = -p_affine_13_0 * ( -tmp_46 - tmp_48 - tmp_50 ) - p_affine_13_1 * ( -tmp_33 - tmp_35 - tmp_39 ) -
+                   p_affine_13_2 * ( -tmp_24 - tmp_26 - tmp_37 );
+   real_t tmp_58  = 1.0 * tmp_55;
+   real_t tmp_59  = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id0 * tmp_58;
+   real_t tmp_60  = 0.44594849091596489 * tmp_1 + 0.10810301816807022 * tmp_2 + tmp_4;
+   real_t tmp_61  = tmp_24 * tmp_60;
+   real_t tmp_62  = tmp_26 * tmp_60;
+   real_t tmp_63  = 0.44594849091596489 * tmp_29 + 0.10810301816807022 * tmp_30 + tmp_31;
+   real_t tmp_64  = tmp_33 * tmp_63;
+   real_t tmp_65  = tmp_35 * tmp_63;
+   real_t tmp_66  = tmp_37 * tmp_60;
+   real_t tmp_67  = tmp_39 * tmp_63;
+   real_t tmp_68  = 0.44594849091596489 * tmp_42 + 0.10810301816807022 * tmp_43 + tmp_44;
+   real_t tmp_69  = tmp_46 * tmp_68;
+   real_t tmp_70  = tmp_48 * tmp_68;
+   real_t tmp_71  = tmp_50 * tmp_68;
+   real_t tmp_72  = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id1 * tmp_58;
+   real_t tmp_73  = 0.81684757298045851 * tmp_1 + 0.091576213509770743 * tmp_2 + tmp_4;
+   real_t tmp_74  = tmp_24 * tmp_73;
+   real_t tmp_75  = tmp_26 * tmp_73;
+   real_t tmp_76  = 0.81684757298045851 * tmp_29 + 0.091576213509770743 * tmp_30 + tmp_31;
+   real_t tmp_77  = tmp_33 * tmp_76;
+   real_t tmp_78  = tmp_35 * tmp_76;
+   real_t tmp_79  = tmp_37 * tmp_73;
+   real_t tmp_80  = tmp_39 * tmp_76;
+   real_t tmp_81  = 0.81684757298045851 * tmp_42 + 0.091576213509770743 * tmp_43 + tmp_44;
+   real_t tmp_82  = tmp_46 * tmp_81;
+   real_t tmp_83  = tmp_48 * tmp_81;
+   real_t tmp_84  = tmp_50 * tmp_81;
+   real_t tmp_85  = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id2 * tmp_58;
+   real_t tmp_86  = 0.10810301816807022 * tmp_1 + 0.44594849091596489 * tmp_2 + tmp_4;
+   real_t tmp_87  = tmp_24 * tmp_86;
+   real_t tmp_88  = tmp_26 * tmp_86;
+   real_t tmp_89  = 0.10810301816807022 * tmp_29 + 0.44594849091596489 * tmp_30 + tmp_31;
+   real_t tmp_90  = tmp_33 * tmp_89;
+   real_t tmp_91  = tmp_35 * tmp_89;
+   real_t tmp_92  = tmp_37 * tmp_86;
+   real_t tmp_93  = tmp_39 * tmp_89;
+   real_t tmp_94  = 0.10810301816807022 * tmp_42 + 0.44594849091596489 * tmp_43 + tmp_44;
+   real_t tmp_95  = tmp_46 * tmp_94;
+   real_t tmp_96  = tmp_48 * tmp_94;
+   real_t tmp_97  = tmp_50 * tmp_94;
+   real_t tmp_98  = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id3 * tmp_58;
+   real_t tmp_99  = 0.091576213509770743 * tmp_1 + 0.091576213509770743 * tmp_2 + tmp_4;
+   real_t tmp_100 = tmp_24 * tmp_99;
+   real_t tmp_101 = tmp_26 * tmp_99;
+   real_t tmp_102 = 0.091576213509770743 * tmp_29 + 0.091576213509770743 * tmp_30 + tmp_31;
+   real_t tmp_103 = tmp_102 * tmp_33;
+   real_t tmp_104 = tmp_102 * tmp_35;
+   real_t tmp_105 = tmp_37 * tmp_99;
+   real_t tmp_106 = tmp_102 * tmp_39;
+   real_t tmp_107 = 0.091576213509770743 * tmp_42 + 0.091576213509770743 * tmp_43 + tmp_44;
+   real_t tmp_108 = tmp_107 * tmp_46;
+   real_t tmp_109 = tmp_107 * tmp_48;
+   real_t tmp_110 = tmp_107 * tmp_50;
+   real_t tmp_111 = 0.054975871827660928 * Scalar_Variable_Coefficient_3D_g_out0_id4 * tmp_58;
+   real_t tmp_112 = 0.44594849091596489 * tmp_1 + 0.44594849091596489 * tmp_2 + tmp_4;
+   real_t tmp_113 = tmp_112 * tmp_24;
+   real_t tmp_114 = tmp_112 * tmp_26;
+   real_t tmp_115 = 0.44594849091596489 * tmp_29 + 0.44594849091596489 * tmp_30 + tmp_31;
+   real_t tmp_116 = tmp_115 * tmp_33;
+   real_t tmp_117 = tmp_115 * tmp_35;
+   real_t tmp_118 = tmp_112 * tmp_37;
+   real_t tmp_119 = tmp_115 * tmp_39;
+   real_t tmp_120 = 0.44594849091596489 * tmp_42 + 0.44594849091596489 * tmp_43 + tmp_44;
+   real_t tmp_121 = tmp_120 * tmp_46;
+   real_t tmp_122 = tmp_120 * tmp_48;
+   real_t tmp_123 = tmp_120 * tmp_50;
+   real_t tmp_124 = 0.11169079483900572 * Scalar_Variable_Coefficient_3D_g_out0_id5 * tmp_58;
+   real_t tmp_125 = -p_affine_13_0 * tmp_50 - p_affine_13_1 * tmp_39 - p_affine_13_2 * tmp_37;
+   real_t tmp_126 = -p_affine_13_0 * tmp_48 - p_affine_13_1 * tmp_35 - p_affine_13_2 * tmp_26;
+   real_t tmp_127 = -p_affine_13_0 * tmp_46 - p_affine_13_1 * tmp_33 - p_affine_13_2 * tmp_24;
+   real_t a_0_0 =
+       tmp_111 * ( tmp_56 * ( -tmp_100 - tmp_101 - tmp_103 - tmp_104 - tmp_105 - tmp_106 - tmp_108 - tmp_109 - tmp_110 + 1 ) +
+                   tmp_57 ) +
+       tmp_124 * ( tmp_56 * ( -tmp_113 - tmp_114 - tmp_116 - tmp_117 - tmp_118 - tmp_119 - tmp_121 - tmp_122 - tmp_123 + 1 ) +
+                   tmp_57 ) +
+       tmp_59 * ( tmp_56 * ( -tmp_25 - tmp_27 - tmp_34 - tmp_36 - tmp_38 - tmp_40 - tmp_47 - tmp_49 - tmp_51 + 1 ) + tmp_57 ) +
+       tmp_72 * ( tmp_56 * ( -tmp_61 - tmp_62 - tmp_64 - tmp_65 - tmp_66 - tmp_67 - tmp_69 - tmp_70 - tmp_71 + 1 ) + tmp_57 ) +
+       tmp_85 * ( tmp_56 * ( -tmp_74 - tmp_75 - tmp_77 - tmp_78 - tmp_79 - tmp_80 - tmp_82 - tmp_83 - tmp_84 + 1 ) + tmp_57 ) +
+       tmp_98 * ( tmp_56 * ( -tmp_87 - tmp_88 - tmp_90 - tmp_91 - tmp_92 - tmp_93 - tmp_95 - tmp_96 - tmp_97 + 1 ) + tmp_57 );
+   real_t a_1_0 = tmp_111 * ( tmp_125 + tmp_56 * ( tmp_105 + tmp_106 + tmp_110 ) ) +
+                  tmp_124 * ( tmp_125 + tmp_56 * ( tmp_118 + tmp_119 + tmp_123 ) ) +
+                  tmp_59 * ( tmp_125 + tmp_56 * ( tmp_38 + tmp_40 + tmp_51 ) ) +
+                  tmp_72 * ( tmp_125 + tmp_56 * ( tmp_66 + tmp_67 + tmp_71 ) ) +
+                  tmp_85 * ( tmp_125 + tmp_56 * ( tmp_79 + tmp_80 + tmp_84 ) ) +
+                  tmp_98 * ( tmp_125 + tmp_56 * ( tmp_92 + tmp_93 + tmp_97 ) );
+   real_t a_2_0 = tmp_111 * ( tmp_126 + tmp_56 * ( tmp_101 + tmp_104 + tmp_109 ) ) +
+                  tmp_124 * ( tmp_126 + tmp_56 * ( tmp_114 + tmp_117 + tmp_122 ) ) +
+                  tmp_59 * ( tmp_126 + tmp_56 * ( tmp_27 + tmp_36 + tmp_49 ) ) +
+                  tmp_72 * ( tmp_126 + tmp_56 * ( tmp_62 + tmp_65 + tmp_70 ) ) +
+                  tmp_85 * ( tmp_126 + tmp_56 * ( tmp_75 + tmp_78 + tmp_83 ) ) +
+                  tmp_98 * ( tmp_126 + tmp_56 * ( tmp_88 + tmp_91 + tmp_96 ) );
+   real_t a_3_0 = tmp_111 * ( tmp_127 + tmp_56 * ( tmp_100 + tmp_103 + tmp_108 ) ) +
+                  tmp_124 * ( tmp_127 + tmp_56 * ( tmp_113 + tmp_116 + tmp_121 ) ) +
+                  tmp_59 * ( tmp_127 + tmp_56 * ( tmp_25 + tmp_34 + tmp_47 ) ) +
+                  tmp_72 * ( tmp_127 + tmp_56 * ( tmp_61 + tmp_64 + tmp_69 ) ) +
+                  tmp_85 * ( tmp_127 + tmp_56 * ( tmp_74 + tmp_77 + tmp_82 ) ) +
+                  tmp_98 * ( tmp_127 + tmp_56 * ( tmp_87 + tmp_90 + tmp_95 ) );
 
    elMat( 0, 0 ) = a_0_0;
    elMat( 1, 0 ) = a_1_0;

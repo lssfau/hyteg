@@ -518,7 +518,51 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Dirichlet BCs not implemented for 3D." );
+      const int dim = 3;
+
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto polyDegree = polynomialDegree( cellId );
+         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
+         const auto dofMemory  = volumeDoFFunction()->dofMemory( cellId, level );
+         const auto memLayout  = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               ElementNeighborInfo neighborInfo( elementIdx, cellType, level, boundaryCondition_, cellId, storage_ );
+
+               for ( uint_t n = 0; n < 4; n++ )
+               {
+                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  {
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                     localMat.resize( Eigen::Index( numDofs ), 1 );
+                     localMat.setZero();
+                     form->integrateRHSDirichletBoundary( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *basis(),
+                                                          polyDegree,
+                                                          localMat );
+
+                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
+                     {
+                        dofMemory[volumedofspace::indexing::index(
+                            elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dofIdx, numDofs, level, memLayout )] +=
+                            ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {

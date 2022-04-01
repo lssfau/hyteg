@@ -154,7 +154,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    for ( uint_t n = 0; n < 3; n++ )
    {
-      if ( macroBoundary_[n] != NOT_AT_BOUNDARY )
+      if ( atMacroBoundary( n ) )
       {
          neighborBoundaryType_[n] = boundaryCondition.getBoundaryType(
              storage->getEdge( face->neighborEdges()[macroBoundary_[n]] )->getMeshBoundaryFlag() );
@@ -164,15 +164,25 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    // Looping over neighbor elements.
    for ( uint_t n = 0; n < 3; n++ )
    {
-      const auto vertexIndices =
-          facedof::macroface::getMicroVerticesFromMicroFace( neighborElementIndices_[n], neighborFaceElementTypes_[n] );
-
-      for ( uint_t i = 0; i < 3; i++ )
+      if ( !atMacroBoundary( n ) )
       {
-         const auto coord                        = vertexdof::macroface::coordinateFromIndex( level, *face, vertexIndices[i] );
-         neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
-         neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
-         neighborElementVertexCoords_[n][i]( 2 ) = 0;
+         // Certain properties are only meaningful if we are not at a macro-boundary.
+         // Neighbor in local macro.
+         const auto vertexIndices =
+             facedof::macroface::getMicroVerticesFromMicroFace( neighborElementIndices_[n], neighborFaceElementTypes_[n] );
+
+         for ( uint_t i = 0; i < 3; i++ )
+         {
+            const auto coord                        = vertexdof::macroface::coordinateFromIndex( level, *face, vertexIndices[i] );
+            neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
+            neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
+            neighborElementVertexCoords_[n][i]( 2 ) = 0;
+         }
+
+         const auto nOppCoord = vertexdof::macroface::coordinateFromIndex( level, *face, neighborOppositeVertexIndex_[n] );
+         neighborOppositeVertexCoords_[n]( 0 ) = nOppCoord[0];
+         neighborOppositeVertexCoords_[n]( 1 ) = nOppCoord[1];
+         neighborOppositeVertexCoords_[n]( 2 ) = 0;
       }
 
       for ( uint_t i = 0; i < 2; i++ )
@@ -188,21 +198,16 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       oppositeVertexCoords_[n]( 1 ) = oppCoord[1];
       oppositeVertexCoords_[n]( 2 ) = 0;
 
-      const auto nOppCoord = vertexdof::macroface::coordinateFromIndex( level, *face, neighborOppositeVertexIndex_[n] );
-      neighborOppositeVertexCoords_[n]( 0 ) = nOppCoord[0];
-      neighborOppositeVertexCoords_[n]( 1 ) = nOppCoord[1];
-      neighborOppositeVertexCoords_[n]( 2 ) = 0;
-
       // TODO: improve normal computation!
-      Point      outerPoint = ( 1 / 3. ) * ( neighborElementVertexCoords_[n][0] + neighborElementVertexCoords_[n][1] +
-                                        neighborElementVertexCoords_[n][2] );
-      const auto s          = ( outerPoint - interfaceVertexCoords_[n][0] )
+      Point      innerPoint = ( 1 / 3. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] );
+      const auto s          = ( innerPoint - interfaceVertexCoords_[n][0] )
                          .template dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) /
                      ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
                          .template dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
       const Point proj  = interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
-      outwardNormal_[n] = ( outerPoint - proj );
+      outwardNormal_[n] = ( innerPoint - proj );
       outwardNormal_[n].normalize();
+      outwardNormal_[n] = -outwardNormal_[n];
    }
 }
 
@@ -540,15 +545,23 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    // Looping over neighbor elements.
    for ( uint_t n = 0; n < 4; n++ )
    {
-      const auto vertexIndices =
-          celldof::macrocell::getMicroVerticesFromMicroCell( neighborElementIndices_[n], neighborCellElementTypes_[n] );
-
-      for ( uint_t i = 0; i < 4; i++ )
+      if ( !atMacroBoundary( n ) )
       {
-         const auto coord                        = vertexdof::macrocell::coordinateFromIndex( level, *cell, vertexIndices[i] );
-         neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
-         neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
-         neighborElementVertexCoords_[n][i]( 2 ) = coord[2];
+         const auto vertexIndices =
+             celldof::macrocell::getMicroVerticesFromMicroCell( neighborElementIndices_[n], neighborCellElementTypes_[n] );
+
+         for ( uint_t i = 0; i < 4; i++ )
+         {
+            const auto coord                        = vertexdof::macrocell::coordinateFromIndex( level, *cell, vertexIndices[i] );
+            neighborElementVertexCoords_[n][i]( 0 ) = coord[0];
+            neighborElementVertexCoords_[n][i]( 1 ) = coord[1];
+            neighborElementVertexCoords_[n][i]( 2 ) = coord[2];
+         }
+
+         const auto nOppCoord = vertexdof::macrocell::coordinateFromIndex( level, *cell, neighborOppositeVertexIndex_[n] );
+         neighborOppositeVertexCoords_[n]( 0 ) = nOppCoord[0];
+         neighborOppositeVertexCoords_[n]( 1 ) = nOppCoord[1];
+         neighborOppositeVertexCoords_[n]( 2 ) = nOppCoord[2];
       }
 
       for ( uint_t i = 0; i < 3; i++ )
@@ -564,18 +577,13 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       oppositeVertexCoords_[n]( 1 ) = oppCoord[1];
       oppositeVertexCoords_[n]( 2 ) = oppCoord[2];
 
-      const auto nOppCoord = vertexdof::macrocell::coordinateFromIndex( level, *cell, neighborOppositeVertexIndex_[n] );
-      neighborOppositeVertexCoords_[n]( 0 ) = nOppCoord[0];
-      neighborOppositeVertexCoords_[n]( 1 ) = nOppCoord[1];
-      neighborOppositeVertexCoords_[n]( 2 ) = nOppCoord[2];
-
       // TODO: improve normal computation!
-      Point outerPoint = ( 1 / 4. ) * ( neighborElementVertexCoords_[n][0] + neighborElementVertexCoords_[n][1] +
-                                        neighborElementVertexCoords_[n][2] + neighborElementVertexCoords_[n][3] );
+      Point innerPoint = ( 1 / 4. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] +
+                                        elementVertexCoords()[3] );
 
-      auto x = outerPoint( 0 );
-      auto y = outerPoint( 1 );
-      auto z = outerPoint( 2 );
+      auto x = innerPoint( 0 );
+      auto y = innerPoint( 1 );
+      auto z = innerPoint( 2 );
 
       auto normal = ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
                         .cross( interfaceVertexCoords_[n][2] - interfaceVertexCoords_[n][0] )
@@ -591,10 +599,11 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
       auto t = ( a * d - a * x + b * e - b * y + c * f - c * z ) / ( a * a + b * b + c * c );
 
-      auto proj = outerPoint + t * normal;
+      auto proj = innerPoint + t * normal;
 
-      outwardNormal_[n] = ( outerPoint - proj );
+      outwardNormal_[n] = ( innerPoint - proj );
       outwardNormal_[n].normalize();
+      outwardNormal_[n] = -outwardNormal_[n];
    }
 }
 
