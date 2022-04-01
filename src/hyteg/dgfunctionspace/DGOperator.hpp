@@ -163,6 +163,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
       // This more or less serves as a reference - for better performance the matrix-vector multiplication should be specialized.
 
       using indexing::Index;
+      using volumedofspace::indexing::ElementNeighborInfo;
 
       WALBERLA_CHECK( updateType == Replace );
 
@@ -255,17 +256,15 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                // TODO: blending
 
                // This object does the heavy lifting of computing all required coordinates and normals.
-               volumedofspace::indexing::ElementNeighborInfo neighborInfo;
+               ElementNeighborInfo neighborInfo;
 
                if ( dim == 2 )
                {
-                  neighborInfo = volumedofspace::indexing::ElementNeighborInfo(
-                      elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage_ );
+                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage_ );
                }
                else
                {
-                  neighborInfo = volumedofspace::indexing::ElementNeighborInfo(
-                      elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage_ );
+                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage_ );
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
@@ -338,7 +337,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                      // Domain boundary //
                      /////////////////////
 
-                     if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                     if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                      {
                         ////////////////////////
                         // Dirichlet boundary //
@@ -380,11 +379,11 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                    localMat );
                         }
                      }
-                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
+                     else if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
                      {
                         WALBERLA_ABORT( "Neumann boundary handling not implemented." );
                      }
-                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
+                     else if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
                      {
                         WALBERLA_ABORT( "Free-slip boundary handling not implemented." );
                      }
@@ -439,7 +438,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         // b) coupling to neighboring element //
                         ////////////////////////////////////////
 
-                        if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
+                        if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
                         {
                            ////////////////////////////////////////////////
                            // i) micro-interface on macro-macro-boundary //
@@ -474,27 +473,33 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                            {
-                              // This access might seem a little unintuitive, but it does another bit of lifting.
-                              // The ghost-layer data can be accessed with this indexing function by "extending" the macro-volume
-                              // structure. One of the indices may now be -1 for example.
                               if ( dim == 2 )
                               {
                                  nSrcDoFArrIndices[srcDofIdx] =
-                                     volumedofspace::indexing::indexGhostLayer( n,
-                                                                                neighborInfo.neighborElementIndices( n ).x(),
-                                                                                neighborInfo.neighborElementIndices( n ).y(),
-                                                                                facedof::FaceType::BLUE,
-                                                                                srcDofIdx,
-                                                                                numSrcDofs,
-                                                                                level,
-                                                                                srcMemLayout );
+                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                          elementIdx.x(),
+                                                                                          elementIdx.y(),
+                                                                                          faceType,
+                                                                                          srcDofIdx,
+                                                                                          numSrcDofs,
+                                                                                          level,
+                                                                                          srcMemLayout );
                               }
                               else
                               {
-                                 // TODO
+                                 nSrcDoFArrIndices[srcDofIdx] =
+                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                          elementIdx.x(),
+                                                                                          elementIdx.y(),
+                                                                                          elementIdx.z(),
+                                                                                          cellType,
+                                                                                          srcDofIdx,
+                                                                                          numSrcDofs,
+                                                                                          level,
+                                                                                          srcMemLayout );
                               }
 
-                              nSrcDofs( srcDofIdx ) = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                              nSrcDofs( srcDofIdx ) = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
                            }
 
                            if ( mat == nullptr )
@@ -532,7 +537,9 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                                     level,
                                                                                                     dstMemLayout )];
                                     }
-                                    const auto globalColIdx = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                                    const auto globalColIdx =
+                                        glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
+
                                     mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
                                  }
                               }

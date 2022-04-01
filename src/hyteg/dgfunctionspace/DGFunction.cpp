@@ -514,6 +514,7 @@ template < typename ValueType >
 void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::shared_ptr< DGForm >& form, uint_t level )
 {
    using indexing::Index;
+   using volumedofspace::indexing::ElementNeighborInfo;
 
    if ( storage_->hasGlobalCells() )
    {
@@ -537,12 +538,11 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          {
             for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-               volumedofspace::indexing::ElementNeighborInfo neighborInfo(
-                   elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
+               ElementNeighborInfo neighborInfo( elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
 
                for ( uint_t n = 0; n < 3; n++ )
                {
-                  if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                   {
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
                      localMat.resize( Eigen::Index( numDofs ), 1 );

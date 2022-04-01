@@ -21,6 +21,7 @@
 
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
+#include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -249,7 +250,172 @@ void VolumeDoFPackInfo< ValueType >::unpackCellFromCell( Cell*                  
 template < typename ValueType >
 void VolumeDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const
 {
-   // WALBERLA_LOG_WARNING_ON_ROOT( "Macro-cell to macro-cell communication not implemented!" );
+   this->storage_->getTimingTree()->start( "DG - Cell to Cell" );
+
+   WALBERLA_CHECK_GREATER(
+       numScalarsPerPrimitive_.count( sender->getID() ), 0, "Don't know how many scalars there are to send per volume." );
+
+   // Which local faces do we iterate on?
+
+   uint_t senderLocalFaceID   = std::numeric_limits< uint_t >::max();
+   uint_t receiverLocalFaceID = std::numeric_limits< uint_t >::max();
+
+   for ( const auto& [faceID, npid] : sender->getIndirectNeighborCellIDsOverFaces() )
+   {
+      if ( receiver->getID() == npid )
+      {
+         senderLocalFaceID = faceID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( senderLocalFaceID, 3, "Couldn't find receiver cell in neighborhood." );
+
+   for ( const auto& [faceID, npid] : receiver->getIndirectNeighborCellIDsOverFaces() )
+   {
+      if ( sender->getID() == npid )
+      {
+         receiverLocalFaceID = faceID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( receiverLocalFaceID, 3, "Couldn't find sender cell in neighborhood." );
+
+   // We iterate in standard direction on the sender side.
+   // This means iteration from the smallest to second-smallest index in the inner loop, to the largest in the outer loop.
+
+   // On the receiver side we need to find the corresponding local vertex IDs.
+   // The iteration is performed with the cell boundary iterator. On the receiver side, we need to write to the ghost-layer,
+   // which we can achieve via extended access by setting one of the logical cell indices to -1.
+   // That index depends on the local face ID on the receiver side.
+
+   auto senderLocalVertexIDsSet = hyteg::indexing::cellLocalFaceIDsToSpanningVertexIDs.at( senderLocalFaceID );
+
+   std::vector< uint_t >      senderLocalVertexIDs;
+   std::vector< PrimitiveID > vertexPIDs;
+   for ( auto slvid : senderLocalVertexIDsSet )
+   {
+      senderLocalVertexIDs.push_back( slvid );
+      vertexPIDs.push_back( sender->neighborVertices().at( slvid ) );
+   }
+
+   // Sorting the receiver local vertex IDs correctly by matching the vertex primitive IDs.
+   std::vector< uint_t > receiverLocalVertexIDs;
+   for ( auto vpid : vertexPIDs )
+   {
+      receiverLocalVertexIDs.push_back( receiver->getLocalVertexID( vpid ) );
+   }
+
+   // We need one iterator for each cell type at the boundary.
+   // This first one always iterates of the WHITE_UP type, the second cell type depends on the local macro-face ID.
+   auto cellIteratorSenderCellType0 = hyteg::indexing::CellBoundaryIterator(
+       levelinfo::num_microedges_per_edge( level_ ), senderLocalVertexIDs[0], senderLocalVertexIDs[1], senderLocalVertexIDs[2] );
+   auto cellIteratorSenderCellType1 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ) - 1,
+                                                                             senderLocalVertexIDs[0],
+                                                                             senderLocalVertexIDs[1],
+                                                                             senderLocalVertexIDs[2] );
+
+   auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
+                                                                               receiverLocalVertexIDs[0],
+                                                                               receiverLocalVertexIDs[1],
+                                                                               receiverLocalVertexIDs[2] );
+   auto cellIteratorReceiverCellType1 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ) - 1,
+                                                                               receiverLocalVertexIDs[0],
+                                                                               receiverLocalVertexIDs[1],
+                                                                               receiverLocalVertexIDs[2] );
+
+   // What remains is to find out the cell type for the second iterator.
+   celldof::CellType otherCellType = celldof::CellType::WHITE_DOWN; // makes it crash by default, WHITE_DOWN is never at boundary
+   switch ( senderLocalFaceID )
+   {
+   case 0:
+      otherCellType = celldof::CellType::BLUE_UP;
+      break;
+   case 1:
+      otherCellType = celldof::CellType::GREEN_UP;
+      break;
+   case 2:
+      otherCellType = celldof::CellType::BLUE_DOWN;
+      break;
+   case 3:
+      otherCellType = celldof::CellType::GREEN_DOWN;
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid local face ID." );
+   }
+
+   const ValueType* cellData = sender->getData( cellInnerDataID_ )->getPointer( level_ );
+   ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
+
+   const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
+
+   // Iterating over WHITE_UP cells ...
+   while ( cellIteratorSenderCellType0 != cellIteratorSenderCellType0.end() )
+   {
+      for ( uint_t dof = 0; dof < ndofs; dof++ )
+      {
+         const auto senderIdx = volumedofspace::indexing::index( cellIteratorSenderCellType0->x(),
+                                                                 cellIteratorSenderCellType0->y(),
+                                                                 cellIteratorSenderCellType0->z(),
+                                                                 celldof::CellType::WHITE_UP,
+                                                                 dof,
+                                                                 ndofs,
+                                                                 level_,
+                                                                 memoryLayout_ );
+         const auto senderVal = cellData[senderIdx];
+
+         const auto receiverIdx = indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
+                                                                       cellIteratorReceiverCellType0->x(),
+                                                                       cellIteratorReceiverCellType0->y(),
+                                                                       cellIteratorReceiverCellType0->z(),
+                                                                       celldof::CellType::WHITE_UP,
+                                                                       dof,
+                                                                       ndofs,
+                                                                       level_,
+                                                                       memoryLayout_ );
+
+         glData[receiverIdx] = senderVal;
+      }
+      cellIteratorSenderCellType0++;
+      cellIteratorReceiverCellType0++;
+   }
+
+   // ... and the other type.
+   while ( cellIteratorSenderCellType1 != cellIteratorSenderCellType1.end() )
+   {
+      for ( uint_t dof = 0; dof < ndofs; dof++ )
+      {
+         const auto senderIdx = volumedofspace::indexing::index( cellIteratorSenderCellType1->x(),
+                                                                 cellIteratorSenderCellType1->y(),
+                                                                 cellIteratorSenderCellType1->z(),
+                                                                 otherCellType,
+                                                                 dof,
+                                                                 ndofs,
+                                                                 level_,
+                                                                 memoryLayout_ );
+         const auto senderVal = cellData[senderIdx];
+
+         // Cheat!!!
+         // The cell type is in general not identical on the receiver side! But we don't care as the ghost-layer indexing
+         // either accepts WHITE_UP for the first type of cells, or any other cell type for the second type of cells.
+         const auto receiverIdx = indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
+                                                                       cellIteratorReceiverCellType1->x(),
+                                                                       cellIteratorReceiverCellType1->y(),
+                                                                       cellIteratorReceiverCellType1->z(),
+                                                                       otherCellType,
+                                                                       dof,
+                                                                       ndofs,
+                                                                       level_,
+                                                                       memoryLayout_ );
+
+         glData[receiverIdx] = senderVal;
+      }
+      cellIteratorSenderCellType1++;
+      cellIteratorReceiverCellType1++;
+   }
+
+   this->storage_->getTimingTree()->stop( "DG - Cell to Cell" );
 }
 ///@}
 

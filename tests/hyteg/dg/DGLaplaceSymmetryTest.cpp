@@ -43,9 +43,9 @@ static void test( const std::string& meshFile, const uint_t& level )
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >();
+   auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
    auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, dgBasis, 1 );
@@ -72,11 +72,13 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      // hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
-      // hyteg::test( "../../data/meshes/bfs_126el.msh", level );
+      hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
+      hyteg::test( "../../data/meshes/bfs_126el.msh", level );
 
       hyteg::test( "../../data/meshes/3D/tet_1el.msh", level );
-      // hyteg::test( "../../data/meshes/3D/cube_24el.msh", level );
+      hyteg::test( "../../data/meshes/3D/pyramid_2el.msh", level );
+      hyteg::test( "../../data/meshes/3D/pyramid_4el.msh", level );
+      hyteg::test( "../../data/meshes/3D/cube_24el.msh", level );
    }
 
    return 0;

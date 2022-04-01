@@ -131,8 +131,8 @@ inline constexpr uint_t index( idx_t                 x,
 
 /// \brief Returns the array-index of the specified 2D volume DoF on a ghost-layer.
 ///
-/// This function is used to give direct access to the ghost-layers via ghost-layer loca indexing.
-///´
+/// This function is used to give direct access to the ghost-layers via ghost-layer local indexing.
+///
 /// \param x           logical x-coordinate of the micro-volume
 /// \param dof         DoF ID (there may be more than one DoF per volume)
 /// \param ndofs       number of DoFs per micro-volume on the respective neighbor primitive
@@ -156,69 +156,176 @@ inline uint_t indexGhostLayerDirectly( idx_t x, uint_t dof, uint_t ndofs, uint_t
       return idx;
    }
 }
-
-/// \brief Returns the array-index of the specified 2D volume DoF on a ghost-layer via extended indices.
+/// \brief Returns the array-index of the specified 3D volume DoF on a ghost-layer.
 ///
-/// To seamlessly access neighboring volumes that are located on ghost-layers indexing functions are supplied that accept negative
-/// logical indices and element types. The functions only require information about which macro-interface is considered.
+/// This function is used to give direct access to the ghost-layers via ghost-layer local indexing.
 ///
-/// For example, when iterating over a 2D macro-face at the boundary macro-edge with local ID 1, accessing the left neighbor
-/// of a micro-volume, the index can be calculated as follows:
+/// Notes on cell-types: the cell type cannot be white-down, since those elements do not share a facet with the macro-cell
+/// boundary. All types that are blue-* or green-* yield the same array indices.
 ///
-/// \code{.cpp}
-///   int microFaceX, microFaceY;
-///   // fill ...
-///   FaceType faceType         = FaceType::GRAY;
-///   FaceType neighborFaceType = FaceType::BLUE; // always the same in 2D
-///   uint_t localEdgeID        = 1;
-///
-///   uint_t arrIdxBottomNeighbor = indexGhostLayer( localEdgeID, microFaceX - 1, microFaceY, neighborFaceType, dof, nDofsNeighbor, level, memLayout );
-/// \endcode
-///
-/// \param localEdgeID local ID of the neighboring macro-edge
 /// \param x           logical x-coordinate of the micro-volume
 /// \param y           logical y-coordinate of the micro-volume
-/// \param faceType    type of the volume from a local perspective (as if the macro-primitive was larger)
+/// \param cellType    local cell type of the micro-volume
 /// \param dof         DoF ID (there may be more than one DoF per volume)
 /// \param ndofs       number of DoFs per micro-volume on the respective neighbor primitive
 /// \param level       refinement level
 /// \param memLayout   specifies the memory layout for which the array index is computed
 ///
 /// \return array index
-inline uint_t indexGhostLayer( uint_t                localEdgeID,
-                               idx_t                 x,
-                               idx_t                 y,
-                               facedof::FaceType     faceType,
-                               uint_t                dof,
-                               uint_t                ndofs,
-                               uint_t                level,
-                               VolumeDoFMemoryLayout memLayout )
+inline uint_t indexGhostLayerDirectly( idx_t                 x,
+                                       idx_t                 y,
+                                       celldof::CellType     cellType,
+                                       uint_t                dof,
+                                       uint_t                ndofs,
+                                       uint_t                level,
+                                       VolumeDoFMemoryLayout memLayout )
 {
-   WALBERLA_ASSERT_EQUAL(
-       faceType, facedof::FaceType::BLUE, "All boundary edges are of face type BLUE (from a macro-local perspective)." );
+   WALBERLA_ASSERT_NOT_IDENTICAL( cellType, celldof::CellType::WHITE_DOWN, "Invalid cell type." );
 
-   const auto numMicroVolumes = levelinfo::num_microedges_per_edge( level );
-   uint_t     microVolume     = std::numeric_limits< uint_t >::max();
+   const auto numMicroVolumes = levelinfo::num_microfaces_per_face( level );
+
+   uint_t microVolume;
+
+   if ( cellType == celldof::CellType::WHITE_UP )
+   {
+      microVolume = facedof::macroface::index( level, x, y, facedof::FaceType::GRAY );
+   }
+   else
+   {
+      microVolume = facedof::macroface::index( level, x, y, facedof::FaceType::BLUE );
+   }
+
+   if ( memLayout == VolumeDoFMemoryLayout::SoA )
+   {
+      const auto idx = numMicroVolumes * dof + microVolume;
+      return idx;
+   }
+   else
+   {
+      const auto idx = microVolume * ndofs + dof;
+      return idx;
+   }
+}
+
+/// \brief Given a logical micro-volume index of a micro-volume that has contact to the macro-volume boundary, this function
+///        returns the corresponding neighboring micro-cell index in the ghost-layer data structure.
+///
+/// This function exploits that there is only exactly one neighboring micro-volume per ghost-layer and micro-volume.
+///
+/// \param localEdgeID   the local macro-interface ID of the corresponding boundary
+/// \param xInner        logical x index of the (inner) micro-element whose neighbor we want to access
+/// \param yInner        logical y index of the (inner) micro-element whose neighbor we want to access
+/// \param faceTypeInner element type of the (inner) micro-element whose neighbor we want to access
+/// \param dof           dof index
+/// \param ndofs         number of dofs in the ghost layer
+/// \param level         refinement level
+/// \param memLayout     memory layout
+/// \return array index for access in the ghost-layer
+inline uint_t indexNeighborInGhostLayer( uint_t                localEdgeID,
+                                         idx_t                 xInner,
+                                         idx_t                 yInner,
+                                         facedof::FaceType     faceTypeInner,
+                                         uint_t                dof,
+                                         uint_t                ndofs,
+                                         uint_t                level,
+                                         VolumeDoFMemoryLayout memLayout )
+{
+   WALBERLA_ASSERT_EQUAL( faceTypeInner, facedof::FaceType::GRAY, "All volumes at the boundary are of face type GRAY." );
+   WALBERLA_UNUSED( faceTypeInner );
 
    switch ( localEdgeID )
    {
    case 0:
       // bottom edge
-      WALBERLA_ASSERT_EQUAL( y, -1, "Iterating over bottom edge, y must be -1." );
-      WALBERLA_UNUSED( y );
-      return indexGhostLayerDirectly( x, dof, ndofs, level, memLayout );
+      WALBERLA_ASSERT_EQUAL( yInner, 0, "Iterating over bottom edge, yInner must be 0." );
+      WALBERLA_UNUSED( yInner );
+      return indexGhostLayerDirectly( xInner, dof, ndofs, level, memLayout );
    case 1:
       // left edge
-      WALBERLA_ASSERT_EQUAL( x, -1, "Iterating over left edge, x must be -1." );
-      WALBERLA_UNUSED( x );
-      return indexGhostLayerDirectly( y, dof, ndofs, level, memLayout );
+      WALBERLA_ASSERT_EQUAL( xInner, 0, "Iterating over left edge, xInner must be 0." );
+      WALBERLA_UNUSED( xInner );
+      return indexGhostLayerDirectly( yInner, dof, ndofs, level, memLayout );
    case 2:
       // diagonal edge
-      WALBERLA_ASSERT_EQUAL(
-          x + y, numMicroVolumes - 1, "Iterating over diagonal edge, x+y must be " << numMicroVolumes - 1 << "." );
-      return indexGhostLayerDirectly( y, dof, ndofs, level, memLayout );
+      WALBERLA_ASSERT_EQUAL( xInner + yInner,
+                             levelinfo::num_microedges_per_edge( level ) - 1,
+                             "Iterating over diagonal edge, xInner + yInner must be "
+                                 << levelinfo::num_microedges_per_edge( level ) - 1 << "." );
+      return indexGhostLayerDirectly( yInner, dof, ndofs, level, memLayout );
    default:
       WALBERLA_ABORT( "Invalid local macro-edge ID: " << localEdgeID );
+   }
+}
+
+/// \brief Given a logical micro-volume index of a micro-volume that has contact to the macro-volume boundary, this function
+///        returns the corresponding neighboring micro-cell index in the ghost-layer data structure.
+///
+/// This function exploits that there is only exactly one neighboring micro-volume per ghost-layer and micro-volume.
+///
+/// \param localEdgeID   the local macro-interface ID of the corresponding boundary
+/// \param xInner        logical x index of the (inner) micro-element whose neighbor we want to access
+/// \param yInner        logical y index of the (inner) micro-element whose neighbor we want to access
+/// \param zInner        logical z index of the (inner) micro-element whose neighbor we want to access
+/// \param faceTypeInner element type of the (inner) micro-element whose neighbor we want to access
+/// \param dof           dof index
+/// \param ndofs         number of dofs in the ghost layer
+/// \param level         refinement level
+/// \param memLayout     memory layout
+/// \return array index for access in the ghost-layer
+inline uint_t indexNeighborInGhostLayer( uint_t                localFaceID,
+                                         idx_t                 xInner,
+                                         idx_t                 yInner,
+                                         idx_t                 zInner,
+                                         celldof::CellType     cellTypeInner,
+                                         uint_t                dof,
+                                         uint_t                ndofs,
+                                         uint_t                level,
+                                         VolumeDoFMemoryLayout memLayout )
+{
+   WALBERLA_ASSERT_UNEQUAL( cellTypeInner, celldof::CellType::WHITE_DOWN, "Cell type WHITE_DOWN has not boundary contact." );
+
+   switch ( localFaceID )
+   {
+   case 0:
+      // bottom face
+      WALBERLA_ASSERT_EQUAL( zInner, 0, "Iterating over bottom face, zInner must be 0." );
+      WALBERLA_UNUSED( zInner );
+      return indexGhostLayerDirectly( xInner, yInner, cellTypeInner, dof, ndofs, level, memLayout );
+   case 1:
+      // front face
+      WALBERLA_ASSERT_EQUAL( yInner, 0, "Iterating over front face, yInner must be 0." );
+      WALBERLA_UNUSED( yInner );
+      return indexGhostLayerDirectly( xInner, zInner, cellTypeInner, dof, ndofs, level, memLayout );
+   case 2:
+      // left face
+      WALBERLA_ASSERT_EQUAL( xInner, 0, "Iterating over left face, xInner must be 0." );
+      WALBERLA_UNUSED( xInner );
+      return indexGhostLayerDirectly( yInner, zInner, cellTypeInner, dof, ndofs, level, memLayout );
+   case 3:
+      // back face
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( cellTypeInner == celldof::CellType::WHITE_UP )
+         {
+            WALBERLA_ASSERT_EQUAL( xInner + yInner + zInner,
+                                   levelinfo::num_microedges_per_edge( level ) - 1,
+                                   "Iterating over back face, cell type "
+                                       << celldof::CellTypeToStr.at( cellTypeInner ) << ", sum of all index coordinates must be "
+                                       << levelinfo::num_microedges_per_edge( level ) - 1 << "." );
+         }
+         else
+         {
+            WALBERLA_ASSERT_EQUAL( xInner + yInner + zInner,
+                                   levelinfo::num_microedges_per_edge( level ) - 2,
+                                   "Iterating over back face, cell type "
+                                       << celldof::CellTypeToStr.at( cellTypeInner ) << ", sum of all index coordinates must be "
+                                       << levelinfo::num_microedges_per_edge( level ) - 1 << "." );
+         }
+      }
+      WALBERLA_UNUSED( xInner );
+      return indexGhostLayerDirectly( yInner, zInner, cellTypeInner, dof, ndofs, level, memLayout );
+   default:
+      WALBERLA_ABORT( "Invalid local macro-face ID: " << localFaceID );
    }
 }
 
@@ -280,7 +387,8 @@ class ElementNeighborInfo
 
    CellType neighborCellType( uint_t neighbor ) const { return neighborCellElementTypes_[neighbor]; }
 
-   bool onMacroBoundary( uint_t neighbor ) const { return onMacroBoundary_[neighbor]; }
+   bool   atMacroBoundary( uint_t neighbor ) const { return macroBoundary_[neighbor] != NOT_AT_BOUNDARY; }
+   uint_t macroBoundaryID( uint_t neighbor ) const { return macroBoundary_[neighbor]; }
 
    DoFType neighborBoundaryType( uint_t neighbor ) const { return neighborBoundaryType_[neighbor]; }
 
@@ -344,8 +452,10 @@ class ElementNeighborInfo
    /// Coordinates of the neighboring element's vertex that is not on the interface.
    std::vector< Point > neighborOppositeVertexCoords_;
 
-   /// Stores for each element interface if it is on a macro-element boundary.
-   std::vector< bool > onMacroBoundary_;
+   const static uint_t NOT_AT_BOUNDARY;
+   /// Stores for each micro-element interface which macro-local boundary it touches.
+   /// If it is not located at a boundary, the value is set to NOT_AT_BOUNDARY.
+   std::vector< uint_t > macroBoundary_;
 
    /// Stores the DoFType (think boundary condition) for each element interface.
    std::vector< DoFType > neighborBoundaryType_;

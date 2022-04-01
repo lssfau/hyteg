@@ -24,6 +24,8 @@ namespace hyteg {
 namespace volumedofspace {
 namespace indexing {
 
+const uint_t ElementNeighborInfo::NOT_AT_BOUNDARY = std::numeric_limits< uint_t >::max();
+
 ElementNeighborInfo::ElementNeighborInfo( Index                                      elementIdx,
                                           FaceType                                   faceType,
                                           uint_t                                     level,
@@ -68,7 +70,9 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    neighborOppositeVertexIndex_.resize( 3 );
    neighborOppositeVertexCoords_.resize( 3 );
 
-   onMacroBoundary_.resize( 3 );
+   macroBoundary_.resize( 3 );
+   std::fill( macroBoundary_.begin(), macroBoundary_.end(), NOT_AT_BOUNDARY );
+
    neighborBoundaryType_.resize( 3 );
 
    outwardNormal_.resize( 3 );
@@ -96,18 +100,30 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       interfaceVertexIndices_[0][1]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
       oppositeVertexIndex_[0]         = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
       neighborOppositeVertexIndex_[0] = Index( elementIdx.x() + 1, elementIdx.y() - 1, 0 );
+      if ( elementIdx.y() == 0 )
+      {
+         macroBoundary_[0] = 0;
+      }
 
       // left neighbor
       interfaceVertexIndices_[1][0]   = Index( elementIdx.x(), elementIdx.y(), 0 );
       interfaceVertexIndices_[1][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
       oppositeVertexIndex_[1]         = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
       neighborOppositeVertexIndex_[1] = Index( elementIdx.x() - 1, elementIdx.y() + 1, 0 );
+      if ( elementIdx.x() == 0 )
+      {
+         macroBoundary_[1] = 1;
+      }
 
       // diagonal neighbor
       interfaceVertexIndices_[2][0]   = Index( elementIdx.x() + 1, elementIdx.y(), 0 );
       interfaceVertexIndices_[2][1]   = Index( elementIdx.x(), elementIdx.y() + 1, 0 );
       oppositeVertexIndex_[2]         = Index( elementIdx.x(), elementIdx.y(), 0 );
       neighborOppositeVertexIndex_[2] = Index( elementIdx.x() + 1, elementIdx.y() + 1, 0 );
+      if ( elementIdx.x() + elementIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) ) - 1 )
+      {
+         macroBoundary_[2] = 2;
+      }
    }
    else
    {
@@ -136,15 +152,13 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       neighborOppositeVertexIndex_[2] = Index( elementIdx.x(), elementIdx.y(), 0 );
    }
 
-   onMacroBoundary_[0] = faceType == facedof::FaceType::GRAY && elementIdx.y() == 0;
-   onMacroBoundary_[1] = faceType == facedof::FaceType::GRAY && elementIdx.x() == 0;
-   onMacroBoundary_[2] = faceType == facedof::FaceType::GRAY &&
-                         elementIdx.x() + elementIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) - 1 );
-
    for ( uint_t n = 0; n < 3; n++ )
    {
-      neighborBoundaryType_[n] =
-          boundaryCondition.getBoundaryType( storage->getEdge( face->neighborEdges()[n] )->getMeshBoundaryFlag() );
+      if ( macroBoundary_[n] != NOT_AT_BOUNDARY )
+      {
+         neighborBoundaryType_[n] = boundaryCondition.getBoundaryType(
+             storage->getEdge( face->neighborEdges()[macroBoundary_[n]] )->getMeshBoundaryFlag() );
+      }
    }
 
    // Looping over neighbor elements.
@@ -236,8 +250,11 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    neighborOppositeVertexIndex_.resize( 4 );
    neighborOppositeVertexCoords_.resize( 4 );
 
-   onMacroBoundary_.resize( 4 );
+   macroBoundary_.resize( 4 );
+   std::fill( macroBoundary_.begin(), macroBoundary_.end(), NOT_AT_BOUNDARY );
+
    neighborBoundaryType_.resize( 4 );
+   std::fill( neighborBoundaryType_.begin(), neighborBoundaryType_.end(), Inner );
 
    outwardNormal_.resize( 4 );
 
@@ -461,9 +478,12 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       neighborOppositeVertexIndex_[3] = Index( elementIdx.x() + ( 1 ), elementIdx.y() + ( 1 ), elementIdx.z() + ( 1 ) );
    }
 
+   // Checking which macro-boundary interfaces the micro-element touches.
    for ( uint_t n = 0; n < 4; n++ )
    {
       auto interface = interfaceVertexIndices_[n];
+
+      // These vertex indices better be contained in the macro-volume ...
       WALBERLA_ASSERT_GREATER_EQUAL( interface[0][0], 0 );
       WALBERLA_ASSERT_GREATER_EQUAL( interface[0][1], 0 );
       WALBERLA_ASSERT_GREATER_EQUAL( interface[0][2], 0 );
@@ -473,20 +493,48 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       WALBERLA_ASSERT_GREATER_EQUAL( interface[2][0], 0 );
       WALBERLA_ASSERT_GREATER_EQUAL( interface[2][1], 0 );
       WALBERLA_ASSERT_GREATER_EQUAL( interface[2][2], 0 );
-      bool onFace0 = interface[0][2] + interface[1][2] + interface[2][2] == 0;
-      bool onFace1 = interface[0][1] + interface[1][1] + interface[2][1] == 0;
-      bool onFace2 = interface[0][0] + interface[1][0] + interface[2][0] == 0;
-      bool onFace3 =
+
+      std::vector< bool > onFace( 4 );
+
+      onFace[0] = interface[0][2] + interface[1][2] + interface[2][2] == 0;
+      onFace[1] = interface[0][1] + interface[1][1] + interface[2][1] == 0;
+      onFace[2] = interface[0][0] + interface[1][0] + interface[2][0] == 0;
+      onFace[3] =
           ( interface[0][0] + interface[0][1] + interface[0][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 &&
             interface[1][0] + interface[1][1] + interface[1][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 &&
             interface[2][0] + interface[2][1] + interface[2][2] == idx_t( levelinfo::num_microvertices_per_edge( level ) ) - 1 );
-      onMacroBoundary_[n] = onFace0 || onFace1 || onFace2 || onFace3;
+
+      WALBERLA_ASSERT_LESS_EQUAL( (int) onFace[0] + (int) onFace[1] + (int) onFace[2] + (int) onFace[3],
+                                  1,
+                                  "Each micro-interface should only be located at a single (or no) macro-boundary." );
+
+      uint_t mBound = NOT_AT_BOUNDARY;
+      for ( uint_t i = 0; i < 4; i++ )
+      {
+         if ( onFace[i] )
+         {
+            mBound = i;
+            break;
+         }
+      }
+
+      // Most cell types can only be inner or at a certain boundary.
+      WALBERLA_ASSERT( !( cellType == celldof::CellType::WHITE_DOWN && mBound != NOT_AT_BOUNDARY ) );
+      WALBERLA_ASSERT( !( cellType == celldof::CellType::BLUE_UP && !( mBound == NOT_AT_BOUNDARY || mBound == 0 ) ) );
+      WALBERLA_ASSERT( !( cellType == celldof::CellType::GREEN_UP && !( mBound == NOT_AT_BOUNDARY || mBound == 1 ) ) );
+      WALBERLA_ASSERT( !( cellType == celldof::CellType::BLUE_DOWN && !( mBound == NOT_AT_BOUNDARY || mBound == 2 ) ) );
+      WALBERLA_ASSERT( !( cellType == celldof::CellType::GREEN_DOWN && !( mBound == NOT_AT_BOUNDARY || mBound == 3 ) ) );
+
+      macroBoundary_[n] = mBound;
    }
 
    for ( uint_t n = 0; n < 4; n++ )
    {
-      neighborBoundaryType_[n] =
-          boundaryCondition.getBoundaryType( storage->getFace( cell->neighborFaces()[n] )->getMeshBoundaryFlag() );
+      if ( atMacroBoundary( n ) )
+      {
+         neighborBoundaryType_[n] = boundaryCondition.getBoundaryType(
+             storage->getFace( cell->neighborFaces()[macroBoundary_[n]] )->getMeshBoundaryFlag() );
+      }
    }
 
    // Looping over neighbor elements.
@@ -547,10 +595,6 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
       outwardNormal_[n] = ( outerPoint - proj );
       outwardNormal_[n].normalize();
-
-      //      WALBERLA_LOG_INFO_ON_ROOT( "eltype: " << celldof::CellTypeToStr.at( cellType )
-      //                                            << ", neighbor: " << celldof::CellTypeToStr.at( neighborCellType( n ) )
-      //                                            << ", normal: " << outwardNormal_[n] );
    }
 }
 
@@ -569,9 +613,125 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
    // The idea is to perform a "trafo" of the index space to obtain the local logical micro-element
    // index in the neighboring macro-volume.
 
+   WALBERLA_CHECK( atMacroBoundary( neighbor ), "Element is not located at boundary." );
+
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented." );
+      neighborElementVertexCoords.clear();
+      neighborElementVertexCoords.resize( 4 );
+
+      WALBERLA_ASSERT( storage_->cellExistsLocally( volumeID_ ) );
+      const auto cell = storage_->getCell( volumeID_ );
+
+      WALBERLA_ASSERT_GREATER( cell->getIndirectNeighborCellIDsOverFaces().count( macroBoundaryID( neighbor ) ),
+                               0,
+                               "Neighbor cell should exist but doesn't ..." );
+      const auto neighborCell =
+          storage_->getCell( cell->getIndirectNeighborCellIDsOverFaces().at( macroBoundaryID( neighbor ) ) );
+
+      // PID of the opposite macro-vertex.
+      const auto oppositeMacroVertexID = neighborCell->getOppositeVertexID( cell->neighborFaces()[macroBoundaryID( neighbor )] );
+
+      Index                   pseudoLocalIndex;
+      std::array< uint_t, 4 > srcBasis;
+
+      switch ( macroBoundaryID( neighbor ) )
+      {
+      case 0:
+         pseudoLocalIndex = Index( elementIdx_.x(), elementIdx_.y(), 0 );
+         srcBasis[0]      = neighborCell->getLocalVertexID( cell->neighborVertices()[0] );
+         srcBasis[1]      = neighborCell->getLocalVertexID( cell->neighborVertices()[1] );
+         srcBasis[2]      = neighborCell->getLocalVertexID( cell->neighborVertices()[2] );
+         srcBasis[3]      = neighborCell->getLocalVertexID( oppositeMacroVertexID );
+         break;
+      case 1:
+         pseudoLocalIndex = Index( elementIdx_.x(), elementIdx_.z(), 0 );
+         srcBasis[0]      = neighborCell->getLocalVertexID( cell->neighborVertices()[0] );
+         srcBasis[1]      = neighborCell->getLocalVertexID( cell->neighborVertices()[1] );
+         srcBasis[2]      = neighborCell->getLocalVertexID( cell->neighborVertices()[3] );
+         srcBasis[3]      = neighborCell->getLocalVertexID( oppositeMacroVertexID );
+         break;
+      case 2:
+         pseudoLocalIndex = Index( elementIdx_.y(), elementIdx_.z(), 0 );
+         srcBasis[0]      = neighborCell->getLocalVertexID( cell->neighborVertices()[0] );
+         srcBasis[1]      = neighborCell->getLocalVertexID( cell->neighborVertices()[2] );
+         srcBasis[2]      = neighborCell->getLocalVertexID( cell->neighborVertices()[3] );
+         srcBasis[3]      = neighborCell->getLocalVertexID( oppositeMacroVertexID );
+         break;
+      case 3:
+         pseudoLocalIndex = Index( elementIdx_.y(), elementIdx_.z(), 0 );
+         srcBasis[0]      = neighborCell->getLocalVertexID( cell->neighborVertices()[1] );
+         srcBasis[1]      = neighborCell->getLocalVertexID( cell->neighborVertices()[2] );
+         srcBasis[2]      = neighborCell->getLocalVertexID( cell->neighborVertices()[3] );
+         srcBasis[3]      = neighborCell->getLocalVertexID( oppositeMacroVertexID );
+         break;
+      default:
+         WALBERLA_ABORT( "Invalid neighbor ID." );
+      }
+
+      auto cellWidth = levelinfo::num_microedges_per_edge( level_ );
+      if ( cellType_ != celldof::CellType::WHITE_UP )
+      {
+         cellWidth -= 1;
+      }
+      const auto elementIdxNeighborMicro =
+          hyteg::indexing::basisConversion( pseudoLocalIndex, srcBasis, { 0, 1, 2, 3 }, cellWidth );
+
+      // We need to find out the neighboring micro-cell type local to the neighboring macro-cell.
+      auto nCellTypeLocalToNeighbor = celldof::CellType::WHITE_UP;
+      // It's WHITE_UP if the local micro-cell is WHITE_UP.
+      WALBERLA_ASSERT_UNEQUAL( cellType_, celldof::CellType::WHITE_DOWN, "Invalid cell type." );
+      // For the remaining four types it remains to find out the local macro-face ID of the interface from the view of the
+      // neighboring macro-cell.
+      const auto neighborMacroLocalFaceID =
+          neighborCell->getLocalFaceID( cell->neighborFaces().at( macroBoundaryID( neighbor ) ) );
+      if ( cellType_ != celldof::CellType::WHITE_UP )
+      {
+         switch ( neighborMacroLocalFaceID )
+         {
+         case 0:
+            nCellTypeLocalToNeighbor = celldof::CellType::BLUE_UP;
+            break;
+         case 1:
+            nCellTypeLocalToNeighbor = celldof::CellType::GREEN_UP;
+            break;
+         case 2:
+            nCellTypeLocalToNeighbor = celldof::CellType::BLUE_DOWN;
+            break;
+         case 3:
+            nCellTypeLocalToNeighbor = celldof::CellType::GREEN_DOWN;
+            break;
+         }
+      }
+
+      const auto neighborElementVertexIndices =
+          celldof::macrocell::getMicroVerticesFromMicroCell( elementIdxNeighborMicro, nCellTypeLocalToNeighbor );
+
+      // Find the idx of the opposing micro-vertex. It should not be located on the interface macro.
+      Index opposingMicroVertexIdx;
+      for ( const auto& nev : neighborElementVertexIndices )
+      {
+         const auto localInterfaceIDs = isOnCellFace( nev, level_ );
+         if ( !algorithms::contains( localInterfaceIDs, neighborMacroLocalFaceID ) )
+         {
+            opposingMicroVertexIdx = nev;
+            break;
+         }
+      }
+
+      for ( uint_t i = 0; i < 4; i++ )
+      {
+         const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, neighborElementVertexIndices[i] );
+         neighborElementVertexCoords[i]( 0 ) = coord[0];
+         neighborElementVertexCoords[i]( 1 ) = coord[1];
+         neighborElementVertexCoords[i]( 2 ) = coord[2];
+      }
+
+      const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, opposingMicroVertexIdx );
+
+      neighborOppositeVertexCoords( 0 ) = coord[0];
+      neighborOppositeVertexCoords( 1 ) = coord[1];
+      neighborOppositeVertexCoords( 2 ) = coord[2];
    }
    else
    {
@@ -581,17 +741,20 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       WALBERLA_ASSERT( storage_->faceExistsLocally( volumeID_ ) );
       const auto face = storage_->getFace( volumeID_ );
 
-      WALBERLA_ASSERT_GREATER(
-          face->getIndirectNeighborFaceIDsOverEdges().count( neighbor ), 0, "Neighbor face should exist but doesn't ..." );
-      const auto neighborFace = storage_->getFace( face->getIndirectNeighborFaceIDsOverEdges().at( neighbor ) );
+      WALBERLA_ASSERT_GREATER( face->getIndirectNeighborFaceIDsOverEdges().count( macroBoundaryID( neighbor ) ),
+                               0,
+                               "Neighbor face should exist but doesn't ..." );
+      const auto neighborFace =
+          storage_->getFace( face->getIndirectNeighborFaceIDsOverEdges().at( macroBoundaryID( neighbor ) ) );
 
       // PID of the opposite macro-vertex.
-      const auto oppositeMacroVertexID = neighborFace->get_vertex_opposite_to_edge( face->neighborEdges()[neighbor] );
+      const auto oppositeMacroVertexID =
+          neighborFace->get_vertex_opposite_to_edge( face->neighborEdges()[macroBoundaryID( neighbor )] );
 
       Index                   pseudoLocalIndex;
       std::array< uint_t, 4 > srcBasis;
 
-      switch ( neighbor )
+      switch ( macroBoundaryID( neighbor ) )
       {
       case 0:
          pseudoLocalIndex = Index( elementIdx_.x(), 0, 0 );
@@ -629,22 +792,14 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
 
       // Eventually we need to know the coordinates of the micro-vertex that is opposite to the interface.
       // First find out what the local interface ID of the other macro-volume is.
-      uint_t neighborInterfaceID;
-      for ( const auto& [nifID, pid] : neighborFace->getIndirectNeighborFaceIDsOverEdges() )
-      {
-         if ( pid == volumeID_ )
-         {
-            neighborInterfaceID = nifID;
-            break;
-         }
-      }
+      const auto neighborMacroLocalEdgeID = neighborFace->edge_index( face->neighborEdges().at( neighbor ) );
 
       // Then find the idx of the opposing micro-vertex.
       Index opposingMicroVertexIdx;
       for ( const auto& nev : neighborElementVertexIndices )
       {
          const auto localInterfaceIDs = isOnCellEdge( nev, level_ );
-         if ( !algorithms::contains( localInterfaceIDs, neighborInterfaceID ) )
+         if ( !algorithms::contains( localInterfaceIDs, neighborMacroLocalEdgeID ) )
          {
             opposingMicroVertexIdx = nev;
             break;

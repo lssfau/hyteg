@@ -75,6 +75,8 @@ real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
    DGFunction< real_t > err( "err", storage, level, level, basis, degree );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
+
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
 
@@ -96,7 +98,7 @@ real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
    auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
 
-   VTKOutput vtk( "../../output", "DG3D_testOnSingleElementHomDirichlet", storage );
+   VTKOutput vtk( "../../output", "DGPoisson3DConvergenceTest_testOnSingleElementHomDirichlet", storage );
    vtk.add( err );
    vtk.add( u );
    vtk.add( sol );
@@ -111,24 +113,22 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
 {
    using namespace dg;
 
-   WALBERLA_ABORT( "not fixed..." );
-
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
+   MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
+      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
    };
 
    std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-      return 8 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) );
+      return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -136,6 +136,8 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
    DGFunction< real_t > err( "err", storage, level, level, basis, degree );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
@@ -158,7 +160,7 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
    auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
 
-   VTKOutput vtk( "../../output/", "DGPoisson2DConvergenceTest_testHomDirichlet", storage );
+   VTKOutput vtk( "../../output/", "DGPoisson3DConvergenceTest_testHomDirichlet", storage );
    vtk.add( u );
    vtk.add( sol );
    vtk.add( err );
@@ -185,7 +187,7 @@ real_t testDirichlet( uint_t level, uint_t degree )
    std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -193,6 +195,8 @@ real_t testDirichlet( uint_t level, uint_t degree )
    DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
    DGFunction< real_t > err( "err", storage, level, level, basis, degree );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
@@ -248,7 +252,7 @@ real_t testDirichletAndRhs( uint_t level, uint_t degree )
    };
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -256,6 +260,8 @@ real_t testDirichletAndRhs( uint_t level, uint_t degree )
    DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
    DGFunction< real_t > err( "err", storage, level, level, basis, degree );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
@@ -297,12 +303,12 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
-
+#if 0
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testOnSingleElementHomDirichlet ###" );
       for ( int degree = 1; degree <= 1; degree++ )
       {
-         uint_t minLevel    = 2;
+         uint_t minLevel    = 3;
          auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
          auto   convRateEps = l2ConvRate * 0.1;
          auto   err         = hyteg::testOnSingleElementHomDirichlet( minLevel, degree );
@@ -312,6 +318,37 @@ int main( int argc, char** argv )
          for ( uint_t l = minLevel + 1; l < 7; l++ )
          {
             auto errFiner     = hyteg::testOnSingleElementHomDirichlet( l, degree );
+            auto computedRate = errFiner / err;
+
+            WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
+            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+
+            WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                       l2ConvRate + convRateEps,
+                                       "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                                    << " not sufficiently small (computed: " << computedRate
+                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+            err = errFiner;
+         }
+      }
+   }
+#endif
+
+#if 1
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### testHomDirichlet ###" );
+      for ( uint_t degree = 1; degree <= 1; degree++ )
+      {
+         uint_t minLevel    = 2;
+         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
+         auto   convRateEps = l2ConvRate * 0.1;
+         auto   err         = hyteg::testHomDirichlet( minLevel, degree );
+         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
+                                              << ", threshold: " << l2ConvRate + convRateEps );
+         WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
+         for ( uint_t l = minLevel + 1; l < 6; l++ )
+         {
+            auto errFiner     = hyteg::testHomDirichlet( l, degree );
             auto computedRate = errFiner / err;
 
             WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
@@ -327,33 +364,7 @@ int main( int argc, char** argv )
          }
       }
    }
-
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### testHomDirichlet ###" );
-      for ( uint_t degree = 1; degree <= 1; degree++ )
-      {
-         uint_t minLevel    = 2;
-         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
-         auto   convRateEps = l2ConvRate * 0.1;
-         auto   err         = hyteg::testHomDirichlet( minLevel, degree );
-         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
-                                              << ", threshold: " << l2ConvRate + convRateEps );
-         for ( uint_t l = minLevel + 1; l < 5; l++ )
-         {
-            auto errFiner     = hyteg::testHomDirichlet( l, degree );
-            auto computedRate = errFiner / err;
-
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
-
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-            err = errFiner;
-         }
-      }
-   }
+#endif
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet ###" );
