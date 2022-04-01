@@ -24,6 +24,7 @@ namespace hyteg {
 namespace dg {
 
 using walberla::real_c;
+using walberla::uint_c;
 
 void DGDiffusionForm_Example::integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
@@ -32,7 +33,8 @@ void DGDiffusionForm_Example::integrateVolume2D( const std::vector< Eigen::Matri
                                                  int                                                      testDegree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 2, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coords[0]( 0 );
    const auto p_affine_0_1 = coords[0]( 1 );
@@ -160,7 +162,8 @@ void DGDiffusionForm_Example::integrateVolume3D( const std::vector< Eigen::Matri
                                                  int                                                      testDegree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coords[0]( 0 );
    const auto p_affine_0_1 = coords[0]( 1 );
@@ -305,7 +308,8 @@ void DGDiffusionForm_Example::integrateFacetInner2D( const std::vector< Eigen::M
                                                      int                                                      testDegree,
                                                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 2, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -424,7 +428,8 @@ void DGDiffusionForm_Example::integrateFacetInner3D( const std::vector< Eigen::M
                                                      int                                                      testDegree,
                                                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -812,7 +817,8 @@ void DGDiffusionForm_Example::integrateFacetCoupling2D( const std::vector< Eigen
                                                         int                                                      testDegree,
                                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 2, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElementInner[0]( 0 );
    const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -963,7 +969,8 @@ void DGDiffusionForm_Example::integrateFacetCoupling3D( const std::vector< Eigen
                                                         int                                                      testDegree,
                                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElementInner[0]( 0 );
    const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -1478,7 +1485,8 @@ void DGDiffusionForm_Example::integrateFacetDirichletBoundary2D(
     int                                                      testDegree,
     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 2, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1596,7 +1604,8 @@ void DGDiffusionForm_Example::integrateFacetDirichletBoundary3D(
     int                                                      testDegree,
     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
+   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1978,7 +1987,7 @@ void DGDiffusionForm_Example::integrateRHSDirichletBoundary2D(
     int                                                      degree,
     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( basis.numDoFsPerElement( 3, degree ), 1 );
+   elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, uint_c( degree ) ) ), 1 );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -2057,7 +2066,7 @@ void DGDiffusionForm_Example::integrateRHSDirichletBoundary3D(
     int                                                      degree,
     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
 {
-   elMat.resize( basis.numDoFsPerElement( 3, degree ), 1 );
+   elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, uint_c( degree ) ) ), 1 );
 
    const auto p_affine_0_0 = coordsElement[0]( 0 );
    const auto p_affine_0_1 = coordsElement[0]( 1 );
