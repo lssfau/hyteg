@@ -56,8 +56,6 @@ static void test( const std::string& meshFile, const uint_t& level )
    hyteg::PETScSparseMatrix< DGOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
-   Lpetsc.print( "/Users/nilskohl/Desktop/asdf.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
    WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ), "DG Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
    WALBERLA_LOG_INFO_ON_ROOT( "DG Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
 }
