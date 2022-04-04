@@ -81,13 +81,14 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
    {
-      WALBERLA_UNUSED( dofType );
-      WALBERLA_ABORT( "Not implemented" );
+      u_conforming_->interpolate( constant, level, dofType );
+      u_discontinuous_->interpolate( 0, level, dofType );
    }
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
    {
-      WALBERLA_UNUSED( dofType );
+      u_conforming_->interpolate( expr, level, dofType );
+      u_discontinuous_->interpolate( 0, level, dofType );
       WALBERLA_ABORT( "Not implemented" );
    }
 
@@ -95,7 +96,8 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
                      uint_t                                                                    level,
                      DoFType                                                                   flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      u_conforming_->interpolate( expressions, level, flag );
+      u_discontinuous_->interpolate( 0, level, flag );
    };
 
    void swap( const P1DGEFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
@@ -104,16 +106,21 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->swap( other.u_discontinuous_, level, flag );
    };
 
-   void copyFrom( const P0Function< ValueType >&                 other,
+   void copyFrom( const P1DGEFunction< ValueType >&              other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      u_conforming_->copyFrom( *other.getConformingPart(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      u_discontinuous_->copyFrom( *other.getDiscontinuousPart(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    };
 
    bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const
    {
+      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( value );
+      WALBERLA_UNUSED( searchToleranceRadius );
       WALBERLA_ABORT( "Not implemented." );
    }
 
