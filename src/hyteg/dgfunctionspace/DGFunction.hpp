@@ -269,6 +269,14 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "DGFunction::copyFrom() not implemented." );
    }
 
+   void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   {
+      WALBERLA_UNUSED( other );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "DGFunction::swap() not implemented." )
+   }
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;

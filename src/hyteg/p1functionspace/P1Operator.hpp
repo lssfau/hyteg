@@ -1954,7 +1954,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroedge::getIndexInNeighboringMacroCell( { i, 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+             vertexdof::macroedge::getIndexInNeighboringMacroCell( { idx_t( i ), 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
          edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
