@@ -121,6 +121,14 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
    }
 }
 
+inline void applyDirichletBC( const dg::DGVectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
+   {
+      applyDirichletBC( numerator[k], mat, level );
+   }
+}
+
 // ==================
 //  Stokes Functions
 // ==================

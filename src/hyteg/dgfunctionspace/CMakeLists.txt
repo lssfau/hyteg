@@ -11,5 +11,8 @@ target_sources( hyteg
     DGOperator.cpp
     DGOperator.hpp
     DGStokesP1P0PressureStabForm_Example.hpp
+    DGVectorLaplaceForm.hpp
+    DGVectorFunction.hpp
+    DGVectorOperators.hpp
 )
 

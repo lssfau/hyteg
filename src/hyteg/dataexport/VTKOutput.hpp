@@ -35,6 +35,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 
 // our friends and helpers
 
@@ -105,6 +106,12 @@ class VTKOutput
    inline void add( const P2VectorFunction< value_t >& function )
    {
       p2VecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const dg::DGVectorFunction< value_t >& function )
+   {
+      dgVecFunctions_.push_back( function );
    }
 
    template < typename value_t >
@@ -249,6 +256,8 @@ class VTKOutput
    FunctionMultiStore< FaceDoFFunction_old > faceDoFFunctions_;
 
    FunctionMultiStore< dg::DGFunction > dgFunctions_;
+
+   FunctionMultiStore< dg::DGVectorFunction > dgVecFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

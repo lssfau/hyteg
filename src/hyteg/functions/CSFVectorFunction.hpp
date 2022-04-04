@@ -321,7 +321,7 @@ class CSFVectorFunction
 
    void enumerate( uint_t level ) const
    {
-      uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
+      uint_t counterDoFs = hyteg::numberOfLocalDoFs( *this, level );
 
       std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
 
@@ -394,6 +394,28 @@ class CSFVectorFunction
       }
    }
    /// @}
+
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         nDoFs += compFunc_[k]->getNumberOfLocalDoFs( level );
+      }
+      return nDoFs;
+   }
+
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         nDoFs += compFunc_[k]->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+      }
+      return nDoFs;
+   }
 
  protected:
    const std::string                                     functionName_;
