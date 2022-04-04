@@ -47,7 +47,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->setBoundaryCondition( bc );
    }
 
-   BoundaryCondition getBoundaryCondition() const { return u_conforming_->getBoundaryCondition(); }
+   [[nodiscard]] BoundaryCondition getBoundaryCondition() const { return u_conforming_->getBoundaryCondition(); }
 
    template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const
@@ -56,21 +56,27 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->communicate( level );
    }
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { WALBERLA_ABORT( "Not implemented." ); };
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
+   {
+      u_conforming_->add( scalar, level, flag );
+      u_discontinuous_->add( scalar, level, flag );
+   };
 
    void add( const std::vector< ValueType >                                                   scalars,
              const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
              uint_t                                                                           level,
              DoFType                                                                          flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      u_conforming_->add( scalars, functions, level, flag );
+      u_discontinuous_->add( scalars, functions, level, flag );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
                          uint_t                                                                           level,
                          DoFType                                                                          flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      u_conforming_->multElementwise( functions, level, flag );
+      u_discontinuous_->multElementwise( functions, level, flag );
    }
 
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
