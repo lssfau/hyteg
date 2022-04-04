@@ -257,10 +257,15 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                     DoFType                               flag ) const;
    /// @}
 
-   void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+   void copyFrom( const DGFunction< ValueType >&                 other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
       WALBERLA_UNUSED( other );
       WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( localPrimitiveIDsToRank );
+      WALBERLA_UNUSED( otherPrimitiveIDsToRank );
       WALBERLA_ABORT( "DGFunction::copyFrom() not implemented." );
    }
 

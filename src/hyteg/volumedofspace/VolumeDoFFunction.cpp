@@ -64,6 +64,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          // Allocating ghost-layer memory only where necessary.
          for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
          {
+            WALBERLA_UNUSED( npid );
             FunctionMemory< ValueType >* functionGLMemory = cell->template getData( cellGhostLayerDataIDs_[localFaceID] );
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
@@ -111,6 +112,8 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          // Allocating ghost-layer memory only where necessary.
          for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDsOverEdges() )
          {
+            WALBERLA_UNUSED( npid );
+
             FunctionMemory< ValueType >* functionGLMemory = face->template getData( faceGhostLayerDataIDs_[localEdgeID] );
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )

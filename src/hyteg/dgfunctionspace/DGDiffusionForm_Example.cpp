@@ -955,7 +955,7 @@ void DGDiffusionForm_Example::integrateFacetCoupling2D( const std::vector< Eigen
    elMat( 2, 0 ) = a_2_0;
    elMat( 2, 1 ) = a_2_1;
    elMat( 2, 2 ) = a_2_2;
-};
+}
 
 void DGDiffusionForm_Example::integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElementInner,
                                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElementOuter,
