@@ -38,154 +38,24 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::math::pi;
 
-/// Solves Poisson on single macro-cell with rhs != 0 and hom. Dirichlet BCs.
 /// Returns the scaled L2 error.
-real_t testOnSingleElementHomDirichlet( uint_t level, uint_t degree )
+real_t test( uint_t                                    level,
+             uint_t                                    degree,
+             MeshInfo                                  meshInfo,
+             std::function< real_t( const Point3D& ) > solFunc,
+             std::function< real_t( const Point3D& ) > rhsFunc,
+             bool                                      writeVTK = false )
 {
    using namespace dg;
-
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
-   };
-
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-      return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                    sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
-                    cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                    cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                    cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
-   };
+   real_t beta_0 = storage->hasGlobalCells() ? 0.5 : 1.0;
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
-
-   DGFunction< real_t > u( "u", storage, level, level, basis, degree );
-   DGFunction< real_t > f( "f", storage, level, level, basis, degree );
-   DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
-   DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
-   DGFunction< real_t > err( "err", storage, level, level, basis, degree );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
-
-   DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
-   numerator.enumerate( level );
-
-   DGOperator A( storage, level, level, laplaceForm );
-   DGOperator M( storage, level, level, massForm );
-
-   // Assemble RHS.
-   f.evaluateLinearFunctional( rhsFunc, level );
-
-   // Interpolate solution
-   tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
-   solverM.solve( M, sol, tmp, level );
-
-   // Solve system.
-   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   solverA.solve( A, u, f, level );
-
-   err.assign( { 1.0, -1.0 }, { u, sol }, level );
-   auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
-
-   VTKOutput vtk( "../../output", "DGPoisson3DConvergenceTest_testOnSingleElementHomDirichlet", storage );
-   vtk.add( err );
-   vtk.add( u );
-   vtk.add( sol );
-   vtk.write( level );
-
-   return discrL2;
-}
-
-/// Solves Poisson with rhs != 0 and hom. Dirichlet BCs.
-/// Returns the scaled L2 error.
-real_t testHomDirichlet( uint_t level, uint_t degree )
-{
-   using namespace dg;
-
-   MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
-   };
-
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-      return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
-   };
-
-   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
-
-   DGFunction< real_t > u( "u", storage, level, level, basis, degree );
-   DGFunction< real_t > f( "f", storage, level, level, basis, degree );
-   DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
-   DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
-   DGFunction< real_t > err( "err", storage, level, level, basis, degree );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
-
-   DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
-   numerator.enumerate( level );
-
-   DGOperator A( storage, level, level, laplaceForm );
-   DGOperator M( storage, level, level, massForm );
-
-   // Assemble RHS.
-   f.evaluateLinearFunctional( rhsFunc, level );
-
-   // Interpolate solution
-   tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
-   solverM.solve( M, sol, tmp, level );
-
-   // Solve system.
-   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   solverA.solve( A, u, f, level );
-
-   err.assign( { 1.0, -1.0 }, { u, sol }, level );
-   auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
-
-   VTKOutput vtk( "../../output/", "DGPoisson3DConvergenceTest_testHomDirichlet", storage );
-   vtk.add( u );
-   vtk.add( sol );
-   vtk.add( err );
-   vtk.write( level );
-
-   return discrL2;
-}
-
-/// Solves Poisson with rhs == 0 and inhomog. Dirichlet BCs.
-/// Returns the scaled L2 error.
-real_t testDirichlet( uint_t level, uint_t degree )
-{
-   using namespace dg;
-
-   MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-
-   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
+   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( beta_0, solFunc, solFunc );
    auto massForm    = std::make_shared< DGMassForm_Example >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
@@ -218,198 +88,137 @@ real_t testDirichlet( uint_t level, uint_t degree )
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
    auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
 
-   VTKOutput vtk( "../../output/", "DGPoisson3DConvergenceTest_testDirichlet", storage );
-   vtk.add( u );
-   vtk.add( sol );
-   vtk.add( err );
-   vtk.add( f );
-   vtk.write( level );
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../output/", "DGPoisson3DConvergenceTest", storage );
+      vtk.add( u );
+      vtk.add( sol );
+      vtk.add( err );
+      vtk.add( f );
+      vtk.write( level );
+   }
 
    return discrL2;
 }
 
-/// Solves Poisson with rhs == f and inhomog. Dirichlet BCs.
-/// Returns the scaled L2 error.
-real_t testDirichletAndRhs( uint_t level, uint_t degree )
+void runTest( uint_t                                           minLevel,
+              uint_t                                           maxLevel,
+              uint_t                                           minDegree,
+              uint_t                                           maxDegree,
+              const MeshInfo&                                  meshInfo,
+              const std::function< real_t( const Point3D& ) >& solFunc,
+              const std::function< real_t( const Point3D& ) >& rhsFunc )
 {
-   using namespace dg;
+   for ( uint_t degree = minDegree; degree <= maxDegree; degree++ )
+   {
+      auto l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
+      auto convRateEps = l2ConvRate * 0.1;
+      auto err         = hyteg::test( minLevel, degree, meshInfo, solFunc, rhsFunc );
+      WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
+                                           << ", threshold: " << l2ConvRate + convRateEps );
+      WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
+      for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
+      {
+         auto errFiner     = hyteg::test( l, degree, meshInfo, solFunc, rhsFunc );
+         auto computedRate = errFiner / err;
 
-   MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+         WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
+         WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
 
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sin( x[1] ) * sin( x[2] ); };
-
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-      return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-   };
-
-   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 0.5, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
-
-   DGFunction< real_t > u( "u", storage, level, level, basis, degree );
-   DGFunction< real_t > f( "f", storage, level, level, basis, degree );
-   DGFunction< real_t > sol( "sol", storage, level, level, basis, degree );
-   DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
-   DGFunction< real_t > err( "err", storage, level, level, basis, degree );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
-
-   DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
-   numerator.enumerate( level );
-
-   DGOperator A( storage, level, level, laplaceForm );
-   DGOperator M( storage, level, level, massForm );
-
-   // Assemble RHS.
-   f.evaluateLinearFunctional( rhsFunc, level );
-   f.applyDirichletBoundaryConditions( laplaceForm, level );
-
-   // Interpolate solution
-   tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
-   solverM.solve( M, sol, tmp, level );
-
-   // Solve system.
-   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   solverA.solve( A, u, f, level );
-
-   err.assign( { 1.0, -1.0 }, { u, sol }, level );
-   auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
-
-   VTKOutput vtk( "../../output/", "DGPoisson3DConvergenceTest_testDirichletAndRhs", storage );
-   vtk.add( u );
-   vtk.add( sol );
-   vtk.add( err );
-   vtk.add( f );
-   vtk.write( level );
-
-   return discrL2;
+         WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                    l2ConvRate + convRateEps,
+                                    "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                                 << " not sufficiently small (computed: " << computedRate
+                                                                 << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+         err = errFiner;
+      }
+   }
 }
 
 } // namespace hyteg
 
 int main( int argc, char** argv )
 {
+   using hyteg::MeshInfo;
+   using hyteg::Point3D;
+   using walberla::real_t;
+   using walberla::math::pi;
+
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
 
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### testOnSingleElementHomDirichlet ###" );
-      for ( uint_t degree = 1; degree <= 1; degree++ )
-      {
-         uint_t minLevel    = 3;
-         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
-         auto   convRateEps = l2ConvRate * 0.1;
-         auto   err         = hyteg::testOnSingleElementHomDirichlet( minLevel, degree );
-         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
-                                              << ", threshold: " << l2ConvRate + convRateEps );
-         WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
-         for ( uint_t l = minLevel + 1; l < 6; l++ )
-         {
-            auto errFiner     = hyteg::testOnSingleElementHomDirichlet( l, degree );
-            auto computedRate = errFiner / err;
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, rhs != 0 ###" );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
 
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-            err = errFiner;
-         }
-      }
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
+      };
+
+      hyteg::runTest( 3, 5, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### testHomDirichlet ###" );
-      for ( uint_t degree = 1; degree <= 1; degree++ )
-      {
-         uint_t minLevel    = 2;
-         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
-         auto   convRateEps = l2ConvRate * 0.1;
-         auto   err         = hyteg::testHomDirichlet( minLevel, degree );
-         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
-                                              << ", threshold: " << l2ConvRate + convRateEps );
-         WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
-         for ( uint_t l = minLevel + 1; l < 5; l++ )
-         {
-            auto errFiner     = hyteg::testHomDirichlet( l, degree );
-            auto computedRate = errFiner / err;
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-            err = errFiner;
-         }
-      }
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
+      };
+
+      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet ###" );
-      for ( uint_t degree = 1; degree <= 1; degree++ )
-      {
-         uint_t minLevel    = 2;
-         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
-         auto   convRateEps = l2ConvRate * 0.1;
-         auto   err         = hyteg::testDirichlet( minLevel, degree );
-         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
-                                              << ", threshold: " << l2ConvRate + convRateEps );
-         for ( uint_t l = minLevel + 1; l < 5; l++ )
-         {
-            auto errFiner     = hyteg::testDirichlet( l, degree );
-            auto computedRate = errFiner / err;
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs = 0 ###" );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-            err = errFiner;
-         }
-      }
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### testDirichlet + RHS ###" );
-      for ( uint_t degree = 1; degree <= 1; degree++ )
-      {
-         uint_t minLevel    = 3;
-         auto   l2ConvRate  = std::pow( 2, -( int( degree ) + 1 ) );
-         auto   convRateEps = l2ConvRate * 0.1;
-         auto   err         = hyteg::testDirichletAndRhs( minLevel, degree );
-         WALBERLA_LOG_INFO_ON_ROOT( "degree " << degree << ", expected L2 rate: " << l2ConvRate
-                                              << ", threshold: " << l2ConvRate + convRateEps );
-         for ( uint_t l = minLevel + 1; l < 6; l++ )
-         {
-            auto errFiner     = hyteg::testDirichletAndRhs( l, degree );
-            auto computedRate = errFiner / err;
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
 
-            err = errFiner;
-         }
-      }
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
    return EXIT_SUCCESS;
