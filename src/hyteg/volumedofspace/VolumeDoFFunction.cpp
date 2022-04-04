@@ -34,16 +34,16 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
 
       // Create a data ID for all cells.
-      storage_->template addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
+      storage_->addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
 
       // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
 
       // Create three data IDs for all faces.
-      storage_->template addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
-      storage_->template addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
-      storage_->template addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
-      storage_->template addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
 
       // Allocate the DoFs.
       for ( auto& it : storage_->getCells() )
@@ -52,7 +52,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          const auto cell = it.second;
 
          // Fetching the FunctionMemory instance from each macro-face.
-         FunctionMemory< ValueType >* functionMemory = cell->template getData( cellInnerDataID_ );
+         FunctionMemory< ValueType >* functionMemory = cell->getData( cellInnerDataID_ );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
          {
@@ -65,7 +65,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
          {
             WALBERLA_UNUSED( npid );
-            FunctionMemory< ValueType >* functionGLMemory = cell->template getData( cellGhostLayerDataIDs_[localFaceID] );
+            FunctionMemory< ValueType >* functionGLMemory = cell->getData( cellGhostLayerDataIDs_[localFaceID] );
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
             {
@@ -83,15 +83,15 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create a data ID for all faces.
-      storage_->template addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
+      storage_->addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
 
       // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create three data IDs for all faces.
-      storage_->template addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
-      storage_->template addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
-      storage_->template addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
 
       // Allocate the DoFs.
       for ( auto& it : storage_->getFaces() )
@@ -100,7 +100,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          const auto face = it.second;
 
          // Fetching the FunctionMemory instance from each macro-face.
-         FunctionMemory< ValueType >* functionMemory = face->template getData( faceInnerDataID_ );
+         FunctionMemory< ValueType >* functionMemory = face->getData( faceInnerDataID_ );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
          {
@@ -114,7 +114,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          {
             WALBERLA_UNUSED( npid );
 
-            FunctionMemory< ValueType >* functionGLMemory = face->template getData( faceGhostLayerDataIDs_[localEdgeID] );
+            FunctionMemory< ValueType >* functionGLMemory = face->getData( faceGhostLayerDataIDs_[localEdgeID] );
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
             {
