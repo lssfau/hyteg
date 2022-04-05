@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,7 +35,9 @@ using indexing::Index;
 
 enum class FaceType : uint_t
 {
+   /// "bottom-left" face
    GRAY,
+   /// "top-right" face
    BLUE
 };
 
@@ -61,7 +63,7 @@ inline constexpr uint_t numMicroFacesPerMacroFace( const uint_t& level, const Fa
    return levelinfo::num_microvertices_per_face_from_width( numFacesPerRowByType( level, faceType ) );
 }
 
-inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const FaceType& faceType )
+inline constexpr uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const FaceType& faceType )
 {
    const auto width = numFacesPerRowByType( level, faceType );
    switch ( faceType )
@@ -78,8 +80,8 @@ inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_
 /// Returns an array of the three logical micro-vertex-indices that span the micro-face of the given indices and face type.
 inline std::array< Index, 3 > getMicroVerticesFromMicroFace( const Index& microFaceIndex, const FaceType& microFaceType )
 {
-   const uint_t cellX = microFaceIndex.x();
-   const uint_t cellY = microFaceIndex.y();
+   const idx_t cellX = microFaceIndex.x();
+   const idx_t cellY = microFaceIndex.y();
 
    switch ( microFaceType )
    {
@@ -183,6 +185,14 @@ enum DofType
    CELL_GRAY = 0,
    CELL_BLUE = 1
 };
+
+/// \brief Returns true if the considered micro-face shares a boundary with the macro-face.
+inline bool sharesBoundaryWithMacro( Index microFaceIdx, FaceType faceType, uint_t level )
+{
+   return ( faceType == FaceType::GRAY ) &&
+          ( microFaceIdx.x() == 0 || microFaceIdx.y() == 0 ||
+            microFaceIdx.x() + microFaceIdx.y() == idx_t( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+}
 
 // Do we still need the indexFaceStencil? It is currently not used anywhere
 // -- /// these numbers specify the postion of each stencil entry in the stencil memory array

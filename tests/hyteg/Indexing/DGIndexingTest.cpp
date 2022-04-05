@@ -19,7 +19,7 @@
  */
 #include "core/Environment.h"
 
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/primitives/all.hpp"
 
 using namespace hyteg;

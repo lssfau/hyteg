@@ -34,49 +34,49 @@
 namespace hyteg {
 
 template < typename ValueType >
-class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
+class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
 {
  public:
    typedef ValueType valueType;
 
    template < typename VType >
-   using FunctionType = FaceDoFFunction< VType >;
+   using FunctionType = FaceDoFFunction_old< VType >;
 
-   FaceDoFFunction( const std::string&                         name,
-                    const std::shared_ptr< PrimitiveStorage >& storage,
-                    uint_t                                     minLevel,
-                    uint_t                                     maxLevel );
+   FaceDoFFunction_old( const std::string&                         name,
+                        const std::shared_ptr< PrimitiveStorage >& storage,
+                        uint_t                                     minLevel,
+                        uint_t                                     maxLevel );
 
-   FaceDoFFunction( const std::string&                         name,
-                    const std::shared_ptr< PrimitiveStorage >& storage,
-                    uint_t                                     minLevel,
-                    uint_t                                     maxLevel,
-                    BoundaryCondition                          boundaryCondition );
+   FaceDoFFunction_old( const std::string&                         name,
+                        const std::shared_ptr< PrimitiveStorage >& storage,
+                        uint_t                                     minLevel,
+                        uint_t                                     maxLevel,
+                        BoundaryCondition                          boundaryCondition );
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
-   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                     const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >&   srcFunctions,
-                     uint_t                                                                               level,
-                     DoFType                                                                              flag = All ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >&   expr,
+                     const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& srcFunctions,
+                     uint_t                                                                                 level,
+                     DoFType                                                                                flag = All ) const;
 
    void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
                      uint_t                                                                    level,
                      DoFType                                                                   flag = All ) const;
 
-   void assign( const std::vector< ValueType >&                                                    scalars,
-                const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
-                uint_t                                                                             level,
-                DoFType                                                                            flag = All ) const;
+   void assign( const std::vector< ValueType >&                                                        scalars,
+                const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
+                uint_t                                                                                 level,
+                DoFType                                                                                flag = All ) const;
 
    void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
-   void add( const std::vector< ValueType >&                                                    scalars,
-             const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
-             uint_t                                                                             level,
-             DoFType                                                                            flag = All ) const;
+   void add( const std::vector< ValueType >&                                                        scalars,
+             const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
+             uint_t                                                                                 level,
+             DoFType                                                                                flag = All ) const;
 
    void enumerate( uint_t level, ValueType offset );
 
@@ -132,28 +132,28 @@ class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
    /// \param functions  the functions forming the product
    /// \param level      level on which the multiplication should be computed
    /// \param flag       marks those primitives which are partaking in the computation of the product
-   void multElementwise( const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
-                         uint_t                                                                             level,
-                         DoFType                                                                            flag = All ) const;
+   void multElementwise( const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
+                         uint_t                                                                                 level,
+                         DoFType flag = All ) const;
 
-   void copyFrom( const FaceDoFFunction< ValueType >& other, const uint_t& level ) const;
+   void copyFrom( const FaceDoFFunction_old< ValueType >& other, const uint_t& level ) const;
 
-   void copyFrom( const FaceDoFFunction< ValueType >&            other,
+   void copyFrom( const FaceDoFFunction_old< ValueType >&        other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = std::move( bc ); }
 
-   ValueType dotLocal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
+   ValueType dotLocal( const FaceDoFFunction_old< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
-   ValueType dotGlobal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
+   ValueType dotGlobal( const FaceDoFFunction_old< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
-   void swap( const FaceDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
+   void swap( const FaceDoFFunction_old< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
    /// conversion to/from linear algebra representation
    /// @{
-   void toVector( const FaceDoFFunction< idx_t >&       numerator,
+   void toVector( const FaceDoFFunction_old< idx_t >&   numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
                   DoFType                               flag ) const
@@ -161,7 +161,7 @@ class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
       WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
    }
 
-   void fromVector( const FaceDoFFunction< idx_t >&       numerator,
+   void fromVector( const FaceDoFFunction_old< idx_t >&   numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const
@@ -171,7 +171,7 @@ class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
    /// @}
 
  private:
-   using Function< FaceDoFFunction< ValueType > >::communicators_;
+   using Function< FaceDoFFunction_old< ValueType > >::communicators_;
 
    PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
    PrimitiveDataID< FunctionMemory< ValueType >, Edge >   edgeDataID_;

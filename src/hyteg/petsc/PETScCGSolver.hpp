@@ -41,9 +41,23 @@ class PETScCGSolver : public Solver< OperatorType >
                   const real_t                               relativeTolerance = 1e-30,
                   const real_t                               absoluteTolerance = 1e-12,
                   const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
+   : PETScCGSolver( storage,
+                    level,
+                    typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ),
+                    relativeTolerance,
+                    absoluteTolerance,
+                    maxIterations )
+   {}
+
+   PETScCGSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
+                  const uint_t&                                                         level,
+                  const typename OperatorType::srcType::template FunctionType< idx_t >& numerator,
+                  const real_t                                                          relativeTolerance = 1e-30,
+                  const real_t                                                          absoluteTolerance = 1e-12,
+                  const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num( "numerator", storage, level, level )
+   , num( numerator )
    , Amat( "Amat", petscCommunicator_ )
    , AmatNonEliminatedBC( "AmatNonEliminatedBC", petscCommunicator_ )
    , xVec( "xVec", petscCommunicator_ )

@@ -43,12 +43,12 @@ inline constexpr uint_t linearMacroCellSize( const uint_t & width )
 }
 
 /// General linear memory layout indexing function for macro cells
-inline constexpr uint_t linearMacroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t linearMacroCellIndex( const uint_t & width, const idx_t & x, const idx_t & y, const idx_t & z )
 {
-  const uint_t widthMinusSlice = width - z;
+  const uint_t widthMinusSlice = width - uint_t( z );
   const uint_t sliceOffset = linearMacroCellSize( width ) - (( widthMinusSlice + 2 ) * ( widthMinusSlice + 1 ) * widthMinusSlice ) / 6;
-  const uint_t rowOffset   = y * ( widthMinusSlice + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
-  return sliceOffset + rowOffset + x;
+  const uint_t rowOffset   = uint_t( y ) * ( widthMinusSlice + 1 ) - ( uint_t( ( ( y + 1 ) * ( y ) ) / 2 ) );
+  return sliceOffset + rowOffset + uint_t( x );
 }
 
 } // namespace layout
@@ -59,7 +59,7 @@ inline constexpr uint_t macroCellSize( const uint_t & width )
   return layout::linearMacroCellSize( width );
 }
 
-inline constexpr uint_t macroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t macroCellIndex( const uint_t & width, const idx_t & x, const idx_t & y, const idx_t & z )
 {
   return layout::linearMacroCellIndex( width, x, y, z );
 }

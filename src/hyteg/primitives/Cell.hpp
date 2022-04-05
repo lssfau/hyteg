@@ -33,7 +33,7 @@ class Cell : public Primitive
 {
  public:
    friend class SetupPrimitiveStorage;
-   template <class K_Simplex>
+   template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 
    /// Creates a macro-cell instance
@@ -108,13 +108,34 @@ class Cell : public Primitive
    {
       return faceInwardNormals_.at( oppositeLocalVertexID );
    }
-   /// Returns indirect neighbor macro-cell IDs (not including self). An indirect neighbor cell is a cell
-   /// that shares at least one macro-vertex with this cell
-   const std::vector< PrimitiveID > & getIndirectNeighborCellIDs() const { return indirectNeighborCellIDs_; }
+
+   /// Returns all macro-cell IDs of macro-cell that share at least one macro-face with this cell.
+   /// Neighbor cells are mapped from local face IDs.
+   const std::map< uint_t, PrimitiveID >& getIndirectNeighborCellIDsOverFaces() const
+   {
+      return indirectNeighborCellIDsOverFaces_;
+   }
+
+   /// Returns all macro-cell IDs of macro-cells that share at least one macro-vertex with this cell.
+   const std::vector< PrimitiveID >& getIndirectNeighborCellIDsOverVertices() const
+   {
+      return indirectNeighborCellIDsOverVertices_;
+   }
 
    uint_t getLocalVertexID( const PrimitiveID& vertexID ) const;
    uint_t getLocalEdgeID( const PrimitiveID& edgeID ) const;
    uint_t getLocalFaceID( const PrimitiveID& faceID ) const;
+
+   const PrimitiveID& getOppositeVertexID( const PrimitiveID& faceID ) const
+   {
+      auto   otherLocalVertexIDs   = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( getLocalFaceID( faceID ) );
+      uint_t localOppositeVertexID = 6;
+      for ( auto id : otherLocalVertexIDs )
+      {
+         localOppositeVertexID -= id;
+      }
+      return neighborVertices().at( localOppositeVertexID );
+   }
 
    const PrimitiveID& getOppositeEdgeID( const PrimitiveID& edgeID ) const
    {
@@ -138,8 +159,10 @@ class Cell : public Primitive
    std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps_;
    std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
    // stores all 4 face inward normals, array idx == opposite vertex
-   std::array< Point3D, 4 >   faceInwardNormals_;
-   std::vector< PrimitiveID > indirectNeighborCellIDs_;
+   std::array< Point3D, 4 > faceInwardNormals_;
+
+   std::vector< PrimitiveID >      indirectNeighborCellIDsOverVertices_;
+   std::map< uint_t, PrimitiveID > indirectNeighborCellIDsOverFaces_;
 };
 
 } // namespace hyteg

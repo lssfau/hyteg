@@ -444,6 +444,11 @@ waLBerla_execute_test(NAME ConcatenatedOperator)
 
 ## composites ##
 if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES composites/P1P0Stokes2DPetscSolveTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
+endif ()
+
+if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES composites/P1P1StokesPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1P1StokesPetscApplyTest1 COMMAND $<TARGET_FILE:P1P1StokesPetscApplyTest> PROCESSES 1)
     waLBerla_execute_test(NAME P1P1StokesPetscApplyTest2 COMMAND $<TARGET_FILE:P1P1StokesPetscApplyTest> PROCESSES 2)
@@ -779,6 +784,21 @@ waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SphereToolsTest1 COMMAND $<TARGET_FILE:SphereToolsTest>)
 waLBerla_execute_test(NAME SphereToolsTest2 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 2)
 waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 4)
+
+## DG ##
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES dg/DGPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGPoisson2DConvergenceTest)
+
+    waLBerla_compile_test(FILES dg/DGPoisson3DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGPoisson3DConvergenceTest)
+
+    waLBerla_compile_test(FILES dg/DGLaplaceSymmetryTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGLaplaceSymmetryTest)
+
+    waLBerla_compile_test(FILES dg/DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
+endif()
 
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)

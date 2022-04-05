@@ -81,9 +81,9 @@ inline void projectNormal3D( uint_t                                             
    Point3D x;
    Point3D xBlend;
 
-   const Point3D faceBottomLeftCoords  = face.coords[0];
-   const Point3D faceBottomRightCoords = face.coords[1];
-   const Point3D faceTopLeftCoords     = face.coords[2];
+   const Point3D faceBottomLeftCoords  = face.getCoordinates()[0];
+   const Point3D faceBottomRightCoords = face.getCoordinates()[1];
+   const Point3D faceTopLeftCoords     = face.getCoordinates()[2];
 
    const Point3D horizontalMicroEdgeOffset =
        ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;

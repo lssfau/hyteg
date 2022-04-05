@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,25 +19,32 @@
  */
 #pragma once
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/forms/Form.hpp"
+#include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
-class VTKOutput;
-
-class VTKDGDoFWriter
+class P1ToP0FormHyTeG : public Form
 {
  public:
-   static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
+   virtual ~P1ToP0FormHyTeG() {}
+
+   virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const = 0;
+
+   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const = 0;
 
  private:
-   template < typename value_t >
-   static void writeScalarFunction( std::ostream&                              output,
-                                    const FaceDoFFunction< value_t >&          function,
-                                    const std::shared_ptr< PrimitiveStorage >& storage,
-                                    const uint_t&                              level,
-                                    bool                                       write2D,
-                                    vtk::DataFormat                            vtkDataFormat );
+   virtual void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
+
+   virtual void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
 };
 
 } // namespace hyteg

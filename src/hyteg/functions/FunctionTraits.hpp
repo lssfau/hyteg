@@ -36,10 +36,16 @@ namespace hyteg {
 // Tag dispatching //
 /////////////////////
 
+struct P0FunctionTag
+{};
 struct VertexDoFFunctionTag
 {};
 typedef VertexDoFFunctionTag P1FunctionTag;
 struct EdgeDoFFunctionTag
+{};
+struct VolumeFunctionTag
+{};
+struct FaceDoFFunction_old_Tag
 {};
 struct DGFunctionTag
 {};
@@ -62,6 +68,9 @@ struct P2VectorFunctionTag
 // Forward declarations //
 //////////////////////////
 
+template < typename VType >
+class P0Function;
+
 namespace vertexdof {
 
 template < typename VType >
@@ -72,8 +81,18 @@ class VertexDoFFunction;
 template < typename VType >
 class EdgeDoFFunction;
 
+namespace volumedofspace {
 template < typename VType >
-class FaceDoFFunction;
+class VolumeDoFFunction;
+}
+
+template < typename VType >
+class FaceDoFFunction_old;
+
+namespace dg {
+template < typename VType >
+class DGFunction;
+}
 
 // Composites
 
@@ -109,9 +128,12 @@ namespace functionTraits {
 
 typedef enum
 {
+   P0_FUNCTION,
    P1_FUNCTION,
    P2_FUNCTION,
    EDGE_DOF_FUNCTION,
+   VOLUME_DOF_FUNCTION,
+   FACE_DOF_FUNCTION_OLD,
    DG_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
@@ -127,6 +149,18 @@ typedef enum
 /// Empty trait
 template < typename FunctionType >
 struct FunctionTrait;
+
+/// P0 DoF specialization
+template < typename VType >
+struct FunctionTrait< P0Function< VType > >
+{
+   typedef VType         ValueType;
+   typedef P0FunctionTag Tag;
+
+   static std::string getTypeName() { return "P0Function"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P0_FUNCTION;
+};
 
 /// Vertex DoF specialization
 template < typename VType >
@@ -153,9 +187,33 @@ struct FunctionTrait< EdgeDoFFunction< VType > >
    static const functionTraits::FunctionKind kind = functionTraits::EDGE_DOF_FUNCTION;
 };
 
+/// Face DoF specialization
+template < typename VType >
+struct FunctionTrait< FaceDoFFunction_old< VType > >
+{
+   typedef VType                   ValueType;
+   typedef FaceDoFFunction_old_Tag Tag;
+
+   static std::string getTypeName() { return "FaceDoFFunction_old"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::FACE_DOF_FUNCTION_OLD;
+};
+
+/// Volume DoF specialization
+template < typename VType >
+struct FunctionTrait< volumedofspace::VolumeDoFFunction< VType > >
+{
+   typedef VType         ValueType;
+   typedef DGFunctionTag Tag;
+
+   static std::string getTypeName() { return "VolumeDoFFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::VOLUME_DOF_FUNCTION;
+};
+
 /// DG specialization
 template < typename VType >
-struct FunctionTrait< FaceDoFFunction< VType > >
+struct FunctionTrait< dg::DGFunction< VType > >
 {
    typedef VType         ValueType;
    typedef DGFunctionTag Tag;

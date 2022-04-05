@@ -28,11 +28,12 @@
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
 
+#include "hyteg/Algorithms.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-using walberla::real_c;
-
 namespace hyteg {
+
+using walberla::real_c;
 
 SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses )
 : numberOfProcesses_( numberOfProcesses )
@@ -104,7 +105,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       vertices_[vertexID1.getID()]->addEdge( edgeID );
 
       // Caching neighboring vertices
-      std::vector< PrimitiveID > vertexIDs = {{vertexID0, vertexID1}};
+      std::vector< PrimitiveID > vertexIDs = { { vertexID0, vertexID1 } };
       std::sort( vertexIDs.begin(), vertexIDs.end() );
       vertexIDsToEdgeIDs[vertexIDs] = edgeID;
    }
@@ -127,9 +128,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
       WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
 
-      PrimitiveID edgeID0 = findCachedPrimitiveID( {{vertexID0, vertexID1}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID1 = findCachedPrimitiveID( {{vertexID0, vertexID2}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID2 = findCachedPrimitiveID( {{vertexID1, vertexID2}}, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID0 = findCachedPrimitiveID( { { vertexID0, vertexID1 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID1 = findCachedPrimitiveID( { { vertexID0, vertexID2 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID2 = findCachedPrimitiveID( { { vertexID1, vertexID2 } }, vertexIDsToEdgeIDs );
 
       WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
       WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
@@ -219,8 +220,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
          vertexIDs[2] = edge1Vertex0.getID();
       }
 
-      faces_[faceID.getID()] =
-          std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates ) );
+      faces_[faceID.getID()] = std::shared_ptr< Face >(
+          new Face( faceID, vertexIDs, { { edgeID0, edgeID1, edgeID2 } }, edgeOrientation, coordinates ) );
 
       setMeshBoundaryFlag( faceID.getID(), meshInfoFace.getBoundaryFlag() );
 
@@ -235,7 +236,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       edges_[edgeID2.getID()]->addFace( faceID );
 
       // Caching neighboring vertices
-      std::vector< PrimitiveID > neighboringVertexIDs = {{vertexID0, vertexID1, vertexID2}};
+      std::vector< PrimitiveID > neighboringVertexIDs = { { vertexID0, vertexID1, vertexID2 } };
       std::sort( neighboringVertexIDs.begin(), neighboringVertexIDs.end() );
       vertexIDsToFaceIDs[neighboringVertexIDs] = faceID;
    }
@@ -255,17 +256,17 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[meshInfoCell.getVertices().at( 2 )];
       PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[meshInfoCell.getVertices().at( 3 )];
 
-      PrimitiveID edgeID0 = findCachedPrimitiveID( {{vertexID0, vertexID1}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID1 = findCachedPrimitiveID( {{vertexID0, vertexID2}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID2 = findCachedPrimitiveID( {{vertexID1, vertexID2}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID3 = findCachedPrimitiveID( {{vertexID0, vertexID3}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID4 = findCachedPrimitiveID( {{vertexID1, vertexID3}}, vertexIDsToEdgeIDs );
-      PrimitiveID edgeID5 = findCachedPrimitiveID( {{vertexID2, vertexID3}}, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID0 = findCachedPrimitiveID( { { vertexID0, vertexID1 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID1 = findCachedPrimitiveID( { { vertexID0, vertexID2 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID2 = findCachedPrimitiveID( { { vertexID1, vertexID2 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID3 = findCachedPrimitiveID( { { vertexID0, vertexID3 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID4 = findCachedPrimitiveID( { { vertexID1, vertexID3 } }, vertexIDsToEdgeIDs );
+      PrimitiveID edgeID5 = findCachedPrimitiveID( { { vertexID2, vertexID3 } }, vertexIDsToEdgeIDs );
 
-      PrimitiveID faceID0 = findCachedPrimitiveID( {{vertexID0, vertexID1, vertexID2}}, vertexIDsToFaceIDs );
-      PrimitiveID faceID1 = findCachedPrimitiveID( {{vertexID0, vertexID1, vertexID3}}, vertexIDsToFaceIDs );
-      PrimitiveID faceID2 = findCachedPrimitiveID( {{vertexID0, vertexID2, vertexID3}}, vertexIDsToFaceIDs );
-      PrimitiveID faceID3 = findCachedPrimitiveID( {{vertexID1, vertexID2, vertexID3}}, vertexIDsToFaceIDs );
+      PrimitiveID faceID0 = findCachedPrimitiveID( { { vertexID0, vertexID1, vertexID2 } }, vertexIDsToFaceIDs );
+      PrimitiveID faceID1 = findCachedPrimitiveID( { { vertexID0, vertexID1, vertexID3 } }, vertexIDsToFaceIDs );
+      PrimitiveID faceID2 = findCachedPrimitiveID( { { vertexID0, vertexID2, vertexID3 } }, vertexIDsToFaceIDs );
+      PrimitiveID faceID3 = findCachedPrimitiveID( { { vertexID1, vertexID2, vertexID3 } }, vertexIDsToFaceIDs );
 
       WALBERLA_ASSERT_EQUAL( cells_.count( cellID.getID() ), 0 );
 
@@ -286,9 +287,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       WALBERLA_ASSERT_EQUAL( faces_.count( faceID2.getID() ), 1 );
       WALBERLA_ASSERT_EQUAL( faces_.count( faceID3.getID() ), 1 );
 
-      std::vector< PrimitiveID > cellVertices = {{vertexID0, vertexID1, vertexID2, vertexID3}};
-      std::vector< PrimitiveID > cellEdges    = {{edgeID0, edgeID1, edgeID2, edgeID3, edgeID4, edgeID5}};
-      std::vector< PrimitiveID > cellFaces    = {{faceID0, faceID1, faceID2, faceID3}};
+      std::vector< PrimitiveID > cellVertices = { { vertexID0, vertexID1, vertexID2, vertexID3 } };
+      std::vector< PrimitiveID > cellEdges    = { { edgeID0, edgeID1, edgeID2, edgeID3, edgeID4, edgeID5 } };
+      std::vector< PrimitiveID > cellFaces    = { { faceID0, faceID1, faceID2, faceID3 } };
 
       for ( const auto& id : cellVertices )
       {
@@ -306,10 +307,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
          faces_[id.getID()]->addCell( cellID );
       }
 
-      std::array< Point3D, 4 > cellCoordinates = {{vertices_.at( vertexID0.getID() )->getCoordinates(),
-                                                   vertices_.at( vertexID1.getID() )->getCoordinates(),
-                                                   vertices_.at( vertexID2.getID() )->getCoordinates(),
-                                                   vertices_.at( vertexID3.getID() )->getCoordinates()}};
+      std::array< Point3D, 4 > cellCoordinates = { { vertices_.at( vertexID0.getID() )->getCoordinates(),
+                                                     vertices_.at( vertexID1.getID() )->getCoordinates(),
+                                                     vertices_.at( vertexID2.getID() )->getCoordinates(),
+                                                     vertices_.at( vertexID3.getID() )->getCoordinates() } };
 
       std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
 
@@ -364,13 +365,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
       setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
    }
 
-   // add indirect neighbor faces
-   for ( auto& it : faces_ )
+   // Add indirect neighbor faces.
+   // Also sort them by local edge IDs.
+   for ( auto& [faceID, face] : faces_ )
    {
-      auto faceID = it.first;
-      auto face   = it.second;
+      face->indirectNeighborFaceIDsOverEdges_.clear();
 
-      std::set< PrimitiveID > indirectNeighborsSet;
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : face->neighborVertices() )
       {
@@ -379,23 +380,44 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
          {
             if ( neighborFaceID != faceID )
             {
-               indirectNeighborsSet.insert( neighborFaceID );
+               idSet.insert( neighborFaceID );
+            }
+
+            const auto neighborFaceVertices = faces_[neighborFaceID.getID()]->neighborVertices();
+
+            const auto containsV0 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[0] );
+            const auto containsV1 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[1] );
+            const auto containsV2 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[2] );
+
+            if ( neighborFaceID != faceID && ( containsV0 || containsV1 || containsV2 ) )
+            {
+               if ( containsV0 && containsV1 )
+               {
+                  face->indirectNeighborFaceIDsOverEdges_[0] = neighborFaceID;
+               }
+               else if ( containsV0 && containsV2 )
+               {
+                  face->indirectNeighborFaceIDsOverEdges_[1] = neighborFaceID;
+               }
+               else if ( containsV1 && containsV2 )
+               {
+                  face->indirectNeighborFaceIDsOverEdges_[2] = neighborFaceID;
+               }
             }
          }
       }
 
-      face->indirectNeighborFaceIDs_.clear();
-      face->indirectNeighborFaceIDs_.insert(
-          face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+      face->indirectNeighborFaceIDsOverVertices_.clear();
+      face->indirectNeighborFaceIDsOverVertices_.insert(
+          face->indirectNeighborFaceIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    // add indirect neighbor cells
-   for ( auto& it : cells_ )
+   for ( auto& [cellID, cell] : cells_ )
    {
-      auto cellID = it.first;
-      auto cell   = it.second;
+      cell->indirectNeighborCellIDsOverFaces_.clear();
 
-      std::set< PrimitiveID > indirectNeighborsSet;
+      std::set< PrimitiveID > idSet;
 
       for ( const auto& vertexID : cell->neighborVertices() )
       {
@@ -404,14 +426,41 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
          {
             if ( neighborCellID != cellID )
             {
-               indirectNeighborsSet.insert( neighborCellID );
+               idSet.insert( neighborCellID );
+            }
+
+            const auto neighborCellVertices = cells_[neighborCellID.getID()]->neighborVertices();
+
+            const auto containsV0 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[0] );
+            const auto containsV1 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[1] );
+            const auto containsV2 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
+            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[3] );
+
+            if ( neighborCellID != cellID && ( containsV0 || containsV1 || containsV2 || containsV3 ) )
+            {
+               if ( containsV0 && containsV1 && containsV2 )
+               {
+                  cell->indirectNeighborCellIDsOverFaces_[0] = neighborCellID;
+               }
+               else if ( containsV0 && containsV1 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDsOverFaces_[1] = neighborCellID;
+               }
+               else if ( containsV0 && containsV2 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDsOverFaces_[2] = neighborCellID;
+               }
+               else if ( containsV1 && containsV2 && containsV3 )
+               {
+                  cell->indirectNeighborCellIDsOverFaces_[3] = neighborCellID;
+               }
             }
          }
       }
 
-      cell->indirectNeighborCellIDs_.clear();
-      cell->indirectNeighborCellIDs_.insert(
-          cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+      cell->indirectNeighborCellIDsOverVertices_.clear();
+      cell->indirectNeighborCellIDsOverVertices_.insert(
+          cell->indirectNeighborCellIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
    }
 
    loadbalancing::roundRobin( *this );
@@ -647,16 +696,13 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
    if ( verbose )
    {
       os << "\n";
-      os << "               |             | mesh     |                                      | \n"
-         << "Vertices:   ID | Target Rank | boundary | Position                             | Neighbor Edges\n"
-         << "               |             | flag     |                                      | \n"
-         << "-----------------------------------------------------------------------------------------------\n";
+      os << "Vertices:   ID | Target Rank | Position  | Neighbor Edges \n"
+         << "---------------------------------------------------------\n";
       for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
       {
          Point3D coordinates = it->second->getCoordinates();
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-            << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::scientific << std::showpos
-            << std::setprecision( 3 ) << coordinates << " | ";
+            << coordinates << " | ";
          for ( const auto& neighborEdgeID : it->second->getHigherDimNeighbors() )
          {
             os << neighborEdgeID.getID() << " ";
@@ -665,15 +711,13 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
       }
       os << "\n";
 
-      os << "               |             |            |            | mesh     |\n"
-         << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | boundary | Neighbor Faces\n"
-         << "               |             |            |            | flag     |\n"
-         << "----------------------------------------------------------------------------------\n";
+      os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | mesh boundary flag   | Neighbor Faces \n"
+         << "----------------------------------------------------------------------------------------------\n";
       for ( auto it = edges_.begin(); it != edges_.end(); it++ )
       {
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
             << std::setw( 10 ) << it->second->getVertexID0().getID() << " | " << std::setw( 10 )
-            << it->second->getVertexID1().getID() << " | " << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | ";
+            << it->second->getVertexID1().getID() << " | " << std::setw( 20 ) << it->second->getMeshBoundaryFlag() << " | ";
          for ( const auto& neighborFaceID : it->second->getHigherDimNeighbors() )
          {
             os << neighborFaceID.getID() << " ";
@@ -682,32 +726,26 @@ void SetupPrimitiveStorage::toStream( std::ostream& os, bool verbose ) const
       }
       os << "\n";
 
-      os << "               |             | mesh     |          |          |         \n"
-         << "Faces:      ID | Target Rank | boundary | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
-         << "               |             | flag     |          |          |         \n"
-         << "------------------------------------------------------------------------\n";
+      os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
+         << "-------------------------------------------------------------\n";
       for ( auto it = faces_.begin(); it != faces_.end(); it++ )
       {
          os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-            << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::setw( 8 ) << it->second->getEdgeID0().getID()
-            << " | " << std::setw( 8 ) << it->second->getEdgeID1().getID() << " | " << std::setw( 8 )
-            << it->second->getEdgeID2().getID() << "\n";
+            << std::setw( 8 ) << it->second->getEdgeID0().getID() << " | " << std::setw( 8 ) << it->second->getEdgeID1().getID()
+            << " | " << std::setw( 8 ) << it->second->getEdgeID2().getID() << "\n";
       }
       os << "\n";
 
       if ( cells_.size() > 0 )
       {
-         os << "               |             | mesh        |          |          |          |\n"
-            << "Cells:      ID | Target Rank | boundary    | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
-            << "               |             | flag        |          |          |          |\n"
-            << "--------------------------------------------------------------------------------------\n";
+         os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
+            << "------------------------------------------------------------------------\n";
          for ( auto it = cells_.begin(); it != cells_.end(); it++ )
          {
             os << "          " << std::setw( 4 ) << it->first << " | " << std::setw( 11 ) << getTargetRank( it->first ) << " | "
-               << std::setw( 8 ) << it->second->getMeshBoundaryFlag() << " | " << std::setw( 8 )
-               << it->second->neighborFaces()[0].getID() << " | " << std::setw( 8 ) << it->second->neighborFaces()[1].getID()
-               << " | " << std::setw( 8 ) << it->second->neighborFaces()[2].getID() << " | " << std::setw( 8 )
-               << it->second->neighborFaces()[3].getID() << "\n";
+               << std::setw( 8 ) << it->second->neighborFaces()[0].getID() << " | " << std::setw( 8 )
+               << it->second->neighborFaces()[1].getID() << " | " << std::setw( 8 ) << it->second->neighborFaces()[2].getID()
+               << " | " << std::setw( 8 ) << it->second->neighborFaces()[3].getID() << "\n";
          }
       }
    }
@@ -771,7 +809,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation( const uint_t& 
 
    for ( const auto& p : vertices_ )
    {
-      if ( cond( {p.second->getCoordinates()} ) )
+      if ( cond( { p.second->getCoordinates() } ) )
          setMeshBoundaryFlag( p.first, meshBoundaryFlag );
    }
 
@@ -800,7 +838,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
 {
    auto centroid = [useGeometryMap]( const std::vector< Point3D >&         coordinates,
                                      const std::shared_ptr< GeometryMap >& map ) -> Point3D {
-      Point3D c( {real_c( 0 ), real_c( 0 ), real_c( 0 )} );
+      Point3D c( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
       for ( const auto& p : coordinates )
       {
          c += p;
@@ -817,7 +855,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
 
    for ( const auto& p : vertices_ )
    {
-      const auto c = centroid( {p.second->getCoordinates()}, p.second->getGeometryMap() );
+      const auto c = centroid( { p.second->getCoordinates() }, p.second->getGeometryMap() );
       if ( onBoundary( c ) )
          setMeshBoundaryFlag( p.first, meshBoundaryFlag );
    }

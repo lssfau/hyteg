@@ -47,7 +47,7 @@ inline void upwind( const uint_t&                                               
    {
       Face* face = storage->getFace( faceIt.getID() );
 
-      real_t faceArea    = std::pow( 4.0, -walberla::real_c( Level ) ) * face->area;
+      real_t faceArea    = std::pow( 4.0, -walberla::real_c( Level ) ) * face->getArea();
       real_t faceAreaInv = 1.0 / faceArea;
 
       uint_t localFaceId = vertex.face_index( face->getID() );
@@ -68,9 +68,9 @@ inline void upwind( const uint_t&                                               
       uint_t p1EdgeId1 = vertex.edge_index( adjEdgeIds[1] ) + 1;
 
       // compute edge directions
-      auto d0 = ( face->coords[v1] - face->coords[v0] ) / walberla::real_c( rowsize - 1 );
-      auto d1 = ( face->coords[v0] - face->coords[v2] ) / walberla::real_c( rowsize - 1 );
-      auto d2 = ( face->coords[v2] - face->coords[v1] ) / walberla::real_c( rowsize - 1 );
+      auto d0 = ( face->getCoordinates()[v1] - face->getCoordinates()[v0] ) / walberla::real_c( rowsize - 1 );
+      auto d1 = ( face->getCoordinates()[v0] - face->getCoordinates()[v2] ) / walberla::real_c( rowsize - 1 );
+      auto d2 = ( face->getCoordinates()[v2] - face->getCoordinates()[v1] ) / walberla::real_c( rowsize - 1 );
 
       // compute edge lengths
       real_t d0Length = d0.norm();
@@ -82,7 +82,7 @@ inline void upwind( const uint_t&                                               
       auto n_1 = d1.normal2D() / d1Length;
       auto n_2 = d2.normal2D() / d2Length;
 
-      real_t faceOrientation = math::faceOrientation2D( face->coords[v0], face->coords[v1], face->coords[v2] );
+      real_t faceOrientation = math::faceOrientation2D( face->getCoordinates()[v0], face->getCoordinates()[v1], face->getCoordinates()[v2] );
       n_0 *= faceOrientation;
       n_1 *= faceOrientation;
       n_2 *= faceOrientation;

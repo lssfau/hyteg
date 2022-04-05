@@ -581,12 +581,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                uint_t                     v_i       = face->vertex_index( vertex.getID() );
                std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-               x  = face->coords[v_i];
-               d0 = ( face->coords[face->vertex_index(
+               x  = face->getCoordinates()[v_i];
+               d0 = ( face->getCoordinates()[face->vertex_index(
                           storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
                       x ) *
                     h;
-               d2 = ( face->coords[face->vertex_index(
+               d2 = ( face->getCoordinates()[face->vertex_index(
                           storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
                       x ) *
                     h;
@@ -1954,7 +1954,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroedge::getIndexInNeighboringMacroCell( { i, 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+             vertexdof::macroedge::getIndexInNeighboringMacroCell( { idx_t( i ), 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
          edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
@@ -1985,9 +1985,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       // 2D version
       else
       {
-         x0_ = face.coords[0];
-         dx_ = h_ * ( face.coords[1] - face.coords[0] );
-         dy_ = h_ * ( face.coords[2] - face.coords[0] );
+         x0_ = face.getCoordinates()[0];
+         dx_ = h_ * ( face.getCoordinates()[1] - face.getCoordinates()[0] );
+         dy_ = h_ * ( face.getCoordinates()[2] - face.getCoordinates()[0] );
 
          stencil_directions_2D_ = stencil::Directions2D( h_, face );
       }
@@ -2071,7 +2071,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroface::getIndexInNeighboringMacroCell( { i, j, 0 }, *face_, neighborCellID, *storage_, level_ );
+             vertexdof::macroface::getIndexInNeighboringMacroCell( { idx_t( i ), idx_t( j ), 0 }, *face_, neighborCellID, *storage_, level_ );
          face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }

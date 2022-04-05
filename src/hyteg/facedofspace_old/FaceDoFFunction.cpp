@@ -18,25 +18,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 
 namespace hyteg {
 
 template < typename ValueType >
-FaceDoFFunction< ValueType >::FaceDoFFunction( const std::string&                         name,
+FaceDoFFunction_old< ValueType >::FaceDoFFunction_old( const std::string&                         name,
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                uint_t                                     minLevel,
                                                uint_t                                     maxLevel )
-: FaceDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+: FaceDoFFunction_old( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
 template < typename ValueType >
-FaceDoFFunction< ValueType >::FaceDoFFunction( const std::string&                         name,
+FaceDoFFunction_old< ValueType >::FaceDoFFunction_old( const std::string&                         name,
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                uint_t                                     minLevel,
                                                uint_t                                     maxLevel,
                                                BoundaryCondition                          boundaryCondition )
-: Function< FaceDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
+: Function< FaceDoFFunction_old< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
 {
    auto vertexDGFunctionMemoryDataHandling =
@@ -56,9 +56,9 @@ FaceDoFFunction< ValueType >::FaceDoFFunction( const std::string&               
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::add(
+void FaceDoFFunction_old< ValueType >::add(
     const std::vector< ValueType >&                                                    scalars,
-    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
+    const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
     uint_t                                                                             level,
     DoFType                                                                            flag ) const
 {
@@ -121,7 +121,7 @@ void FaceDoFFunction< ValueType >::add(
 }
 
 template < typename ValueType >
-inline void FaceDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+inline void FaceDoFFunction_old< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                        uint_t                                              level,
                                                        DoFType                                             flag ) const
 {
@@ -131,16 +131,16 @@ inline void FaceDoFFunction< ValueType >::interpolate( const std::function< Valu
 }
 
 template < typename ValueType >
-inline void FaceDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
+inline void FaceDoFFunction_old< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    std::function< ValueType( const Point3D& ) > auxFunc = [constant]( const hyteg::Point3D& ) { return constant; };
    this->interpolate( { auxFunc }, level, flag );
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::interpolate(
+void FaceDoFFunction_old< ValueType >::interpolate(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >&   srcFunctions,
+    const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >&   srcFunctions,
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
@@ -200,7 +200,7 @@ void FaceDoFFunction< ValueType >::interpolate(
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+void FaceDoFFunction_old< ValueType >::interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
                                                 uint_t                                                                    level,
                                                 DoFType flag ) const
 {
@@ -209,9 +209,9 @@ void FaceDoFFunction< ValueType >::interpolate( const std::vector< std::function
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::assign(
+void FaceDoFFunction_old< ValueType >::assign(
     const std::vector< ValueType >&                                                    scalars,
-    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
+    const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
     uint_t                                                                             level,
     DoFType                                                                            flag ) const
 {
@@ -224,7 +224,7 @@ void FaceDoFFunction< ValueType >::assign(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
 
-   for ( const FaceDoFFunction< ValueType >& function : functions )
+   for ( const FaceDoFFunction_old< ValueType >& function : functions )
    {
       srcVertexIDs.push_back( function.vertexDataID_ );
       srcEdgeIDs.push_back( function.edgeDataID_ );
@@ -274,13 +274,13 @@ void FaceDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::enumerate( uint_t level )
+void FaceDoFFunction_old< ValueType >::enumerate( uint_t level )
 {
    enumerate( level, static_cast< ValueType >( 0 ) );
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::enumerate( uint_t level, ValueType offset )
+void FaceDoFFunction_old< ValueType >::enumerate( uint_t level, ValueType offset )
 {
    this->startTiming( "Enumerate" );
 
@@ -331,7 +331,7 @@ void FaceDoFFunction< ValueType >::enumerate( uint_t level, ValueType offset )
 }
 
 template < typename ValueType >
-ValueType FaceDoFFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
+ValueType FaceDoFFunction_old< ValueType >::getMaxValue( const uint_t level, DoFType flag )
 {
    ValueType localMax = -std::numeric_limits< ValueType >::max();
 
@@ -370,7 +370,7 @@ ValueType FaceDoFFunction< ValueType >::getMaxValue( const uint_t level, DoFType
 }
 
 template < typename ValueType >
-ValueType FaceDoFFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
+ValueType FaceDoFFunction_old< ValueType >::getMinValue( const uint_t level, DoFType flag )
 {
    ValueType localMin = std::numeric_limits< ValueType >::max();
 
@@ -409,7 +409,7 @@ ValueType FaceDoFFunction< ValueType >::getMinValue( const uint_t level, DoFType
 }
 
 template < typename ValueType >
-ValueType FaceDoFFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag )
+ValueType FaceDoFFunction_old< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag )
 {
    ValueType localMax = -std::numeric_limits< ValueType >::max();
 
@@ -448,8 +448,8 @@ ValueType FaceDoFFunction< ValueType >::getMaxMagnitude( const uint_t level, DoF
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::multElementwise(
-    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
+void FaceDoFFunction_old< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const FaceDoFFunction_old< ValueType > > >& functions,
     uint_t                                                                             level,
     DoFType                                                                            flag ) const
 {
@@ -465,7 +465,7 @@ void FaceDoFFunction< ValueType >::multElementwise(
       Vertex& vertex = *it.second;
 
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcIDs;
-      for ( const FaceDoFFunction& function : functions )
+      for ( const FaceDoFFunction_old& function : functions )
       {
          srcIDs.push_back( function.getVertexDataID() );
       }
@@ -478,7 +478,7 @@ void FaceDoFFunction< ValueType >::multElementwise(
    for ( auto& it : this->getStorage()->getEdges() )
    {
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcIDs;
-      for ( const FaceDoFFunction& function : functions )
+      for ( const FaceDoFFunction_old& function : functions )
       {
          srcIDs.push_back( function.getEdgeDataID() );
       }
@@ -494,7 +494,7 @@ void FaceDoFFunction< ValueType >::multElementwise(
       Face& face = *it.second;
 
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcIDs;
-      for ( const FaceDoFFunction& function : functions )
+      for ( const FaceDoFFunction_old& function : functions )
       {
          srcIDs.push_back( function.getFaceDataID() );
       }
@@ -507,7 +507,7 @@ void FaceDoFFunction< ValueType >::multElementwise(
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
+void FaceDoFFunction_old< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
 {
    this->startTiming( "Add scalar" );
 
@@ -547,7 +547,7 @@ void FaceDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, Do
 }
 
 template < typename ValueType >
-inline void FaceDoFFunction< ValueType >::swap( const FaceDoFFunction< ValueType >& other,
+inline void FaceDoFFunction_old< ValueType >::swap( const FaceDoFFunction_old< ValueType >& other,
                                                 const uint_t&                       level,
                                                 const DoFType&                      flag ) const
 {
@@ -589,7 +589,8 @@ inline void FaceDoFFunction< ValueType >::swap( const FaceDoFFunction< ValueType
 }
 
 template < typename ValueType >
-ValueType FaceDoFFunction< ValueType >::dotLocal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+ValueType
+    FaceDoFFunction_old< ValueType >::dotLocal( const FaceDoFFunction_old< ValueType >& secondOp, uint_t level, DoFType flag ) const
 {
    if ( this->getStorage()->hasGlobalCells() )
    {
@@ -637,7 +638,7 @@ ValueType FaceDoFFunction< ValueType >::dotLocal( const FaceDoFFunction< ValueTy
 
 template < typename ValueType >
 ValueType
-    FaceDoFFunction< ValueType >::dotGlobal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+    FaceDoFFunction_old< ValueType >::dotGlobal( const FaceDoFFunction_old< ValueType >& secondOp, uint_t level, DoFType flag ) const
 {
    ValueType scalarProduct = dotLocal( secondOp, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -647,7 +648,7 @@ ValueType
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >& other, const uint_t& level ) const
+void FaceDoFFunction_old< ValueType >::copyFrom( const FaceDoFFunction_old< ValueType >& other, const uint_t& level ) const
 {
    if ( this->getStorage()->hasGlobalCells() )
    {
@@ -690,7 +691,7 @@ void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
-void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >&            other,
+void FaceDoFFunction_old< ValueType >::copyFrom( const FaceDoFFunction_old< ValueType >&            other,
                                              const uint_t&                                  level,
                                              const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                                              const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
@@ -796,8 +797,8 @@ void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >&
    this->stopTiming( "Copy" );
 }
 
-template class FaceDoFFunction< real_t >;
-template class FaceDoFFunction< int32_t >;
-template class FaceDoFFunction< int64_t >;
+template class FaceDoFFunction_old< real_t >;
+template class FaceDoFFunction_old< int32_t >;
+template class FaceDoFFunction_old< int64_t >;
 
 } // namespace hyteg

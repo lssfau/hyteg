@@ -19,15 +19,15 @@
  */
 #pragma once
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 
-inline void createVectorFromFunction( const DGFunction< real_t >&           function,
-                                      const DGFunction< idx_t >&            numerator,
+inline void createVectorFromFunction( const DGFunction_old< real_t >&       function,
+                                      const DGFunction_old< idx_t >&        numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -35,8 +35,8 @@ inline void createVectorFromFunction( const DGFunction< real_t >&           func
    WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
 }
 
-inline void createFunctionFromVector( const DGFunction< real_t >&           function,
-                                      const DGFunction< idx_t >&            numerator,
+inline void createFunctionFromVector( const DGFunction_old< real_t >&       function,
+                                      const DGFunction_old< idx_t >&        numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )

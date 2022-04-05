@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 
 #include "core/DataTypes.h"
 
@@ -31,9 +31,9 @@ namespace hyteg {
 
 using walberla::vtk::typeToString;
 
-void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
+void VTKFaceDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
 {
-   if ( mgr.dgFunctions_.size() == 0 )
+   if ( mgr.faceDoFFunctions_.size() == 0 )
    {
       return;
    }
@@ -57,15 +57,15 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
    output << "<CellData>";
 
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.faceDoFFunctions_.getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.faceDoFFunctions_.getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.faceDoFFunctions_.getFunctions< int64_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
@@ -76,14 +76,13 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 }
 
 template < typename value_t >
-void VTKDGDoFWriter::writeScalarFunction( std::ostream&                              output,
-                                          const FaceDoFFunction< value_t >&               function,
-                                          const std::shared_ptr< PrimitiveStorage >& storage,
-                                          const uint_t&                              level,
-                                          bool                                       write2D,
-                                          vtk::DataFormat                            vtkDataFormat )
+void VTKFaceDoFWriter::writeScalarFunction( std::ostream&                              output,
+                                            const FaceDoFFunction_old< value_t >&      function,
+                                            const std::shared_ptr< PrimitiveStorage >& storage,
+                                            const uint_t&                              level,
+                                            bool                                       write2D,
+                                            vtk::DataFormat                            vtkDataFormat )
 {
-
    // hopefully at some point we will have DGFunctions also in 3D :)
    WALBERLA_UNUSED( write2D );
 

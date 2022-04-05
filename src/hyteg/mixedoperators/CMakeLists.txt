@@ -6,7 +6,11 @@ target_sources( hyteg
     P2ToP1SurrogateOperator.hpp
     P1ToP2VariableOperator.hpp
     MixedDummyOperators.hpp
-    P1ToP2Operator.hpp     
+    P1ToP2Operator.hpp
+    P1ToP0Operator.hpp
+    P0ToP1Operator.hpp
+    P1VectorToP0ScalarOperator.hpp
+    P0ScalarToP1VectorOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( VertexDoFToEdgeDoFOperator )

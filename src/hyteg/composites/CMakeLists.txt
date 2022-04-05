@@ -20,6 +20,8 @@ target_sources( hyteg
     P2P2StabilizedStokesOperator.hpp
     P1P1UzawaDampingFactorEstimationOperator.hpp
     P1EpsilonStokesOperator.hpp
-    P1StokesFunction.hpp     
+    P1StokesFunction.hpp
+    P1P0StokesFunction.hpp
+    P1P0StokesOperator.hpp
 )
 add_subdirectory( transport )

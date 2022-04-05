@@ -23,7 +23,7 @@
 // #include "DGFaceIndex.hpp"
 // #include "hyteg/bubblefunctionspace/BubbleFaceIndex.hpp"
 
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace dgfunction {
@@ -50,9 +50,9 @@ inline void upwind( const uint_t&                                               
    auto v   = face.getData( velocityIds[1] )->getPointer( Level );
 
    // get edge directions
-   auto d0 = ( face.coords[1] - face.coords[0] ) / walberla::real_c( rowsize - 1 );
-   auto d1 = ( face.coords[2] - face.coords[1] ) / walberla::real_c( rowsize - 1 );
-   auto d2 = ( face.coords[0] - face.coords[2] ) / walberla::real_c( rowsize - 1 );
+   auto d0 = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / walberla::real_c( rowsize - 1 );
+   auto d1 = ( face.getCoordinates()[2] - face.getCoordinates()[1] ) / walberla::real_c( rowsize - 1 );
+   auto d2 = ( face.getCoordinates()[0] - face.getCoordinates()[2] ) / walberla::real_c( rowsize - 1 );
 
    // compute edge lengths
    real_t d0Length = d0.norm();
@@ -64,14 +64,14 @@ inline void upwind( const uint_t&                                               
    auto n_1 = d1.normal2D() / d1Length;
    auto n_2 = d2.normal2D() / d2Length;
 
-   real_t faceOrientation = math::faceOrientation2D( face.coords[0], face.coords[1], face.coords[2] );
+   real_t faceOrientation = math::faceOrientation2D( face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
 
    // correct normals if all normals point in wrong direction
    n_0 *= faceOrientation;
    n_1 *= faceOrientation;
    n_2 *= faceOrientation;
 
-   real_t faceArea    = std::pow( 4.0, -walberla::real_c( Level ) ) * face.area;
+   real_t faceArea    = std::pow( 4.0, -walberla::real_c( Level ) ) * face.getArea();
    real_t faceAreaInv = 1.0 / faceArea;
 
    ValueType tmp;

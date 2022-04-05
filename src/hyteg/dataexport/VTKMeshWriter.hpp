@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,10 +28,19 @@ class VTKOutput;
 class VTKMeshWriter
 {
  public:
+   /// \brief Writes the point coordinates for all micro vertices.
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level to write
+   /// \param discontinuous if true, vertices are written for _each_ element - that means eventually each vertex is written
+   ///                      multiple times so that discontinuous elements can be output
    static void writePointsForMicroVertices( const VTKOutput&                           mgr,
                                             std::ostream&                              output,
                                             const std::shared_ptr< PrimitiveStorage >& storage,
-                                            uint_t                                     level );
+                                            uint_t                                     level,
+                                            bool                                       discontinuous = false );
 
    static void writePointsForMicroEdges( const VTKOutput&                           mgr,
                                          std::ostream&                              output,
@@ -39,15 +48,31 @@ class VTKMeshWriter
                                          uint_t                                     level,
                                          const vtk::DoFType&                        dofType );
 
+   /// \brief Writes the 2D cells.
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param faceWidth     number of micro-vertices per macro-edge
+   /// \param discontinuous should match what is specified in VTKMeshWriter::writePointsForMicroVertices()
    static void writeCells2D( const VTKOutput&                           mgr,
                              std::ostream&                              output,
                              const std::shared_ptr< PrimitiveStorage >& storage,
-                             uint_t                                     faceWidth );
+                             uint_t                                     faceWidth,
+                             bool                                       discontinuous = false );
 
+   /// \brief Writes the 3D cells.
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param faceWidth     number of micro-vertices per macro-edge
+   /// \param discontinuous should match what is specified in VTKMeshWriter::writePointsForMicroVertices()
    static void writeCells3D( const VTKOutput&                           mgr,
                              std::ostream&                              output,
                              const std::shared_ptr< PrimitiveStorage >& storage,
-                             uint_t                                     width );
+                             uint_t                                     width,
+                             bool                                       discontinuous = false );
 };
 
 } // namespace hyteg

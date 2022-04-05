@@ -276,7 +276,7 @@ inline void integrateDG( Vertex&                                                
    {
       Face* face = storage->getFace( faceIt.getID() );
 
-      real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+      real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
 
       uint_t localFaceId = vertex.face_index( face->getID() );
 

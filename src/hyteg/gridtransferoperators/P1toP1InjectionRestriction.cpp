@@ -98,8 +98,8 @@ void P1toP1InjectionRestriction::restrictMacroEdge( const real_t* src, real_t* d
 {
    size_t rowsize_c = levelinfo::num_microvertices_per_edge( sourceLevel - 1 );
 
-   uint_t i_c;
-   for ( i_c = 1; i_c < rowsize_c - 1; ++i_c )
+   idx_t i_c;
+   for ( i_c = 1; i_c < idx_t( rowsize_c ) - 1; ++i_c )
    {
       dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] =
           1.0 * src[vertexdof::macroedge::indexFromVertex( sourceLevel, 2 * i_c, stencilDirection::VERTEX_C )];
@@ -113,9 +113,9 @@ void P1toP1InjectionRestriction::restrictMacroFace( const real_t* src, real_t* d
 
    real_t tmp;
 
-   for ( uint_t j = 1; j < N_c - 2; ++j )
+   for ( idx_t j = 1; j < idx_t( N_c ) - 2; ++j )
    {
-      for ( uint_t i = 1; i < N_c_i - 2; ++i )
+      for ( idx_t i = 1; i < idx_t( N_c_i ) - 2; ++i )
       {
          tmp = src[vertexdof::macroface::indexFromVertex( sourceLevel, 2 * i, 2 * j, stencilDirection::VERTEX_C )];
 

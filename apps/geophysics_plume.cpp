@@ -24,8 +24,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
+#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
+#include "hyteg/dgfunctionspace_old/DGUpwindOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -101,10 +101,10 @@ int main( int argc, char* argv[] )
 #endif
 
    // Setting up Functions
-   auto c_old = std::make_shared< hyteg::DGFunction< real_t > >( "c", storage, minLevel, maxLevel );
-   auto c     = std::make_shared< hyteg::DGFunction< real_t > >( "c", storage, minLevel, maxLevel );
+   auto c_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
+   auto c     = std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
 
-   auto f_dg = std::make_shared< hyteg::DGFunction< real_t > >( "f_dg", storage, minLevel, maxLevel );
+   auto f_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "f_dg", storage, minLevel, maxLevel );
 
    auto r = std::make_shared< hyteg::P1StokesFunction< real_t > >( "r", storage, minLevel, maxLevel );
    auto f = std::make_shared< hyteg::P1StokesFunction< real_t > >( "f", storage, minLevel, maxLevel );
@@ -165,11 +165,11 @@ int main( int argc, char* argv[] )
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
       uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, lvl );
-      uint_t tmpDofTemp   = numberOfGlobalDoFs< hyteg::DGFunctionTag >( *storage, lvl );
+      // uint_t tmpDofTemp   = numberOfGlobalDoFs< hyteg::DGFunctionTag >( *storage, lvl );
       WALBERLA_LOG_DETAIL_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
-      WALBERLA_LOG_DETAIL_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemp );
+      // WALBERLA_LOG_DETAIL_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemp );
       totalGlobalDofsStokes += tmpDofStokes;
-      totalGlobalDofsTemp += tmpDofTemp;
+      // totalGlobalDofsTemp += tmpDofTemp;
    }
    WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    WALBERLA_LOG_INFO_ON_ROOT( "Total Temperature DoFs on all level :" << totalGlobalDofsTemp );
