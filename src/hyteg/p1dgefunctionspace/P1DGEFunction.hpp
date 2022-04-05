@@ -22,6 +22,7 @@
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/p1dgefunctionspace/DGBasisEnriched.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
@@ -31,6 +32,11 @@ template < typename ValueType >
 class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 {
  public:
+   using valueType = ValueType;
+
+   template < typename VType >
+   using FunctionType = P1DGEFunction< VType >;
+
    P1DGEFunction( const std::string&                         name,
                   const std::shared_ptr< PrimitiveStorage >& storage,
                   uint_t                                     minLevel,
@@ -199,11 +205,105 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       return u_conforming_->getNumberOfGlobalDoFs( level ) + u_discontinuous_->getNumberOfGlobalDoFs( level );
    }
 
+   void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f0,
+                                  const std::function< real_t( const Point3D& ) >& f1,
+                                  uint_t                                           level )
+   {
+      if ( u_conforming_->getStorage()->hasGlobalCells() )
+         WALBERLA_ABORT( "evaluation of linear functional not supported in 3D" );
+
+      std::vector< std::function< real_t( const Point3D& ) > > f = { f0, f1 };
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         // P1
+         {
+            const auto degree  = 1;
+            const auto numDofs = 3;
+
+            std::vector< uint_t > vertexDoFIndices( numDofs );
+            std::vector< real_t > dofValues( numDofs );
+
+            for ( uint_t d = 0; d < 2; d += 1 )
+            {
+               auto dofs = u_conforming_->getStorage()
+                               ->getFace( faceID )
+                               ->template getData( u_conforming_->component( d ).getFaceDataID() )
+                               ->getPointer( level );
+
+               for ( auto faceType : facedof::allFaceTypes )
+               {
+                  for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+                  {
+                     const std::array< indexing::Index, 3 > vertexIndices =
+                         facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+                     std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                     for ( uint_t i = 0; i < 3; i++ )
+                     {
+                        const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                        elementVertices[i]( 0 )  = elementVertex[0];
+                        elementVertices[i]( 1 )  = elementVertex[1];
+                     }
+
+                     vertexdof::getVertexDoFDataIndicesFromMicroFace( idxIt, faceType, level, vertexDoFIndices );
+                     basis_conforming_.integrateBasisFunction( degree, elementVertices, f[d], dofValues );
+                     for ( uint_t i = 0; i < numDofs; i++ )
+                     {
+                        dofs[vertexDoFIndices[i]] = ValueType( dofValues[i] );
+                     }
+                  }
+               }
+            }
+         }
+
+         // DGE
+         {
+            const auto degree  = 0;
+            const auto numDofs = 1;
+
+            std::vector< uint_t > vertexDoFIndices( numDofs );
+            std::vector< real_t > dofValues( numDofs );
+
+            auto       dofs      = u_discontinuous_->volumeDoFFunction()->dofMemory( faceID, level );
+            const auto memLayout = u_discontinuous_->volumeDoFFunction()->memoryLayout();
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  const std::array< indexing::Index, 3 > vertexIndices =
+                      facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+                  std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                  for ( uint_t i = 0; i < 3; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                  }
+
+                  basis_discontinuous_.integrateBasisFunction( degree, elementVertices, f[0], f[1], dofValues );
+                  for ( uint_t i = 0; i < numDofs; i++ )
+                  {
+                     dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
+                         ValueType( dofValues[i] );
+                  }
+               }
+            }
+         }
+      }
+   };
+
  protected:
    std::shared_ptr< dg::DGBasisLinearLagrange_Example > basis_;
 
    std::shared_ptr< P1VectorFunction< ValueType > > u_conforming_;
    std::shared_ptr< dg::DGFunction< ValueType > >   u_discontinuous_;
+
+   dg::DGBasisLinearLagrange_Example basis_conforming_;
+   DGBasisEnriched                   basis_discontinuous_;
 };
 
 template < typename ValueType >
@@ -211,12 +311,13 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
                                            const std::shared_ptr< PrimitiveStorage >& storage,
                                            uint_t                                     minLevel,
                                            uint_t                                     maxLevel,
-                                           BoundaryCondition                          boundaryCondition )
+                                           BoundaryCondition                          bc )
 : Function< P1DGEFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , basis_{ std::make_shared< dg::DGBasisLinearLagrange_Example >() }
-, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel, boundaryCondition ) }
-, u_discontinuous_{
-      std::make_shared< dg::DGFunction< ValueType > >( name, storage, minLevel, maxLevel, basis_, 0, boundaryCondition ) }
+, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel, bc ) }
+, u_discontinuous_{ std::make_shared< dg::DGFunction< ValueType > >( name, storage, minLevel, maxLevel, basis_, 0, bc ) }
+, basis_conforming_()
+, basis_discontinuous_()
 {}
 
 } // namespace hyteg

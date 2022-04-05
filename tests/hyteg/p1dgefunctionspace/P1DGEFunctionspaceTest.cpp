@@ -41,6 +41,12 @@ void testP1DGEFunctionSpace() {
    uint_t maxLevel = 3;
 
    P1DGEFunction< real_t > u("u", storage, minLevel, maxLevel);
+   P1DGEFunction< real_t > rhs("rhs", storage, minLevel, maxLevel);
+
+   auto f0 = [](Point3D p){ return p[0] + 2 * p[1]; };
+   auto f1 = [](Point3D p){ return 0.5 * p[0] + p[1]; };
+
+   rhs.evaluateLinearFunctional(f0, f1, maxLevel);
 }
 
 } // namespace hyteg
