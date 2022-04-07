@@ -13,5 +13,9 @@ target_sources( hyteg
     DGOperator.cpp
     DGOperator.hpp
     DGStokesP1P0PressureStabForm_Example.hpp
+    P1_to_P0_div_form.cpp
+    P1_to_P0_div_form.hpp
+    P0_to_P1_divt_form.cpp
+    P0_to_P1_divt_form.hpp
 )
 
