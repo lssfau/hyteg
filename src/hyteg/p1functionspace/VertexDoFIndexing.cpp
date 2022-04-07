@@ -758,6 +758,19 @@ void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceInd
    }
 }
 
+void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceIndex,
+                                           const facedof::FaceType& faceType,
+                                           const uint_t             level,
+                                           std::vector< uint_t >&   vertexDoFIndices )
+{
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      vertexDoFIndices[k] =
+          vertexdof::macroface::indexFromVertex( level, verts[k].col(), verts[k].row(), stencilDirection::VERTEX_C );
+   }
+}
+
 void getVertexDoFDataIndicesFromMicroCell( const indexing::Index&   microCellIndex,
                                            const celldof::CellType& cellType,
                                            const uint_t             level,

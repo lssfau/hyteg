@@ -38,6 +38,14 @@ class VTKDGWriter
                                     const uint_t&                              level,
                                     bool                                       write2D,
                                     vtk::DataFormat                            vtkDataFormat );
+
+   template < typename value_t >
+   static void writeVectorFunction( std::ostream&                              output,
+                                    const dg::DGVectorFunction< value_t >&     function,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t&                              level,
+                                    bool                                       write2D,
+                                    vtk::DataFormat                            vtkDataFormat );
 };
 
 } // namespace hyteg

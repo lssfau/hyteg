@@ -518,7 +518,12 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir );
 void getVertexDoFDataIndicesFromMicroFace( const indexing::Index & microFaceIndex,
                                            const facedof::FaceType & faceType,
                                            const uint_t level,
-                                           std::array<uint_t, 3>& vertexDoFIndices );
+                                           std::array< uint_t, 3 >& vertexDoFIndices );
+
+void getVertexDoFDataIndicesFromMicroFace( const indexing::Index & microFaceIndex,
+                                           const facedof::FaceType & faceType,
+                                           const uint_t level,
+                                           std::vector< uint_t >& vertexDoFIndices );
 
 void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
                                            const celldof::CellType & cellType,

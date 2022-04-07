@@ -96,6 +96,10 @@ void VTKOutput::add( const GenericFunction< value_t >& function )
       matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< value_t > > >( function );
       break;
 
+   case functionTraits::DG_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGVectorFunction< value_t > > >( function );
+      break;
+
    case functionTraits::EDGE_DOF_FUNCTION:
       matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< value_t > > >( function );
       break;
@@ -175,7 +179,7 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
    case vtk::DoFType::EDGE_XYZ:
       return edgeDoFFunctions_.size();
    case vtk::DoFType::DG:
-      return dgFunctions_.size();
+      return dgFunctions_.size() + dgVecFunctions_.size();
       break;
    case vtk::DoFType::P2:
       return p2Functions_.size() + p2VecFunctions_.size();
@@ -315,6 +319,12 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
+
+   // ----------------------------------------------
+   //  DGVectorFunctions [double, int32_t, int64_t]
+   // ----------------------------------------------
+
+   // no communication necessary
 
    // ---------------------------------------------
    //  EdgeDoFFunctions [double, int32_t, int64_t]

@@ -95,6 +95,20 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
+   // write all P2VectorFunctions of supported value type
+   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< double >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< int32_t >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< int64_t >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+
    output << "</PointData>\n";
 
    vtk::writePieceFooter( output );
@@ -160,6 +174,56 @@ void VTKDGWriter::writeScalarFunction( std::ostream&                            
             }
          }
       }
+   }
+
+   streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
+}
+
+template < typename value_t >
+void VTKDGWriter::writeVectorFunction( std::ostream&                              output,
+                                       const dg::DGVectorFunction< value_t >&     function,
+                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                       const uint_t&                              level,
+                                       bool                                       write2D,
+                                       vtk::DataFormat                            vtkDataFormat )
+{
+   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
+
+   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), function.getDimension(), vtkDataFormat );
+
+   if ( write2D )
+   {
+      for ( const auto& it : storage->getFaces() )
+      {
+         const PrimitiveID faceID = it.first;
+         const Face&       face   = *it.second;
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               const std::array< indexing::Index, 3 > vertexIndices =
+                   facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+               for ( uint_t i = 0; i < 3; i++ )
+               {
+                  const auto vtkPoint = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                  value_t    value;
+                  for ( uint_t j = 0; j < function.getDimension(); j += 1 )
+                  {
+                     function[j].evaluateOnMicroElement( vtkPoint, level, faceID, idxIt, faceType, value );
+                     streamWriter << value;
+                  }
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "DGFunction VTK not implemented in 3D." );
    }
 
    streamWriter.toStream( output );

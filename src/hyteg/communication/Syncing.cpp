@@ -67,6 +67,15 @@ void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFu
    }
 }
 
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const dg::DGVectorFunction< vType >& vecFunc, const uint_t& level )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncDGFunctionBetweenPrimitives( vecFunc[idx], level );
+   }
+}
+
 template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< int32_t >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< int64_t >& function, const uint_t& level );

@@ -121,7 +121,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All )
    {
-      WALBERLA_UNUSED( flag );
+      WALBERLA_UNUSED(flag);
       std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > > vFunctions;
       for ( const auto& f : functions )
       {
@@ -135,6 +135,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// process.
    ValueType dotLocal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
+      WALBERLA_UNUSED(flag);
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotLocal( *rhs.volumeDoFFunction_, level );
    }
@@ -142,6 +143,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
    ValueType dotGlobal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
+      WALBERLA_UNUSED(flag);
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotGlobal( *rhs.volumeDoFFunction_, level );
    }
