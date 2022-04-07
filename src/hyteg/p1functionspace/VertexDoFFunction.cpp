@@ -27,7 +27,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/Intersection.hpp"
@@ -1626,7 +1626,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction< ValueType >&        rhs,
+void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >&        rhs,
                                                   VertexDoFFunction< ValueType >& rhsP1,
                                                   uint_t                          level,
                                                   DoFType                         flag )

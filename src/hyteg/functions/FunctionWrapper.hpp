@@ -182,7 +182,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    uint_t getNumberOfLocalDoFs( uint_t level ) const
    {
       auto storage = wrappedFunc_->getStorage();
-      return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
+      return numberOfLocalDoFs< WrappedFuncType >( *wrappedFunc_, level );
    }
 
    uint_t getNumberOfGlobalDoFs( uint_t          level,
@@ -190,7 +190,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
                                  const bool&     onRootOnly   = false ) const
    {
       auto storage = wrappedFunc_->getStorage();
-      return numberOfGlobalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level, communicator, onRootOnly );
+      return numberOfGlobalDoFs< WrappedFuncType >( *wrappedFunc_, level, communicator, onRootOnly );
    }
 
    /// conversion to/from linear algebra representation

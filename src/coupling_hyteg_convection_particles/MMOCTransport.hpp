@@ -58,39 +58,40 @@ enum class TimeSteppingScheme
    RK4,           // fourth order
 };
 
-const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = {{{0}}};
-const static std::vector< real_t >                RK_b_ExplicitEuler = {1};
-const static std::vector< real_t >                RK_c_ExplicitEuler = {0};
+const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = { { { 0 } } };
+const static std::vector< real_t >                RK_b_ExplicitEuler = { 1 };
+const static std::vector< real_t >                RK_c_ExplicitEuler = { 0 };
 
-const static std::vector< std::vector< real_t > > RK_A_RK3 = {{{0, 0, 0}, {0.5, 0, 0}, {-1., 2., 0}}};
-const static std::vector< real_t >                RK_b_RK3 = {1. / 6., 2. / 3., 1. / 6.};
-const static std::vector< real_t >                RK_c_RK3 = {0, 0.5, 1.};
+const static std::vector< std::vector< real_t > > RK_A_RK3 = { { { 0, 0, 0 }, { 0.5, 0, 0 }, { -1., 2., 0 } } };
+const static std::vector< real_t >                RK_b_RK3 = { 1. / 6., 2. / 3., 1. / 6. };
+const static std::vector< real_t >                RK_c_RK3 = { 0, 0.5, 1. };
 
-const static std::vector< std::vector< real_t > > RK_A_Ralston = {{{0, 0, 0}, {0.5, 0, 0}, {0, 0.75, 0}}};
-const static std::vector< real_t >                RK_b_Ralston = {2. / 9., 1. / 3., 4. / 9.};
-const static std::vector< real_t >                RK_c_Ralston = {0, 0.5, 0.75};
+const static std::vector< std::vector< real_t > > RK_A_Ralston = { { { 0, 0, 0 }, { 0.5, 0, 0 }, { 0, 0.75, 0 } } };
+const static std::vector< real_t >                RK_b_Ralston = { 2. / 9., 1. / 3., 4. / 9. };
+const static std::vector< real_t >                RK_c_Ralston = { 0, 0.5, 0.75 };
 
-const static std::vector< std::vector< real_t > > RK_A_RK4 = {{{0, 0, 0, 0}, {0.5, 0, 0, 0}, {0, 0.5, 0, 0}, {0, 0, 1, 0}}};
-const static std::vector< real_t >                RK_b_RK4 = {1. / 6., 1. / 3., 1. / 3., 1. / 6.};
-const static std::vector< real_t >                RK_c_RK4 = {0, 0.5, 0.5, 1.};
+const static std::vector< std::vector< real_t > > RK_A_RK4 = {
+    { { 0, 0, 0, 0 }, { 0.5, 0, 0, 0 }, { 0, 0.5, 0, 0 }, { 0, 0, 1, 0 } } };
+const static std::vector< real_t > RK_b_RK4 = { 1. / 6., 1. / 3., 1. / 3., 1. / 6. };
+const static std::vector< real_t > RK_c_RK4 = { 0, 0.5, 0.5, 1. };
 
 const static std::map< TimeSteppingScheme, std::vector< std::vector< real_t > > > RK_A = {
-    {TimeSteppingScheme::ExplicitEuler, RK_A_ExplicitEuler},
-    {TimeSteppingScheme::RK3, RK_A_RK3},
-    {TimeSteppingScheme::Ralston, RK_A_Ralston},
-    {TimeSteppingScheme::RK4, RK_A_RK4}};
+    { TimeSteppingScheme::ExplicitEuler, RK_A_ExplicitEuler },
+    { TimeSteppingScheme::RK3, RK_A_RK3 },
+    { TimeSteppingScheme::Ralston, RK_A_Ralston },
+    { TimeSteppingScheme::RK4, RK_A_RK4 } };
 
 const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
-    {TimeSteppingScheme::ExplicitEuler, RK_b_ExplicitEuler},
-    {TimeSteppingScheme::RK3, RK_b_RK3},
-    {TimeSteppingScheme::Ralston, RK_b_Ralston},
-    {TimeSteppingScheme::RK4, RK_b_RK4}};
+    { TimeSteppingScheme::ExplicitEuler, RK_b_ExplicitEuler },
+    { TimeSteppingScheme::RK3, RK_b_RK3 },
+    { TimeSteppingScheme::Ralston, RK_b_Ralston },
+    { TimeSteppingScheme::RK4, RK_b_RK4 } };
 
 const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_c = {
-    {TimeSteppingScheme::ExplicitEuler, RK_c_ExplicitEuler},
-    {TimeSteppingScheme::RK3, RK_c_RK3},
-    {TimeSteppingScheme::Ralston, RK_c_Ralston},
-    {TimeSteppingScheme::RK4, RK_c_RK4}};
+    { TimeSteppingScheme::ExplicitEuler, RK_c_ExplicitEuler },
+    { TimeSteppingScheme::RK3, RK_c_RK3 },
+    { TimeSteppingScheme::Ralston, RK_c_Ralston },
+    { TimeSteppingScheme::RK4, RK_c_RK4 } };
 
 inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const PrimitiveStorage& storage )
 {
@@ -147,12 +148,12 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
 
          Point3D computationalLocation;
          face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
-         Point2D computationalLocation2D( {computationalLocation[0], computationalLocation[1]} );
+         Point2D computationalLocation2D( { computationalLocation[0], computationalLocation[1] } );
 
          if ( isPointInTriangle( computationalLocation2D,
-                                 Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                 Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                 Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                 Point2D( { face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] } ),
+                                 Point2D( { face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] } ),
+                                 Point2D( { face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] } ) ) )
          {
             p->setContainingPrimitive( faceID );
             foundByPointLocation = true;
@@ -168,13 +169,13 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                const auto neighborFace = storage.getFace( neighborFaceID );
                Point3D    computationalLocationNeighbor;
                neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
-               Point2D computationalLocationNeighbor2D( {computationalLocationNeighbor[0], computationalLocationNeighbor[1]} );
+               Point2D computationalLocationNeighbor2D( { computationalLocationNeighbor[0], computationalLocationNeighbor[1] } );
 
                if ( isPointInTriangle(
                         computationalLocationNeighbor2D,
-                        Point2D( {neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1]} ),
-                        Point2D( {neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1]} ),
-                        Point2D( {neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1]} ) ) )
+                        Point2D( { neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1] } ),
+                        Point2D( { neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1] } ),
+                        Point2D( { neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1] } ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborFaceID );
@@ -262,8 +263,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
          else
          {
             // check for neighbor cells if we did not find it in its previous cell
-            const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
-            for ( const auto& neighborCellID : neighboringCells )
+            for ( const auto& neighborCellID : cell->getIndirectNeighborCellIDsOverVertices() )
             {
                WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
                                 storage.cellExistsInNeighborhood( neighborCellID ) );
@@ -308,8 +308,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
             }
             else
             {
-               const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
-               for ( const auto& neighborCellID : neighboringCells )
+               for ( const auto& neighborCellID : cell->getIndirectNeighborCellIDsOverVertices() )
                {
                   WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
                                    storage.cellExistsInNeighborhood( neighborCellID ) );
@@ -524,10 +523,10 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
    particleStorage.clear();
 
-   const uint_t                                rank     = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    // const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme ); //this seems to be unused?
-   const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
-   const uint_t                                rkStages = b.size();
+   const std::vector< real_t >& b        = RK_b.at( timeSteppingScheme );
+   const uint_t                 rkStages = b.size();
 
    if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
    {
@@ -806,10 +805,10 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
 
       storage.getTimingTree()->start( "Evaluate at particle position" );
 
-      std::vector< real_t >       results( {0, 0} );
-      std::vector< real_t >       resultsLastTimeStep( {0, 0} );
-      std::vector< FunctionType > functions             = {ux, uy};
-      std::vector< FunctionType > functionsLastTimeStep = {uxLastTimeStep, uyLastTimeStep};
+      std::vector< real_t >       results( { 0, 0 } );
+      std::vector< real_t >       resultsLastTimeStep( { 0, 0 } );
+      std::vector< FunctionType > functions             = { ux, uy };
+      std::vector< FunctionType > functionsLastTimeStep = { uxLastTimeStep, uyLastTimeStep };
       if ( storage.hasGlobalCells() )
       {
          results.push_back( 0 );
@@ -944,15 +943,22 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       const int TAG = 98234;
 #ifdef _MSC_VER
       //need a first receive to avoid blocking on windows while communicating with itself
-      int selfCommMessage = 0;
+      int         selfCommMessage = 0;
       MPI_Request selfCommRequest;
-      MPI_Irecv(&selfCommMessage, 1, MPI_INT, walberla::mpi::MPIManager::instance()->rank(), TAG, walberla::mpi::MPIManager::instance()->comm(), &selfCommRequest);
+      MPI_Irecv( &selfCommMessage,
+                 1,
+                 MPI_INT,
+                 walberla::mpi::MPIManager::instance()->rank(),
+                 TAG,
+                 walberla::mpi::MPIManager::instance()->comm(),
+                 &selfCommRequest );
 #endif
       for ( const auto& p : particleStorage )
       {
-         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 ){
+         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
+         {
             numParticlesToSendToRank[p.getStartProcess()] = 0;
-            sendRequests[p.getStartProcess()] = MPI_Request();
+            sendRequests[p.getStartProcess()]             = MPI_Request();
          }
          numParticlesToSendToRank[p.getStartProcess()]++;
       }
@@ -977,21 +983,23 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       }
 
       int numReceivedParticleLocations = 0;
-      #ifdef _MSC_VER
+#ifdef _MSC_VER
       //get self communication
       {
-         int ready;
+         int        ready;
          MPI_Status status;
-         MPI_Test(&selfCommRequest, &ready, &status);
-         if(ready){
-            numReceivedParticleLocations = selfCommMessage;
+         MPI_Test( &selfCommRequest, &ready, &status );
+         if ( ready )
+         {
+            numReceivedParticleLocations                               = selfCommMessage;
             numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numReceivedParticleLocations;
-         }else{
-            WALBERLA_LOG_INFO("somethings very wrong here");
          }
-
+         else
+         {
+            WALBERLA_LOG_INFO( "somethings very wrong here" );
+         }
       }
-      #endif
+#endif
       while ( numReceivedParticleLocations < numberOfCreatedParticles )
       {
          MPI_Status status;
@@ -1184,16 +1192,16 @@ class MMOCTransport
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
-   void step( const FunctionType&                                                    c,
-              const vecfun_t& u,
-              const vecfun_t& uLastTimeStep,
-              const uint_t&                                                          level,
-              const DoFType&                                                         flag,
-              const real_t&                                                          dt,
-              const uint_t&                                                          innerSteps,
-              const bool&                                                            resetParticles                  = true,
-              const bool&                                                            globalMaxLimiter                = true,
-              const bool&                                                            setParticlesOutsideDomainToZero = false )
+   void step( const FunctionType& c,
+              const vecfun_t&     u,
+              const vecfun_t&     uLastTimeStep,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps,
+              const bool&         resetParticles                  = true,
+              const bool&         globalMaxLimiter                = true,
+              const bool&         setParticlesOutsideDomainToZero = false )
    {
       uint_t aux = u.getDimension() == 3 ? 2 : 0;
       step( c,
@@ -1213,18 +1221,18 @@ class MMOCTransport
    }
 
    template < typename MassOperator >
-   void step( const FunctionType&       c,
-              const vecfun_t& u,
-              const vecfun_t& uLastTimeStep,
-              const uint_t&             level,
-              const DoFType&            flag,
-              const real_t&             dt,
-              const uint_t&             innerSteps,
-              const MassOperator&       massOperator,
-              const real_t&             allowedRelativeMassDifference,
-              const real_t&             dtPertubationAdjustedAdvection,
-              const bool&               globalMaxLimiter                = true,
-              const bool&               setParticlesOutsideDomainToZero = false )
+   void step( const FunctionType& c,
+              const vecfun_t&     u,
+              const vecfun_t&     uLastTimeStep,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps,
+              const MassOperator& massOperator,
+              const real_t&       allowedRelativeMassDifference,
+              const real_t&       dtPertubationAdjustedAdvection,
+              const bool&         globalMaxLimiter                = true,
+              const bool&         setParticlesOutsideDomainToZero = false )
    {
       uint_t aux = u.getDimension() == 3 ? 2 : 0;
       step( c,
@@ -1271,7 +1279,7 @@ class MMOCTransport
 
       if ( resetParticles )
       {
-         cOld_.assign( {1.0}, {c}, level, All );
+         cOld_.assign( { 1.0 }, { c }, level, All );
          storage_->getTimingTree()->start( "Particle initialization" );
          numberOfCreatedParticles_ =
              initializeParticles( particleStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
@@ -1335,8 +1343,8 @@ class MMOCTransport
       cMinus_.copyBoundaryConditionFromFunction( c );
       cAdjusted_.copyBoundaryConditionFromFunction( c );
 
-      cPlus_.assign( {1.0}, {c}, level, All );
-      cMinus_.assign( {1.0}, {c}, level, All );
+      cPlus_.assign( { 1.0 }, { c }, level, All );
+      cMinus_.assign( { 1.0 }, { c }, level, All );
 
       // calculate old mass
       massOperator.apply( c, cTmp_, level, flag );
@@ -1407,11 +1415,11 @@ class MMOCTransport
 
       if ( massAfter <= massBefore )
       {
-         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
+         cAdjusted_.interpolate( maxAssignment, { cPlus_, cMinus_ }, level );
       }
       else
       {
-         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
+         cAdjusted_.interpolate( minAssignment, { cPlus_, cMinus_ }, level );
       }
 
       // calculate adjustment mass
@@ -1420,7 +1428,7 @@ class MMOCTransport
 
       auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
 
-      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
+      c.assign( { theta, 1 - theta }, { c, cAdjusted_ }, level, flag );
    }
 
    const std::shared_ptr< PrimitiveStorage >             storage_;

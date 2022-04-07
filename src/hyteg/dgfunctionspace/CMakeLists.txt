@@ -1,11 +1,17 @@
 target_sources( hyteg
     PRIVATE
-    DGUpwindOperator.hpp
-    DGFunction.hpp
-    DGPetsc.hpp
+    DGBasisInfo.hpp
+    DGBasisLinearLagrange_Example.hpp
+    DGDiffusionForm_Example.hpp
+    DGDiffusionForm_Example.cpp
+    DGForm.hpp
+    DGForm2D.hpp
+    DGFormVolume.hpp
     DGFunction.cpp
-    DGFunctionMacroVertex.hpp
-    DGFunctionMacroFace.hpp
-    DGFunctionMacroEdge.hpp     
+    DGFunction.hpp
+    DGMassForm_Example.hpp
+    DGOperator.cpp
+    DGOperator.hpp
+    DGStokesP1P0PressureStabForm_Example.hpp
 )
 

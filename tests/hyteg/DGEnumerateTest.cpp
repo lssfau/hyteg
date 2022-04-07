@@ -20,7 +20,7 @@
 #include "core/debug/all.h"
 #include "core/mpi/all.h"
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -44,7 +44,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hyteg::FaceDoFFunction< int32_t > x("x", storage, minLevel, maxLevel);
+  hyteg::FaceDoFFunction_old< int32_t > x("x", storage, minLevel, maxLevel);
 
   uint_t check = 1;
   uint_t sum = 0;

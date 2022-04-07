@@ -1260,12 +1260,13 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 
 std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfFace( const PrimitiveID & facePrimitiveID ) const
 {
-   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor faces of faces." );
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor faces of faces. "
+                                             "This can be set in the PrimitiveStorage constructor." );
    WALBERLA_CHECK( faceExistsLocally( facePrimitiveID ), "Face " << facePrimitiveID << "does not exist locally." );
 
    std::set< uint_t > neighboringRanks;
    const auto face = getFace( facePrimitiveID );
-   for ( const auto & npid : face->getIndirectNeighborFaceIDs() )
+   for ( const auto & npid : face->getIndirectNeighborFaceIDsOverVertices() )
    {
       WALBERLA_CHECK( faceExistsLocally( npid ) || faceExistsInNeighborhood( npid ),
                       "Neighbor face " << npid << " of " << facePrimitiveID << " does not exist locally, nor in neighborhood." );
@@ -1291,12 +1292,13 @@ std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfAllFaces() const
 
 std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfCell( const PrimitiveID & cellPrimitiveID ) const
 {
-   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor cells of cells." );
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor cells of cells."
+                                             "This can be set in the PrimitiveStorage constructor." );
    WALBERLA_CHECK( cellExistsLocally( cellPrimitiveID ), "Cell " << cellPrimitiveID << "does not exist locally." );
 
    std::set< uint_t > neighboringRanks;
    const auto cell = getCell( cellPrimitiveID );
-   for ( const auto & npid : cell->getIndirectNeighborCellIDs() )
+   for ( const auto & npid : cell->getIndirectNeighborCellIDsOverVertices() )
    {
       WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ),
                       "Neighbor cell " << npid << " of " << cellPrimitiveID << " does not exist locally, nor in neighborhood." );

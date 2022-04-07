@@ -29,11 +29,12 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 // our friends and helpers
 
@@ -42,7 +43,7 @@
 #include "hyteg/dataexport/VTKHelpers.hpp"
 // clang on
 
-#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
@@ -77,6 +78,12 @@ class VTKOutput
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
    template < typename value_t >
+   inline void add( const P0Function< value_t >& function )
+   {
+      dgFunctions_.push_back( *function.getDGFunction() );
+   }
+
+   template < typename value_t >
    inline void add( const P1Function< value_t >& function )
    {
       p1Functions_.push_back( function );
@@ -107,7 +114,13 @@ class VTKOutput
    }
 
    template < typename value_t >
-   inline void add( const FaceDoFFunction< value_t >& function )
+   inline void add( const FaceDoFFunction_old< value_t >& function )
+   {
+      faceDoFFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const dg::DGFunction< value_t >& function )
    {
       dgFunctions_.push_back( function );
    }
@@ -233,18 +246,21 @@ class VTKOutput
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
    FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
-   FunctionMultiStore< FaceDoFFunction >      dgFunctions_;
+   FunctionMultiStore< FaceDoFFunction_old > faceDoFFunctions_;
+
+   FunctionMultiStore< dg::DGFunction > dgFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
    vtk::DataFormat vtkDataFormat_;
 
    // all writers currently need to be our friends
-   friend class VTKDGDoFWriter;
+   friend class VTKFaceDoFWriter;
    friend class VTKEdgeDoFWriter;
    friend class VTKMeshWriter;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
+   friend class VTKDGWriter;
 };
 
 } // namespace hyteg

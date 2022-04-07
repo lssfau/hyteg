@@ -161,8 +161,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    void computeLocalDiagonalContributions2D( const Face&                                face,
                                              const uint_t                               level,
-                                             const uint_t                               xIdx,
-                                             const uint_t                               yIdx,
+                                             const idx_t                                xIdx,
+                                             const idx_t                                yIdx,
                                              const P1Elements::P1Elements2D::P1Element& element,
                                              real_t* const                              dstVertexData );
 
@@ -182,8 +182,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
                                const idx_t* const                          srcIdx,
                                const idx_t* const                          dstIdx ) const;

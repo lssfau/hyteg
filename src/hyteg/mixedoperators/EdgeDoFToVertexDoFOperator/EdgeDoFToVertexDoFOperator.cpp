@@ -219,11 +219,11 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
 
          uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
-         Point3D x( face.coords[0] );
+         Point3D x( face.getCoordinates()[0] );
          real_t  h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-         Point3D d0 = h * ( face.coords[1] - face.coords[0] );
-         Point3D d2 = h * ( face.coords[2] - face.coords[0] );
+         Point3D d0 = h * ( face.getCoordinates()[1] - face.getCoordinates()[0] );
+         Point3D d2 = h * ( face.getCoordinates()[2] - face.getCoordinates()[0] );
 
          form_.setGeometryMap( face.getGeometryMap() );
 
@@ -266,9 +266,9 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
 
          real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-         Point3D dS_se = h * ( faceS->coords[e_south] - faceS->coords[s_south] );
-         Point3D dS_so = h * ( faceS->coords[o_south] - faceS->coords[s_south] );
-         Point3D dS_oe = h * ( faceS->coords[e_south] - faceS->coords[o_south] );
+         Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
+         Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
+         Point3D dS_oe = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south] );
 
          Point3D dir_S  = -1.0 * dS_oe;
          Point3D dir_E  = dS_se;
@@ -290,8 +290,8 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
             e_north = faceN->vertex_index( edge.neighborVertices()[1] );
             o_north = faceN->vertex_index( faceN->get_vertex_opposite_to_edge( edge.getID() ) );
 
-            Point3D dN_so = h * ( faceN->coords[o_north] - faceN->coords[s_north] );
-            Point3D dN_oe = h * ( faceN->coords[e_north] - faceN->coords[o_north] );
+            Point3D dN_so = h * ( faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north] );
+            Point3D dN_oe = h * ( faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north] );
 
             dir_N  = dN_so;
             dir_NW = -1.0 * dN_oe;
@@ -342,11 +342,11 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
             uint_t                     v_i       = face->vertex_index( vertex.getID() );
             std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-            x  = face->coords[v_i];
-            d0 = ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
+            x  = face->getCoordinates()[v_i];
+            d0 = ( face->getCoordinates()[face->vertex_index( storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
                    x ) *
                  h;
-            d2 = ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
+            d2 = ( face->getCoordinates()[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
                    x ) *
                  h;
 

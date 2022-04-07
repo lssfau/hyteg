@@ -57,7 +57,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
     if(edgeIt.second->getNumNeighborFaces() == 2) totalDoFs -= levelinfo::num_microedges_per_edge( Level );
 
-    for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( Level ); ++i){
+    for(idx_t i = 0; i < idx_t( levelinfo::num_microedges_per_edge( Level ) ); ++i){
       WALBERLA_CHECK_EQUAL(edgeData[i],check);
       WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_DI_S )], 0);
       WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_VE_SE )], 0);

@@ -404,9 +404,9 @@ void P1toP1LinearProlongation::prolongateMacroVertex2D( const real_t* src, real_
 void P1toP1LinearProlongation::prolongateMacroEdge2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
 {
    uint_t rowsize_c = levelinfo::num_microvertices_per_edge( sourceLevel );
-   uint_t i_c;
+   idx_t i_c;
 
-   for ( i_c = 1; i_c < rowsize_c - 1; ++i_c )
+   for ( i_c = 1; i_c < idx_t( rowsize_c ) - 1; ++i_c )
    {
       dst[vertexdof::macroedge::indexFromVertex( sourceLevel + 1, 2 * i_c, stencilDirection::VERTEX_C )] =
           src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )];
@@ -429,11 +429,11 @@ void P1toP1LinearProlongation::prolongateMacroFace2D( const real_t* src, real_t*
    uint_t N_c   = levelinfo::num_microvertices_per_edge( sourceLevel );
    uint_t N_c_i = N_c;
 
-   uint_t j;
+   idx_t j;
 
-   for ( uint_t i = 1; i < N_c - 1; ++i )
+   for ( idx_t i = 1; i < idx_t( N_c ) - 1; ++i )
    {
-      for ( j = 1; j < N_c_i - 2; ++j )
+      for ( j = 1; j < idx_t( N_c_i ) - 2; ++j )
       {
          dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j, SD::VERTEX_C )] =
              src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )];

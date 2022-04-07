@@ -28,6 +28,8 @@
 #include <numeric>
 #include <type_traits>
 
+#include "hyteg/Algorithms.hpp"
+
 #include "refine_cell.hpp"
 #include "simplexFactory.hpp"
 

@@ -4,7 +4,6 @@ target_sources( hyteg
     VTKEdgeDoFWriter.cpp
     VTKP1Writer.cpp
     VTKOutput.hpp
-    VTKDGDoFWriter.hpp
     TimingOutput.hpp
     VTKMeshWriter.cpp
     VTKP2Writer.hpp
@@ -13,8 +12,9 @@ target_sources( hyteg
     VTKHelpers.hpp
     VTKOutput.cpp
     VTKP1Writer.hpp
-    VTKDGDoFWriter.cpp
     VTKMeshWriter.hpp
-    VTKP2Writer.cpp     
+    VTKP2Writer.cpp
+    VTKDGWriter.cpp
+    VTKDGWriter.hpp
 )
 

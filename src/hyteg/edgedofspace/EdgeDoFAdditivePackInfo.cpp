@@ -33,20 +33,22 @@ namespace hyteg {
 /// @name Vertex to Edge
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packVertexForEdge(const Vertex *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packVertexForEdge( const Vertex*,
+                                                              const PrimitiveID&,
+                                                              walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromVertex(Edge *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromVertex( Edge*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *, Edge *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalVertexToEdge( const Vertex*, Edge* ) const
 {
    WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
 }
@@ -55,20 +57,20 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalVertexToEdge(const Ve
 /// @name Edge to Vertex
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packEdgeForVertex(const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packEdgeForVertex( const Edge*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromEdge(Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromEdge( Vertex*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *, Vertex *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToVertex( const Edge*, Vertex* ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
 }
@@ -77,20 +79,20 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToVertex(const Ed
 /// @name Edge to Face
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packEdgeForFace(const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packEdgeForFace( const Edge*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromEdge(Face *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromEdge( Face*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *, Face *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToFace( const Edge*, Face* ) const
 {
    WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
 }
@@ -106,10 +108,10 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
    using hyteg::edgedof::macroface::BoundaryIterator;
-   ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
-   uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
+   ValueType*                      faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
+   uint_t                          edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->getEdgeOrientation()[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;
    switch ( edgeIndexOnFace )
@@ -134,7 +136,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
 }
 
 template < typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge*                      receiver,
+void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge* receiver,
                                                                const PrimitiveID&,
                                                                walberla::mpi::RecvBuffer& buffer ) const
 {
@@ -156,11 +158,11 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
 
    using hyteg::edgedof::macroface::BoundaryIterator;
-   ValueType*                    edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
-   ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
-   uint_t                        edgeIndexOnFace = sender->edge_index( receiver->getID() );
+   ValueType*                      edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType*                      faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
+   uint_t                          edgeIndexOnFace = sender->edge_index( receiver->getID() );
    indexing::FaceBoundaryDirection faceBorderDir =
-       indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, sender->getEdgeOrientation()[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;
    switch ( edgeIndexOnFace )
@@ -191,22 +193,22 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
 /// @name Face to Vertex
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packFaceForVertex(const Face *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packFaceForVertex( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
    // nothing to be done
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromFace(Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromFace( Vertex*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
    // nothing to be done
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex(const Face *, Vertex *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex( const Face*, Vertex* ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
    // nothing to be done
@@ -216,20 +218,20 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex(const Fa
 /// @name Face to Cell
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packFaceForCell(const Face *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packFaceForCell( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Face -> Cell not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackCellFromFace(Cell *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackCellFromFace( Cell*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_ABORT( "Additive communication Face -> Cell not supported." );
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToCell(const Face *, Cell *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToCell( const Face*, Cell* ) const
 {
    WALBERLA_ABORT( "Additive communication Face -> Cell not supported." );
 }
@@ -347,7 +349,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packCellForEdge( const Cell*         
    const uint_t iterationVertex0 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
    const uint_t iterationVertex1 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
    const uint_t iterationVertex2 =
-       algorithms::getMissingIntegersAscending< 2, 4 >( {iterationVertex0, iterationVertex1} ).at( 2 );
+       algorithms::getMissingIntegersAscending< 2, 4 >( { iterationVertex0, iterationVertex1 } ).at( 2 );
 
    auto srcEdgeOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
        edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
@@ -396,7 +398,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge( const Cel
    const uint_t iterationVertex0 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
    const uint_t iterationVertex1 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
    const uint_t iterationVertex2 =
-       algorithms::getMissingIntegersAscending< 2, 4 >( {iterationVertex0, iterationVertex1} ).at( 2 );
+       algorithms::getMissingIntegersAscending< 2, 4 >( { iterationVertex0, iterationVertex1 } ).at( 2 );
 
    auto srcEdgeOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
        edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
@@ -417,24 +419,22 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge( const Cel
 /// @name Cell to Vertex
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packCellForVertex(const Cell *, const PrimitiveID &, walberla::mpi::SendBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packCellForVertex( const Cell*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Vertex only meaningful in 3D." );
    // nothing to be done
 }
 
-
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromCell(Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer &) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackVertexFromCell( Vertex*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Vertex only meaningful in 3D." );
    // nothing to be done
 }
 
-
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const Cell *, Vertex *) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex( const Cell*, Vertex* ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Vertex only meaningful in 3D." );
    // nothing to be done

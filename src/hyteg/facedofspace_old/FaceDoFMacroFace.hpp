@@ -23,7 +23,7 @@
 // #include "DGFaceIndex.hpp"
 // #include "hyteg/bubblefunctionspace/BubbleFaceIndex.hpp"
 
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace facedof {
@@ -72,10 +72,10 @@ inline void interpolate( const uint_t&                                          
    uint_t  rowsize = levelinfo::num_microvertices_per_edge( Level );
    Point3D x, x0, xBlend;
 
-   x0 = face.coords[0];
+   x0 = face.getCoordinates()[0];
 
-   Point3D d0 = ( face.coords[1] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
-   Point3D d2 = ( face.coords[2] - face.coords[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d0 = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
+   Point3D d2 = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) / ( walberla::real_c( rowsize - 1 ) );
 
    uint_t inner_rowsize = rowsize;
 

@@ -182,13 +182,13 @@ static void testP2Prolongate2() {
   real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
   /// all possible vertical edge Dof locations that need to be updated by the face
-  std::vector<std::pair<uint_t, uint_t > > vertical   = { {1,0},{2,0},{3,0},{1,1},{2,1},{1,2} };
+  std::vector<std::pair<idx_t, idx_t > > vertical   = { {1,0},{2,0},{3,0},{1,1},{2,1},{1,2} };
   /// all possible horizontal edge Dof locations that need to be updated by the face
-  std::vector<std::pair<uint_t, uint_t > > horizontal = { {0,1},{1,1},{2,1},{0,2},{1,2},{0,3} };
+  std::vector<std::pair<idx_t, idx_t > > horizontal = { {0,1},{1,1},{2,1},{0,2},{1,2},{0,3} };
   /// all possible diagonal edge Dof locations that need to be updated by the face
-  std::vector<std::pair<uint_t, uint_t > > diagonal   = { {0,0},{1,0},{2,0},{0,1},{1,1},{0,2} };
+  std::vector<std::pair<idx_t, idx_t > > diagonal   = { {0,0},{1,0},{2,0},{0,1},{1,1},{0,2} };
   /// all possible vertex dof locations that need to be updated by the face
-  std::vector<std::pair<uint_t, uint_t > > vertex     = { {1,1},{2,1},{1,2} };
+  std::vector<std::pair<idx_t, idx_t > > vertex     = { {1,1},{2,1},{1,2} };
 
 ///////////////////////////
 /// CHECH VERTICAL EDGE ///

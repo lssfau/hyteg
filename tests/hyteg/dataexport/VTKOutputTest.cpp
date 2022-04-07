@@ -176,7 +176,7 @@ static void exportIntegerFunctions()
    P1Function< value_t >       p1Enumerator( "P1", storage, minLevel, maxLevel );
    P2Function< value_t >       p2Enumerator( "P2", storage, minLevel, maxLevel );
    EdgeDoFFunction< value_t >  edEnumerator( "EdgeDoF", storage, minLevel, maxLevel );
-   FaceDoFFunction< value_t >       dgEnumerator( "DGDoF", storage, minLevel, maxLevel );
+   FaceDoFFunction_old< value_t >       dgEnumerator( "DGDoF", storage, minLevel, maxLevel );
    P2VectorFunction< value_t > v2Enumerator( "P2Vector", storage, minLevel, maxLevel );
 
    // Fill with values
