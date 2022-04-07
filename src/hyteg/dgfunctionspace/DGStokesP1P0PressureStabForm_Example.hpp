@@ -43,7 +43,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       elMat.setZero();
    }
@@ -97,7 +97,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -148,7 +148,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
       elMat.setZero();
    }
 
@@ -160,7 +160,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( basis.numDoFsPerElement( degree ), 1 );
+      elMat.resize( basis.numDoFsPerElement( 2, degree ), 1 );
       elMat.setZero();
    }
 };

@@ -29,7 +29,51 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
    if ( storage_->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "DG not implemented in 3D" );
+
+      // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+      const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+      // Create a data ID for all cells.
+      storage_->addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
+
+      // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+      const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+      // Create three data IDs for all faces.
+      storage_->addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
+      storage_->addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
+
+      // Allocate the DoFs.
+      for ( auto& it : storage_->getCells() )
+      {
+         const auto pid  = it.first;
+         const auto cell = it.second;
+
+         // Fetching the FunctionMemory instance from each macro-face.
+         FunctionMemory< ValueType >* functionMemory = cell->getData( cellInnerDataID_ );
+
+         for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+         {
+            // Allocating the specified number of scalars on each micro-element for the entire macro-primitive.
+            const auto numMacroLocalScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microcells_per_cell( level );
+            functionMemory->addData( level, numMacroLocalScalars, ValueType( 0 ) );
+         }
+
+         // Allocating ghost-layer memory only where necessary.
+         for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
+         {
+            WALBERLA_UNUSED( npid );
+            FunctionMemory< ValueType >* functionGLMemory = cell->getData( cellGhostLayerDataIDs_[localFaceID] );
+
+            for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+            {
+               const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
+               functionGLMemory->addData( level, numGLScalars, ValueType( 0 ) );
+            }
+         }
+      }
    }
    else
    {
@@ -39,15 +83,15 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create a data ID for all faces.
-      storage_->template addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
+      storage_->addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
 
       // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create three data IDs for all faces.
-      storage_->template addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
-      storage_->template addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
-      storage_->template addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
+      storage_->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
 
       // Allocate the DoFs.
       for ( auto& it : storage_->getFaces() )
@@ -56,7 +100,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          const auto face = it.second;
 
          // Fetching the FunctionMemory instance from each macro-face.
-         FunctionMemory< ValueType >* functionMemory = face->template getData( faceInnerDataID_ );
+         FunctionMemory< ValueType >* functionMemory = face->getData( faceInnerDataID_ );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
          {
@@ -68,7 +112,9 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          // Allocating ghost-layer memory only where necessary.
          for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDsOverEdges() )
          {
-            FunctionMemory< ValueType >* functionGLMemory = face->template getData( faceGhostLayerDataIDs_[localEdgeID] );
+            WALBERLA_UNUSED( npid );
+
+            FunctionMemory< ValueType >* functionGLMemory = face->getData( faceGhostLayerDataIDs_[localEdgeID] );
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
             {
@@ -195,7 +241,49 @@ void VolumeDoFFunction< ValueType >::assign(
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "VolumeDoFFunction::assign() not implemented for 3D." );
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            std::vector< ValueType* >                      srcPtrs( functions.size() );
+            std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+            for ( uint_t i = 0; i < functions.size(); i++ )
+            {
+               const auto f  = functions.at( i );
+               srcPtrs[i]    = f.get().dofMemory( cellId, level );
+               srcLayouts[i] = f.get().memoryLayout();
+            }
+
+            auto dstMem    = dofMemory( cellId, level );
+            auto dstLayout = memoryLayout_;
+            auto numDofs   = this->numScalarsPerPrimitive_.at( cellId );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     ValueType sum = 0;
+                     for ( uint_t i = 0; i < functions.size(); i++ )
+                     {
+                        const auto s = scalars.at( i );
+
+                        sum +=
+                            s *
+                            srcPtrs[i][indexing::index(
+                                elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, srcLayouts[i] )];
+                     }
+                     dstMem[indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, dstLayout )] = sum;
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -251,7 +339,37 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "VolumeDoFFunction::dotLocal() not implemented for 3D." );
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            const auto mem     = dofMemory( cellId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+            const auto otherMem    = rhs.dofMemory( cellId, level );
+            const auto otherLayout = rhs.memoryLayout();
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx =
+                         indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                     const auto otherIdx = indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, otherLayout );
+
+                     sum += mem[idx] * otherMem[otherIdx];
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {

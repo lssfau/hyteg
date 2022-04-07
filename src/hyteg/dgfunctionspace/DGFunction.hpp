@@ -59,6 +59,62 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
+   void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                         uint_t                                                                        level,
+                         DoFType                                                                       flag = All ) const
+   {
+      WALBERLA_UNUSED( functions );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   }
+
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_UNUSED( constant );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   };
+
+   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_UNUSED( expr );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   };
+
+   void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expressions,
+                     uint_t                                                                    level,
+                     DoFType                                                                   flag = All ) const
+   {
+      WALBERLA_UNUSED( expressions );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   };
+
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_UNUSED( scalar );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   };
+
+   void add( const std::vector< ValueType >                                                scalars,
+             const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+             uint_t                                                                        level,
+             DoFType                                                                       flag = All ) const
+   {
+      WALBERLA_UNUSED( scalars );
+      WALBERLA_UNUSED( functions );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "Not implemented." );
+   };
+
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
@@ -80,6 +136,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ValueType dotLocal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
       WALBERLA_UNUSED(flag);
+      WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotLocal( *rhs.volumeDoFFunction_, level );
    }
 
@@ -87,6 +144,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ValueType dotGlobal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
       WALBERLA_UNUSED(flag);
+      WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotGlobal( *rhs.volumeDoFFunction_, level );
    }
 
@@ -148,6 +206,31 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                 facedof::FaceType      faceType,
                                 ValueType&             value ) const;
 
+   /// \brief Evaluate finite element function on a specific micro-cell.
+   ///
+   /// The standard evaluate() function does not take the discontinuity of the function into account.
+   /// If the function is evaluated at a discontinuity with evaluate(), it is kind of "random" which of the neighboring elements
+   /// is used to evaluate the polynom.
+   ///
+   /// This is for example an issue for accurate visualization of discontinuities.
+   ///
+   /// The present method solves this issue by taking a specific (micro-)element as input argument. This way the function can be
+   /// evaluated on _different_ elements at the same coordinate. Note that regardless of whether the specified coordinate is
+   /// located on the element or not - the local polynomial is extrapolated.
+   ///
+   /// \param coordinates  where the function shall be evaluated
+   /// \param level        refinement level
+   /// \param cellID       the macro-cell where the (micro-)element is located on
+   /// \param elementIndex the logical index of the micro-element
+   /// \param cellType     the type of the local micro-element
+   /// \param value        the evaluation
+   void evaluateOnMicroElement( const Point3D&         coordinates,
+                                uint_t                 level,
+                                const PrimitiveID&     cellID,
+                                hyteg::indexing::Index elementIndex,
+                                celldof::CellType      cellType,
+                                ValueType&             value ) const;
+
    /// Evaluates the linear functional
    ///
    ///   l( v ) = \int_\Omega f * v
@@ -198,7 +281,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const DGFunction< OtherValueType >& other )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not copied!" );
+      boundaryCondition_ = other.getBoundaryCondition();
    }
 
    /// \brief Returns the number of DoFs that are allocated on this process.
@@ -236,11 +319,24 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                     DoFType                               flag ) const;
    /// @}
 
-   void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+   void copyFrom( const DGFunction< ValueType >&                 other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
       WALBERLA_UNUSED( other );
       WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( localPrimitiveIDsToRank );
+      WALBERLA_UNUSED( otherPrimitiveIDsToRank );
       WALBERLA_ABORT( "DGFunction::copyFrom() not implemented." );
+   }
+
+   void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   {
+      WALBERLA_UNUSED( other );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "DGFunction::swap() not implemented." )
    }
 
  private:

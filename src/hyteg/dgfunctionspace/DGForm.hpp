@@ -34,7 +34,11 @@ namespace dg {
 class DGForm
 {
  public:
-   /// \brief Integrates the volume contribution on a triangle element (2D).
+   /// \brief Returns true if only volume integrals are non-zero.
+   ///        The integration of facet integrals can then be skipped altogether.
+   [[nodiscard]] virtual bool onlyVolumeIntegrals() const { return false; }
+
+   /// \brief Integrates the volume contribution on a triangle element.
    ///
    /// \param dim         2 for 2D volumes, 3 for 3D volumes
    /// \param coords      coordinates of the triangle element vertices
@@ -65,7 +69,7 @@ class DGForm
       }
    };
 
-   /// \brief Integrates the inner part of the facet contribution on a triangle element (2D).
+   /// \brief Integrates the inner part of the facet contribution on a triangle element.
    ///
    /// \param dim                2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElement      coordinates of the triangle element vertices
@@ -104,7 +108,7 @@ class DGForm
       }
    }
 
-   /// \brief Integrates the facet contributions from both sides on a triangle element (2D) - writing to the inner DoFs.
+   /// \brief Integrates the facet contributions from both sides on a triangle element - writing to the inner DoFs.
    ///
    /// \param dim                        2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElementInner         coordinates of the triangle element vertices of the inner (dst) element
@@ -165,7 +169,7 @@ class DGForm
       }
    }
 
-   /// \brief Integrates the facet contributions at Dirichlet boundaries (2D) - writing to the inner DoFs.
+   /// \brief Integrates the facet contributions at Dirichlet boundaries - writing to the inner DoFs.
    ///
    /// \param dim                     2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElement           coordinates of the triangle element vertices of the inner (dst) element
@@ -204,7 +208,7 @@ class DGForm
       }
    }
 
-   /// \brief Integrates the facet contributions at Dirichlet boundaries (2D) for the right-hand side.
+   /// \brief Integrates the facet contributions at Dirichlet boundaries for the right-hand side.
    ///
    /// \param dim                     2 for 2D volumes, 3 for 3D volumes
    /// \param coordsElement           coordinates of the triangle element vertices of the inner (dst) element

@@ -787,14 +787,14 @@ waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTes
 
 ## DG ##
 if (HYTEG_BUILD_WITH_PETSC)
-    waLBerla_compile_test(FILES dg/DGSmokeTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME DGSmokeTest)
-
     waLBerla_compile_test(FILES dg/DGPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPoisson2DConvergenceTest)
 
     waLBerla_compile_test(FILES dg/DGVectorTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGVectorTest)
+
+    waLBerla_compile_test(FILES dg/DGPoisson3DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGPoisson3DConvergenceTest)
 
     waLBerla_compile_test(FILES dg/DGLaplaceSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGLaplaceSymmetryTest)
@@ -816,3 +816,6 @@ waLBerla_execute_test(NAME VectorToVectorOperatorCGTest)
 waLBerla_compile_test(FILES smooth+solve/VectorToVectorOperatorChebyshevTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 
+## Structural
+waLBerla_compile_test(FILES PrintInfoTest.cpp)
+waLBerla_execute_test(NAME PrintInfoTest)

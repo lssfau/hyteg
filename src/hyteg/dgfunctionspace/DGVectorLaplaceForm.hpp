@@ -45,7 +45,7 @@ class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -111,7 +111,7 @@ class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -215,7 +215,7 @@ class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -356,7 +356,7 @@ class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -478,7 +478,7 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -519,7 +519,7 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -574,7 +574,7 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -639,7 +639,7 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -715,7 +715,7 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -756,7 +756,7 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -811,7 +811,7 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -876,7 +876,7 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -952,7 +952,7 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -1018,7 +1018,7 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1122,7 +1122,7 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -1263,7 +1263,7 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1385,7 +1385,7 @@ class DGVectorLaplaceFormP1EDG_0 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -1429,7 +1429,7 @@ class DGVectorLaplaceFormP1EDG_0 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1514,7 +1514,7 @@ class DGVectorLaplaceFormP1EDG_0 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -1618,7 +1618,7 @@ class DGVectorLaplaceFormP1EDG_0 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1724,7 +1724,7 @@ class DGVectorLaplaceFormP1EDG_1 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -1768,7 +1768,7 @@ class DGVectorLaplaceFormP1EDG_1 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -1853,7 +1853,7 @@ class DGVectorLaplaceFormP1EDG_1 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -1957,7 +1957,7 @@ class DGVectorLaplaceFormP1EDG_1 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -2063,7 +2063,7 @@ class DGVectorLaplaceFormEDGP1_0 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -2107,7 +2107,7 @@ class DGVectorLaplaceFormEDGP1_0 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -2192,7 +2192,7 @@ class DGVectorLaplaceFormEDGP1_0 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -2296,7 +2296,7 @@ class DGVectorLaplaceFormEDGP1_0 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -2402,7 +2402,7 @@ class DGVectorLaplaceFormEDGP1_1 : public hyteg::dg::DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -2446,7 +2446,7 @@ class DGVectorLaplaceFormEDGP1_1 : public hyteg::dg::DGForm2D
                                        int                                                      testDegree,
                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -2531,7 +2531,7 @@ class DGVectorLaplaceFormEDGP1_1 : public hyteg::dg::DGForm2D
                                           int                                                      testDegree,
                                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -2635,7 +2635,7 @@ class DGVectorLaplaceFormEDGP1_1 : public hyteg::dg::DGForm2D
                                                    int                                                      testDegree,
                                                    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );

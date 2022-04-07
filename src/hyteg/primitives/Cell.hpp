@@ -126,6 +126,17 @@ class Cell : public Primitive
    uint_t getLocalEdgeID( const PrimitiveID& edgeID ) const;
    uint_t getLocalFaceID( const PrimitiveID& faceID ) const;
 
+   const PrimitiveID& getOppositeVertexID( const PrimitiveID& faceID ) const
+   {
+      auto   otherLocalVertexIDs   = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( getLocalFaceID( faceID ) );
+      uint_t localOppositeVertexID = 6;
+      for ( auto id : otherLocalVertexIDs )
+      {
+         localOppositeVertexID -= id;
+      }
+      return neighborVertices().at( localOppositeVertexID );
+   }
+
    const PrimitiveID& getOppositeEdgeID( const PrimitiveID& edgeID ) const
    {
       return neighborEdges().at( indexing::getCellLocalOppositeEdgeID( getLocalEdgeID( edgeID ) ) );

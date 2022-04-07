@@ -24,7 +24,7 @@
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
-#include "hyteg/dgfunctionspace/DGForm2D.hpp"
+#include "hyteg/dgfunctionspace/DGFormVolume.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
 
@@ -33,7 +33,7 @@
 namespace hyteg {
 namespace dg {
 
-class DGMassForm_Example : public DGForm2D
+class DGMassForm_Example : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
@@ -43,7 +43,7 @@ class DGMassForm_Example : public DGForm2D
                            int                                                      testDegree,
                            Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( testDegree ), trialBasis.numDoFsPerElement( trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
       const auto p_affine_0_1 = coords[0]( 1 );
@@ -81,96 +81,87 @@ class DGMassForm_Example : public DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                                   const DGBasisInfo&                                       trialBasis,
+                                   const DGBasisInfo&                                       testBasis,
+                                   int                                                      trialDegree,
+                                   int                                                      testDegree,
+                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( trialBasis );
-      WALBERLA_UNUSED( testBasis );
-      WALBERLA_UNUSED( trialDegree );
-      WALBERLA_UNUSED( testDegree );
-      WALBERLA_UNUSED( elMat );
+      elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
 
-      // Does nothing.
-   }
+      const auto p_affine_0_0 = coords[0]( 0 );
+      const auto p_affine_0_1 = coords[0]( 1 );
+      const auto p_affine_0_2 = coords[0]( 2 );
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-   {
-      WALBERLA_UNUSED( coordsElementInner );
-      WALBERLA_UNUSED( coordsElementOuter );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertexInnerElement );
-      WALBERLA_UNUSED( oppositeVertexOuterElement );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( trialBasis );
-      WALBERLA_UNUSED( testBasis );
-      WALBERLA_UNUSED( trialDegree );
-      WALBERLA_UNUSED( testDegree );
-      WALBERLA_UNUSED( elMat );
+      const auto p_affine_1_0 = coords[1]( 0 );
+      const auto p_affine_1_1 = coords[1]( 1 );
+      const auto p_affine_1_2 = coords[1]( 2 );
 
-      // Does nothing.
-   };
+      const auto p_affine_2_0 = coords[2]( 0 );
+      const auto p_affine_2_1 = coords[2]( 1 );
+      const auto p_affine_2_2 = coords[2]( 2 );
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-   {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( trialBasis );
-      WALBERLA_UNUSED( testBasis );
-      WALBERLA_UNUSED( trialDegree );
-      WALBERLA_UNUSED( testDegree );
-      WALBERLA_UNUSED( elMat );
+      const auto p_affine_3_0 = coords[3]( 0 );
+      const auto p_affine_3_1 = coords[3]( 1 );
+      const auto p_affine_3_2 = coords[3]( 2 );
 
-      // Does nothing.
-   }
+      real_t tmp_0  = p_affine_0_0 * p_affine_1_1;
+      real_t tmp_1  = p_affine_0_0 * p_affine_1_2;
+      real_t tmp_2  = p_affine_2_1 * p_affine_3_2;
+      real_t tmp_3  = p_affine_0_1 * p_affine_1_0;
+      real_t tmp_4  = p_affine_0_1 * p_affine_1_2;
+      real_t tmp_5  = p_affine_2_2 * p_affine_3_0;
+      real_t tmp_6  = p_affine_0_2 * p_affine_1_0;
+      real_t tmp_7  = p_affine_0_2 * p_affine_1_1;
+      real_t tmp_8  = p_affine_2_0 * p_affine_3_1;
+      real_t tmp_9  = p_affine_2_2 * p_affine_3_1;
+      real_t tmp_10 = p_affine_2_0 * p_affine_3_2;
+      real_t tmp_11 = p_affine_2_1 * p_affine_3_0;
+      real_t tmp_12 = std::abs( p_affine_0_0 * tmp_2 - p_affine_0_0 * tmp_9 - p_affine_0_1 * tmp_10 + p_affine_0_1 * tmp_5 -
+                                p_affine_0_2 * tmp_11 + p_affine_0_2 * tmp_8 - p_affine_1_0 * tmp_2 + p_affine_1_0 * tmp_9 +
+                                p_affine_1_1 * tmp_10 - p_affine_1_1 * tmp_5 + p_affine_1_2 * tmp_11 - p_affine_1_2 * tmp_8 +
+                                p_affine_2_0 * tmp_4 - p_affine_2_0 * tmp_7 - p_affine_2_1 * tmp_1 + p_affine_2_1 * tmp_6 +
+                                p_affine_2_2 * tmp_0 - p_affine_2_2 * tmp_3 - p_affine_3_0 * tmp_4 + p_affine_3_0 * tmp_7 +
+                                p_affine_3_1 * tmp_1 - p_affine_3_1 * tmp_6 - p_affine_3_2 * tmp_0 + p_affine_3_2 * tmp_3 );
+      real_t tmp_13 = ( 1.0 / 60.0 ) * tmp_12;
+      real_t tmp_14 = ( 1.0 / 120.0 ) * tmp_12;
+      real_t a_0_0  = tmp_13;
+      real_t a_0_1  = tmp_14;
+      real_t a_0_2  = tmp_14;
+      real_t a_0_3  = tmp_14;
+      real_t a_1_0  = tmp_14;
+      real_t a_1_1  = tmp_13;
+      real_t a_1_2  = tmp_14;
+      real_t a_1_3  = tmp_14;
+      real_t a_2_0  = tmp_14;
+      real_t a_2_1  = tmp_14;
+      real_t a_2_2  = tmp_13;
+      real_t a_2_3  = tmp_14;
+      real_t a_3_0  = tmp_14;
+      real_t a_3_1  = tmp_14;
+      real_t a_3_2  = tmp_14;
+      real_t a_3_3  = tmp_13;
 
-   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-   {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+      elMat( 0, 3 ) = a_0_3;
 
-      // Does nothing.
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+      elMat( 1, 3 ) = a_1_3;
+
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
+      elMat( 2, 3 ) = a_2_3;
+
+      elMat( 3, 0 ) = a_3_0;
+      elMat( 3, 1 ) = a_3_1;
+      elMat( 3, 2 ) = a_3_2;
+      elMat( 3, 3 ) = a_3_3;
    }
 };
 

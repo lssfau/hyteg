@@ -3,8 +3,10 @@ target_sources( hyteg
     DGBasisInfo.hpp
     DGBasisLinearLagrange_Example.hpp
     DGDiffusionForm_Example.hpp
+    DGDiffusionForm_Example.cpp
     DGForm.hpp
     DGForm2D.hpp
+    DGFormVolume.hpp
     DGFunction.cpp
     DGFunction.hpp
     DGMassForm_Example.hpp

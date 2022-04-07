@@ -65,7 +65,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
  private:
    /// Just a small helper method that writes the local matrix into the global sparse system.
    template < typename VType >
-   void addLocalToGlobalMatrix( int                                                            numSrcDofs,
+   void addLocalToGlobalMatrix( int                                                            dim,
+                                int                                                            numSrcDofs,
                                 int                                                            numDstDofs,
                                 VType*                                                         srcDofMemory,
                                 VType*                                                         dstDofMemory,
@@ -73,22 +74,57 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                 VolumeDoFMemoryLayout                                          dstMemLayout,
                                 Index                                                          srcElementIdx,
                                 Index                                                          dstElementIdx,
-                                FaceType                                                       srcFaceType,
-                                FaceType                                                       dstFaceType,
+                                uint_t                                                         srcMicroVolType,
+                                uint_t                                                         dstMicroVolType,
                                 uint_t                                                         level,
                                 std::shared_ptr< SparseMatrixProxy >                           mat,
                                 const Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
    {
       // Sparse assembly.
-      for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
+      if ( dim == 2 )
       {
-         for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+         WALBERLA_ASSERT_LESS( srcMicroVolType, 2 );
+         WALBERLA_ASSERT_LESS( dstMicroVolType, 2 );
+         auto srcFaceType = facedof::allFaceTypes.at( srcMicroVolType );
+         auto dstFaceType = facedof::allFaceTypes.at( dstMicroVolType );
+         for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
          {
-            const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                dstElementIdx.x(), dstElementIdx.y(), dstFaceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-            const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
-                srcElementIdx.x(), srcElementIdx.y(), srcFaceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
-            mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+            {
+               const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                   dstElementIdx.x(), dstElementIdx.y(), dstFaceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
+               const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                   srcElementIdx.x(), srcElementIdx.y(), srcFaceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
+               mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+            }
+         }
+      }
+      else
+      {
+         auto srcCellType = celldof::allCellTypes[srcMicroVolType];
+         auto dstCellType = celldof::allCellTypes[dstMicroVolType];
+         for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
+         {
+            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+            {
+               const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index( dstElementIdx.x(),
+                                                                                       dstElementIdx.y(),
+                                                                                       dstElementIdx.z(),
+                                                                                       dstCellType,
+                                                                                       dstDofIdx,
+                                                                                       numDstDofs,
+                                                                                       level,
+                                                                                       dstMemLayout )];
+               const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index( srcElementIdx.x(),
+                                                                                       srcElementIdx.y(),
+                                                                                       srcElementIdx.z(),
+                                                                                       srcCellType,
+                                                                                       srcDofIdx,
+                                                                                       numSrcDofs,
+                                                                                       level,
+                                                                                       srcMemLayout )];
+               mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+            }
          }
       }
    }
@@ -123,116 +159,185 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                    const std::shared_ptr< SparseMatrixProxy >& mat,
                                    UpdateType                                  updateType = Replace ) const
    {
+      // To avoid code duplication in this already long method, the implementation "fuses" the 2D and 3D implementation.
+      // This more or less serves as a reference - for better performance the matrix-vector multiplication should be specialized.
+
       using indexing::Index;
+      using volumedofspace::indexing::ElementNeighborInfo;
 
       WALBERLA_CHECK( updateType == Replace );
 
       src.communicate( level );
 
-      if ( this->getStorage()->hasGlobalCells() )
+      const auto storage = this->getStorage();
+
+      int dim = 2;
+      if ( storage->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "DG apply not implemented in 3D." );
+         dim = 3;
+      }
+
+      std::vector< PrimitiveID > pids;
+      if ( dim == 2 )
+      {
+         pids = storage->getFaceIDs();
       }
       else
       {
-         const int dim = 2;
+         pids = storage->getCellIDs();
+      }
 
-         for ( const auto& faceIt : this->getStorage()->getFaces() )
+      for ( const auto& pid : pids )
+      {
+         const auto srcPolyDegree = src.polynomialDegree( pid );
+         const auto dstPolyDegree = dst.polynomialDegree( pid );
+
+         const auto numSrcDofs = src.basis()->numDoFsPerElement( dim, srcPolyDegree );
+         const auto numDstDofs = dst.basis()->numDoFsPerElement( dim, dstPolyDegree );
+
+         const auto srcDofMemory = src.volumeDoFFunction()->dofMemory( pid, level );
+         auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( pid, level );
+
+         const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
+         const auto dstMemLayout = dst.volumeDoFFunction()->memoryLayout();
+
+         std::map< uint_t, VType* > glMemory;
+
+         if ( dim == 2 )
          {
-            const auto  faceId = faceIt.first;
-            const auto& face   = *faceIt.second;
-
-            const auto srcPolyDegree = src.polynomialDegree( faceId );
-            const auto dstPolyDegree = dst.polynomialDegree( faceId );
-
-            const auto numSrcDofs = src.basis()->numDoFsPerElement( srcPolyDegree );
-            const auto numDstDofs = dst.basis()->numDoFsPerElement( dstPolyDegree );
-
-            const auto srcDofMemory = src.volumeDoFFunction()->dofMemory( faceId, level );
-            auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( faceId, level );
-
-            std::map< uint_t, VType* > glMemory;
-            for ( const auto& [n, _] : face.getIndirectNeighborFaceIDsOverEdges() )
+            WALBERLA_ASSERT( storage->faceExistsLocally( pid ) );
+            const auto face = storage->getFace( pid );
+            for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( faceId, level, n );
+               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+            }
+         }
+         else
+         {
+            WALBERLA_ASSERT( storage->cellExistsLocally( pid ) );
+            const auto cell = storage->getCell( pid );
+            for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
+            {
+               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+            }
+         }
+
+         const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
+
+         for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
+         {
+            if ( dim == 2 && microVolType >= 2 )
+            {
+               break;
             }
 
-            const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
-            const auto dstMemLayout = dst.volumeDoFFunction()->memoryLayout();
+            auto faceType = facedof::allFaceTypes[microVolType];
+            auto cellType = celldof::allCellTypes[microVolType];
 
-            for ( auto faceType : facedof::allFaceTypes )
+            auto itFace = facedof::macroface::Iterator( level, faceType ).begin();
+            auto itCell = celldof::macrocell::Iterator( level, cellType ).begin();
+
+            while ( ( dim == 2 && itFace != itFace.end() ) || ( dim == 3 && itCell != itCell.end() ) )
             {
-               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               Index elementIdx;
+
+               if ( dim == 2 )
                {
-                  // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
-                  // TODO: blending
+                  elementIdx = *itFace;
+                  itFace++;
+               }
+               else
+               {
+                  elementIdx = *itCell;
+                  itCell++;
+               }
 
-                  // This object does the heavy lifting of computing all required coordinates and normals.
-                  volumedofspace::indexing::ElementNeighborInfo neighborInfo(
-                      elementIdx, faceType, level, src.getBoundaryCondition(), faceId, storage_ );
+               // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
+               // TODO: blending
 
-                  // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-                  Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
-                  dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
-                  dstDofs.setZero();
+               // This object does the heavy lifting of computing all required coordinates and normals.
+               ElementNeighborInfo neighborInfo;
 
-                  /////////////////////////
-                  // Volume contribution //
-                  /////////////////////////
+               if ( dim == 2 )
+               {
+                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage_ );
+               }
+               else
+               {
+                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage_ );
+               }
 
-                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                  form_->integrateVolume( dim,
-                                          neighborInfo.elementVertexCoords(),
-                                          *src.basis(),
-                                          *dst.basis(),
-                                          srcPolyDegree,
-                                          dstPolyDegree,
-                                          localMat );
+               // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
+               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
+               dstDofs.setZero();
 
-                  // Volume DoFs are source.
-                  Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
-                  srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+               /////////////////////////
+               // Volume contribution //
+               /////////////////////////
 
-                  for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               localMat.resize( numDstDofs, numSrcDofs );
+
+               form_->integrateVolume(
+                   dim, neighborInfo.elementVertexCoords(), *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
+
+               // Volume DoFs are source.
+               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
+               srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
+
+               for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+               {
+                  if ( dim == 2 )
                   {
                      srcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index(
                          elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                   }
-
-                  if ( mat == nullptr )
-                  {
-                     // Matrix-vector multiplication.
-                     dstDofs += localMat * srcDofs;
-                  }
                   else
                   {
-                     // Sparse assembly.
-                     addLocalToGlobalMatrix( numSrcDofs,
-                                             numDstDofs,
-                                             srcDofMemory,
-                                             dstDofMemory,
-                                             srcMemLayout,
-                                             dstMemLayout,
-                                             elementIdx,
-                                             elementIdx,
-                                             faceType,
-                                             faceType,
-                                             level,
-                                             mat,
-                                             localMat );
+                     srcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                   }
+               }
 
+               if ( mat == nullptr )
+               {
+                  // Matrix-vector multiplication.
+                  dstDofs += localMat * srcDofs;
+               }
+               else
+               {
+                  // Sparse assembly.
+                  addLocalToGlobalMatrix( dim,
+                                          numSrcDofs,
+                                          numDstDofs,
+                                          srcDofMemory,
+                                          dstDofMemory,
+                                          srcMemLayout,
+                                          dstMemLayout,
+                                          elementIdx,
+                                          elementIdx,
+                                          microVolType,
+                                          microVolType,
+                                          level,
+                                          mat,
+                                          localMat );
+               }
+
+               if ( !form_->onlyVolumeIntegrals() )
+               {
                   /////////////////////////////
                   // Interface contributions //
                   /////////////////////////////
 
-                  for ( uint_t n = 0; n < 3; n++ )
+                  // Loop over neighboring volumes.
+                  for ( uint_t n = 0; n < uint_c( dim + 1 ); n++ )
                   {
                      /////////////////////
                      // Domain boundary //
                      /////////////////////
 
-                     if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                     if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                      {
                         ////////////////////////
                         // Dirichlet boundary //
@@ -258,7 +363,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         else
                         {
                            // Sparse assembly.
-                           addLocalToGlobalMatrix( numSrcDofs,
+                           addLocalToGlobalMatrix( dim,
+                                                   numSrcDofs,
                                                    numDstDofs,
                                                    srcDofMemory,
                                                    dstDofMemory,
@@ -266,18 +372,18 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                    dstMemLayout,
                                                    elementIdx,
                                                    elementIdx,
-                                                   faceType,
-                                                   faceType,
+                                                   microVolType,
+                                                   microVolType,
                                                    level,
                                                    mat,
                                                    localMat );
                         }
                      }
-                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
+                     else if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == NeumannBoundary )
                      {
                         WALBERLA_ABORT( "Neumann boundary handling not implemented." );
                      }
-                     else if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
+                     else if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == FreeslipBoundary )
                      {
                         WALBERLA_ABORT( "Free-slip boundary handling not implemented." );
                      }
@@ -312,7 +418,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         else
                         {
                            // Sparse assembly.
-                           addLocalToGlobalMatrix( numSrcDofs,
+                           addLocalToGlobalMatrix( dim,
+                                                   numSrcDofs,
                                                    numDstDofs,
                                                    srcDofMemory,
                                                    dstDofMemory,
@@ -320,8 +427,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                    dstMemLayout,
                                                    elementIdx,
                                                    elementIdx,
-                                                   faceType,
-                                                   faceType,
+                                                   microVolType,
+                                                   microVolType,
                                                    level,
                                                    mat,
                                                    localMat );
@@ -331,7 +438,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         // b) coupling to neighboring element //
                         ////////////////////////////////////////
 
-                        if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
+                        if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
                         {
                            ////////////////////////////////////////////////
                            // i) micro-interface on macro-macro-boundary //
@@ -366,19 +473,33 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                            {
-                              // This access might seem a little unintuitive, but it does another bit of lifting.
-                              // The ghost-layer data can be accessed with this indexing function by "extending" the macro-volume
-                              // structure. One of the indices may now be -1 for example.
-                              nSrcDoFArrIndices[srcDofIdx] =
-                                  volumedofspace::indexing::indexGhostLayer( n,
-                                                                             neighborInfo.neighborElementIndices( n ).x(),
-                                                                             neighborInfo.neighborElementIndices( n ).y(),
-                                                                             facedof::FaceType::BLUE,
-                                                                             srcDofIdx,
-                                                                             numSrcDofs,
-                                                                             level,
-                                                                             srcMemLayout );
-                              nSrcDofs( srcDofIdx ) = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                              if ( dim == 2 )
+                              {
+                                 nSrcDoFArrIndices[srcDofIdx] =
+                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                          elementIdx.x(),
+                                                                                          elementIdx.y(),
+                                                                                          faceType,
+                                                                                          srcDofIdx,
+                                                                                          numSrcDofs,
+                                                                                          level,
+                                                                                          srcMemLayout );
+                              }
+                              else
+                              {
+                                 nSrcDoFArrIndices[srcDofIdx] =
+                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                          elementIdx.x(),
+                                                                                          elementIdx.y(),
+                                                                                          elementIdx.z(),
+                                                                                          cellType,
+                                                                                          srcDofIdx,
+                                                                                          numSrcDofs,
+                                                                                          level,
+                                                                                          srcMemLayout );
+                              }
+
+                              nSrcDofs( srcDofIdx ) = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
                            }
 
                            if ( mat == nullptr )
@@ -394,9 +515,31 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                               {
                                  for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                                  {
-                                    const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                                        elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-                                    const auto globalColIdx = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
+                                    uint_t globalRowIdx;
+                                    if ( dim == 2 )
+                                    {
+                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                    elementIdx.y(),
+                                                                                                    faceType,
+                                                                                                    dstDofIdx,
+                                                                                                    numDstDofs,
+                                                                                                    level,
+                                                                                                    dstMemLayout )];
+                                    }
+                                    else
+                                    {
+                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                    elementIdx.y(),
+                                                                                                    elementIdx.z(),
+                                                                                                    cellType,
+                                                                                                    dstDofIdx,
+                                                                                                    numDstDofs,
+                                                                                                    level,
+                                                                                                    dstMemLayout )];
+                                    }
+                                    const auto globalColIdx =
+                                        glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
+
                                     mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
                                  }
                               }
@@ -428,14 +571,29 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                            {
-                              nSrcDofs( srcDofIdx ) =
-                                  srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
-                                                                                neighborInfo.neighborElementIndices( n ).y(),
-                                                                                neighborInfo.neighborFaceType( n ),
-                                                                                srcDofIdx,
-                                                                                numSrcDofs,
-                                                                                level,
-                                                                                srcMemLayout )];
+                              if ( dim == 2 )
+                              {
+                                 nSrcDofs( srcDofIdx ) =
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborFaceType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )];
+                              }
+                              else
+                              {
+                                 nSrcDofs( srcDofIdx ) =
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborElementIndices( n ).z(),
+                                                                                   neighborInfo.neighborCellType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )];
+                              }
                            }
 
                            if ( mat == nullptr )
@@ -445,8 +603,30 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            }
                            else
                            {
-                              // Sparse assembly.
-                              addLocalToGlobalMatrix( numSrcDofs,
+                              // TODO: improve this monster
+                              std::map< facedof::FaceType, uint_t > invFaceTypeMap;
+                              std::map< celldof::CellType, uint_t > invCellTypeMap;
+
+                              for ( uint_t i = 0; i < 2; i++ )
+                              {
+                                 invFaceTypeMap[facedof::allFaceTypes[i]] = i;
+                              }
+                              for ( uint_t i = 0; i < 6; i++ )
+                              {
+                                 invCellTypeMap[celldof::allCellTypes[i]] = i;
+                              }
+
+                              uint_t neighborMicroVolType;
+                              if ( dim == 2 )
+                              {
+                                 neighborMicroVolType = invFaceTypeMap[neighborInfo.neighborFaceType( n )];
+                              }
+                              else
+                              {
+                                 neighborMicroVolType = invCellTypeMap[neighborInfo.neighborCellType( n )];
+                              }
+                              addLocalToGlobalMatrix( dim,
+                                                      numSrcDofs,
                                                       numDstDofs,
                                                       srcDofMemory,
                                                       dstDofMemory,
@@ -454,24 +634,38 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                       dstMemLayout,
                                                       neighborInfo.neighborElementIndices( n ),
                                                       elementIdx,
-                                                      neighborInfo.neighborFaceType( n ),
-                                                      faceType,
+                                                      neighborMicroVolType,
+                                                      microVolType,
                                                       level,
                                                       mat,
                                                       localMat );
                            }
                         }
                      }
-                  }
+                  } // End loop over neighboring volumes.
+               }    // End if( !onlyVolumeIntegrals() )
 
-                  if ( mat == nullptr )
+               if ( mat == nullptr )
+               {
+                  // Write DoFs.
+                  for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
                   {
-                     // Write DoFs.
-                     for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
+                     if ( dim == 2 )
                      {
                         dstDofMemory[volumedofspace::indexing::index(
                             elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] =
                             dstDofs( dstDofIdx );
+                     }
+                     else
+                     {
+                        dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                      elementIdx.y(),
+                                                                      elementIdx.z(),
+                                                                      cellType,
+                                                                      dstDofIdx,
+                                                                      numDstDofs,
+                                                                      level,
+                                                                      dstMemLayout )] = dstDofs( dstDofIdx );
                      }
                   }
                }

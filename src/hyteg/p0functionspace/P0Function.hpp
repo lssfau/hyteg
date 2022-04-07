@@ -96,7 +96,7 @@ class P0Function : public Function< P0Function< ValueType > >
             const auto& face   = *it.second;
 
             WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( faceID ), 0 );
-            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 0 ), 1 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 2, 0 ), 1 );
 
             const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
             auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level );
@@ -128,7 +128,7 @@ class P0Function : public Function< P0Function< ValueType > >
             const auto& face   = *it.second;
 
             WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( faceID ), 0 );
-            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 0 ), 1 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 2, 0 ), 1 );
 
             const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
             auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level );

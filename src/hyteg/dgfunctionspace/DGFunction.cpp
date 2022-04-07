@@ -49,12 +49,18 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
 , basis_( basis )
 , boundaryCondition_( boundaryCondition )
 {
+   uint_t dim;
    if ( storage->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for cells yet." )
+      dim = 3;
+      for ( auto pid : storage->getCellIDs() )
+      {
+         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+      }
    }
    else
    {
+      dim = 2;
       for ( auto pid : storage->getFaceIDs() )
       {
          polyDegreesPerPrimitive_[pid] = initialPolyDegree;
@@ -66,7 +72,7 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
                                                                            storage,
                                                                            minLevel,
                                                                            maxLevel,
-                                                                           basis->numDoFsPerElement( initialPolyDegree ),
+                                                                           basis->numDoFsPerElement( dim, initialPolyDegree ),
                                                                            volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
 }
 
@@ -88,7 +94,7 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
          Face&       face   = *it.second;
 
          const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-         const auto ndofs      = uint_c( basis_->numDoFsPerElement( polyDegree ) );
+         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
 
          Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
          Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
@@ -117,9 +123,6 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
             real_t value_r;
             basis_->evaluate( polyDegree, refPos, dofs, value_r );
 
-            // Eigen::Matrix< real_t, 2, 1 > coords( coordinates2D[0], coordinates2D[1] );
-            // basis_->evaluate( polyDegree, affineElementVertices, coords, dofs, value_r );
-
             value = ValueType( value_r );
             return true;
          }
@@ -127,47 +130,50 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
    }
    else
    {
-      WALBERLA_ABORT( "not implemented" );
-#if 0
+      // 3D
+
       for ( auto& it : this->getStorage()->getCells() )
       {
-         Cell& cell = *it.second;
+         PrimitiveID cellID = it.first;
+         Cell&       cell   = *it.second;
+
+         const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
+         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
 
          if ( isPointInTetrahedron( coordinates,
-
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3],
-                                    cell.getFaceInwardNormal( 0 ),
-                                    cell.getFaceInwardNormal( 1 ),
-                                    cell.getFaceInwardNormal( 2 ),
-                                    cell.getFaceInwardNormal( 3 ) ) )
+                                    cell.getCoordinates()[3] ) ||
+              ( searchToleranceRadius > 0 && sphereTetrahedronIntersection( coordinates,
+                                                                            searchToleranceRadius,
+                                                                            cell.getCoordinates()[0],
+                                                                            cell.getCoordinates()[1],
+                                                                            cell.getCoordinates()[2],
+                                                                            cell.getCoordinates()[3] ) ) )
          {
-            value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
+            indexing::Index   elementIndex;
+            celldof::CellType cellType;
+            Point3D           localCoordinates;
+
+            volumedofspace::getLocalElementFromCoordinates< ValueType >(
+                level, cell, coordinates, elementIndex, cellType, localCoordinates );
+
+            Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
+
+            std::vector< real_t > dofs( ndofs );
+            for ( uint_t i = 0; i < ndofs; i++ )
+            {
+               dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
+            }
+
+            real_t value_r;
+            basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+            value = ValueType( value_r );
             return true;
          }
       }
-
-      if ( searchToleranceRadius > 0 )
-      {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if ( sphereTetrahedronIntersection( coordinates,
-                                                searchToleranceRadius,
-                                                cell.getCoordinates()[0],
-                                                cell.getCoordinates()[1],
-                                                cell.getCoordinates()[2],
-                                                cell.getCoordinates()[3] ) )
-            {
-               value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
-               return true;
-            }
-         }
-      }
-#endif
    }
 
    return false;
@@ -181,55 +187,114 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
                                                       facedof::FaceType      faceType,
                                                       ValueType&             value ) const
 {
-   if ( !this->storage_->hasGlobalCells() )
+   // 2D
+
+   WALBERLA_ASSERT( !storage_->hasGlobalCells() );
+
+   Point2D coordinates2D( { coordinates[0], coordinates[1] } );
+
+   WALBERLA_ASSERT( storage_->faceExistsLocally( faceID ) );
+   const Face& face = *storage_->getFace( faceID );
+
+   const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
+   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
+
+   Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
+
+   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+   auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+   for ( uint_t i = 0; i < 3; i++ )
    {
-      // 2D
-
-      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
-      const Face& face = *storage_->getFace( faceID );
-
-      const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-      const auto ndofs      = uint_c( basis_->numDoFsPerElement( polyDegree ) );
-
-      Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
-
-      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
-      auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
-      for ( uint_t i = 0; i < 3; i++ )
-      {
-         const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-         affineElementVertices[i]( 0 ) = coord[0];
-         affineElementVertices[i]( 1 ) = coord[1];
-      }
-
-      // trafo from affine to reference space
-      Eigen::Matrix< real_t, 2, 2 > A;
-      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-      const auto Ainv = A.inverse();
-
-      const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
-
-      const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
-
-      std::vector< real_t > dofs( ndofs );
-      for ( uint_t i = 0; i < ndofs; i++ )
-      {
-         dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
-      }
-
-      real_t value_r;
-      basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-      value = ValueType( value_r );
+      const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+      affineElementVertices[i]( 0 ) = coord[0];
+      affineElementVertices[i]( 1 ) = coord[1];
    }
-   else
+
+   // trafo from affine to reference space
+   Eigen::Matrix< real_t, 2, 2 > A;
+   A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+   A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+   A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+   A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+   const auto Ainv = A.inverse();
+
+   const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+   const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
+
+   std::vector< real_t > dofs( ndofs );
+   for ( uint_t i = 0; i < ndofs; i++ )
    {
-      WALBERLA_ABORT( "not implemented" );
+      dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
    }
+
+   real_t value_r;
+   basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+   value = ValueType( value_r );
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
+                                                      uint_t                 level,
+                                                      const PrimitiveID&     cellID,
+                                                      hyteg::indexing::Index elementIndex,
+                                                      celldof::CellType      cellType,
+                                                      ValueType&             value ) const
+{
+   // 2D
+
+   WALBERLA_ASSERT( storage_->hasGlobalCells() );
+
+   WALBERLA_ASSERT( storage_->cellExistsLocally( cellID ) );
+   const Cell& cell = *storage_->getCell( cellID );
+
+   const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
+   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
+
+   Eigen::Matrix< real_t, 3, 1 > affineCoordinates( { coordinates[0], coordinates[1], coordinates[2] } );
+
+   std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
+   auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
+   for ( uint_t i = 0; i < 4; i++ )
+   {
+      const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+      affineElementVertices[i]( 0 ) = coord[0];
+      affineElementVertices[i]( 1 ) = coord[1];
+      affineElementVertices[i]( 2 ) = coord[2];
+   }
+
+   // trafo from affine to reference space
+   Eigen::Matrix< real_t, 3, 3 > A;
+
+   A( 0, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+   A( 0, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+   A( 0, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
+
+   A( 1, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+   A( 1, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+   A( 1, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
+
+   A( 2, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
+   A( 2, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
+   A( 2, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
+
+   const auto Ainv = A.inverse();
+
+   const Eigen::Matrix< real_t, 3, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+   const Eigen::Matrix< real_t, 3, 1 > refPos = Ainv * affineCoordsTranslated;
+
+   std::vector< real_t > dofs( ndofs );
+   for ( uint_t i = 0; i < ndofs; i++ )
+   {
+      dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
+   }
+
+   real_t value_r;
+   basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+   value = ValueType( value_r );
 }
 
 template < typename ValueType >
@@ -237,7 +302,43 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
 {
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Linear functional evaluation not implemented." )
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               const std::array< indexing::Index, 4 > vertexIndices =
+                   celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+               std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+               for ( uint_t i = 0; i < 4; i++ )
+               {
+                  const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                  elementVertices[i]( 0 )  = elementVertex[0];
+                  elementVertices[i]( 1 )  = elementVertex[1];
+                  elementVertices[i]( 2 )  = elementVertex[2];
+               }
+
+               std::vector< real_t > dofValues( numDofs );
+               basis()->integrateBasisFunction( degree, elementVertices, f, dofValues );
+
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( dofValues[i] );
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -247,7 +348,7 @@ void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< rea
          const auto face   = *it.second;
 
          const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( degree );
+         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
 
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
          const auto memLayout = volumeDoFFunction()->memoryLayout();
@@ -304,7 +405,29 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
    if ( storage_->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : storage_->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = offset++;
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -315,7 +438,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
          const auto face   = *it.second;
 
          const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( degree );
+         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
 
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
          const auto memLayout = volumeDoFFunction()->memoryLayout();
@@ -342,7 +465,17 @@ uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "getNumberOfLocalDoFs not implemented for 3D." );
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto numElements       = levelinfo::num_microcells_per_cell( level );
+         const auto degree            = polyDegreesPerPrimitive_.at( cellID );
+         const auto numDoFsPerElement = basis()->numDoFsPerElement( 3, degree );
+
+         ndofs += numElements * numDoFsPerElement;
+      }
    }
    else
    {
@@ -353,7 +486,7 @@ uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
 
          const auto numElements       = levelinfo::num_microfaces_per_face( level );
          const auto degree            = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDoFsPerElement = basis()->numDoFsPerElement( degree );
+         const auto numDoFsPerElement = basis()->numDoFsPerElement( 2, degree );
 
          ndofs += numElements * numDoFsPerElement;
       }
@@ -381,10 +514,55 @@ template < typename ValueType >
 void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::shared_ptr< DGForm >& form, uint_t level )
 {
    using indexing::Index;
+   using volumedofspace::indexing::ElementNeighborInfo;
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Dirichlet BCs not implemented for 3D." );
+      const int dim = 3;
+
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto polyDegree = polynomialDegree( cellId );
+         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
+         const auto dofMemory  = volumeDoFFunction()->dofMemory( cellId, level );
+         const auto memLayout  = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               ElementNeighborInfo neighborInfo( elementIdx, cellType, level, boundaryCondition_, cellId, storage_ );
+
+               for ( uint_t n = 0; n < 4; n++ )
+               {
+                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  {
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                     localMat.resize( Eigen::Index( numDofs ), 1 );
+                     localMat.setZero();
+                     form->integrateRHSDirichletBoundary( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *basis(),
+                                                          polyDegree,
+                                                          localMat );
+
+                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
+                     {
+                        dofMemory[volumedofspace::indexing::index(
+                            elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dofIdx, numDofs, level, memLayout )] +=
+                            ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -396,7 +574,7 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          const auto face   = *faceIt.second;
 
          const auto polyDegree = polynomialDegree( faceId );
-         const auto numDofs    = basis()->numDoFsPerElement( uint_c( polyDegree ) );
+         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
          const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
          const auto memLayout  = volumeDoFFunction()->memoryLayout();
 
@@ -404,12 +582,11 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
          {
             for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-               volumedofspace::indexing::ElementNeighborInfo neighborInfo(
-                   elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
+               ElementNeighborInfo neighborInfo( elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
 
                for ( uint_t n = 0; n < 3; n++ )
                {
-                  if ( neighborInfo.onMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                   {
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
                      localMat.resize( Eigen::Index( numDofs ), 1 );
@@ -446,7 +623,33 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
    if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polynomialDegree( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
+         const auto dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -457,7 +660,7 @@ void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            nu
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          const auto dofs      = volumeDoFFunction()->dofMemory( faceID, level );
@@ -492,7 +695,33 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
    if ( this->getStorage()->hasGlobalCells() )
    {
       // 3D
-      WALBERLA_ABORT( "enumerate() not implemented in 3D." );
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polynomialDegree( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+
+         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = vec->getValue( uint_c( vectorIdx ) );
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( value );
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -503,7 +732,7 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
          const auto face   = *it.second;
 
          const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( uint_c( degree ) );
+         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
 
          const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
          auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
@@ -539,7 +768,6 @@ template class DGFunction< int64_t >;
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   WALBERLA_LOG_WARNING_ON_ROOT( "DGFunction: BCs are not applied to sparse matrix." );
    WALBERLA_UNUSED( numerator );
    WALBERLA_UNUSED( mat );
    WALBERLA_UNUSED( level );

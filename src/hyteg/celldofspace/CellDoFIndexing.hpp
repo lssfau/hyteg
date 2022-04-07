@@ -45,15 +45,19 @@ enum class CellType : uint_t
    GREEN_DOWN
 };
 
-const std::map< CellType, std::string > CellTypeToStr = {{CellType::WHITE_UP, "WHITE_UP"},
-                                                         {CellType::BLUE_UP, "BLUE_UP"},
-                                                         {CellType::GREEN_UP, "GREEN_UP"},
-                                                         {CellType::WHITE_DOWN, "WHITE_DOWN"},
-                                                         {CellType::BLUE_DOWN, "BLUE_DOWN"},
-                                                         {CellType::GREEN_DOWN, "GREEN_DOWN"}};
+const std::map< CellType, std::string > CellTypeToStr = { { CellType::WHITE_UP, "WHITE_UP" },
+                                                          { CellType::BLUE_UP, "BLUE_UP" },
+                                                          { CellType::GREEN_UP, "GREEN_UP" },
+                                                          { CellType::WHITE_DOWN, "WHITE_DOWN" },
+                                                          { CellType::BLUE_DOWN, "BLUE_DOWN" },
+                                                          { CellType::GREEN_DOWN, "GREEN_DOWN" } };
 
-const std::array< CellType, 6 > allCellTypes = {
-    {CellType::WHITE_UP, CellType::BLUE_UP, CellType::GREEN_UP, CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN}};
+const std::array< CellType, 6 > allCellTypes = { { CellType::WHITE_UP,
+                                                   CellType::BLUE_UP,
+                                                   CellType::GREEN_UP,
+                                                   CellType::WHITE_DOWN,
+                                                   CellType::BLUE_DOWN,
+                                                   CellType::GREEN_DOWN } };
 
 namespace macrocell {
 
@@ -73,6 +77,27 @@ inline constexpr uint_t numCellsPerRowByType( const uint_t& level, const CellTyp
       return levelinfo::num_microedges_per_edge( level ) - 1;
    case CellType::GREEN_DOWN:
       return levelinfo::num_microedges_per_edge( level ) - 1;
+   default:
+      return std::numeric_limits< uint_t >::max();
+   }
+}
+
+inline constexpr uint_t numCellsPerRowByTypeFromWidth( const uint_t& width, const CellType& cellType )
+{
+   switch ( cellType )
+   {
+   case CellType::WHITE_UP:
+      return levelinfo::num_microedges_per_edge_from_width( width );
+   case CellType::BLUE_UP:
+      return levelinfo::num_microedges_per_edge_from_width( width ) - 1;
+   case CellType::GREEN_UP:
+      return levelinfo::num_microedges_per_edge_from_width( width ) - 1;
+   case CellType::WHITE_DOWN:
+      return levelinfo::num_microedges_per_edge_from_width( width ) - 2;
+   case CellType::BLUE_DOWN:
+      return levelinfo::num_microedges_per_edge_from_width( width ) - 1;
+   case CellType::GREEN_DOWN:
+      return levelinfo::num_microedges_per_edge_from_width( width ) - 1;
    default:
       return std::numeric_limits< uint_t >::max();
    }
@@ -135,35 +160,35 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microC
    switch ( microCellType )
    {
    case CellType::WHITE_UP:
-      return std::array< Index, 4 >( {{Index( cellX, cellY, cellZ ),
-                                       Index( cellX + 1, cellY, cellZ ),
-                                       Index( cellX, cellY + 1, cellZ ),
-                                       Index( cellX, cellY, cellZ + 1 )}} );
+      return std::array< Index, 4 >( { { Index( cellX, cellY, cellZ ),
+                                         Index( cellX + 1, cellY, cellZ ),
+                                         Index( cellX, cellY + 1, cellZ ),
+                                         Index( cellX, cellY, cellZ + 1 ) } } );
    case CellType::BLUE_UP:
-      return std::array< Index, 4 >( {{Index( cellX + 1, cellY, cellZ ),
-                                       Index( cellX + 1, cellY + 1, cellZ ),
-                                       Index( cellX, cellY + 1, cellZ ),
-                                       Index( cellX + 1, cellY, cellZ + 1 )}} );
+      return std::array< Index, 4 >( { { Index( cellX + 1, cellY, cellZ ),
+                                         Index( cellX + 1, cellY + 1, cellZ ),
+                                         Index( cellX, cellY + 1, cellZ ),
+                                         Index( cellX + 1, cellY, cellZ + 1 ) } } );
    case CellType::GREEN_UP:
-      return std::array< Index, 4 >( {{Index( cellX + 1, cellY, cellZ ),
-                                       Index( cellX, cellY + 1, cellZ ),
-                                       Index( cellX + 1, cellY, cellZ + 1 ),
-                                       Index( cellX, cellY, cellZ + 1 )}} );
+      return std::array< Index, 4 >( { { Index( cellX + 1, cellY, cellZ ),
+                                         Index( cellX, cellY + 1, cellZ ),
+                                         Index( cellX + 1, cellY, cellZ + 1 ),
+                                         Index( cellX, cellY, cellZ + 1 ) } } );
    case CellType::WHITE_DOWN:
-      return std::array< Index, 4 >( {{Index( cellX + 1, cellY + 1, cellZ ),
-                                       Index( cellX + 1, cellY + 1, cellZ + 1 ),
-                                       Index( cellX, cellY + 1, cellZ + 1 ),
-                                       Index( cellX + 1, cellY, cellZ + 1 )}} );
+      return std::array< Index, 4 >( { { Index( cellX + 1, cellY + 1, cellZ ),
+                                         Index( cellX + 1, cellY + 1, cellZ + 1 ),
+                                         Index( cellX, cellY + 1, cellZ + 1 ),
+                                         Index( cellX + 1, cellY, cellZ + 1 ) } } );
    case CellType::BLUE_DOWN:
-      return std::array< Index, 4 >( {{Index( cellX + 1, cellY, cellZ + 1 ),
-                                       Index( cellX, cellY + 1, cellZ + 1 ),
-                                       Index( cellX, cellY, cellZ + 1 ),
-                                       Index( cellX, cellY + 1, cellZ )}} );
+      return std::array< Index, 4 >( { { Index( cellX + 1, cellY, cellZ + 1 ),
+                                         Index( cellX, cellY + 1, cellZ + 1 ),
+                                         Index( cellX, cellY, cellZ + 1 ),
+                                         Index( cellX, cellY + 1, cellZ ) } } );
    case CellType::GREEN_DOWN:
-      return std::array< Index, 4 >( {{Index( cellX, cellY + 1, cellZ ),
-                                       Index( cellX + 1, cellY + 1, cellZ ),
-                                       Index( cellX + 1, cellY, cellZ + 1 ),
-                                       Index( cellX, cellY + 1, cellZ + 1 )}} );
+      return std::array< Index, 4 >( { { Index( cellX, cellY + 1, cellZ ),
+                                         Index( cellX + 1, cellY + 1, cellZ ),
+                                         Index( cellX + 1, cellY, cellZ + 1 ),
+                                         Index( cellX, cellY + 1, cellZ + 1 ) } } );
    default:
       WALBERLA_ABORT( "Not implemented for this cell type." );
       break;

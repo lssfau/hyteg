@@ -111,7 +111,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       {
          WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-cell does not exists (locally)." );
-         auto fmem = storage_->getCell( primitiveID )->template getData( cellInnerDataID_ );
+         FunctionMemory< ValueType >* fmem = storage_->getCell( primitiveID )->getData( cellInnerDataID_ );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          auto data = fmem->getPointer( level );
          return data;
@@ -120,7 +120,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       {
          WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
-         auto fmem = storage_->getFace( primitiveID )->template getData( faceInnerDataID_ );
+         FunctionMemory< ValueType >* fmem = storage_->getFace( primitiveID )->getData( faceInnerDataID_ );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          auto data = fmem->getPointer( level );
          return data;
@@ -139,8 +139,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       {
          WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-cell does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem =
-             storage_->getCell( primitiveID )->template getData( cellGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem = storage_->getCell( primitiveID )->getData( cellGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          ValueType* data = fmem->getPointer( level );
          return data;
@@ -149,8 +148,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       {
          WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem =
-             storage_->getFace( primitiveID )->template getData( faceGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem = storage_->getFace( primitiveID )->getData( faceGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          ValueType* data = fmem->getPointer( level );
          return data;
@@ -194,6 +192,45 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
       auto data = dofMemory( primitiveID, level );
       return data[indexing::index(
           idx.x(), idx.y(), faceType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
+   }
+
+   /// \brief Read access to a degree of freedom on a macro-cell (for debugging / testing).
+   ///
+   /// This way of accessing the DoFs introduces indirections for every call. So better not use this in performance critical code.
+   /// When iterating over a macro-face in performance critical code, it's better to first get the data pointer and _then_ iterate
+   /// over the memory.
+   ///
+   /// \param primitiveID volume primitive to get the data from
+   /// \param idx         index of the micro-volume
+   /// \param dofID       index of the DoF on the micro-volume
+   /// \param cellType    cell type of the micro-volume
+   /// \param level       refinement level
+   /// \return value of the DoF
+   ValueType
+       dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, celldof::CellType cellType, uint_t level ) const
+   {
+      auto data = dofMemory( primitiveID, level );
+      return data[indexing::index(
+          idx.x(), idx.y(), idx.z(), cellType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
+   }
+
+   /// \brief Access to a degree of freedom on a macro-cell (for debugging / testing).
+   ///
+   /// This way of accessing the DoFs introduces indirections for every call. So better not use this in performance critical code.
+   /// When iterating over a macro-face in performance critical code, it's better to first get the data pointer and _then_ iterate
+   /// over the memory.
+   ///
+   /// \param primitiveID volume primitive to get the data from
+   /// \param idx         index of the micro-volume
+   /// \param dofID       index of the DoF on the micro-volume
+   /// \param cellType    cell type of the micro-volume
+   /// \param level       refinement level
+   /// \return reference to the DoF
+   ValueType& dof( PrimitiveID primitiveID, hyteg::indexing::Index idx, uint_t dofID, celldof::CellType cellType, uint_t level )
+   {
+      auto data = dofMemory( primitiveID, level );
+      return data[indexing::index(
+          idx.x(), idx.y(), idx.z(), cellType, dofID, numScalarsPerPrimitive_.at( primitiveID ), level, memoryLayout_ )];
    }
 
    indexing::VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
@@ -241,7 +278,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 template < typename ValueType >
 inline void getLocalElementFromCoordinates( uint_t                  level,
                                             const Face&             face,
-                                            const Point2D           coordinates,
+                                            const Point2D&          coordinates,
                                             hyteg::indexing::Index& elementIndex,
                                             facedof::FaceType&      faceType,
                                             Point2D&                localCoordinates )
@@ -319,6 +356,181 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
    elementIndex     = index;
    faceType         = upTriangle ? facedof::FaceType::GRAY : facedof::FaceType::BLUE;
    localCoordinates = localCoords;
+}
+
+/// \brief Given an affine coordinate (in computational space) this function locates the micro-element in the macro-cell and
+/// the coordinates (in reference space) local to the micro-element.
+///
+/// \param level            [in] refinement level
+/// \param cell             [in] macro-cell object
+/// \param coordinates      [in] the point that the local element shall include
+/// \param elementIndex     [out] logical index of the micro-element
+/// \param cellType         [out] cell type
+/// \param localCoordinates [out] coordinates of the queried point translated to element local coordinates (reference space)
+template < typename ValueType >
+inline void getLocalElementFromCoordinates( uint_t                  level,
+                                            const Cell&             cell,
+                                            const Point3D&          coordinates,
+                                            hyteg::indexing::Index& elementIndex,
+                                            celldof::CellType&      cellType,
+                                            Point3D&                localCoordinates )
+{
+   using hyteg::indexing::Index;
+   using namespace vertexdof::macrocell;
+
+   // Assuming now that the passed coordinates are in the cell.
+   // Otherwise they are clamped.
+
+   // 1. Affine transformation to local macro-tet.
+
+   auto xRelMacro = detail::transformToLocalTet(
+       cell.getCoordinates()[0], cell.getCoordinates()[1], cell.getCoordinates()[2], cell.getCoordinates()[3], coordinates );
+
+   // 2. Find micro-cube in macro-cell. Each micro-cube is composed of 6 cells of all 6 cell-types.
+
+   const int    numMicroEdges = (int) levelinfo::num_microedges_per_edge( level );
+   const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
+
+   int planeX = (int) ( xRelMacro[0] / microEdgeSize );
+   int planeY = (int) ( xRelMacro[1] / microEdgeSize );
+   int planeZ = (int) ( xRelMacro[2] / microEdgeSize );
+
+   // clip to prevent element outside macro-cell. std::clamp is C++17 ...
+   planeX = detail::clamp( planeX, 0, numMicroEdges - 1 );
+   planeY = detail::clamp( planeY, 0, numMicroEdges - 1 - planeX );
+   planeZ = detail::clamp( planeZ, 0, numMicroEdges - 1 - planeX - planeY );
+
+   // 3. In the interior of the macro-cell, the micro-cubes are contained entirely.
+   //    On the boundary, some micro-tets in the micro-cube are outside of the macro-cell.
+   //    Let's check that.
+
+   // check if the point is located in a sub-cube, i.e. all cell types are possible
+   const bool inFullCube = planeX + planeY + planeZ < numMicroEdges - 2;
+   // check if cube is at boundary and lacks the WHITE_DOWN cell
+   const bool inCutCube = planeX + planeY + planeZ == numMicroEdges - 2;
+   // if both are false, the point is located in a white cell near the macro-edges / macro-vertices
+
+   // 4. Now we got through all <= 6 micro-tets in the micro-cube and check if the point is contained.
+   //    We can perform some shortcuts, in general, however, we perform the coordinate transformation
+   //    for all cells.
+   //    If no micro-tet can be chosen directly (due to floating-point math errors) we choose the "closest"
+   //    micro-tet by minimal summed distance to all faces.
+   //
+   //    Possible optimization: the transformation to the 6 local tets can be optimized by transforming to the
+   //                           local micro-cube space first, and then apply the precomputed transforms to the point.
+   //                           That could save up to 5 3x3 matrix solves(!)
+
+   if ( ( !inFullCube && !inCutCube ) )
+   {
+      cellType = celldof::CellType::WHITE_UP;
+   }
+   else
+   {
+      std::vector< celldof::CellType > possibleCellTypes = { celldof::CellType::WHITE_UP,
+                                                             celldof::CellType::BLUE_UP,
+                                                             celldof::CellType::GREEN_UP,
+                                                             celldof::CellType::BLUE_DOWN,
+                                                             celldof::CellType::GREEN_DOWN };
+      if ( inFullCube )
+      {
+         possibleCellTypes.push_back( celldof::CellType::WHITE_DOWN );
+      }
+
+      real_t maxDistSum = std::numeric_limits< real_t >::max();
+
+      for ( auto ct : possibleCellTypes )
+      {
+         auto mci = celldof::macrocell::getMicroVerticesFromMicroCell( Index( planeX, planeY, planeZ ), ct );
+         auto mt0 = coordinateFromIndex( level, cell, mci[0] );
+         auto mt1 = coordinateFromIndex( level, cell, mci[1] );
+         auto mt2 = coordinateFromIndex( level, cell, mci[2] );
+         auto mt3 = coordinateFromIndex( level, cell, mci[3] );
+
+         auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
+         auto s  = xl[0] + xl[1] + xl[2];
+
+         Point4D rel( { xl[0], xl[1], xl[2], s } );
+
+         real_t distSum  = 0;
+         bool   contains = true;
+         for ( uint_t i = 0; i < 4; i++ )
+         {
+            if ( rel[i] < 0 )
+            {
+               distSum += std::abs( rel[i] );
+               contains = false;
+            }
+            else if ( rel[i] > 1 )
+            {
+               distSum += std::abs( rel[i] - 1 );
+               contains = false;
+            }
+         }
+
+         if ( contains )
+         {
+            cellType = ct;
+            break;
+         }
+
+         if ( distSum < maxDistSum )
+         {
+            cellType   = ct;
+            maxDistSum = distSum;
+         }
+      }
+   }
+
+   auto microCellIndices = celldof::macrocell::getMicroVerticesFromMicroCell( Index( planeX, planeY, planeZ ), cellType );
+
+   auto microTet0 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[0] );
+   auto microTet1 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[1] );
+   auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
+   auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
+
+   localCoordinates =
+       vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+
+   elementIndex.x() = planeX;
+   elementIndex.y() = planeY;
+   elementIndex.z() = planeZ;
+
+   const uint_t numMicroVertices = levelinfo::num_microvertices_per_edge( level );
+   WALBERLA_ASSERT_LESS( microCellIndices[0].x() + microCellIndices[0].y() + microCellIndices[0].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[1].x() + microCellIndices[1].y() + microCellIndices[1].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[2].x() + microCellIndices[2].y() + microCellIndices[2].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[3].x() + microCellIndices[3].y() + microCellIndices[3].z(), numMicroVertices );
+
+   WALBERLA_DEBUG_SECTION()
+   {
+      auto xLocal = localCoordinates;
+
+      auto sum = xLocal[0] + xLocal[1] + xLocal[2];
+
+      if ( xLocal[0] < -1e-8 || xLocal[0] > 1.0 + 1e-8 || xLocal[1] < -1e-8 || xLocal[1] > 1.0 + 1e-8 || xLocal[2] < -1e-8 ||
+           xLocal[2] > 1.0 + 1e-8 || sum < -1e-8 || sum > 1.0 + 1e-8 )
+      {
+         WALBERLA_LOG_DEVEL( "Bad cell choice:" )
+         WALBERLA_LOG_DEVEL( "local " << xLocal << ", global " << coordinates
+                                      << ", local sum: " << walberla::format( "%10.5e", sum ) << ", micro-cell type"
+                                      << celldof::CellTypeToStr.at( cellType ) );
+         for ( auto ct : celldof::allCellTypes )
+         {
+            auto mci = celldof::macrocell::getMicroVerticesFromMicroCell( Index( planeX, planeY, planeZ ), ct );
+            auto mt0 = coordinateFromIndex( level, cell, mci[0] );
+            auto mt1 = coordinateFromIndex( level, cell, mci[1] );
+            auto mt2 = coordinateFromIndex( level, cell, mci[2] );
+            auto mt3 = coordinateFromIndex( level, cell, mci[3] );
+
+            auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
+            auto s  = xl[0] + xl[1] + xl[2];
+            WALBERLA_LOG_DEVEL( "Cell type: " << celldof::CellTypeToStr.at( ct ) );
+            WALBERLA_LOG_DEVEL( "x local:   " << xl << ", local sum: " << walberla::format( "%10.5e", s ) );
+         }
+
+         WALBERLA_LOG_DEVEL( "Breakpoint here ..." );
+      }
+   }
 }
 
 } // namespace volumedofspace
