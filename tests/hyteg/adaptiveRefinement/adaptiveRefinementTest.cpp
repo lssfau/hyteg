@@ -96,6 +96,7 @@ void adaptiveRefinementTest()
    std::vector< PrimitiveID > to_refine( 1 );
    to_refine[0] = simplex_0->getPrimitiveID();
    mesh.refineRG( to_refine );
+   mesh.make_storage(); // we need this s.th. elements get their PrimitiveIDs
 
    // check number of elements
    WALBERLA_CHECK_EQUAL( mesh.get_elements().size(), n_el_1 );
@@ -130,6 +131,7 @@ void adaptiveRefinementTest()
 
    to_refine[0] = simplex_1->getPrimitiveID();
    mesh.refineRG( to_refine );
+   mesh.make_storage(); // we need this s.th. elements get their PrimitiveIDs
 
    // check number of elements
    WALBERLA_CHECK_EQUAL( mesh.get_elements().size(), n_el_2 );

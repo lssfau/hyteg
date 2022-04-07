@@ -3,25 +3,37 @@ Parameters
   // spacial dimension of domain
   dim 2;
   // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 1;
+  shape 0;
   // initial mesh (n3 only used for cube)
-  n1 5;
-  n2 2;
+  n1 1;
+  n2 1;
   n3 1;
 
-  // diffusion coefficient
-  alpha 10; // control slope of the "jump", 5 <= alpha <= 35
-  beta 1; // control height of the "jump", 1 <= beta <= 10
+  // analytic solution
+  // for shape=1 these parameters control the "jump" in the diffusion coefficient:
+  //    alpha: control slope of the "jump", 5 <= alpha <= 35
+  //    beta:  control height of the "jump", 1 <= beta <= 10
+  // for shape=0 they control the peak in the analytic solution
+  //    alpha: control the slope of the peak
+  //    beta:  unused
+  alpha 15; //
+  beta 1; //
 
-  // adaptive refinement
-  n_refinements 4;
-  proportion_of_elements_refined_per_step 0.2;
+  // adaptive refinement:
+  //  In each step, all elements where the error is greater than 0.5*err_p
+  //  will be refined, where err_p is the specified percentile over all errors.
+  //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
+  n_refinements 60; // number of refinement steps
+  percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
+  n_el_max 8200; // max number of macro elements
 
-  // linear solver (cg)
-  microlevel 2;
-  n_iterations 10000;
-  tolerance 1e-12;
+  // linear solver (GMG)
+  microlevel 1;
+  n_iterations 10;
+  tolerance 1e-6;
 
-  // vtk
-  vtkOutput 1;
+  // misc
+  vtkName new_anal_2D_ada;
+  loadbalancing 1;
+  writeDomainPartitioning 1;
 }

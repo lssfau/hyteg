@@ -69,9 +69,10 @@ void adaptiveRefinementBlendingTest( uint_t n_refinements )
          to_refine.push_back( el->getPrimitiveID() );
       }
 
-      auto& setupStorage = mesh.refineRG( to_refine );
+      mesh.refineRG( to_refine );
+      auto storage = mesh.make_storage();
 
-      auto vertices = setupStorage.getVertices();
+      auto vertices = storage->getVertices();
 
       for ( auto& [id, vtx] : vertices )
       {
@@ -79,7 +80,7 @@ void adaptiveRefinementBlendingTest( uint_t n_refinements )
          vtx->getGeometryMap()->evalF( vtx->getCoordinates(), x_blended );
          auto r = x_blended.norm();
 
-         if ( setupStorage.onBoundary( PrimitiveID( id ) ) )
+         if ( storage->onBoundary( PrimitiveID( id ) ) )
          {
             if ( r < 1.5 )
             {

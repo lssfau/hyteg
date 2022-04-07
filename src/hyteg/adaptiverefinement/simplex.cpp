@@ -105,7 +105,19 @@ inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K
 }
 
 template < uint_t K, class K_Simplex >
-inline double Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 >& vertices )
+inline real_t Simplex< K, K_Simplex >::radius( const std::array< Point3D, K + 1 >& vertices )
+{
+   Point3D bc = barycenter( vertices );
+   real_t  r  = 0.0;
+   for ( auto& vtx : vertices )
+   {
+      r = std::max( r, ( vtx - bc ).norm() );
+   }
+   return r;
+}
+
+template < uint_t K, class K_Simplex >
+inline real_t Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 >& vertices )
 {
    auto x = vertices[1] - vertices[0];
 
@@ -152,7 +164,7 @@ Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes
 }
 
 template < uint_t K, class K_Simplex >
-double Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
+real_t Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
 {
    return volume( this->coordinates( nodes ) );
 }

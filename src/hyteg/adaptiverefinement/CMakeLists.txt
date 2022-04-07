@@ -8,6 +8,7 @@ target_sources( hyteg
     refine_cell.hpp
     simplex.hpp
     mesh.hpp
-    simplexFactory.cpp     
+    simplexFactory.cpp
+    loadbalancing.cpp
 )
 
