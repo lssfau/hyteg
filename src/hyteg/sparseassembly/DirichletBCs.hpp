@@ -23,6 +23,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
