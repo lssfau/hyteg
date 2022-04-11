@@ -87,13 +87,13 @@ struct ModelProblem
       switch ( type )
       {
       case DIRAC:
-         ss << "dirac_" << offset_err;
+         ss << "dirac"; // << "_" << offset_err;
          if ( ignore_offset_for_refinement )
             ss << "_fullyRefined";
          break;
 
       case DIRAC_REGULARIZED:
-         ss << "dirac_regularized_" << sigma;
+         ss << "dirac_regularized"; // << "_" << sigma;
          break;
 
       default:
@@ -143,7 +143,6 @@ struct ModelProblem
               P1Function< real_t >&               f,
               P1Function< real_t >&               u_h,
               P1Function< real_t >&               b,
-              P1Function< real_t >&               err_filter,
               uint_t                              lvl ) const
    {
       using walberla::math::one_div_root_two;
@@ -186,7 +185,7 @@ struct ModelProblem
 
          if ( dim == 2 )
          {
-            _u = [=]( const hyteg::Point3D& x ) -> real_t { return std::log( x.norm() ) / ( 2.0 * pi ); };
+            _u = [=]( const hyteg::Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
          }
          else
          {
@@ -383,7 +382,8 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
+         real_t err_2_cell = vertexdof::macrocell::dot< real_t >(
+             l_max + 1, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
@@ -402,7 +402,8 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
+         real_t err_2_face = vertexdof::macroface::dot< real_t >(
+             l_max + 1, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
@@ -589,7 +590,7 @@ int main( int argc, char* argv[] )
    // solve/refine iteratively
    if ( vtkname == "auto" )
    {
-      vtkname = problem.name() + "_ref=" + std::to_string( p_refinement );
+      vtkname = problem.name(); // + "_ref=" + std::to_string( p_refinement );
    }
    solve_for_each_refinement( setupStorage,
                               problem,
