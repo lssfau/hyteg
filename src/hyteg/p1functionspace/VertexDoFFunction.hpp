@@ -55,7 +55,7 @@ class Cell;
 namespace vertexdof {
 
 template < typename ValueType >
-class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
+class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -76,20 +76,20 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
-   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
 
-   void allocateMemory( const uint_t & level, const Vertex & vertex );
-   void allocateMemory( const uint_t & level, const Edge & edge );
-   void allocateMemory( const uint_t & level, const Face & face );
-   void allocateMemory( const uint_t & level, const Cell & cell );
+   void allocateMemory( const uint_t& level, const Vertex& vertex );
+   void allocateMemory( const uint_t& level, const Edge& edge );
+   void allocateMemory( const uint_t& level, const Face& face );
+   void allocateMemory( const uint_t& level, const Cell& cell );
 
-   void deleteMemory( const uint_t & level, const Vertex & vertex );
-   void deleteMemory( const uint_t & level, const Edge & edge );
-   void deleteMemory( const uint_t & level, const Face & face );
-   void deleteMemory( const uint_t & level, const Cell & cell );
+   void deleteMemory( const uint_t& level, const Vertex& vertex );
+   void deleteMemory( const uint_t& level, const Edge& edge );
+   void deleteMemory( const uint_t& level, const Face& face );
+   void deleteMemory( const uint_t& level, const Cell& cell );
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
@@ -248,7 +248,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
-   void setBoundaryCondition( BoundaryCondition bc );
+   void              setBoundaryCondition( BoundaryCondition bc );
 
    template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const VertexDoFFunction< OtherFunctionValueType >& other )
@@ -287,7 +287,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// asynchronous tasks. endAdditiveCommunication has to be called manually!
    /// See communicateAdditively( const uint_t& ) const for more details
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -308,7 +308,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    inline void startAdditiveCommunication( const uint_t&           level,
                                            const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                            const PrimitiveStorage& primitiveStorage,
-                                           const bool & zeroOutDestination = true ) const
+                                           const bool&             zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -363,7 +363,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// \param zeroOutDestination if true, sets all values on the destination function to zero
    ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
@@ -383,7 +383,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    inline void communicateAdditively( const uint_t&           level,
                                       const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                       const PrimitiveStorage& primitiveStorage,
-                                      const bool & zeroOutDestination = true ) const
+                                      const bool&             zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >(
           level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
@@ -409,6 +409,22 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// @}
 
    using Function< VertexDoFFunction< ValueType > >::isDummy;
+
+   /// \brief Returns the number of DoFs that are allocated on this process.
+   uint_t getNumberOfLocalDoFs( uint_t level ) const { return numberOfLocalDoFs< P1FunctionTag >( *this->storage_, level ); }
+
+   /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
+   ///
+   /// \param level        refinement level
+   /// \param communicator if required, a custom communicator can be passed
+   /// \param onRootOnly   if true, the result is only returned on the root process
+   /// \return
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      return numberOfGlobalDoFs< P1FunctionTag >( *this->storage_, level, communicator, onRootOnly );
+   }
 
  private:
    template < typename PrimitiveType >
@@ -438,7 +454,10 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
 }
 
 template <>
-bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates, uint_t level, real_t& value, real_t searchToleranceRadius ) const;
+bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
+                                            uint_t         level,
+                                            real_t&        value,
+                                            real_t         searchToleranceRadius ) const;
 
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
