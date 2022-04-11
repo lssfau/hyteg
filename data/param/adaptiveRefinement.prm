@@ -2,22 +2,19 @@ Parameters
 {
   // spacial dimension of domain
   dim 2;
-  // domain shape (0=square/cube, 1=annulus/shpericalShell)
-  shape 0;
-  // initial mesh (n3 only used for cube)
-  n1 1;
-  n2 1;
-  n3 1;
+  // model problem
+  // 0: Poisson on [-1,1]^d with f=δ (dirac)
+  // 1: Poisson on [-1,1]^d with f=δ_ref (regularized dirac, i.e., gauss)
+  mp 0;
+  // offset from singularity where the error will be ignored (unused if there is no singularity)
+  offset 0;
+  // only use offset for computation of total error but still consider the respective elements for refinement
+  refine_all 0;
+  // standard deviation used when mp=1
+  sigma 0.1;
 
-  // analytic solution
-  // for shape=1 these parameters control the "jump" in the diffusion coefficient:
-  //    alpha: control slope of the "jump", 5 <= alpha <= 35
-  //    beta:  control height of the "jump", 1 <= beta <= 10
-  // for shape=0 they control the peak in the analytic solution
-  //    alpha: control the slope of the peak
-  //    beta:  unused
-  alpha 15; //
-  beta 1; //
+  // initial number of elements in each direction
+  initial_resolution 1;
 
   // adaptive refinement:
   //  In each step, all elements where the error is greater than 0.5*err_p
@@ -33,7 +30,7 @@ Parameters
   tolerance 1e-6;
 
   // misc
-  vtkName new_anal_2D_ada;
-  loadbalancing 0;
-  writeDomainPartitioning 1;
+  vtkName auto;
+  loadbalancing 1;
+  writeDomainPartitioning 0;
 }

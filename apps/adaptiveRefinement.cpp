@@ -32,6 +32,7 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -47,112 +48,204 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-// functions corresponding to a pde of type -∇⋅(k∇u) = f
-struct PDE_data
+using Mass         = P1ConstantMassOperator;
+using Laplace      = P1ConstantLaplaceOperator;
+using DivkGradForm = forms::p1_div_k_grad_affine_q3;
+using DivkGrad     = P1VariableOperator< DivkGradForm >;
+
+// representation of a model problem
+struct ModelProblem
 {
-   std::function< real_t( const hyteg::Point3D& ) > u_anal; // analytic solution u
-   std::function< real_t( const hyteg::Point3D& ) > f;      // rhs f
-   std::function< real_t( const hyteg::Point3D& ) > k;      // diffusion coefficient k
-   std::function< real_t( const hyteg::Point3D& ) > u_D;    // dirichlet data
+   enum Type
+   {
+      DIRAC,
+      DIRAC_REGULARIZED,
+      NOT_AVAILABLE
+   };
+
+   ModelProblem( uint_t mp_type, uint_t spacial_dim )
+   : type( mp_type )
+   , dim( spacial_dim )
+   , sigma( 0.0 )
+   , offset_err( 0.0 )
+   , ignore_offset_for_refinement( false )
+   {
+      if ( rhs_type >= Type::NOT_AVAILABLE )
+      {
+         WALBERLA_ABORT( "Invalid argument for rhs_type: Must be less than " << Type::NOT_AVAILABLE );
+      }
+      if ( spacial_dim < 2 || 3 < spacial_dim )
+      {
+         WALBERLA_ABORT( "Invalid argument for spacial dimension: Must be either 2 or 3" );
+      }
+   }
+
+   std::string name() const
+   {
+      std::stringstream ss;
+
+      switch ( type )
+      {
+      case DIRAC:
+         ss << "dirac_" << offset_err;
+         if ( ignore_offset_for_refinement )
+            ss << "_fullyRefined";
+         break;
+
+      case DIRAC_REGULARIZED:
+         ss << "dirac_regularized_" << sigma;
+         break;
+
+      default:
+         break;
+      }
+
+      ss << "_" << dim << "D";
+
+      return ss.str();
+   }
+
+   void set_params( real_t sig, real_t offset, bool refine_all )
+   {
+      if ( type == DIRAC )
+      {
+         offset_err                   = offset;
+         ignore_offset_for_refinement = refine_all;
+      }
+      if ( type == DIRAC_REGULARIZED )
+      {
+         sigma = sig;
+      }
+      // todo: add parameters when adding new problems
+   }
+
+   bool constant_coefficient() const
+   {
+      // todo: adapt when adding setting with non-constant coefficient
+      return type < NOT_AVAILABLE;
+   }
+
+   auto coeff() const
+   {
+      std::function< real_t( const hyteg::Point3D& ) > k;
+
+      if ( constant_coefficient() )
+      {
+         k = [=]( const hyteg::Point3D& ) { return 1.0; };
+      }
+      // todo: add required coefficients
+
+      return k;
+   }
+
+   void init( std::shared_ptr< PrimitiveStorage > storage,
+              P1Function< real_t >&               u,
+              P1Function< real_t >&               f,
+              P1Function< real_t >&               u_h,
+              P1Function< real_t >&               b,
+              P1Function< real_t >&               err_filter,
+              uint_t                              lvl )
+   {
+      std::function< real_t( const hyteg::Point3D& ) > _f;
+      std::function< real_t( const hyteg::Point3D& ) > _u;
+
+      if ( type == DIRAC_REGULARIZED )
+      {
+         constexpr real_t sqrt_2pi_pow_3 = std::pow( 2.0 * pi, 3.0 / 2.0 ); //sqrt(2π)^3
+         const real_t     sig2           = sigma * sigma;
+         const real_t     sig3           = sig2 * sigma;
+
+         if ( dim == 2 )
+         {
+            WALBERLA_ABORT( "regularized dirac not implemented for 2d" );
+         }
+         else
+         {
+            _f = [=]( const hyteg::Point3D& x ) -> real_t {
+               return std::exp( -0.5 * x.normSq() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 );
+            };
+            _u = [=]( const hyteg::Point3D& x ) -> real_t {
+               real_t r = x.norm();
+               if ( r <= 0.0 )
+                  return 1.0 / ( sqrt_2pi_pow_3 * sigma );
+               else
+                  return std::erf( one_div_root_two * r / sigma ) / ( 4.0 * pi * r );
+            };
+         }
+      }
+
+      if ( type == DIRAC )
+      {
+         _f = [=]( const hyteg::Point3D& x ) -> real_t {
+            return ( x.norm() < 1e-100 ) ? std::numeric_limits< real_t >::infinity() : 0.0;
+         };
+
+         if ( dim == 2 )
+         {
+            _u = [=]( const hyteg::Point3D& x ) -> real_t { return std::log( x.norm() ) / ( 2.0 * pi ); };
+         }
+         else
+         {
+            _u = [=]( const hyteg::Point3D& x ) -> real_t { return 1.0 / ( 4.0 * pi * x.norm() ); };
+         }
+      }
+
+      // interpolate rhs of pde
+      f.interpolate( _f, lvl );
+      // construct rhs of linear system s.th. b_i = ∫fφ_i
+      if ( type == DIRAC )
+      {
+         // ∫δ_0 φ_i = φ_i(0)
+         _b = [=]( const hyteg::Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
+         b.interpolate( _b, lvl );
+      }
+      else
+      {
+         // ∫f φ_i = [Mf]_i
+         Mass M( storage, lvl, lvl );
+         M.apply( f, b, lvl, All );
+      }
+
+      // interpolate analytic solution
+      u.interpolate( _u, lvl );
+      u.interpolate( _u, lvl + 1 );
+
+      // initialize u_h
+      u_h.setToZero( lvl );
+      u_h.setToZero( lvl + 1 );
+      u_h.interpolate( _u, lvl, DirichletBoundary );
+      u_h.interpolate( _u, lvl + 1, DirichletBoundary );
+
+      // set up error filter
+      auto filter = [=]( const hyteg::Point3D& x ) -> real_t { return ( x.norm() < offset_err ) ? 0.0 : 1.0; };
+      err_filter.interpolate( filter, lvl + 1 );
+   }
+
+   // general setting
+   const Type   type;
+   const uint_t dim;
+   // parameters
+   real_t sigma;      // standard deviation
+   real_t offset_err; // offset from singularity for error computation
+   bool   ignore_offset_for_refinement;
 };
 
-PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
-{
-   PDE_data pde;
-
-   if ( shape == 0 )
-   {
-      pde.u_anal = [=]( const hyteg::Point3D& x ) { return 1.0 - tanh( alpha * x.norm() ); };
-
-      pde.k = [=]( const hyteg::Point3D& ) { return 1.0; };
-
-      pde.f = [=]( const hyteg::Point3D& x ) {
-         real_t x0 = x.norm();
-         if ( x0 < 1e-100 )
-            return x0;
-         real_t x1  = alpha * x0;
-         real_t x12 = cosh( x1 );
-         real_t x2  = real_c( 1.0 ) / ( x12 * x12 );
-         return real_c( -2.0  * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0);
-      };
-
-      pde.u_D = pde.u_anal;
-   }
-   else
-   {
-      pde.u_anal = [=]( const hyteg::Point3D& x ) {
-         real_t x0 = tanh( alpha * ( x.norm() - real_c( 1.5 ) ) );
-         return real_c( 0.5 ) * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) *
-                exp( -beta ) / alpha;
-      };
-
-      pde.k = [=]( const hyteg::Point3D& x ) {
-         auto x0 = x.norm();
-         auto x1 = ( dim == 2 ) ? x0 : x0 * x0;
-         return exp( beta * tanh( alpha * ( x0 - 1.5 ) ) ) / x1;
-      };
-
-      pde.f = [=]( const hyteg::Point3D& ) { return 0; };
-
-      auto R_mid   = ( R_min + R_max ) / 2.0;
-      auto u_inner = pde.u_anal( Point3D(  R_min, 0, 0  ) );
-      auto u_outer = pde.u_anal( Point3D(  R_max, 0, 0  ) );
-
-      pde.u_D = [=]( const hyteg::Point3D& x ) { return ( x.norm() < R_mid ) ? u_inner : u_outer; };
-   }
-
-   return pde;
-}
-
-SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, uint_t N3 )
+SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
-   if ( dim != 2 && dim != 3 )
+   if ( problem.dim == 2 )
    {
-      WALBERLA_ABORT( "Dimension must be either 2 or 3, shape must be either 0 or 1!" );
-   }
-
-   if ( shape == 0 )
-   {
-      if ( dim == 3 )
-      {
-         Point3D n(  1, 1, 1  );
-         meshInfo = MeshInfo::meshCuboid( -n, n, N1, N2, N3 );
-      }
-      else
-      {
-         Point2D n(  1, 1  );
-         meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N1, N2 );
-      }
+      Point2D n( { 1, 1 } );
+      meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N, N );
    }
    else
    {
-      if ( dim == 3 )
-      {
-         meshInfo = MeshInfo::meshSphericalShell( N1, N2, R_min, R_max );
-      }
-
-      else
-      {
-         meshInfo = MeshInfo::meshAnnulus( R_min, R_max, MeshInfo::CRISS, N1, N2 );
-      }
+      Point3D n( { 1, 1, 1 } );
+      meshInfo = MeshInfo::meshCuboid( -n, n, N, N, N );
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   // apply geometry map
-   if ( shape == 1 )
-   {
-      if ( dim == 3 )
-      {
-         IcosahedralShellMap::setMap( setupStorage );
-      }
-      else // dim == 2
-      {
-         AnnulusMap::setMap( setupStorage );
-      }
-   }
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -160,60 +253,56 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 }
 
 // solve problem with current refinement and return list of elementwise squared errors of local elements
-adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >& storage,
-                                       const PDE_data&                            pde,
-                                       uint_t                                     l_min,
-                                       uint_t                                     l_max,
-                                       uint_t                                     max_iter,
-                                       real_t                                     tol,
-                                       const std::string&                         vtkname,
-                                       uint_t                                     refinement_step,
-                                       bool                                       l2_error_each_iteration = true )
+template < class A_t >
+adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > storage,
+                                       const ModelProblem&                 problem,
+                                       uint_t                              l_min,
+                                       uint_t                              l_max,
+                                       uint_t                              max_iter,
+                                       real_t                              tol,
+                                       std::string                         vtkname,
+                                       uint_t                              refinement_step,
+                                       bool                                l2_error_each_iteration = true )
 {
-   uint_t dim = storage->hasGlobalCells() ? 3 : 2;
-
    // operators
-   using M_t = P1BlendingMassOperator;
-   using A_t = P1BlendingDivkGradOperator;
-   using P_t = P1toP1LinearProlongation<>;
-   using R_t = P1toP1LinearRestriction<>;
+   std::shared_ptr< A_t > A;
+   auto                   M = std::make_shared< Mass >( storage, l_min, l_max + 1 );
+   auto                   P = std::make_shared< P1toP1LinearProlongation >();
+   auto                   R = std::make_shared< P1toP1LinearRestriction >();
 
-   forms::p1_div_k_grad_blending_q3 form( pde.k, pde.k );
+   if constexpr ( std::is_same_v< A_t, DivkGrad > )
+   {
+      auto k = problem.coeff();
 
-   auto M = std::make_shared< M_t >( storage, l_min, l_max + 1 );
-   auto A = std::make_shared< A_t >( storage, l_min, l_max + 1, form );
-   auto P = std::make_shared< P_t >();
-   auto R = std::make_shared< R_t >();
+      A = std::make_shared< A_t >( storage, l_min, l_max + 1, DivkGradForm( k, k ) );
+   }
+   else
+   {
+      A = std::make_shared< A_t >( storage, l_min, l_max + 1 );
+   }
 
    // FE functions
-   P1Function< real_t > b( "b", storage, l_min, l_max );
-   P1Function< real_t > u( "u", storage, l_min, l_max + 1 );
+   P1Function< real_t > f( "f", storage, l_max, l_max );
+   P1Function< real_t > b( "b(f)", storage, l_min, l_max );
+   P1Function< real_t > u( "u_h", storage, l_min, l_max + 1 );
    P1Function< real_t > r( "r", storage, l_max, l_max );
    P1Function< real_t > u_anal( "u_anal", storage, l_max, l_max + 1 );
-   P1Function< real_t > err( "err", storage, l_max, l_max + 1 );
+   P1Function< real_t > err( "e_h", storage, l_max, l_max + 1 );
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
+   P1Function< real_t > filter( "filter", storage, l_max + 1, l_max + 1 );
+
+   problem.init( storage, u_anal, f, u, b, filter, l_max );
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
    auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
-   // rhs
-   tmp.interpolate( pde.f, l_max );
-   M->apply( tmp, b, l_max, hyteg::All );
-   // analytical solution
-   u_anal.interpolate( pde.u_anal, l_max + 1 );
-   // initialize u
-   u.setToZero( l_max );
-   u.setToZero( l_max + 1 );
-   u.interpolate( pde.u_D, l_max, hyteg::DirichletBoundary );
-   u.interpolate( pde.u_D, l_max + 1, hyteg::DirichletBoundary );
-
    // solver
-   auto cg       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_max, std::max( max_iter, n_dof ), tol * 1e-1 );
-   auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
+   auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( max_iter, n_dof ), tol * 1e-1 );
+   auto smoother         = std::make_shared< GaussSeidelSmoother< A_t > >();
 
-   GeometricMultigridSolver< A_t > gmg( storage, smoother, cg, R, P, l_min, l_max, 3, 3 );
+   GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
 
    // computation of residual and L2 error
    err.setToZero( l_max );
@@ -229,6 +318,14 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
       P->prolongate( u, l_max, hyteg::Inner );
       err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1, hyteg::Inner );
       M->apply( err, tmp, l_max + 1, hyteg::All, Replace );
+      if ( problem.ignore_offset_for_refinement )
+      {
+         tmp.multElementwise( { tmp, filter }, l_max + 1, All );
+      }
+      else
+      {
+         err.multElementwise( { err, filter }, l_max + 1, All );
+      }
       return std::sqrt( err.dotGlobal( tmp, l_max + 1 ) );
    };
 
@@ -269,7 +366,7 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
 
-   if ( dim == 3 )
+   if ( problem.dim == 3 )
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
@@ -312,16 +409,8 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
    if ( vtkname != "" )
    {
       // coefficient
-      P1Function< real_t > k( "k", storage, l_min, l_max );
-      k.interpolate( pde.k, l_max );
-
-      // boundary flag
-      P1Function< real_t > boundary( "boundary", storage, l_min, l_max );
-      boundary.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::All );
-      boundary.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::DirichletBoundary );
-
-      // analytic solution
-      u_anal.interpolate( pde.u_anal, l_max );
+      P1Function< real_t > k( "k", storage, l_max, l_max );
+      coeff.interpolate( problem.coeff(), l_max );
 
       // error
       R->restrict( err, l_max + 1, hyteg::Inner );
@@ -333,13 +422,13 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
       // write vtkfile
       VTKOutput vtkOutput( "output", vtkname, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
-      vtkOutput.add( u );
+      vtkOutput.add( u_anal );
       vtkOutput.add( k );
+      vtkOutput.add( f );
+      vtkOutput.add( u );
+      vtkOutput.add( b );
       vtkOutput.add( err );
       vtkOutput.add( err_2 );
-      vtkOutput.add( u_anal );
-      vtkOutput.add( b );
-      vtkOutput.add( boundary );
       vtkOutput.write( l_max, refinement_step );
    }
 
@@ -347,7 +436,7 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
 }
 
 void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
-                                const PDE_data&                   pde,
+                                const ModelProblem&               problem,
                                 uint_t                            n_ref,
                                 uint_t                            n_el_max,
                                 real_t                            p_ref,
@@ -372,7 +461,11 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
       printCurrentMemoryUsage();
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
-      auto local_errors = solve( storage, pde, l_min, l_max, max_iter, tol, vtkname, refinement );
+      adaptiveRefinement::ErrorVector local_errors;
+      if ( problem.constant_coefficient() )
+         local_errors = solve< Laplace >( storage, problem, l_min, l_max, max_iter, tol, vtkname, refinement );
+      else
+         local_errors = solve< DivkGrad >( storage, problem, l_min, l_max, max_iter, tol, vtkname, refinement );
 
       if ( refinement >= n_ref )
       {
@@ -448,15 +541,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "config = " << *cfg );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
-   const uint_t dim   = parameters.getParameter< uint_t >( "dim" );
-   const uint_t shape = parameters.getParameter< uint_t >( "shape" );
-   const uint_t N1    = parameters.getParameter< uint_t >( "n1" );
-   const uint_t N2    = parameters.getParameter< uint_t >( "n2" );
-   const uint_t N3    = parameters.getParameter< uint_t >( "n3" );
+   const uint_t mp         = parameters.getParameter< uint_t >( "modelProblem" );
+   const uint_t dim        = parameters.getParameter< uint_t >( "dim" );
+   const real_t sigma      = parameters.getParameter< real_t >( "sigma", 0.0 );
+   const real_t offset     = parameters.getParameter< real_t >( "offset", 0.0 );
+   const bool   refine_all = parameters.getParameter< real_t >( "refine_all", false );
+   // todo: add parameters when adding new problems
 
-   const real_t alpha = parameters.getParameter< real_t >( "alpha" );
-   const real_t beta  = parameters.getParameter< real_t >( "beta" );
-
+   const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", 1 );
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
@@ -466,20 +558,28 @@ int main( int argc, char* argv[] )
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
-   const std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
-   const uint_t      lb                = parameters.getParameter< uint_t >( "loadbalancing" );
-   const bool        writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning" );
+   std::string  vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
+   const uint_t lb                = parameters.getParameter< uint_t >( "loadbalancing", 0 );
+   const bool   writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
    if ( lb > 1 )
    {
       WALBERLA_ABORT( "loadbalancing scheme must be either 0 (round robin) or 1 (clustering)" );
    }
    const auto loadbalancing = adaptiveRefinement::Loadbalancing( lb );
 
-   // solve
-   auto setupStorage = domain( dim, shape, N1, N2, N3 );
-   auto pde_data     = functions( dim, shape, alpha, beta );
+   // setup model problem
+   ModelProblem problem( mp, dim );
+   WALBERLA_LOG_INFO_ON_ROOT( "Model Problem: " << problem.name() );
+   problem.set_params( sigma, offset, refine_all );
+   // setup domain
+   auto setupStorage = domain( dim, shape, N );
+   // solve/refine iteratively
+   if ( vtkname == "auto" )
+   {
+      vtkname = problem.name() + "_ref=" + std::to_string( p_refinement );
+   }
    solve_for_each_refinement( setupStorage,
-                              pde_data,
+                              problem,
                               n_refinements,
                               n_el_max,
                               p_refinement,
