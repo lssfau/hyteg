@@ -64,15 +64,15 @@ struct ModelProblem
    };
 
    ModelProblem( uint_t mp_type, uint_t spacial_dim )
-   : type( mp_type )
+   : type( Type( mp_type ) )
    , dim( spacial_dim )
    , sigma( 0.0 )
    , offset_err( 0.0 )
    , ignore_offset_for_refinement( false )
    {
-      if ( rhs_type >= Type::NOT_AVAILABLE )
+      if ( mp_type >= Type::NOT_AVAILABLE )
       {
-         WALBERLA_ABORT( "Invalid argument for rhs_type: Must be less than " << Type::NOT_AVAILABLE );
+         WALBERLA_ABORT( "Invalid argument for model problem: Must be less than " << Type::NOT_AVAILABLE );
       }
       if ( spacial_dim < 2 || 3 < spacial_dim )
       {
@@ -144,8 +144,12 @@ struct ModelProblem
               P1Function< real_t >&               u_h,
               P1Function< real_t >&               b,
               P1Function< real_t >&               err_filter,
-              uint_t                              lvl )
+              uint_t                              lvl ) const
    {
+      using walberla::math::one_div_root_two;
+      using walberla::math::pi;
+
+      // setup rhs function f and analytic solution u of pde
       std::function< real_t( const hyteg::Point3D& ) > _f;
       std::function< real_t( const hyteg::Point3D& ) > _u;
 
@@ -196,7 +200,7 @@ struct ModelProblem
       if ( type == DIRAC )
       {
          // ∫δ_0 φ_i = φ_i(0)
-         _b = [=]( const hyteg::Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
+         auto _b = [=]( const hyteg::Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
          b.interpolate( _b, lvl );
       }
       else
@@ -215,10 +219,24 @@ struct ModelProblem
       u_h.setToZero( lvl + 1 );
       u_h.interpolate( _u, lvl, DirichletBoundary );
       u_h.interpolate( _u, lvl + 1, DirichletBoundary );
+   }
 
-      // set up error filter
-      auto filter = [=]( const hyteg::Point3D& x ) -> real_t { return ( x.norm() < offset_err ) ? 0.0 : 1.0; };
-      err_filter.interpolate( filter, lvl + 1 );
+   void apply_error_filter( const P1Function< real_t >& e, P1Function< real_t >& e_f, uint_t lvl ) const
+   {
+      if ( offset_err > 0 )
+      {
+         auto filter = [=]( const hyteg::Point3D& x ) -> real_t {
+            real_t ex = 0.0;
+            if ( x.norm() >= offset_err )
+               e.evaluate( x, lvl, ex );
+            return ex;
+         };
+         e_f.interpolate( filter, lvl );
+      }
+      else
+      {
+         e_f.copyFrom( e, lvl );
+      }
    }
 
    // general setting
@@ -289,9 +307,9 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    P1Function< real_t > u_anal( "u_anal", storage, l_max, l_max + 1 );
    P1Function< real_t > err( "e_h", storage, l_max, l_max + 1 );
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
-   P1Function< real_t > filter( "filter", storage, l_max + 1, l_max + 1 );
+   P1Function< real_t > err_f( "e_h_filtered", storage, l_max + 1, l_max + 1 );
 
-   problem.init( storage, u_anal, f, u, b, filter, l_max );
+   problem.init( storage, u_anal, f, u, b, l_max );
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
@@ -317,16 +335,9 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    auto compute_L2error = [&]() -> real_t {
       P->prolongate( u, l_max, hyteg::Inner );
       err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1, hyteg::Inner );
-      M->apply( err, tmp, l_max + 1, hyteg::All, Replace );
-      if ( problem.ignore_offset_for_refinement )
-      {
-         tmp.multElementwise( { tmp, filter }, l_max + 1, All );
-      }
-      else
-      {
-         err.multElementwise( { err, filter }, l_max + 1, All );
-      }
-      return std::sqrt( err.dotGlobal( tmp, l_max + 1 ) );
+      problem.apply_error_filter( err, err_f, l_max + 1 );
+      M->apply( err_f, tmp, l_max + 1, hyteg::All, Replace );
+      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1 ) );
    };
 
    // solve
@@ -366,11 +377,13 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
 
+   P1Function< real_t >& err_for_refinement = ( problem.ignore_offset_for_refinement ) ? err : err_f;
+
    if ( problem.dim == 3 )
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         auto err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
+         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
@@ -389,7 +402,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         auto err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
+         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
@@ -410,7 +423,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       // coefficient
       P1Function< real_t > k( "k", storage, l_max, l_max );
-      coeff.interpolate( problem.coeff(), l_max );
+      k.interpolate( problem.coeff(), l_max );
 
       // error
       R->restrict( err, l_max + 1, hyteg::Inner );
@@ -545,7 +558,7 @@ int main( int argc, char* argv[] )
    const uint_t dim        = parameters.getParameter< uint_t >( "dim" );
    const real_t sigma      = parameters.getParameter< real_t >( "sigma", 0.0 );
    const real_t offset     = parameters.getParameter< real_t >( "offset", 0.0 );
-   const bool   refine_all = parameters.getParameter< real_t >( "refine_all", false );
+   const bool   refine_all = parameters.getParameter< bool >( "refine_all", false );
    // todo: add parameters when adding new problems
 
    const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", 1 );
@@ -572,7 +585,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Model Problem: " << problem.name() );
    problem.set_params( sigma, offset, refine_all );
    // setup domain
-   auto setupStorage = domain( dim, shape, N );
+   auto setupStorage = domain( problem, N );
    // solve/refine iteratively
    if ( vtkname == "auto" )
    {
