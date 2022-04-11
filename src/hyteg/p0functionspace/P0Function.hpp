@@ -57,11 +57,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
-   template < typename SenderType, typename ReceiverType >
-   void communicate( const uint_t& level ) const
-   {
-      dgFunction_->communicate( level );
-   }
+   void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { WALBERLA_ABORT( "Not implemented." ); };
 
