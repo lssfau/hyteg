@@ -782,7 +782,7 @@ ValueType DGFunction< ValueType >::getMaxMagnitude( uint_t level, bool mpiReduce
             {
                for ( uint_t i = 0; i < numDofs; i++ )
                {
-                  const auto val = abs( dofs[volumedofspace::indexing::index(
+                  const auto val = std::abs( dofs[volumedofspace::indexing::index(
                       idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] );
                   localMax       = std::max( localMax, val );
                }
@@ -809,7 +809,7 @@ ValueType DGFunction< ValueType >::getMaxMagnitude( uint_t level, bool mpiReduce
             {
                for ( uint_t i = 0; i < numDofs; i++ )
                {
-                  const auto val = abs(
+                  const auto val = std::abs(
                       dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] );
                   localMax = std::max( localMax, val );
                }
