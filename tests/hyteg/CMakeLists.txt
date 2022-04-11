@@ -804,6 +804,9 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEFunctionspaceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1DGEFunctionspaceTest)
+
+    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGESymmetryTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1DGESymmetryTest)
 endif()
 
 ## Basic Smoothing and Solving

@@ -6,6 +6,7 @@ target_sources( hyteg
     DGDiffusionForm_Example.cpp
     DGForm.hpp
     DGForm2D.hpp
+    DGFormAbort.hpp
     DGFormVolume.hpp
     DGFunction.cpp
     DGFunction.hpp
@@ -18,6 +19,7 @@ target_sources( hyteg
     P0_to_P1_divt_form.cpp
     P0_to_P1_divt_form.hpp
     DGVectorLaplaceForm.hpp
+    DGVectorMassForm.hpp
     DGVectorFunction.hpp
     DGVectorOperators.hpp
 )

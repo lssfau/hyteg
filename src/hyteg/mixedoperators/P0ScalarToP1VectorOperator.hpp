@@ -54,10 +54,10 @@ class P0ScalarToP1VectorOperator : public Operator< P0Function< real_t >, P1Vect
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P0Function< idx_t >&       src,
-                  const P1VectorFunction< idx_t >& dst,
-                  size_t                           level,
-                  DoFType                          flag ) const
+                  const P0Function< idx_t >&                  src,
+                  const P1VectorFunction< idx_t >&            dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
    {
       operX.toMatrix( mat, src, dst[0], level, flag );
       operY.toMatrix( mat, src, dst[1], level, flag );
@@ -74,5 +74,10 @@ class P0ScalarToP1VectorOperator : public Operator< P0Function< real_t >, P1Vect
 //// Some operators we might use more often than others
 typedef P0ScalarToP1VectorOperator< P0ToP1ConstantDivTxOperator, P0ToP1ConstantDivTyOperator, P0ToP1ConstantDivTzOperator >
     P0ToP1ConstantDivTOperator;
+
+typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGVectorLaplaceXCouplingOperator,
+                                    P0ToP1ConstantP1EDGVectorLaplaceYCouplingOperator,
+                                    P0ToP1ConstantP1EDGVectorLaplaceZCouplingOperator >
+    P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator;
 
 } // namespace hyteg

@@ -76,4 +76,9 @@ class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, 
 typedef P1VectorToP0ScalarOperator< P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator >
     P1ToP0ConstantDivOperator;
 
+typedef P1VectorToP0ScalarOperator< P1ToP0ConstantP1EDGVectorLaplaceXCouplingOperator,
+                                    P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator,
+                                    P1ToP0ConstantP1EDGVectorLaplaceZCouplingOperator >
+    P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator;
+
 } // namespace hyteg

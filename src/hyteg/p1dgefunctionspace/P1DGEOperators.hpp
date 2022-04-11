@@ -20,40 +20,85 @@
 
 #pragma once
 
-#include "hyteg/operators/Operator.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
+#include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
+#include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
+#include "hyteg/operators/Operator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/p0functionspace/P0Operator.hpp"
+#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hyteg {
 
 template < typename ValueType >
-class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > > {
+class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
+{
  public:
-   P1DGEMassOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                  uint_t                                     minLevel,
-                  uint_t                                     maxLevel);
+   P1DGEMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel ) {}
 
    void apply( const P1DGEFunction< real_t >& src,
                const P1DGEFunction< real_t >& dst,
-               size_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType ) const override
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
    {
-
+      WALBERLA_ABORT( "Not implemented." );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&                  src,
-                  const P1DGEFunction< idx_t >&                  dst,
+                  const P1DGEFunction< idx_t >&               src,
+                  const P1DGEFunction< idx_t >&               dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
+      WALBERLA_ABORT( "Not implemented." );
+   }
+};
 
+template < typename ValueType >
+class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
+{
+ public:
+   P1DGELaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::DGVectorLaplaceFormEDGEDG >() )
+   {}
+
+   void apply( const P1DGEFunction< real_t >& src,
+               const P1DGEFunction< real_t >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      WALBERLA_ABORT( "Not implemented." );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1DGEFunction< idx_t >&               src,
+                  const P1DGEFunction< idx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      src.getDiscontinuousPart()->communicate( level );
+      dst.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
    }
 
  private:
-
-
+   P1ConstantVectorLaplaceOperator                  cg_to_cg_coupling_;
+   P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator cg_to_eg_coupling_;
+   P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator eg_to_cg_coupling_;
+   P0Operator< dg::DGVectorLaplaceFormEDGEDG >      eg_to_eg_coupling_;
 };
-
-}
+} // namespace hyteg

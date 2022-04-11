@@ -21,7 +21,7 @@
 #pragma once
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1dgefunctionspace/DGBasisEnriched.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -45,7 +45,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
    std::shared_ptr< P1VectorFunction< ValueType > > getConformingPart() const { return u_conforming_; }
 
-   std::shared_ptr< dg::DGFunction< ValueType > > getDiscontinuousPart() const { return u_discontinuous_; }
+   std::shared_ptr< P0Function< ValueType > > getDiscontinuousPart() const { return u_discontinuous_; }
 
    void setBoundaryCondition( BoundaryCondition bc )
    {
@@ -58,8 +58,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const
    {
-      u_conforming_->communicate( level );
-      u_discontinuous_->communicate( level );
+      WALBERLA_ABORT( "Not implemented." );
    }
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
@@ -135,7 +134,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
                 uint_t                                                                           level,
                 DoFType                                                                          flag = All ) const
    {
-      std::vector< std::reference_wrapper< const dg::DGFunction< ValueType > > >   dg_list;
+      std::vector< std::reference_wrapper< const P0Function< ValueType > > >       dg_list;
       std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > p1_list;
 
       for ( auto f : functions )
@@ -163,7 +162,12 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       return result;
    }
 
-   void enumerate( uint_t level ) const { enumerate( level, 0 ); }
+   void enumerate( uint_t level ) const
+   {
+      ValueType start = 0;
+      enumerate( level, start );
+      WALBERLA_UNUSED( start );
+   }
 
    void enumerate( uint_t level, ValueType& offset ) const
    {
@@ -267,8 +271,8 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
             std::vector< uint_t > vertexDoFIndices( numDofs );
             std::vector< real_t > dofValues( numDofs );
 
-            auto       dofs      = u_discontinuous_->volumeDoFFunction()->dofMemory( faceID, level );
-            const auto memLayout = u_discontinuous_->volumeDoFFunction()->memoryLayout();
+            auto       dofs      = u_discontinuous_->getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level );
+            const auto memLayout = u_discontinuous_->getDGFunction()->volumeDoFFunction()->memoryLayout();
 
             for ( auto faceType : facedof::allFaceTypes )
             {
@@ -300,7 +304,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    std::shared_ptr< dg::DGBasisLinearLagrange_Example > basis_;
 
    std::shared_ptr< P1VectorFunction< ValueType > > u_conforming_;
-   std::shared_ptr< dg::DGFunction< ValueType > >   u_discontinuous_;
+   std::shared_ptr< P0Function< ValueType > >       u_discontinuous_;
 
    dg::DGBasisLinearLagrange_Example basis_conforming_;
    DGBasisEnriched                   basis_discontinuous_;
@@ -315,7 +319,7 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
 : Function< P1DGEFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , basis_{ std::make_shared< dg::DGBasisLinearLagrange_Example >() }
 , u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel, bc ) }
-, u_discontinuous_{ std::make_shared< dg::DGFunction< ValueType > >( name, storage, minLevel, maxLevel, basis_, 0, bc ) }
+, u_discontinuous_{ std::make_shared< P0Function< ValueType > >( name, storage, minLevel, maxLevel, bc ) }
 , basis_conforming_()
 , basis_discontinuous_()
 {}
