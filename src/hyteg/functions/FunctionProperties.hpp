@@ -167,7 +167,7 @@ inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& 
 template <>
 inline uint_t numberOfLocalDoFs< DGVectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-   WALBERLA_ABORT("not allowed");
+   WALBERLA_ABORT( "not allowed" );
    return 0;
 }
 
@@ -206,7 +206,8 @@ inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
                   std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P1DGEFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfLocalDoFs( level );
    }
@@ -246,7 +247,8 @@ inline uint_t numberOfGlobalDoFs( const func_t&   func,
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
                   std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P1DGEFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
