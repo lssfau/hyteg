@@ -35,6 +35,14 @@ namespace dg {
 
 using walberla::real_c;
 
+/// \brief Reference implementation of a DG form for the Laplacian.
+///
+/// Refer to
+///     Béatrice Rivière (2008).
+///     Discontinuous Galerkin Methods for Solving Elliptic and Parabolic Equations: Theory and Implementation
+/// for details.
+///
+/// Note: if uncertain, try setting beta_0 to 1 for 2D and 0.5 for 3D applications.
 class DGDiffusionForm_Example : public DGForm
 {
  public:

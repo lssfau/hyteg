@@ -758,6 +758,75 @@ void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            
    WALBERLA_UNUSED( flag );
 }
 
+template < typename ValueType >
+ValueType DGFunction< ValueType >::getMaxMagnitude( uint_t level, bool mpiReduce ) const
+{
+   auto localMax = ValueType( 0.0 );
+
+   if ( storage_->hasGlobalCells() )
+   {
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto degree  = polynomialDegree( cellID );
+         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto val = abs( dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] );
+                  localMax       = std::max( localMax, val );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto degree  = polynomialDegree( faceID );
+         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
+
+         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
+         const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto val = abs(
+                      dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] );
+                  localMax = std::max( localMax, val );
+               }
+            }
+         }
+      }
+   }
+
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
+}
+
 /// explicit instantiation
 template class DGFunction< double >;
 template class DGFunction< float >;
