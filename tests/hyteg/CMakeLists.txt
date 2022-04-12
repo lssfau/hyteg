@@ -798,6 +798,9 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
+
+    waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGPetscApplyTest)
 endif()
 
 ## Basic Smoothing and Solving

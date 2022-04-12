@@ -337,6 +337,12 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "DGFunction::swap() not implemented." )
    }
 
+   /// \brief Returns the max absolute DoF.
+   ///
+   /// \param level     refinement level
+   /// \param mpiReduce if true, reduces over all processes (global max magnitude), if false returns the process local value
+   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const;
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
    using Function< DGFunction< ValueType > >::additiveCommunicators_;
