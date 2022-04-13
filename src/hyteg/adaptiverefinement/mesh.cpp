@@ -57,6 +57,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       _vertices.resize( _n_vertices );
       _vertexBoundaryFlag.resize( _n_vertices );
       _vertexGeometryMap.resize( _n_vertices );
+      _vertexTargetRank.resize( _n_vertices );
 
       // [0,1,...,n-1]
       std::vector< uint_t > vtxIndices( _n_vertices );
@@ -73,6 +74,8 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          _vertexGeometryMap[idx] = id;
          // extract boundaryFlag of vertex
          _vertexBoundaryFlag[idx] = vtx->getMeshBoundaryFlag();
+         // extract targetRank
+         _vertexTargetRank[idx] = setupStorage.getTargetRank( PrimitiveID( id ) );
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -93,7 +96,11 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          myEdge->setPrimitiveID( PrimitiveID::create( idx ) );
          myEdge->setGeometryMap( id );
          myEdge->setBoundaryFlag( edge->getMeshBoundaryFlag() );
+<<<<<<< HEAD
          ++idx;
+=======
+         myEdge->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
+>>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
       }
 
       for ( auto& [id, face] : setupStorage.getFaces() )
@@ -103,7 +110,11 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          myFace->setPrimitiveID( PrimitiveID::create( idx ) );
          myFace->setGeometryMap( id );
          myFace->setBoundaryFlag( face->getMeshBoundaryFlag() );
+<<<<<<< HEAD
          ++idx;
+=======
+         myFace->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
+>>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
       }
 
       for ( auto& [id, cell] : setupStorage.getCells() )
@@ -113,6 +124,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          myCell->setPrimitiveID( PrimitiveID::create( idx ) );
          myCell->setGeometryMap( id );
          myCell->setBoundaryFlag( cell->getMeshBoundaryFlag() );
+         myCell->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
          cells.insert( myCell );
          ++idx;
       }
@@ -289,14 +301,25 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loa
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
    // apply loadbalancing
-   if ( lb == ROUND_ROBIN )
+   switch ( lb )
    {
+   case INHERITED:
+      inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+      break;
+   case ROUND_ROBIN:
       loadbalancing( vtxs, edges, faces, cells, _n_processes );
+<<<<<<< HEAD
    }
    if ( lb == CLUSTERING )
    {
       WALBERLA_ABORT( "adaptiveRefinement::mesh Internal loadbalancing not implemented!" )
       // loadbalancing( vtxs, edges, faces, cells, nbrHood, _n_processes, uint_t( walberla::mpi::MPIManager::instance()->rank() ) );
+=======
+      break;
+   case CLUSTERING:
+      loadbalancing( vtxs, edges, faces, cells, nbrHood, _n_processes, uint_t( walberla::mpi::MPIManager::instance()->rank() ) );
+      break;
+>>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
    }
 
    // create storage
@@ -828,8 +851,12 @@ void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >&   vtxData,
       vtxData.resize( _n_vertices );
       for ( idx = 0; idx < _vertices.size(); ++idx )
       {
+<<<<<<< HEAD
          auto id      = PrimitiveID::create( idx );
          vtxData[idx] = VertexData( _vertexGeometryMap[idx], _vertexBoundaryFlag[idx], id, { { idx } } );
+=======
+         vtxData.push_back( VertexData( _vertexGeometryMap[id], _vertexBoundaryFlag[id], id, _vertexTargetRank[id] ) );
+>>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
       }
       // collect edgedata
       edgeData.resize( edges.size() );
@@ -988,11 +1015,11 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
       std::set< std::shared_ptr< K_Simplex > > subelements;
       if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
       {
-         subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+         subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, el );
       }
       if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
       {
-         subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+         subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, el );
       }
 
       // if this red step only replaced a green step, subelements must be checked again
@@ -1064,7 +1091,7 @@ std::set< std::shared_ptr< Simplex3 > >
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, face );
+               refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, face );
             }
 
             ++n_red;

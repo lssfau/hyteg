@@ -154,9 +154,9 @@ struct ModelProblem
 
       if ( type == DIRAC_REGULARIZED )
       {
-         constexpr real_t sqrt_2pi_pow_3 = std::pow( 2.0 * pi, 3.0 / 2.0 ); //sqrt(2π)^3
-         const real_t     sig2           = sigma * sigma;
-         const real_t     sig3           = sig2 * sigma;
+         const real_t sqrt_2pi_pow_3 = std::pow( 2.0 * pi, 3.0 / 2.0 ); //sqrt(2π)^3
+         const real_t sig2           = sigma * sigma;
+         const real_t sig3           = sig2 * sigma;
 
          if ( dim == 2 )
          {
@@ -185,7 +185,7 @@ struct ModelProblem
 
          if ( dim == 2 )
          {
-            _u = [=]( const hyteg::Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
+            _u = [=]( const hyteg::Point3D& x ) -> real_t { return 5e5 - std::log( x.norm() ) / ( 2.0 * pi ); };
          }
          else
          {
@@ -271,15 +271,17 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
 
 // solve problem with current refinement and return list of elementwise squared errors of local elements
 template < class A_t >
-adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > storage,
-                                       const ModelProblem&                 problem,
-                                       uint_t                              l_min,
-                                       uint_t                              l_max,
-                                       uint_t                              max_iter,
-                                       real_t                              tol,
-                                       std::string                         vtkname,
-                                       uint_t                              refinement_step,
-                                       bool                                l2_error_each_iteration = true )
+adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      storage,
+                                       const ModelProblem&                      problem,
+                                       uint_t                                   u0,
+                                       std::shared_ptr< P1Function< real_t > >& u_old,
+                                       uint_t                                   l_min,
+                                       uint_t                                   l_max,
+                                       uint_t                                   max_iter,
+                                       real_t                                   tol,
+                                       std::string                              vtkname,
+                                       uint_t                                   refinement_step,
+                                       bool                                     l2_error_each_iteration = true )
 {
    // operators
    std::shared_ptr< A_t > A;
@@ -299,16 +301,37 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    }
 
    // FE functions
+   auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_max + 1 );
    P1Function< real_t > f( "f", storage, l_max, l_max );
    P1Function< real_t > b( "b(f)", storage, l_min, l_max );
-   P1Function< real_t > u( "u_h", storage, l_min, l_max + 1 );
    P1Function< real_t > r( "r", storage, l_max, l_max );
    P1Function< real_t > u_anal( "u_anal", storage, l_max, l_max + 1 );
    P1Function< real_t > err( "e_h", storage, l_max, l_max + 1 );
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
    P1Function< real_t > err_f( "e_h_filtered", storage, l_max + 1, l_max + 1 );
 
-   problem.init( storage, u_anal, f, u, b, l_max );
+   problem.init( storage, u_anal, f, *u, b, l_max );
+
+   /* initialize u_h with values from previous refinement
+      and apply loadbalancing
+   */
+   if ( u_old != nullptr )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "initialize u=u_old" );
+      auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
+         real_t ux = 0.0;
+         if ( !u_old->evaluate( x, l_max, ux, 1e-16 ) )
+         {
+            WALBERLA_LOG_INFO( "no value for x=" << x );
+         }
+         return ux;
+      };
+      u->interpolate( u_init, l_max, Inner );
+
+      // todo: add loadbalancing
+   }
+
+
 
    // global DoF
    tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
@@ -327,13 +350,13 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    tmp.setToZero( l_max );
    tmp.setToZero( l_max + 1 );
    auto compute_residual = [&]() -> real_t {
-      A->apply( u, tmp, l_max, hyteg::Inner, Replace );
+      A->apply( *u, tmp, l_max, hyteg::Inner, Replace );
       r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
       return std::sqrt( r.dotGlobal( r, l_max, hyteg::Inner ) );
    };
    auto compute_L2error = [&]() -> real_t {
-      P->prolongate( u, l_max, hyteg::Inner );
-      err.assign( { 1.0, -1.0 }, { u, u_anal }, l_max + 1, hyteg::Inner );
+      P->prolongate( *u, l_max, hyteg::Inner );
+      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, hyteg::Inner );
       problem.apply_error_filter( err, err_f, l_max + 1 );
       M->apply( err_f, tmp, l_max + 1, hyteg::All, Replace );
       return std::sqrt( err_f.dotGlobal( tmp, l_max + 1 ) );
@@ -351,7 +374,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       ++iter;
 
-      gmg.solve( *A, u, b, l_max );
+      gmg.solve( *A, *u, b, l_max );
 
       norm_r = compute_residual();
 
@@ -439,47 +462,54 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
       vtkOutput.add( u_anal );
       vtkOutput.add( k );
       vtkOutput.add( f );
-      vtkOutput.add( u );
+      vtkOutput.add( *u );
       vtkOutput.add( b );
       vtkOutput.add( err );
       vtkOutput.add( err_2 );
       vtkOutput.write( l_max, refinement_step );
    }
 
+   if ( u0 == 1 )
+   {
+      u_old.swap( u );
+   }
+
    return err_2_elwise_loc;
 }
 
-void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
-                                const ModelProblem&               problem,
-                                uint_t                            n_ref,
-                                uint_t                            n_el_max,
-                                real_t                            p_ref,
-                                uint_t                            l_min,
-                                uint_t                            l_max,
-                                uint_t                            max_iter,
-                                real_t                            tol,
-                                const std::string&                vtkname,
-                                adaptiveRefinement::Loadbalancing loadbalancing,
-                                bool                              writePartitioning )
+void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
+                                const ModelProblem&          problem,
+                                uint_t                       n_ref,
+                                uint_t                       n_el_max,
+                                real_t                       p_ref,
+                                uint_t                       l_min,
+                                uint_t                       l_max,
+                                uint_t                       u0,
+                                uint_t                       max_iter,
+                                real_t                       tol,
+                                std::string                  vtkname,
+                                bool                         writePartitioning )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
    // PrimitiveStorage
-   std::shared_ptr< PrimitiveStorage > storage = nullptr;
+   std::shared_ptr< PrimitiveStorage >     storage = nullptr;
+   std::shared_ptr< P1Function< real_t > > u_old   = nullptr;
 
    uint_t refinement = 0;
    while ( 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing and create PrimitiveStorage ..." );
-      storage = mesh.make_storage( loadbalancing );
+      WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
+      auto lb = ( refinement == 0 ) ? adaptiveRefinement::CLUSTERING : adaptiveRefinement::INHERITED;
+      storage = mesh.make_storage( lb );
       printCurrentMemoryUsage();
 
       WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
-         local_errors = solve< Laplace >( storage, problem, l_min, l_max, max_iter, tol, vtkname, refinement );
+         local_errors = solve< Laplace >( storage, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, refinement );
       else
-         local_errors = solve< DivkGrad >( storage, problem, l_min, l_max, max_iter, tol, vtkname, refinement );
+         local_errors = solve< DivkGrad >( storage, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, refinement );
 
       if ( refinement >= n_ref )
       {
@@ -499,9 +529,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
          {
             WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i = " << err_global.back().first );
             WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i = " << err_global.front().first );
-            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << 0.5 * err_global[p_idx].first );
+            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << 0.9 * err_global[p_idx].first );
          }
-         return err_global[i].first >= 0.5 * err_global[p_idx].first;
+         return err_global[i].first >= 0.9 * err_global[p_idx].first;
       };
 
       // apply refinement
@@ -566,20 +596,16 @@ int main( int argc, char* argv[] )
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
-   const uint_t l_max         = parameters.getParameter< uint_t >( "microlevel" );
-   const uint_t l_min         = 0;
 
+   const uint_t l_max = parameters.getParameter< uint_t >( "microlevel" );
+   const uint_t l_min = 0;
+
+   const uint_t u0       = parameters.getParameter< uint_t >( "initial_guess", 0 );
    const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
    const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
 
-   std::string  vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
-   const uint_t lb                = parameters.getParameter< uint_t >( "loadbalancing", 0 );
-   const bool   writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
-   if ( lb > 1 )
-   {
-      WALBERLA_ABORT( "loadbalancing scheme must be either 0 (round robin) or 1 (clustering)" );
-   }
-   const auto loadbalancing = adaptiveRefinement::Loadbalancing( lb );
+   std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
+   const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
 
    // setup model problem
    ModelProblem problem( mp, dim );
@@ -599,10 +625,10 @@ int main( int argc, char* argv[] )
                               p_refinement,
                               l_min,
                               l_max,
+                              u0,
                               max_iter,
                               tol,
                               vtkname,
-                              loadbalancing,
                               writePartitioning );
 
    return 0;

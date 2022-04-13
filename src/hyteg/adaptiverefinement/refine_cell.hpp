@@ -30,12 +30,14 @@ namespace adaptiveRefinement {
    @param vertices      global coordinates of all vertices in the mesh
    @param geometryMap   geometrymap ID of all vertices in the mesh
    @param boundaryFlag  boundaryFlag of all vertices in the mesh
+   @param targetRank    targetRank of all vertices in the mesh
    @param cell          subject to refinement
    @return sub-elements
 */
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&     vertices,
                                                                 std::vector< PrimitiveID >& geometryMap,
                                                                 std::vector< uint_t >&      boundaryFlag,
+                                                                std::vector< uint_t >&      targetRank,
                                                                 std::shared_ptr< Simplex3 > cell )
 {
    // === split faces ===
@@ -50,7 +52,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       if ( !face->has_children() )
       {
          // apply red refinement to face
-         refine_face_red( vertices, geometryMap, boundaryFlag, face );
+         refine_face_red( vertices, geometryMap, boundaryFlag, targetRank, face );
       }
    }
 

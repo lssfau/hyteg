@@ -630,5 +630,125 @@ void loadbalancing( std::vector< VertexData >& vtxs,
 // }
 // }
 
+void inheritRankFromVolumePrimitives( std::vector< VertexData >&         vtxs,
+                                      std::vector< EdgeData >&           edges,
+                                      std::vector< FaceData >&           faces,
+                                      std::vector< CellData >&           cells,
+                                      const std::vector< Neighborhood >& nbrHood )
+{
+   using PT = PrimitiveType;
+
+   const PT VOL = ( cells.size() == 0 ) ? FACE : CELL;
+
+   // number of primitives of each type
+   std::array< uint_t, ALL + 1 > n_prim;
+   n_prim[VTX]  = vtxs.size();
+   n_prim[EDGE] = edges.size();
+   n_prim[FACE] = faces.size();
+   n_prim[CELL] = cells.size();
+   n_prim[ALL]  = n_prim[VTX] + n_prim[EDGE] + n_prim[FACE] + n_prim[CELL];
+
+   // first Primitive ID for each primitive type
+   std::array< uint_t, ALL + 1 > id0{};
+   for ( auto pt : { VTX, EDGE, FACE, CELL } )
+   {
+      id0[pt + 1] = id0[pt] + n_prim[pt];
+   }
+
+   /* We assume that the elements in the input vectors are ordered by
+      PrimitiveID and that for each vertex v, edge e, face f and cell c it holds
+               id_v < id_e < id_f < id_c
+   */
+   uint_t check_id = 0;
+   auto   check    = [&]( PrimitiveID id ) {
+      if ( id.getID() != check_id )
+      {
+         WALBERLA_ABORT( "Wrong numbering of primitives!" );
+      }
+      ++check_id;
+   };
+   for ( auto& p : vtxs )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : edges )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : faces )
+   {
+      check( p.getPrimitiveID() );
+   }
+   for ( auto& p : cells )
+   {
+      check( p.getPrimitiveID() );
+   }
+
+   // get primitive type of id
+   auto primitiveType = [&]( uint_t id ) -> PT {
+      PT pt = VTX;
+      while ( pt < ALL && id >= id0[pt + 1] )
+      {
+         pt = PT( pt + 1 );
+      }
+      return pt;
+   };
+
+   // compute neighboring volume primitives of all interface primitives
+   std::vector< std::vector< uint_t > > nbrVolumes( n_prim[ALL] - n_prim[VOL] );
+   for ( uint_t idx = 0; idx < nbrHood.size(); ++idx )
+   {
+      uint_t i  = id0[VOL] + idx;
+      auto   pt = VTX;
+      while ( pt != VOL )
+      {
+         for ( uint_t j : nbrHood[idx][pt] )
+         {
+            nbrVolumes[j].push_back( i );
+         }
+
+         pt = PT( pt + 1 );
+      }
+   }
+
+   // loop over all interface primitives
+   for ( uint_t id = 0; id < id0[VOL]; ++id )
+   {
+      // loop over all neighboring volume primitives and extract their target ranks
+      std::map< uint_t, uint_t > neighborranks;
+      for ( uint_t nbrID : nbrVolumes[id] )
+      {
+         auto idx        = nbrID - id0[VOL];
+         auto targetRank = ( VOL == CELL ) ? cells[idx].getTargetRank() : faces[idx].getTargetRank();
+         neighborranks[targetRank]++;
+      }
+
+      // find rank where the most neighboring volume primitives are located
+      auto compare = []( const std::pair< uint_t, uint_t >& a, const std::pair< uint_t, uint_t >& b ) -> bool {
+         return a.second < b.second;
+      };
+      auto it         = std::max_element( neighborranks.begin(), neighborranks.end(), compare );
+      auto targetRank = it->first;
+
+      // assign the primitive with id to targetRank
+      auto pt  = primitiveType( id );
+      auto idx = id - id0[pt];
+      switch ( pt )
+      {
+      case VTX:
+         vtxs[idx].setTargetRank( targetRank );
+         break;
+      case EDGE:
+         edges[idx].setTargetRank( targetRank );
+         break;
+      case FACE:
+         faces[idx].setTargetRank( targetRank );
+         break;
+      default:
+         break;
+      }
+   }
+}
+
 } // namespace adaptiveRefinement
 } // namespace hyteg

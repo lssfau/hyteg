@@ -40,6 +40,7 @@ template < uint_t J >
 class SimplexData
 {
  public:
+<<<<<<< HEAD
    SimplexData( PrimitiveID                 geometryMap  = PrimitiveID(),
                 uint_t                      boundaryFlag = 0,
                 PrimitiveID                 id           = PrimitiveID(),
@@ -49,6 +50,14 @@ class SimplexData
    , _boundaryFlag( boundaryFlag )
    , _id( id )
    , _targetRank( 0 )
+=======
+   SimplexData( uint_t geometryMap = 0, uint_t boundaryFlag = 0, uint_t id = 0, uint_t targetRank = 0 )
+   : _vertices( {} )
+   , _geometryMap( geometryMap )
+   , _boundaryFlag( boundaryFlag )
+   , _id( PrimitiveID( id ) )
+   , _targetRank( targetRank )
+>>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
    , _locality( NONE )
    {}
 
@@ -58,7 +67,7 @@ class SimplexData
    , _geometryMap( simplex->getGeometryMap() )
    , _boundaryFlag( simplex->getBoundaryFlag() )
    , _id( simplex->getPrimitiveID() )
-   , _targetRank( 0 )
+   , _targetRank( simplex->getTargetRank() )
    , _locality( NONE )
    {}
 
@@ -142,6 +151,13 @@ void loadbalancing( std::vector< VertexData >& vtxs,
 //                     const std::vector< Neighborhood >& nbrHood,
 //                     const uint_t&                      n_processes,
 //                     const uint_t&                      rank );
+
+/* assign interface primitives to the rank with the most neighboring volume primitives */
+void inheritRankFromVolumePrimitives( std::vector< VertexData >&         vtxs,
+                                      std::vector< EdgeData >&           edges,
+                                      std::vector< FaceData >&           faces,
+                                      std::vector< CellData >&           cells,
+                                      const std::vector< Neighborhood >& nbrHood );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg
