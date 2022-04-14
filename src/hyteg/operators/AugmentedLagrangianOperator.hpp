@@ -89,8 +89,7 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
                   DoFType                                                           flag ) const
         {
             if(nu > 0) {
-                
-            //std::cout << "nu>0path" << std::endl;
+
             PETScSparseMatrix<LaplOpType> LaplMat(storage_,level_);
             auto divTdivMat = mat->createCopy();
             PETScSparseMatrix<DivOpType> divMat(storage_,level_);

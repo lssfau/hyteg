@@ -45,8 +45,7 @@ using walberla::uint_t;
 
    with K, an (m + n) x (m + n) matrix
    and with M (m x m) the Augmented Lagrangian matrix: M = Laplace + 1/gamma*div^T*div in case of Stokes
-   and modified right hand sides f,g (m,n vector) 
-   f= //TODO add real AL approach (not necessary yet for P2P1 Stokes)
+   and modified right hand sides f,g according to paper (m,n vectord) 
 */
 
 template<
@@ -88,7 +87,7 @@ class GKBSolver : public Solver< SaddlePointOp >
 //     real_t                                     S              = 0.2, // upper bound in check 3
        uint_t                                     Delay          = 1,
        bool                                       resConvergence = false
-   )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
+   )  :  flag(  hyteg::Inner | hyteg::NeumannBoundary )
    , printInfo( true )
    , resTolerance( resTol )
    , merrorTolerance( merrorTol )
@@ -126,43 +125,44 @@ class GKBSolver : public Solver< SaddlePointOp >
       CopyBCs(u0,p0);
 
       // set up rhs side for p and u
-      mFunction f = b.uvw;
-      nFunction g = b.p;      
+      mFunction f0 = b.uvw;
+      nFunction f1 = b.p;      
       
       if(nu < 1e-14) {
          WALBERLA_LOG_INFO_ON_ROOT("Augmented Lagrangian Approach switched off.");
          nu = 1;
       } else {
          WALBERLA_LOG_INFO_ON_ROOT("Applying augmented Lagrangian Approach in GKB with nu = " << nu);
-         A.apply(g,tmp_v,level,flag);
-         f.assign({1,nu},{f,tmp_v},level,flag);
+         //WALBERLA_ABORT("AL currently leads to errors in pressure, aborting...");
+         A.apply(f1,tmp_v,level,flag);
+         f0.assign({1,nu},{f0,tmp_v},level,flag);
       }
 
       timingTree->start( "GKBSolver" );
 
       // Init: first q 
-      ALSolver.solve(M,u,f,level);                                 // u = M^-1*f
+      ALSolver.solve(M,u,f0,level);                                 // u = M^-1*f
       AT.apply(u,tmp_q,level,flag);                                 // store A'*u
-      dualr.assign({1,-1},{g,tmp_q},level,flag);                    // r = g - A'*u
-      q.assign({1/nu},{dualr},level,flag);                       // q = N^-1*r
+      dualr.assign({1,-1},{f1,tmp_q},level,flag);                   // r = g - A'*u
+      q.assign({nu},{dualr},level,flag);                            // q = N^-1*r
       beta = sqrt(dualr.dotGlobal(q,level,flag));                   // beta = ||r'*q||_2
       q.assign({1/beta},{q},level,flag);                            // q = q/beta
       
 
       // Init: first v
       A.apply(q,tmp_v,level,flag);                                  // store A*q
-      ALSolver.solve(M,v,tmp_v,level);                             // v = M^-1*A*q
+      ALSolver.solve(M,v,tmp_v,level);                              // v = M^-1*A*q
       M.apply(v,tmp_v,level,flag);                                  // for Mnorm of v
       alpha = sqrt(v.dotGlobal(tmp_v,level,flag));                  // alpha = ||v||_M
       v.assign({1/alpha},{v},level,flag);                           // v = v/alpha
       
       d.assign({1/alpha},{q},level,flag);                           // d = q/alpha
-      z.at(0) = (beta/alpha);                                      // z0 = beta/alpha
+      z.at(0) = (beta/alpha);                                       // z0 = beta/alpha
       
       
       // initial iterates of u,p
       u.assign({1,z.at(0)},{u,v},level,flag);                       // u = u + z0*v
-      p.assign({1,-z.at(0)},{p,d},level,flag);                      // p = p -z0*d
+      p.assign({-z.at(0)},{d},level,flag);                          // p = p -z0*d
 
       
       ////// main loop /////////
@@ -172,7 +172,7 @@ class GKBSolver : public Solver< SaddlePointOp >
             ComputeNextQ();
             ComputeNextV();
             SolutionUpdate();
-            convergence = StoppingCrit(K,b,f,g);
+            convergence = StoppingCrit(K,b,f0,f1);
       }
       timingTree->stop( "GKBSolver" );
 
@@ -192,27 +192,27 @@ class GKBSolver : public Solver< SaddlePointOp >
    void setPrintInfo( bool pI ) { printInfo = pI; }
    
    void ComputeNextQ() {
-      AT.apply(v, tmp_q, level, flag, Replace);                             // Store A'*v
-      q.assign({1/nu,-alpha}, {tmp_q,q}, level, flag);          // Store q = 1/gamma*(A'*v -alpha*gamma*q)
-      beta = sqrt(q.dotGlobal(q, level,flag)*nu);              // beta = ||q||_N
-      q.assign({1/beta},{q}, level, flag);                         // q = q/beta
+      AT.apply(v, tmp_q, level, flag, Replace);                  // Store A'*v
+      q.assign({nu,-alpha}, {tmp_q,q}, level, flag);             // Store q = 1/gamma*(A'*v -alpha*gamma*q)
+      beta = sqrt(q.dotGlobal(q, level,flag)*1/nu);              // beta = ||q||_N
+      q.assign({1/beta},{q}, level, flag);                       // q = q/beta
    }
 
    void ComputeNextV( ) {
-      A.apply(q, tmp_v, level, flag, Replace);                              // Store A*q
-      M.apply(v, tmp_w, level,flag, Replace);                             // Store M*V
-      tmp_v.assign({1,-beta},{tmp_v,tmp_w}, level, flag);          // Store (A*q - beta*M*v)
-      ALSolver.solve(M,v,tmp_v,level);                             // v = M^-1*(A*q - beta*M*v) TODO: Optimize M^-1*M
+      A.apply(q, tmp_v, level, flag, Replace);                   // Store A*q
+      M.apply(v, tmp_w, level,flag, Replace);                    // Store M*V
+      tmp_v.assign({1,-beta},{tmp_v,tmp_w}, level, flag);        // Store (A*q - beta*M*v)
+      ALSolver.solve(M,v,tmp_v,level);                           // v = M^-1*(A*q - beta*M*v) TODO: Optimize M^-1*M
       M.apply(v,tmp_v,level, flag, Replace); 
-      alpha = sqrt(tmp_v.dotGlobal(v,level,flag));                 // alpha = ||v||_M
-      v.assign({1/alpha},{v},level,flag);                          // v = v/alpha
+      alpha = sqrt(tmp_v.dotGlobal(v,level,flag));               // alpha = ||v||_M
+      v.assign({1/alpha},{v},level,flag);                        // v = v/alpha
    }
    
    void SolutionUpdate( ) {
-      z.at(k) = -beta/alpha*z.at((k-1));                              // z_k+1 = -beta/alpha*z_k
-      d.assign({1/alpha,-beta/alpha},{q,d},level,flag );            // d = 1/alpha*(q - beta*d)
-      u.assign({1,z.at(k)},{u,v},level,flag);                       // u = u + z*v
-      p.assign({1,-z.at(k)},{p,d},level,flag);                          // p = p -z0*d
+      z.at(k) = -beta/alpha*z.at((k-1));                         // z_k+1 = -beta/alpha*z_k
+      d.assign({1/alpha,-beta/alpha},{q,d},level,flag );         // d = 1/alpha*(q - beta*d)
+      u.assign({1,z.at(k)},{u,v},level,flag);                    // u = u + z*v
+      p.assign({1,-z.at(k)},{p,d},level,flag);                   // p = p -z*d
    }
 
    void CopyBCs(const mFunction& u0, const nFunction& p0) {
@@ -229,33 +229,32 @@ class GKBSolver : public Solver< SaddlePointOp >
 
   
 
-   bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
+   bool StoppingCrit(const SaddlePointOp& K, const nmFunction& b,const mFunction& f0,const nFunction& f1) {
       if(k > delay && LowerBoundMErrEstimate() < merrorTolerance) return true;
       
-      if(useResidualConvergence && ResidualNorm(K,b,f,g) < resTolerance) return true;
+      if(useResidualConvergence && ResidualNorm(K,b,f0,f1) < resTolerance) return true;
       //TODO add upper bound stopping criterium
       return false;
       
    }
   
-   real_t ResidualNorm(const SaddlePointOp& K, const nmFunction& b,const mFunction& f,const nFunction& g) {
+   // computes global residual norm of augmented system
+   real_t ResidualNorm(const SaddlePointOp& K, const nmFunction& b,const mFunction& f0,const nFunction& f1) {
       globalX.uvw.assign({1},{u},level,flag);
       globalX.p.assign({1},{p},level,flag);
-      // TODO: non monolithic residual calculation with incorporation of M
       M.apply(u,tmp_v,level,flag);
       A.apply(p,tmp_w,level,flag);
-      globalR.uvw.assign({1,-1,-1},{f,tmp_v,tmp_w},level,flag);
+      globalR.uvw.assign({1,-1,-1},{f0,tmp_v,tmp_w},level,flag);
       AT.apply(u,tmp_q,level,flag);
-      globalR.p.assign({1,-1},{g,tmp_q},level,flag);
+      globalR.p.assign({1,-1},{f1,tmp_q},level,flag);
       
-      //K.apply(globalX,globalTmp,level,Inner|NeumannBoundary);
-      //globalR.assign({1,-1},{b,globalTmp},level,flag);
-      real_t resnorm = sqrt(globalR.dotGlobal(globalR,level,flag));
+     real_t resnorm = sqrt(globalR.dotGlobal(globalR,level,flag));
       if(printInfo)
-        WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " ||r||="<< resnorm);
+        WALBERLA_LOG_INFO_ON_ROOT("It " << k << ": ||r|| = "<< resnorm);
       return resnorm;
    }   
 
+   // lower bound for the error in the M-norm
    real_t LowerBoundMErrEstimate() {
       real_t xi = 0;
       // xi = square(xi from paper)
@@ -265,7 +264,7 @@ class GKBSolver : public Solver< SaddlePointOp >
          xi = xi + std::pow(z.at(j),2);
       }   
       if(printInfo)
-         WALBERLA_LOG_INFO_ON_ROOT("Iteration " << k << " Mnorm error lower bound xi ="<< sqrt(xi));
+         WALBERLA_LOG_INFO_ON_ROOT("It " << k << ": est. error: "<< sqrt(xi));
       return sqrt(xi);
    }
 
@@ -287,7 +286,7 @@ class GKBSolver : public Solver< SaddlePointOp >
    // GKB related 
    // parameters
    real_t                                    nu; // AL parameter
-//   real_t                                    s;   // for upper bound
+   //   real_t                                    s;   // for upper bound
    uint_t                                    delay; // delay for lower bound
 
    // operators

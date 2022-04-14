@@ -71,20 +71,20 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-  x.uvw.interpolate( { exactU, exactV }, level, hyteg::DirichletBoundary );
-  x_exact.uvw.interpolate( { exactU, exactV }, level );
-  x_exact.p.interpolate( exactP, level );
-  b.uvw.interpolate( { exactU, exactV }, level, DirichletBoundary );
+  x.uvw().interpolate( { exactU, exactV }, level, hyteg::DirichletBoundary );
+  x_exact.uvw().interpolate( { exactU, exactV }, level );
+  x_exact.p().interpolate( exactP, level );
+  b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
 
 //  VTKOutput vtkOutput("../../output", "P2P1Stokes2DPetscSolve", storage);
-//  vtkOutput.add( x.uvw );
-//  vtkOutput.add( x.p );
-//  vtkOutput.add( x_exact.uvw );
-//  vtkOutput.add( x_exact.p );
-//  vtkOutput.add( err.uvw );
-//  vtkOutput.add( err.p );
-//  vtkOutput.add( b.uvw );
-//  vtkOutput.add( b.p );
+//  vtkOutput.add( x.uvw() );
+//  vtkOutput.add( x.p() );
+//  vtkOutput.add( x_exact.uvw() );
+//  vtkOutput.add( x_exact.p() );
+//  vtkOutput.add( err.uvw() );
+//  vtkOutput.add( err.p() );
+//  vtkOutput.add( b.uvw() );
+//  vtkOutput.add( b.p() );
 //  vtkOutput.write( level, 0 );
 
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -98,17 +98,17 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hyteg::vertexdof::projectMean( x.p, level );
-  hyteg::vertexdof::projectMean( x_exact.p, level );
+  hyteg::vertexdof::projectMean( x.p(), level );
+  hyteg::vertexdof::projectMean( x_exact.p(), level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hyteg::Inner | hyteg::NeumannBoundary );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
