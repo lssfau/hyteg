@@ -209,13 +209,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
          KSPSetType( sub_ksps_[0], KSPCG );
          KSPSetType( sub_ksps_[1], KSPCG );
-         PC H_pc;
-         KSPGetPC( sub_ksps_[0], &H_pc );
-         PCSetType( H_pc, PCHYPRE ); 
-         KSPGetPC( sub_ksps_[1], &H_pc );
-         PCSetType( H_pc, PCHYPRE ); 
-         
-
+       
          KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
          KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
@@ -279,8 +273,6 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
             break;
          case 3:
          {
-            KSPSetType( sub_ksps_[0], KSPCG );
-            KSPSetTolerances( sub_ksps_[0], 1e-7, 1e-7, PETSC_DEFAULT, maxIterations_ );
             PCSetType( pc_u, PCHYPRE );
             break;
          }
