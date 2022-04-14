@@ -44,8 +44,10 @@ void logSectionHeader( const char* header )
 int main( int argc, char** argv )
 {
 #ifndef __APPLE__
-   // should work with Intel and GCC compiler
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #ifndef _MSC_VER
+   // should work with Intel and GCC compiler / not with windows
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );

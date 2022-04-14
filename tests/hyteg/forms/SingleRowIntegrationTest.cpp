@@ -22,13 +22,13 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
-
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
-
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokescc_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokesvar_blending_q3.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -94,8 +94,10 @@ void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& elemen
 int main( int argc, char** argv )
 {
 #ifndef __APPLE__
-   // abort in case of common floating-point exceptions
+// abort in case of common floating-point exceptions
+#ifndef _MSC_VER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -109,9 +111,9 @@ int main( int argc, char** argv )
                                           Point3D( { 0.985, 0.3, 0.48 } ),
                                           Point3D( { 0.23, 0.434, 0.0001 } ) };
 
-   auto coeff = [](const hyteg::Point3D& x) { return x[0]*x[1]*x[2]; };
+   auto coeff = []( const hyteg::Point3D& x ) { return x[0] * x[1] * x[2]; };
 
-   forms::p1_div_k_grad_affine_q3 form_p1_div_k_grad_affine_q3(coeff, coeff);
+   forms::p1_div_k_grad_affine_q3 form_p1_div_k_grad_affine_q3( coeff, coeff );
 
    forms::p1_diffusion_affine_q2 form_p1_diffusion_affine_q2;
    forms::p2_diffusion_affine_q2 form_p2_diffusion_affine_q2;
@@ -119,9 +121,39 @@ int main( int argc, char** argv )
    forms::p1_diffusion_blending_q3 form_p1_diffusion_blending_q3;
    forms::p2_diffusion_blending_q3 form_p2_diffusion_blending_q3;
 
+   forms::p2_full_stokesvar_0_0_blending_q3 form_p2_full_stokesvar_0_0_blending_q3( coeff, coeff );
+   forms::p2_full_stokesvar_0_1_blending_q3 form_p2_full_stokesvar_0_1_blending_q3( coeff, coeff );
+   forms::p2_full_stokesvar_0_2_blending_q3 form_p2_full_stokesvar_0_2_blending_q3( coeff );
+   forms::p2_full_stokesvar_1_0_blending_q3 form_p2_full_stokesvar_1_0_blending_q3( coeff, coeff );
+   forms::p2_full_stokesvar_1_1_blending_q3 form_p2_full_stokesvar_1_1_blending_q3( coeff, coeff );
+   forms::p2_full_stokesvar_1_2_blending_q3 form_p2_full_stokesvar_1_2_blending_q3( coeff );
+   forms::p2_full_stokesvar_2_0_blending_q3 form_p2_full_stokesvar_2_0_blending_q3( coeff );
+   forms::p2_full_stokesvar_2_1_blending_q3 form_p2_full_stokesvar_2_1_blending_q3( coeff );
+   forms::p2_full_stokesvar_2_2_blending_q3 form_p2_full_stokesvar_2_2_blending_q3( coeff );
+
+   forms::p2_full_stokescc_0_0_affine_q3 form_p2_full_stokescc_0_0_affine_q3;
+   forms::p2_full_stokescc_0_1_affine_q3 form_p2_full_stokescc_0_1_affine_q3;
+   forms::p2_full_stokescc_0_2_affine_q3 form_p2_full_stokescc_0_2_affine_q3;
+   forms::p2_full_stokescc_1_0_affine_q3 form_p2_full_stokescc_1_0_affine_q3;
+   forms::p2_full_stokescc_1_1_affine_q3 form_p2_full_stokescc_1_1_affine_q3;
+   forms::p2_full_stokescc_1_2_affine_q3 form_p2_full_stokescc_1_2_affine_q3;
+   forms::p2_full_stokescc_2_0_affine_q3 form_p2_full_stokescc_2_0_affine_q3;
+   forms::p2_full_stokescc_2_1_affine_q3 form_p2_full_stokescc_2_1_affine_q3;
+   forms::p2_full_stokescc_2_2_affine_q3 form_p2_full_stokescc_2_2_affine_q3;
+
    auto identityMap = std::make_shared< IdentityMap >();
    form_p1_diffusion_blending_q3.setGeometryMap( identityMap );
    form_p2_diffusion_blending_q3.setGeometryMap( identityMap );
+
+   form_p2_full_stokesvar_0_0_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_0_1_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_0_2_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_1_0_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_1_1_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_1_2_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_2_0_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_2_1_blending_q3.setGeometryMap( identityMap );
+   form_p2_full_stokesvar_2_2_blending_q3.setGeometryMap( identityMap );
 
    const double eps = 1e-14;
 
@@ -139,6 +171,35 @@ int main( int argc, char** argv )
 
    compareRows< forms::p2_diffusion_blending_q3, 2, 6, 6 >( form_p2_diffusion_blending_q3, element2D, 0, eps );
    compareRows< forms::p2_diffusion_blending_q3, 3, 10, 10 >( form_p2_diffusion_blending_q3, element3D, 0, eps );
+
+   compareRows< forms::p2_full_stokesvar_0_0_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_0_0_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_0_1_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_0_1_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_0_2_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_0_2_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_1_0_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_1_0_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_1_1_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_1_1_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_1_2_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_1_2_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_2_0_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_2_0_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_2_1_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_2_1_blending_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokesvar_2_2_blending_q3, 3, 10, 10 >(
+       form_p2_full_stokesvar_2_2_blending_q3, element3D, 0, eps );
+
+   compareRows< forms::p2_full_stokescc_0_0_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_0_0_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_0_1_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_0_1_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_0_2_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_0_2_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_1_0_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_1_0_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_1_1_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_1_1_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_1_2_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_1_2_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_2_0_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_2_0_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_2_1_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_2_1_affine_q3, element3D, 0, eps );
+   compareRows< forms::p2_full_stokescc_2_2_affine_q3, 3, 10, 10 >( form_p2_full_stokescc_2_2_affine_q3, element3D, 0, eps );
 
    return EXIT_SUCCESS;
 }

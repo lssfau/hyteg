@@ -28,6 +28,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
 #include "hyteg/communication/BufferedCommunication.hpp"
@@ -39,7 +40,7 @@ using walberla::real_t;
 using walberla::uint_t;
 
 template < typename ValueType >
-class FaceDoFFunction;
+class FaceDoFFunction_old;
 template < typename ValueType >
 class FunctionMemory;
 template < typename DataType, typename PrimitiveType >
@@ -194,8 +195,22 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
-   void integrateDG( FaceDoFFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
+   void integrateDG( FaceDoFFunction_old< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
+   /// @name Member functions for interpolation using BoundaryUID flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
+
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
+
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
+                     uint_t                                                                               level,
+                     BoundaryUID                                                                          boundaryUID ) const;
+   //@}
+
+   /// @name Member functions for interpolation using DoFType flags
+   //@{
    /// Interpolates a given expression to a VertexDoFFunction
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
@@ -209,17 +224,11 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
       this->interpolate( expr[0], level, flag );
    };
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
-
    void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                      const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
-
-   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
-                     uint_t                                                                               level,
-                     BoundaryUID                                                                          boundaryUID ) const;
+   //@}
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;
@@ -385,6 +394,19 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const VertexDoFFunction< idx_t >&     numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const VertexDoFFunction< idx_t >&     numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
    using Function< VertexDoFFunction< ValueType > >::isDummy;
 

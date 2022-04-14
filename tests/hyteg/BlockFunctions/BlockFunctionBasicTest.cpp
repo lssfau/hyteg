@@ -30,7 +30,6 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
-#include "hyteg/functions/BlockFunctionPetsc.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
@@ -174,7 +173,7 @@ void testEnumerate()
 
    P2P1TaylorHoodBlockFunction< int > enumerator( "enumerator", storage, minLevel, maxLevel );
 
-   for ( uint lvl = minLevel; lvl <= maxLevel; lvl++ )
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; lvl++ )
    {
       enumerator.enumerate( lvl );
    }

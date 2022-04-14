@@ -235,24 +235,24 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
    for ( uint_t level = minLevel; level <= errorLevel; level++ )
    {
-      exact.uvw.interpolate( { solutionU, solutionV, solutionW },level, All );
-      exact.p.interpolate( solutionP, level, All );
+      exact.uvw().interpolate( { solutionU, solutionV, solutionW },level, All );
+      exact.p().interpolate( solutionP, level, All );
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( exact.p, level );
+         vertexdof::projectMean( exact.p(), level );
       }
 
-      u.uvw.interpolate( { solutionU, solutionV, solutionW },level, DirichletBoundary );
-      tmp.uvw.interpolate( { rhsU, rhsV, rhsW }, level, All );
+      u.uvw().interpolate( { solutionU, solutionV, solutionW },level, DirichletBoundary );
+      tmp.uvw().interpolate( { rhsU, rhsV, rhsW }, level, All );
 
-      MVelocity.apply( tmp.uvw[0], f.uvw[0], level, All );
-      MVelocity.apply( tmp.uvw[1], f.uvw[1], level, All );
-      MVelocity.apply( tmp.uvw[2], f.uvw[2], level, All );
+      MVelocity.apply( tmp.uvw()[0], f.uvw()[0], level, All );
+      MVelocity.apply( tmp.uvw()[1], f.uvw()[1], level, All );
+      MVelocity.apply( tmp.uvw()[2], f.uvw()[2], level, All );
    }
 
    const auto solutionNormVelocity = normL2Velocity( uSolution, MVelocity, tmp, maxLevel, errorFlag );
-   const auto solutionNormPressure = normL2Scalar( uSolution.p, MPressure, tmp.p, maxLevel, errorFlag );
+   const auto solutionNormPressure = normL2Scalar( uSolution.p(), MPressure, tmp.p(), maxLevel, errorFlag );
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressurefterRestriction );
@@ -369,7 +369,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, currentLevel );
+         vertexdof::projectMean( u.p(), currentLevel );
       }
 
       for ( uint_t l = minLevel; l <= errorLevel; l++ )
@@ -404,19 +404,19 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
       auto errorL2VelocityFMG    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
       auto residualL2VelocityFMG = normL2Velocity( r, MVelocity, tmp, currentLevel, errorFlag );
 
-      auto errorL2PressureFMG    = normL2Scalar( err.p, MPressure, tmp.p, fmgErrorLevel, errorFlag );
-      auto residualL2PressureFMG = normL2Scalar( r.p, MPressure, tmp.p, currentLevel, errorFlag );
+      auto errorL2PressureFMG    = normL2Scalar( err.p(), MPressure, tmp.p(), fmgErrorLevel, errorFlag );
+      auto residualL2PressureFMG = normL2Scalar( r.p(), MPressure, tmp.p(), currentLevel, errorFlag );
 
       auto errorRelL2VelocityFMG = 0.;
       auto errorRelL2PressureFMG = 0.;
       if ( !calculateDiscretizationError && discretizationErrorWasCalculated && currentLevel == maxLevel )
       {
          errorRelL2VelocityFMG = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
-         errorRelL2PressureFMG = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormVelocity;
+         errorRelL2PressureFMG = normL2Scalar( errDiscr.p(), MPressure, tmp.p(), maxLevel, errorFlag ) / solutionNormVelocity;
       }
 
       auto errorL2GridIncrementVelocity = normL2Velocity( errGridIncrement, MVelocity, tmp, currentLevel, errorFlag );
-      auto errorL2GridIncrementPressure = normL2Scalar( errGridIncrement.p, MPressure, tmp.p, currentLevel, errorFlag );
+      auto errorL2GridIncrementPressure = normL2Scalar( errGridIncrement.p(), MPressure, tmp.p(), currentLevel, errorFlag );
 
       writeDataRow( iteration,
                     "F",
@@ -447,15 +447,15 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
    auto errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
    auto residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
-   auto errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
-   auto residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+   auto errorL2Pressure    = normL2Scalar( err.p(), MPressure, tmp.p(), errorLevel, errorFlag );
+   auto residualL2Pressure = normL2Scalar( r.p(), MPressure, tmp.p(), maxLevel, errorFlag );
 
    auto errorAlgL2Velocity = 0.;
    auto errorAlgL2Pressure = 0.;
    if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
    {
       errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
-      errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+      errorAlgL2Pressure = normL2Scalar( errDiscr.p(), MPressure, tmp.p(), maxLevel, errorFlag ) / solutionNormPressure;
    }
 
    writeDataHeader();
@@ -528,7 +528,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
 
       for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
@@ -542,15 +542,15 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
       errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
       residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
-      errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
-      residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+      errorL2Pressure    = normL2Scalar( err.p(), MPressure, tmp.p(), errorLevel, errorFlag );
+      residualL2Pressure = normL2Scalar( r.p(), MPressure, tmp.p(), maxLevel, errorFlag );
 
       errorAlgL2Velocity = 0.;
       errorAlgL2Pressure = 0.;
       if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
       {
          errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
-         errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+         errorAlgL2Pressure = normL2Scalar( errDiscr.p(), MPressure, tmp.p(), maxLevel, errorFlag ) / solutionNormPressure;
       }
 
       writeDataRow( iteration,
@@ -576,7 +576,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
 
       for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
@@ -590,15 +590,15 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
       errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
       residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
-      errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
-      residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+      errorL2Pressure    = normL2Scalar( err.p(), MPressure, tmp.p(), errorLevel, errorFlag );
+      residualL2Pressure = normL2Scalar( r.p(), MPressure, tmp.p(), maxLevel, errorFlag );
 
       errorAlgL2Velocity = 0.;
       errorAlgL2Pressure = 0.;
       if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
       {
          errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
-         errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+         errorAlgL2Pressure = normL2Scalar( errDiscr.p(), MPressure, tmp.p(), maxLevel, errorFlag ) / solutionNormPressure;
       }
 
       writeDataRow( iteration,
@@ -735,7 +735,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >& storage,
       if ( calculateDiscretizationError )
       {
          solveImplementation< P1StokesFunction,
-                              P1StokesOperator,
+                              P1P1StokesOperator,
                               P1ConstantMassOperator,
                               P1ConstantMassOperator,
                               P1P1StokesToP1P1StokesRestriction,
@@ -767,7 +767,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >& storage,
       }
 
       solveImplementation< P1StokesFunction,
-                           P1StokesOperator,
+                           P1P1StokesOperator,
                            P1ConstantMassOperator,
                            P1ConstantMassOperator,
                            P1P1StokesToP1P1StokesRestriction,

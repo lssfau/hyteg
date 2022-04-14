@@ -20,9 +20,11 @@
 
 #pragma once
 
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"
@@ -56,6 +58,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    using P1Operator< P1Form >::P1Operator;
    using P1Operator< P1Form >::storage_;
    using P1Operator< P1Form >::h_;
+   using P1Operator< P1Form >::stencilSize_;
    using P1Operator< P1Form >::minLevel_;
    using P1Operator< P1Form >::maxLevel_;
    using P1Operator< P1Form >::vertexStencilID_;
@@ -106,24 +109,147 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       }
    }
 
-   const PrimitiveDataID< LevelWiseMemory< StencilPoly_face >, Face > getFacePolyID() {
-     if( storage_->hasGlobalCells() )
-       {
-         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getFacePolyID() called for 3D mesh!" );
-       }
-     return facePolyID_;
+   /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
+      @returns [h^(d/2)*||A - Aq||_F restricted to K] for all macro elements K
+   */
+   std::vector< double > computeSurrogateError( uint_t level ) const
+   {
+      if ( storage_->hasGlobalCells() )
+      {
+         return computeSurrogateError3D( level );
+      }
+      else
+      {
+         return computeSurrogateError2D( level );
+      }
    }
 
-   const PrimitiveDataID< LevelWiseMemory< StencilPoly_cell >, Cell > getCellPolyID() {
-     if( !storage_->hasGlobalCells() )
-       {
-         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getCellPolyID() called for 2D mesh!" );
-       }
-     return cellPolyID_;
+   const PrimitiveDataID< LevelWiseMemory< StencilPoly_face >, Face > getFacePolyID()
+   {
+      if ( storage_->hasGlobalCells() )
+      {
+         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getFacePolyID() called for 3D mesh!" );
+      }
+      return facePolyID_;
    }
- 
+
+   const PrimitiveDataID< LevelWiseMemory< StencilPoly_cell >, Cell > getCellPolyID()
+   {
+      if ( !storage_->hasGlobalCells() )
+      {
+         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getCellPolyID() called for 2D mesh!" );
+      }
+      return cellPolyID_;
+   }
+
  protected:
    static const uint_t faceStencilSize2D = 9;
+
+   std::vector< double > computeSurrogateError2D( uint_t level ) const
+   {
+      uint_t stencilSize = faceStencilSize2D;
+      uint_t rowsizeY    = levelinfo::num_microvertices_per_edge( level );
+
+      std::vector< double > err;
+
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         uint_t rowsize       = rowsizeY;
+         uint_t inner_rowsize = rowsize;
+
+         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+
+         assemble_variableStencil_face_init( face, level );
+         assemble_stencil_face_init( face, level );
+
+         std::vector< double > variableStencil( stencilSize_ );
+
+         real_t normF2 = real_c( 0 );
+
+         for ( uint_t j = 1; j < rowsize - 2; ++j )
+         {
+            assemble_stencil_face_init_y( j );
+
+            for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+            {
+               assemble_variableStencil_face( variableStencil.data(), i, j );
+               assemble_stencil_face( opr_data, i, j );
+
+               for ( uint_t s = 0; s < stencilSize; ++s )
+               {
+                  double err_ij = opr_data[s] - variableStencil[s];
+                  normF2 += err_ij * err_ij;
+               }
+            }
+            --inner_rowsize;
+         }
+         err.push_back( std::sqrt( h_ * h_ * normF2 ) );
+      }
+
+      return err;
+   }
+
+   std::vector< double > computeSurrogateError3D( uint_t level ) const
+   {
+      typedef stencilDirection sd;
+
+      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
+
+      std::vector< double >              err;
+      vertexdof::macrocell::StencilMap_T variableStencil;
+
+      for ( auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         auto& operatorData = cell.getData( cellStencilID_ )->getData( level );
+
+         assemble_variableStencil_cell_init( cell, level );
+         assemble_stencil_cell_init( cell, level );
+
+         real_t normF2 = 0;
+
+         uint_t rowsizeY, rowsizeX;
+
+         // skip level 0 (no interior points)
+         if ( level > 0 )
+         {
+            for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+            {
+               assemble_stencil_cell_init_z( k );
+
+               rowsizeY = rowsizeZ - k;
+
+               for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+               {
+                  assemble_stencil_cell_init_y( j );
+
+                  rowsizeX = rowsizeY - j;
+
+                  for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+                  {
+                     assemble_variableStencil_cell( variableStencil, i, j, k );
+                     assemble_stencil_cell( operatorData, i, j, k );
+
+                     for ( const auto& neighbor : vertexdof::macrocell::neighborsWithCenter )
+                     {
+                        double sur     = operatorData[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        double var     = variableStencil[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        double err_ijk = sur - var;
+
+                        normF2 += err_ijk * err_ijk;
+                     }
+                  }
+               }
+            }
+         }
+         err.push_back( std::sqrt( h_ * h_ * h_ * normF2 ) );
+      }
+
+      return err;
+   }
 
    /* interpolate polynomials
    */
@@ -187,8 +313,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       }
 
       // initialize polynomial evaluator
-      for ( auto& it : storage_->getFaces() )
-      {
+      // for ( auto& it : storage_->getFaces() )
+      // {
          // auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_); // always returns 27!
          auto stencilSize = faceStencilSize2D;
 
@@ -197,8 +323,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             facePolyEvaluator_.push_back( Polynomial2DEvaluator( polyDegree ) );
          }
 
-         break; // we use the same evaluator for all faces
-      }
+      //    break; // we use the same evaluator for all faces
+      // }
    }
 
    /* interpolate polynomials

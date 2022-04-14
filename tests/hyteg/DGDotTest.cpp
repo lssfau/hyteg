@@ -21,7 +21,7 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -44,8 +44,8 @@ int main( int argc, char** argv )
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   hyteg::FaceDoFFunction< real_t > x( "x", storage, minLevel, maxLevel );
-   hyteg::FaceDoFFunction< real_t > y( "y", storage, minLevel, maxLevel );
+   hyteg::FaceDoFFunction_old< real_t > x( "x", storage, minLevel, maxLevel );
+   hyteg::FaceDoFFunction_old< real_t > y( "y", storage, minLevel, maxLevel );
 
    x.interpolate( 2, maxLevel, hyteg::All );
    y.interpolate( 3, maxLevel, hyteg::All );

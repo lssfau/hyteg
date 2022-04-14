@@ -20,151 +20,100 @@
 
 #include "hyteg/mesh/MeshInfo.hpp"
 
-#include "core/logging/Logging.h"
-#include "core/debug/CheckFunctions.h"
-#include "core/debug/Debug.h"
-
 #include <array>
 #include <vector>
 
+#include "core/debug/CheckFunctions.h"
+#include "core/debug/Debug.h"
+#include "core/logging/Logging.h"
+
 namespace hyteg {
 
-void MeshInfo::setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag )
-{
-   for ( auto& p : vertices_ )
-   {
-      p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : edges_ )
-   {
-      p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : faces_ )
-   {
-      p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : cells_ )
-   {
-      p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-}
-
-void MeshInfo::setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
-                                                     const std::function< bool( const Point3D& x ) >& onBoundary,
-                                                     const bool&                                      allVertices )
-{
-   auto cond = [allVertices, onBoundary]( const std::vector< Point3D >& coordinates ) {
-      if ( allVertices )
-         return std::all_of( coordinates.begin(), coordinates.end(), onBoundary );
-      else
-         return std::any_of( coordinates.begin(), coordinates.end(), onBoundary );
-   };
-
-   for ( auto& p : vertices_ )
-   {
-      if ( cond( {p.second.getCoordinates()} ) )
-         p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : edges_ )
-   {
-      std::vector< Point3D > coordinates;
-      for ( auto v : p.second.getVertices() )
-      {
-         coordinates.push_back( vertices_[v].getCoordinates() );
-      }
-      if ( cond( coordinates ) )
-         p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : faces_ )
-   {
-      std::vector< Point3D > coordinates;
-      for ( auto v : p.second.getVertices() )
-      {
-         coordinates.push_back( vertices_[v].getCoordinates() );
-      }
-      if ( cond( coordinates ) )
-         p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-
-   for ( auto& p : cells_ )
-   {
-      std::vector< Point3D > coordinates;
-      for ( auto v : p.second.getVertices() )
-      {
-         coordinates.push_back( vertices_[v].getCoordinates() );
-      }
-      if ( cond( coordinates ) )
-         p.second.setBoundaryFlag( meshBoundaryFlag );
-   }
-}
-
-void MeshInfo::addVertex( const Vertex & vertex )
+void MeshInfo::addVertex( const Vertex& vertex )
 {
    vertices_[vertex.getID()] = vertex;
 }
 
-void MeshInfo::addEdge( const Edge & edge )
+void MeshInfo::addEdge( const Edge& edge )
 {
-  WALBERLA_CHECK_UNEQUAL( edge.getVertices()[0], edge.getVertices()[1], "[Mesh] Mesh contains edge with zero length." );
+   WALBERLA_CHECK_UNEQUAL( edge.getVertices()[0], edge.getVertices()[1], "[Mesh] Mesh contains edge with zero length." );
 
-  std::array< IDType, 2 > sortedVertexIDs;
+   std::array< IDType, 2 > sortedVertexIDs;
 
-  if ( edge.getVertices()[0] < edge.getVertices()[1] )
-  {
-    sortedVertexIDs = edge.getVertices();
-  }
-  else if ( edge.getVertices()[1] < edge.getVertices()[0] )
-  {
-    sortedVertexIDs[0] = edge.getVertices()[1];
-    sortedVertexIDs[1] = edge.getVertices()[0];
-  }
+   if ( edge.getVertices()[0] < edge.getVertices()[1] )
+   {
+      sortedVertexIDs = edge.getVertices();
+   }
+   else if ( edge.getVertices()[1] < edge.getVertices()[0] )
+   {
+      sortedVertexIDs[0] = edge.getVertices()[1];
+      sortedVertexIDs[1] = edge.getVertices()[0];
+   }
 
-  if (edges_.count( sortedVertexIDs ) == 0)
-  {
-    edges_[ sortedVertexIDs ] = Edge( sortedVertexIDs, edge.getBoundaryFlag() );
-  }
+   if ( edges_.count( sortedVertexIDs ) == 0 )
+   {
+      edges_[sortedVertexIDs] = Edge( sortedVertexIDs, edge.getBoundaryFlag() );
+   }
 }
 
-
-void MeshInfo::addFace( const Face & face )
+void MeshInfo::addFace( const Face& face )
 {
-  std::vector< IDType > sortedVertexIDs = face.getVertices();
-  std::sort( sortedVertexIDs.begin(), sortedVertexIDs.end() );
+   std::vector< IDType > sortedVertexIDs = face.getVertices();
+   std::sort( sortedVertexIDs.begin(), sortedVertexIDs.end() );
 
-  WALBERLA_CHECK_EQUAL( std::set< IDType >( sortedVertexIDs.begin(), sortedVertexIDs.end() ).size(), sortedVertexIDs.size(),
-                        "[Mesh] Mesh contains face with duplicate vertices." );
+   WALBERLA_CHECK_EQUAL( std::set< IDType >( sortedVertexIDs.begin(), sortedVertexIDs.end() ).size(),
+                         sortedVertexIDs.size(),
+                         "[Mesh] Mesh contains face with duplicate vertices." );
 
-  if ( faces_.count( sortedVertexIDs ) == 0 )
-  {
-    faces_[ sortedVertexIDs ] = Face( sortedVertexIDs, face.getBoundaryFlag() );
-  }
-
+   if ( faces_.count( sortedVertexIDs ) == 0 )
+   {
+      faces_[sortedVertexIDs] = Face( sortedVertexIDs, face.getBoundaryFlag() );
+   }
 }
 
-
-void MeshInfo::addCellAndAllEdgesAndFaces( const Cell & cell )
+void MeshInfo::addCellAndAllEdgesAndFaces( const Cell& cell )
 {
-  const auto cellCoordinates = cell.getVertices();
+   const auto cellCoordinates = cell.getVertices();
 
-  WALBERLA_ASSERT_EQUAL( cells_.count( cellCoordinates ), 0 );
-  cells_[cellCoordinates] = cell;
+   WALBERLA_ASSERT_EQUAL( cells_.count( cellCoordinates ), 0 );
+   cells_[cellCoordinates] = cell;
 
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[1] }} ), 0 ) );
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[2] }} ), 0 ) );
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[3] }} ), 0 ) );
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[2] }} ), 0 ) );
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[3] }} ), 0 ) );
-  addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[0], cellCoordinates[1]}} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[0], cellCoordinates[2]}} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[0], cellCoordinates[3]}} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[1], cellCoordinates[2]}} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[1], cellCoordinates[3]}} ), 0 ) );
+   addEdge( Edge( std::array< IDType, 2 >( {{cellCoordinates[2], cellCoordinates[3]}} ), 0 ) );
 
-  addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] }} ), 0 ) );
-  addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), 0 ) );
-  addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
-  addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
+   addFace( Face( std::vector< IDType >( {{cellCoordinates[0], cellCoordinates[1], cellCoordinates[2]}} ), 0 ) );
+   addFace( Face( std::vector< IDType >( {{cellCoordinates[0], cellCoordinates[1], cellCoordinates[3]}} ), 0 ) );
+   addFace( Face( std::vector< IDType >( {{cellCoordinates[0], cellCoordinates[2], cellCoordinates[3]}} ), 0 ) );
+   addFace( Face( std::vector< IDType >( {{cellCoordinates[1], cellCoordinates[2], cellCoordinates[3]}} ), 0 ) );
+}
+
+void MeshInfo::deduceEdgeFlagsFromVertices( uint_t flagInconsistent )
+{
+   for ( auto& it : edges_ )
+   {
+      Edge& edge  = it.second;
+      auto  vtxID = edge.getVertices();
+      auto  f1    = vertices_[vtxID[0]].getBoundaryFlag();
+      auto  f2    = vertices_[vtxID[1]].getBoundaryFlag();
+      edge.setBoundaryFlag( f1 == f2 ? f1 : flagInconsistent );
+   }
+}
+
+void MeshInfo::deduceFaceFlagsFromVertices( uint_t flagInconsistent )
+{
+   for ( auto& it : faces_ )
+   {
+      Face& face  = it.second;
+      auto  vtxID = face.getVertices();
+      auto  f1    = vertices_[vtxID[0]].getBoundaryFlag();
+      auto  f2    = vertices_[vtxID[1]].getBoundaryFlag();
+      auto  f3    = vertices_[vtxID[2]].getBoundaryFlag();
+      face.setBoundaryFlag( f1 == f2 && f1 == f3 ? f1 : flagInconsistent );
+   }
 }
 
 } // namespace hyteg

@@ -24,24 +24,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 
 namespace hyteg {
 
@@ -178,9 +161,9 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       {
          Face& face = *it.second;
 
-         Point3D x0( face.coords[0] );
-         Point3D x1( face.coords[1] );
-         Point3D x2( face.coords[2] );
+         Point3D x0( face.getCoordinates()[0] );
+         Point3D x1( face.getCoordinates()[1] );
+         Point3D x2( face.getCoordinates()[2] );
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
@@ -251,11 +234,11 @@ void P1ElementwiseOperator< P1Form >::smooth_jac( const P1Function< real_t >& ds
 
    // compute the current residual
    this->apply( src, dst, level, flag );
-   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
+   dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
-   dst.assign( {1.0, omega}, {src, dst}, level, flag );
+   dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
+   dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -385,13 +368,13 @@ void P1ElementwiseOperator< P1Form >::computeDiagonalOperatorValues( bool invert
          {
             Face& face = *it.second;
 
-            Point3D x0( face.coords[0] );
-            Point3D x1( face.coords[1] );
-            Point3D x2( face.coords[2] );
+            Point3D x0( face.getCoordinates()[0] );
+            Point3D x1( face.getCoordinates()[1] );
+            Point3D x2( face.getCoordinates()[2] );
 
             uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
             uint_t                   inner_rowsize = rowsize;
-            uint_t                   xIdx, yIdx;
+            idx_t                    xIdx, yIdx;
             Point3D                  v0, v1, v2;
             indexing::Index          nodeIdx;
             indexing::IndexIncrement offset;
@@ -401,10 +384,10 @@ void P1ElementwiseOperator< P1Form >::computeDiagonalOperatorValues( bool invert
             real_t*                                           vertexData   = face.getData( vertexDoFIdx )->getPointer( level );
 
             // now loop over micro-faces of macro-face
-            for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+            for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
             {
                // loop over vertices in row with two associated triangles
-               for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+               for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
                {
                   // we associate two elements with current micro-vertex
                   computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, vertexData );
@@ -506,8 +489,8 @@ void P1ElementwiseOperator< P1Form >::computeAndStoreLocalElementMatrices()
 template < class P1Form >
 void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const Face&                                face,
                                                                            const uint_t                               level,
-                                                                           const uint_t                               xIdx,
-                                                                           const uint_t                               yIdx,
+                                                                           const idx_t                                xIdx,
+                                                                           const idx_t                                yIdx,
                                                                            const P1Elements::P1Elements2D::P1Element& element,
                                                                            real_t* const dstVertexData )
 {
@@ -528,7 +511,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -621,13 +604,13 @@ void P1ElementwiseOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMat
       {
          Face& face = *it.second;
 
-         Point3D x0( face.coords[0] );
-         Point3D x1( face.coords[1] );
-         Point3D x2( face.coords[2] );
+         Point3D x0( face.getCoordinates()[0] );
+         Point3D x1( face.getCoordinates()[1] );
+         Point3D x2( face.getCoordinates()[2] );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
-         uint_t                   xIdx, yIdx;
+         idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
@@ -641,10 +624,10 @@ void P1ElementwiseOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMat
 
          // the explicit uint_c cast prevents a segfault in intel compiler 2018.4
          // now loop over micro-faces of macro-face
-         for ( yIdx = uint_c( 0 ); yIdx < rowsize - 2; ++yIdx )
+         for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
          {
             // loop over vertices in row with two associated triangles
-            for ( xIdx = uint_c( 1 ); xIdx < inner_rowsize - 1; ++xIdx )
+            for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
             {
                // we associate two elements with current micro-vertex
                localMatrixAssembly2D( mat, face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, srcIndices, dstIndices );
@@ -666,8 +649,8 @@ template < class P1Form >
 void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                              const Face&                                 face,
                                                              const uint_t                                level,
-                                                             const uint_t                                xIdx,
-                                                             const uint_t                                yIdx,
+                                                             const idx_t                                 xIdx,
+                                                             const idx_t                                 yIdx,
                                                              const P1Elements::P1Elements2D::P1Element&  element,
                                                              const idx_t* const                          srcIdx,
                                                              const idx_t* const                          dstIdx ) const
@@ -689,7 +672,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -822,6 +805,16 @@ template class P1ElementwiseOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
+
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
 
 template class P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >;
 

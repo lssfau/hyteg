@@ -20,7 +20,7 @@
 #include "core/Environment.h"
 #include "core/debug/TestSubsystem.h"
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
       edgeWithTwoFaces = edgeIt.second;
     }
   }
-  FaceDoFFunction< real_t > x("x", storage, minLevel, maxLevel);
+  FaceDoFFunction_old< real_t > x("x", storage, minLevel, maxLevel);
 
   facedof::macroedge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
   //facedof::macroedge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);

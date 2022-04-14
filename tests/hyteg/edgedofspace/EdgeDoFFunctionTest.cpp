@@ -29,7 +29,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -155,7 +155,7 @@ static void testEdgeDoFFunction()
    auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
    z->interpolate( linearX, maxLevel, DoFType::All );
 
-   auto dg = std::make_shared< FaceDoFFunction< real_t > >( "dg", storage2, minLevel, maxLevel );
+   auto dg = std::make_shared< FaceDoFFunction_old< real_t > >( "dg", storage2, minLevel, maxLevel );
 
    VTKOutput vtkOutput( "../../output", "interpolate_test", storage2 );
    vtkOutput.add( *p1 );

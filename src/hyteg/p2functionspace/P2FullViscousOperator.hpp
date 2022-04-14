@@ -21,6 +21,7 @@
 
 #include "hyteg/forms/form_fenics_generated/p2_stokes_full.h"
 #include "hyteg/forms/form_fenics_generated/p2_tet_stokes_full_tet.h"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokes_all_forms.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -71,6 +72,81 @@ class P2ConstantFullViscousOperator : public VectorToVectorOperator< real_t, P2V
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel );
       }
+   }
+};
+
+class P2ElementwiseBlendingFullViscousOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >,
+                                                 public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
+{
+ public:
+   P2ElementwiseBlendingFullViscousOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                             size_t                                     minLevel,
+                                             size_t                                     maxLevel,
+                                             std::function< real_t( const Point3D& ) >  viscosity )
+   : VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >( storage, minLevel, maxLevel )
+   {
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_0_0_blending_q3 > visc_0_0;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_0_1_blending_q3 > visc_0_1;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_0_2_blending_q3 > visc_0_2;
+
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_1_0_blending_q3 > visc_1_0;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_1_1_blending_q3 > visc_1_1;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_1_2_blending_q3 > visc_1_2;
+
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_2_0_blending_q3 > visc_2_0;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_2_1_blending_q3 > visc_2_1;
+      typedef P2ElementwiseOperator< forms::p2_full_stokesvar_2_2_blending_q3 > visc_2_2;
+
+      if ( this->dim_ == 3 )
+      {
+         auto form_0_0 = forms::p2_full_stokesvar_0_0_blending_q3( viscosity, viscosity );
+         auto form_0_1 = forms::p2_full_stokesvar_0_1_blending_q3( viscosity, viscosity );
+         auto form_0_2 = forms::p2_full_stokesvar_0_2_blending_q3( viscosity );
+
+         auto form_1_0 = forms::p2_full_stokesvar_1_0_blending_q3( viscosity, viscosity );
+         auto form_1_1 = forms::p2_full_stokesvar_1_1_blending_q3( viscosity, viscosity );
+         auto form_1_2 = forms::p2_full_stokesvar_1_2_blending_q3( viscosity );
+
+         auto form_2_0 = forms::p2_full_stokesvar_2_0_blending_q3( viscosity );
+         auto form_2_1 = forms::p2_full_stokesvar_2_1_blending_q3( viscosity );
+         auto form_2_2 = forms::p2_full_stokesvar_2_2_blending_q3( viscosity );
+
+         this->subOper_[0][0] = std::make_shared< visc_0_0 >( storage, minLevel, maxLevel, form_0_0 );
+         this->subOper_[0][1] = std::make_shared< visc_0_1 >( storage, minLevel, maxLevel, form_0_1 );
+         this->subOper_[0][2] = std::make_shared< visc_0_2 >( storage, minLevel, maxLevel, form_0_2 );
+
+         this->subOper_[1][0] = std::make_shared< visc_1_0 >( storage, minLevel, maxLevel, form_1_0 );
+         this->subOper_[1][1] = std::make_shared< visc_1_1 >( storage, minLevel, maxLevel, form_1_1 );
+         this->subOper_[1][2] = std::make_shared< visc_1_2 >( storage, minLevel, maxLevel, form_1_2 );
+
+         this->subOper_[2][0] = std::make_shared< visc_2_0 >( storage, minLevel, maxLevel, form_2_0 );
+         this->subOper_[2][1] = std::make_shared< visc_2_1 >( storage, minLevel, maxLevel, form_2_1 );
+         this->subOper_[2][2] = std::make_shared< visc_2_2 >( storage, minLevel, maxLevel, form_2_2 );
+      }
+      else
+      {
+         auto form_0_0 = forms::p2_full_stokesvar_0_0_blending_q3( viscosity, viscosity );
+         auto form_0_1 = forms::p2_full_stokesvar_0_1_blending_q3( viscosity, viscosity );
+
+         auto form_1_0 = forms::p2_full_stokesvar_1_0_blending_q3( viscosity, viscosity );
+         auto form_1_1 = forms::p2_full_stokesvar_1_1_blending_q3( viscosity, viscosity );
+
+         this->subOper_[0][0] = std::make_shared< visc_0_0 >( storage, minLevel, maxLevel, form_0_0 );
+         this->subOper_[0][1] = std::make_shared< visc_0_1 >( storage, minLevel, maxLevel, form_0_1 );
+
+         this->subOper_[1][0] = std::make_shared< visc_1_0 >( storage, minLevel, maxLevel, form_1_0 );
+         this->subOper_[1][1] = std::make_shared< visc_1_1 >( storage, minLevel, maxLevel, form_1_1 );
+      }
+   }
+
+   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override final
+   {
+      return this->extractInverseDiagonal();
+   }
+
+   void computeInverseDiagonalOperatorValues() override final
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
    }
 };
 

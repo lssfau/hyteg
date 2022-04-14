@@ -40,6 +40,8 @@ class Face : public Primitive
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
+   template < class K_Simplex >
+   friend class adaptiveRefinement::K_Mesh;
 
    Face( const PrimitiveID&                  primitiveID,
          const std::array< PrimitiveID, 3 >& vertexIDs,
@@ -57,7 +59,7 @@ class Face : public Primitive
       neighborEdges_.push_back( edgeIDs[0] );
       neighborEdges_.push_back( edgeIDs[1] );
       neighborEdges_.push_back( edgeIDs[2] );
-      std::array< Point3D, 2 > B( {{coords[1] - coords[0], coords[2] - coords[0]}} );
+      std::array< Point3D, 2 > B( { { coords[1] - coords[0], coords[2] - coords[0] } } );
       area = std::abs( 0.5 * math::det2( B ) );
    }
 
@@ -76,15 +78,11 @@ class Face : public Primitive
    PrimitiveID                getEdgeOppositeToVertex( const PrimitiveID& vertexID ) const;
    PrimitiveID                get_edge_between_vertices( const PrimitiveID& v0, const PrimitiveID& v1 ) const;
 
-   real_t               area;
-   std::array< int, 3 > edge_orientation;
-
-   std::array< Point3D, 3 > coords;
-
    friend std::ostream& operator<<( std::ostream& os, const Face& face );
 
    const std::array< int, 3 >&     getEdgeOrientation() const { return edge_orientation; }
    const std::array< Point3D, 3 >& getCoordinates() const { return coords; }
+   real_t                          getArea() const { return area; }
 
    const PrimitiveID& getVertexID0() const
    {
@@ -163,9 +161,18 @@ class Face : public Primitive
    virtual uint_t getNumLowerDimNeighbors() const { return getNumNeighborEdges(); }
    virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
-   /// Returns indirect neighbor macro-face IDs (not including self). An indirect neighbor face is a face
-   /// that shares at least one macro-vertex with this cell
-   const std::vector< PrimitiveID >& getIndirectNeighborFaceIDs() const { return indirectNeighborFaceIDs_; }
+   /// Returns all macro-face IDs of macro-faces that share at least one macro-edge with this face.
+   /// Neighbor faces are mapped from local edge IDs.
+   const std::map< uint_t, PrimitiveID >& getIndirectNeighborFaceIDsOverEdges() const
+   {
+      return indirectNeighborFaceIDsOverEdges_;
+   }
+
+   /// Returns all macro-face IDs of macro-faces that share at least one macro-vertex with this face.
+   const std::vector< PrimitiveID >& getIndirectNeighborFaceIDsOverVertices() const
+   {
+      return indirectNeighborFaceIDsOverVertices_;
+   }
 
  protected:
    /// Not public in order to guarantee that data is only added through the governing structure.
@@ -180,8 +187,14 @@ class Face : public Primitive
    virtual void deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer );
 
  private:
-   void                       addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
-   std::vector< PrimitiveID > indirectNeighborFaceIDs_;
+   real_t               area;
+   std::array< int, 3 > edge_orientation;
+
+   std::array< Point3D, 3 > coords;
+
+   void                            addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
+   std::vector< PrimitiveID >      indirectNeighborFaceIDsOverVertices_;
+   std::map< uint_t, PrimitiveID > indirectNeighborFaceIDsOverEdges_;
 };
 
 } // namespace hyteg

@@ -92,11 +92,13 @@ void benchmark( int argc, char** argv )
    {
       auto meshInfo = MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax, MeshInfo::SHELLMESH_ON_THE_FLY );
 
-      auto onBoundary = []( const Point3D& ) { return true; };
-      meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
-
       SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-      setupStorage.setMeshBoundaryFlagsInner( 0, true );
+      // new code ...
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      // ... replaces
+      // auto onBoundary = []( const Point3D& ) { return true; };
+      // meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
+      // setupStorage.setMeshBoundaryFlagsInner( 0, true );
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
    }

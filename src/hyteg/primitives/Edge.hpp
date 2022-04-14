@@ -38,6 +38,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   Edge( const PrimitiveID & primitiveID,
         const PrimitiveID & vertexID0,

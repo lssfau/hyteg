@@ -31,7 +31,7 @@
 using walberla::real_t;
 using walberla::real_c;
 
-template< typename P2P1StokesOperator >
+template< typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
    std::string meshFileName = "../../data/meshes/quad_4el_neumann.msh";
@@ -50,18 +50,18 @@ void stokesMinResConvergenceTest()
    hyteg::P2P1TaylorHoodFunction< real_t > f( "f", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, level, level );
 
-   P2P1StokesOperator L( storage, level, level );
+   P2P1P1StokesOperator L( storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > bc_x = []( const hyteg::Point3D& x ) { return 4.0 * ( 1.0 - x[1] ) * x[1]; };
    std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw[0].interpolate( zero, level );
-   u.uvw[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
-   u.uvw[1].interpolate( zero, level, hyteg::DirichletBoundary );
+   u.uvw()[0].interpolate( zero, level );
+   u.uvw()[0].interpolate( bc_x, level, hyteg::DirichletBoundary );
+   u.uvw()[1].interpolate( zero, level, hyteg::DirichletBoundary );
 
-   auto solver = hyteg::MinResSolver< P2P1StokesOperator >( storage, level, level, maxiter );
+   auto solver = hyteg::MinResSolver< P2P1P1StokesOperator >( storage, level, level, maxiter );
    solver.solve( L, u, f, level );
 
    L.apply( u, r, level, hyteg::Inner | hyteg::NeumannBoundary );

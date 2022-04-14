@@ -29,6 +29,7 @@
 #include "variablestencil/P2VariableStencilCommon.hpp"
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
+#include <hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp>
 #include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
@@ -37,6 +38,7 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/P2MacroFacePolynomial.hpp>
 
+#include "hyteg/communication/Syncing.hpp"
 
 
 namespace hyteg {
@@ -82,15 +84,15 @@ P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
       std::array<real_t, P2::NumStencilentries2D::EtE> edgeToEdgeStencil;
 
       // we only use polynomials for face stencils
-      for (auto& it : storage_->getFaces())
+      for (auto& itF : storage_->getFaces())
       {
-         Face& face = *it.second;
+         Face& face = *itF.second;
          form_.setGeometryMap(face.getGeometryMap());
 
-         Point3D x0(face.coords[0]), x;
+         Point3D x0(face.getCoordinates()[0]), x;
 
-         Point3D D0 = face.coords[1] - face.coords[0];
-         Point3D D2 = face.coords[2] - face.coords[0];
+         Point3D D0 = face.getCoordinates()[1] - face.getCoordinates()[0];
+         Point3D D2 = face.getCoordinates()[2] - face.getCoordinates()[0];
 
          for (uint_t level = minLevel_; level <= maxLevel_; ++level)
          {

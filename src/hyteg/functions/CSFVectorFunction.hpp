@@ -47,6 +47,11 @@ class CSFVectorFunction
    : functionName_( name )
    {}
 
+   CSFVectorFunction( const std::string name, const std::vector< std::shared_ptr< VectorComponentType > >& compFunc )
+   : functionName_( name )
+   , compFunc_( compFunc )
+   {}
+
    /// @name Query Functions
    /// Methods for questioning object for certain properties
    /// @{
@@ -104,6 +109,14 @@ class CSFVectorFunction
       }
    }
 
+   void interpolate( valueType constant, size_t level, BoundaryUID boundaryUID ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->interpolate( constant, level, boundaryUID );
+      }
+   }
+
    void interpolate( const std::vector< std::function< valueType( const hyteg::Point3D& ) > >& expr,
                      size_t                                                                    level,
                      DoFType                                                                   flag = All ) const
@@ -119,6 +132,38 @@ class CSFVectorFunction
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
          compFunc_[k]->interpolate( expr[k], level, flag );
+      }
+   }
+
+   void interpolate( const std::vector< valueType >& constants, size_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, flag );
+      }
+   }
+
+   void interpolate( const std::vector< valueType >& constants, size_t level, BoundaryUID boundaryUID ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, boundaryUID );
       }
    }
 
@@ -297,6 +342,55 @@ class CSFVectorFunction
          compFunc_[k]->enumerate( level, offset );
       }
    }
+
+   /// conversion to/from linear algebra representation
+   ///
+   /// \todo Find a better solution. The latter would require to find a way to derive from
+   /// VectorFunctionType that we need in the interface a corresponding function with
+   /// different ValueType. So e.g. P1VectorFunction< idx_t > if VectorFunctionType equals
+   /// P1VectorFunction< real_t >.
+   ///
+   /// @{
+   template < template < class > class VectorFunctionIndexType >
+   void toVector( const VectorFunctionIndexType< idx_t >& numerator,
+                  const std::shared_ptr< VectorProxy >&   vec,
+                  uint_t                                  level,
+                  DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->toVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+
+   template < template < class > class VectorFunctionIndexType >
+   void fromVector( const VectorFunctionIndexType< idx_t >& numerator,
+                    const std::shared_ptr< VectorProxy >&   vec,
+                    uint_t                                  level,
+                    DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->fromVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+   /// @}
 
  protected:
    const std::string                                     functionName_;

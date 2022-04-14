@@ -19,11 +19,13 @@
  */
 #pragma once
 
+
+
 #include <array>
 
 #include "core/OpenMP.h"
 
-#include "hyteg/Stencil.hpp"
+#include "hyteg/Stencil.hpp" 
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -104,6 +106,93 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    }
 
    ~P1Operator() override = default;
+
+   std::map< indexing::Index, vertexdof::macrocell::StencilMap_T > computeStencilsForCell( Cell& cell ) const
+   {
+      typedef stencilDirection sd;
+
+      auto level = maxLevel_;
+
+      auto& operatorData = cell.getData( cellStencilID_ )->getData( level );
+
+      std::map< indexing::Index, vertexdof::macrocell::StencilMap_T > result;
+
+      assemble_stencil_cell_init( cell, level );
+
+      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
+      uint_t       rowsizeY, rowsizeX;
+
+      for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+      {
+         assemble_stencil_cell_init_z( k );
+
+         rowsizeY = rowsizeZ - k;
+
+         for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+         {
+            assemble_stencil_cell_init_y( j );
+
+            rowsizeX = rowsizeY - j;
+
+            for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+            {
+               indexing::Index idx{ i, j, k };
+
+               assemble_stencil_cell( operatorData, i, j, k );
+
+               result.insert_or_assign( idx, operatorData );
+            }
+         }
+      }
+
+      return result;
+   }
+
+   std::map< indexing::Index, std::vector< real_t > > computeStencilsForFace( Face& face ) const
+   {
+      if ( storage_->hasGlobalCells() )
+      {
+         WALBERLA_ABORT( "Only available for 2D domains!" );
+      }
+
+      typedef stencilDirection sd;
+
+      auto level = maxLevel_;
+
+      // auto stencilSize = face.getData( faceStencilID_ )->getSize( level ); = 27
+      uint_t stencilSize = 9;
+
+      std::map< indexing::Index, std::vector< real_t > > result;
+
+      uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+      uint_t inner_rowsize = rowsize;
+
+      real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+
+      assemble_stencil_face_init( face, level );
+
+      for ( uint_t j = 1; j < rowsize - 2; ++j )
+      {
+         assemble_stencil_face_init_y( j );
+
+         for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+         {
+            indexing::Index idx{ i, j, 0 };
+
+            assemble_stencil_face( opr_data, i, j );
+
+            std::vector< real_t > stencil( stencilSize );
+
+            std::copy( opr_data, opr_data + stencilSize, stencil.data() );
+
+            result.insert_or_assign( idx, stencil );
+         }
+
+         --inner_rowsize;
+      }
+
+      return result;
+   }
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -361,11 +450,21 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+   // void computeDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   void computeDiagonalOperatorValues()
+   {
+      bool use_variable_stencil_assembly = false;
+      computeDiagonalOperatorValues( false, use_variable_stencil_assembly );
+   }
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   // void computeInverseDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
+   void computeInverseDiagonalOperatorValues()
+   {
+      bool use_variable_stencil_assembly = false;
+      computeDiagonalOperatorValues( true, use_variable_stencil_assembly );
+   }
 
    std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
    {
@@ -482,12 +581,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                uint_t                     v_i       = face->vertex_index( vertex.getID() );
                std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-               x  = face->coords[v_i];
-               d0 = ( face->coords[face->vertex_index(
+               x  = face->getCoordinates()[v_i];
+               d0 = ( face->getCoordinates()[face->vertex_index(
                           storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
                       x ) *
                     h;
-               d2 = ( face->coords[face->vertex_index(
+               d2 = ( face->getCoordinates()[face->vertex_index(
                           storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
                       x ) *
                     h;
@@ -541,7 +640,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    /// Allocates the required memory if the function was not yet allocated.
    ///
    /// \param invert if true, assembles the function carrying the inverse of the diagonal
-   void computeDiagonalOperatorValues( bool invert )
+   void computeDiagonalOperatorValues( bool invert, bool use_variable_stencil_assembly )
    {
       std::shared_ptr< P1Function< real_t > > targetFunction;
 
@@ -583,13 +682,27 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                auto stencilMemory = edge->getData( edgeStencilID_ )->getPointer( level );
                auto targetMemory  = edge->getData( targetFunction->getEdgeDataID() )->getPointer( level );
 
-               assemble_stencil_edge_init( *edge, level );
+               if ( use_variable_stencil_assembly )
+               {
+                  assemble_variableStencil_edge_init( *edge, level );
+               }
+               else
+               {
+                  assemble_stencil_edge_init( *edge, level );
+               }
 
                for ( auto idx : vertexdof::macroedge::Iterator( level ) )
                {
                   if ( variableStencil() )
                   {
-                     assemble_stencil_edge( stencilMemory, idx.x() );
+                     if ( use_variable_stencil_assembly )
+                     {
+                        assemble_variableStencil_edge( stencilMemory, idx.x() );
+                     }
+                     else
+                     {
+                        assemble_stencil_edge( stencilMemory, idx.x() );
+                     }
                   }
 
                   targetMemory[vertexdof::macroedge::index( level, idx.x() )] =
@@ -607,14 +720,24 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                auto& stencilMap    = face->getData( faceStencil3DID_ )->getData( level );
                auto  targetMemory  = face->getData( targetFunction->getFaceDataID() )->getPointer( level );
 
-               assemble_stencil_face_init( *face, level );
+               if ( use_variable_stencil_assembly )
+               {
+                  assemble_variableStencil_face_init( *face, level );
+               }
+               else
+               {
+                  assemble_stencil_face_init( *face, level );
+               }
 
                const uint_t rowsizeY = levelinfo::num_microvertices_per_edge( level );
                uint_t       rowsizeX;
 
                for ( uint_t j = 1; j < rowsizeY - 2; ++j )
                {
-                  assemble_stencil_face_init_y( j );
+                  if ( !use_variable_stencil_assembly )
+                  {
+                     assemble_stencil_face_init_y( j );
+                  }
 
                   rowsizeX = rowsizeY - j;
 
@@ -626,7 +749,14 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                      {
                         if ( variableStencil() )
                         {
-                           assemble_stencil_face3D( stencilMap, i, j );
+                           if ( use_variable_stencil_assembly )
+                           {
+                              assemble_variableStencil_face3D( stencilMap, i, j );
+                           }
+                           else
+                           {
+                              assemble_stencil_face3D( stencilMap, i, j );
+                           }
                         }
 
                         for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
@@ -644,7 +774,14 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                      {
                         if ( variableStencil() )
                         {
-                           assemble_stencil_face( stencilMemory, i, j );
+                           if ( use_variable_stencil_assembly )
+                           {
+                              assemble_variableStencil_face( stencilMemory, i, j );
+                           }
+                           else
+                           {
+                              assemble_stencil_face( stencilMemory, i, j );
+                           }
                         }
 
                         centerValue = stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
@@ -700,20 +837,33 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                auto& stencilMap   = cell->getData( cellStencilID_ )->getData( level );
                auto  targetMemory = cell->getData( targetFunction->getCellDataID() )->getPointer( level );
 
-               assemble_stencil_cell_init( *cell, level );
+               if ( use_variable_stencil_assembly )
+               {
+                  assemble_variableStencil_cell_init( *cell, level );
+               }
+               else
+               {
+                  assemble_stencil_cell_init( *cell, level );
+               }
 
                const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
                uint_t       rowsizeY, rowsizeX;
 
                for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
                {
-                  assemble_stencil_cell_init_z( k );
+                  if ( !use_variable_stencil_assembly )
+                  {
+                     assemble_stencil_cell_init_z( k );
+                  }
 
                   rowsizeY = rowsizeZ - k;
 
                   for ( uint_t j = 1; j < rowsizeY - 2; ++j )
                   {
-                     assemble_stencil_cell_init_y( j );
+                     if ( !use_variable_stencil_assembly )
+                     {
+                        assemble_stencil_cell_init_y( j );
+                     }
 
                      rowsizeX = rowsizeY - j;
 
@@ -721,7 +871,14 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                      {
                         if ( variableStencil() )
                         {
-                           assemble_stencil_cell( stencilMap, i, j, k );
+                           if ( use_variable_stencil_assembly )
+                           {
+                              assemble_variableStencil_cell( stencilMap, i, j, k );
+                           }
+                           else
+                           {
+                              assemble_stencil_cell( stencilMap, i, j, k );
+                           }
                         }
 
                         real_t centerValue = stencilMap[indexing::IndexIncrement( { 0, 0, 0 } )];
@@ -1632,7 +1789,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       using namespace vertexdof::macroedge;
       using sD = stencilDirection;
 
-      Point3D x = x0_ + i * dx_;
+      Point3D x = x0_ + walberla::real_t(i) * dx_;
 
       // 3D version (old version)
       if ( storage_->hasGlobalCells() )
@@ -1643,9 +1800,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
          WALBERLA_ASSERT_EQUAL( stencilSize_, stencil.size() );
 
-         for ( uint_t i = 0; i < stencilSize_; i++ )
+         for ( uint_t j = 0; j < stencilSize_; j++ )
          {
-            edge_stencil[i] = stencil[i];
+            edge_stencil[j] = stencil[j];
          }
 
          if constexpr ( Lumped )
@@ -1797,7 +1954,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroedge::getIndexInNeighboringMacroCell( { i, 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+             vertexdof::macroedge::getIndexInNeighboringMacroCell( { idx_t( i ), 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
          edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
@@ -1828,9 +1985,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       // 2D version
       else
       {
-         x0_ = face.coords[0];
-         dx_ = h_ * ( face.coords[1] - face.coords[0] );
-         dy_ = h_ * ( face.coords[2] - face.coords[0] );
+         x0_ = face.getCoordinates()[0];
+         dx_ = h_ * ( face.getCoordinates()[1] - face.getCoordinates()[0] );
+         dy_ = h_ * ( face.getCoordinates()[2] - face.getCoordinates()[0] );
 
          stencil_directions_2D_ = stencil::Directions2D( h_, face );
       }
@@ -1845,7 +2002,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       std::memset( face_stencil, 0, stencilSize_ * sizeof( real_t ) );
 
       WALBERLA_ASSERT( !storage_->hasGlobalCells() );
-      Point3D x = x0_ + i * dx_ + j * dy_;
+      Point3D x = x0_ + walberla::real_t(i) * dx_ + walberla::real_t(j) * dy_;
 
       vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
           form_,
@@ -1914,7 +2071,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       {
          auto neighborCell = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
          auto vertexAssemblyIndexInCell =
-             vertexdof::macroface::getIndexInNeighboringMacroCell( { i, j, 0 }, *face_, neighborCellID, *storage_, level_ );
+             vertexdof::macroface::getIndexInNeighboringMacroCell( { idx_t( i ), idx_t( j ), 0 }, *face_, neighborCellID, *storage_, level_ );
          face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }

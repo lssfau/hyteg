@@ -23,6 +23,7 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 
@@ -134,13 +135,23 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
              uint_t                                                                             level,
              DoFType                                                                            flag = All ) const;
 
-   /// Interpolates a given expression to a EdgeDoFFunction
+   /// @name Member functions for interpolation using BoundaryUID flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
 
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
+
+   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                             uint_t                                                                               level,
+                             BoundaryUID boundaryUID ) const;
+   //@}
+
+   /// @name Member functions for interpolation using DoFType flags
+   //@{
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
-
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
@@ -154,11 +165,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
-
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
-                             uint_t                                                                               level,
-                             BoundaryUID boundaryUID ) const;
+   //@}
 
    /// Compute the product of several functions in an elementwise fashion
    ///
@@ -351,6 +358,19 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const EdgeDoFFunction< idx_t >&       numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const EdgeDoFFunction< idx_t >&       numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 

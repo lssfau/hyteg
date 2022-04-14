@@ -23,7 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -129,7 +129,7 @@ int main( int argc, char* argv[] )
 //   vtkOutput.add( uExact.w );
 //   vtkOutput.add( uExact.p );
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x )
    {
@@ -164,10 +164,10 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
 #if 1
-   u.uvw[2].interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
+   u.uvw()[2].interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw.u.interpolate( { collidingFlow_x, collidingFlow_y}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
+   u.uvw().u.interpolate( { collidingFlow_x, collidingFlow_y}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
 #endif
 
 //   vtkOutput.write( maxLevel, 0 );
@@ -175,7 +175,7 @@ int main( int argc, char* argv[] )
 
    typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
    typedef hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator  > GMGSolver_T;
-   typedef hyteg::StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
+   typedef hyteg::StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
 
    auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
    auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
@@ -186,9 +186,9 @@ int main( int argc, char* argv[] )
    //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
    auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2, gmgSolver );
 
-   auto solver = hyteg::MinResSolver< hyteg::P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
-   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
-   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
+   auto solver = hyteg::MinResSolver< hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
+   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
+   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
 
    solver.solve( L, u, f, maxLevel );
 #else
@@ -196,7 +196,7 @@ int main( int argc, char* argv[] )
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager( &argc, &argv );
-   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
+   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );

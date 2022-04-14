@@ -50,12 +50,12 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    {
       for ( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
       {
-         for ( uint_t k = 0; k < x.uvw.getDimension(); k++ )
+         for ( uint_t k = 0; k < x.uvw().getDimension(); k++ )
          {
-            velocityBlockPreconditioner_->solve( A.A, x.uvw[k], b.uvw[k], level );
+            velocityBlockPreconditioner_->solve( A.getA(), x.uvw()[k], b.uvw()[k], level );
          }
 
-         pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );
+         pressureBlockPreconditioner_->apply( b.p(), x.p(), level, flag_, Replace );
       }
    }
 

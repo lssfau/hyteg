@@ -114,8 +114,10 @@ void logSectionHeader( const char* header )
 
 int main( int argc, char** argv )
 {
-#ifndef __APPLE__
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#ifndef __APPLE__ 
+    #ifndef _MSC_VER
+        feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
    walberla::debug::enterTestMode();
 

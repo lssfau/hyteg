@@ -63,18 +63,16 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
 
    void apply( const P1Function< real_t >& src, const P1Function< real_t >& dst, const uint_t level, const DoFType flag ) const
    {
-      tmp_solution_.uvw[0].interpolate( 0, level, All );
-      tmp_solution_.uvw[1].interpolate( 0, level, All );
-      tmp_solution_.uvw[2].interpolate( 0, level, All );
+      tmp_solution_.uvw().interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, All );
 
-      A.divT.apply( src, tmp_rhs_.uvw, level, flag, Replace );
+      A.divT.apply( src, tmp_rhs_.uvw(), level, flag, Replace );
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
       {
          velocitySmoother_->solve( A, tmp_solution_, tmp_rhs_, level );
       }
 
-      A.div.apply( tmp_solution_.uvw, tmp_schur_, level, flag, Replace );
+      A.div.apply( tmp_solution_.uvw(), tmp_schur_, level, flag, Replace );
 
       mass_inv_diag_.apply( tmp_schur_, dst, level, flag, Replace );
    }

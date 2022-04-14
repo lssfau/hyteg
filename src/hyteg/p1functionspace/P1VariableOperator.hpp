@@ -20,16 +20,13 @@
 
 #pragma once
 
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_0_blending_q1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_1_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_0_blending_q1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_1_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"

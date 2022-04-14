@@ -21,11 +21,11 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
-#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
@@ -39,15 +39,8 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
@@ -59,9 +52,9 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      Lapl.apply( src.uvw, dst.uvw, level, flag, Replace );
-      divT.apply( src.p, dst.uvw, level, flag, Add );
-      div.apply( src.uvw, dst.p, level, flag, Replace );
+      Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -70,23 +63,19 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      Lapl.toMatrix( mat, src.uvw, dst.uvw, level, flag );
-      divT.toMatrix( mat, src.p, dst.uvw, level, flag );
-      div.toMatrix( mat, src.uvw, dst.p, level, flag );
+      Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+   }
+
+   const P2ConstantLaplaceOperator& getA() const {
+     auto ptr = Lapl.getSubOperator( 0, 0 );
+     return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
    }
 
    VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
-
-   // currently, need these for being able to integrate into the framework until the block operator is completed
-   P2ConstantLaplaceOperator   A;
-   P2ToP1ConstantDivxOperator  div_x;
-   P2ToP1ConstantDivyOperator  div_y;
-   P2ToP1ConstantDivzOperator  div_z;
-   P1ToP2ConstantDivTxOperator divT_x;
-   P1ToP2ConstantDivTyOperator divT_y;
-   P1ToP2ConstantDivTzOperator divT_z;
 
    // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,14 +23,13 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
-namespace edgedof {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -102,13 +101,13 @@ inline void saveEdgeIdentityOperator( const uint_t&                             
    }
 }
 
-inline void saveEdgeOperator3D( const uint_t&                                                              level,
-                                const Edge&                                                                edge,
-                                const PrimitiveStorage&                                                    storage,
-                                const PrimitiveDataID< LevelWiseMemory< macroedge::StencilMap_T >, Edge >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                    srcId,
-                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                    dstId,
-                                const std::shared_ptr< SparseMatrixProxy >&                                mat )
+inline void saveEdgeOperator3D( const uint_t&                                                                       level,
+                                const Edge&                                                                         edge,
+                                const PrimitiveStorage&                                                             storage,
+                                const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >& operatorId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                             srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                             dstId,
+                                const std::shared_ptr< SparseMatrixProxy >&                                         mat )
 {
    auto opr_data = edge.getData( operatorId )->getData( level );
    auto src      = edge.getData( srcId )->getPointer( level );
@@ -116,7 +115,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
 
    for ( const auto& centerIndexOnEdge : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
-      const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
+      const edgedof::EdgeDoFOrientation edgeCenterOrientation = edgedof::EdgeDoFOrientation::X;
 
       const auto dstInt = dst[edgedof::macroedge::index( level, centerIndexOnEdge.x() )];
 
@@ -126,11 +125,11 @@ inline void saveEdgeOperator3D( const uint_t&                                   
          auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microedges_per_edge( level ) );
          const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
              edgeCenterOrientation, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
 
@@ -146,7 +145,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                const auto leafIndexOnEdge = indexing::basisConversion(
-                   leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+                   leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microedges_per_edge( level ) );
 
                const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
                const auto onCellFacesSetOnEdge =
@@ -198,7 +197,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                   }
 
                   const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
-                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+                      leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
                   const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
                       leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
@@ -211,7 +210,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                   // leaf on macro-edge
                   WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
                   WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
-                  WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X );
+                  WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, edgedof::EdgeDoFOrientation::X );
                   leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
                }
 
@@ -308,13 +307,13 @@ inline void saveFaceIdentityOperator( const uint_t&                             
    }
 }
 
-inline void saveFaceOperator3D( const uint_t&                                                              level,
-                                const Face&                                                                face,
-                                const PrimitiveStorage&                                                    storage,
-                                const PrimitiveDataID< LevelWiseMemory< macroface::StencilMap_T >, Face >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                    srcId,
-                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                    dstId,
-                                const std::shared_ptr< SparseMatrixProxy >&                                mat )
+inline void saveFaceOperator3D( const uint_t&                                                                       level,
+                                const Face&                                                                         face,
+                                const PrimitiveStorage&                                                             storage,
+                                const PrimitiveDataID< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >& operatorId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                             srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                             dstId,
+                                const std::shared_ptr< SparseMatrixProxy >&                                         mat )
 {
    auto opr_data = face.getData( operatorId )->getData( level );
    auto src      = face.getData( srcId )->getPointer( level );
@@ -344,9 +343,9 @@ inline void saveFaceOperator3D( const uint_t&                                   
             const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
 
             const auto centerIndexInCell =
-                macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+                edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
             const auto cellCenterOrientation =
-                macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+                edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
             {
@@ -355,15 +354,15 @@ inline void saveFaceOperator3D( const uint_t&                                   
                   const auto stencilOffset = stencilIt.first;
                   const auto stencilWeight = stencilIt.second;
 
-                  const auto leafOrientationInFace =
-                      macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
+                  const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+                      leafOrientation, neighborCell, localFaceID, storage );
 
                   const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-                  const auto leafIndexInFace =
-                      leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
-                          macrocell::getIndexInNeighboringMacroFaceXYZ(
-                              leafIndexInCell, neighborCell, localFaceID, storage, level ) :
-                          macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+                  const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
+                                                   edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
+                                                       leafIndexInCell, neighborCell, localFaceID, storage, level ) :
+                                                   edgedof::macrocell::getIndexInNeighboringMacroFace(
+                                                       leafIndexInCell, neighborCell, localFaceID, storage, level );
 
                   WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
 
@@ -389,12 +388,12 @@ inline void saveFaceOperator3D( const uint_t&                                   
    }
 }
 
-inline void saveCellOperator( const uint_t&                                                              Level,
-                              const Cell&                                                                cell,
-                              const PrimitiveDataID< LevelWiseMemory< macrocell::StencilMap_T >, Cell >& operatorId,
-                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                    srcId,
-                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                    dstId,
-                              const std::shared_ptr< SparseMatrixProxy >&                                mat )
+inline void saveCellOperator( const uint_t&                                                                       Level,
+                              const Cell&                                                                         cell,
+                              const PrimitiveDataID< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >& operatorId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                             srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                             dstId,
+                              const std::shared_ptr< SparseMatrixProxy >&                                         mat )
 {
    auto srcData  = cell.getData( srcId )->getPointer( Level );
    auto dstData  = cell.getData( dstId )->getPointer( Level );
@@ -404,17 +403,17 @@ inline void saveCellOperator( const uint_t&                                     
    {
       std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
 
-      if ( macrocell::isInnerXEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::X );
-      if ( macrocell::isInnerYEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerYEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::Y );
-      if ( macrocell::isInnerZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::Z );
-      if ( macrocell::isInnerXYEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXYEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::XY );
-      if ( macrocell::isInnerXZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::XZ );
-      if ( macrocell::isInnerYZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerYZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::YZ );
 
       for ( const auto& centerOrientation : innerOrientations )
@@ -472,17 +471,17 @@ inline void saveCellIdentityOperator( const uint_t&                             
    {
       std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
 
-      if ( macrocell::isInnerXEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::X );
-      if ( macrocell::isInnerYEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerYEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::Y );
-      if ( macrocell::isInnerZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::Z );
-      if ( macrocell::isInnerXYEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXYEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::XY );
-      if ( macrocell::isInnerXZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerXZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::XZ );
-      if ( macrocell::isInnerYZEdgeDoF( Level, it ) )
+      if ( edgedof::macrocell::isInnerYZEdgeDoF( Level, it ) )
          innerOrientations.push_back( edgedof::EdgeDoFOrientation::YZ );
 
       for ( const auto& centerOrientation : innerOrientations )
@@ -502,132 +501,5 @@ inline void saveCellIdentityOperator( const uint_t&                             
       mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
    }
 }
-
-} // namespace edgedof
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-namespace petsc {
-
-inline void createVectorFromFunction( const EdgeDoFFunction< PetscReal >&   function,
-                                      const EdgeDoFFunction< idx_t >&       numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         edgedof::macroedge::createVectorFromFunction< PetscReal >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         edgedof::macroface::createVectorFromFunction< PetscReal >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         edgedof::macrocell::createVectorFromFunction< PetscReal >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
-}
-
-inline void createFunctionFromVector( const EdgeDoFFunction< PetscReal >&   function,
-                                      const EdgeDoFFunction< idx_t >&       numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   function.startCommunication< Vertex, Edge >( level );
-   function.endCommunication< Vertex, Edge >( level );
-
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         edgedof::macroedge::createFunctionFromVector< PetscReal >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   function.startCommunication< Edge, Face >( level );
-   function.endCommunication< Edge, Face >( level );
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         edgedof::macroface::createFunctionFromVector< PetscReal >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         edgedof::macrocell::createFunctionFromVector< PetscReal >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
-}
-
-inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
-{
-   for ( auto& it : numerator.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, DirichletBoundary ) )
-      {
-         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : numerator.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, DirichletBoundary ) )
-      {
-         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
-      }
-   }
-}
-
-} // namespace petsc
-
-#endif
 
 } // namespace hyteg

@@ -30,7 +30,10 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorMassOperator.hpp"
+#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
+#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
@@ -39,7 +42,7 @@
 
 namespace hyteg {
 
-template < typename vfType, typename opType >
+template < typename vfType, typename opType, bool ctorNeedsViscosity = false >
 static void runTest( bool beVerbose, std::string tag, std::string opName )
 {
    if ( beVerbose )
@@ -62,10 +65,20 @@ static void runTest( bool beVerbose, std::string tag, std::string opName )
    vfType dstVec( "dstVecFunc", storage, minLevel, maxLevel );
 
    // setup our operator
-   opType testOp( storage, minLevel, maxLevel );
+   std::shared_ptr< opType > testOp;
+
+   if constexpr ( ctorNeedsViscosity )
+   {
+      std::function< real_t( const Point3D& ) > mu = []( const Point3D& x ) { return real_c( 3 ) * x[0] + x[1]; };
+      testOp                                       = std::make_shared< opType >( storage, minLevel, maxLevel, mu );
+   }
+   else
+   {
+      testOp = std::make_shared< opType >( storage, minLevel, maxLevel );
+   }
 
    // check that we can apply it
-   testOp.apply( srcVec, dstVec, maxLevel, All );
+   testOp->apply( srcVec, dstVec, maxLevel, All );
 }
 
 } // namespace hyteg
@@ -111,6 +124,34 @@ int main( int argc, char* argv[] )
        true, "P2", "P2ElementwiseVectorMassOperator" );
    hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ElementwiseBlendingVectorMassOperator >(
        true, "P2", "P2ElementwiseBlendingVectorMassOperator" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing EpsilonOperators" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   hyteg::runTest< hyteg::P1VectorFunction< walberla::real_t >, hyteg::P1ConstantEpsilonOperator >(
+       true, "P1", "P1ConstantEpsilonOperator" );
+   hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ConstantEpsilonOperator >(
+       true, "P2", "P2ConstantEpsilonOperator" );
+
+   hyteg::runTest< hyteg::P1VectorFunction< walberla::real_t >, hyteg::P1ElementwiseAffineEpsilonOperator, true >(
+       true, "P1", "P1ElementwiseAffineEpsilonOperator" );
+   hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ElementwiseAffineEpsilonOperator, true >(
+       true, "P2", "P2ElementwiseAffineEpsilonOperator" );
+
+   hyteg::runTest< hyteg::P1VectorFunction< walberla::real_t >, hyteg::P1ElementwiseBlendingEpsilonOperator, true >(
+       true, "P1", "P1ElementwiseBlendingEpsilonOperator" );
+   hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ElementwiseBlendingEpsilonOperator, true >(
+       true, "P2", "P2ElementwiseBlendingEpsilonOperator" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing FullViscousOperators" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+
+   hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ConstantFullViscousOperator >(
+       true, "P2", "P2ConstantFullViscousOperator" );
+
+   hyteg::runTest< hyteg::P2VectorFunction< walberla::real_t >, hyteg::P2ElementwiseBlendingFullViscousOperator, true >(
+       true, "P2", "P2ElementwiseBlendingFullViscousOperator" );
 
    return EXIT_SUCCESS;
 }

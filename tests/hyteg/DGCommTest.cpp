@@ -20,7 +20,7 @@
 #include "core/debug/all.h"
 #include "core/mpi/all.h"
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -40,7 +40,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 
   const uint_t minLevel = 2;
   //const uint_t maxLevel = 4;
-  hyteg::FaceDoFFunction< int32_t > x("x", storage, minLevel, maxLevel);
+  hyteg::FaceDoFFunction_old< int32_t > x("x", storage, minLevel, maxLevel);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
@@ -128,7 +128,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 //////////////////// GRAY CELL //////////////////////
       idxCounter = 0;
       auto it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
-                                                  face.edge_orientation[face.edge_index(edge->getID())],
+                                                  face.getEdgeOrientation()[face.edge_index(edge->getID())],
                                                   facedof::macroface::CELL_GRAY,
                                                   maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){
@@ -148,7 +148,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 //////////////////// BLUE CELL //////////////////////
       idxCounter = 0;
       it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
-                                             face.edge_orientation[face.edge_index(edge->getID())],
+                                             face.getEdgeOrientation()[face.edge_index(edge->getID())],
                                              facedof::macroface::CELL_BLUE,
                                              maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){

@@ -31,7 +31,6 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/indexing/CouplingCountFreeFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -67,7 +66,6 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       typedef typename FunctionTrait< fType< idx_t > >::Tag enumTag;
 
       uint_t globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
-      uint_t localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
       if ( beVerbose )
       {
@@ -80,7 +78,7 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       uint_t nnzHyTeG = indexing::getNumberOfGlobalDoFCouplings( oper, level );
 
       // assemble matrix
-      PETScSparseMatrix< opType > petscMat( localDoFs, globalDoFs );
+      PETScSparseMatrix< opType > petscMat;
       petscMat.createMatrixFromOperator( oper, level, enumerator, All );
       uint_t nnzPETSc = petscMat.getInfo().getNNZ();
 

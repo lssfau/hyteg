@@ -108,24 +108,24 @@ void runBenchmark( int argc, char** argv )
    StokesOperator L( storage, level, level );
    MassOperator   M( storage, level, level );
 
-   u.uvw.interpolate( { exactU, exactV }, level, DirichletBoundary );
+   u.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
 
-   Au.uvw.interpolate( { rhsU, rhsV }, level, All );
+   Au.uvw().interpolate( { rhsU, rhsV }, level, All );
 
-   M.apply( Au.uvw[0], f.uvw[0], level, All );
-   M.apply( Au.uvw[1], f.uvw[1], level, All );
+   M.apply( Au.uvw()[0], f.uvw()[0], level, All );
+   M.apply( Au.uvw()[1], f.uvw()[1], level, All );
 
-   Au.uvw[0].setToZero( level );
-   Au.uvw[1].setToZero( level );
-   Au.p.setToZero( level );
+   Au.uvw()[0].setToZero( level );
+   Au.uvw()[1].setToZero( level );
+   Au.p().setToZero( level );
 
-   u_exact.uvw.interpolate( { exactU, exactV }, level, All );
-   u_exact.p.interpolate( exactP, level, All );
+   u_exact.uvw().interpolate( { exactU, exactV }, level, All );
+   u_exact.p().interpolate( exactP, level, All );
 
-   vertexdof::projectMean( u_exact.p, level );
+   vertexdof::projectMean( u_exact.p(), level );
 
-   communication::syncVectorFunctionBetweenPrimitives( u_exact.uvw, level );
-   communication::syncFunctionBetweenPrimitives( u_exact.p, level );
+   communication::syncVectorFunctionBetweenPrimitives( u_exact.uvw(), level );
+   communication::syncFunctionBetweenPrimitives( u_exact.p(), level );
 
    auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 
@@ -146,9 +146,9 @@ void runBenchmark( int argc, char** argv )
 
    err.assign( {1.0, -1.0}, {u, u_exact}, level, All );
 
-   auto discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level, All ) / real_c( numPointsVelocity ) );
-   auto discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level, All ) / real_c( numPointsVelocity ) );
-   auto discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, All ) / real_c( numPointsPressure ) );
+   auto discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, All ) / real_c( numPointsVelocity ) );
+   auto discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, All ) / real_c( numPointsVelocity ) );
+   auto discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, All ) / real_c( numPointsPressure ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
        "%15s|%15s|%15s|%15s|%15s|%15s", "iteration", "residual", "residual redct", "L2 error u", "L2 error v", "L2 error p" ) )
@@ -156,12 +156,9 @@ void runBenchmark( int argc, char** argv )
        "%15s|%15e|%15s|%15e|%15e|%15e", "initial", oldRes, "-", discr_l2_err_u, discr_l2_err_v, discr_l2_err_p ) )
 
    VTKOutput vtkOutput( "./output", "GKBTestProblem", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.uvw );
-   vtkOutput.add( u_exact.p );
-   vtkOutput.add( err.uvw );
-   vtkOutput.add( err.p );
+   vtkOutput.add( u );
+   vtkOutput.add( u_exact );
+   vtkOutput.add( err );
 
    if ( writeVTK )
    {
@@ -170,7 +167,7 @@ void runBenchmark( int argc, char** argv )
 
    solver->solve( L, u, f, level );
 
-   vertexdof::projectMean( u.p, level );
+   vertexdof::projectMean( u.p(), level );
 
    L.apply( u, Au, level, Inner | NeumannBoundary );
    r.assign( {1.0, -1.0}, {f, Au}, level, Inner | NeumannBoundary );
@@ -180,9 +177,9 @@ void runBenchmark( int argc, char** argv )
    oldRes                 = currRes;
 
    err.assign( {1.0, -1.0}, {u, u_exact}, level );
-   discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level, All ) / real_c( numPointsVelocity ) );
-   discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level, All ) / real_c( numPointsVelocity ) );
-   discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, All ) / real_c( numPointsPressure ) );
+   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, All ) / real_c( numPointsVelocity ) );
+   discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, All ) / real_c( numPointsVelocity ) );
+   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, All ) / real_c( numPointsPressure ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
        "%15s|%15e|%15e|%15e|%15e|%15e", "solved", currRes, residualReduction, discr_l2_err_u, discr_l2_err_v, discr_l2_err_p ) )

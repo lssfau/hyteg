@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Andreas Wagner
+ * Copyright (c) 2020-2022 Andreas Wagner, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -34,6 +34,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
 {
  public:
    using FunctionType = typename OperatorType::srcType;
+   // using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
 
    ChebyshevSmoother( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : coefficients{}
@@ -54,7 +55,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
       }
       else
       {
-         throw std::runtime_error( "The Chebyshev-Smoother requires the OperatoWithInverseDiagonal interface." );
+         throw std::runtime_error( "The Chebyshev-Smoother requires the OperatorWithInverseDiagonal interface." );
       }
 
       tmp1_.copyBoundaryConditionFromFunction( x );
@@ -62,16 +63,21 @@ class ChebyshevSmoother : public Solver< OperatorType >
 
       WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
       WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
-      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
+
+      // CSFVectorFunctions currently do not support getMaxMagnitude()
+      if constexpr ( !std::is_base_of< CSFVectorFunction< FunctionType >, FunctionType >::value )
+      {
+         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
+      }
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
       // tmp1_ := b-Ax
-      tmp1_.assign( { real_t( 1. ), real_t( -1. ) }, { b, tmp1_ }, level, flag_ );
+      tmp1_.assign( {real_t( 1. ), real_t( -1. )}, {b, tmp1_}, level, flag_ );
       // tmp1_ := D^{-1} (b-Ax)
-      tmp1_.multElementwise( { *inverseDiagonalValues, tmp1_ }, level, flag_ );
+      tmp1_.multElementwise( {*inverseDiagonalValues, tmp1_}, level, flag_ );
       // x := x + omega_0 D^{-1} (b-Ax)
-      x.assign( { 1., coefficients[0] }, { x, tmp1_ }, level, flag_ );
+      x.assign( {1., coefficients[0]}, {x, tmp1_}, level, flag_ );
 
       // Loop preconditions before the kth iteration:
       // 1.)  x := x + sum_{i<k} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
@@ -81,10 +87,10 @@ class ChebyshevSmoother : public Solver< OperatorType >
          // tmp2_ := A (D^{-1}A)^{k-1} D^{-1} (b-Ax)
          A.apply( tmp1_, tmp2_, level, flag_ );
          // tmp1_ := (D^{-1}A)^{k} D^{-1} (b-Ax)
-         tmp1_.multElementwise( { *inverseDiagonalValues, tmp2_ }, level, flag_ );
+         tmp1_.multElementwise( {*inverseDiagonalValues, tmp2_}, level, flag_ );
 
          // x := x + sum_{i<k+1} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
-         x.assign( { 1, coefficients[k] }, { x, tmp1_ }, level, flag_ );
+         x.assign( {1, coefficients[k]}, {x, tmp1_}, level, flag_ );
       }
    }
 
@@ -112,17 +118,20 @@ class ChebyshevSmoother : public Solver< OperatorType >
 
       switch ( order - 1 )
       {
-      case 0: {
+      case 0:
+      {
          coefficients[0] = 1.0 / theta;
          break;
       }
-      case 1: {
+      case 1:
+      {
          const double tmp_0 = 1.0 / ( pow( delta, 2 ) - 2 * pow( theta, 2 ) );
          coefficients[0]    = -4 * theta * tmp_0;
          coefficients[1]    = 2 * tmp_0;
          break;
       }
-      case 2: {
+      case 2:
+      {
          const double tmp_0 = 3 * pow( delta, 2 );
          const double tmp_1 = pow( theta, 2 );
          const double tmp_2 = 1.0 / ( -4 * pow( theta, 3 ) + theta * tmp_0 );
@@ -131,7 +140,8 @@ class ChebyshevSmoother : public Solver< OperatorType >
          coefficients[2]    = -4 * tmp_2;
          break;
       }
-      case 3: {
+      case 3:
+      {
          const double tmp_0 = pow( delta, 2 );
          const double tmp_1 = pow( theta, 2 );
          const double tmp_2 = 8 * tmp_0;
@@ -142,7 +152,8 @@ class ChebyshevSmoother : public Solver< OperatorType >
          coefficients[3]    = -8 * tmp_3;
          break;
       }
-      case 4: {
+      case 4:
+      {
          const double tmp_0 = 5 * pow( delta, 4 );
          const double tmp_1 = pow( theta, 4 );
          const double tmp_2 = pow( theta, 2 );
@@ -197,10 +208,15 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
                       DoFType                flag,
                       UpdateType             updateType = Replace ) const
    {
-      auto inverseDiagonalValues = wrappedOperator_.getInverseDiagonalValues();
-      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      auto A_with_inv_diag = dynamic_cast< const OperatorWithInverseDiagonal< SrcFunctionType >* >( &wrappedOperator_ );
+      auto inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
+      // CSFVectorFunctions currently do not support getMaxMagnitude()
+      if constexpr ( !std::is_base_of< CSFVectorFunction< SrcFunctionType >, SrcFunctionType >::value )
+      {
+         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      }
       wrappedOperator_.apply( src, dst, level, flag, updateType );
-      dst.multElementwise( { *inverseDiagonalValues, dst }, level, flag );
+      dst.multElementwise( {*inverseDiagonalValues, dst}, level, flag );
    }
 
  private:

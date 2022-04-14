@@ -121,6 +121,16 @@ class PrimitiveStorage : private walberla::NonCopyable
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
                      const uint_t&                                    additionalHaloDepth = 0 );
+   PrimitiveStorage( const VertexMap&      vtxs,
+                     const EdgeMap&        edges,
+                     const FaceMap&        faces,
+                     const CellMap&        cells,
+                     const VertexMap&      nbrvtxs,
+                     const EdgeMap&        nbredges,
+                     const FaceMap&        nbrfaces,
+                     const CellMap&        nbrcells,
+                     const MigrationMap_T& neighborRanks,
+                     const bool&           hasGlobalCells );
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );

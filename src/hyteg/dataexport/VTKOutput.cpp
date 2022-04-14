@@ -27,14 +27,15 @@
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 #include "vtk/UtilityFunctions.h"
+#include "hyteg/dataexport/VTKDGWriter.hpp"
 
 namespace hyteg {
 
@@ -63,14 +64,14 @@ VTKOutput::VTKOutput( std::string                                dir,
 
 void VTKOutput::add( const P1StokesFunction< real_t >& function )
 {
-   add( function.uvw );
-   add( function.p );
+   add( function.uvw() );
+   add( function.p() );
 }
 
 void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
 {
-   add( function.uvw );
-   add( function.p );
+   add( function.uvw() );
+   add( function.p() );
 }
 
 template < typename value_t >
@@ -100,7 +101,7 @@ void VTKOutput::add( const GenericFunction< value_t >& function )
       break;
 
    case functionTraits::DG_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< FaceDoFFunction< value_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGFunction< value_t > > >( function );
       break;
 
    default:
@@ -148,7 +149,7 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
       VTKEdgeDoFWriter::write( *this, output, level, dofType );
       break;
    case vtk::DoFType::DG:
-      VTKDGDoFWriter::write( *this, output, level );
+      VTKDGWriter::write( *this, output, level );
       break;
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
@@ -187,10 +188,10 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
 
 void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 {
-   if ( level <= 1 )
-   {
-      return;
-   }
+   // if ( level <= 1 )
+   // {
+   //    return;
+   // }
 
    storage_->getTimingTree()->start( "VTK write" );
 
@@ -334,21 +335,8 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
    //  DGFunctions [double, int32_t, int64_t]
    // ----------------------------------------
-   for ( const auto& function : dgFunctions_.getFunctions< double >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
-   for ( const auto& function : dgFunctions_.getFunctions< int32_t >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
-   for ( const auto& function : dgFunctions_.getFunctions< int64_t >() )
-   {
-      function.communicate< Vertex, Edge >( level );
-      function.communicate< Edge, Face >( level );
-   }
+
+   // no communication necessary
 }
 
 // -------------------------

@@ -24,7 +24,7 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -571,13 +571,13 @@ inline void integrateDG( const uint_t&                                          
 
    Face* face = storage->getFace( edge.neighborFaces()[0] );
 
-   real_t weightedFaceArea0 = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+   real_t weightedFaceArea0 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
    real_t weightedFaceArea1 = real_c( 0 );
 
    if ( edge.getNumNeighborFaces() == 2 )
    {
       face              = storage->getFace( edge.neighborFaces()[1] );
-      weightedFaceArea1 = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+      weightedFaceArea1 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
    }
 
    for ( size_t i = 1; i < rowsize - 1; ++i )
@@ -793,8 +793,6 @@ inline void saveIdentityOperator( const uint_t&                                 
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,
                                       Edge&                                                       edge,
@@ -842,7 +840,6 @@ inline void applyDirichletBC( const uint_t&                                     
       mat.push_back( edge.getData( numeratorId )->getPointer( level )[i] );
    }
 }
-#endif
 
 } // namespace macroedge
 } // namespace vertexdof

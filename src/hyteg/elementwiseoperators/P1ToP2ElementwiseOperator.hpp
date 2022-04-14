@@ -22,11 +22,9 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_2_blending_q2.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -122,8 +120,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P2Elements::P2Element&                element,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          dstVertexIdx,

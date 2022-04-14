@@ -62,9 +62,8 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    FuncType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   typedef typename FunctionTrait< FuncType< idx_t > >::Tag    enumTag;
-   uint_t                                                      globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
-   uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
+   typedef typename FunctionTrait< FuncType< idx_t > >::Tag enumTag;
+   uint_t                                                   globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
 
    if ( beVerbose )
    {
@@ -76,10 +75,10 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    OpTypeConst constantOp( storage, level, level );
 
    // assemble matrices
-   PETScSparseMatrix< OpTypeElem > elemWisePETScMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< OpTypeElem > elemWisePETScMat;
    elemWisePETScMat.createMatrixFromOperator( elemWiseOp, level, enumerator, All );
 
-   PETScSparseMatrix< OpTypeConst > constantPETScMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< OpTypeConst > constantPETScMat;
    constantPETScMat.createMatrixFromOperator( constantOp, level, enumerator, All );
 
    // determine difference between matrices and their norms

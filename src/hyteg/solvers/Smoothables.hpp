@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Andreas Wagner.
+ * Copyright (c) 2021-2022 Andreas Wagner, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -98,6 +98,7 @@ class OperatorWithInverseDiagonal
    virtual ~OperatorWithInverseDiagonal() = default;
 
    virtual std::shared_ptr< Function > getInverseDiagonalValues() const = 0;
+   virtual void computeInverseDiagonalOperatorValues() = 0;
 };
 
 } // namespace hyteg

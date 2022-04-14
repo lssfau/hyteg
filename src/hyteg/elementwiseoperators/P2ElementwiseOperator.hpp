@@ -24,9 +24,17 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4244 ) // should be fixed otherwise...
+#endif
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokes_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
@@ -71,7 +79,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
 
    std::shared_ptr< P2Function< real_t > > getDiagonalValues() const
    {
@@ -162,8 +170,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
    void computeLocalDiagonalContributions2D( const Face&                  face,
                                              const uint_t                 level,
-                                             const uint_t                 xIdx,
-                                             const uint_t                 yIdx,
+                                             const idx_t                  xIdx,
+                                             const idx_t                  yIdx,
                                              const P2Elements::P2Element& element,
                                              real_t* const                dstVertexData,
                                              real_t* const                dstEdgeData );
@@ -186,8 +194,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P2Elements::P2Element&                element,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,
@@ -350,8 +358,8 @@ typedef P2ElementwiseOperator<
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
 
-typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 >    P2ElementwiseBlendingMassOperator;
-typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
+typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 > P2ElementwiseBlendingMassOperator;
+typedef P2ElementwiseOperator< P2Form_laplace >             P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 

@@ -26,7 +26,7 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -75,12 +75,11 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    petscDst.interpolate( rand, level, location );
    ones.interpolate( one, level, location );
 
-   P1StokesOperator L( storage, level, level );
+   P1P1StokesOperator L( storage, level, level );
 
    numerator.enumerate( level );
 
    const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P1StokesFunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -88,9 +87,9 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P1StokesFunction > srcPetscVec( localDoFs );
-   PETScVector< real_t, P1StokesFunction > dstPetscVec( localDoFs );
-   PETScSparseMatrix< P1StokesOperator >   petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P1StokesFunction > srcPetscVec;
+   PETScVector< real_t, P1StokesFunction > dstPetscVec;
+   PETScSparseMatrix< P1P1StokesOperator >   petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );

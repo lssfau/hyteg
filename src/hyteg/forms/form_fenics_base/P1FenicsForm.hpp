@@ -37,12 +37,14 @@
 #include "hyteg/forms/form_fenics_generated/p1_polar_mass.h"
 #include "hyteg/forms/form_fenics_generated/p1_pspg.h"
 #include "hyteg/forms/form_fenics_generated/p1_stokes_epsilon.h"
+#include "hyteg/forms/form_fenics_generated/p1_stokes_full.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_div_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_divt_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_mass.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_pspg_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_stokes_epsilon_tet.h"
+#include "hyteg/forms/form_fenics_generated/p1_tet_stokes_full_tet.h"
 
 // P2
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"

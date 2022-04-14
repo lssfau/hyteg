@@ -290,6 +290,31 @@ class BlockFunction
       }
    }
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const BlockFunction< idx_t >&         numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      for ( uint_t k = 0; k < subFunc_.size(); ++k )
+      {
+         subFunc_[k]->toVector( numerator[k], vec, level, flag );
+      }
+   }
+
+   void fromVector( const BlockFunction< idx_t >&         numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      for ( uint_t k = 0; k < subFunc_.size(); ++k )
+      {
+         subFunc_[k]->fromVector( numerator[k], vec, level, flag );
+      }
+   };
+   /// @}
+
  protected:
    const std::string                                            functionName_;
    std::vector< std::shared_ptr< GenericFunction< value_t > > > subFunc_;
