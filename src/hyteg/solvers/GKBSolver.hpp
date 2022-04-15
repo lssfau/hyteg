@@ -120,13 +120,13 @@ class GKBSolver : public Solver< SaddlePointOp >
       //TODO get AL matrix, print, check vs matlab AL matrix
 
       // copy boundary conditions
-      mFunction u0 = x.uvw;
-      nFunction p0 = x.p;
+      mFunction u0 = x.uvw();
+      nFunction p0 = x.p();
       CopyBCs(u0,p0);
 
       // set up rhs side for p and u
-      mFunction f0 = b.uvw;
-      nFunction f1 = b.p;      
+      mFunction f0 = b.uvw();
+      nFunction f1 = b.p();      
       
       if(nu < 1e-14) {
          WALBERLA_LOG_INFO_ON_ROOT("Augmented Lagrangian Approach switched off.");
@@ -184,8 +184,8 @@ class GKBSolver : public Solver< SaddlePointOp >
          }
       }
 
-      x.uvw.assign({1},{u},level,flag);
-      x.p.assign({1},{p},level,flag);
+      x.uvw().assign({1},{u},level,flag);
+      x.p().assign({1},{p},level,flag);
    }
 
 
@@ -240,13 +240,13 @@ class GKBSolver : public Solver< SaddlePointOp >
   
    // computes global residual norm of augmented system
    real_t ResidualNorm(const SaddlePointOp& K, const nmFunction& b,const mFunction& f0,const nFunction& f1) {
-      globalX.uvw.assign({1},{u},level,flag);
-      globalX.p.assign({1},{p},level,flag);
+      globalX.uvw().assign({1},{u},level,flag);
+      globalX.p().assign({1},{p},level,flag);
       M.apply(u,tmp_v,level,flag);
       A.apply(p,tmp_w,level,flag);
-      globalR.uvw.assign({1,-1,-1},{f0,tmp_v,tmp_w},level,flag);
+      globalR.uvw().assign({1,-1,-1},{f0,tmp_v,tmp_w},level,flag);
       AT.apply(u,tmp_q,level,flag);
-      globalR.p.assign({1,-1},{f1,tmp_q},level,flag);
+      globalR.p().assign({1,-1},{f1,tmp_q},level,flag);
       
      real_t resnorm = sqrt(globalR.dotGlobal(globalR,level,flag));
       if(printInfo)
@@ -342,4 +342,5 @@ using  GKBSolver_P2P1TH = GKBSolver<
    ALOP_P2P1TH, 
    CGSolver<ALOP_P2P1TH> 
 >;
+
 } // namespace hyteg

@@ -21,7 +21,6 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
@@ -89,7 +88,8 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
                   DoFType                                                           flag ) const
         {
             if(nu > 0) {
-
+                WALBERLA_ABORT("AL currently unsupported");
+            /*
             PETScSparseMatrix<LaplOpType> LaplMat(storage_,level_);
             auto divTdivMat = mat->createCopy();
             PETScSparseMatrix<DivOpType> divMat(storage_,level_);
@@ -99,8 +99,8 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
             auto divTMatProxy = std::make_shared<PETScSparseMatrixProxy>(divTMat.get());
             divTdivMat->createFromMatrixProduct({divTMatProxy,divMatProxy});
             mat->createFromMatrixLinComb({1,nu},{LaplMatProxy,divTdivMat});
+            */
             } else {
-            //std::cout << "nu=0path" << std::endl;
             Lapl.toMatrix(mat,src,dst,level,flag);
             }
         }   

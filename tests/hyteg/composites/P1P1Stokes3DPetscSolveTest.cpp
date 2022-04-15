@@ -220,7 +220,6 @@ int main( int argc, char* argv[] )
   petscSolveTest( 0, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
   petscSolveTest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.0e-14, 0.118, 2.78653 );
   petscSolveTest( 2, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
-  petscSolveTest( 3, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
-
+  
   return EXIT_SUCCESS;
 }
