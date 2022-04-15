@@ -123,7 +123,7 @@ class PETScCGSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
       KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCHYPRE );
+      PCSetType( pc, PCNONE );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
