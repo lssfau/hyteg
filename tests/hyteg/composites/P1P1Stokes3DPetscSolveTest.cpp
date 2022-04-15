@@ -169,11 +169,6 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
       solver_2.solve( A, x, b, level );
       break;
      
-    case 3:
-       WALBERLA_LOG_INFO_ON_ROOT( "Block precond. FGMRES solver with GKB preconditioner ..." )
-       solver_3.solve( A, x, b, level );
-       solver_3.solve( A, x, b, level );
-       break;
        
     default:
     WALBERLA_ABORT( "No solver selected" );
