@@ -89,19 +89,41 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
         {
             if(nu > 0) {
                 WALBERLA_ABORT("AL currently unsupported");
+            
             /*
             PETScSparseMatrix<LaplOpType> LaplMat(storage_,level_);
-            auto divTdivMat = mat->createCopy();
             PETScSparseMatrix<DivOpType> divMat(storage_,level_);
             PETScSparseMatrix<DivOpTType> divTMat(storage_,level_);
+       */
+         
+            // Sparse matrix objects
+            PETScSparseMatrix<LaplOpType> LaplMat;
+            PETScSparseMatrix<DivOpType> divMat;
+            PETScSparseMatrix<DivOpTType> divTMat;
+         
+            // numerators
+            typename LaplOpType::srcType::template FunctionType< idx_t > VelocityNum( "VelocityNum", storage_, level_, level_ );
+            typename DivOpType::dstType::template FunctionType< idx_t > PressureNum( "PressureNum", storage_, level_, level_ );
+            VelocityNum.enumerate(level_); 
+            PressureNum.enumerate(level_);
+            
+            // assembly
+            LaplMat.createMatrixFromOperator(Lapl, level_, VelocityNum);
+            divMat.createMatrixFromOperator(div, level_, VelocityNum, PressureNum);
+            divTMat.createMatrixFromOperator(divT, level_, PressureNum, VelocityNum);
+            auto divTdivMat = mat->createCopy();
+            
+            // Proxy objects for createFromLinearCombination
             auto LaplMatProxy = std::make_shared<PETScSparseMatrixProxy>(LaplMat.get());
             auto divMatProxy = std::make_shared<PETScSparseMatrixProxy>(divMat.get());
             auto divTMatProxy = std::make_shared<PETScSparseMatrixProxy>(divTMat.get());
+
+            // final Augmented Lagrangian matrix creation
             divTdivMat->createFromMatrixProduct({divTMatProxy,divMatProxy});
             mat->createFromMatrixLinComb({1,nu},{LaplMatProxy,divTdivMat});
-            */
+            
             } else {
-            Lapl.toMatrix(mat,src,dst,level,flag);
+                Lapl.toMatrix(mat,src,dst,level,flag);
             }
         }   
     private:
