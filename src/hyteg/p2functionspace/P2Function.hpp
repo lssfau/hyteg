@@ -168,8 +168,8 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///
    void copyFrom( const P2Function< ValueType >&                 other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,

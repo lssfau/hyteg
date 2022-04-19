@@ -34,14 +34,14 @@ namespace hyteg {
 
 struct VertexTestData
 {
-  PrimitiveID::IDType ownID;
-  std::vector< PrimitiveID::IDType > edgeIDs;
+  PrimitiveID ownID;
+  std::vector< PrimitiveID > edgeIDs;
 };
 
 struct EdgeTestData
 {
-  PrimitiveID::IDType ownID;
-  std::vector< PrimitiveID::IDType > vertexIDs;
+  PrimitiveID ownID;
+  std::vector< PrimitiveID > vertexIDs;
 };
 
 struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vertex >
@@ -254,7 +254,7 @@ static void testBufferedCommunication()
     auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_GREATER( data->edgeIDs.size(), 0 );
-    std::set< PrimitiveID::IDType > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
+    std::set< PrimitiveID > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
     WALBERLA_CHECK_EQUAL( data->edgeIDs.size(), edgeIdsSet.size() );
 
     for ( const auto & higherDimNeighborID : vertex->getHigherDimNeighbors() )

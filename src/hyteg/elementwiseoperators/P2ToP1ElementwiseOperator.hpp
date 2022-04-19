@@ -195,11 +195,11 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
 
    /// Pre-computed local element matrices.
    /// localElementMatrices_[macroCellID][level][faceIdx] = mat3x6
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrixr< 3, 6 > > > > localElementMatrices2D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrixr< 3, 6 > > > > localElementMatrices2D_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices_[macroCellID][level][cellIdx] = mat10x10
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrixr< 4, 10 > > > > localElementMatrices3D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrixr< 4, 10 > > > > localElementMatrices3D_;
 };
 
 typedef P2ToP1ElementwiseOperator<

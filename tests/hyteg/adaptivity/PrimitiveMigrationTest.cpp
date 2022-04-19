@@ -94,7 +94,7 @@ static void testPrimitiveMigration()
       std::vector< PrimitiveID > primitiveIDs;
       storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
 
-      std::map< PrimitiveID::IDType, uint_t > migrationMap;
+      std::map< PrimitiveID, uint_t > migrationMap;
       uint_t                                  lel = 0;
       for( const auto& id : primitiveIDs )
       {
@@ -162,7 +162,7 @@ static void testPrimitiveMigrationMaps()
     std::vector< PrimitiveID > primitiveIDs;
     storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
 
-    std::map< PrimitiveID::IDType, uint_t > migrationMap;
+    std::map< PrimitiveID, uint_t > migrationMap;
     uint_t                                  lel = 0;
     for( const auto& id : primitiveIDs )
     {

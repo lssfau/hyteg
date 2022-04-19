@@ -106,7 +106,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    // Creating a mapping from PrimitiveIDs of local primitives to a consecutive chunk of parmetis indices.
    // The chunks correspond to [ vtxdist[rank], vtxdist[rank+1] ).
 
-   std::map< PrimitiveID::IDType, int64_t >
+   std::map< PrimitiveID, int64_t >
                                     localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
    std::map< int64_t, PrimitiveID > globalParmetisIDToLocalPrimitiveIDMap; // reverse of the above map
 
@@ -133,7 +133,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    storage.getNeighboringRanks( neighboringRanks );
 
    // Mapping neighboring process ranks to their ID mapping
-   std::map< uint_t, std::map< PrimitiveID::IDType, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
+   std::map< uint_t, std::map< PrimitiveID, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
 
    walberla::mpi::BufferSystem bufferSystem( communicator );
    bufferSystem.setReceiverInfo( neighboringRanks, true );
@@ -404,7 +404,7 @@ MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo
    {
       auto                package = bs.getNextPackage();
       auto&               buffer  = package.buffer();
-      PrimitiveID::IDType pID;
+      PrimitiveID pID;
       buffer >> pID;
       migrationMap[pID] = uint_c( package.senderRank() );
    }

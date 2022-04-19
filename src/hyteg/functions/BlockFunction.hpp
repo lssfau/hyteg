@@ -230,8 +230,8 @@ class BlockFunction
    ///
    void copyFrom( const BlockFunction< value_t >&                other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
       for ( uint_t k = 0; k < subFunc_.size(); ++k )
       {

@@ -82,8 +82,8 @@ static void testPrimitiveRelativeOrdering()
   // Checking that the cells neighbor faces are built from the correct vertices
   //
 
-  std::set< PrimitiveID::IDType > cellLocalVertices;
-  std::set< PrimitiveID::IDType > faceLocalVertices;
+  std::set< PrimitiveID > cellLocalVertices;
+  std::set< PrimitiveID > faceLocalVertices;
 
   // Cell-local face 0
 
@@ -149,7 +149,7 @@ static void testPrimitiveRelativeOrdering()
   // Checking that the cells neighbor edges are built from the correct vertices
   //
 
-  std::set< PrimitiveID::IDType > edgeLocalVertices;
+  std::set< PrimitiveID > edgeLocalVertices;
 
   // Cell-local edge 0
 

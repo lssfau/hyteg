@@ -43,11 +43,11 @@ using walberla::real_t;
 class SetupPrimitiveStorage
 {
  public:
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Primitive > > PrimitiveMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Vertex > >    VertexMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
@@ -164,7 +164,7 @@ class SetupPrimitiveStorage
    uint_t getNumCellsOnBoundary() const;
 
  private:
-   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
+   typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
 
    PrimitiveID generatePrimitiveID() const;
 
@@ -184,7 +184,7 @@ class SetupPrimitiveStorage
    FaceMap   faces_;
    CellMap   cells_;
 
-   std::map< PrimitiveID::IDType, uint_t > primitiveIDToTargetRankMap_;
+   std::map< PrimitiveID, uint_t > primitiveIDToTargetRankMap_;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const SetupPrimitiveStorage& storage )

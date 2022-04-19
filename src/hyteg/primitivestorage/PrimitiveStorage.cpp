@@ -374,7 +374,7 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
       msg.buffer() >> numVertices;
       for ( uint_t i = 0; i < numVertices; i++ )
       {
-         PrimitiveID::IDType id;
+         PrimitiveID id;
          msg.buffer() >> id;
          neighborVertices_[id] = std::make_shared< Vertex >( msg.buffer() );
          neighborRanks_[id] = uint_c( nbrank );
@@ -384,7 +384,7 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
       msg.buffer() >> numEdges;
       for ( uint_t i = 0; i < numEdges; i++ )
       {
-         PrimitiveID::IDType id;
+         PrimitiveID id;
          msg.buffer() >> id;
          neighborEdges_[id] = std::make_shared< Edge >( msg.buffer() );
          neighborRanks_[id] = uint_c( nbrank );
@@ -394,7 +394,7 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
       msg.buffer() >> numFaces;
       for ( uint_t i = 0; i < numFaces; i++ )
       {
-         PrimitiveID::IDType id;
+         PrimitiveID id;
          msg.buffer() >> id;
          neighborFaces_[id] = std::make_shared< Face >( msg.buffer() );
          neighborRanks_[id] = uint_c( nbrank );
@@ -404,7 +404,7 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
       msg.buffer() >> numCells;
       for ( uint_t i = 0; i < numCells; i++ )
       {
-         PrimitiveID::IDType id;
+         PrimitiveID id;
          msg.buffer() >> id;
          neighborCells_[id] = std::make_shared< Cell >( msg.buffer() );
          neighborRanks_[id] = uint_c( nbrank );

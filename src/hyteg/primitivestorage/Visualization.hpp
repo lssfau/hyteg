@@ -98,7 +98,7 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
    /////////////////////////////
 
    // map that maps the ID of the macro vertex to the position in the list in the .vtu file
-   std::map< PrimitiveID::IDType, uint_t > vertexPosition;
+   std::map< PrimitiveID, uint_t > vertexPosition;
    rankOut << "        <Points>\n";
    rankOut << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n";
    // write coordinates

@@ -80,8 +80,8 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
    }
 
    // We calculate the mapping only on a subset of processes, and then broadcast them to all processes later on.
-   std::vector< PrimitiveID::IDType > globalPrimitiveIDs;
-   std::vector< uint_t >              globalRanks;
+   std::vector< PrimitiveID > globalPrimitiveIDs;
+   std::vector< uint_t >      globalRanks;
 
    if ( inSubCommunicator )
    {
@@ -152,7 +152,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       // Creating a mapping from PrimitiveIDs of local primitives to a consecutive chunk of parmetis indices.
       // The chunks correspond to [ vtxdist[rank], vtxdist[rank+1] ).
 
-      std::map< PrimitiveID::IDType, int64_t >
+      std::map< PrimitiveID, int64_t >
           localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
       std::map< int64_t, PrimitiveID > globalParmetisIDToLocalPrimitiveIDMap; // reverse of the above map
 
@@ -195,7 +195,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       }
 
       // Mapping neighboring process ranks to their ID mapping
-      std::map< uint_t, std::map< PrimitiveID::IDType, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
+      std::map< uint_t, std::map< PrimitiveID, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
 
       walberla::mpi::BufferSystem bufferSystem( communicator );
       bufferSystem.setReceiverInfo( neighboringRanks, true );
@@ -364,8 +364,15 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
          globalRanks.push_back( uint_c( targetRank ) );
       }
 
-      globalPrimitiveIDs = walberla::mpi::allGatherv( globalPrimitiveIDs, subCommunicator );
-      globalRanks        = walberla::mpi::allGatherv( globalRanks, subCommunicator );
+      walberla::mpi::SendBuffer sendBuffer;
+      walberla::mpi::RecvBuffer recvBuffer;
+
+      sendBuffer << globalPrimitiveIDs;
+      walberla::mpi::allGathervBuffer( sendBuffer, recvBuffer, subCommunicator );
+      globalPrimitiveIDs.clear();
+      recvBuffer >> globalPrimitiveIDs;
+
+      globalRanks = walberla::mpi::allGatherv( globalRanks, subCommunicator );
 
       WALBERLA_CHECK_EQUAL( globalPrimitiveIDs.size(), globalRanks.size() );
    }
@@ -657,8 +664,8 @@ void greedy( SetupPrimitiveStorage& storage )
       uint_t currentNumFaces    = 0;
       uint_t currentNumCells    = 0;
 
-      std::queue< PrimitiveID >             nextPrimitives;
-      std::map< PrimitiveID::IDType, bool > wasAddedToQueue;
+      std::queue< PrimitiveID >     nextPrimitives;
+      std::map< PrimitiveID, bool > wasAddedToQueue;
 
       while ( true )
       {

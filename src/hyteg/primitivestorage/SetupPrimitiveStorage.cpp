@@ -582,7 +582,7 @@ void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimiti
    getSetupPrimitives( setupPrimitives );
    for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
    {
-      rankToSetupPrimitivesMap[rank] = std::vector< PrimitiveID::IDType >();
+      rankToSetupPrimitivesMap[rank] = std::vector< PrimitiveID >();
       for ( auto setupPrimitive : setupPrimitives )
       {
          if ( rank == getTargetRank( setupPrimitive.first ) )
@@ -642,7 +642,7 @@ real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
 uint_t SetupPrimitiveStorage::getNumVerticesOnBoundary() const
 {
    return uint_c( std::count_if(
-       vertices_.begin(), vertices_.end(), [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Vertex > >& mapEntry ) {
+       vertices_.begin(), vertices_.end(), [this]( const std::pair< PrimitiveID, std::shared_ptr< Vertex > >& mapEntry ) {
           return onBoundary( PrimitiveID( mapEntry.first ), true );
        } ) );
 }
@@ -650,7 +650,7 @@ uint_t SetupPrimitiveStorage::getNumVerticesOnBoundary() const
 uint_t SetupPrimitiveStorage::getNumEdgesOnBoundary() const
 {
    return uint_c( std::count_if(
-       edges_.begin(), edges_.end(), [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Edge > >& mapEntry ) {
+       edges_.begin(), edges_.end(), [this]( const std::pair< PrimitiveID, std::shared_ptr< Edge > >& mapEntry ) {
           return onBoundary( PrimitiveID( mapEntry.first ), true );
        } ) );
 }
@@ -658,7 +658,7 @@ uint_t SetupPrimitiveStorage::getNumEdgesOnBoundary() const
 uint_t SetupPrimitiveStorage::getNumFacesOnBoundary() const
 {
    return uint_c( std::count_if(
-       faces_.begin(), faces_.end(), [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Face > >& mapEntry ) {
+       faces_.begin(), faces_.end(), [this]( const std::pair< PrimitiveID, std::shared_ptr< Face > >& mapEntry ) {
           return onBoundary( PrimitiveID( mapEntry.first ), true );
        } ) );
 }
@@ -666,7 +666,7 @@ uint_t SetupPrimitiveStorage::getNumFacesOnBoundary() const
 uint_t SetupPrimitiveStorage::getNumCellsOnBoundary() const
 {
    return uint_c( std::count_if(
-       cells_.begin(), cells_.end(), [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Cell > >& mapEntry ) {
+       cells_.begin(), cells_.end(), [this]( const std::pair< PrimitiveID, std::shared_ptr< Cell > >& mapEntry ) {
           return onBoundary( PrimitiveID( mapEntry.first ), true );
        } ) );
 }

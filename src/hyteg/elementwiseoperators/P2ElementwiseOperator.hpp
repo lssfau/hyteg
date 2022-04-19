@@ -277,11 +277,11 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// Pre-computed local element matrices.
    /// localElementMatrices2D_[macroCellID][level][cellIdx] = mat6x6
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices2D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices2D_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat10x10
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix10r > > > localElementMatrices3D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix10r > > > localElementMatrices3D_;
 };
 
 template < class P2Form >

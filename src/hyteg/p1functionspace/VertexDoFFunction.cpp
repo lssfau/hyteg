@@ -742,8 +742,8 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >&          other,
                                                const uint_t&                                  level,
-                                               const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                                               const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                                               const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                                               const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
    if ( isDummy() )
    {
@@ -761,7 +761,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getVertices() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getVertexDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getVertexDataID() )->getSize( level );
@@ -775,7 +775,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getEdges() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getEdgeDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getEdgeDataID() )->getSize( level );
@@ -789,7 +789,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getFaces() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getFaceDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getFaceDataID() )->getSize( level );
@@ -803,7 +803,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getCells() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getCellDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getCellDataID() )->getSize( level );
@@ -821,7 +821,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
    {
       while ( !pkg.buffer().isEmpty() )
       {
-         PrimitiveID::IDType otherID;
+         PrimitiveID otherID;
          uint_t              primitiveType = 4;
          uint_t              dataSize      = 0;
          ValueType           value;

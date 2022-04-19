@@ -42,7 +42,7 @@ class Edge;
 class Face;
 class Cell;
 
-typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
+typedef std::map< PrimitiveID, uint_t > MigrationMap_T;
 
 /// \brief Returns on each process the number of expected primitives after migration.
 ///
@@ -111,11 +111,11 @@ inline std::ostream& operator<<(std::ostream &os, const MigrationInfo & migratio
 class PrimitiveStorage : private walberla::NonCopyable
 {
  public:
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Primitive > > PrimitiveMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Vertex > >    VertexMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
    explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0  );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
@@ -580,7 +580,7 @@ class PrimitiveStorage : private walberla::NonCopyable
               typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
    inline void addPrimitiveData( const std::shared_ptr< DataHandlingType >&                               dataHandling,
                                  const std::string&                                                       identifier,
-                                 const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > >& primitives,
+                                 const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
                                  const PrimitiveDataID< DataType, PrimitiveType >&                        dataID );
 
    VertexMap vertices_;
@@ -687,7 +687,7 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    uint_t primitiveDataHandlers_;
 
-   std::map< PrimitiveID::IDType, uint_t > neighborRanks_;
+   std::map< PrimitiveID, uint_t > neighborRanks_;
 
    void   wasModified() { modificationStamp_++; }
    uint_t modificationStamp_;
@@ -774,7 +774,7 @@ template < typename DataType, typename PrimitiveType, typename DataHandlingType,
 inline void
     PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType >& dataHandling,
                                         const std::string& identifier, // TODO remark: identifier not used in this function
-                                        const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > >& primitives,
+                                        const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
                                         const PrimitiveDataID< DataType, PrimitiveType >&                        dataID )
 {
 #ifndef NDEBUG
