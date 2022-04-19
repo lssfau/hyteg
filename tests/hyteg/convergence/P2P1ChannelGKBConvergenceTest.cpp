@@ -55,7 +55,7 @@ using namespace hyteg;
 
 using walberla::math::pi;
 
-void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, const real_t & channelLength )
+void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, const real_t & channelLength)
 {
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -82,7 +82,7 @@ void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, 
 
 
 
-void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint_t & solver)
+void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint_t & solver, const real_t & resEps, const real_t & errEpsU, const real_t & errEpsP)
 {
   
    WALBERLA_LOG_INFO_ON_ROOT( "Poiseuille flow benchmark with channel length " << channelLength);
@@ -128,22 +128,21 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
 
       const auto solutionP = [channelLength]( const Point3D& x ) -> real_t {  return real_c( -2 * x[0] + channelLength); }; 
 
-      u_exact.uvw[0].interpolate( solutionU, level );
-      u_exact.p.interpolate( solutionP, level );
-
-   u.uvw[0].interpolate( setUVelocityBC, level, DirichletBoundary );
+      u_exact.uvw()[0].interpolate( solutionU, level );
+      u_exact.p().interpolate( solutionP, level );
+      u.uvw()[0].interpolate( setUVelocityBC, level, DirichletBoundary );
      
 
     real_t localDoFs1 =static_cast<real_t>(hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level ));
    ////////////////////////////////////////////////////////// VTK /////////////////////////////////////////////////////////////////////
    VTKOutput vtkOutput( "../../output", "P2P1ChannelTest", storage );
-   vtkOutput.add( u.uvw );
-   vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.uvw );
-   vtkOutput.add( u_exact.p );
    bool writeVTK = false;
    if ( writeVTK )
    {
+      vtkOutput.add( u.uvw() );
+      vtkOutput.add( u.p() );
+      vtkOutput.add( u_exact.uvw() );
+      vtkOutput.add( u_exact.p() );
       vtkOutput.write( level, 0 );
    }
 
@@ -169,10 +168,13 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
    
    err.assign( {1.0, -1.0}, {u, u_exact}, level, All );
 
-   auto discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level, Inner | NeumannBoundary )/  localDoFs1  );
-   auto discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level, Inner | NeumannBoundary )  /  localDoFs1 );
-   auto discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, Inner | NeumannBoundary )/  localDoFs1   );
-   
+   auto discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, Inner | NeumannBoundary )/  localDoFs1  );
+   auto discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, Inner | NeumannBoundary )  /  localDoFs1 );
+   auto discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, Inner | NeumannBoundary )/  localDoFs1   );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
+ 
   real_t residuum_l2_1;
   r.assign( {1.0, -1.0}, {f, Au}, level,  hyteg::Inner  | hyteg::NeumannBoundary);
 
@@ -193,9 +195,9 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
   /////////////////////////////////////////////////////////////////////////////// final error and residual  //////////////////////////////////////////////
    
    err.assign( {1.0, -1.0}, {u, u_exact}, level, All );
-   discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level, Inner | NeumannBoundary ) /  localDoFs1 );
-   discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level, Inner | NeumannBoundary ) /  localDoFs1 );
-   discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, Inner | NeumannBoundary )/  localDoFs1  );
+   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, Inner | NeumannBoundary ) /  localDoFs1 );
+   discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, Inner | NeumannBoundary ) /  localDoFs1 );
+   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, Inner | NeumannBoundary )/  localDoFs1  );
    
    A.apply( u, Au, level, hyteg::Inner  | hyteg::NeumannBoundary);
    r.assign( {1.0, -1.0}, {f, Au}, level,  hyteg::Inner  | hyteg::NeumannBoundary);
@@ -205,8 +207,10 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
-   
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
+   WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
+   WALBERLA_CHECK_LESS( discr_l2_err_u, errEpsU);
+   WALBERLA_CHECK_LESS( discr_l2_err_p, errEpsP);
 
   /////////////////////////////////////////////////////////////////////////////// write solution //////////////////////////////////////////////
   if ( writeVTK )
@@ -223,8 +227,8 @@ int main( int argc, char* argv[] ) {
    walberla::MPIManager::instance()->useWorldComm();
 
    PETScManager petscManager( &argc, &argv );
-   runBenchmark(2,8,0);
-   runBenchmark(2,8,1);
+   runBenchmark(2,8,0,1e-8,1e-9,1e-9);
+   runBenchmark(2,8,1,1e-8,1e-9,1e-9);
 
    return 0;
 }
