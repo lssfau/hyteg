@@ -55,7 +55,7 @@ using namespace hyteg;
 
 using walberla::math::pi;
 
-void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, const real_t & channelLength)
+void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, const uint_t & channelLength)
 {
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -73,7 +73,7 @@ void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage, 
    for ( const auto& it : setupStorage.getEdges() )
    {
       const auto edgeCoordinates = it.second->getCoordinates();
-      if ( std::fabs( edgeCoordinates[0][0] - channelLength/2 ) < eps && std::fabs( edgeCoordinates[1][0] - channelLength/2 ) < eps )
+      if ( std::fabs( edgeCoordinates[0][0] - static_cast<real_t>(channelLength)/2 ) < eps && std::fabs( edgeCoordinates[1][0] - static_cast<real_t>(channelLength)/2 ) < eps )
       {
          setupStorage.setMeshBoundaryFlag( it.first, 2 );
       }
@@ -90,7 +90,7 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
 
    /////////////////////////////////////////////////////////////////////////// Domain setup /////////////////////////////////////////////////////////
    //create a Rectangle as mesh with 4 triangles
-   real_t halfLength = static_cast<double>(channelLength)/2;
+   real_t halfLength = static_cast<real_t>(channelLength)/2;
    auto meshInfo = MeshInfo::meshRectangle( Point2D( {-halfLength, -1} ), Point2D( {halfLength, 1} ), MeshInfo::CRISSCROSS, channelLength, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -126,7 +126,7 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
      
       const auto solutionU = []( const Point3D& x ) -> real_t { return real_c( 1 - x[1] * x[1] );};
 
-      const auto solutionP = [channelLength]( const Point3D& x ) -> real_t {  return real_c( -2 * x[0] + channelLength); }; 
+      const auto solutionP = [channelLength]( const Point3D& x ) -> real_t {  return real_c( -2 * x[0] + static_cast<real_t>(channelLength)); }; 
 
       u_exact.uvw()[0].interpolate( solutionU, level );
       u_exact.p().interpolate( solutionP, level );
