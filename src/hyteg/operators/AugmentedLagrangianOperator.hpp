@@ -66,7 +66,6 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
             // in [AR13] paper notation: M = W + nuAA^T
             if(nu > 0) {
                 
-           // std::cout << "apply nu>0path " << nu << std::endl;
             VecFunctionType tmp0("tmp0",storage_, level, level);
             typename DivOpType::dstType tmp1("tmp1",storage_, level, level);
             VecFunctionType tmp2("tmp2",storage_, level, level);
@@ -76,7 +75,6 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
             dst.assign( {1, nu}, {tmp0, tmp2}, level,flag );
             } else {
                 
-            //std::cout << "apply nu=0path" << std::endl;
             Lapl.apply( src, dst, level, flag );
             }
         }  
@@ -89,12 +87,7 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
         {
             if(nu > 0) {
                 WALBERLA_ABORT("AL currently unsupported");
-            
-            /*
-            PETScSparseMatrix<LaplOpType> LaplMat(storage_,level_);
-            PETScSparseMatrix<DivOpType> divMat(storage_,level_);
-            PETScSparseMatrix<DivOpTType> divTMat(storage_,level_);
-       */
+     
          
             // Sparse matrix objects
             PETScSparseMatrix<LaplOpType> LaplMat;

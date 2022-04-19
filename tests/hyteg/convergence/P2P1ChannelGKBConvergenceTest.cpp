@@ -189,8 +189,6 @@ void runBenchmark(const uint_t & level, const uint_t & channelLength, const uint
       GKB_PETSC_solver.solve( A, u, f, level );
   }
   timer.end();
-   //vertexdof::projectMean(u.p, level);
-   //vertexdof::projectMean(u_exact.p, level);
 
   /////////////////////////////////////////////////////////////////////////////// final error and residual  //////////////////////////////////////////////
    
