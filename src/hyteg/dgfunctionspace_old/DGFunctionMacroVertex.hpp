@@ -45,7 +45,7 @@ inline void upwind( const uint_t&                                               
 
    for ( auto faceIt : vertex.neighborFaces() )
    {
-      Face* face = storage->getFace( faceIt.getID() );
+      Face* face = storage->getFace( faceIt );
 
       real_t faceArea    = std::pow( 4.0, -walberla::real_c( Level ) ) * face->getArea();
       real_t faceAreaInv = 1.0 / faceArea;
@@ -180,7 +180,7 @@ inline void projectP1( const uint_t&                                            
 
    for ( auto faceIt : vertex.neighborFaces() )
    {
-      Face* face = storage->getFace( faceIt.getID() );
+      Face* face = storage->getFace( faceIt );
 
       uint_t localFaceId = vertex.face_index( face->getID() );
 

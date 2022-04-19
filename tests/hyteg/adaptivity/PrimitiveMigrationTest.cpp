@@ -47,7 +47,7 @@ class DataHandling : PrimitiveDataHandling< Data, Primitive >
    std::shared_ptr< Data > initialize( const Primitive* const primitive ) const
    {
       auto data               = std::make_shared< Data >();
-      data->primitiveIDInData = uint_c( primitive->getID().getID() );
+      data->primitiveIDInData = uint_c( primitive->getID() );
       return data;
    }
 
@@ -100,7 +100,7 @@ static void testPrimitiveMigration()
       {
          uint_t targetRank = ++lel % numProcesses;
          // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
-         migrationMap[id.getID()] = targetRank;
+         migrationMap[id] = targetRank;
       }
 
       const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );
@@ -168,7 +168,7 @@ static void testPrimitiveMigrationMaps()
     {
       uint_t targetRank = ++lel % numProcesses;
       // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
-      migrationMap[id.getID()] = targetRank;
+      migrationMap[id] = targetRank;
     }
 
     const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );

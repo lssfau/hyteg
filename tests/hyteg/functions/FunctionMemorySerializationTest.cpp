@@ -81,7 +81,7 @@ static void testFunctionMemorySerialization()
   storage->getPrimitiveIDs( localPrimitiveIDs );
   for ( const auto & id : localPrimitiveIDs )
   {
-    primitivesToMigrate[ id.getID() ] = (rank + numProcesses / 2) % numProcesses;
+    primitivesToMigrate[ id ] = (rank + numProcesses / 2) % numProcesses;
   }
 
   const auto numReceivingPrimitives = getNumReceivingPrimitives( primitivesToMigrate );

@@ -72,7 +72,7 @@ void runTest1( std::string tag ) {
   for( auto& it: storage->getFaces() ) {
     Face& face = *it.second;
     // WALBERLA_LOG_INFO_ON_ROOT( "Single face has ID = " << face.getID() );
-    faceID = face.getID().getID();
+    faceID = face.getID();
   }
 
   PrimitiveStorage::FaceMap fMap = storage->getFaces();
@@ -118,7 +118,7 @@ void runTest0( std::string tag ) {
   for( auto& it: storage->getFaces() ) {
      Face& face = *it.second;
      // WALBERLA_LOG_INFO_ON_ROOT( "Single face has ID = " << face.getID() );
-     faceID = face.getID().getID();
+     faceID = face.getID();
   }
 
   // setup a map for that face
@@ -245,7 +245,7 @@ void runTest2( std::string tag, uint_t level ) {
   uint_t count = 0;
   for( auto& it: storage->getFaces() ) {
      Face& face = *it.second;
-     faceID = face.getID().getID();
+     faceID = face.getID();
      count++;
   }
   WALBERLA_ASSERT_EQUAL( count, 1 );

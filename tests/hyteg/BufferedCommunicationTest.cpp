@@ -49,7 +49,7 @@ struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vert
   virtual std::shared_ptr< VertexTestData > initialize( const Vertex * const primitive ) const
   {
     auto data = std::make_shared< VertexTestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };
@@ -59,7 +59,7 @@ struct EdgeTestDataHandling : OnlyInitializeDataHandling< EdgeTestData, Edge >
   virtual std::shared_ptr< EdgeTestData > initialize( const Edge * const primitive ) const
   {
     auto data = std::make_shared< EdgeTestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };
@@ -207,7 +207,7 @@ static void testBufferedCommunication()
   {
     auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
-    WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID().getID() );
+    WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID() );
   }
 
   for ( const auto & it : storage->getEdges() )
@@ -241,7 +241,7 @@ static void testBufferedCommunication()
 
     for ( const auto & lowerDimNeighborID : edge->getLowerDimNeighbors() )
     {
-      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighborID.getID() || data->vertexIDs[1] == lowerDimNeighborID.getID(), "Failing on Edge: " << lowerDimNeighborID.getID() );
+      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighborID || data->vertexIDs[1] == lowerDimNeighborID, "Failing on Edge: " << lowerDimNeighborID );
     }
 
     // WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
@@ -259,7 +259,9 @@ static void testBufferedCommunication()
 
     for ( const auto & higherDimNeighborID : vertex->getHigherDimNeighbors() )
     {
-      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( uint_c( higherDimNeighborID.getID() ) ), 1 );
+      WALBERLA_ABORT( "Here a primitive ID must be casted - check and fix test." );
+      // TODO: comment in this line when fixed!
+      // WALBERLA_CHECK_EQUAL( edgeIdsSet.count( uint_c( higherDimNeighborID.getID() ) ), 1 );
     }
   }
 

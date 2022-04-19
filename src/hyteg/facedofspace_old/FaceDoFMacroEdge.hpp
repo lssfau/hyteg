@@ -63,7 +63,7 @@ inline void interpolate( const uint_t&                                          
    Point3D x0 = edge.getCoordinates()[0];
    Point3D dx = edge.getDirection() / ( walberla::real_c( rowsize - 1 ) );
 
-   Face*  face0              = storage->getFace( edge.neighborFaces()[0].getID() );
+   Face*  face0              = storage->getFace( edge.neighborFaces()[0] );
    uint_t outerVertexOnFace0 = face0->vertex_index( face0->get_vertex_opposite_to_edge( edge.getID() ) );
 
    Point3D face0d0 = dx;
@@ -94,7 +94,7 @@ inline void interpolate( const uint_t&                                          
    if ( edge.getNumNeighborFaces() == 2 )
    {
       // gray north cells
-      Face*  face1              = storage->getFace( edge.neighborFaces()[1].getID() );
+      Face*  face1              = storage->getFace( edge.neighborFaces()[1] );
       uint_t outerVertexOnFace1 = face1->vertex_index( face1->get_vertex_opposite_to_edge( edge.getID() ) );
 
       Point3D face1d0 = dx;
@@ -331,10 +331,10 @@ inline void printFunctionMemory( Edge& edge, const PrimitiveDataID< FunctionMemo
    uint_t  v_perEdge = hyteg::levelinfo::num_microvertices_per_edge( level );
    real_t* edgeData  = edge.getData( memoryId )->getPointer( level );
    cout << setfill( '=' ) << setw( 100 ) << std::left << "" << endl;
-   cout << edge << " South Face ID: " << edge.neighborFaces()[0].getID(); // edge->neighborFaces()[0]->getID().getID();
+   cout << edge << " South Face ID: " << edge.neighborFaces()[0]; // edge->neighborFaces()[0]->getID().getID();
    if ( edge.getNumHigherDimNeighbors() == 2 )
    {
-      cout << " North Face ID: " << edge.neighborFaces()[1].getID();
+      cout << " North Face ID: " << edge.neighborFaces()[1];
    }
    cout << setprecision( 6 ) << endl;
    if ( edge.getNumHigherDimNeighbors() == 2 )
@@ -409,7 +409,7 @@ inline void
    real_t* vertexData = vertex.getData( memoryId )->getPointer( level );
 
    std::cout << std::string( 10, '*' );
-   std::cout << " Vertex ID: " << vertex.getID().getID();
+   std::cout << " Vertex ID: " << vertex.getID();
    std::cout << " Center: " << vertexData[0];
    std::cout << " Memory ID: " << memoryId;
    std::cout << " " << std::string( 10, '*' ) << std::endl;
@@ -417,7 +417,7 @@ inline void
              << " Cell " << std::endl;
    for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
    {
-      std::cout << std::left << std::setw( 9 ) << vertex.neighborFaces()[i].getID() << "|" << vertexData[1 + i] << std::endl;
+      std::cout << std::left << std::setw( 9 ) << vertex.neighborFaces()[i] << "|" << vertexData[1 + i] << std::endl;
    }
    std::cout << std::string( 100, '*' ) << std::endl;
 }

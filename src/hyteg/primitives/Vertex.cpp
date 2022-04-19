@@ -50,7 +50,7 @@ uint_t Vertex::cell_index(const PrimitiveID& cell) const
 
 std::ostream& operator<<(std::ostream &os, const hyteg::Vertex &vertex)
 {
-  return os << "Vertex { id = " << vertex.getID().getID() << "; "
+  return os << "Vertex { id = " << vertex.getID() << "; "
             << "coords = [" << vertex.coordinates_[0] << ", " << vertex.coordinates_[1] << ", " << vertex.coordinates_[2] << "]; "
             << "}";
 }

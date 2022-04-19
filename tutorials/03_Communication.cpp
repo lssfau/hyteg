@@ -141,7 +141,7 @@ struct TestDataHandling : OnlyInitializeDataHandling< TestData, Primitive >
   virtual std::shared_ptr< TestData > initialize( const Primitive * const primitive ) const
   {
     auto data = std::make_shared< TestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };

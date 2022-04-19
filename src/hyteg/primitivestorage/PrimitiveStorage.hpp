@@ -173,13 +173,13 @@ class PrimitiveStorage : private walberla::NonCopyable
       return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ) || cellExistsLocally( id );
    }
    /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
-   bool vertexExistsLocally( const PrimitiveID& id ) const { return vertices_.count( id.getID() ) > 0; }
+   bool vertexExistsLocally( const PrimitiveID& id ) const { return vertices_.count( id ) > 0; }
    /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists locally.
-   bool edgeExistsLocally( const PrimitiveID& id ) const { return edges_.count( id.getID() ) > 0; }
+   bool edgeExistsLocally( const PrimitiveID& id ) const { return edges_.count( id ) > 0; }
    /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
-   bool faceExistsLocally( const PrimitiveID& id ) const { return faces_.count( id.getID() ) > 0; }
+   bool faceExistsLocally( const PrimitiveID& id ) const { return faces_.count( id ) > 0; }
    /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists locally.
-   bool cellExistsLocally( const PrimitiveID& id ) const { return cells_.count( id.getID() ) > 0; }
+   bool cellExistsLocally( const PrimitiveID& id ) const { return cells_.count( id ) > 0; }
 
    /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
    bool primitiveExistsInNeighborhood( const PrimitiveID& id ) const
@@ -188,13 +188,13 @@ class PrimitiveStorage : private walberla::NonCopyable
              cellExistsInNeighborhood( id );
    }
    /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool vertexExistsInNeighborhood( const PrimitiveID& id ) const { return neighborVertices_.count( id.getID() ) > 0; }
+   bool vertexExistsInNeighborhood( const PrimitiveID& id ) const { return neighborVertices_.count( id ) > 0; }
    /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool edgeExistsInNeighborhood( const PrimitiveID& id ) const { return neighborEdges_.count( id.getID() ) > 0; }
+   bool edgeExistsInNeighborhood( const PrimitiveID& id ) const { return neighborEdges_.count( id ) > 0; }
    /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool faceExistsInNeighborhood( const PrimitiveID& id ) const { return neighborFaces_.count( id.getID() ) > 0; }
+   bool faceExistsInNeighborhood( const PrimitiveID& id ) const { return neighborFaces_.count( id ) > 0; }
    /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool cellExistsInNeighborhood( const PrimitiveID& id ) const { return neighborCells_.count( id.getID() ) > 0; }
+   bool cellExistsInNeighborhood( const PrimitiveID& id ) const { return neighborCells_.count( id ) > 0; }
 
    /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
    template < typename PrimitiveType >
@@ -371,8 +371,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const
    {
       WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ), "Primitive with ID " << id << " does not exist in neighborhood." );
-      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id.getID() ), 0, "Primitive with ID " << id << " could not be found in neighbor ranks." )
-      return neighborRanks_.at( id.getID() );
+      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id ), 0, "Primitive with ID " << id << " could not be found in neighbor ranks." )
+      return neighborRanks_.at( id );
    }
 
    /// @name Primitive data methods

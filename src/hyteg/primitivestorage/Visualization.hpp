@@ -110,8 +110,8 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
          auto    vertex      = storage.getVertex( primitiveID );
          Point3D coordinates = vertex->getCoordinates();
          rankOut << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
-         WALBERLA_ASSERT_EQUAL( primitiveID.getID(), vertex->getID().getID() );
-         vertexPosition[primitiveID.getID()] = counter;
+         WALBERLA_ASSERT_EQUAL( primitiveID, vertex->getID() );
+         vertexPosition[primitiveID] = counter;
          counter++;
       }
       else
@@ -125,7 +125,7 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
             auto    vertex      = storage.getVertex( neighborVertexID );
             Point3D coordinates = vertex->getCoordinates();
             rankOut << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
-            vertexPosition[vertex->getID().getID()] = counter;
+            vertexPosition[vertex->getID()] = counter;
             counter++;
          }
       }
@@ -148,15 +148,15 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
       rankOut << "            ";
       if ( vtkCellType == VTK_VERTEX )
       {
-         rankOut << vertexPosition.at( primitiveID.getID() ) << " ";
+         rankOut << vertexPosition.at( primitiveID ) << " ";
       }
       else
       {
          auto primitive = storage.getPrimitive( primitiveID );
          for ( const auto& neighborVertexID : primitive->neighborVertices() )
          {
-            WALBERLA_ASSERT_GREATER( vertexPosition.count( neighborVertexID.getID() ), 0 );
-            rankOut << vertexPosition.at( neighborVertexID.getID() ) << " ";
+            WALBERLA_ASSERT_GREATER( vertexPosition.count( neighborVertexID ), 0 );
+            rankOut << vertexPosition.at( neighborVertexID ) << " ";
          }
       }
       rankOut << "\n";
@@ -200,12 +200,14 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
    }
    rankOut << "          </DataArray>\n";
 
+#if 0
    rankOut << "          <DataArray type=\"UInt32\" Name=\"primitiveID\">\n";
    for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
    {
       rankOut << "            " << uint_c( primitiveIDs[primitive].getID() ) << "\n";
    }
    rankOut << "          </DataArray>\n";
+#endif
 
    for ( const auto& it : realData )
    {

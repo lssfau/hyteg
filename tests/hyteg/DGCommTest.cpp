@@ -70,7 +70,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
     for(auto& vertexIt : nbrVertices){
-      Vertex* vertex = storage->getVertex(vertexIt.getID());
+      Vertex* vertex = storage->getVertex(vertexIt);
       int32_t * vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       uint_t pos = std::numeric_limits< uint_t >::max();
@@ -121,7 +121,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     for(uint_t i = 0; i < nbrEdges.size(); ++i){
-      Edge* edge = storage->getEdge(nbrEdges[0].getID());
+      Edge* edge = storage->getEdge(nbrEdges[0]);
       int32_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
       uint_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face.getID());

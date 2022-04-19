@@ -33,11 +33,11 @@ uint_t Edge::vertex_index(const PrimitiveID& vertex) const
 {
   WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2)
 
-  if (vertex.getID() == neighborVertices_[0].getID())
+  if (vertex == neighborVertices_[0])
   {
     return 0;
   }
-  else if (vertex.getID() == neighborVertices_[1].getID())
+  else if (vertex == neighborVertices_[1])
   {
     return 1;
   }
@@ -54,7 +54,7 @@ uint_t Edge::face_index(const PrimitiveID& face) const
 
   for ( uint_t localFaceID = 0; localFaceID < getNumNeighborFaces(); localFaceID++ )
   {
-    if ( face.getID() == neighborFaces_[ localFaceID ].getID() )
+    if ( face == neighborFaces_[ localFaceID ] )
     {
       return localFaceID;
     }
@@ -70,7 +70,7 @@ uint_t Edge::cell_index(const PrimitiveID& cell) const
 
   for ( uint_t localCellID = 0; localCellID < getNumNeighborCells(); localCellID++ )
   {
-    if ( cell.getID() == neighborCells_[ localCellID ].getID() )
+    if ( cell == neighborCells_[ localCellID ] )
     {
       return localCellID;
     }
@@ -84,11 +84,11 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 {
   WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2)
 
-  if (vertex.getID() == neighborVertices_[0].getID())
+  if (vertex == neighborVertices_[0])
   {
     return neighborVertices_[1];
   }
-  else if (vertex.getID() == neighborVertices_[1].getID())
+  else if (vertex == neighborVertices_[1])
   {
     return neighborVertices_[0];
   }
@@ -98,11 +98,11 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 
 bool Edge::opposite_face_exists(const PrimitiveID& face) const
 {
-  if (face.getID() == neighborFaces_[0].getID()) {
+  if (face == neighborFaces_[0]) {
      return getNumNeighborFaces() == 2;
   }
 
-  if (getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID())
+  if (getNumNeighborFaces() == 2 && face == neighborFaces_[1])
   {
     return true;
   }
@@ -112,7 +112,7 @@ bool Edge::opposite_face_exists(const PrimitiveID& face) const
 
 PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
 {
-  if (face.getID() == neighborFaces_[0].getID()) {
+  if (face == neighborFaces_[0]) {
     if (getNumNeighborFaces() == 2) {
       return neighborFaces_[1];
     } else {
@@ -120,7 +120,7 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
     }
   }
 
-  if (getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID())
+  if (getNumNeighborFaces() == 2 && face == neighborFaces_[1])
   {
     return neighborFaces_[0];
   }
@@ -131,9 +131,9 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
 
 std::ostream& operator<<(std::ostream &os, const hyteg::Edge &edge)
 {
-  return os << "Edge { id = " << edge.getID().getID() << "; "
-            << "neighborVertices_[0] = " << edge.neighborVertices_[0].getID() << "; "
-            << "neighborVertices_[1] = " << edge.neighborVertices_[1].getID() << "; }";
+  return os << "Edge { id = " << edge.getID() << "; "
+            << "neighborVertices_[0] = " << edge.neighborVertices_[0] << "; "
+            << "neighborVertices_[1] = " << edge.neighborVertices_[1] << "; }";
 }
 
 void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const

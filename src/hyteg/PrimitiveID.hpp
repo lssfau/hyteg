@@ -184,7 +184,9 @@ class PrimitiveID
       return ( bits >> uint_c( 3 ) ) + ( ( bits & uint_c( 7 ) ) ? uint_c( 1 ) : uint_c( 0 ) );
    }
 
+#if 0
    inline IDType getID() const;
+#endif
 
    inline std::ostream& toStream( std::ostream& os ) const;
 
@@ -198,10 +200,12 @@ class PrimitiveID
    uint64_t id_;
 };
 
+#if 0
 inline PrimitiveID::IDType PrimitiveID::getID() const
 {
    return numeric_cast< PrimitiveID::IDType >( id_ );
 }
+#endif
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
 {

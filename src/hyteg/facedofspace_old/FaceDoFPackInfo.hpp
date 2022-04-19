@@ -104,7 +104,7 @@ void FaceDoFPackInfo< ValueType >::unpackEdgeFromVertex( Edge*                  
    }
    else
    {
-      WALBERLA_LOG_WARNING( "Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver )
+      WALBERLA_LOG_WARNING( "Vertex with ID: " << sender << " is not in Edge: " << receiver )
    }
    buffer >> edgeData[facedof::macroedge::indexFaceFromVertex( level_, pos, sD::CELL_GRAY_SE )];
    if ( receiver->getNumNeighborFaces() == 2 )
@@ -160,7 +160,7 @@ void FaceDoFPackInfo< ValueType >::packEdgeForVertex( const Edge*               
    }
    else
    {
-      WALBERLA_LOG_WARNING( "Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender )
+      WALBERLA_LOG_WARNING( "Vertex with ID: " << receiver << " is not in Edge: " << sender )
    }
    buffer << edgeData[facedof::macroedge::indexFaceFromVertex( level_, pos, sD::CELL_BLUE_SE )];
    if ( sender->getNumNeighborFaces() == 2 )

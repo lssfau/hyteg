@@ -423,7 +423,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
 
 /////////// FIRST EDGE ////////////
 
-    Edge *firstEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
+    Edge *firstEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace]);
     int *edgeData = firstEdge->getData(x.getEdgeDataID())->getPointer(level);
     idx_t idxCounter = 0;
     /// horizontal Dof on edge 0
@@ -471,7 +471,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     }
 /////////// SECOND EDGE ////////////
     localEdgeIdOnFace = 2;
-    Edge *secondEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
+    Edge *secondEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace]);
     edgeData = secondEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 1
     idxCounter = 0;
@@ -518,7 +518,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
       }
 /////////// THIRD EDGE ////////////
     localEdgeIdOnFace = 1;
-    Edge *thirdEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
+    Edge *thirdEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace]);
     edgeData = thirdEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 2
     idxCounter = 0;
@@ -576,7 +576,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
         WALBERLA_CHECK_EQUAL(
           edgeData[edgedof::macroedge::indexFromVertex( level, 1, stencilDirection::EDGE_HO_W )],
           vertexData[vertex.edge_index(edgeId)],
-          "vertex: " << vertex.getID().getID() << " edgeIndex: " << vertex.edge_index(edgeId))
+          "vertex: " << vertex.getID() << " edgeIndex: " << vertex.edge_index(edgeId))
         numberOfChecks++;
       } else if (edge->getVertexID1() == vertex.getID()) {
         WALBERLA_CHECK_EQUAL(
