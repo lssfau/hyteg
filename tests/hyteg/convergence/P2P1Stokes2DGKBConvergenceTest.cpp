@@ -66,7 +66,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const uint_t & solver,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP)
+void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const uint_t & solver, const real_t & nu,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP)
 {
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -111,7 +111,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const uint
     storage, 
     level,
     CGSolver<ALOP_P2P1TH>(storage, level, level, 1000,1e-11), 
-    0,    
+    nu,    
     100,
     1e-10
   );
@@ -126,7 +126,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const uint
   real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
- WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
@@ -178,8 +178,10 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   PETScManager petscManager( &argc, &argv );
 
-  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0, 2.2e-09, 0.00033, 0.0184);
-  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 1, 2.2e-09, 0.00033, 0.0184);
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0, 0, 2.2e-09, 0.00033, 0.0184);
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 1, 0, 2.2e-09, 0.00033, 0.0184);
+  //TODO AL with nu = 100 converges faster for velocity, but still has a problem for the pressure
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0, 100, 10, 0.00033, 10);
 
   return EXIT_SUCCESS;
 }
