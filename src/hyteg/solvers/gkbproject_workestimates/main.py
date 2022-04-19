@@ -73,32 +73,14 @@ def run_testcase(tc):
     plt.legend(handles=[mpatches.Patch(None, 'y', label=r"$VCYCLE(6,6,3,0.3)$"),mpatches.Patch(None, 'b', label=r"$GKB(M,A,(AMG_1 + CG_{5})(M))$"), mpatches.Patch(None, 'r', label=r'$MINRES^{ (AMG_1 + CG_{5})(M_{p,bd})}(K)$'), mpatches.Patch(None, 'g', label=r'$FGMRES^{GKB_2(M,A,(AMG_1 + CG_{5})(M))}$')])
     plt.show()
 
-    # FMG_l4 = FMG_solver('FMG lvl 4', {'OA_K': 87174}, 1, 3, 1, 2, 4, 0, {'vert': 5, 'XeYe': 4, 'XYe': 4},  {'vert': 4, 'XeYe': 4})
-    # FMG_l4.estimate()
-
-    # P2P1 on unit square level 5
-    #GKB_l5 = GKB_solver('GKB lvl 5', 21, 5, {'OA_K':346374, 'OA_M': 189442, 'OA_A': 78466}, 16642, 2113)
-    #GKB_l5.estimate()
-    #MINRES_l5 = MINRES_solver('MINRES lvl 5', 40, 5, {'OA_K': 346374, 'OA_U': 189442}, 16642, 2113)
-    #MINRES_l5.estimate()
-    #FGMRES_l5 = GKB_solver('FGMRES lvl 6', 2, 5, {'OA_K': 1380870, 'OA_M': 755714, 'OA_A': 312578}, 66050, 74371 - 66050)
-    #FGMRES_l5.its_FGMRES = 8
-    #FGMRES_l5.estimate()
-
-    # P2P1 on unit square level 6
-    #GKB_l6 = GKB_solver('GKB lvl 6', 18, 5, {'OA_K': 1380870, 'OA_M': 755714, 'OA_A': 312578}, 66050, 74371 - 66050)
-    #GKB_l6.estimate()
-    #MINRES_l6 = MINRES_solver('MINRES lvl 6', 40, 5, {'OA_K': 1380870, 'OA_U': 755714}, 66050, 74371 - 66050)
-    #MINRES_l6.estimate()
-    #FGMRES_l6 = GKB_solver('FGMRES lvl 6', 3, 5, {'OA_K': 1380870, 'OA_M': 755714, 'OA_A': 312578}, 66050, 74371 - 66050)
-    #FGMRES_l6.its_FGMRES = 7
-    #FGMRES_l6.estimate()
+  
 
 def main():
+    print("Residual files, iteration numbers and number of nonzeros of operators have to be supplied to the script!")
     #run_testcase('unitsquare')
     #run_testcase('channel1')
     #run_testcase('channel2')
-    run_testcase('channel3')
+    #run_testcase('channel3')
 
 
 
