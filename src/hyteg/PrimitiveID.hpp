@@ -105,33 +105,6 @@ class PrimitiveID
    : id_( uint64_c( 0 ) )
    {}
 
-   /// Copy constructor.
-   inline PrimitiveID( const PrimitiveID& id )
-   : id_( id.id_ )
-   {}
-
-#if 1
-   /// "Copy" constructor from ID type.
-   inline PrimitiveID( const IDType& id )
-   : id_( id )
-   {}
-#endif
-
-#if 0
-   /// Call this function to create new PrimitiveIDs.
-   inline PrimitiveID( const IDType& coarseID, const uint_t& refinementLevel, const uint_t& childID )
-   : id_( walberla::math::uintPow2( BITS_COARSE_LEVEL_ID + refinementLevel * BITS_REFINEMENT ) |
-          ( coarseID << ( BITS_REFINEMENT * refinementLevel ) ) )
-   {
-      WALBERLA_CHECK_EQUAL( walberla::math::uintMSBPosition( id_ ),
-                            BITS_COARSE_LEVEL_ID + 1,
-                            "Could not construct PrimitiveID with coarse ID " + std::to_string( id ) + "." )
-      WALBERLA_CHECK_LESS( walberla::math::uintMSBPosition( id ),
-                           BITS_COARSE_LEVEL_ID + 1,
-                           "Could not construct PrimitiveID with coarse ID " + std::to_string( id ) + "." );
-   }
-#endif
-
    /// Creates 2**BITS_REFINEMENT new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement.
    inline std::vector< PrimitiveID > createChildren() const
    {
@@ -184,10 +157,6 @@ class PrimitiveID
       return ( bits >> uint_c( 3 ) ) + ( ( bits & uint_c( 7 ) ) ? uint_c( 1 ) : uint_c( 0 ) );
    }
 
-#if 0
-   inline IDType getID() const;
-#endif
-
    inline std::ostream& toStream( std::ostream& os ) const;
 
    template < typename Buffer_T >
@@ -199,13 +168,6 @@ class PrimitiveID
  private:
    uint64_t id_;
 };
-
-#if 0
-inline PrimitiveID::IDType PrimitiveID::getID() const
-{
-   return numeric_cast< PrimitiveID::IDType >( id_ );
-}
-#endif
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
 {

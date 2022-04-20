@@ -49,8 +49,8 @@ static void testP2Prolongate() {
   P2toP2QuadraticProlongation prolongationOperator;
   prolongationOperator.prolongate( *x, sourceLevel, All );
 
-  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
-  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* edgeDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* vertexDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel + 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -105,8 +105,8 @@ static void testP2Prolongate() {
 
   prolongationOperator.prolongate( *x, sourceLevel + 1, All );
 
-  edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
-  vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
+  edgeDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
+  vertexDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel + 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -178,8 +178,8 @@ static void testP2Prolongate2() {
   std::function<real_t(const hyteg::Point3D &)> zeros = [](const hyteg::Point3D &) { return 0; };
   x->interpolate(zeros, sourceLevel);
 
-  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
-  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* edgeDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* vertexDoFFineData = storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
   /// all possible vertical edge Dof locations that need to be updated by the face
   std::vector<std::pair<idx_t, idx_t > > vertical   = { {1,0},{2,0},{3,0},{1,1},{2,1},{1,2} };
@@ -195,7 +195,7 @@ static void testP2Prolongate2() {
 ///////////////////////////
   for(auto p : vertical) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
@@ -214,7 +214,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 0.0;
 
   }
@@ -223,7 +223,7 @@ static void testP2Prolongate2() {
 /////////////////////////////
   for(auto p : horizontal) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
@@ -242,7 +242,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 0.0;
 
   }
@@ -251,7 +251,7 @@ static void testP2Prolongate2() {
 ///////////////////////////
   for(auto p : diagonal) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
@@ -270,7 +270,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 0.0;
 
   }
@@ -278,7 +278,7 @@ static void testP2Prolongate2() {
 /// CHECK VERTEX ///
 ////////////////////
   for( auto p : vertex ){
-    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
@@ -287,7 +287,7 @@ static void testP2Prolongate2() {
                                16.,
                                p.first << " " << p.second);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 0.0;
 
   }

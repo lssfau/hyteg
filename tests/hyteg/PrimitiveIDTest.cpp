@@ -34,9 +34,11 @@ static void testPrimitiveID()
 {
 
   PrimitiveID id0;
-  PrimitiveID id1( 42 );
+  PrimitiveID id1 = PrimitiveID::create( 42 );
   PrimitiveID id2( id1 );
 
+  WALBERLA_ABORT( "Extend this test for new pid implementation." );
+#if 0
   WALBERLA_CHECK_EQUAL( id0.getID(), uint_t(0) );
   WALBERLA_CHECK_EQUAL( id1.getID(), uint_t(42) );
   WALBERLA_CHECK_EQUAL( id2.getID(), uint_t(42) );
@@ -64,6 +66,8 @@ static void testPrimitiveID()
   WALBERLA_CHECK_EQUAL( id3.getUsedBytes(), 0 );
   WALBERLA_CHECK_EQUAL( id4.getUsedBytes(), 1 );
   WALBERLA_CHECK_EQUAL( id6.getUsedBytes(), 2 );
+
+#endif
 }
 
 } // namespace hyteg

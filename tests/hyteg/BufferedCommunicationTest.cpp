@@ -87,7 +87,7 @@ public:
     WALBERLA_UNUSED( sender );
 
     EdgeTestData * data = receiver->getData( edgeDataID_ );
-    uint_t vertexData;
+    PrimitiveID vertexData;
     buffer >> vertexData;
     // WALBERLA_LOG_INFO( "Unpacking | Edge: " << receiver->getID().getID() << ", Data: " << vertexData );
     data->vertexIDs.push_back( vertexData );
@@ -114,7 +114,7 @@ public:
     WALBERLA_UNUSED( sender );
 
     VertexTestData * data = receiver->getData( vertexDataID_ );
-    uint_t edgeData;
+    PrimitiveID edgeData;
     buffer >> edgeData;
     data->edgeIDs.push_back( edgeData );
   }

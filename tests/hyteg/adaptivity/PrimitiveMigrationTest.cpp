@@ -38,7 +38,7 @@ namespace hyteg {
 
 struct Data
 {
-   uint_t primitiveIDInData = 345678;
+   PrimitiveID primitiveIDInData;
 };
 
 class DataHandling : PrimitiveDataHandling< Data, Primitive >
@@ -47,7 +47,7 @@ class DataHandling : PrimitiveDataHandling< Data, Primitive >
    std::shared_ptr< Data > initialize( const Primitive* const primitive ) const
    {
       auto data               = std::make_shared< Data >();
-      data->primitiveIDInData = uint_c( primitive->getID() );
+      data->primitiveIDInData = primitive->getID();
       return data;
    }
 

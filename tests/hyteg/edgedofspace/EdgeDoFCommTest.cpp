@@ -100,10 +100,10 @@ void check1tet( bool bufferComm = false )
 
    x.communicate< Face, Edge >( level );
 
-   Face& bottomFace     = *( storage->getFace( PrimitiveID( 10 ) ) );
+   Face& bottomFace     = *( storage->getFace( PrimitiveID::create( 10 ) ) );
    int*  bottomFaceData = bottomFace.getData( x.getFaceDataID() )->getPointer( level );
 
-   Cell& cell     = *( storage->getCell( PrimitiveID( 14 ) ) );
+   Cell& cell     = *( storage->getCell( PrimitiveID::create( 14 ) ) );
    int*  cellData = cell.getData( x.getCellDataID() )->getPointer( level );
 
    auto edgeIt    = storage->getEdges().begin();

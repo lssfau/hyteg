@@ -765,7 +765,7 @@ void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap& setupPrimitiveMap 
 
 PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
 {
-   PrimitiveID newID( getNumberOfPrimitives() );
+   PrimitiveID newID = PrimitiveID::create( getNumberOfPrimitives() );
    WALBERLA_ASSERT( !primitiveExists( newID ) );
    return newID;
 }

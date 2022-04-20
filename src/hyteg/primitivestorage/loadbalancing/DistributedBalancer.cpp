@@ -313,6 +313,9 @@ MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxR
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
 
+   WALBERLA_UNUSED( numReceivingProcesses );
+   WALBERLA_UNUSED( rank );
+
 #if 0
 
    for ( const auto& primitiveID : storage.getPrimitiveIDs() )
@@ -358,6 +361,8 @@ MigrationInfo roundRobinInterval( PrimitiveStorage& storage, uint_t interval, ui
        "Parallel roundRobinInterval does not work since PrimitiveIDs are not necessarily consecutive. Requires rewriting." );
 
    const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+
+   WALBERLA_UNUSED( rank );
 
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;

@@ -65,7 +65,8 @@ int main( int argc, char* argv[] )
    // Vertex(0) --- EdgeDoF(0)
 
    // Get bottom left vertex
-   auto vertex = storage->getVertex( PrimitiveID( 0 ) );
+   WALBERLA_ABORT( "this does not work anymore... need to check vertex differently" );
+   auto vertex = storage->getVertex( PrimitiveID::create( 0 ) );
 
    // Get vertex values
    auto vertexEdgeData = vertex->getData( u.getEdgeDoFFunction().getVertexDataID() )->getPointer( level );
