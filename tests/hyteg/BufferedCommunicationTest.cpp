@@ -259,9 +259,7 @@ static void testBufferedCommunication()
 
     for ( const auto & higherDimNeighborID : vertex->getHigherDimNeighbors() )
     {
-      WALBERLA_ABORT( "Here a primitive ID must be casted - check and fix test." );
-      // TODO: comment in this line when fixed!
-      // WALBERLA_CHECK_EQUAL( edgeIdsSet.count( uint_c( higherDimNeighborID.getID() ) ), 1 );
+      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( higherDimNeighborID ), 1 );
     }
   }
 
