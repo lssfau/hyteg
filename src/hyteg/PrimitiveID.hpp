@@ -98,6 +98,7 @@ class PrimitiveID
 
       PrimitiveID pid;
       pid.id_ = ( 1 << BITS_COARSE_LEVEL_ID ) | coarseID;
+      return pid;
    }
 
    /// Creates an invalid PrimitiveID.
