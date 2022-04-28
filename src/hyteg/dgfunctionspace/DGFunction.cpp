@@ -199,7 +199,7 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
    const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
    const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
 
-   Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
+   Eigen::Matrix< real_t, 2, 1 > affineCoordinates( coordinates[0], coordinates[1] );
 
    std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
    auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
@@ -252,7 +252,7 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
    const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
    const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
 
-   Eigen::Matrix< real_t, 3, 1 > affineCoordinates( { coordinates[0], coordinates[1], coordinates[2] } );
+   Eigen::Matrix< real_t, 3, 1 > affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
 
    std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
    auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
