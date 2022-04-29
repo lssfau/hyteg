@@ -816,3 +816,7 @@ waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 ## Structural
 waLBerla_compile_test(FILES PrintInfoTest.cpp)
 waLBerla_execute_test(NAME PrintInfoTest)
+
+## adaptive refinement w/ hanging nodes
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/ARHangingNodesStorageTest.cpp)
+waLBerla_execute_test(NAME ARHangingNodesStorageTest)

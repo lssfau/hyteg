@@ -114,17 +114,19 @@ class PrimitiveID
       for ( uint_t i = 0; i < numChildren; i++ )
       {
          auto childID = ( id_ << BITS_REFINEMENT ) | i;
-         // children.push_back( childID );
+         PrimitiveID childPID;
+         childPID.id_ = childID;
+         children.push_back( childPID );
       }
       return children;
    }
 
-   inline uint_t numParents() const
+   inline uint_t numAncestors() const
    {
       return ( walberla::math::uintMSBPosition( id_ ) - BITS_COARSE_LEVEL_ID - 1 ) / BITS_REFINEMENT;
    }
 
-   inline bool hasParents() const { return numParents() > 0; }
+   inline bool hasAncestors() const { return numAncestors() > 0; }
 
    bool operator<( const PrimitiveID& rhs ) const
    {
