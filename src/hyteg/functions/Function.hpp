@@ -76,7 +76,7 @@ public:
   const std::string &getFunctionName() const { return functionName_; }
 
   /// Returns a 1 as an object of this class represents a scalar field
-  uint_t getDimension() const { return 1; };
+  virtual uint_t getDimension() const { return 1; };
 
   std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 

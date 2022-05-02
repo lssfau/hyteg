@@ -129,6 +129,7 @@ const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
     { vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF" },
     { vtk::DoFType::DG, "DGDoF" },
     { vtk::DoFType::P2, "P2" },
+    { vtk::DoFType::P1DGE, "P1DGE" },
 };
 
 std::string VTKOutput::fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
@@ -158,6 +159,9 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
       break;
+   case vtk::DoFType::P1DGE:
+      VTKP1DGEWriter::write( *this, output, level );
+      break;
    default:
       WALBERLA_ABORT( "[VTK] DoFType not supported!" );
       break;
@@ -180,10 +184,10 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
       return edgeDoFFunctions_.size();
    case vtk::DoFType::DG:
       return dgFunctions_.size() + dgVecFunctions_.size();
-      break;
    case vtk::DoFType::P2:
       return p2Functions_.size() + p2VecFunctions_.size();
-      break;
+   case vtk::DoFType::P1DGE:
+      return p1dgeVecFunctions_.size();
    default:
       WALBERLA_ABORT( "[VTK] DoFType not supported!" );
       return 0;
@@ -208,7 +212,8 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
                                                        vtk::DoFType::EDGE_Y,
                                                        vtk::DoFType::EDGE_XY,
                                                        vtk::DoFType::DG,
-                                                       vtk::DoFType::P2 };
+                                                       vtk::DoFType::P2,
+                                                       vtk::DoFType::P1DGE };
 
       const std::vector< vtk::DoFType > dofTypes3D = { vtk::DoFType::VERTEX,
                                                        vtk::DoFType::EDGE_X,
@@ -347,6 +352,22 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
 
    // no communication necessary
+
+   // ---------------------------------------------
+   //  P1DGEFunction [double, int32_t, int64_t]
+   // ---------------------------------------------
+   for ( const auto& function : p1dgeVecFunctions_.getFunctions< double >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p1dgeVecFunctions_.getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p1dgeVecFunctions_.getFunctions< int64_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
 }
 
 // -------------------------

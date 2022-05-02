@@ -42,10 +42,10 @@ class DGVectorLaplaceOperator : public VectorToVectorOperator< ValueType, DGVect
       }
       else
       {
-         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorLaplaceFormP1P1_00 >() );
-         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorLaplaceFormP1P1_01 >() );
-         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorLaplaceFormP1P1_10 >() );
-         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorLaplaceFormP1P1_11 >() );
+         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_00 >() );
+         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_01 >() );
+         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_10 >() );
+         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_11 >() );
       }
    }
 };
@@ -63,10 +63,10 @@ class DGVectorMassOperator : public VectorToVectorOperator< ValueType, DGVectorF
       }
       else
       {
-         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorMassFormP1P1_00 >() );
-         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorMassFormP1P1_01 >() );
-         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorMassFormP1P1_10 >() );
-         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< forms::DGVectorMassFormP1P1_11 >() );
+         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_00 >() );
+         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_01 >() );
+         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_10 >() );
+         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_11 >() );
       }
    }
 };

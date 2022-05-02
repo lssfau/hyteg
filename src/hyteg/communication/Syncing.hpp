@@ -23,6 +23,7 @@
 
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 
 namespace hyteg {
 
@@ -42,6 +43,9 @@ void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& funct
 
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& function, const uint_t& level );
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P1DGEFunction< vType >& function, const uint_t& level );
 
 template < typename ValueType >
 void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level );

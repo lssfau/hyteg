@@ -36,6 +36,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
+#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 
 // our friends and helpers
 
@@ -49,6 +50,7 @@
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 
 // from walblera
 #include "vtk/Base64Writer.h"
@@ -112,6 +114,12 @@ class VTKOutput
    inline void add( const dg::DGVectorFunction< value_t >& function )
    {
       dgVecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const P1DGEFunction< value_t >& function )
+   {
+      p1dgeVecFunctions_.push_back( function );
    }
 
    template < typename value_t >
@@ -259,6 +267,8 @@ class VTKOutput
 
    FunctionMultiStore< dg::DGVectorFunction > dgVecFunctions_;
 
+   FunctionMultiStore< P1DGEFunction > p1dgeVecFunctions_;
+
    std::shared_ptr< PrimitiveStorage > storage_;
 
    vtk::DataFormat vtkDataFormat_;
@@ -270,6 +280,7 @@ class VTKOutput
    friend class VTKP1Writer;
    friend class VTKP2Writer;
    friend class VTKDGWriter;
+   friend class VTKP1DGEWriter;
 };
 
 } // namespace hyteg

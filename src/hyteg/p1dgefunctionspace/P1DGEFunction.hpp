@@ -94,7 +94,6 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    {
       u_conforming_->interpolate( expr, level, dofType );
       u_discontinuous_->interpolate( 0, level, dofType );
-      WALBERLA_ABORT( "Not implemented" );
    }
 
    void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expressions,
@@ -299,6 +298,87 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
          }
       }
    };
+
+   uint_t getDimension() const override
+   {
+      if ( u_conforming_->getStorage()->hasGlobalCells() )
+         return 3;
+      else
+         return 2;
+   };
+
+   void evaluateOnMicroElement( const Point3D&         coordinates,
+                                uint_t                 level,
+                                const PrimitiveID&     faceID,
+                                hyteg::indexing::Index elementIndex,
+                                facedof::FaceType      faceType,
+                                uint_t                 componentIdx,
+                                ValueType&             value ) const
+   {
+      // 2D
+
+      auto storage = u_conforming_->getStorage();
+
+      WALBERLA_ASSERT( !storage->hasGlobalCells() );
+
+      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
+
+      WALBERLA_ASSERT( storage->faceExistsLocally( faceID ) );
+      const Face& face = *storage->getFace( faceID );
+
+      const uint_t polyDegree = 1;
+      const uint_t ndofsP1    = 3;
+
+      Eigen::Matrix< real_t, 2, 1 > affineCoordinates( { coordinates[0], coordinates[1] } );
+
+      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+      auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+      for ( uint_t i = 0; i < 3; i++ )
+      {
+         const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+         affineElementVertices[i]( 0 ) = coord[0];
+         affineElementVertices[i]( 1 ) = coord[1];
+      }
+
+      // trafo from affine to reference space
+      Eigen::Matrix< real_t, 2, 2 > A;
+      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+      const auto Ainv = A.inverse();
+
+      const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+      const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
+
+      Point2D midpoint( { 0., 0. } );
+      for ( uint_t i = 0; i < 3; i++ )
+         for ( uint_t d = 0; d < 2; d++ )
+            midpoint[d] += affineElementVertices[i][d] / 3.;
+
+      // evaluate P1 function
+      std::array< uint_t, ndofsP1 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroFace( elementIndex, faceType, level, vertexDoFIndices );
+
+      ValueType* p1Data = face.getData( u_conforming_->component( componentIdx ).getFaceDataID() )->getPointer( level );
+
+      std::vector< real_t > dofs( ndofsP1 );
+      for ( uint_t i = 0; i < ndofsP1; i++ )
+      {
+         dofs[i] = real_t( p1Data[vertexDoFIndices[i]] );
+      }
+
+      real_t value_conforming;
+      basis_conforming_.evaluate( polyDegree, refPos, dofs, value_conforming );
+
+      // evaluate DG function
+      auto dof_discontinuous =
+          u_discontinuous_->getDGFunction()->volumeDoFFunction()->dof( faceID, elementIndex, 0, faceType, level );
+      real_t value_discontinuous = ValueType( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
+
+      value = ValueType( value_conforming + value_discontinuous );
+   }
 
  protected:
    std::shared_ptr< dg::DGBasisLinearLagrange_Example > basis_;
