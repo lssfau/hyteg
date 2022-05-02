@@ -201,6 +201,12 @@ class PETScSparseMatrix
           mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
+   void multiply( PETScVector< real_t, OperatorType::dstType::template FunctionType >& src,
+                  PETScVector< real_t, OperatorType::dstType::template FunctionType >& dst )
+   {
+      MatMult( mat, src.get(), dst.get() );
+   }
+
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
    ///
    /// \return Vector with global indices of the Dirichlet DoFs

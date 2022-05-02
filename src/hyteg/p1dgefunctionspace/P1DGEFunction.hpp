@@ -138,11 +138,11 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
       for ( auto f : functions )
       {
-         dg_list.push_back( *f.getDiscontinuousPart() );
-         p1_list.push_back( *f.getConformingPart() );
+         p1_list.push_back( *( f.get().getConformingPart() ) );
+         dg_list.push_back( *( f.get().getDiscontinuousPart() ) );
       }
-      u_conforming_->assign( scalars, dg_list, level, flag );
-      u_discontinuous_->assign( scalars, p1_list, level, flag );
+      u_conforming_->assign( scalars, p1_list, level, flag );
+      u_discontinuous_->assign( scalars, dg_list, level, flag );
    }
 
    ValueType dotGlobal( const P1DGEFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
@@ -156,8 +156,8 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    ValueType dotLocal( const P1DGEFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
       real_t result = 0;
-      result += u_conforming_->dotLlobal( *rhs.getConformingPart(), level, flag );
-      result += u_discontinuous_->dotLlobal( *rhs.getDiscontinuousPart(), level, flag );
+      result += u_conforming_->dotLocal( *rhs.getConformingPart(), level, flag );
+      result += u_discontinuous_->dotLocal( *rhs.getDiscontinuousPart(), level, flag );
       return result;
    }
 
@@ -380,9 +380,15 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       value = ValueType( value_conforming + value_discontinuous );
    }
 
- protected:
-   std::shared_ptr< dg::DGBasisLinearLagrange_Example > basis_;
+   template < typename OtherValueType >
+   void copyBoundaryConditionFromFunction( const P1DGEFunction< OtherValueType >& other )
+   {
+      u_conforming_->copyBoundaryConditionFromFunction( *( other.getConformingPart() ) );
+      // TODO: P0 does not have this copy mechanism! Add it there first!
+      // u_discontinuous_->copyBoundaryConditionFromFunction( *(other.getDiscontinuousPart()) );
+   }
 
+ protected:
    std::shared_ptr< P1VectorFunction< ValueType > > u_conforming_;
    std::shared_ptr< P0Function< ValueType > >       u_discontinuous_;
 
@@ -397,11 +403,17 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
                                            uint_t                                     maxLevel,
                                            BoundaryCondition                          bc )
 : Function< P1DGEFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, basis_{ std::make_shared< dg::DGBasisLinearLagrange_Example >() }
 , u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel, bc ) }
 , u_discontinuous_{ std::make_shared< P0Function< ValueType > >( name, storage, minLevel, maxLevel, bc ) }
 , basis_conforming_()
 , basis_discontinuous_()
 {}
+
+inline void applyDirichletBC( const P1DGEFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   WALBERLA_UNUSED( numerator );
+   WALBERLA_UNUSED( mat );
+   WALBERLA_UNUSED( level );
+}
 
 } // namespace hyteg

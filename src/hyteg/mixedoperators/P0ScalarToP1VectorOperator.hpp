@@ -80,4 +80,9 @@ typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGVectorLaplaceXCouplingOpe
                                     P0ToP1ConstantP1EDGVectorLaplaceZCouplingOperator >
     P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator;
 
+typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGVectorMassXCouplingOperator,
+                                    P0ToP1ConstantP1EDGVectorMassYCouplingOperator,
+                                    P0ToP1ConstantP1EDGVectorMassZCouplingOperator >
+    P0ToP1ConstantP1EDGVectorMassCouplingOperator;
+
 } // namespace hyteg

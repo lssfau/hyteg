@@ -675,4 +675,8 @@ typedef P1ToP0Operator< dg::DGVectorLaplaceFormEDGP1_0 > P1ToP0ConstantP1EDGVect
 typedef P1ToP0Operator< dg::DGVectorLaplaceFormEDGP1_1 > P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >                P1ToP0ConstantP1EDGVectorLaplaceZCouplingOperator;
 
+typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
+typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
+typedef P1ToP0Operator< dg::DGFormAbort >             P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
+
 } // namespace hyteg

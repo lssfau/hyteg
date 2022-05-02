@@ -26,6 +26,7 @@
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
+#include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -36,7 +37,13 @@ template < typename ValueType >
 class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
 {
  public:
-   P1DGEMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel ) {}
+   P1DGEMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::DGVectorMassFormEDGEDG >() )
+   {}
 
    void apply( const P1DGEFunction< real_t >& src,
                const P1DGEFunction< real_t >& dst,
@@ -44,7 +51,11 @@ class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEF
                DoFType                        flag,
                UpdateType                     updateType ) const override
    {
-      WALBERLA_ABORT( "Not implemented." );
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -53,8 +64,22 @@ class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEF
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
-      WALBERLA_ABORT( "Not implemented." );
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      src.getDiscontinuousPart()->communicate( level );
+      dst.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
    }
+
+ private:
+   P1ConstantVectorMassOperator                  cg_to_cg_coupling_;
+   P1ToP0ConstantP1EDGVectorMassCouplingOperator cg_to_eg_coupling_;
+   P0ToP1ConstantP1EDGVectorMassCouplingOperator eg_to_cg_coupling_;
+   P0Operator< dg::DGVectorMassFormEDGEDG >      eg_to_eg_coupling_;
 };
 
 template < typename ValueType >
