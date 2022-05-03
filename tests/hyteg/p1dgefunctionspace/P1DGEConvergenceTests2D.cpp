@@ -86,7 +86,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x4 = M_PI * y;
       const real_t x5 = x3 * std::sin( x4 );
       const real_t x6 = 2 * std::cos( x2 );
-      return - ( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
+      return -( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
       const real_t x  = p[0];
@@ -100,7 +100,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x6 = M_PI * x1;
       const real_t x7 = x5 * std::sin( x6 );
       const real_t x8 = 8 * std::cos( x2 );
-      return - ( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
+      return -( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
    };
 
    P1DGEFunction< real_t > u( "u", storage, level, level );
@@ -108,24 +108,33 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    P1DGEFunction< real_t > rhs( "rhs", storage, level, level );
    P1DGEFunction< real_t > sol( "sol", storage, level, level );
    P1DGEFunction< real_t > err( "err", storage, level, level );
+   P1DGEFunction< real_t > Merr( "Merr", storage, level, level );
 
    sol.interpolate( { u_x_expr, u_y_expr }, level, All );
    f.interpolate( { f_x_expr, f_y_expr }, level, All );
 
    // simulate a multiply operation:
    //    M.apply( f, rhs, level, All, Replace );
-   auto f_vec =  std::make_shared < PETScVector< real_t, P1DGEFunction > > ();
-   f_vec->createVectorFromFunction( f,numerator, level, All );
-   auto rhs_vec =  std::make_shared < PETScVector< real_t, P1DGEFunction > > ();
-   rhs_vec->createVectorFromFunction( f,numerator, level, All );
-   Mpetsc.multiply(*f_vec, *rhs_vec);
+   auto f_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
+   f_vec->createVectorFromFunction( f, numerator, level, All );
+   auto rhs_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
+   rhs_vec->createVectorFromFunction( f, numerator, level, All );
+   Mpetsc.multiply( *f_vec, *rhs_vec );
    rhs_vec->createFunctionFromVector( rhs, numerator, level, All );
 
    PETScCGSolver< P1DGELaplaceOperator< real_t > > solver( storage, level, numerator );
    solver.solve( L, u, rhs, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
-   auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
+   // calculate the error in the L2 norm
+   auto err_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
+   err_vec->createVectorFromFunction( err, numerator, level, All );
+   auto Merr_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
+   Merr_vec->createVectorFromFunction( err, numerator, level, All );
+   Mpetsc.multiply( *err_vec, *Merr_vec );
+   Merr_vec->createFunctionFromVector( Merr, numerator, level, All );
+
+   auto discrL2 = sqrt( err.dotGlobal( Merr, level ) );
 
    if ( writeVTK )
    {
