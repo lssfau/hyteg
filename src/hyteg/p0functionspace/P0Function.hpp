@@ -236,6 +236,12 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
+   template < typename OtherValueType >
+   void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
+   {
+      dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
+   }
+
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
 };

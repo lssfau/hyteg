@@ -384,8 +384,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    void copyBoundaryConditionFromFunction( const P1DGEFunction< OtherValueType >& other )
    {
       u_conforming_->copyBoundaryConditionFromFunction( *( other.getConformingPart() ) );
-      // TODO: P0 does not have this copy mechanism! Add it there first!
-      // u_discontinuous_->copyBoundaryConditionFromFunction( *(other.getDiscontinuousPart()) );
+      u_discontinuous_->copyBoundaryConditionFromFunction( *(other.getDiscontinuousPart()) );
    }
 
  protected:
