@@ -32,7 +32,7 @@
 #include "Eigen/Eigen"
 
 namespace hyteg {
-namespace dg{
+namespace dg {
 
 class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
 {
@@ -55,46 +55,53 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = 0.091576213509770743;
-      real_t tmp_1 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_2 = 0.054975871827660928*tmp_1;
-      real_t tmp_3 = 0.44594849091596489;
-      real_t tmp_4 = 0.11169079483900572*tmp_1;
-      real_t tmp_5 = 0.091576213509770743;
-      real_t tmp_6 = 0.054975871827660928*tmp_1;
-      real_t tmp_7 = 0.44594849091596489;
-      real_t tmp_8 = 0.11169079483900572*tmp_1;
-      real_t tmp_9 = 0.81684757298045851;
-      real_t tmp_10 = 0.054975871827660928*tmp_1;
+      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_1  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_2  = 0.054975871827660928 * tmp_1;
+      real_t tmp_3  = 0.44594849091596489;
+      real_t tmp_4  = 0.11169079483900572 * tmp_1;
+      real_t tmp_5  = 0.091576213509770743;
+      real_t tmp_6  = 0.054975871827660928 * tmp_1;
+      real_t tmp_7  = 0.44594849091596489;
+      real_t tmp_8  = 0.11169079483900572 * tmp_1;
+      real_t tmp_9  = 0.81684757298045851;
+      real_t tmp_10 = 0.054975871827660928 * tmp_1;
       real_t tmp_11 = 0.10810301816807022;
-      real_t tmp_12 = 0.11169079483900572*tmp_1;
-      real_t tmp_13 = tmp_0*tmp_2;
-      real_t tmp_14 = tmp_3*tmp_4;
-      real_t tmp_15 = tmp_5*tmp_6;
-      real_t tmp_16 = tmp_7*tmp_8;
-      real_t tmp_17 = tmp_10*tmp_9;
-      real_t tmp_18 = tmp_11*tmp_12;
-      real_t tmp_19 = 0.091576213509770743*tmp_13 + 0.44594849091596489*tmp_14 + 0.81684757298045851*tmp_15 + 0.10810301816807022*tmp_16 + 0.091576213509770743*tmp_17 + 0.44594849091596489*tmp_18;
-      real_t tmp_20 = 0.81684757298045851*tmp_13 + 0.10810301816807022*tmp_14 + 0.091576213509770743*tmp_15 + 0.44594849091596489*tmp_16 + 0.091576213509770743*tmp_17 + 0.44594849091596489*tmp_18;
-      real_t tmp_21 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.074803807748196505*tmp_2 + 0.04820837781551205*tmp_4 + 0.074803807748196505*tmp_6 + 0.04820837781551205*tmp_8;
-      real_t a_0_0 = (tmp_0*tmp_0)*tmp_2 + tmp_10*(tmp_9*tmp_9) + (tmp_11*tmp_11)*tmp_12 + (tmp_3*tmp_3)*tmp_4 + (tmp_5*tmp_5)*tmp_6 + (tmp_7*tmp_7)*tmp_8;
+      real_t tmp_12 = 0.11169079483900572 * tmp_1;
+      real_t tmp_13 = tmp_0 * tmp_2;
+      real_t tmp_14 = tmp_3 * tmp_4;
+      real_t tmp_15 = tmp_5 * tmp_6;
+      real_t tmp_16 = tmp_7 * tmp_8;
+      real_t tmp_17 = tmp_10 * tmp_9;
+      real_t tmp_18 = tmp_11 * tmp_12;
+      real_t tmp_19 = 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_14 + 0.81684757298045851 * tmp_15 +
+                      0.10810301816807022 * tmp_16 + 0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_18;
+      real_t tmp_20 = 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_14 + 0.091576213509770743 * tmp_15 +
+                      0.44594849091596489 * tmp_16 + 0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_18;
+      real_t tmp_21 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.074803807748196505 * tmp_2 +
+                      0.04820837781551205 * tmp_4 + 0.074803807748196505 * tmp_6 + 0.04820837781551205 * tmp_8;
+      real_t a_0_0 = ( tmp_0 * tmp_0 ) * tmp_2 + tmp_10 * ( tmp_9 * tmp_9 ) + ( tmp_11 * tmp_11 ) * tmp_12 +
+                     ( tmp_3 * tmp_3 ) * tmp_4 + ( tmp_5 * tmp_5 ) * tmp_6 + ( tmp_7 * tmp_7 ) * tmp_8;
       real_t a_0_1 = tmp_19;
       real_t a_0_2 = tmp_20;
       real_t a_1_0 = tmp_19;
-      real_t a_1_1 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.0083862028807871174*tmp_2 + 0.19887005655022641*tmp_4 + 0.6672399574840655*tmp_6 + 0.01168626253704612*tmp_8;
+      real_t a_1_1 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.0083862028807871174 * tmp_2 +
+                     0.19887005655022641 * tmp_4 + 0.6672399574840655 * tmp_6 + 0.01168626253704612 * tmp_8;
       real_t a_1_2 = tmp_21;
       real_t a_2_0 = tmp_20;
       real_t a_2_1 = tmp_21;
-      real_t a_2_2 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.6672399574840655*tmp_2 + 0.01168626253704612*tmp_4 + 0.0083862028807871174*tmp_6 + 0.19887005655022641*tmp_8;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
-      elMat( 1, 0) = a_1_0;
-      elMat( 1, 1) = a_1_1;
-      elMat( 1, 2) = a_1_2;
-      elMat( 2, 0) = a_2_0;
-      elMat( 2, 1) = a_2_1;
-      elMat( 2, 2) = a_2_2;
+      real_t a_2_2 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.6672399574840655 * tmp_2 +
+                     0.01168626253704612 * tmp_4 + 0.0083862028807871174 * tmp_6 + 0.19887005655022641 * tmp_8;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -130,15 +137,15 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -188,15 +195,15 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -232,15 +239,15 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -262,9 +269,6 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
 {
@@ -287,24 +291,24 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t a_0_0 = 0;
-      real_t a_0_1 = 0;
-      real_t a_0_2 = 0;
-      real_t a_1_0 = 0;
-      real_t a_1_1 = 0;
-      real_t a_1_2 = 0;
-      real_t a_2_0 = 0;
-      real_t a_2_1 = 0;
-      real_t a_2_2 = 0;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
-      elMat( 1, 0) = a_1_0;
-      elMat( 1, 1) = a_1_1;
-      elMat( 1, 2) = a_1_2;
-      elMat( 2, 0) = a_2_0;
-      elMat( 2, 1) = a_2_1;
-      elMat( 2, 2) = a_2_2;
+      real_t a_0_0  = 0;
+      real_t a_0_1  = 0;
+      real_t a_0_2  = 0;
+      real_t a_1_0  = 0;
+      real_t a_1_1  = 0;
+      real_t a_1_2  = 0;
+      real_t a_2_0  = 0;
+      real_t a_2_1  = 0;
+      real_t a_2_2  = 0;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -340,15 +344,15 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -398,15 +402,15 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -442,15 +446,15 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -472,9 +476,6 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
 {
@@ -497,24 +498,24 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t a_0_0 = 0;
-      real_t a_0_1 = 0;
-      real_t a_0_2 = 0;
-      real_t a_1_0 = 0;
-      real_t a_1_1 = 0;
-      real_t a_1_2 = 0;
-      real_t a_2_0 = 0;
-      real_t a_2_1 = 0;
-      real_t a_2_2 = 0;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
-      elMat( 1, 0) = a_1_0;
-      elMat( 1, 1) = a_1_1;
-      elMat( 1, 2) = a_1_2;
-      elMat( 2, 0) = a_2_0;
-      elMat( 2, 1) = a_2_1;
-      elMat( 2, 2) = a_2_2;
+      real_t a_0_0  = 0;
+      real_t a_0_1  = 0;
+      real_t a_0_2  = 0;
+      real_t a_1_0  = 0;
+      real_t a_1_1  = 0;
+      real_t a_1_2  = 0;
+      real_t a_2_0  = 0;
+      real_t a_2_1  = 0;
+      real_t a_2_2  = 0;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -550,15 +551,15 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -608,15 +609,15 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -652,15 +653,15 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -682,9 +683,6 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
 {
@@ -707,46 +705,53 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = 0.091576213509770743;
-      real_t tmp_1 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_2 = 0.054975871827660928*tmp_1;
-      real_t tmp_3 = 0.44594849091596489;
-      real_t tmp_4 = 0.11169079483900572*tmp_1;
-      real_t tmp_5 = 0.091576213509770743;
-      real_t tmp_6 = 0.054975871827660928*tmp_1;
-      real_t tmp_7 = 0.44594849091596489;
-      real_t tmp_8 = 0.11169079483900572*tmp_1;
-      real_t tmp_9 = 0.81684757298045851;
-      real_t tmp_10 = 0.054975871827660928*tmp_1;
+      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_1  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_2  = 0.054975871827660928 * tmp_1;
+      real_t tmp_3  = 0.44594849091596489;
+      real_t tmp_4  = 0.11169079483900572 * tmp_1;
+      real_t tmp_5  = 0.091576213509770743;
+      real_t tmp_6  = 0.054975871827660928 * tmp_1;
+      real_t tmp_7  = 0.44594849091596489;
+      real_t tmp_8  = 0.11169079483900572 * tmp_1;
+      real_t tmp_9  = 0.81684757298045851;
+      real_t tmp_10 = 0.054975871827660928 * tmp_1;
       real_t tmp_11 = 0.10810301816807022;
-      real_t tmp_12 = 0.11169079483900572*tmp_1;
-      real_t tmp_13 = tmp_0*tmp_2;
-      real_t tmp_14 = tmp_3*tmp_4;
-      real_t tmp_15 = tmp_5*tmp_6;
-      real_t tmp_16 = tmp_7*tmp_8;
-      real_t tmp_17 = tmp_10*tmp_9;
-      real_t tmp_18 = tmp_11*tmp_12;
-      real_t tmp_19 = 0.091576213509770743*tmp_13 + 0.44594849091596489*tmp_14 + 0.81684757298045851*tmp_15 + 0.10810301816807022*tmp_16 + 0.091576213509770743*tmp_17 + 0.44594849091596489*tmp_18;
-      real_t tmp_20 = 0.81684757298045851*tmp_13 + 0.10810301816807022*tmp_14 + 0.091576213509770743*tmp_15 + 0.44594849091596489*tmp_16 + 0.091576213509770743*tmp_17 + 0.44594849091596489*tmp_18;
-      real_t tmp_21 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.074803807748196505*tmp_2 + 0.04820837781551205*tmp_4 + 0.074803807748196505*tmp_6 + 0.04820837781551205*tmp_8;
-      real_t a_0_0 = (tmp_0*tmp_0)*tmp_2 + tmp_10*(tmp_9*tmp_9) + (tmp_11*tmp_11)*tmp_12 + (tmp_3*tmp_3)*tmp_4 + (tmp_5*tmp_5)*tmp_6 + (tmp_7*tmp_7)*tmp_8;
+      real_t tmp_12 = 0.11169079483900572 * tmp_1;
+      real_t tmp_13 = tmp_0 * tmp_2;
+      real_t tmp_14 = tmp_3 * tmp_4;
+      real_t tmp_15 = tmp_5 * tmp_6;
+      real_t tmp_16 = tmp_7 * tmp_8;
+      real_t tmp_17 = tmp_10 * tmp_9;
+      real_t tmp_18 = tmp_11 * tmp_12;
+      real_t tmp_19 = 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_14 + 0.81684757298045851 * tmp_15 +
+                      0.10810301816807022 * tmp_16 + 0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_18;
+      real_t tmp_20 = 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_14 + 0.091576213509770743 * tmp_15 +
+                      0.44594849091596489 * tmp_16 + 0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_18;
+      real_t tmp_21 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.074803807748196505 * tmp_2 +
+                      0.04820837781551205 * tmp_4 + 0.074803807748196505 * tmp_6 + 0.04820837781551205 * tmp_8;
+      real_t a_0_0 = ( tmp_0 * tmp_0 ) * tmp_2 + tmp_10 * ( tmp_9 * tmp_9 ) + ( tmp_11 * tmp_11 ) * tmp_12 +
+                     ( tmp_3 * tmp_3 ) * tmp_4 + ( tmp_5 * tmp_5 ) * tmp_6 + ( tmp_7 * tmp_7 ) * tmp_8;
       real_t a_0_1 = tmp_19;
       real_t a_0_2 = tmp_20;
       real_t a_1_0 = tmp_19;
-      real_t a_1_1 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.0083862028807871174*tmp_2 + 0.19887005655022641*tmp_4 + 0.6672399574840655*tmp_6 + 0.01168626253704612*tmp_8;
+      real_t a_1_1 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.0083862028807871174 * tmp_2 +
+                     0.19887005655022641 * tmp_4 + 0.6672399574840655 * tmp_6 + 0.01168626253704612 * tmp_8;
       real_t a_1_2 = tmp_21;
       real_t a_2_0 = tmp_20;
       real_t a_2_1 = tmp_21;
-      real_t a_2_2 = 0.0083862028807871174*tmp_10 + 0.19887005655022641*tmp_12 + 0.6672399574840655*tmp_2 + 0.01168626253704612*tmp_4 + 0.0083862028807871174*tmp_6 + 0.19887005655022641*tmp_8;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
-      elMat( 1, 0) = a_1_0;
-      elMat( 1, 1) = a_1_1;
-      elMat( 1, 2) = a_1_2;
-      elMat( 2, 0) = a_2_0;
-      elMat( 2, 1) = a_2_1;
-      elMat( 2, 2) = a_2_2;
+      real_t a_2_2 = 0.0083862028807871174 * tmp_10 + 0.19887005655022641 * tmp_12 + 0.6672399574840655 * tmp_2 +
+                     0.01168626253704612 * tmp_4 + 0.0083862028807871174 * tmp_6 + 0.19887005655022641 * tmp_8;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 1, 1 ) = a_1_1;
+      elMat( 1, 2 ) = a_1_2;
+      elMat( 2, 0 ) = a_2_0;
+      elMat( 2, 1 ) = a_2_1;
+      elMat( 2, 2 ) = a_2_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -782,15 +787,15 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -840,15 +845,15 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -884,15 +889,15 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 1, 1) = 0;
-      elMat( 1, 2) = 0;
-      elMat( 2, 0) = 0;
-      elMat( 2, 1) = 0;
-      elMat( 2, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 1, 1 ) = 0;
+      elMat( 1, 2 ) = 0;
+      elMat( 2, 0 ) = 0;
+      elMat( 2, 1 ) = 0;
+      elMat( 2, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -914,9 +919,6 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
 {
@@ -939,19 +941,26 @@ class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_1 = -0.013290808432844642*tmp_0;
-      real_t tmp_2 = 0.012578076461324002*tmp_0;
-      real_t tmp_3 = 0.026581616865689286*tmp_0;
-      real_t tmp_4 = -0.025156152922648001*tmp_0;
-      real_t tmp_5 = -0.013290808432844642*tmp_0;
-      real_t tmp_6 = 0.012578076461324002*tmp_0;
-      real_t a_0_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.81684757298045851*tmp_5 + 0.10810301816807022*tmp_6;
-      real_t a_1_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.81684757298045851*tmp_3 + 0.10810301816807022*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      real_t a_2_0 = 0.81684757298045851*tmp_1 + 0.10810301816807022*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      elMat( 0, 0) = a_0_0;
-      elMat( 1, 0) = a_1_0;
-      elMat( 2, 0) = a_2_0;
+      real_t tmp_0 = -p_affine_0_0;
+      real_t tmp_1 = p_affine_1_0 + tmp_0;
+      real_t tmp_2 = p_affine_2_0 + tmp_0;
+      real_t tmp_3 = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_4 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 + 0.4835142396471252 * tmp_2 );
+      real_t tmp_5 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 - 0.2252303151652631 * tmp_2 );
+      real_t tmp_6 = 0.054975871827660928 * tmp_3 * ( 0.4835142396471252 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_7 = 0.11169079483900572 * tmp_3 * ( -0.2252303151652631 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t tmp_8 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_9 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t a_0_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.81684757298045851 * tmp_8 + 0.10810301816807022 * tmp_9;
+      real_t a_1_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.81684757298045851 * tmp_6 +
+                     0.10810301816807022 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      real_t a_2_0 = 0.81684757298045851 * tmp_4 + 0.10810301816807022 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 2, 0 ) = a_2_0;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -987,9 +996,9 @@ class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -1039,9 +1048,9 @@ class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1077,9 +1086,9 @@ class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1101,9 +1110,6 @@ class DGVectorMassFormP1EDG_0 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
 {
@@ -1126,19 +1132,26 @@ class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_1 = 0.026581616865689286*tmp_0;
-      real_t tmp_2 = -0.025156152922648001*tmp_0;
-      real_t tmp_3 = -0.013290808432844642*tmp_0;
-      real_t tmp_4 = 0.012578076461324002*tmp_0;
-      real_t tmp_5 = -0.013290808432844642*tmp_0;
-      real_t tmp_6 = 0.012578076461324002*tmp_0;
-      real_t a_0_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.81684757298045851*tmp_5 + 0.10810301816807022*tmp_6;
-      real_t a_1_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.81684757298045851*tmp_3 + 0.10810301816807022*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      real_t a_2_0 = 0.81684757298045851*tmp_1 + 0.10810301816807022*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      elMat( 0, 0) = a_0_0;
-      elMat( 1, 0) = a_1_0;
-      elMat( 2, 0) = a_2_0;
+      real_t tmp_0 = -p_affine_0_1;
+      real_t tmp_1 = p_affine_1_1 + tmp_0;
+      real_t tmp_2 = p_affine_2_1 + tmp_0;
+      real_t tmp_3 = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_4 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 + 0.4835142396471252 * tmp_2 );
+      real_t tmp_5 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 - 0.2252303151652631 * tmp_2 );
+      real_t tmp_6 = 0.054975871827660928 * tmp_3 * ( 0.4835142396471252 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_7 = 0.11169079483900572 * tmp_3 * ( -0.2252303151652631 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t tmp_8 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_9 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t a_0_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.81684757298045851 * tmp_8 + 0.10810301816807022 * tmp_9;
+      real_t a_1_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.81684757298045851 * tmp_6 +
+                     0.10810301816807022 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      real_t a_2_0 = 0.81684757298045851 * tmp_4 + 0.10810301816807022 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 1, 0 ) = a_1_0;
+      elMat( 2, 0 ) = a_2_0;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1174,9 +1187,9 @@ class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -1226,9 +1239,9 @@ class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1264,9 +1277,9 @@ class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 1, 0) = 0;
-      elMat( 2, 0) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 1, 0 ) = 0;
+      elMat( 2, 0 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1288,9 +1301,6 @@ class DGVectorMassFormP1EDG_1 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
 {
@@ -1313,19 +1323,26 @@ class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_1 = -0.013290808432844642*tmp_0;
-      real_t tmp_2 = 0.012578076461324002*tmp_0;
-      real_t tmp_3 = 0.026581616865689286*tmp_0;
-      real_t tmp_4 = -0.025156152922648001*tmp_0;
-      real_t tmp_5 = -0.013290808432844642*tmp_0;
-      real_t tmp_6 = 0.012578076461324002*tmp_0;
-      real_t a_0_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.81684757298045851*tmp_5 + 0.10810301816807022*tmp_6;
-      real_t a_0_1 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.81684757298045851*tmp_3 + 0.10810301816807022*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      real_t a_0_2 = 0.81684757298045851*tmp_1 + 0.10810301816807022*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
+      real_t tmp_0 = -p_affine_0_0;
+      real_t tmp_1 = p_affine_1_0 + tmp_0;
+      real_t tmp_2 = p_affine_2_0 + tmp_0;
+      real_t tmp_3 = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_4 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 + 0.4835142396471252 * tmp_2 );
+      real_t tmp_5 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 - 0.2252303151652631 * tmp_2 );
+      real_t tmp_6 = 0.054975871827660928 * tmp_3 * ( 0.4835142396471252 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_7 = 0.11169079483900572 * tmp_3 * ( -0.2252303151652631 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t tmp_8 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_9 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t a_0_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.81684757298045851 * tmp_8 + 0.10810301816807022 * tmp_9;
+      real_t a_0_1 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.81684757298045851 * tmp_6 +
+                     0.10810301816807022 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      real_t a_0_2 = 0.81684757298045851 * tmp_4 + 0.10810301816807022 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1361,9 +1378,9 @@ class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -1413,9 +1430,9 @@ class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1451,9 +1468,9 @@ class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1475,9 +1492,6 @@ class DGVectorMassFormEDGP1_0 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
 {
@@ -1500,19 +1514,26 @@ class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_1 = 0.026581616865689286*tmp_0;
-      real_t tmp_2 = -0.025156152922648001*tmp_0;
-      real_t tmp_3 = -0.013290808432844642*tmp_0;
-      real_t tmp_4 = 0.012578076461324002*tmp_0;
-      real_t tmp_5 = -0.013290808432844642*tmp_0;
-      real_t tmp_6 = 0.012578076461324002*tmp_0;
-      real_t a_0_0 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.81684757298045851*tmp_5 + 0.10810301816807022*tmp_6;
-      real_t a_0_1 = 0.091576213509770743*tmp_1 + 0.44594849091596489*tmp_2 + 0.81684757298045851*tmp_3 + 0.10810301816807022*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      real_t a_0_2 = 0.81684757298045851*tmp_1 + 0.10810301816807022*tmp_2 + 0.091576213509770743*tmp_3 + 0.44594849091596489*tmp_4 + 0.091576213509770743*tmp_5 + 0.44594849091596489*tmp_6;
-      elMat( 0, 0) = a_0_0;
-      elMat( 0, 1) = a_0_1;
-      elMat( 0, 2) = a_0_2;
+      real_t tmp_0 = -p_affine_0_1;
+      real_t tmp_1 = p_affine_1_1 + tmp_0;
+      real_t tmp_2 = p_affine_2_1 + tmp_0;
+      real_t tmp_3 = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_4 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 + 0.4835142396471252 * tmp_2 );
+      real_t tmp_5 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 - 0.2252303151652631 * tmp_2 );
+      real_t tmp_6 = 0.054975871827660928 * tmp_3 * ( 0.4835142396471252 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_7 = 0.11169079483900572 * tmp_3 * ( -0.2252303151652631 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t tmp_8 = 0.054975871827660928 * tmp_3 * ( -0.24175711982356257 * tmp_1 - 0.24175711982356257 * tmp_2 );
+      real_t tmp_9 = 0.11169079483900572 * tmp_3 * ( 0.11261515758263158 * tmp_1 + 0.11261515758263158 * tmp_2 );
+      real_t a_0_0 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.81684757298045851 * tmp_8 + 0.10810301816807022 * tmp_9;
+      real_t a_0_1 = 0.091576213509770743 * tmp_4 + 0.44594849091596489 * tmp_5 + 0.81684757298045851 * tmp_6 +
+                     0.10810301816807022 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      real_t a_0_2 = 0.81684757298045851 * tmp_4 + 0.10810301816807022 * tmp_5 + 0.091576213509770743 * tmp_6 +
+                     0.44594849091596489 * tmp_7 + 0.091576213509770743 * tmp_8 + 0.44594849091596489 * tmp_9;
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1548,9 +1569,9 @@ class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -1600,9 +1621,9 @@ class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1638,9 +1659,9 @@ class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
-      elMat( 0, 1) = 0;
-      elMat( 0, 2) = 0;
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1662,9 +1683,6 @@ class DGVectorMassFormEDGP1_1 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
-
-
 
 class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
 {
@@ -1687,9 +1705,45 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0 = std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t a_0_0 = 0.055555555555555539*tmp_0;
-      elMat( 0, 0) = a_0_0;
+      real_t tmp_0  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t tmp_1  = -0.24175711982356257;
+      real_t tmp_2  = -p_affine_0_0;
+      real_t tmp_3  = p_affine_1_0 + tmp_2;
+      real_t tmp_4  = 0.4835142396471252;
+      real_t tmp_5  = p_affine_2_0 + tmp_2;
+      real_t tmp_6  = -p_affine_0_1;
+      real_t tmp_7  = p_affine_1_1 + tmp_6;
+      real_t tmp_8  = p_affine_2_1 + tmp_6;
+      real_t tmp_9  = 0.11261515758263158;
+      real_t tmp_10 = -0.2252303151652631;
+      real_t tmp_11 = 0.4835142396471252;
+      real_t tmp_12 = -0.24175711982356257;
+      real_t tmp_13 = -0.2252303151652631;
+      real_t tmp_14 = 0.11261515758263158;
+      real_t tmp_15 = -0.24175711982356257;
+      real_t tmp_16 = -0.24175711982356257;
+      real_t tmp_17 = 0.11261515758263158;
+      real_t tmp_18 = 0.11261515758263158;
+      real_t a_0_0  = 0.054975871827660928 * tmp_0 *
+                         ( ( ( tmp_1 * tmp_3 + tmp_4 * tmp_5 ) * ( tmp_1 * tmp_3 + tmp_4 * tmp_5 ) ) +
+                           ( ( tmp_1 * tmp_7 + tmp_4 * tmp_8 ) * ( tmp_1 * tmp_7 + tmp_4 * tmp_8 ) ) ) +
+                     0.11169079483900572 * tmp_0 *
+                         ( ( ( tmp_10 * tmp_5 + tmp_3 * tmp_9 ) * ( tmp_10 * tmp_5 + tmp_3 * tmp_9 ) ) +
+                           ( ( tmp_10 * tmp_8 + tmp_7 * tmp_9 ) * ( tmp_10 * tmp_8 + tmp_7 * tmp_9 ) ) ) +
+                     0.054975871827660928 * tmp_0 *
+                         ( ( ( tmp_11 * tmp_3 + tmp_12 * tmp_5 ) * ( tmp_11 * tmp_3 + tmp_12 * tmp_5 ) ) +
+                           ( ( tmp_11 * tmp_7 + tmp_12 * tmp_8 ) * ( tmp_11 * tmp_7 + tmp_12 * tmp_8 ) ) ) +
+                     0.11169079483900572 * tmp_0 *
+                         ( ( ( tmp_13 * tmp_3 + tmp_14 * tmp_5 ) * ( tmp_13 * tmp_3 + tmp_14 * tmp_5 ) ) +
+                           ( ( tmp_13 * tmp_7 + tmp_14 * tmp_8 ) * ( tmp_13 * tmp_7 + tmp_14 * tmp_8 ) ) ) +
+                     0.054975871827660928 * tmp_0 *
+                         ( ( ( tmp_15 * tmp_3 + tmp_16 * tmp_5 ) * ( tmp_15 * tmp_3 + tmp_16 * tmp_5 ) ) +
+                           ( ( tmp_15 * tmp_7 + tmp_16 * tmp_8 ) * ( tmp_15 * tmp_7 + tmp_16 * tmp_8 ) ) ) +
+                     0.11169079483900572 * tmp_0 *
+                         ( ( ( tmp_17 * tmp_3 + tmp_18 * tmp_5 ) * ( tmp_17 * tmp_3 + tmp_18 * tmp_5 ) ) +
+                           ( ( tmp_17 * tmp_7 + tmp_18 * tmp_8 ) * ( tmp_17 * tmp_7 + tmp_18 * tmp_8 ) ) );
+      elMat( 0, 0 ) = a_0_0;
    }
 
    virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1725,7 +1779,7 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
+      elMat( 0, 0 ) = 0;
    }
 
    virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
@@ -1775,7 +1829,7 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
+      elMat( 0, 0 ) = 0;
    };
 
    virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1811,7 +1865,7 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
+      elMat( 0, 0 ) = 0;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
@@ -1834,6 +1888,5 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
    }
 };
 
-
-} // dg
-} // hyteg
+} // namespace dg
+} // namespace hyteg

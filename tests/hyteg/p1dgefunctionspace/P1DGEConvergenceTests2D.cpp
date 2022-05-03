@@ -44,10 +44,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
 {
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
 
    P1DGEFunction< idx_t >         numerator( "numerator", storage, level, level );
    P1DGELaplaceOperator< real_t > L( storage, level, level );
@@ -67,13 +64,6 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t y = p[1];
       return std::sin( M_PI * x ) * std::sin( M_PI * y ) * std::sin( M_PI * ( x + y ) );
    };
-   std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = 2 * x;
-      const real_t x1 = 2 * y;
-      return std::sin( M_PI * x0 ) * std::sin( M_PI * x1 ) * std::sin( M_PI * ( x0 + x1 ) );
-   };
 
    // rhs as a lambda function
    std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
@@ -88,20 +78,6 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x6 = 2 * std::cos( x2 );
       return -( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
    };
-   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = 2 * x;
-      const real_t x1 = 2 * y;
-      const real_t x2 = M_PI * ( x0 + x1 );
-      const real_t x3 = M_PI * x0;
-      const real_t x4 = std::sin( x3 );
-      const real_t x5 = std::pow( M_PI, 2 );
-      const real_t x6 = M_PI * x1;
-      const real_t x7 = x5 * std::sin( x6 );
-      const real_t x8 = 8 * std::cos( x2 );
-      return -( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
-   };
 
    P1DGEFunction< real_t > u( "u", storage, level, level );
    P1DGEFunction< real_t > f( "f", storage, level, level );
@@ -110,8 +86,11 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    P1DGEFunction< real_t > err( "err", storage, level, level );
    P1DGEFunction< real_t > Merr( "Merr", storage, level, level );
 
-   sol.interpolate( { u_x_expr, u_y_expr }, level, All );
-   f.interpolate( { f_x_expr, f_y_expr }, level, All );
+   sol.interpolate( { u_x_expr, u_x_expr }, level, All );
+   f.interpolate( { f_x_expr, f_x_expr }, level, All );
+
+   // Why do I need this?
+   f.interpolate( { u_x_expr, u_x_expr }, level, DirichletBoundary );
 
    // simulate a multiply operation:
    //    M.apply( f, rhs, level, All, Replace );
@@ -121,6 +100,9 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    rhs_vec->createVectorFromFunction( f, numerator, level, All );
    Mpetsc.multiply( *f_vec, *rhs_vec );
    rhs_vec->createFunctionFromVector( rhs, numerator, level, All );
+
+   rhs.interpolate(0, level, DirichletBoundary);
+   u.getConformingPart()->interpolate( 0, level, DirichletBoundary );
 
    PETScCGSolver< P1DGELaplaceOperator< real_t > > solver( storage, level, numerator );
    solver.solve( L, u, rhs, level );
@@ -134,7 +116,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    Mpetsc.multiply( *err_vec, *Merr_vec );
    Merr_vec->createFunctionFromVector( Merr, numerator, level, All );
 
-   auto discrL2 = sqrt( err.dotGlobal( Merr, level ) );
+   auto discrL2 = sqrt( err.dotGlobal( Merr, level, Inner ) );
 
    if ( writeVTK )
    {
@@ -145,6 +127,8 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       vtk.add( f );
       vtk.add( *u.getConformingPart() );
       vtk.add( *u.getDiscontinuousPart() );
+      vtk.add( *numerator.getConformingPart() );
+      vtk.add( *numerator.getDiscontinuousPart() );
       vtk.write( level );
    }
 
@@ -159,7 +143,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   for ( uint_t level = 2; level <= 6; level++ )
+   for ( uint_t level = 2; level <= 8; level++ )
    {
       WALBERLA_LOG_INFO( hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true ) );
    }

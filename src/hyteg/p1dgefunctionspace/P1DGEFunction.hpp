@@ -28,6 +28,42 @@
 
 namespace hyteg {
 
+inline void applyDirichletBCTest( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( auto& it : numerator.getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = numerator.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, DirichletBoundary ) )
+      {
+         vertexdof::macrovertex::applyDirichletBC( vertex, mat, level, numerator.getVertexDataID() );
+      }
+   }
+
+   for ( auto& it : numerator.getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, DirichletBoundary ) )
+      {
+         vertexdof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
+      }
+   }
+
+   for ( auto& it : numerator.getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, DirichletBoundary ) )
+      {
+         vertexdof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
+      }
+   }
+}
+
 template < typename ValueType >
 class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 {
@@ -410,6 +446,13 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
 
 inline void applyDirichletBC( const P1DGEFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
+   WALBERLA_LOG_INFO(
+       "Warning EDG applies dirichlet boundary conditions for P1!"
+       "This is not completely correct correct." )
+
+   applyDirichletBCTest( numerator.getConformingPart()->component(0), mat, level );
+   applyDirichletBCTest( numerator.getConformingPart()->component(1), mat, level );
+
    WALBERLA_UNUSED( numerator );
    WALBERLA_UNUSED( mat );
    WALBERLA_UNUSED( level );
