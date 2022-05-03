@@ -3,7 +3,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hyteg {
+namespace terraneo {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -268,4 +268,4 @@ class SphericalHarmonicsTool
    real_t evalVSH( uint_t deg, int ord, real_t x, real_t y, real_t z, uint_t ind, uint_t comp );
 };
 
-} // namespace hyteg
+} // namespace terraneo
