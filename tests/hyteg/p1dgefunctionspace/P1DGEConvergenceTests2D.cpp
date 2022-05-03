@@ -86,7 +86,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x4 = M_PI * y;
       const real_t x5 = x3 * std::sin( x4 );
       const real_t x6 = 2 * std::cos( x2 );
-      return x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 );
+      return - ( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
       const real_t x  = p[0];
@@ -100,7 +100,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x6 = M_PI * x1;
       const real_t x7 = x5 * std::sin( x6 );
       const real_t x8 = 8 * std::cos( x2 );
-      return x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 );
+      return - ( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
    };
 
    P1DGEFunction< real_t > u( "u", storage, level, level );
@@ -118,7 +118,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    f_vec->createVectorFromFunction( f,numerator, level, All );
    auto rhs_vec =  std::make_shared < PETScVector< real_t, P1DGEFunction > > ();
    rhs_vec->createVectorFromFunction( f,numerator, level, All );
-   Lpetsc.multiply(*f_vec, *rhs_vec);
+   Mpetsc.multiply(*f_vec, *rhs_vec);
    rhs_vec->createFunctionFromVector( rhs, numerator, level, All );
 
    PETScCGSolver< P1DGELaplaceOperator< real_t > > solver( storage, level, numerator );
@@ -134,6 +134,8 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       vtk.add( sol );
       vtk.add( err );
       vtk.add( f );
+      vtk.add( *u.getConformingPart() );
+      vtk.add( *u.getDiscontinuousPart() );
       vtk.write( level );
    }
 
@@ -148,7 +150,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   for ( uint_t level = 2; level <= 4; level++ )
+   for ( uint_t level = 2; level <= 6; level++ )
    {
       WALBERLA_LOG_INFO( hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true ) );
    }
