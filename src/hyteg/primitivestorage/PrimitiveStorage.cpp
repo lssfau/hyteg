@@ -416,6 +416,38 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, c
 : PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
 {}
 
+PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
+                                    const EdgeMap&        edges,
+                                    const FaceMap&        faces,
+                                    const CellMap&        cells,
+                                    const VertexMap&      nbrvtxs,
+                                    const EdgeMap&        nbredges,
+                                    const FaceMap&        nbrfaces,
+                                    const CellMap&        nbrcells,
+                                    const MigrationMap_T& neighborRanks,
+                                    const bool&           hasGlobalCells )
+: vertices_( vtxs )
+, edges_( edges )
+, faces_( faces )
+, cells_( cells )
+, neighborVertices_( nbrvtxs )
+, neighborEdges_( nbredges )
+, neighborFaces_( nbrfaces )
+, neighborCells_( nbrcells )
+, primitiveDataHandlers_( 0 )
+, neighborRanks_( neighborRanks )
+, modificationStamp_( 0 )
+, timingTree_( std::make_shared< walberla::WcTimingTree >() )
+, hasGlobalCells_( hasGlobalCells )
+, additionalHaloDepth_( 0 )
+{
+   splitCommunicatorByPrimitiveDistribution();
+
+#ifndef NDEBUG
+   checkConsistency();
+#endif
+}
+
 std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
 {
    auto copiedStorage = std::make_shared< PrimitiveStorage >(

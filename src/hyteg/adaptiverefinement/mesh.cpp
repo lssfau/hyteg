@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2021-2022 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 #include <core/mpi/Broadcast.h>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <type_traits>
 
 #include "hyteg/Algorithms.hpp"
@@ -37,7 +38,7 @@ namespace adaptiveRefinement {
 
 template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
-: _setupStorage( setupStorage )
+: _n_processes( setupStorage.getNumberOfProcesses() )
 {
    // copy geometrymaps for each primitive in initial setupStorage
    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
@@ -145,25 +146,57 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine )
+real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
 {
+   real_t ratio = 1;
+
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      auto R = init_R( elements_to_refine );
-      // remove green edges
-      remove_green_edges( R );
+      // pessimistic estimate! in most cases the actual growth will be significantly smaller
+      const uint_t est_growth_factor = ( K_Simplex::TYPE == FACE ) ? 18 : 138;
 
-      /* recursively apply red refinement for elements
-        that otherwise would be subject to multiple
-        green refinement steps
+      uint_t predict = _T.size();
+
+      /* green elements must not be refined any further to
+         prevent mesh degeneration
       */
-      std::set< std::shared_ptr< K_Simplex > > U = _T;
-      std::set< std::shared_ptr< K_Simplex > > refined;
-      while ( !R.empty() )
-      {
-         refined.merge( refine_red( R, U ) );
+      remove_green_edges();
 
-         R = find_elements_for_red_refinement( U );
+      // get elements corresponding to given IDs
+      auto R = init_R( elements_to_refine );
+
+      // unprocessed elements
+      std::set< std::shared_ptr< K_Simplex > > U = _T;
+      // refined elements
+      std::set< std::shared_ptr< K_Simplex > > refined;
+
+      /* successively apply recursive red-refinement to parts of R
+         until predicted n_el exceeds n_el_max
+      */
+      auto prt      = R.begin();
+      auto prt_size = R.size();
+      while ( prt_size > 0 && prt != R.end() && predict < n_el_max )
+      {
+         // move to next chunk
+         auto done = prt;
+         prt_size  = ( n_el_max - predict ) / est_growth_factor;
+         prt       = done + std::min( int64_t( prt_size ), int64_t( R.end() - done ) );
+
+         std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
+         R_prt.erase( nullptr );
+
+         /* recursively apply red refinement for elements
+         that otherwise would be subject to multiple
+         green refinement steps later on
+         */
+         while ( !R_prt.empty() )
+         {
+            refined.merge( refine_red( R_prt, U ) );
+            R_prt = find_elements_for_red_refinement( U );
+         }
+
+         // predict number of elements after required green step
+         predict = U.size() + refined.size() + predict_n_el_green( U );
       }
 
       // apply green refinement
@@ -174,143 +207,308 @@ SetupPrimitiveStorage& K_Mesh< K_Simplex >::refineRG( const std::vector< Primiti
       _T.merge( refined );
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
-   }
 
-   // extract connectivity, geometry and boundary data
-   EdgeData edges;
-   FaceData faces;
-   CellData cells;
-   extract_data( edges, faces, cells );
-
-   // broadcast data to all processes
-   walberla::mpi::broadcastObject( _n_elements );
-   walberla::mpi::broadcastObject( _n_vertices );
-   walberla::mpi::broadcastObject( _vertices );
-   walberla::mpi::broadcastObject( _vertexGeometryMap );
-   walberla::mpi::broadcastObject( _vertexBoundaryFlag );
-   edges.broadcast();
-   faces.broadcast();
-   cells.broadcast();
-
-   // update storage
-   auto id = updateSetupStorage( edges, faces, cells, _setupStorage.getNumberOfProcesses() );
-
-   // todo clear vertex data on rank!=0
-
-   // insert PrimitiveIDs to volume elements
-   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-   {
-      for ( auto& el : _T )
+      // compute ratio |R\U|/|R|
+      auto card_R       = R.size();
+      auto card_diff_RU = card_R;
+      for ( auto& el : R )
       {
-         el->setPrimitiveID( id );
-         ++id;
+         if ( U.count( el ) > 0 )
+            --card_diff_RU;
       }
+      ratio = real_t( card_diff_RU ) / real_t( card_R );
    }
 
-   return _setupStorage;
+   walberla::mpi::broadcastObject( _n_vertices );
+   walberla::mpi::broadcastObject( _n_elements );
+   walberla::mpi::broadcastObject( ratio );
+
+   return ratio;
 }
 
 template < class K_Simplex >
-uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
-                                                const FaceData& faces,
-                                                const CellData& cells,
-                                                const uint_t&   n_processes )
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                                      uint_t                                                     n_el_max )
 {
-   SetupPrimitiveStorage::VertexMap vertices_sps;
-   SetupPrimitiveStorage::EdgeMap   edges_sps;
-   SetupPrimitiveStorage::FaceMap   faces_sps;
-   SetupPrimitiveStorage::CellMap   cells_sps;
+   // communication
+   ErrorVector errors_all, errors_other;
 
-   // give each primitive a running id
-   uint_t id = 0;
+   walberla::mpi::SendBuffer send;
+   walberla::mpi::RecvBuffer recv;
 
-   //****** add vertices to storage ******
-
-   for ( const auto& vtx : _vertices )
+   send << errors_local;
+   walberla::mpi::allGathervBuffer( send, recv );
+   for ( uint_t rnk = 0; rnk < _n_processes; ++rnk )
    {
-      PrimitiveID vtxID( id );
-
-      // add new vertex
-      auto primitive   = std::make_shared< Vertex >( vtxID, vtx );
-      vertices_sps[id] = primitive;
-
-      // add properties
-      primitive->meshBoundaryFlag_ = _vertexBoundaryFlag[id];
-      primitive->geometryMap_      = _geometryMap[_vertexGeometryMap[id]];
-
-      ++id;
+      recv >> errors_other;
+      errors_all.insert( errors_all.end(), errors_other.begin(), errors_other.end() );
    }
 
-   //****** add edges to storage ******
+   if ( errors_all.size() != _n_elements )
+   {
+      WALBERLA_ABORT( "total number of error values must be equal to number of macro elements (cells/faces)" );
+   }
+
+   // sort by errors
+   std::sort( errors_all.begin(), errors_all.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+
+   // apply criterion
+   std::vector< PrimitiveID > elements_to_refine;
+   for ( uint_t i = 0; i < _n_elements; ++i )
+   {
+      if ( criterion( errors_all, i ) )
+      {
+         elements_to_refine.push_back( errors_all[i].second );
+      }
+   }
+
+   // apply refinement
+   return refineRG( elements_to_refine, n_el_max );
+}
+
+template < class K_Simplex >
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
+{
+   auto N_ref     = uint_t( std::ceil( real_t( _n_elements ) * ratio_to_refine ) );
+   auto criterion = [=]( const ErrorVector&, uint_t i ) { return i < N_ref; };
+   return refineRG( errors_local, criterion, n_el_max );
+}
+
+template < class K_Simplex >
+std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage( const Loadbalancing& lb )
+{
+   // extract connectivity, geometry and boundary data and add PrimitiveIDs
+   std::vector< VertexData >   vtxs;
+   std::vector< EdgeData >     edges;
+   std::vector< FaceData >     faces;
+   std::vector< CellData >     cells;
+   std::vector< Neighborhood > nbrHood;
+   extract_data( vtxs, edges, faces, cells, nbrHood );
+
+   // apply loadbalancing
+   if ( lb == ROUND_ROBIN )
+   {
+      loadbalancing( vtxs, edges, faces, cells, _n_processes );
+   }
+   if ( lb == CLUSTERING )
+   {
+      loadbalancing( vtxs, edges, faces, cells, nbrHood, _n_processes, uint_t( walberla::mpi::MPIManager::instance()->rank() ) );
+   }
+
+   // create storage
+   return make_localPrimitives( vtxs, edges, faces, cells );
+}
+
+template < class K_Simplex >
+std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( std::vector< VertexData >& vtxs,
+                                                                               std::vector< EdgeData >&   edges,
+                                                                               std::vector< FaceData >&   faces,
+                                                                               std::vector< CellData >&   cells )
+{
+   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+
+   // ****** create maps M: primitiveID -> simplexData ******
+
+   // acces EdgeData via PrimitiveID
+   auto get_edge = [&]( uint_t id ) -> EdgeData* {
+      const uint_t id0 = edges[0].getPrimitiveID().getID();
+      return &( edges[id - id0] );
+   };
+   // acces FaceData via PrimitiveID
+   auto get_face = [&]( uint_t id ) -> FaceData* {
+      const uint_t id0 = faces[0].getPrimitiveID().getID();
+      return &( faces[id - id0] );
+   };
+
+   // ****** create maps M: vertexIds -> primitiveID ******
 
    // identify edges with their vertex IDs
    std::map< Idx< 2 >, PrimitiveID > vertexIDsToEdgeID;
-
-   for ( size_t e = 0; e < edges.size(); ++e )
+   for ( auto& edge : edges )
    {
+      vertexIDsToEdgeID[edge.get_vertices()] = edge.getPrimitiveID();
+   }
+   // identify faces with their vertex IDs
+   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
+   for ( auto& face : faces )
+   {
+      vertexIDsToFaceID[face.get_vertices()] = face.getPrimitiveID();
+   }
+
+   // ****** find primitives required locally or for halos ******
+
+   hyteg::MigrationMap_T nbrRanks;
+
+   for ( auto& vtx : vtxs )
+   {
+      vtx.setLocality( ( vtx.getTargetRank() == rank ) ? LOCAL : NONE );
+   }
+
+   for ( auto& edge : edges )
+   {
+      edge.setLocality( ( edge.getTargetRank() == rank ) ? LOCAL : NONE );
+
+      auto& v = edge.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( edge.isLocal() && !vtxs[vtx].isLocal() )
+         {
+            vtxs[vtx].setLocality( HALO );
+            nbrRanks[vtx] = vtxs[vtx].getTargetRank();
+         }
+         if ( !edge.isLocal() && vtxs[vtx].isLocal() )
+         {
+            edge.setLocality( HALO );
+            nbrRanks[edge.getPrimitiveID().getID()] = edge.getTargetRank();
+         }
+      }
+   }
+
+   for ( auto& face : faces )
+   {
+      face.setLocality( ( face.getTargetRank() == rank ) ? LOCAL : NONE );
+
+      auto& v = face.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( face.isLocal() && !vtxs[vtx].isLocal() )
+         {
+            vtxs[vtx].setLocality( HALO );
+            nbrRanks[vtx] = vtxs[vtx].getTargetRank();
+         }
+         if ( !face.isLocal() && vtxs[vtx].isLocal() )
+         {
+            face.setLocality( HALO );
+            nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
+         }
+      }
+
+      for ( uint_t i = 0; i < 3; ++i )
+      {
+         Idx< 2 >  edgeVtxs{ v[i], v[( i + 1 ) % 3] };
+         EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+         if ( face.isLocal() && !edge->isLocal() )
+         {
+            edge->setLocality( HALO );
+            nbrRanks[edge->getPrimitiveID().getID()] = edge->getTargetRank();
+         }
+         if ( !face.isLocal() && edge->isLocal() )
+         {
+            face.setLocality( HALO );
+            nbrRanks[face.getPrimitiveID().getID()] = face.getTargetRank();
+         }
+      }
+   }
+
+   for ( auto& cell : cells )
+   {
+      cell.setLocality( ( cell.getTargetRank() == rank ) ? LOCAL : NONE );
+
+      auto& v = cell.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( cell.isLocal() && !vtxs[vtx].isLocal() )
+         {
+            vtxs[vtx].setLocality( HALO );
+            nbrRanks[vtx] = vtxs[vtx].getTargetRank();
+         }
+         if ( !cell.isLocal() && vtxs[vtx].isLocal() )
+         {
+            cell.setLocality( HALO );
+            nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
+         }
+      }
+
+      for ( uint_t i = 0; i < 4; ++i )
+      {
+         for ( uint_t j = i + 1; j < 4; ++j )
+         {
+            Idx< 2 >  edgeVtxs{ v[i], v[j] };
+            EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+            if ( cell.isLocal() && !edge->isLocal() )
+            {
+               edge->setLocality( HALO );
+               nbrRanks[edge->getPrimitiveID().getID()] = edge->getTargetRank();
+            }
+            if ( !cell.isLocal() && edge->isLocal() )
+            {
+               cell.setLocality( HALO );
+               nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
+            }
+         }
+      }
+
+      for ( uint_t j = 0; j < 4; ++j )
+      {
+         Idx< 3 >  faceVtxs{ v[j], v[( j + 1 ) % 4], v[( j + 2 ) % 4] };
+         FaceData* face = get_face( vertexIDsToFaceID[faceVtxs].getID() );
+
+         if ( cell.isLocal() && !face->isLocal() )
+         {
+            face->setLocality( HALO );
+            nbrRanks[face->getPrimitiveID().getID()] = face->getTargetRank();
+         }
+         if ( !cell.isLocal() && face->isLocal() )
+         {
+            cell.setLocality( HALO );
+            nbrRanks[cell.getPrimitiveID().getID()] = cell.getTargetRank();
+         }
+      }
+   }
+
+   // ****** create primitives ******
+
+   // broadcast vertices to all processes
+   walberla::mpi::broadcastObject( _vertices );
+
+   // create new vertex and add it to map
+   auto add_vertex = [&]( PrimitiveStorage::VertexMap& map, const VertexData& vtx ) {
+      // add new vertex
+      auto id = vtx.getPrimitiveID().getID();
+      map[id] = std::make_shared< Vertex >( vtx.getPrimitiveID(), _vertices[id] );
+      // add properties
+      map[id]->meshBoundaryFlag_ = vtx.getBoundaryFlag();
+      map[id]->geometryMap_      = _geometryMap.at( vtx.getGeometryMap() );
+   };
+   // create new edge and add it to map
+   auto add_edge = [&]( PrimitiveStorage::EdgeMap& map, const EdgeData& edge ) {
       constexpr uint_t K = 1;
 
-      PrimitiveID edgeID( id );
-
-      // simplexData
-      auto v             = edges.get_vertices( e );
-      auto geometryMapID = edges.getGeometryMap( e );
-      auto boundaryFlag  = edges.getBoundaryFlag( e );
-
       // vertex coordinates and IDs
-      std::array< Point3D, K + 1 >     coords;
+      auto v      = edge.get_vertices();
+      auto coords = edge.get_coordinates( _vertices );
+
       std::array< PrimitiveID, K + 1 > vertexIDs;
-      for ( size_t i = 0; i < K + 1; ++i )
+      for ( uint_t i = 0; i <= K; ++i )
       {
-         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
       // add new edge
-      auto primitive = std::make_shared< Edge >( edgeID, vertexIDs[0], vertexIDs[1], coords );
-      edges_sps[id]  = primitive;
+      auto id = edge.getPrimitiveID().getID();
+      map[id] = std::make_shared< Edge >( edge.getPrimitiveID(), vertexIDs[0], vertexIDs[1], coords );
 
       // add properties
-      primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = _geometryMap[geometryMapID];
-
-      // Adding edge ID as neighbor to SetupVertices
-      for ( const auto& vertexID : vertexIDs )
-      {
-         vertices_sps[vertexID.getID()]->addEdge( edgeID );
-      }
-
-      // Caching neighboring vertices
-      vertexIDsToEdgeID[v] = edgeID;
-
-      ++id;
-   }
-
-   //****** add faces to storage ******
-
-   // write back ID of first face
-   auto face0 = id;
-
-   // identify faces with their vertex IDs
-   std::map< Idx< 3 >, PrimitiveID > vertexIDsToFaceID;
-
-   for ( size_t f = 0; f < faces.size(); ++f )
-   {
+      map[id]->meshBoundaryFlag_ = edge.getBoundaryFlag();
+      map[id]->geometryMap_      = _geometryMap.at( edge.getGeometryMap() );
+   };
+   // create new face and add it to map
+   auto add_face = [&]( PrimitiveStorage::FaceMap& map, const FaceData& face ) {
       constexpr uint_t K = 2;
 
-      PrimitiveID faceID( id );
-
-      // simplexData
-      auto v             = faces.get_vertices( f );
-      auto geometryMapID = faces.getGeometryMap( f );
-      auto boundaryFlag  = faces.getBoundaryFlag( f );
-
       // vertex coordinates and IDs
-      std::array< Point3D, K + 1 >     coords;
+      auto v      = face.get_vertices();
+      auto coords = face.get_coordinates( _vertices );
+
       std::array< PrimitiveID, K + 1 > vertexIDs;
-      for ( size_t i = 0; i < K + 1; ++i )
+      for ( uint_t i = 0; i <= K; ++i )
       {
-         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
@@ -319,71 +517,40 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
 
       // edge IDs
       std::array< PrimitiveID, K + 1 > edgeIDs;
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( uint_t i = 0; i <= K; ++i )
       {
          edgeIDs[i] = vertexIDsToEdgeID[{ v[edgeOrder[i][0]], v[edgeOrder[i][1]] }];
       }
 
       // edge orientation
       std::array< int, K + 1 > edgeOrientation;
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( uint_t i = 0; i <= K; ++i )
       {
-         std::vector< PrimitiveID > edgeVertices;
-         edges_sps[edgeIDs[i].getID()]->getNeighborVertices( edgeVertices );
-
-         if ( edgeVertices[0].getID() == v[edgeOrder[i][0]] )
-            edgeOrientation[i] = 1;
-         else
-            edgeOrientation[i] = -1;
+         EdgeData* edge     = get_edge( edgeIDs[i].getID() );
+         auto      edgeVtx0 = edge->get_vertices()[0];
+         // auto edgeVtx0 = get_edge( edgeIDs[i] )->get_vertices()[0];
+         edgeOrientation[i] = ( edgeVtx0 == v[edgeOrder[i][0]] ) ? 1 : -1;
       }
 
       // add new face
-      auto primitive = std::make_shared< Face >( faceID, vertexIDs, edgeIDs, edgeOrientation, coords );
-      faces_sps[id]  = primitive;
+      auto id = face.getPrimitiveID().getID();
+      map[id] = std::make_shared< Face >( face.getPrimitiveID(), vertexIDs, edgeIDs, edgeOrientation, coords );
 
       // add properties
-      primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = _geometryMap[geometryMapID];
-
-      // Adding face ID to vertices as neighbors
-      for ( const auto& vertexID : vertexIDs )
-      {
-         vertices_sps[vertexID.getID()]->addFace( faceID );
-      }
-      // Adding face ID to edges as neighbors
-      for ( const auto& edgeID : edgeIDs )
-      {
-         edges_sps[edgeID.getID()]->addFace( faceID );
-      }
-
-      // Caching neighboring vertices
-      vertexIDsToFaceID[v] = faceID;
-
-      ++id;
-   }
-
-   //****** add cells to storage ******
-
-   // write back ID of first cell
-   auto cell0 = id;
-
-   for ( uint_t c = 0; c < cells.size(); ++c )
-   {
+      map[id]->meshBoundaryFlag_ = face.getBoundaryFlag();
+      map[id]->geometryMap_      = _geometryMap.at( face.getGeometryMap() );
+   };
+   // create new cell and add it to map
+   auto add_cell = [&]( PrimitiveStorage::CellMap& map, const CellData& cell ) {
       constexpr uint_t K = 3;
 
-      PrimitiveID cellID( id );
-
-      // simplexData
-      auto v             = cells.get_vertices( c );
-      auto geometryMapID = cells.getGeometryMap( c );
-      auto boundaryFlag  = cells.getBoundaryFlag( c );
-
       // vertex coordinates and IDs
-      std::array< Point3D, K + 1 > coords;
-      std::vector< PrimitiveID >   vertexIDs( K + 1 );
-      for ( size_t i = 0; i < K + 1; ++i )
+      auto v      = cell.get_vertices();
+      auto coords = cell.get_coordinates( _vertices );
+
+      std::vector< PrimitiveID > vertexIDs( K + 1 );
+      for ( uint_t i = 0; i <= K; ++i )
       {
-         coords[i]    = _vertices[v[i]];
          vertexIDs[i] = PrimitiveID( v[i] );
       }
 
@@ -404,285 +571,411 @@ uint_t K_Mesh< K_Simplex >::updateSetupStorage( const EdgeData& edges,
 
       // face IDs
       std::vector< PrimitiveID > faceIDs( K + 1 );
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( uint_t i = 0; i <= K; ++i )
       {
          faceIDs[i] = vertexIDsToFaceID[{ v[faceOrder[i][0]], v[faceOrder[i][1]], v[faceOrder[i][2]] }];
       }
 
       std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
 
-      // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
-
-      for ( uint_t i = 0; i < 6; ++i )
+      for ( uint_t cellLocalEdgeID = 0; cellLocalEdgeID < 6; ++cellLocalEdgeID )
       {
-         for ( const auto& j : edgeOrder[i] )
+         for ( const auto& cellLocalVtxID : edgeOrder[cellLocalEdgeID] )
          {
-            edgeLocalVertexToCellLocalVertexMaps[i][edges_sps.at( edgeIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+            EdgeData* edge     = get_edge( edgeIDs[cellLocalEdgeID].getID() );
+            auto&     edgeVtxs = edge->get_vertices();
+            auto      edgeLocalVtxID =
+                uint_t( std::find( edgeVtxs.begin(), edgeVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - edgeVtxs.begin() );
+
+            WALBERLA_ASSERT_LESS( edgeLocalVtxID, edgeVtxs.size() );
+
+            edgeLocalVertexToCellLocalVertexMaps[cellLocalEdgeID][edgeLocalVtxID] = cellLocalVtxID;
          }
       }
 
       std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
 
-      // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
-
-      for ( uint_t i = 0; i < K + 1; ++i )
+      for ( uint_t cellLocalFaceID = 0; cellLocalFaceID < K + 1; ++cellLocalFaceID )
       {
-         for ( auto& j : faceOrder[i] )
+         for ( auto& cellLocalVtxID : faceOrder[cellLocalFaceID] )
          {
-            faceLocalVertexToCellLocalVertexMaps[i][faces_sps.at( faceIDs[i].getID() )->vertex_index( vertexIDs[j] )] = j;
+            FaceData* face     = get_face( faceIDs[cellLocalFaceID].getID() );
+            auto&     faceVtxs = face->get_vertices();
+            auto      faceLocalVtxID =
+                uint_t( std::find( faceVtxs.begin(), faceVtxs.end(), vertexIDs[cellLocalVtxID].getID() ) - faceVtxs.begin() );
+
+            WALBERLA_ASSERT_LESS( faceLocalVtxID, faceVtxs.size() );
+
+            faceLocalVertexToCellLocalVertexMaps[cellLocalFaceID][faceLocalVtxID] = cellLocalVtxID;
          }
       }
 
       // add new cell
-      auto primitive = std::make_shared< Cell >( cellID,
-                                                 vertexIDs,
-                                                 edgeIDs,
-                                                 faceIDs,
-                                                 coords,
-                                                 edgeLocalVertexToCellLocalVertexMaps,
-                                                 faceLocalVertexToCellLocalVertexMaps );
-
-      cells_sps[id] = primitive;
+      auto id = cell.getPrimitiveID().getID();
+      map[id] = std::make_shared< Cell >( cell.getPrimitiveID(),
+                                          vertexIDs,
+                                          edgeIDs,
+                                          faceIDs,
+                                          coords,
+                                          edgeLocalVertexToCellLocalVertexMaps,
+                                          faceLocalVertexToCellLocalVertexMaps );
 
       // add properties
-      primitive->meshBoundaryFlag_ = boundaryFlag;
-      primitive->geometryMap_      = _geometryMap[geometryMapID];
+      map[id]->meshBoundaryFlag_ = cell.getBoundaryFlag();
+      map[id]->geometryMap_      = _geometryMap.at( cell.getGeometryMap() );
+   };
 
-      // Adding cell ID to vertices as neighbors
-      for ( const auto& vertexID : vertexIDs )
-      {
-         vertices_sps[vertexID.getID()]->addCell( cellID );
-      }
-      // Adding cell ID to edges as neighbors
-      for ( const auto& edgeID : edgeIDs )
-      {
-         edges_sps[edgeID.getID()]->addCell( cellID );
-      }
-      // Adding cell ID to faces as neighbors
-      for ( const auto& faceID : faceIDs )
-      {
-         faces_sps[faceID.getID()]->addCell( cellID );
-      }
-
-      ++id;
-   }
-
-   //****** add indirect neighbor faces ******
-
-   for ( const auto& [faceID, face] : faces_sps )
+   // create local and halo vertices
+   PrimitiveStorage::VertexMap vtxs_ps, nbrVtxs_ps;
+   for ( auto& vtx : vtxs )
    {
-      face->indirectNeighborFaceIDsOverEdges_.clear();
-
-      std::set< PrimitiveID > idSet;
-
-      for ( const auto& vertexID : face->neighborVertices() )
+      if ( vtx.isLocal() )
       {
-         auto vertex = vertices_sps[vertexID.getID()];
-         for ( const auto& neighborFaceID : vertex->neighborFaces() )
-         {
-            if ( neighborFaceID != faceID )
-            {
-               idSet.insert( neighborFaceID );
-            }
-
-            const auto neighborFaceVertices = faces_sps[neighborFaceID.getID()]->neighborVertices();
-
-            const auto containsV0 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[0] );
-            const auto containsV1 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[1] );
-            const auto containsV2 = algorithms::contains( neighborFaceVertices, face->neighborVertices()[2] );
-
-            if ( neighborFaceID != faceID && ( containsV0 || containsV1 || containsV2 ) )
-            {
-               if ( containsV0 && containsV1 )
-               {
-                  face->indirectNeighborFaceIDsOverEdges_[0] = neighborFaceID;
-               }
-               else if ( containsV0 && containsV2 )
-               {
-                  face->indirectNeighborFaceIDsOverEdges_[1] = neighborFaceID;
-               }
-               else if ( containsV1 && containsV2 )
-               {
-                  face->indirectNeighborFaceIDsOverEdges_[2] = neighborFaceID;
-               }
-            }
-         }
+         add_vertex( vtxs_ps, vtx );
       }
-
-      face->indirectNeighborFaceIDsOverVertices_.clear();
-      face->indirectNeighborFaceIDsOverVertices_.insert(
-          face->indirectNeighborFaceIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
-   }
-
-   //****** add indirect neighbor cells ******
-
-   for ( const auto& [cellID, cell] : cells_sps )
-   {
-      cell->indirectNeighborCellIDsOverFaces_.clear();
-
-      std::set< PrimitiveID > idSet;
-
-      for ( const auto& vertexID : cell->neighborVertices() )
+      else if ( vtx.onHalo() )
       {
-         auto vertex = vertices_sps[vertexID.getID()];
-         for ( const auto& neighborCellID : vertex->neighborCells() )
-         {
-            if ( neighborCellID != cellID )
-            {
-               idSet.insert( neighborCellID );
-            }
-
-            const auto neighborCellVertices = cells_sps[neighborCellID.getID()]->neighborVertices();
-
-            const auto containsV0 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[0] );
-            const auto containsV1 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[1] );
-            const auto containsV2 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[2] );
-            const auto containsV3 = algorithms::contains( neighborCellVertices, cell->neighborVertices()[3] );
-
-            if ( neighborCellID != cellID && ( containsV0 || containsV1 || containsV2 || containsV3 ) )
-            {
-               if ( containsV0 && containsV1 && containsV2 )
-               {
-                  cell->indirectNeighborCellIDsOverFaces_[0] = neighborCellID;
-               }
-               else if ( containsV0 && containsV1 && containsV3 )
-               {
-                  cell->indirectNeighborCellIDsOverFaces_[1] = neighborCellID;
-               }
-               else if ( containsV0 && containsV2 && containsV3 )
-               {
-                  cell->indirectNeighborCellIDsOverFaces_[2] = neighborCellID;
-               }
-               else if ( containsV1 && containsV2 && containsV3 )
-               {
-                  cell->indirectNeighborCellIDsOverFaces_[3] = neighborCellID;
-               }
-            }
-         }
-      }
-
-      cell->indirectNeighborCellIDsOverVertices_.clear();
-      cell->indirectNeighborCellIDsOverVertices_.insert(
-          cell->indirectNeighborCellIDsOverVertices_.begin(), idSet.begin(), idSet.end() );
-   }
-
-   //****** construct new setupStorage ******
-   _setupStorage = SetupPrimitiveStorage( vertices_sps, edges_sps, faces_sps, cells_sps, n_processes );
-
-   return ( cells.size() == 0 ) ? face0 : cell0;
-}
-
-template < class K_Simplex >
-void K_Mesh< K_Simplex >::extract_data( EdgeData& edgeData, FaceData& faceData, CellData& cellData ) const
-{
-   std::set< std::shared_ptr< Simplex1 > > edges;
-   std::set< std::shared_ptr< Simplex2 > > faces;
-   std::set< std::shared_ptr< Simplex3 > > cells;
-
-   // collect cells
-   if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
-   {
-      cells = _T;
-   }
-   // collect faces
-   if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
-   {
-      faces = _T;
-   }
-   for ( auto& cell : cells )
-   {
-      for ( auto& face : cell->get_faces() )
-      {
-         faces.insert( face );
-      }
-   }
-   // collect edges
-   for ( auto& face : faces )
-   {
-      for ( auto& edge : face->get_edges() )
-      {
-         edges.insert( edge );
+         add_vertex( nbrVtxs_ps, vtx );
       }
    }
 
-   // collect celldata
-   for ( auto& cell : cells )
-   {
-      cellData.add( cell.get() );
-   }
-   // collect facedata
-   for ( auto& face : faces )
-   {
-      faceData.add( face.get() );
-   }
-   // collect edgedata
+   // create local and halo edges
+   PrimitiveStorage::EdgeMap edges_ps, nbrEdges_ps;
    for ( auto& edge : edges )
    {
-      edgeData.add( edge.get() );
+      if ( edge.isLocal() )
+      {
+         add_edge( edges_ps, edge );
+      }
+      else if ( edge.onHalo() )
+      {
+         add_edge( nbrEdges_ps, edge );
+      }
+   }
+
+   // create local and halo faces
+   PrimitiveStorage::FaceMap faces_ps, nbrFaces_ps;
+   for ( auto& face : faces )
+   {
+      if ( face.isLocal() )
+      {
+         add_face( faces_ps, face );
+      }
+      else if ( face.onHalo() )
+      {
+         add_face( nbrFaces_ps, face );
+      }
+   }
+
+   // create local and halo cells
+   PrimitiveStorage::CellMap cells_ps, nbrCells_ps;
+   for ( auto& cell : cells )
+   {
+      if ( cell.isLocal() )
+      {
+         add_cell( cells_ps, cell );
+      }
+      else if ( cell.onHalo() )
+      {
+         add_cell( nbrCells_ps, cell );
+      }
+   }
+
+   // coordinates only required on rank 0
+   if ( rank != 0 )
+   {
+      _vertices.clear();
+   }
+
+   // ****** add neighborhood information to primitives ******
+
+   // add neighbor edges to vertices
+   for ( auto& edge : edges )
+   {
+      auto& v = edge.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( vtxs[vtx].isLocal() )
+         {
+            vtxs_ps[vtx]->addEdge( edge.getPrimitiveID() );
+         }
+         else if ( vtxs[vtx].onHalo() )
+         {
+            nbrVtxs_ps[vtx]->addEdge( edge.getPrimitiveID() );
+         }
+      }
+   }
+
+   // add neighbor faces to vertices and edges
+   for ( auto& face : faces )
+   {
+      auto& v = face.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( vtxs[vtx].isLocal() )
+         {
+            vtxs_ps[vtx]->addFace( face.getPrimitiveID() );
+         }
+         else if ( vtxs[vtx].onHalo() )
+         {
+            nbrVtxs_ps[vtx]->addFace( face.getPrimitiveID() );
+         }
+      }
+
+      for ( uint_t i = 0; i < 3; ++i )
+      {
+         Idx< 2 >  edgeVtxs{ v[i], v[( i + 1 ) % 3] };
+         EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+         if ( edge->isLocal() )
+         {
+            edges_ps[edge->getPrimitiveID().getID()]->addFace( face.getPrimitiveID() );
+         }
+         else if ( edge->onHalo() )
+         {
+            nbrEdges_ps[edge->getPrimitiveID().getID()]->addFace( face.getPrimitiveID() );
+         }
+      }
+   }
+
+   // add neighbor cells to vertices, edges and faces
+   for ( auto& cell : cells )
+   {
+      auto& v = cell.get_vertices();
+
+      for ( auto& vtx : v )
+      {
+         if ( vtxs[vtx].isLocal() )
+         {
+            vtxs_ps[vtx]->addCell( cell.getPrimitiveID() );
+         }
+         else if ( vtxs[vtx].onHalo() )
+         {
+            nbrVtxs_ps[vtx]->addCell( cell.getPrimitiveID() );
+         }
+      }
+
+      for ( uint_t i = 0; i < 4; ++i )
+      {
+         for ( uint_t j = i + 1; j < 4; ++j )
+         {
+            Idx< 2 >  edgeVtxs{ v[i], v[j] };
+            EdgeData* edge = get_edge( vertexIDsToEdgeID[edgeVtxs].getID() );
+
+            if ( edge->isLocal() )
+            {
+               edges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+            }
+            else if ( edge->onHalo() )
+            {
+               nbrEdges_ps[edge->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+            }
+         }
+      }
+
+      for ( uint_t j = 0; j < 4; ++j )
+      {
+         Idx< 3 >  faceVtxs{ v[j], v[( j + 1 ) % 4], v[( j + 2 ) % 4] };
+         FaceData* face = get_face( vertexIDsToFaceID[faceVtxs].getID() );
+
+         if ( face->isLocal() )
+         {
+            faces_ps[face->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+         }
+         else if ( face->onHalo() )
+         {
+            nbrFaces_ps[face->getPrimitiveID().getID()]->addCell( cell.getPrimitiveID() );
+         }
+      }
+   }
+
+   // ****** create PrimitiveStorage ******
+
+   return std::make_shared< PrimitiveStorage >(
+       vtxs_ps, edges_ps, faces_ps, cells_ps, nbrVtxs_ps, nbrEdges_ps, nbrFaces_ps, nbrCells_ps, nbrRanks, cells.size() > 0 );
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::extract_data( std::vector< VertexData >&   vtxData,
+                                        std::vector< EdgeData >&     edgeData,
+                                        std::vector< FaceData >&     faceData,
+                                        std::vector< CellData >&     cellData,
+                                        std::vector< Neighborhood >& nbrHood ) const
+{
+   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+
+   if ( rank == 0 )
+   {
+      std::set< std::shared_ptr< Simplex1 > > edges;
+      std::set< std::shared_ptr< Simplex2 > > faces;
+      std::set< std::shared_ptr< Simplex3 > > cells;
+
+      // collect cells
+      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      {
+         cells = _T;
+      }
+      // collect faces
+      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      {
+         faces = _T;
+      }
+      for ( auto& cell : cells )
+      {
+         for ( auto& face : cell->get_faces() )
+         {
+            faces.insert( face );
+         }
+      }
+      // collect edges
+      for ( auto& face : faces )
+      {
+         for ( auto& edge : face->get_edges() )
+         {
+            edges.insert( edge );
+         }
+      }
+
+      // collect data and add PrimitiveIDs
+      uint_t id;
+      // collect vertexdata
+      vtxData.clear();
+      for ( id = 0; id < _vertices.size(); ++id )
+      {
+         vtxData.push_back( VertexData( _vertexGeometryMap[id], _vertexBoundaryFlag[id], id ) );
+      }
+      // collect edgedata
+      edgeData.clear();
+      for ( auto& edge : edges )
+      {
+         edge->setPrimitiveID( id );
+         edgeData.push_back( EdgeData( edge.get() ) );
+         ++id;
+      }
+      // collect facedata
+      faceData.clear();
+      for ( auto& face : faces )
+      {
+         face->setPrimitiveID( id );
+         faceData.push_back( FaceData( face.get() ) );
+         ++id;
+      }
+      // collect celldata
+      cellData.clear();
+      for ( auto& cell : cells )
+      {
+         cell->setPrimitiveID( id );
+         cellData.push_back( CellData( cell.get() ) );
+         ++id;
+      }
+   }
+
+   // broadcast data to all processes
+   walberla::mpi::broadcastObject( vtxData );
+   walberla::mpi::broadcastObject( edgeData );
+   walberla::mpi::broadcastObject( faceData );
+   walberla::mpi::broadcastObject( cellData );
+
+   // collect neighborhood data of volume primitives
+   nbrHood.clear();
+   nbrHood.resize( _n_elements );
+   uint_t id0 =
+       ( K_Simplex::TYPE == CELL ) ? cellData.begin()->getPrimitiveID().getID() : faceData.begin()->getPrimitiveID().getID();
+   if ( rank == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         uint_t i = el->getPrimitiveID().getID() - id0;
+
+         if constexpr ( K_Simplex::TYPE == CELL )
+         {
+            for ( auto& face : el->get_faces() )
+            {
+               nbrHood[i][FACE].push_back( face->getPrimitiveID().getID() );
+            }
+         }
+         for ( auto& edge : el->get_edges() )
+         {
+            nbrHood[i][EDGE].push_back( edge->getPrimitiveID().getID() );
+         }
+         for ( auto& vtx : el->get_vertices() )
+         {
+            nbrHood[i][VTX].push_back( vtx );
+         }
+      }
+   }
+
+   walberla::mpi::broadcastObject( nbrHood );
+
+   for ( uint_t i = 0; i < nbrHood.size(); ++i )
+   {
+      if ( i % _n_processes == rank )
+      {
+         for ( uint_t j = 0; j < nbrHood.size(); ++j )
+         {
+            uint_t d = 0;
+            if constexpr ( K_Simplex::TYPE == CELL )
+            {
+               d = cellData[i].diff( cellData[j] );
+            }
+            if constexpr ( K_Simplex::TYPE == FACE )
+            {
+               d = faceData[i].diff( faceData[j] );
+            }
+            if ( d == 1 )
+            {
+               nbrHood[i][K_Simplex::TYPE].push_back( id0 + j );
+            }
+         }
+      }
+   }
+
+   for ( uint_t i = 0; i < nbrHood.size(); ++i )
+   {
+      walberla::mpi::broadcastObject( nbrHood[i][K_Simplex::TYPE], int( i % _n_processes ) );
    }
 }
 
 template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > >
+inline std::vector< std::shared_ptr< K_Simplex > >
     K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
-   std::set< std::shared_ptr< K_Simplex > > R;
+   auto to_add = [&]( std::shared_ptr< K_Simplex > el, uint_t i ) -> bool {
+      if ( el->has_children() )
+      {
+         // add element if it has a child with id=id
+         for ( auto& child : el->get_children() )
+         {
+            if ( child->getPrimitiveID() == primitiveIDs[i] )
+            {
+               return true;
+            }
+         }
+         return false;
+      }
+      else
+      {
+         // add element if id=id
+         return ( el->getPrimitiveID() == primitiveIDs[i] );
+      }
+   };
 
-   // todo use ids instead of barycenters
-
-   auto barycenter_R = compute_barycenters( primitiveIDs );
-
+   std::vector< std::shared_ptr< K_Simplex > > R( primitiveIDs.size(), nullptr );
    for ( auto& el : _T )
    {
-      for ( const auto& bc : barycenter_R )
+      for ( uint_t i = 0; i < R.size(); ++i )
       {
-         // ||bc_el - bc||/||bc||
-         auto err = ( el->barycenter( _vertices ) - bc ).norm() / bc.norm();
-         if ( err < 1e-14 )
+         if ( to_add( el, i ) )
          {
-            R.insert( el );
+            R[i] = el;
             break;
          }
       }
    }
 
    return R;
-}
-
-template <>
-inline std::vector< Point3D > K_Mesh< Simplex2 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
-{
-   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
-
-   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
-   {
-      auto face = _setupStorage.getFace( primitiveIDs[i] );
-      if ( face == nullptr )
-      {
-         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a face in Mesh::setupStorage()!" );
-      }
-      barycenter_R[i] = Simplex2::barycenter( face->getCoordinates() );
-   }
-
-   return barycenter_R;
-}
-
-template <>
-inline std::vector< Point3D > K_Mesh< Simplex3 >::compute_barycenters( const std::vector< PrimitiveID >& primitiveIDs ) const
-{
-   std::vector< Point3D > barycenter_R( primitiveIDs.size() );
-
-   for ( uint_t i = 0; i < primitiveIDs.size(); ++i )
-   {
-      auto cell = _setupStorage.getCell( primitiveIDs[i] );
-      if ( cell == nullptr )
-      {
-         WALBERLA_ABORT( "All primitiveIDs for refineRG() must correspond to a cell in Mesh::setupStorage()!" );
-      }
-      barycenter_R[i] = Simplex3::barycenter( cell->getCoordinates() );
-   }
-
-   return barycenter_R;
 }
 
 template < class K_Simplex >
@@ -693,28 +986,43 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
 
    for ( auto& el : R )
    {
+      // mark el as processed
+      if ( U.erase( el ) == 0 )
+      {
+         // for el ∉ U: don't try to refine
+         continue;
+      }
+
       // remove green edges
       bool check_subelements = el->kill_children();
 
-      auto subelements = refine_element_red( el );
+      // apply regular refinement to el
+      std::set< std::shared_ptr< K_Simplex > > subelements;
+      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      {
+         subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+      }
+      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      {
+         subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, el );
+      }
 
-      // mark el as processed
-      U.erase( el );
-
-      // mark subelements as unprocessed if necessary
+      // if this red step only replaced a green step, subelements must be checked again
       if ( check_subelements )
       {
          U.merge( subelements );
       }
-
-      refined.merge( subelements );
+      else
+      {
+         refined.merge( subelements );
+      }
    }
 
    return refined;
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::remove_green_edges( std::set< std::shared_ptr< K_Simplex > >& R )
+void K_Mesh< K_Simplex >::remove_green_edges()
 {
    auto T_cpy = _T;
 
@@ -724,11 +1032,6 @@ void K_Mesh< K_Simplex >::remove_green_edges( std::set< std::shared_ptr< K_Simpl
       {
          _T.erase( el );
          _T.insert( el->get_parent() );
-
-         if ( R.erase( el ) )
-         {
-            R.insert( el->get_parent() );
-         }
       }
    }
 }
@@ -788,6 +1091,21 @@ std::set< std::shared_ptr< Simplex3 > >
    }
 
    return R;
+}
+
+template < class K_Simplex >
+uint_t K_Mesh< K_Simplex >::predict_n_el_green( const std::set< std::shared_ptr< K_Simplex > >& U ) const
+{
+   uint_t n_el_green = 0;
+
+   for ( auto& el : U )
+   {
+      uint_t new_vertices = el->vertices_on_edges();
+
+      n_el_green += ( new_vertices == 2 ) ? 3 : new_vertices;
+   }
+
+   return n_el_green;
 }
 
 template <>
@@ -896,22 +1214,13 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::s
       }
 
       // mark el as processed
-      U.erase( el );
+      if ( new_vertices > 0 )
+      {
+         U.erase( el );
+      }
    }
 
    return refined;
-}
-
-template <>
-std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_element_red( std::shared_ptr< Simplex3 > element )
-{
-   return refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
-}
-
-template <>
-std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_element_red( std::shared_ptr< Simplex2 > element )
-{
-   return refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, element );
 }
 
 template < class K_Simplex >
@@ -927,6 +1236,51 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
 
          mm.first  = std::min( mm.first, mm_el.first );
          mm.second = std::max( mm.second, mm_el.second );
+      }
+   }
+
+   walberla::mpi::broadcastObject( mm );
+
+   return mm;
+}
+
+template < class K_Simplex >
+std::pair< real_t, real_t > K_Mesh< K_Simplex >::mean_min_max_angle() const
+{
+   std::pair< real_t, real_t > mm{ 0, 0 };
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         auto mm_el = el->min_max_angle( _vertices );
+
+         mm.first += mm_el.first;
+         mm.second += mm_el.second;
+      }
+   }
+
+   mm.first /= real_t( n_elements() );
+   mm.second /= real_t( n_elements() );
+
+   walberla::mpi::broadcastObject( mm );
+
+   return mm;
+}
+
+template < class K_Simplex >
+std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_volume() const
+{
+   std::pair< real_t, real_t > mm{ std::numeric_limits< real_t >::max(), 0 };
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      for ( auto& el : _T )
+      {
+         auto v = el->volume( _vertices );
+
+         mm.first  = std::min( mm.first, v );
+         mm.second = std::max( mm.second, v );
       }
    }
 
@@ -955,17 +1309,6 @@ real_t K_Mesh< K_Simplex >::volume() const
 
 template class K_Mesh< Simplex2 >;
 template class K_Mesh< Simplex3 >;
-
-// SimplexData
-
-template < class K_Simplex >
-template < size_t J >
-inline void K_Mesh< K_Simplex >::SimplexData< J >::broadcast()
-{
-   walberla::mpi::broadcastObject( this->vertices );
-   walberla::mpi::broadcastObject( this->geometryMap );
-   walberla::mpi::broadcastObject( this->boundaryFlag );
-}
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

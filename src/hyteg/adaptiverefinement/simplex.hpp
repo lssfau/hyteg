@@ -43,6 +43,16 @@ enum Color
    GREEN
 };
 
+// type of primitive
+   enum PrimitiveType
+   {
+      VTX  = 0,
+      EDGE = 1,
+      FACE = 2,
+      CELL = 3,
+      ALL  = 4
+   };
+
 // sorted multi-index to identify a (K-1)-simplex by its vertices
 template < uint_t K >
 class Idx : public std::array< uint_t, K >
@@ -62,6 +72,8 @@ template < uint_t K, class K_Simplex >
 class Simplex
 {
  public:
+   static constexpr uint_t TYPE = K;
+
    /* Ctor
       @param vertices      global indices of the new Simplexes vertices
       @param parent        K-simplex s.th. this is a direct refinement of parent
@@ -69,11 +81,12 @@ class Simplex
    */
    Simplex( const std::array< uint_t, K + 1 >& vertices,
             std::shared_ptr< K_Simplex >       parent,
-            uint_t                             geometryMap  = uint_t( -1 ),
+            uint_t                             geometryMap  = std::numeric_limits< uint_t >::max(),
             uint_t                             boundaryFlag = 0 )
    : _vertices( vertices )
    , _parent( parent )
-   , _geometryMap( ( parent == nullptr || geometryMap != uint_t( -1 ) ) ? geometryMap : parent->getGeometryMap() )
+   , _geometryMap( ( parent == nullptr || geometryMap != std::numeric_limits< uint_t >::max() ) ? geometryMap :
+                                                                                                  parent->getGeometryMap() )
    , _boundaryFlag( ( parent == nullptr ) ? boundaryFlag : parent->getBoundaryFlag() )
    {}
 
@@ -92,16 +105,24 @@ class Simplex
    // @returns children, ordered s.th. vertices[j] \\subset children[j] for all j < children.size()
    const std::vector< std::shared_ptr< K_Simplex > > get_children_sorted( const std::array< uint_t, K + 1 >& vertices ) const;
 
-   /* compute the barycenter of a K simplex given by its vertices
-      @param vertices vertex coordinates
+   /* compute the barycenter of a K simplex S
+      @param vertices vertex coordinates of S
       @return barycenter of conv(vertices)
    */
    static Point3D barycenter( const std::array< Point3D, K + 1 >& vertices );
-   /* compute the volme of a K-simplex given by its vertices
-      @param vertices vertex coordinates
+
+   /* compute the radius of the smallest ball B centered at the
+      barycenter of a K simplex S, s.th. S ⊂ B.
+      @param vertices vertex coordinates of S
+      @return max_i||vertices[i] - barycenter(vertices)||
+   */
+   static real_t radius( const std::array< Point3D, K + 1 >& vertices );
+
+   /* compute the volme of a K-simplex S
+      @param vertices vertex coordinates of S
       @return volume of conv(vertices)
    */
-   static double volume( const std::array< Point3D, K + 1 >& vertices );
+   static real_t volume( const std::array< Point3D, K + 1 >& vertices );
 
    /* get coordinates of the vertices of a simplex
       @param nodes  coordinates of the global vertices
@@ -115,7 +136,7 @@ class Simplex
    /* compute the volme of a simplex
       @param nodes  coordinates of the global vertices
    */
-   double volume( const std::vector< Point3D >& nodes ) const;
+   real_t volume( const std::vector< Point3D >& nodes ) const;
 
    /* remove all children
       @return true if any children have been killed
@@ -143,7 +164,7 @@ class Simplex
 };
 
 // 1-simplex (edge)
-class Simplex1 : public Simplex< 1, Simplex1 >
+class Simplex1 : public Simplex< EDGE, Simplex1 >
 {
  public:
    /* Ctor
@@ -157,9 +178,9 @@ class Simplex1 : public Simplex< 1, Simplex1 >
              uint_t                      p2,
              std::shared_ptr< Simplex1 > parent       = nullptr,
              Color                       c            = RED,
-             uint_t                      geometryMap  = uint_t( -1 ),
+             uint_t                      geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                      boundaryFlag = 0 )
-   : Simplex< 1, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
+   : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
    , _color( c )
    , _midpoint( -1 )
    {}
@@ -184,7 +205,7 @@ class Simplex1 : public Simplex< 1, Simplex1 >
 };
 
 // 2-simplex (face)
-class Simplex2 : public Simplex< 2, Simplex2 >
+class Simplex2 : public Simplex< FACE, Simplex2 >
 {
  public:
    /* create new face with the following form
@@ -206,7 +227,7 @@ class Simplex2 : public Simplex< 2, Simplex2 >
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent       = nullptr,
-             uint_t                                              geometryMap  = uint_t( -1 ),
+             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                                              boundaryFlag = 0 );
 
    /* count inner vertices on all edges
@@ -240,7 +261,7 @@ class Simplex2 : public Simplex< 2, Simplex2 >
 };
 
 // 3-simplex (cell)
-class Simplex3 : public Simplex< 3, Simplex3 >
+class Simplex3 : public Simplex< CELL, Simplex3 >
 {
  public:
    /* create new cell with the following form
@@ -266,7 +287,7 @@ class Simplex3 : public Simplex< 3, Simplex3 >
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent       = nullptr,
-             uint_t                                              geometryMap  = uint_t( -1 ),
+             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                                              boundaryFlag = 0 );
 
    bool has_green_edge() const;

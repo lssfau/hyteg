@@ -79,9 +79,9 @@ variables:
 
 
 
-intel_19_serial:
+intel_20_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -93,9 +93,9 @@ intel_19_serial:
       - docker
       - intel
 
-intel_19_mpionly:
+intel_20_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -105,9 +105,9 @@ intel_19_mpionly:
       - docker
       - intel
 
-intel_19_serial_dbg:
+intel_20_serial_dbg:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -117,9 +117,9 @@ intel_19_serial_dbg:
       - docker
       - intel
 
-intel_19_mpionly_dbg_eigen_petsc-complex_trilinos:
+intel_20_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -131,9 +131,9 @@ intel_19_mpionly_dbg_eigen_petsc-complex_trilinos:
       - docker
       - intel
 
-intel_19_mpionly_dbg_sp:
+intel_20_mpionly_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -144,9 +144,9 @@ intel_19_mpionly_dbg_sp:
       - docker
       - intel
 
-intel_19_mpionly_eigen_petsc_trilinos:
+intel_20_mpionly_eigen_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -157,9 +157,9 @@ intel_19_mpionly_eigen_petsc_trilinos:
       - docker
       - intel
 
-intel_19_mpionly_eigen_petsc_trilinos_no_werror:
+intel_20_mpionly_eigen_petsc_trilinos_no_werror:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    stage: no_werror
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1552,7 +1552,7 @@ benchmark_build_time:
     - cd $CI_PROJECT_DIR/
     - cat BuildTiming.txt
     - python3 $CI_PROJECT_DIR/data/scripts/upload.py
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
   tags:
     - docker-benchmark
   variables:
@@ -1560,11 +1560,6 @@ benchmark_build_time:
 
 benchmark_ClangBuildAnalyzer:
   script:
-    - apt-get update --fix-missing
-    - apt-get -y install apt-transport-https ca-certificates gnupg software-properties-common wget
-    - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
-    - apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-    - apt-get -y install cmake ninja-build
     - cmake --version
     - ccache --version
     - mpirun --version
@@ -1586,7 +1581,7 @@ benchmark_ClangBuildAnalyzer:
     - ninja hyteg
     - ClangBuildAnalyzer --stop src CBA
     - ClangBuildAnalyzer --analyze CBA
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
   tags:
     - docker-benchmark
   variables:
@@ -1661,14 +1656,14 @@ benchmark_ClangBuildAnalyzer:
    needs: [ ]
    stage: benchmark
 
-benchmark_intel19:
+benchmark_intel20:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
 
-benchmark_gcc9:
+benchmark_gcc11:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
 
-benchmark_clang8:
+benchmark_clang13:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0

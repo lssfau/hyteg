@@ -118,13 +118,13 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       return distPt( vertices[ref_vertices[edge[0]]], vertices[ref_vertices[edge[1]]] );
    };
    std::set< Idx< 2 > > possible_edges{ { 4u, 9u }, { 5u, 7u }, { 6u, 8u } };
-   Idx< 2 >             new_edge{ 4u, 9u };
+   Idx< 2 >             new_edge     = *possible_edges.begin();
    real_t               new_edge_len = edgeLen( new_edge );
 
    for ( auto& edge : possible_edges )
    {
       auto len = edgeLen( edge );
-      if ( len < new_edge_len )
+      if ( len <= new_edge_len )
       {
          new_edge     = edge;
          new_edge_len = len;
