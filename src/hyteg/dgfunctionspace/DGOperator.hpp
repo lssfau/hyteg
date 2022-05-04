@@ -165,8 +165,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
 
-      WALBERLA_CHECK( updateType == Replace );
-
       src.communicate( level );
 
       const auto storage = this->getStorage();
@@ -652,20 +650,51 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                   {
                      if ( dim == 2 )
                      {
-                        dstDofMemory[volumedofspace::indexing::index(
-                            elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] =
-                            dstDofs( dstDofIdx );
+                        if ( updateType == Replace )
+                        {
+                           dstDofMemory[volumedofspace::indexing::index(
+                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] =
+                               dstDofs( dstDofIdx );
+                        }
+                        else if ( updateType == Add )
+                        {
+                           dstDofMemory[volumedofspace::indexing::index(
+                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] +=
+                               dstDofs( dstDofIdx );
+                        }
+                        else
+                        {
+                           WALBERLA_ABORT( "Invalid update type." );
+                        }
                      }
                      else
                      {
-                        dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                      elementIdx.y(),
-                                                                      elementIdx.z(),
-                                                                      cellType,
-                                                                      dstDofIdx,
-                                                                      numDstDofs,
-                                                                      level,
-                                                                      dstMemLayout )] = dstDofs( dstDofIdx );
+                        if ( updateType == Replace )
+                        {
+                           dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                         elementIdx.y(),
+                                                                         elementIdx.z(),
+                                                                         cellType,
+                                                                         dstDofIdx,
+                                                                         numDstDofs,
+                                                                         level,
+                                                                         dstMemLayout )] = dstDofs( dstDofIdx );
+                        }
+                        else if ( updateType == Add )
+                        {
+                           dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                         elementIdx.y(),
+                                                                         elementIdx.z(),
+                                                                         cellType,
+                                                                         dstDofIdx,
+                                                                         numDstDofs,
+                                                                         level,
+                                                                         dstMemLayout )] += dstDofs( dstDofIdx );
+                        }
+                        else
+                        {
+                           WALBERLA_ABORT( "Invalid update type." );
+                        }
                      }
                   }
                }

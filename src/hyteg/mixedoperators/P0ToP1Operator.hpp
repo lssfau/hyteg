@@ -257,27 +257,10 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                   auto vertexDoFIndicesArray = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
                }
-#if 0
-               for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
-               {
-                  if ( dim == 2 )
-                  {
-                     srcDofs( srcDofIdx ) = srcDofMemory[vertexdof::macroface::index(
-                         level, vertexDoFIndices[srcDofIdx].x(), vertexDoFIndices[srcDofIdx].y() )];
-                  }
-                  else
-                  {
-                     srcDofs( srcDofIdx ) = srcDofMemory[vertexdof::macrocell::index( level,
-                                                                                      vertexDoFIndices[srcDofIdx].x(),
-                                                                                      vertexDoFIndices[srcDofIdx].y(),
-                                                                                      vertexDoFIndices[srcDofIdx].z() )];
-                  }
-               }
-#endif
+
                if ( mat == nullptr )
                {
                   // Matrix-vector multiplication.
-                  WALBERLA_ABORT( "Not implemented / tested." );
                   dstDofs += localMat * srcDoF;
                }
                else
@@ -295,7 +278,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                      }
                      else
                      {
-                        WALBERLA_ABORT( "Not implemented." );
+                        WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
                      }
                   }
                }
@@ -351,7 +334,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "Not implemented." );
+                                 WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
                               }
                            }
                         }
@@ -407,7 +390,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "Not implemented." );
+                                 WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
                               }
                            }
                         }
@@ -639,7 +622,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                  }
                                  else
                                  {
-                                    WALBERLA_ABORT( "Not implemented." );
+                                    WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
                                  }
                               }
                            }

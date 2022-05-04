@@ -32,6 +32,7 @@
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -112,14 +113,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    // Why do I need this?
    f.interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
-   // simulate a multiply operation:
-   //    M.apply( f, rhs, level, All, Replace );
-   auto f_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
-   f_vec->createVectorFromFunction( f, numerator, level, All );
-   auto rhs_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
-   rhs_vec->createVectorFromFunction( f, numerator, level, All );
-   Mpetsc.multiply( *f_vec, *rhs_vec );
-   rhs_vec->createFunctionFromVector( rhs, numerator, level, All );
+   M.apply( f, rhs, level, All, Replace );
 
    rhs.interpolate( 0, level, DirichletBoundary );
    u.getConformingPart()->interpolate( 0, level, DirichletBoundary );
@@ -128,14 +122,9 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    solver.solve( L, u, rhs, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
-   // calculate the error in the L2 norm
-   auto err_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
-   err_vec->createVectorFromFunction( err, numerator, level, All );
-   auto Merr_vec = std::make_shared< PETScVector< real_t, P1DGEFunction > >();
-   Merr_vec->createVectorFromFunction( err, numerator, level, All );
-   Mpetsc.multiply( *err_vec, *Merr_vec );
-   Merr_vec->createFunctionFromVector( Merr, numerator, level, All );
 
+   // calculate the error in the L2 norm
+   M.apply( err, Merr, level, All, Replace );
    auto discrL2 = sqrt( err.dotGlobal( Merr, level, Inner ) );
 
    if ( writeVTK )
