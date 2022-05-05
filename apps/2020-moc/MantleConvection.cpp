@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -43,7 +43,6 @@
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -71,12 +70,15 @@
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 namespace hyteg {
 
 using walberla::int_c;
 using walberla::real_t;
 using walberla::math::pi;
+
+using terraneo::SphericalHarmonicsTool;
 
 #if 0
 static std::string getDateTimeID()
@@ -209,7 +211,7 @@ void calculateStokesResiduals( const StokesOperator&       A,
    tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
-   r.assign( { 1.0, -1.0 }, { b, tmp }, level, Inner | NeumannBoundary | FreeslipBoundary );
+   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual = normL2Squared( r.uvw()[0], tmp.uvw()[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual += normL2Squared( r.uvw()[1], tmp.uvw()[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    if ( x.getStorage()->hasGlobalCells() )
@@ -513,7 +515,7 @@ void runBenchmark( real_t     cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      outwardNormal.uvw().interpolate( { normalX, normalY, normalZ }, l );
+      outwardNormal.uvw().interpolate( {normalX, normalY, normalZ}, l );
    }
 
    if ( verbose )
@@ -861,8 +863,8 @@ void runBenchmark( real_t     cflMax,
          MVelocity.apply( c, f.uvw()[2], l, All );
       }
 
-      f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
-      f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
+      f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+      f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
    }
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -986,16 +988,16 @@ void runBenchmark( real_t     cflMax,
       // advection
 
       // start value for predictor
-      cPr.assign( { 1.0 }, { c }, level, All );
+      cPr.assign( {1.0}, {c}, level, All );
 
       // let's just use the current velocity for the prediction
-      uLast.assign( { 1.0 }, { u }, level, All );
+      uLast.assign( {1.0}, {u}, level, All );
 
       // diffusion
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       diffusionOperator.setDt( 0.5 * dt );
 
@@ -1021,7 +1023,7 @@ void runBenchmark( real_t     cflMax,
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       calculateDiffusionResidual(
           diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1042,8 +1044,8 @@ void runBenchmark( real_t     cflMax,
             MVelocity.apply( cPr, f.uvw()[2], l, All );
          }
 
-         f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
-         f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
+         f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+         f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
       }
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1073,7 +1075,7 @@ void runBenchmark( real_t     cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1095,7 +1097,7 @@ void runBenchmark( real_t     cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1117,8 +1119,8 @@ void runBenchmark( real_t     cflMax,
                MVelocity.apply( c, f.uvw()[2], l, All );
             }
 
-            f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
-            f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
+            f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+            f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
          }
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1143,7 +1145,7 @@ void runBenchmark( real_t     cflMax,
       else
       {
          // use predicted value
-         c.assign( { 1.0 }, { cPr }, level, All );
+         c.assign( {1.0}, {cPr}, level, All );
 
          db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
          db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );

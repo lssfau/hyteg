@@ -1,10 +1,10 @@
 
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
 
-namespace hyteg {
+namespace terraneo {
 
 using walberla::real_c;
 using walberla::uint_t;
@@ -619,4 +619,4 @@ real_t SphericalHarmonicsTool::evalVSH( uint_t deg, int ord, real_t x, real_t y,
    return retVal;
 }
 
-} // namespace hyteg
+} // namespace terraneo

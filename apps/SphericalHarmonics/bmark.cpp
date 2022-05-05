@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr
+ * Copyright (c) 2020 - 2022 Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,7 +50,6 @@ This app implements the Stokes benchmark described in:
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
@@ -65,9 +64,13 @@ This app implements the Stokes benchmark described in:
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
 using walberla::real_c;
 using walberla::real_t;
 using namespace hyteg;
+
+using terraneo::SphericalHarmonicsTool;
 
 #include "bmark_tools.hpp"
 
@@ -345,9 +348,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
 int main( int argc, char* argv[] )
 {
 #ifndef __APPLE__
-   #ifndef _MSC_VER
-      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-   #endif
+#ifndef _MSC_VER
+   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 
    walberla::Environment env( argc, argv );
