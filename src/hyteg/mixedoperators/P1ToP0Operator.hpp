@@ -708,4 +708,6 @@ typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_0 > P1ToP0ConstantP1EDGVectorM
 typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >             P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
 
+typedef P1ToP0Operator< dg::DGDivtFormEDGP1 >         P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
+
 } // namespace hyteg

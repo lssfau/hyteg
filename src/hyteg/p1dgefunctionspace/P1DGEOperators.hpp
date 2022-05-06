@@ -20,18 +20,98 @@
 
 #pragma once
 
+#include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorMassOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hyteg {
+
+template < typename ValueType >
+class P1ToP1DGEDivTOperator final : public Operator< P1Function< real_t >, P1DGEFunction< real_t > >
+{
+ public:
+   P1ToP1DGEDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1Function< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P1Function< real_t >&    src,
+               const P1DGEFunction< real_t >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      cg_to_eg_coupling_.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( src, *dst.getConformingPart(), level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P1DGEFunction< idx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncFunctionBetweenPrimitives( src, level );
+      communication::syncVectorFunctionBetweenPrimitives( dst, level );
+
+      cg_to_cg_coupling_.toMatrix( mat, src, *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, src, *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+   P1ConstantDivTOperator                         cg_to_cg_coupling_;
+   P1ToP0ConstantP1EDGVDivergenceCouplingOperator cg_to_eg_coupling_;
+};
+
+template < typename ValueType >
+class P1DGEToP1DivOperator final : public Operator< P1DGEFunction< real_t >, P1Function< real_t > >
+{
+ public:
+   P1DGEToP1DivOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1DGEFunction< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P1DGEFunction< real_t >& src,
+               const P1Function< real_t >&    dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), dst, level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), dst, level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1DGEFunction< idx_t >&               src,
+                  const P1Function< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
+      src.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), dst, level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
+   }
+
+ private:
+   P1ConstantDivOperator                         cg_to_cg_coupling_;
+   P0ToP1ConstantP1EDGDivergenceCouplingOperator eg_to_cg_coupling_;
+};
 
 template < typename ValueType >
 class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
