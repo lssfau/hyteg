@@ -22,6 +22,8 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
@@ -48,14 +50,11 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEFunction< idx_t >         numerator( "numerator", storage, level, level );
-   P1DGELaplaceOperator< real_t > L( storage, level, level );
-   P1DGEMassOperator< real_t >    M( storage, level, level );
+   P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
+   P1DGELaplaceOperator   L( storage, level, level );
+   P1DGEMassOperator      M( storage, level, level );
 
    numerator.enumerate( level );
-
-   PETScSparseMatrix< P1DGEMassOperator< real_t > > Mpetsc;
-   Mpetsc.createMatrixFromOperator( M, level, numerator, hyteg::All );
 
    // solution as a lambda function
    std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
@@ -118,7 +117,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    rhs.interpolate( 0, level, DirichletBoundary );
    u.getConformingPart()->interpolate( 0, level, DirichletBoundary );
 
-   PETScCGSolver< P1DGELaplaceOperator< real_t > > solver( storage, level, numerator );
+   PETScCGSolver< P1DGELaplaceOperator > solver( storage, level, numerator );
    solver.solve( L, u, rhs, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
@@ -144,14 +143,100 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    return discrL2;
 }
 
-} // namespace hyteg
-
-int main( int argc, char* argv[] )
+real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
 {
-   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-   walberla::MPIManager::instance()->useWorldComm();
-   hyteg::PETScManager petscManager( &argc, &argv );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
+   P1DGEMassOperator M( storage, level, level );
+
+   P1DGEP1StokesFunction< idx_t > numerator( "numerator", storage, level, level );
+
+   P1DGEP1StokesOperator K( storage, level, level );
+   PETScSparseMatrix< P1DGEP1StokesOperator > Kpetsc;
+   Kpetsc.createMatrixFromOperator( K, level, numerator, hyteg::All );
+
+   numerator.enumerate( level );
+
+   // solution as a lambda function
+   std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return y + 2 * std::sin( x + y ) + 4;
+   };
+
+   std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return -x - 2 * std::sin( x + y ) + 3;
+   };
+
+   std::function< real_t( const Point3D& p ) > p_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 * x - y + 1;
+   };
+
+   // rhs as a lambda function
+   std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 - 4 * std::sin( x + y );
+   };
+   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 4 * std::sin( x + y ) - 1;
+   };
+
+   P1DGEFunction< real_t > u( "u", storage, level, level );
+   P1DGEFunction< real_t > f( "f", storage, level, level );
+   P1DGEFunction< real_t > rhs( "rhs", storage, level, level );
+   P1DGEFunction< real_t > sol( "sol", storage, level, level );
+   P1DGEFunction< real_t > err( "err", storage, level, level );
+   P1DGEFunction< real_t > Merr( "Merr", storage, level, level );
+
+   sol.interpolate( { u_x_expr, u_y_expr }, level, All );
+   f.interpolate( { f_x_expr, f_y_expr }, level, All );
+
+   // Why do I need this?
+   f.interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
+
+   M.apply( f, rhs, level, All, Replace );
+
+   rhs.interpolate( 0, level, DirichletBoundary );
+   u.getConformingPart()->interpolate( 0, level, DirichletBoundary );
+
+   // PETScCGSolver< P1DGELaplaceOperator< real_t > > solver( storage, level, numerator );
+   // solver.solve( L, u, rhs, level );
+
+   err.assign( { 1.0, -1.0 }, { u, sol }, level );
+
+   // calculate the error in the L2 norm
+   M.apply( err, Merr, level, All, Replace );
+   auto discrL2 = sqrt( err.dotGlobal( Merr, level, Inner ) );
+
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../", "P1DGEPoisson2DHomogeneousDirichletConvergenceTest", storage );
+      vtk.add( u );
+      vtk.add( sol );
+      vtk.add( err );
+      vtk.add( f );
+      vtk.add( *u.getConformingPart() );
+      vtk.add( *u.getDiscontinuousPart() );
+      vtk.add( *numerator.uvw().getConformingPart() );
+      vtk.add( *numerator.uvw().getDiscontinuousPart() );
+      vtk.write( level );
+   }
+
+   return discrL2;
+}
+
+void runLaplace()
+{
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
    real_t lastError    = std::nan( "" );
    real_t currentError = std::nan( "" );
@@ -169,6 +254,39 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
    WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
+}
+
+void runStokes()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
+   real_t lastError    = std::nan( "" );
+   real_t currentError = std::nan( "" );
+   real_t currentRate  = std::nan( "" );
+   for ( uint_t level = 6; level <= 7; level++ )
+   {
+      lastError    = currentError;
+      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
+      currentRate  = lastError / currentError;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
+   }
+   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( currentRate, 4., 1e-2 );
+
+   const real_t expectedRate = 4.;
+
+   WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
+   WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
+}
+
+} // namespace hyteg
+
+int main( int argc, char* argv[] )
+{
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
+   hyteg::PETScManager petscManager( &argc, &argv );
+
+   // hyteg::runLaplace();
+   hyteg::runStokes();
 
    return 0;
 }

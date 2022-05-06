@@ -22,6 +22,8 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP1StokesOperator.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
@@ -36,7 +38,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-static void test( const std::string& meshFile, const uint_t& level )
+static void testLaplace( const std::string& meshFile, const uint_t& level )
 {
    using namespace dg;
 
@@ -48,19 +50,58 @@ static void test( const std::string& meshFile, const uint_t& level )
    auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
    auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
 
-   P1DGEFunction< idx_t >         numerator( "numerator", storage, level, level );
-   P1DGELaplaceOperator< real_t > L( storage, level, level );
+   P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
+   P1DGELaplaceOperator   L( storage, level, level );
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P1DGELaplaceOperator< real_t > > Lpetsc;
+   PETScSparseMatrix< P1DGELaplaceOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
-   Lpetsc.print( "/Users/nilskohl/Desktop/P1DGE_Laplace.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   Lpetsc.print( "../P1DGE_Laplace.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
    WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
                    "P1DGE vector Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
    WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
+}
+
+static void testStokes( const std::string& meshFile, const uint_t& level )
+{
+   using namespace dg;
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   P1DGEP1StokesFunction< idx_t > numerator( "numerator", storage, level, level );
+   P1DGEP1StokesOperator          L( storage, level, level );
+
+   {
+      WALBERLA_LOG_WARNING(
+          "Symmetry test checks by adding the velocity boundary conditions to the pressure. "
+          "This is just a temporary workaround for testing things! ");
+      numerator.p().setBoundaryCondition(numerator.uvw().getBoundaryCondition());
+   }
+
+   numerator.enumerate( level );
+
+   /*{
+      PETScSparseMatrix< P1DGELaplaceOperator > Apetsc;
+      Apetsc.createMatrixFromOperator( L.Lapl, level, numerator.uvw(), hyteg::All );
+
+      WALBERLA_CHECK( Apetsc.isSymmetric( 1e-12 ),
+                      "P1DGEP1 Laplace _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
+   }*/
+
+   PETScSparseMatrix< P1DGEP1StokesOperator > Lpetsc;
+   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+
+   Lpetsc.print( "../P1DGE_Stokes.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
+                   "P1DGEP1 Stokes _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "P1DGEP1 Stokes symmetric for: level = " << level << ", mesh: " << meshFile );
 }
 
 } // namespace hyteg
@@ -73,7 +114,8 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::test( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testLaplace( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testStokes( "../../data/meshes/tri_1el.msh", level );
 #if 0
       // requires P1CG-DG0 interface integrals at macro-boundaries
       hyteg::test( "../../data/meshes/annulus_coarse.msh", level );

@@ -36,7 +36,6 @@
 
 namespace hyteg {
 
-template < typename ValueType >
 class P1ToP1DGEDivTOperator final : public Operator< P1Function< real_t >, P1DGEFunction< real_t > >
 {
  public:
@@ -74,7 +73,6 @@ class P1ToP1DGEDivTOperator final : public Operator< P1Function< real_t >, P1DGE
    P1ToP0ConstantP1EDGVDivergenceCouplingOperator cg_to_eg_coupling_;
 };
 
-template < typename ValueType >
 class P1DGEToP1DivOperator final : public Operator< P1DGEFunction< real_t >, P1Function< real_t > >
 {
  public:
@@ -113,7 +111,6 @@ class P1DGEToP1DivOperator final : public Operator< P1DGEFunction< real_t >, P1F
    P0ToP1ConstantP1EDGDivergenceCouplingOperator eg_to_cg_coupling_;
 };
 
-template < typename ValueType >
 class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
 {
  public:
@@ -162,7 +159,6 @@ class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEF
    P0Operator< dg::DGVectorMassFormEDGEDG >      eg_to_eg_coupling_;
 };
 
-template < typename ValueType >
 class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
 {
  public:
