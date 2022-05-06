@@ -108,16 +108,16 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
              uint_t                                                                           level,
              DoFType                                                                          flag = All ) const
    {
-      u_conforming_->add( scalars, functions, level, flag );
-      u_discontinuous_->add( scalars, functions, level, flag );
+      u_conforming_->add( scalars, filter_conforming( functions ), level, flag );
+      u_discontinuous_->add( scalars, filter_discontinuous( functions ), level, flag );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
                          uint_t                                                                           level,
                          DoFType                                                                          flag = All ) const
    {
-      u_conforming_->multElementwise( functions, level, flag );
-      u_discontinuous_->multElementwise( functions, level, flag );
+      u_conforming_->multElementwise( filter_conforming( functions ), level, flag );
+      u_discontinuous_->multElementwise( filter_discontinuous( functions ), level, flag );
    }
 
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
@@ -142,8 +142,8 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
    void swap( const P1DGEFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      u_conforming_->swap( other.u_conforming_, level, flag );
-      u_discontinuous_->swap( other.u_discontinuous_, level, flag );
+      u_conforming_->swap( *other.getConformingPart(), level, flag );
+      u_discontinuous_->swap( *other.getDiscontinuousPart(), level, flag );
    };
 
    void copyFrom( const P1DGEFunction< ValueType >&              other,
@@ -169,16 +169,8 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
                 uint_t                                                                           level,
                 DoFType                                                                          flag = All ) const
    {
-      std::vector< std::reference_wrapper< const P0Function< ValueType > > >       dg_list;
-      std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > p1_list;
-
-      for ( auto f : functions )
-      {
-         p1_list.push_back( *( f.get().getConformingPart() ) );
-         dg_list.push_back( *( f.get().getDiscontinuousPart() ) );
-      }
-      u_conforming_->assign( scalars, p1_list, level, flag );
-      u_discontinuous_->assign( scalars, dg_list, level, flag );
+      u_conforming_->assign( scalars, filter_conforming( functions ), level, flag );
+      u_discontinuous_->assign( scalars, filter_discontinuous( functions ), level, flag );
    }
 
    ValueType dotGlobal( const P1DGEFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
@@ -420,7 +412,30 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    void copyBoundaryConditionFromFunction( const P1DGEFunction< OtherValueType >& other )
    {
       u_conforming_->copyBoundaryConditionFromFunction( *( other.getConformingPart() ) );
-      u_discontinuous_->copyBoundaryConditionFromFunction( *(other.getDiscontinuousPart()) );
+      u_discontinuous_->copyBoundaryConditionFromFunction( *( other.getDiscontinuousPart() ) );
+   }
+
+ protected:
+   static std::vector< std::reference_wrapper< const P0Function< ValueType > > >
+       filter_discontinuous( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions )
+   {
+      std::vector< std::reference_wrapper< const P0Function< ValueType > > > dg_list;
+      for ( auto& f : functions )
+      {
+         dg_list.push_back( *( f.get().getDiscontinuousPart() ) );
+      }
+      return dg_list;
+   }
+
+   static std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > >
+       filter_conforming( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions )
+   {
+      std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > conforming_list;
+      for ( auto& f : functions )
+      {
+         conforming_list.push_back( *( f.get().getConformingPart() ) );
+      }
+      return conforming_list;
    }
 
  protected:
@@ -446,12 +461,11 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
 
 inline void applyDirichletBC( const P1DGEFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   WALBERLA_LOG_INFO(
-       "Warning EDG applies dirichlet boundary conditions for P1!"
-       "This is not completely correct correct." )
+   WALBERLA_LOG_INFO( "Warning EDG applies dirichlet boundary conditions for P1!"
+                      "This is not completely correct correct." )
 
-   applyDirichletBCTest( numerator.getConformingPart()->component(0), mat, level );
-   applyDirichletBCTest( numerator.getConformingPart()->component(1), mat, level );
+   applyDirichletBCTest( numerator.getConformingPart()->component( 0 ), mat, level );
+   applyDirichletBCTest( numerator.getConformingPart()->component( 1 ), mat, level );
 
    WALBERLA_UNUSED( numerator );
    WALBERLA_UNUSED( mat );
