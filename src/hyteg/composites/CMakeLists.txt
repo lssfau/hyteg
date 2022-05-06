@@ -23,5 +23,6 @@ target_sources( hyteg
     P1StokesFunction.hpp
     P1P0StokesFunction.hpp
     P1P0StokesOperator.hpp
+    P1DGEP1StokesFunction.hpp
 )
 add_subdirectory( transport )

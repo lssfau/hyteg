@@ -67,6 +67,8 @@ struct DGVectorFunctionTag
 {};
 struct P1DGEFunctionTag
 {};
+struct P1DGEP1StokesFunctionTag
+{};
 
 //////////////////////////
 // Forward declarations //
@@ -131,6 +133,9 @@ class DGVectorFunction;
 
 template < typename VType >
 class P1DGEFunction;
+
+template < typename VType >
+class P1DGEP1StokesFunction;
 
 ///////////////////////////////////////////////////////////////////
 // Enum for getting info on type of a GenericFunction
@@ -331,8 +336,8 @@ struct FunctionTrait< P2VectorFunction< VType > >
 template < typename VType >
 struct FunctionTrait< dg::DGVectorFunction< VType > >
 {
-   typedef VType               ValueType;
-   typedef DGVectorFunctionTag Tag;
+   typedef VType                   ValueType;
+   typedef DGVectorFunctionTag     Tag;
    typedef dg::DGFunction< VType > VectorComponentType;
 
    static std::string getTypeName() { return "DGVectorFunction"; }
@@ -344,13 +349,25 @@ struct FunctionTrait< dg::DGVectorFunction< VType > >
 template < typename VType >
 struct FunctionTrait< P1DGEFunction< VType > >
 {
-   typedef VType               ValueType;
-   typedef P1DGEFunctionTag Tag;
+   typedef VType                  ValueType;
+   typedef P1DGEFunctionTag       Tag;
    typedef P1DGEFunction< VType > VectorComponentType;
 
    static std::string getTypeName() { return "P1DGEVectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P1DGE_FUNCTION;
+};
+
+/// P1DGEP1StokesFunction specialization
+template < typename VType >
+struct FunctionTrait< P1DGEP1StokesFunction< VType > >
+{
+   typedef VType                    ValueType;
+   typedef P1DGEP1StokesFunctionTag Tag;
+
+   static std::string getTypeName() { return "P1DGEP1StokesFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
 
 } // namespace hyteg
