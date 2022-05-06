@@ -28,6 +28,7 @@
 
 namespace hyteg {
 
+/// TODO: refactor this by using the one defined for the P1Function
 inline void applyDirichletBCTest( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getVertices() )
