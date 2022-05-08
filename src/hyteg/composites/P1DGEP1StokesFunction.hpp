@@ -80,4 +80,6 @@ class P1DGEP1StokesFunction : public BlockFunction< ValueType >
    bool isDummy() const { return false; }
 };
 
+void applyDirichletBC( const P1DGEP1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+
 } // namespace hyteg
