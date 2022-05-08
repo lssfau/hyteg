@@ -237,7 +237,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    if ( writeVTK )
    {
-      VTKOutput vtk( "../../", "P1DGEPoisson2DHomogeneousDirichletConvergenceTest", storage );
+      VTKOutput vtk( "../../", "P1DGEStokes2DHomogeneousDirichletConvergenceTest", storage );
       vtk.add( u );
       vtk.add( sol );
       vtk.add( err );
@@ -277,10 +277,10 @@ void runStokes()
    real_t lastError    = std::nan( "" );
    real_t currentError = std::nan( "" );
    real_t currentRate  = std::nan( "" );
-   for ( uint_t level = 3; level <= 7; level++ )
+   for ( uint_t level = 3; level <= 6; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
+      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }

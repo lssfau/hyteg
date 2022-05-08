@@ -24,6 +24,7 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/VTKDGWriter.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
@@ -35,7 +36,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 #include "vtk/UtilityFunctions.h"
-#include "hyteg/dataexport/VTKDGWriter.hpp"
 
 namespace hyteg {
 
@@ -69,6 +69,12 @@ void VTKOutput::add( const P1StokesFunction< real_t >& function )
 }
 
 void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
+{
+   add( function.uvw() );
+   add( function.p() );
+}
+
+void VTKOutput::add( const P1DGEP1StokesFunction< real_t >& function )
 {
    add( function.uvw() );
    add( function.p() );

@@ -26,17 +26,18 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
+#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
 
 // our friends and helpers
 
@@ -45,12 +46,12 @@
 #include "hyteg/dataexport/VTKHelpers.hpp"
 // clang on
 
-#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
+#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
-#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 
 // from walblera
 #include "vtk/Base64Writer.h"
@@ -154,6 +155,7 @@ class VTKOutput
 
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
+   void add( const P1DGEP1StokesFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -260,7 +262,7 @@ class VTKOutput
    FunctionMultiStore< P1VectorFunction > p1VecFunctions_;
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
-   FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
+   FunctionMultiStore< EdgeDoFFunction >     edgeDoFFunctions_;
    FunctionMultiStore< FaceDoFFunction_old > faceDoFFunctions_;
 
    FunctionMultiStore< dg::DGFunction > dgFunctions_;
