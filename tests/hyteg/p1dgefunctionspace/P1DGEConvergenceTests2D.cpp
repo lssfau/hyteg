@@ -150,7 +150,8 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEMassOperator M( storage, level, level );
+   P1DGEMassOperator      M_velocity( storage, level, level );
+   P1ConstantMassOperator M_pressure( storage, level, level );
 
    P1DGEP1StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
@@ -162,31 +163,63 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return y + 2 * std::sin( x + y ) + 4;
+      return std::sin( M_PI * x ) * std::sin( M_PI * y ) * std::sin( M_PI * ( x + y ) );
    };
 
    std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return -x - 2 * std::sin( x + y ) + 3;
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = 2 * x;
+      const real_t x1 = 2 * y;
+      return std::sin( M_PI * x0 ) * std::sin( M_PI * x1 ) * std::sin( M_PI * ( x0 + x1 ) );
    };
 
    std::function< real_t( const Point3D& p ) > p_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return 2 * x - y + 1;
+      return 0 * x + 0 * y;
    };
 
    // rhs as a lambda function
    std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 2 - 4 * std::sin( x + y );
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = M_PI * x;
+      const real_t x1 = std::sin( x0 );
+      const real_t x2 = M_PI * ( x + y );
+      const real_t x3 = std::pow( M_PI, 2 );
+      const real_t x4 = M_PI * y;
+      const real_t x5 = x3 * std::sin( x4 );
+      const real_t x6 = 2 * std::cos( x2 );
+      return -(x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ));
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 4 * std::sin( x + y ) - 1;
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = 2 * x;
+      const real_t x1 = 2 * y;
+      const real_t x2 = M_PI * ( x0 + x1 );
+      const real_t x3 = M_PI * x0;
+      const real_t x4 = std::sin( x3 );
+      const real_t x5 = std::pow( M_PI, 2 );
+      const real_t x6 = M_PI * x1;
+      const real_t x7 = x5 * std::sin( x6 );
+      const real_t x8 = 8 * std::cos( x2 );
+      return -(x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ));
+   };
+
+   std::function< real_t( const Point3D& p ) > g_expr = []( const Point3D& p ) -> real_t {
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = M_PI * ( x + y );
+      const real_t x1 = M_PI * x;
+      const real_t x2 = M_PI * y;
+      const real_t x3 = M_PI * std::sin( x2 );
+      const real_t x4 = M_PI * ( 2 * x + 2 * y );
+      const real_t x5 = 2 * x2;
+      const real_t x6 = 2 * M_PI * std::sin( 2 * x1 );
+      return -x3 * std::sin( x0 ) * std::cos( x1 ) - x3 * std::sin( x1 ) * std::cos( x0 ) - x6 * std::sin( x4 ) * std::cos( x5 ) -
+             x6 * std::sin( x5 ) * std::cos( x4 );
    };
 
    P1DGEP1StokesFunction< real_t > u( "u", storage, level, level );
@@ -213,14 +246,15 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    sol.uvw().interpolate( { u_x_expr, u_y_expr }, level, All );
    sol.p().interpolate( p_expr, level, All );
    f.uvw().interpolate( { f_x_expr, f_y_expr }, level, All );
-   f.p().interpolate( 0, level, All );
+   f.p().interpolate( g_expr, level, All );
 
    // Why do I need this?
    f.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
    f.p().interpolate( p_expr, level, DirichletBoundary );
 
-   M.apply( f.uvw(), rhs.uvw(), level, All, Replace );
-   rhs.p().interpolate( 0, level, All );
+   M_velocity.apply( f.uvw(), rhs.uvw(), level, All, Replace );
+   M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
+   // rhs.p().interpolate( 0, level, All );
 
    rhs.assign( { 1. }, { sol }, level, DirichletBoundary );
    u.assign( { 1 }, { sol }, level, DirichletBoundary );
@@ -232,7 +266,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
 
    // calculate the error in the L2 norm
-   M.apply( err.uvw(), Merr.uvw(), level, All, Replace );
+   M_velocity.apply( err.uvw(), Merr.uvw(), level, All, Replace );
    auto discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
 
    if ( writeVTK )
