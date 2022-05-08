@@ -86,14 +86,6 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
 
    numerator.enumerate( level );
 
-   /*{
-      PETScSparseMatrix< P1DGELaplaceOperator > Apetsc;
-      Apetsc.createMatrixFromOperator( L.Lapl, level, numerator.uvw(), hyteg::All );
-
-      WALBERLA_CHECK( Apetsc.isSymmetric( 1e-12 ),
-                      "P1DGEP1 Laplace _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
-   }*/
-
    PETScSparseMatrix< P1DGEP1StokesOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
