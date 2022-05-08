@@ -79,7 +79,7 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
 
    {
       WALBERLA_LOG_WARNING(
-          "Symmetry test checks by adding the velocity boundary conditions to the pressure. "
+          "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
           "This is just a temporary workaround for testing things! ");
       numerator.p().setBoundaryCondition(numerator.uvw().getBoundaryCondition());
    }
