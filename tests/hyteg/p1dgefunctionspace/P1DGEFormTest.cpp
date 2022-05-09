@@ -98,6 +98,31 @@ void testDivForm()
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[0] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[1] );
    }
+
+   // checking dirichlet integral
+   {
+      // expected values precalculated in sympy notebook:
+      std::vector< real_t > expected = { 2. * 0.0849836585598798, 0, 2. * 0.0849836585598798 };
+
+      form.integrateFacetDirichletBoundary( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
+
+      // check a different permutation
+      form.integrateFacetDirichletBoundary( 2, { p0, p1, p2 }, { p2, p0 }, p1, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
+
+      form.integrateFacetDirichletBoundary( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[1] );
+   }
 }
 
 } // namespace hyteg

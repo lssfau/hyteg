@@ -382,7 +382,7 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13*tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
-      real_t tmp_18 = 0.5*p_affine_10_0*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
+      real_t tmp_18 = p_affine_10_0*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
       real_t tmp_19 = 0.5*tmp_18;
       real_t tmp_20 = tmp_4*(0.78867513459481287*tmp_5 + tmp_6);
       real_t tmp_21 = tmp_1*tmp_20;
@@ -792,7 +792,7 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13*tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
-      real_t tmp_18 = 0.5*p_affine_10_1*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
+      real_t tmp_18 = p_affine_10_1*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
       real_t tmp_19 = 0.5*tmp_18;
       real_t tmp_20 = tmp_4*(0.78867513459481287*tmp_5 + tmp_6);
       real_t tmp_21 = tmp_1*tmp_20;
@@ -1144,7 +1144,7 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_16 = tmp_15*tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15*tmp_17;
-      real_t tmp_19 = -0.5*tmp_10 - 0.5*tmp_12 - 0.5*tmp_16 - 0.5*tmp_18 + 0.5;
+      real_t tmp_19 = -tmp_10 - tmp_12 - tmp_16 - tmp_18 + 1;
       real_t tmp_20 = tmp_12 + tmp_16;
       real_t tmp_21 = tmp_20 - 1.0/3.0;
       real_t tmp_22 = tmp_10 + tmp_18;
@@ -1159,7 +1159,7 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_31 = tmp_6*(0.78867513459481287*tmp_13 + tmp_14);
       real_t tmp_32 = tmp_3*tmp_31;
       real_t tmp_33 = tmp_17*tmp_31;
-      real_t tmp_34 = -0.5*tmp_29 - 0.5*tmp_30 - 0.5*tmp_32 - 0.5*tmp_33 + 0.5;
+      real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
       real_t tmp_35 = tmp_30 + tmp_32;
       real_t tmp_36 = tmp_35 - 1.0/3.0;
       real_t tmp_37 = tmp_29 + tmp_33;
@@ -1167,13 +1167,9 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_39 = p_affine_10_0*(tmp_1*tmp_36 + tmp_38*tmp_4);
       real_t tmp_40 = p_affine_10_1*(tmp_3*tmp_38 + tmp_36*tmp_5);
       real_t tmp_41 = 0.5*tmp_26;
-      real_t tmp_42 = 0.5*tmp_20;
-      real_t tmp_43 = 0.5*tmp_35;
-      real_t tmp_44 = 0.5*tmp_22;
-      real_t tmp_45 = 0.5*tmp_37;
       real_t a_0_0 = tmp_27*(tmp_19*tmp_24 + tmp_19*tmp_25) + tmp_41*(tmp_34*tmp_39 + tmp_34*tmp_40);
-      real_t a_1_0 = tmp_27*(tmp_24*tmp_42 + tmp_25*tmp_42) + tmp_41*(tmp_39*tmp_43 + tmp_40*tmp_43);
-      real_t a_2_0 = tmp_27*(tmp_24*tmp_44 + tmp_25*tmp_44) + tmp_41*(tmp_39*tmp_45 + tmp_40*tmp_45);
+      real_t a_1_0 = tmp_27*(tmp_20*tmp_24 + tmp_20*tmp_25) + tmp_41*(tmp_35*tmp_39 + tmp_35*tmp_40);
+      real_t a_2_0 = tmp_27*(tmp_22*tmp_24 + tmp_22*tmp_25) + tmp_41*(tmp_37*tmp_39 + tmp_37*tmp_40);
       elMat( 0, 0) = a_0_0;
       elMat( 1, 0) = a_1_0;
       elMat( 2, 0) = a_2_0;
@@ -1544,7 +1540,7 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13*tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
-      real_t tmp_18 = 0.5*p_affine_10_0*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
+      real_t tmp_18 = p_affine_10_0*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
       real_t tmp_19 = 0.5*tmp_18;
       real_t tmp_20 = tmp_4*(0.78867513459481287*tmp_5 + tmp_6);
       real_t tmp_21 = tmp_1*tmp_20;
@@ -1948,7 +1944,7 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13*tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
-      real_t tmp_18 = 0.5*p_affine_10_1*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
+      real_t tmp_18 = p_affine_10_1*std::abs(std::pow((tmp_11*tmp_11) + (tmp_5*tmp_5), 1.0/2.0));
       real_t tmp_19 = 0.5*tmp_18;
       real_t tmp_20 = tmp_4*(0.78867513459481287*tmp_5 + tmp_6);
       real_t tmp_21 = tmp_1*tmp_20;
@@ -2300,7 +2296,7 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_16 = tmp_15*tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15*tmp_17;
-      real_t tmp_19 = -0.5*tmp_10 - 0.5*tmp_12 - 0.5*tmp_16 - 0.5*tmp_18 + 0.5;
+      real_t tmp_19 = -tmp_10 - tmp_12 - tmp_16 - tmp_18 + 1;
       real_t tmp_20 = tmp_12 + tmp_16;
       real_t tmp_21 = tmp_20 - 1.0/3.0;
       real_t tmp_22 = tmp_10 + tmp_18;
@@ -2315,7 +2311,7 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_31 = tmp_6*(0.78867513459481287*tmp_13 + tmp_14);
       real_t tmp_32 = tmp_3*tmp_31;
       real_t tmp_33 = tmp_17*tmp_31;
-      real_t tmp_34 = -0.5*tmp_29 - 0.5*tmp_30 - 0.5*tmp_32 - 0.5*tmp_33 + 0.5;
+      real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
       real_t tmp_35 = tmp_30 + tmp_32;
       real_t tmp_36 = tmp_35 - 1.0/3.0;
       real_t tmp_37 = tmp_29 + tmp_33;
@@ -2323,13 +2319,9 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_39 = p_affine_10_0*(tmp_1*tmp_36 + tmp_38*tmp_4);
       real_t tmp_40 = p_affine_10_1*(tmp_3*tmp_38 + tmp_36*tmp_5);
       real_t tmp_41 = 0.5*tmp_26;
-      real_t tmp_42 = 0.5*tmp_20;
-      real_t tmp_43 = 0.5*tmp_35;
-      real_t tmp_44 = 0.5*tmp_22;
-      real_t tmp_45 = 0.5*tmp_37;
       real_t a_0_0 = tmp_27*(tmp_19*tmp_24 + tmp_19*tmp_25) + tmp_41*(tmp_34*tmp_39 + tmp_34*tmp_40);
-      real_t a_0_1 = tmp_27*(tmp_24*tmp_42 + tmp_25*tmp_42) + tmp_41*(tmp_39*tmp_43 + tmp_40*tmp_43);
-      real_t a_0_2 = tmp_27*(tmp_24*tmp_44 + tmp_25*tmp_44) + tmp_41*(tmp_39*tmp_45 + tmp_40*tmp_45);
+      real_t a_0_1 = tmp_27*(tmp_20*tmp_24 + tmp_20*tmp_25) + tmp_41*(tmp_35*tmp_39 + tmp_35*tmp_40);
+      real_t a_0_2 = tmp_27*(tmp_22*tmp_24 + tmp_22*tmp_25) + tmp_41*(tmp_37*tmp_39 + tmp_37*tmp_40);
       elMat( 0, 0) = a_0_0;
       elMat( 0, 1) = a_0_1;
       elMat( 0, 2) = a_0_2;
