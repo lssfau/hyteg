@@ -47,7 +47,7 @@ using walberla::math::pi;
 /// \param minLevel min micro-refinement level
 /// \param maxLevel max micro-refinement level
 /// \param degree   element poly degree
-void singleMacroFace( uint_t minLevel, uint_t maxLevel, uint_t degree )
+void singleMacroFaceGlobalRefinement( uint_t minLevel, uint_t maxLevel, uint_t degree )
 {
    using namespace dg;
 
@@ -123,7 +123,7 @@ void singleMacroFace( uint_t minLevel, uint_t maxLevel, uint_t degree )
 
          if ( writeVTK )
          {
-            VTKOutput vtk( "../../output/", "DGAdaptiveRefinementTest_SingleFace_" + std::to_string( refinement ), storage );
+            VTKOutput vtk( "../../output/", "DGGlobalRefinementTest_SingleFace_" + std::to_string( refinement ), storage );
             vtk.add( u );
             vtk.add( sol );
             vtk.add( err );
@@ -178,7 +178,7 @@ int main( int argc, char** argv )
    using hyteg::Point3D;
    using walberla::real_t;
 
-   hyteg::singleMacroFace( 3, 5, 1 );
+   hyteg::singleMacroFaceGlobalRefinement( 3, 5, 1 );
 
    return EXIT_SUCCESS;
 }
