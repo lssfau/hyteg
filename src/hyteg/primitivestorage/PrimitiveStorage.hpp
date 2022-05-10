@@ -158,6 +158,9 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// \brief Returns the currently maximum number that a primitive is refined globally (involves global reduction).
    uint_t getCurrentGlobalMaxRefinement() const;
 
+   /// \brief Returns the refinement level of the corresponding primitive.
+   uint_t getRefinementLevel( const PrimitiveID & pid ) const;
+
    /// @name \ref Primitive access methods
    /// Various methods to obtain primitives or IDs.
    ///@{

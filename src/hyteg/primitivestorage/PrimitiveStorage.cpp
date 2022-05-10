@@ -474,6 +474,12 @@ uint_t PrimitiveStorage::getCurrentGlobalMaxRefinement() const
    return walberla::mpi::allReduce( getCurrentLocalMaxRefinement(), walberla::mpi::MAX );
 }
 
+/// \brief Returns the refinement level of the corresponding primitive.
+uint_t PrimitiveStorage::getRefinementLevel( const PrimitiveID& pid ) const
+{
+   return pid.numAncestors();
+}
+
 uint_t PrimitiveStorage::getNumberOfLocalVertices() const
 {
    uint_t num = 0;
@@ -2473,7 +2479,7 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
              "Face to be refined must exist locally or in neighborhood now that this data should have been communicated." );
 
          auto coarseFace = getFace( coarseVolumeID );
-         auto level      = coarseVolumeID.numAncestors();
+         auto level      = getRefinementLevel( coarseVolumeID );
 
          // Creating new primitives.
          //
@@ -2705,7 +2711,7 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          edge_y->setParent( coarseVolumeID );
          edge_xy->setParent( coarseVolumeID );
 
-         coarseFace->addChildEdges( {edge_x_idx, edge_y_idx, edge_xy_idx} );
+         coarseFace->addChildEdges( { edge_x_idx, edge_y_idx, edge_xy_idx } );
 
          // Now the child faces.
 
@@ -2860,10 +2866,13 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
             auto vertex = getVertex( neighborVertexID );
             for ( const auto& neighborFaceID : vertex->neighborFaces() )
             {
+               auto nFace = getFace( neighborFaceID );
+
                if ( neighborFaceID != fineFaceID &&
                     !algorithms::contains( fineFace->indirectNeighborFaceIDsOverVertices_, neighborFaceID ) )
                {
                   fineFace->indirectNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+                  nFace->indirectNeighborFaceIDsOverVertices_.push_back( fineFaceID );
                }
             }
          }
@@ -2873,9 +2882,13 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
             auto edge = getEdge( neighborEdgeID );
             for ( const auto& neighborFaceID : edge->neighborFaces() )
             {
+               auto nFace = getFace( neighborFaceID );
                if ( neighborFaceID != fineFaceID )
                {
+                  WALBERLA_ASSERT( algorithms::contains( nFace->neighborEdges(), neighborEdgeID ) );
+
                   fineFace->indirectNeighborFaceIDsOverEdges_[fineFace->edge_index( neighborEdgeID )] = neighborFaceID;
+                  nFace->indirectNeighborFaceIDsOverEdges_[nFace->edge_index( neighborEdgeID )]       = fineFaceID;
                }
             }
          }
