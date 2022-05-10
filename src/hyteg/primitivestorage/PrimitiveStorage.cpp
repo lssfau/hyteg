@@ -692,13 +692,17 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap& primitiveMap ) const
 {
    primitiveMap.clear();
 
-   primitiveMap.insert( vertices_.at( 0 ).begin(), vertices_.at( 0 ).end() );
-   primitiveMap.insert( edges_.at( 0 ).begin(), edges_.at( 0 ).end() );
-   primitiveMap.insert( faces_.at( 0 ).begin(), faces_.at( 0 ).end() );
-   primitiveMap.insert( cells_.at( 0 ).begin(), cells_.at( 0 ).end() );
+   auto vertices = getVertices();
+   auto edges    = getEdges();
+   auto faces    = getFaces();
+   auto cells    = getCells();
 
-   WALBERLA_ASSERT_EQUAL( primitiveMap.size(),
-                          vertices_.at( 0 ).size() + edges_.at( 0 ).size() + faces_.at( 0 ).size() + cells_.at( 0 ).size() );
+   primitiveMap.insert( vertices.begin(), vertices.end() );
+   primitiveMap.insert( edges.begin(), edges.end() );
+   primitiveMap.insert( faces.begin(), faces.end() );
+   primitiveMap.insert( cells.begin(), cells.end() );
+
+   WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices.size() + edges.size() + faces.size() + cells.size() );
 }
 
 PrimitiveStorage::VertexMap PrimitiveStorage::getVertices() const
@@ -1337,6 +1341,20 @@ uint_t PrimitiveStorage::getPrimitiveRank( const PrimitiveID& id ) const
    }
 }
 
+uint_t PrimitiveStorage::getNeighborPrimitiveRank( const PrimitiveID& id ) const
+{
+   WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ), "Primitive with ID " << id << " does not exist in neighborhood." );
+   for ( const auto& [level, nranks] : neighborRanks_ )
+   {
+      if ( nranks.count( id ) > 0 )
+      {
+         return nranks.at( id );
+      }
+   }
+   WALBERLA_CHECK( false, "Could not determine neighbor rank of neighbor primitive. This is bad." );
+   return std::numeric_limits< uint_t >::max();
+}
+
 std::map< PrimitiveID, uint_t > PrimitiveStorage::getGlobalPrimitiveRanks() const
 {
    std::map< PrimitiveID, uint_t > primitiveRanks;
@@ -1713,8 +1731,6 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 
 std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfFace( const PrimitiveID& facePrimitiveID ) const
 {
-   WALBERLA_CHECK_EQUAL( getCurrentLocalMaxRefinement(), 0, "Not implemented for refined meshes." );
-
    WALBERLA_CHECK( additionalHaloDepth_ > 0,
                    "Additional halo depth must be larger than 0 to access neighbor faces of faces. "
                    "This can be set in the PrimitiveStorage constructor." );
@@ -1812,25 +1828,30 @@ std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
 
 void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const
 {
-   WALBERLA_CHECK_EQUAL( getCurrentLocalMaxRefinement(), 0, "Not implemented for refined meshes." );
-
    neighboringRanks.clear();
-   for ( const auto& it : neighborRanks_.at( 0 ) )
+   for ( const auto& [level, nranks] : neighborRanks_ )
    {
-      const uint_t neighborRank = it.second;
-      neighboringRanks.insert( neighborRank );
+      for ( const auto& [pid, r] : nranks )
+      {
+         auto primitive = getPrimitive( pid );
+         if ( !primitive->hasChildren() )
+         {
+            neighboringRanks.insert( r );
+         }
+      }
    }
 }
 
 void PrimitiveStorage::getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const
 {
-   WALBERLA_CHECK_EQUAL( getCurrentLocalMaxRefinement(), 0, "Not implemented for refined meshes." );
-
    neighboringRanks.clear();
-   for ( const auto& it : neighborRanks_.at( 0 ) )
+
+   std::set< uint_t > neighboringRanksUint;
+   getNeighboringRanks( neighboringRanksUint );
+
+   for ( const auto& it : neighboringRanksUint )
    {
-      const walberla::mpi::MPIRank neighborRank = static_cast< walberla::mpi::MPIRank >( it.second );
-      neighboringRanks.insert( neighborRank );
+      neighboringRanks.insert( static_cast< walberla::mpi::MPIRank >( it ) );
    }
 }
 
@@ -2386,6 +2407,11 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
                                                        std::vector< PrimitiveID >&       volumePIDsRefineResult,
                                                        std::vector< PrimitiveID >&       volumePIDsCoarsenResult )
 {
+   WALBERLA_CHECK_GREATER_EQUAL( getAdditionalHaloDepth(),
+                                 1,
+                                 "For hanging node refinement and coarsening, the number of additional halos must be at least 1. "
+                                 "This can be set in the PrimitiveStorage constructor." );
+
    //////////////////////////////////////////////////////////
    /// Checking what is going to be refined and coarsened ///
    //////////////////////////////////////////////////////////
@@ -2396,25 +2422,70 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
    /// Refinement ///
    //////////////////
 
+   // Since we require all passed faces to be locally allocated we need to communicate that they are flagged for refinement to the
+   // neighboring processes. Then during refinement all marked primitives are refined on each process, also the neighboring
+   // primitives that are marked.
+
+   // Will contain all PIDs that shall be refined later on.
+   // Includes locally allocated primitives as well as those that exist in the direct neighborhood.
+   // To be filled below ...
+   std::set< PrimitiveID > volumePIDsRefineIncludingNeighborhood;
+   volumePIDsRefineIncludingNeighborhood.insert( volumePIDsRefineResult.begin(), volumePIDsRefineResult.end() );
+
+   // Map of neighboring processes to vectors of locally allocated primitives that shall be refined to be sent to these processes.
+   std::map< uint_t, std::set< PrimitiveID > > sendData;
+
+   if ( !hasGlobalCells() )
+   {
+      walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
+      bs.setReceiverInfo( getNeighboringRanks(), true );
+
+      for ( auto r : getNeighboringRanks() )
+      {
+         bs.sendBuffer( r ) << volumePIDsRefineResult;
+      }
+
+      bs.sendAll();
+
+      for ( auto it = bs.begin(); it != bs.end(); ++it )
+      {
+         while ( !it.buffer().isEmpty() )
+         {
+            PrimitiveID pid;
+            it.buffer() >> pid;
+            volumePIDsRefineIncludingNeighborhood.insert( pid );
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "Not implemented." );
+   }
+
    // Loop over primitives that are going to be refined now.
-   for ( const auto& pid : volumePIDsRefineResult )
+   for ( const auto& coarseVolumeID : volumePIDsRefineIncludingNeighborhood )
    {
       if ( !hasGlobalCells() )
       {
          // 2D
-         WALBERLA_ASSERT( faceExistsLocally( pid ) );
+         WALBERLA_CHECK(
+             faceExistsLocally( coarseVolumeID ) || faceExistsInNeighborhood( coarseVolumeID ),
+             "Face to be refined must exist locally or in neighborhood now that this data should have been communicated." );
 
-         auto face  = getFace( pid );
-         auto level = pid.numAncestors();
+         auto coarseFace = getFace( coarseVolumeID );
+         auto level      = coarseVolumeID.numAncestors();
 
          // Creating new primitives.
-         // First we need to check if the required primitives already exist.
+         //
+         // First we need to check if the fine grid primitives already exist.
          // Note that this can only happen for vertices and edges that have parents that are vertices or edges themselves.
+         //
+         // Also, we are refining both, local and neighborhood primitives.
 
          // Vertices that are children of coarse vertices
          for ( uint_t i = 0; i < 3; i++ )
          {
-            auto coarseVertexID = face->neighborVertices().at( i );
+            auto coarseVertexID = coarseFace->neighborVertices().at( i );
             auto coarseVertex   = getVertex( coarseVertexID );
 
             PrimitiveID fineVertexID;
@@ -2433,14 +2504,23 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
                coarseVertex->addChildVertices( { fineVertexID } );
                fineVertex->setParent( coarseVertexID );
 
-               vertices_[level + 1][fineVertexID] = fineVertex;
+               if ( vertexExistsLocally( coarseVertexID ) )
+               {
+                  vertices_[level + 1][fineVertexID] = fineVertex;
+               }
+               else
+               {
+                  neighborVertices_[level + 1][fineVertexID] = fineVertex;
+               }
+
+               fineVertex->meshBoundaryFlag_ = coarseVertex->getMeshBoundaryFlag();
             }
          }
 
          // Vertices that are children of coarse edges
          for ( uint_t i = 0; i < 3; i++ )
          {
-            auto coarseEdgeID = face->neighborEdges().at( i );
+            auto coarseEdgeID = coarseFace->neighborEdges().at( i );
             auto coarseEdge   = getEdge( coarseEdgeID );
 
             PrimitiveID fineVertexID;
@@ -2460,7 +2540,16 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
                coarseEdge->addChildVertices( { fineVertexID } );
                fineVertex->setParent( coarseEdgeID );
 
-               vertices_[level + 1][fineVertexID] = fineVertex;
+               if ( edgeExistsLocally( coarseEdgeID ) )
+               {
+                  vertices_[level + 1][fineVertexID] = fineVertex;
+               }
+               else
+               {
+                  neighborVertices_[level + 1][fineVertexID] = fineVertex;
+               }
+
+               fineVertex->meshBoundaryFlag_ = coarseEdge->getMeshBoundaryFlag();
             }
          }
 
@@ -2472,7 +2561,7 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          // Locally sorting from bottom to top, then left to right in reference face.
          for ( uint_t i = 0; i < 3; i++ )
          {
-            auto coarseEdgeID = face->neighborEdges().at( i );
+            auto coarseEdgeID = coarseFace->neighborEdges().at( i );
             auto coarseEdge   = edges_[level][coarseEdgeID];
 
             // There are two child edges per edge.
@@ -2502,7 +2591,22 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
                   coarseEdge->addChildEdges( { fineEdgeID } );
                   fineEdge->setParent( coarseEdgeID );
 
-                  edges_[level + 1][fineEdgeID] = fineEdge;
+                  if ( edgeExistsLocally( coarseEdgeID ) )
+                  {
+                     edges_[level + 1][fineEdgeID] = fineEdge;
+                  }
+                  else
+                  {
+                     neighborEdges_[level + 1][fineEdgeID] = fineEdge;
+                  }
+
+                  for ( const auto& neighborVertexID : fineEdge->neighborVertices() )
+                  {
+                     auto vertex = getVertex( neighborVertexID );
+                     vertex->addEdge( fineEdge->getID() );
+                  }
+
+                  fineEdge->meshBoundaryFlag_ = coarseEdge->getMeshBoundaryFlag();
                }
 
                // Cache fine edge via neighboring vertex IDs.
@@ -2516,13 +2620,13 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          // All remaining primitives cannot exist yet.
          // Let's begin creating the remaining 3 edges.
 
-         auto edge_x_idx  = pid.createChildren()[0];
-         auto edge_y_idx  = pid.createChildren()[1];
-         auto edge_xy_idx = pid.createChildren()[2];
+         auto edge_x_idx  = coarseVolumeID.createChildren()[0];
+         auto edge_y_idx  = coarseVolumeID.createChildren()[1];
+         auto edge_xy_idx = coarseVolumeID.createChildren()[2];
 
-         auto coarseEdge0 = edges_[level][face->neighborEdges()[0]];
-         auto coarseEdge1 = edges_[level][face->neighborEdges()[1]];
-         auto coarseEdge2 = edges_[level][face->neighborEdges()[2]];
+         auto coarseEdge0 = edges_[level][coarseFace->neighborEdges()[0]];
+         auto coarseEdge1 = edges_[level][coarseFace->neighborEdges()[1]];
+         auto coarseEdge2 = edges_[level][coarseFace->neighborEdges()[2]];
 
          auto fineVertexEdge0 = getVertex( coarseEdge0->childVertices()[0] );
          auto fineVertexEdge1 = getVertex( coarseEdge1->childVertices()[0] );
@@ -2546,9 +2650,40 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
              fineVertexEdge1->getID(),
              std::array< Point3D, 2 >( { fineVertexEdge0->getCoordinates(), fineVertexEdge1->getCoordinates() } ) );
 
-         edges_[level + 1][edge_x_idx]  = edge_x;
-         edges_[level + 1][edge_y_idx]  = edge_y;
-         edges_[level + 1][edge_xy_idx] = edge_xy;
+         if ( faceExistsLocally( coarseVolumeID ) )
+         {
+            edges_[level + 1][edge_x_idx]  = edge_x;
+            edges_[level + 1][edge_y_idx]  = edge_y;
+            edges_[level + 1][edge_xy_idx] = edge_xy;
+         }
+         else
+         {
+            neighborEdges_[level + 1][edge_x_idx]  = edge_x;
+            neighborEdges_[level + 1][edge_y_idx]  = edge_y;
+            neighborEdges_[level + 1][edge_xy_idx] = edge_xy;
+         }
+
+         for ( const auto& neighborVertexID : edge_x->neighborVertices() )
+         {
+            auto vertex = getVertex( neighborVertexID );
+            vertex->addEdge( edge_x->getID() );
+         }
+
+         for ( const auto& neighborVertexID : edge_y->neighborVertices() )
+         {
+            auto vertex = getVertex( neighborVertexID );
+            vertex->addEdge( edge_y->getID() );
+         }
+
+         for ( const auto& neighborVertexID : edge_xy->neighborVertices() )
+         {
+            auto vertex = getVertex( neighborVertexID );
+            vertex->addEdge( edge_xy->getID() );
+         }
+
+         edge_x->meshBoundaryFlag_  = coarseFace->getMeshBoundaryFlag();
+         edge_y->meshBoundaryFlag_  = coarseFace->getMeshBoundaryFlag();
+         edge_xy->meshBoundaryFlag_ = coarseFace->getMeshBoundaryFlag();
 
          // Cache fine edge via neighboring vertex IDs.
          std::vector< PrimitiveID > vertexPair_x(
@@ -2566,16 +2701,22 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          std::sort( vertexPair_xy.begin(), vertexPair_xy.end() );
          fineEdgeCache[vertexPair_xy] = edge_xy_idx;
 
+         edge_x->setParent( coarseVolumeID );
+         edge_y->setParent( coarseVolumeID );
+         edge_xy->setParent( coarseVolumeID );
+
+         coarseFace->addChildEdges( {edge_x_idx, edge_y_idx, edge_xy_idx} );
+
          // Now the child faces.
 
-         auto face_gray_0_idx = pid.createChildren()[3];
-         auto face_gray_1_idx = pid.createChildren()[4];
-         auto face_gray_2_idx = pid.createChildren()[5];
-         auto face_blue_idx   = pid.createChildren()[6];
+         auto face_gray_0_idx = coarseVolumeID.createChildren()[3];
+         auto face_gray_1_idx = coarseVolumeID.createChildren()[4];
+         auto face_gray_2_idx = coarseVolumeID.createChildren()[5];
+         auto face_blue_idx   = coarseVolumeID.createChildren()[6];
 
-         auto coarseVertex0 = vertices_[level][face->neighborVertices()[0]];
-         auto coarseVertex1 = vertices_[level][face->neighborVertices()[1]];
-         auto coarseVertex2 = vertices_[level][face->neighborVertices()[2]];
+         auto coarseVertex0 = vertices_[level][coarseFace->neighborVertices()[0]];
+         auto coarseVertex1 = vertices_[level][coarseFace->neighborVertices()[1]];
+         auto coarseVertex2 = vertices_[level][coarseFace->neighborVertices()[2]];
 
          auto fineVertexVertex0 = getVertex( coarseVertex0->childVertices()[0] );
          auto fineVertexVertex1 = getVertex( coarseVertex1->childVertices()[0] );
@@ -2660,11 +2801,38 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
             auto c1 = getVertex( v1 )->getCoordinates();
             auto c2 = getVertex( v2 )->getCoordinates();
 
-            faces_[level + 1][face_face_ids[i]] = std::make_shared< Face >( face_face_ids[i],
-                                                                            std::array< PrimitiveID, 3 >( { v0, v1, v2 } ),
-                                                                            std::array< PrimitiveID, 3 >( { e0, e1, e2 } ),
-                                                                            edgeOrientation,
-                                                                            std::array< Point3D, 3 >( { c0, c1, c2 } ) );
+            auto fineFace = std::make_shared< Face >( face_face_ids[i],
+                                                      std::array< PrimitiveID, 3 >( { v0, v1, v2 } ),
+                                                      std::array< PrimitiveID, 3 >( { e0, e1, e2 } ),
+                                                      edgeOrientation,
+                                                      std::array< Point3D, 3 >( { c0, c1, c2 } ) );
+
+            fineFace->setParent( coarseFace->getID() );
+            coarseFace->addChildFaces( { fineFace->getID() } );
+
+            if ( faceExistsLocally( coarseVolumeID ) )
+            {
+               faces_[level + 1][face_face_ids[i]] = fineFace;
+            }
+            else
+            {
+               neighborFaces_[level + 1][face_face_ids[i]] = fineFace;
+            }
+
+            // Adding this face as a neighbor to lower dim primitives.
+            for ( const auto& neighborVertexID : fineFace->neighborVertices() )
+            {
+               auto vertex = getVertex( neighborVertexID );
+               vertex->addFace( fineFace->getID() );
+            }
+
+            for ( const auto& neighborEdgeID : fineFace->neighborEdges() )
+            {
+               auto edge = getEdge( neighborEdgeID );
+               edge->addFace( fineFace->getID() );
+            }
+
+            fineFace->meshBoundaryFlag_ = coarseFace->getMeshBoundaryFlag();
          }
       }
       else
@@ -2673,12 +2841,45 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          WALBERLA_ABORT( "Refinement not implemented in 3D." );
       }
 
-      // TODO: update neighborhood!!! go via coarse level neighborhood since refinement is process local
+      // TODO: update neighborhood and neighbor processes!!! go via coarse level neighborhood since refinement is process local
       //       no primitives must be created that already exist in neighborhood!!!
 
       // TODO: cleanup: remove empty refinement levels from maps
+   }
 
-      // TODO: mesh boundary flags
+   // Updating indirect volume neighborhood.
+   for ( const auto& coarseVolumeID : volumePIDsRefineIncludingNeighborhood )
+   {
+      auto coarseFace = getFace( coarseVolumeID );
+      for ( const auto& fineFaceID : coarseFace->childFaces() )
+      {
+         auto fineFace = getFace( fineFaceID );
+
+         for ( const auto& neighborVertexID : fineFace->neighborVertices() )
+         {
+            auto vertex = getVertex( neighborVertexID );
+            for ( const auto& neighborFaceID : vertex->neighborFaces() )
+            {
+               if ( neighborFaceID != fineFaceID &&
+                    !algorithms::contains( fineFace->indirectNeighborFaceIDsOverVertices_, neighborFaceID ) )
+               {
+                  fineFace->indirectNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+               }
+            }
+         }
+
+         for ( const auto& neighborEdgeID : fineFace->neighborEdges() )
+         {
+            auto edge = getEdge( neighborEdgeID );
+            for ( const auto& neighborFaceID : edge->neighborFaces() )
+            {
+               if ( neighborFaceID != fineFaceID )
+               {
+                  fineFace->indirectNeighborFaceIDsOverEdges_[fineFace->edge_index( neighborEdgeID )] = neighborFaceID;
+               }
+            }
+         }
+      }
    }
 }
 

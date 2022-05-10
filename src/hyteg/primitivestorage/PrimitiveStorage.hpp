@@ -381,13 +381,7 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns the correct rank if the primitive lies in the direct neighborhood.
    /// Should not be called for other primitives.
-   uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const
-   {
-      WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ), "Primitive with ID " << id << " does not exist in neighborhood." );
-      WALBERLA_ASSERT_GREATER(
-          neighborRanks_.at( 0 ).count( id ), 0, "Primitive with ID " << id << " could not be found in neighbor ranks." )
-      return neighborRanks_.at( 0 ).at( id );
-   }
+   uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const;
 
    /// @name Primitive data methods
    /// Use these methods to add data to all primitives of a certain type using a respective \ref PrimitiveDataHandling implementation.
@@ -740,6 +734,7 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    uint_t primitiveDataHandlers_;
 
+   /// Stores the MPI ranks of neighboring primitives.
    /// First indirection is the hierarchy level.
    std::map< uint_t, std::map< PrimitiveID, uint_t > > neighborRanks_;
 
@@ -785,7 +780,7 @@ void PrimitiveStorage::addVertexData( PrimitiveDataID< DataType, Vertex >&      
                                       const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Vertex >();
-   addPrimitiveData( dataHandling, identifier, vertices_[0], dataID );
+   addPrimitiveData( dataHandling, identifier, getVertices(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -794,7 +789,7 @@ void PrimitiveStorage::addEdgeData( PrimitiveDataID< DataType, Edge >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Edge >();
-   addPrimitiveData( dataHandling, identifier, edges_[0], dataID );
+   addPrimitiveData( dataHandling, identifier, getEdges(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -803,7 +798,7 @@ void PrimitiveStorage::addFaceData( PrimitiveDataID< DataType, Face >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Face >();
-   addPrimitiveData( dataHandling, identifier, faces_[0], dataID );
+   addPrimitiveData( dataHandling, identifier, getFaces(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -812,7 +807,7 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Cell >();
-   addPrimitiveData( dataHandling, identifier, cells_[0], dataID );
+   addPrimitiveData( dataHandling, identifier, getCells(), dataID );
 }
 
 template < typename DataType, typename PrimitiveType >

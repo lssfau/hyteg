@@ -163,12 +163,14 @@ class Face : public Primitive
 
    /// Returns all macro-face IDs of macro-faces that share at least one macro-edge with this face.
    /// Neighbor faces are mapped from local edge IDs.
+   /// Only neighbor faces on the same refinement level are stored.
    const std::map< uint_t, PrimitiveID >& getIndirectNeighborFaceIDsOverEdges() const
    {
       return indirectNeighborFaceIDsOverEdges_;
    }
 
    /// Returns all macro-face IDs of macro-faces that share at least one macro-vertex with this face.
+   /// Only neighbor faces on the same refinement level are stored.
    const std::vector< PrimitiveID >& getIndirectNeighborFaceIDsOverVertices() const
    {
       return indirectNeighborFaceIDsOverVertices_;
