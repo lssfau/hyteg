@@ -509,6 +509,11 @@ if( HYTEG_BUILD_WITH_PETSC )
     waLBerla_execute_test(NAME P2P1ChannelGKBConvergenceTest)
 endif()
 
+## SolVi benchmark 
+waLBerla_compile_test(FILES composites/P2P1Stokes2DSolViBenchmark.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2P1Stokes2DSolViBenchmark)
+
+
 waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 
