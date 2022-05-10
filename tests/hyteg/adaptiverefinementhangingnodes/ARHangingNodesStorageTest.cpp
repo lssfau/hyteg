@@ -36,7 +36,6 @@ namespace hyteg {
 void ARHangingNodesStorageTest()
 {
    MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_184el.msh" );
-   // MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -55,6 +54,8 @@ void ARHangingNodesStorageTest()
          targetLevel = 0;
       return uint_c( targetLevel );
    };
+
+   std::map< uint_t, uint_t > numFaces;
 
    for ( uint_t i = 1; i <= numRefinements; i++ )
    {
@@ -82,6 +83,9 @@ void ARHangingNodesStorageTest()
 
       // Refine all primitives
       storage->refinementAndCoarseningHanging( refine, coarsen, refineResult, coarsenResult );
+
+      numFaces[i] = storage->getNumberOfGlobalFaces();
+      WALBERLA_CHECK_GREATER( numFaces[i], numFaces[i - 1] );
 
       writeDomainPartitioningVTK(
           *storage, "../../output/", "ARHangingNodesStorageTest_Domain_Refinement_" + std::to_string( i ) );
