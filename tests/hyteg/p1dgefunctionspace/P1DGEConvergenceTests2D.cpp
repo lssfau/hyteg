@@ -26,7 +26,6 @@
 #include "hyteg/composites/P1DGEP1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
@@ -162,31 +161,37 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return y + 2 * std::sin( x + y ) + 4;
+      return 0;
    };
 
    std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return -x - 2 * std::sin( x + y ) + 3;
+      return 0;
    };
 
    std::function< real_t( const Point3D& p ) > p_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return 2 * x - y + 1;
+      return std::sin( M_PI * x ) * std::sin( M_PI * y ) * std::sin( M_PI * ( x + y ) );
    };
 
    // rhs as a lambda function
    std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 2 - 4 * std::sin( x + y );
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = M_PI * ( x + y );
+      const real_t x1 = M_PI * x;
+      const real_t x2 = M_PI * std::sin( M_PI * y );
+      return x2 * std::sin( x0 ) * std::cos( x1 ) + x2 * std::sin( x1 ) * std::cos( x0 );
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 4 * std::sin( x + y ) - 1;
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      const real_t x0 = M_PI * ( x + y );
+      const real_t x1 = M_PI * y;
+      const real_t x2 = M_PI * std::sin( M_PI * x );
+      return x2 * std::sin( x0 ) * std::cos( x1 ) + x2 * std::sin( x1 ) * std::cos( x0 );
    };
 
    P1DGEP1StokesFunction< real_t > u( "u", storage, level, level );
@@ -298,7 +303,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   // hyteg::runLaplace();
+   hyteg::runLaplace();
    hyteg::runStokes();
 
    return 0;
