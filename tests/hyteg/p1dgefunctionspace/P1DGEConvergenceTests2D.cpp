@@ -287,7 +287,7 @@ StokesErrorsConvergenceTest
 
    if ( writeVTK )
    {
-      VTKOutput vtk( "../../", "P1DGEStokes2DHomogeneousDirichletConvergenceTest", storage );
+      VTKOutput vtk( "../../", "P1DGEStokes2DHomogeneousStokesConvergenceTest", storage );
       vtk.add( u );
       vtk.add( sol );
       vtk.add( err );
