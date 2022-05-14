@@ -52,7 +52,7 @@ class P1ToP1DGEDivTOperator final : public Operator< P1Function< real_t >, P1DGE
                UpdateType                     updateType ) const override
    {
       cg_to_eg_coupling_.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
-      cg_to_cg_coupling_.apply( src, *dst.getConformingPart(), level, flag, Add );
+      cg_to_cg_coupling_.apply( src, *dst.getConformingPart(), level, flag, updateType );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
