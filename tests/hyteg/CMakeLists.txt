@@ -811,6 +811,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEConvergenceTests2D.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1DGEConvergenceTest2D)
 
+    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEFormTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1DGEFormTest)
+
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 endif()

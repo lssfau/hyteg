@@ -26,7 +26,6 @@
 #include "hyteg/composites/P1DGEP1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
@@ -143,7 +142,15 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    return discrL2;
 }
 
-real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
+struct StokesErrorsConvergenceTest
+{
+   double velocityL2;
+   double velocityH1;
+   double pressureL2;
+};
+
+StokesErrorsConvergenceTest
+    testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
 {
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -152,6 +159,8 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    P1DGEMassOperator      M_velocity( storage, level, level );
    P1ConstantMassOperator M_pressure( storage, level, level );
+
+   P1DGELaplaceOperator A_velocity( storage, level, level );
 
    P1DGEP1StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
@@ -191,7 +200,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
       const real_t x4 = M_PI * y;
       const real_t x5 = x3 * std::sin( x4 );
       const real_t x6 = 2 * std::cos( x2 );
-      return -(x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ));
+      return -( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
       const real_t x  = p[0];
@@ -205,7 +214,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
       const real_t x6 = M_PI * x1;
       const real_t x7 = x5 * std::sin( x6 );
       const real_t x8 = 8 * std::cos( x2 );
-      return -(x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ));
+      return -( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
    };
 
    std::function< real_t( const Point3D& p ) > g_expr = []( const Point3D& p ) -> real_t {
@@ -228,6 +237,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    P1DGEP1StokesFunction< real_t > sol( "sol", storage, level, level );
    P1DGEP1StokesFunction< real_t > err( "err", storage, level, level );
    P1DGEP1StokesFunction< real_t > Merr( "Merr", storage, level, level );
+   P1DGEP1StokesFunction< real_t > Aerr( "Aerr", storage, level, level );
 
    {
       WALBERLA_LOG_WARNING(
@@ -241,6 +251,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
       sol.p().setBoundaryCondition( sol.uvw().getBoundaryCondition() );
       err.p().setBoundaryCondition( err.uvw().getBoundaryCondition() );
       Merr.p().setBoundaryCondition( Merr.uvw().getBoundaryCondition() );
+      Aerr.p().setBoundaryCondition( Aerr.uvw().getBoundaryCondition() );
    }
 
    sol.uvw().interpolate( { u_x_expr, u_y_expr }, level, All );
@@ -267,7 +278,12 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    // calculate the error in the L2 norm
    M_velocity.apply( err.uvw(), Merr.uvw(), level, All, Replace );
-   auto discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+   auto error_L2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+
+   A_velocity.apply( err.uvw(), Aerr.uvw(), level, All, Replace );
+   auto error_H1_velocity = sqrt( err.uvw().dotGlobal( Aerr.uvw(), level, Inner ) );
+
+   auto error_L2_pressure = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
 
    if ( writeVTK )
    {
@@ -283,7 +299,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
       vtk.write( level );
    }
 
-   return discrL2_velocity;
+   return { error_L2_velocity, error_H1_velocity, error_L2_pressure };
 }
 
 void runLaplace()
@@ -307,21 +323,29 @@ void runLaplace()
 
 void runStokes()
 {
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
-   real_t lastError    = std::nan( "" );
-   real_t currentError = std::nan( "" );
-   real_t currentRate  = std::nan( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s|%10s", "level", "error L2", "rate", "error H1", "rate" ) );
+   real_t lastErrorH1    = std::nan( "" );
+   real_t currentErrorH1 = std::nan( "" );
+   real_t currentRateH1  = std::nan( "" );
+   real_t lastErrorL2    = std::nan( "" );
+   real_t currentErrorL2 = std::nan( "" );
+   real_t currentRateL2  = std::nan( "" );
    for ( uint_t level = 3; level <= 6; level++ )
    {
-      lastError    = currentError;
-      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
-      currentRate  = lastError / currentError;
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
+      lastErrorH1        = currentErrorH1;
+      lastErrorL2        = currentErrorL2;
+      auto currentErrors = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
+      currentErrorH1     = currentErrors.velocityH1;
+      currentRateH1      = lastErrorH1 / currentErrorH1;
+      currentErrorL2     = currentErrors.velocityL2;
+      currentRateL2      = lastErrorL2 / currentErrorL2;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+          "%6d|%10.2e|%10.2e|%10.2e|%10.2e", level, currentErrorL2, currentRateL2, currentErrorH1, currentRateH1 ) );
    }
 
-   const real_t expectedRate = 4.;
-   WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
-   WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
+   const real_t expectedRate = 2.;
+   WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRateH1, "unexpected rate!" );
+   WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRateH1, "unexpected rate!" );
 }
 
 } // namespace hyteg
@@ -332,7 +356,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   // hyteg::runLaplace();
+   hyteg::runLaplace();
    hyteg::runStokes();
 
    return 0;
