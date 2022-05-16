@@ -90,7 +90,7 @@ class PrimitiveID
    typedef std::vector< PrimitiveID >::const_iterator const_iterator;
 
    /// Creates a unique coarse level PrimitiveID safely.
-   inline static PrimitiveID create( const IDType& coarseID )
+   inline static PrimitiveID create( const uint64_t& coarseID )
    {
       WALBERLA_CHECK_LESS( walberla::math::uintMSBPosition( coarseID ),
                            BITS_COARSE_LEVEL_ID + 1,
@@ -103,7 +103,7 @@ class PrimitiveID
 
    /// Creates an invalid PrimitiveID.
    inline PrimitiveID()
-   : id_( uint64_c( 0 ) )
+   : id_( IDType( 0 ) )
    {}
 
    /// Creates 2**BITS_REFINEMENT new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement.
@@ -167,7 +167,7 @@ class PrimitiveID
    void fromBuffer( Buffer_T& buffer );
 
  private:
-   uint64_t id_;
+   IDType id_;
 };
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
