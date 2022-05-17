@@ -26,6 +26,7 @@
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
+#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
@@ -151,6 +152,8 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    P1DGEMassOperator M( storage, level, level );
 
+   dg::DGOperator M_pressure( storage, level, level, std::make_shared< dg::DGMassForm_Example >() );
+
    P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
    P1DGEP0StokesOperator K( storage, level, level );
@@ -225,13 +228,14 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    sol.uvw().interpolate( { u_x_expr, u_y_expr }, level, All );
    sol.p().interpolate( p_expr, level, All );
    f.uvw().interpolate( { f_x_expr, f_y_expr }, level, All );
+   f.p().interpolate( g_expr, level, All );
 
    // Why do I need this?
    f.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
    f.p().interpolate( p_expr, level, DirichletBoundary );
 
    M.apply( f.uvw(), rhs.uvw(), level, All, Replace );
-   rhs.p().interpolate( 0, level, All );
+   M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
 
    // TODO: replace by minres
    PETScCGSolver< P1DGEP0StokesOperator > solver( storage, level, numerator );

@@ -52,7 +52,7 @@ class P1ToP1DGEDivTOperator final : public Operator< P1Function< real_t >, P1DGE
                UpdateType                     updateType ) const override
    {
       cg_to_eg_coupling_.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
-      cg_to_cg_coupling_.apply( src, *dst.getConformingPart(), level, flag, Add );
+      cg_to_cg_coupling_.apply( src, *dst.getConformingPart(), level, flag, updateType );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -263,7 +263,11 @@ class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1D
                DoFType                        flag,
                UpdateType                     updateType ) const override
    {
-      WALBERLA_ABORT( "Not implemented." );
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
