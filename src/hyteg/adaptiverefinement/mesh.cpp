@@ -581,7 +581,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       for ( uint_t cellLocalFaceID = 0; cellLocalFaceID < K + 1; ++cellLocalFaceID )
       {
          FaceData* face           = vertexIDXsToFace[{
-             v[edgeOrder[cellLocalFaceID][0]], v[edgeOrder[cellLocalFaceID][1]], v[edgeOrder[cellLocalFaceID][2]] }];
+             v[faceOrder[cellLocalFaceID][0]], v[faceOrder[cellLocalFaceID][1]], v[faceOrder[cellLocalFaceID][2]] }];
          faceIDs[cellLocalFaceID] = face->getPrimitiveID();
          auto& faceVtxs           = face->get_vertices();
 
