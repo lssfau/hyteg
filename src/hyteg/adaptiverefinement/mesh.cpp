@@ -343,7 +343,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto vtx = vtxs[vtxIdx];
+         auto& vtx = vtxs[vtxIdx];
 
          if ( edge.isLocal() && !vtx.isLocal() )
          {
@@ -366,7 +366,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto vtx = vtxs[vtxIdx];
+         auto& vtx = vtxs[vtxIdx];
 
          if ( face.isLocal() && !vtx.isLocal() )
          {
@@ -406,7 +406,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto vtx = vtxs[vtxIdx];
+         auto& vtx = vtxs[vtxIdx];
 
          if ( cell.isLocal() && !vtx.isLocal() )
          {
