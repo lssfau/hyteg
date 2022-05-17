@@ -111,6 +111,93 @@ class P1DGEToP1DivOperator final : public Operator< P1DGEFunction< real_t >, P1F
    P0ToP1ConstantP1EDGDivergenceCouplingOperator eg_to_cg_coupling_;
 };
 
+class P0ToP1DGEDivTOperator final : public Operator< P0Function< real_t >, P1DGEFunction< real_t > >
+{
+ public:
+   P0ToP1DGEDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P0Function< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   , p0_to_p1x( storage, minLevel, maxLevel )
+   , p0_to_p1y( storage, minLevel, maxLevel )
+   , p0_to_edg( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P0Function< real_t >&    src,
+               const P1DGEFunction< real_t >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      p0_to_p1x.apply( src, dst.getConformingPart()->component( 0 ), level, flag, updateType );
+      p0_to_p1y.apply( src, dst.getConformingPart()->component( 1 ), level, flag, updateType );
+      p0_to_edg.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P0Function< idx_t >&                  src,
+                  const P1DGEFunction< idx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( dst, level );
+      src.communicate( level );
+
+      p0_to_p1x.toMatrix( mat, src, dst.getConformingPart()->component( 0 ), level, flag );
+      p0_to_p1y.toMatrix( mat, src, dst.getConformingPart()->component( 1 ), level, flag );
+      p0_to_edg.toMatrix( mat, src, *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+   P0ToP1Operator< dg::DGDivtFormP1P0_0 > p0_to_p1x;
+   P0ToP1Operator< dg::DGDivtFormP1P0_1 > p0_to_p1y;
+   P0Operator< dg::DGDivtFormEDGP0 >      p0_to_edg;
+};
+
+class P1DGEToP0DivOperator final : public Operator< P1DGEFunction< real_t >, P0Function< real_t > >
+{
+ public:
+   P1DGEToP0DivOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1DGEFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
+   , p1x_to_p0( storage, minLevel, maxLevel )
+   , p1y_to_p0( storage, minLevel, maxLevel )
+   , p0_to_edg( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P1DGEFunction< real_t >& src,
+               const P0Function< real_t >&    dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      dst.communicate( level );
+      src.getDiscontinuousPart()->communicate( level );
+
+      p1x_to_p0.apply( src.getConformingPart()->component( 0 ), dst, level, flag, updateType );
+      p1y_to_p0.apply( src.getConformingPart()->component( 1 ), dst, level, flag, Add );
+      p0_to_edg.apply( *src.getDiscontinuousPart(), dst, level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1DGEFunction< idx_t >&               src,
+                  const P0Function< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      dst.communicate( level );
+      src.getDiscontinuousPart()->communicate( level );
+
+      p1x_to_p0.toMatrix( mat, src.getConformingPart()->component( 0 ), dst, level, flag );
+      p1y_to_p0.toMatrix( mat, src.getConformingPart()->component( 1 ), dst, level, flag );
+      p0_to_edg.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
+   }
+
+ private:
+   P1ToP0Operator< dg::DGDivFormP0P1_0 > p1x_to_p0;
+   P1ToP0Operator< dg::DGDivFormP0P1_1 > p1y_to_p0;
+   P0Operator< dg::DGDivFormP0EDG >      p0_to_edg;
+};
+
 class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
 {
  public:

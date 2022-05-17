@@ -26,7 +26,7 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
@@ -155,7 +155,7 @@ class VTKOutput
 
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
-   void add( const P1DGEP1StokesFunction< real_t >& function );
+   void add( const P1DGEP0StokesFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.

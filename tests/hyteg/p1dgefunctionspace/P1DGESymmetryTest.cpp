@@ -22,8 +22,8 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
-#include "hyteg/composites/P1DGEP1StokesOperator.hpp"
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
@@ -74,8 +74,8 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEP1StokesFunction< idx_t > numerator( "numerator", storage, level, level );
-   P1DGEP1StokesOperator          L( storage, level, level );
+   P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
+   P1DGEP0StokesOperator          L( storage, level, level );
 
    {
       WALBERLA_LOG_WARNING(
@@ -86,7 +86,7 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P1DGEP1StokesOperator > Lpetsc;
+   PETScSparseMatrix< P1DGEP0StokesOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    Lpetsc.print( "../P1DGE_Stokes.m", false, PETSC_VIEWER_ASCII_MATLAB );

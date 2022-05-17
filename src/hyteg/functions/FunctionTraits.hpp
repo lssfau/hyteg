@@ -135,7 +135,7 @@ template < typename VType >
 class P1DGEFunction;
 
 template < typename VType >
-class P1DGEP1StokesFunction;
+class P1DGEP0StokesFunction;
 
 ///////////////////////////////////////////////////////////////////
 // Enum for getting info on type of a GenericFunction
@@ -360,7 +360,7 @@ struct FunctionTrait< P1DGEFunction< VType > >
 
 /// P1DGEP1StokesFunction specialization
 template < typename VType >
-struct FunctionTrait< P1DGEP1StokesFunction< VType > >
+struct FunctionTrait< P1DGEP0StokesFunction< VType > >
 {
    typedef VType                    ValueType;
    typedef P1DGEP1StokesFunctionTag Tag;

@@ -74,7 +74,7 @@ void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
    add( function.p() );
 }
 
-void VTKOutput::add( const P1DGEP1StokesFunction< real_t >& function )
+void VTKOutput::add( const P1DGEP0StokesFunction< real_t >& function )
 {
    add( function.uvw() );
    add( function.p() );

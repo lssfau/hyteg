@@ -18,16 +18,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "P1DGEP1StokesFunction.hpp"
-
 #include "hyteg/sparseassembly/DirichletBCs.hpp"
+
+#include "P1DGEP0StokesFunction.hpp"
 
 namespace hyteg {
 
-void applyDirichletBC( const P1DGEP1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+void applyDirichletBC( const P1DGEP0StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw(), mat, level );
-   applyDirichletBC( numerator.p(), mat, level );
 }
 
 } // namespace hyteg

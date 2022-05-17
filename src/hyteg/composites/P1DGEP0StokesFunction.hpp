@@ -29,27 +29,27 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P1DGEP1StokesFunction : public BlockFunction< ValueType >
+class P1DGEP0StokesFunction : public BlockFunction< ValueType >
 {
  public:
    using valueType = ValueType;
 
    template < typename VType >
-   using FunctionType = P1DGEP1StokesFunction< VType >;
+   using FunctionType = P1DGEP0StokesFunction< VType >;
 
    using VelocityFunction_T = P1DGEFunction< ValueType >;
-   using PressureFunction_T = P1Function< ValueType >;
+   using PressureFunction_T = P0Function< ValueType >;
 
-   using Tag = typename FunctionTrait< P1DGEP1StokesFunction< ValueType > >::Tag;
+   using Tag = typename FunctionTrait< P1DGEP0StokesFunction< ValueType > >::Tag;
 
-   P1DGEP1StokesFunction( const std::string&                         _name,
+   P1DGEP0StokesFunction( const std::string&                         _name,
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel )
-   : P1DGEP1StokesFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+   : P1DGEP0StokesFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   P1DGEP1StokesFunction( const std::string&                         _name,
+   P1DGEP0StokesFunction( const std::string&                         _name,
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel,
@@ -58,7 +58,7 @@ class P1DGEP1StokesFunction : public BlockFunction< ValueType >
    {
       this->subFunc_.push_back( std::make_shared< FunctionWrapper< P1DGEFunction< ValueType > > >(
           _name + "_uvw", storage, minLevel, maxLevel, velocityBC ) );
-      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P1Function< ValueType > > >(
+      this->subFunc_.push_back( std::make_shared< FunctionWrapper< P0Function< ValueType > > >(
           _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
@@ -69,17 +69,17 @@ class P1DGEP1StokesFunction : public BlockFunction< ValueType >
 
    [[nodiscard]] P1DGEFunction< ValueType >& uvw() { return this->subFunc_[0]->template unwrap< P1DGEFunction< ValueType > >(); }
 
-   [[nodiscard]] const P1Function< ValueType >& p() const
+   [[nodiscard]] const P0Function< ValueType >& p() const
    {
-      return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
+      return this->subFunc_[1]->template unwrap< P0Function< ValueType > >();
    }
 
-   [[nodiscard]] P1Function< ValueType >& p() { return this->subFunc_[1]->template unwrap< P1Function< ValueType > >(); }
+   [[nodiscard]] P0Function< ValueType >& p() { return this->subFunc_[1]->template unwrap< P0Function< ValueType > >(); }
 
    /// \todo Get rid of this
    bool isDummy() const { return false; }
 };
 
-void applyDirichletBC( const P1DGEP1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+void applyDirichletBC( const P1DGEP0StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
 
 } // namespace hyteg

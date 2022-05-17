@@ -21,6 +21,7 @@
 #pragma once
 
 #include <hyteg/communication/Syncing.hpp>
+#include <hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp>
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"

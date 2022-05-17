@@ -19,25 +19,25 @@
  */
 #pragma once
 
-#include "hyteg/composites/P1DGEP1StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 
 namespace hyteg {
 
-class P1DGEP1StokesOperator : public Operator< P1DGEP1StokesFunction< real_t >, P1DGEP1StokesFunction< real_t > >
+class P1DGEP0StokesOperator : public Operator< P1DGEP0StokesFunction< real_t >, P1DGEP0StokesFunction< real_t > >
 {
  public:
    typedef P1DGELaplaceOperator VelocityBlockOperator_T;
 
-   P1DGEP1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P1DGEP0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1DGEP1StokesFunction< real_t >& src,
-               const P1DGEP1StokesFunction< real_t >& dst,
+   void apply( const P1DGEP0StokesFunction< real_t >& src,
+               const P1DGEP0StokesFunction< real_t >& dst,
                const uint_t                           level,
                const DoFType                          flag ) const
    {
@@ -47,8 +47,8 @@ class P1DGEP1StokesOperator : public Operator< P1DGEP1StokesFunction< real_t >, 
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEP1StokesFunction< idx_t >&       src,
-                  const P1DGEP1StokesFunction< idx_t >&       dst,
+                  const P1DGEP0StokesFunction< idx_t >&       src,
+                  const P1DGEP0StokesFunction< idx_t >&       dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -58,8 +58,8 @@ class P1DGEP1StokesOperator : public Operator< P1DGEP1StokesFunction< real_t >, 
    }
 
    VelocityBlockOperator_T Lapl;
-   P1DGEToP1DivOperator    div;
-   P1ToP1DGEDivTOperator   divT;
+   P1DGEToP0DivOperator    div;
+   P0ToP1DGEDivTOperator   divT;
 };
 
 } // namespace hyteg
