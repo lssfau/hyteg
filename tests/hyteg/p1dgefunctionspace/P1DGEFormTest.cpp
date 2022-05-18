@@ -23,8 +23,6 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
-#include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
@@ -56,73 +54,149 @@ void testDivForm()
    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > elMat;
    elMat.resize( 3, 1 );
 
-   // checking inner facet integral
+   // checking inner and outer facet integrals:
    {
-      // expected values precalculated in sympy notebook:
-      std::vector< real_t > expected = { 0.0849836585598798, 0, 0.0849836585598798 };
+      hyteg::dg::DGDivtFormEDGP0 form;
 
+      elMat.resize( 1, 1 );
+
+      // expected values precalculated in sympy notebook:
+      std::vector< real_t > expected = { 0.16996731711976 };
+
+      // check inner integral
+      form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+
+      // checkout outer integral
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+
+      // check a different permutation
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p3, p0, p2 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+   }
+
+   // checking inner and outer facet integrals:
+   {
+      hyteg::dg::DGDivtFormP1P0_0 form;
+
+      elMat.resize( 3, 1 );
+
+      // expected values precalculated in sympy notebook:
+      std::vector< real_t > expected = { -0.254950975679639, 0, -0.254950975679639 };
+
+      // check inner integral
       form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 1, elMat );
-
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
 
       // check a different permutation
-      form.integrateFacetInner( 2, { p0, p1, p2 }, { p2, p0 }, p1, n1, basis, basis, 0, 1, elMat );
-
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 1, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
 
-      form.integrateFacetInner( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 0, 1, elMat );
-
+      form.integrateFacetCoupling( 2, { p2, p0, p1 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 1, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[0] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[1] );
    }
 
-   // checking outer facet integral
    {
+      hyteg::dg::DGDivFormP0EDG form;
+
+      elMat.resize( 1, 1 );
+
       // expected values precalculated in sympy notebook:
-      std::vector< real_t > expected = { 0.0764852927038918, 0, 0.0764852927038918 };
+      std::vector< real_t > expected = { 0.152970585407784 };
 
-      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 1, elMat );
-
+      // checkout outer integral
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
 
       // check a different permutation
-      form.integrateFacetCoupling( 2, { p2, p0, p1 }, { p3, p2, p0 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 1, elMat );
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[0] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[1] );
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p3, p0, p2 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
    }
 
-   // checking dirichlet integral
    {
+      hyteg::dg::DGDivFormP0EDG form;
+
+      elMat.resize( 1, 1 );
+
       // expected values precalculated in sympy notebook:
-      std::vector< real_t > expected = { 2. * 0.0849836585598798, 0, 2. * 0.0849836585598798 };
+      std::vector< real_t > expected = { 0.16996731711976 };
 
-      form.integrateFacetDirichletBoundary( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 1, elMat );
-
+      // checkout outer integral
+      form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
 
       // check a different permutation
-      form.integrateFacetDirichletBoundary( 2, { p0, p1, p2 }, { p2, p0 }, p1, n1, basis, basis, 0, 1, elMat );
-
+      form.integrateFacetInner( 2, { p0, p1, p2 }, { p2, p0 }, p1, n1, basis, basis, 0, 0, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[2] );
 
-      form.integrateFacetDirichletBoundary( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 0, 1, elMat );
+      form.integrateFacetInner( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 0, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+   }
 
+   {
+      hyteg::dg::DGDivFormP0P1_0 form;
+
+      elMat.resize( 1, 3 );
+
+      // expected values precalculated in sympy notebook:
+      std::vector< real_t > expected = { -0.254950975679639, 0, -0.254950975679639 };
+
+      // check inner integral
+      form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 1, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      // check a different permutation
+      form.integrateFacetInner( 2, { p0, p1, p2 }, { p2, p0 }, p1, n1, basis, basis, 1, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      form.integrateFacetInner( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 1, 0, elMat );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[0] );
-      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 2, 0 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[1] );
+   }
+
+   {
+      hyteg::dg::DGDivFormP0P1_0 form;
+
+      elMat.resize( 1, 3 );
+
+      // expected values precalculated in sympy notebook:
+      // we have separated the consistency and symmetry terms from the penalty to allow different penalty values sigma:
+      std::vector< real_t > expected = { 0.254950975679639, 0.254950975679639, 0 };
+
+      // check inner integral
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 1, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      // check a different permutation
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p3, p0, p2 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[1] );
    }
 }
 
@@ -179,6 +253,7 @@ void testLaplaceForm()
             WALBERLA_CHECK_FLOAT_EQUAL( expected( i, j ), elMat( i, j ) )
    }
 
+   // check inner facet integral EDG-EDG
    {
       hyteg::dg::DGVectorLaplaceFormEDGEDG form;
 
@@ -190,8 +265,20 @@ void testLaplaceForm()
       real_t expected                          = -expected_consistency_and_symmetry + sigma * expected_penalty;
 
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
+   }
 
-      WALBERLA_LOG_INFO_ON_ROOT( elMat( 0, 0 ) )
+   // check outer facet integral EDG-EDG
+   {
+      hyteg::dg::DGVectorLaplaceFormEDGEDG form;
+
+      elMat.resize( 1, 1 );
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+
+      real_t expected_consistency_and_symmetry = 0.322937902527543;
+      real_t expected_penalty                  = 0.02333333333333332;
+      real_t expected                          = -expected_consistency_and_symmetry + sigma * expected_penalty;
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
    }
 
    // checking inner facet integral
@@ -226,6 +313,44 @@ void testLaplaceForm()
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
 
       form.integrateFacetInner( 2, { p2, p0, p1 }, { p2, p0 }, p1, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[1] );
+   }
+
+   // checking inner facet integral
+   {
+      hyteg::dg::DGVectorLaplaceFormEDGP1_0 form;
+
+      elMat.resize( 3, 1 );
+
+      // expected values precalculated in sympy notebook:
+      // we have separated the consistency and symmetry terms from the penalty to allow different penalty values sigma:
+      std::vector< real_t > expected_consistency_and_symmetry = { +0.325581838571628, +0.400367458104322, -0.216047345316672 };
+
+      std::vector< real_t > expected_penalty = { 0.16666666666666666, 0.2, 0.0 };
+
+      std::vector< real_t > expected = {
+          -expected_consistency_and_symmetry[0] + sigma * expected_penalty[0],
+          -expected_consistency_and_symmetry[1] + sigma * expected_penalty[1],
+          -expected_consistency_and_symmetry[2] + sigma * expected_penalty[2],
+      };
+
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      // check a different permutation
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[1] );
+      WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[2] );
+
+      form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p3, p0, p2 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
 
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[2] );
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 1 ), expected[0] );
