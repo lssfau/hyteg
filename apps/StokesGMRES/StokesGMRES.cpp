@@ -25,7 +25,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -127,13 +127,13 @@ int main( int argc, char* argv[] )
    hyteg::VTKOutput vtkOutput("./output", "StokesGMRES", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( u.uvw );
-      vtkOutput.add( u.p );
-      vtkOutput.add( f.uvw );
-      vtkOutput.add( f.p );
+      vtkOutput.add( u.uvw() );
+      vtkOutput.add( u.p() );
+      vtkOutput.add( f.uvw() );
+      vtkOutput.add( f.p() );
    }
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
@@ -162,7 +162,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   f.uvw.interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
+   f.uvw().interpolate( {rhsPlumeX, rhsPlumeY, rhsPlumeZ}, maxLevel );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
 
    if( solverType == "plainGMRES" )
    {
-      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
+      typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator  >GMRESsolv;
       auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL);
       KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
@@ -184,11 +184,11 @@ int main( int argc, char* argv[] )
    } else if( solverType == "simplePrecGMRES" )
    {
       /// A block Preconditioner for GMRES /////
-      typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
 
-      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
+      typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator  >GMRESsolv;
       auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, prec );
       KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
@@ -198,7 +198,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
       } else if( solverType == "plainMINRES" )
    {
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >MinResSolv;
+      typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator  >MinResSolv;
       auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL );
       KleinerFeinerMinRes.solve( L, u, f, maxLevel );
 
@@ -209,11 +209,11 @@ int main( int argc, char* argv[] )
    } else if( solverType == "simplePrecMINRES" )
    {
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
 
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >MinResSolv;
+      typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator  >MinResSolv;
       auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL, prec );
       KleinerFeinerMinRes.solve( L, u, f, maxLevel );
 
@@ -223,21 +223,21 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
    } else if( solverType == "multigrid") 
    {
-      typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
+      typedef StokesPressureBlockPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
       auto pressurePrec = std::make_shared< PressurePreconditioner_T>( storage, minLevel, minLevel );
 
-      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator >PressurePreconditionedGMRES_T;
+      typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator >PressurePreconditionedGMRES_T;
       auto pressurePreconditionedGMRESSolver = std::make_shared< PressurePreconditionedGMRES_T >(
           storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, pressurePrec );
 
-      typedef GeometricMultigridSolver< hyteg::P1StokesOperator >GMRESMultigrid_T;
+      typedef GeometricMultigridSolver< hyteg::P1P1StokesOperator >GMRESMultigrid_T;
 
       auto stokesRestriction = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
       auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-      auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-      auto multigridVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
+      auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
+      auto multigridVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage, gaussSeidel );
 
-      auto GMRESMultigridSmoother = std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >(storage, multigridVelocityPreconditioner,minLevel, maxLevel, 0.3);
+      auto GMRESMultigridSmoother = std::make_shared< hyteg::UzawaSmoother< P1P1StokesOperator > >(storage, multigridVelocityPreconditioner,minLevel, maxLevel, 0.3);
 
       GMRESMultigrid_T GMRESsolv(
           storage, GMRESMultigridSmoother, pressurePreconditionedGMRESSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
@@ -282,7 +282,7 @@ int main( int argc, char* argv[] )
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager( &argc, &argv );
-   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
+   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );

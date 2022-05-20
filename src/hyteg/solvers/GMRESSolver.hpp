@@ -51,7 +51,6 @@ class GMRESSolver : public Solver< OperatorType >
       real_t                                     arnoldiTOL      = 1e-16,
       real_t                                     approxTOL       = 1e-16,
       real_t                                     doubleOrthoTOL  = 0,
-      hyteg::DoFType flag                                        = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
       std::shared_ptr< Solver< OperatorType > >  preconditioner  = std::make_shared< IdentityPreconditioner< OperatorType > >()
       )
       : storage_( storage )
@@ -63,7 +62,7 @@ class GMRESSolver : public Solver< OperatorType >
       , approxTOL_( approxTOL )
       , doubleOrthoTOL_( doubleOrthoTOL )
       , preconditioner_( preconditioner )
-      , flag_( flag )
+      , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
       , printInfo_( false )
       , r0_( "r0", storage_, minLevel_, maxLevel_ )
       , rPrec_( "rPrec", storage_, minLevel_, maxLevel_ )
@@ -77,7 +76,7 @@ class GMRESSolver : public Solver< OperatorType >
     // GMRES ACCORDING TO Y.SAAD
 
     void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
-    {   
+    {
         timingTree_->start( "GMRES Solver" );
 
         double approxERR = approxTOL_ + 1;
@@ -85,8 +84,8 @@ class GMRESSolver : public Solver< OperatorType >
 
         init(A, x, b, level, true);
 
-        for(uint_t j = 1; j < maxKrylowDim_; j++) 
-        {   
+        for(uint_t j = 1; j < maxKrylowDim_; j++)
+        {
             if(j % restartLength_ == 0 )
             {
                 generateFinalApproximation( x, level );
@@ -98,22 +97,22 @@ class GMRESSolver : public Solver< OperatorType >
 
             int currentIndex = j % restartLength_;
 
-            if(isOnFirstRestart) 
-            { 
+            if(isOnFirstRestart)
+            {
                 FunctionType w( "w", storage_, minLevel_, maxLevel_ );
                 w.copyBoundaryConditionFromFunction( x );
                 vecV_.push_back( w );
             } else
             {
                 vecV_[currentIndex].interpolate( 0.0 , level, flag_ );
-            } 
+            }
             A.apply( vecV_[currentIndex - 1], vecV_[currentIndex], level, flag_ );
             wPrec_.interpolate( 0.0, level, hyteg::Inner );
             wPrec_.copyBoundaryConditionFromFunction( x );
             preconditioner_->solve( A, wPrec_, vecV_[currentIndex], level );
             vecV_[currentIndex].assign( {1.0}, {wPrec_}, level, flag_ );
             H_ = matrixResize( H_, currentIndex + 1, currentIndex );
-            for(uint_t i = 1; i <= currentIndex; i++) 
+            for(uint_t i = 1; i <= currentIndex; i++)
             {
                 double h = vecV_[currentIndex].dotGlobal( vecV_[i - 1], level, flag_ );
                 H_(i-1, currentIndex - 1) = h;
@@ -121,17 +120,17 @@ class GMRESSolver : public Solver< OperatorType >
             }
             A.apply( vecV_[currentIndex - 1], orthoDiff_, level, flag_ );
             orthoDiff_.add( {-1.0}, {vecV_[currentIndex]}, level, flag_ );
-            if( std::sqrt(orthoDiff_.dotGlobal( orthoDiff_, level, flag_ )) > doubleOrthoTOL_ ) 
+            if( std::sqrt(orthoDiff_.dotGlobal( orthoDiff_, level, flag_ )) > doubleOrthoTOL_ )
             {
                 if( printInfo_ ) {
                     WALBERLA_LOG_INFO_ON_ROOT(" [GMRES] invoked double-orthogonalization at iteration " << j );
                 }
-                 for(uint_t i = 1; i <= (currentIndex); i++) 
+                 for(uint_t i = 1; i <= (currentIndex); i++)
                 {
                     double h = vecV_[currentIndex].dotGlobal( vecV_[i-1], level, flag_ );
                     H_(i-1, currentIndex - 1) += h;
                     vecV_[currentIndex].add( {-h}, {vecV_[i % restartLength_ - 1]}, level, flag_ );
-                } 
+                }
             }
 
             double wNorm = std::sqrt( vecV_[currentIndex].dotGlobal( vecV_[currentIndex], level, flag_ ));
@@ -142,7 +141,7 @@ class GMRESSolver : public Solver< OperatorType >
             }
             vecV_[currentIndex].assign( {1.0/wNorm}, {vecV_[currentIndex]}, level, flag_ );
 
-            if(wNorm <= arnoldiTOL_ || approxERR <= approxTOL_) 
+            if(wNorm <= arnoldiTOL_ || approxERR <= approxTOL_)
             {
                 break;
             }
@@ -154,7 +153,7 @@ class GMRESSolver : public Solver< OperatorType >
     }
 
 private:
-    void init(const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, bool isFirstInit) 
+    void init(const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, bool isFirstInit)
     {
         A.apply(x, r0_, level, flag_);
         r0_.assign( {1.0, -1.0}, {b, r0_}, level, flag_ );
@@ -167,12 +166,12 @@ private:
         wPrec_.copyBoundaryConditionFromFunction( x );
         orthoDiff_.copyBoundaryConditionFromFunction( x );
 
-        beta_ = std::sqrt( r0_.dotGlobal( r0_, level, flag_ ) ); 
+        beta_ = std::sqrt( r0_.dotGlobal( r0_, level, flag_ ) );
 
         H_ = Eigen::MatrixXd::Zero(0,0);
         Q_ = Eigen::MatrixXd::Ones(1,1);
 
-        if(isFirstInit) 
+        if(isFirstInit)
         {
             FunctionType v0( "v0", storage_, minLevel_, maxLevel_ );
             v0.assign( {1.0/beta_}, {r0_}, level, flag_ );
@@ -181,7 +180,7 @@ private:
         {
             vecV_[0].assign( {1.0/beta_}, {r0_}, level, flag_ );
         }
-    } 
+    }
 
     const std::shared_ptr< PrimitiveStorage >& storage_;
     uint_t minLevel_;
@@ -207,22 +206,22 @@ private:
 
     std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
-    void generateFinalApproximation(const FunctionType& x, uint_t level) 
+    void generateFinalApproximation(const FunctionType& x, uint_t level)
     {
-        for(int i = 0; i < y_.size(); i++) 
+        for(int i = 0; i < y_.size(); i++)
         {
             x.add( {y_(i)}, {vecV_[i]}, level, flag_ );
         }
     }
 
-    Eigen::VectorXd getUnitVector(int length, int j) 
+    Eigen::VectorXd getUnitVector(int length, int j)
     {
         Eigen::VectorXd answer = Eigen::VectorXd::Zero(length);
         answer(j) = 1;
         return answer;
     }
 
-    Eigen::VectorXd getUnitVector(int length, int j, double val) 
+    Eigen::VectorXd getUnitVector(int length, int j, double val)
     {
         Eigen::VectorXd answer = Eigen::VectorXd::Zero(length);
         answer(j) = val;
@@ -231,7 +230,7 @@ private:
 
    Eigen::MatrixXd getIdentity(int rowsNew, int colsNew) {
         Eigen::MatrixXd answer = Eigen::MatrixXd::Zero(rowsNew, colsNew);
-        for(int i = 0; i < std::min(rowsNew, colsNew); i++) 
+        for(int i = 0; i < std::min(rowsNew, colsNew); i++)
         {
             answer(i, i) = 1;
         }
@@ -241,9 +240,9 @@ private:
     Eigen::MatrixXd matrixResize(Eigen::MatrixXd inputMatrix, int rowsNew, int colsNew)
     {
       Eigen::MatrixXd outputMatrix = Eigen::MatrixXd::Zero(rowsNew, colsNew);
-        for(uint_t j = 0; j < std::min(rowsNew, (int) inputMatrix.rows()); j++) 
+        for(uint_t j = 0; j < std::min(rowsNew, (int) inputMatrix.rows()); j++)
         {
-            for(int i = 0; i < std::min(colsNew, (int) inputMatrix.cols()); i++) 
+            for(int i = 0; i < std::min(colsNew, (int) inputMatrix.cols()); i++)
             {
                 outputMatrix(j, i) = inputMatrix(j, i);
             }
@@ -251,12 +250,12 @@ private:
       return outputMatrix;
     }
 
-    Eigen::MatrixXd expandQMatrix(Eigen::MatrixXd inputMatrix, int expandBy) 
+    Eigen::MatrixXd expandQMatrix(Eigen::MatrixXd inputMatrix, int expandBy)
     {
         Eigen::MatrixXd outputMatrix = getIdentity(inputMatrix.rows() + expandBy, inputMatrix.cols() + expandBy);
-        for(int i = 0; i < inputMatrix.rows(); i++) 
+        for(int i = 0; i < inputMatrix.rows(); i++)
         {
-            for(int j = 0; j < inputMatrix.cols(); j++) 
+            for(int j = 0; j < inputMatrix.cols(); j++)
             {
                 outputMatrix(i,j) = inputMatrix(i,j);
             }
@@ -264,13 +263,13 @@ private:
         return outputMatrix;
     }
 
-    Eigen::VectorXd triangSolver(Eigen::MatrixXd triMat, Eigen::VectorXd targetVector) 
+    Eigen::VectorXd triangSolver(Eigen::MatrixXd triMat, Eigen::VectorXd targetVector)
     {
         Eigen::VectorXd answer = Eigen::VectorXd::Zero(triMat.cols());
-        for(int i = triMat.cols()-1; i >= 0; i--) 
+        for(int i = triMat.cols()-1; i >= 0; i--)
         {
             double targetOffset = 0;
-            for(int j = triMat.cols()-1; j > i; j--) 
+            for(int j = triMat.cols()-1; j > i; j--)
             {
                 targetOffset += triMat(i, j) * answer(j);
             }
@@ -279,23 +278,23 @@ private:
         return answer;
     }
 
-    Eigen::VectorXd hessenbergMinimizer(double beta, Eigen::MatrixXd& H, Eigen::MatrixXd& Q, int numUnfinishedColumns, double& approxERR) 
+    Eigen::VectorXd hessenbergMinimizer(double beta, Eigen::MatrixXd& H, Eigen::MatrixXd& Q, int numUnfinishedColumns, double& approxERR)
     {
         Eigen::VectorXd approxVector;
 
-        if(H.rows() != Q.rows()) 
+        if(H.rows() != Q.rows())
         {
             Q = expandQMatrix(Q, H.rows() - Q.rows());
         }
 
-        for(int i = H.cols() - numUnfinishedColumns; i < H.cols(); i++) 
+        for(int i = H.cols() - numUnfinishedColumns; i < H.cols(); i++)
         {
             H.col(i) = Q * H.col(i);
         }
 
-        for(int i = H.cols() - numUnfinishedColumns; i < H.cols(); i++) 
+        for(int i = H.cols() - numUnfinishedColumns; i < H.cols(); i++)
         {
-            if(H(i+1, i) == 0) 
+            if(H(i+1, i) == 0)
             {
                 continue;
             }
@@ -311,7 +310,7 @@ private:
             Q = QNew * Q;
         }
 
-        Eigen::MatrixXd equationLeftSide = H.block(0, 0, H.cols(), H.cols()); 
+        Eigen::MatrixXd equationLeftSide = H.block(0, 0, H.cols(), H.cols());
         Eigen::VectorXd targetVector = Q * getUnitVector(H.rows(), 0, beta);
         Eigen::VectorXd equationRightSide = targetVector.head(H.cols());
         approxERR = std::abs(targetVector(targetVector.rows() - 1));
