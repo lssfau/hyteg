@@ -20,22 +20,20 @@
 
 #pragma once
 
-#include "hyteg/primitivedata/PrimitiveDataID.hpp"
-#include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
-#include "core/NonCopyable.h"
-#include "hyteg/PrimitiveID.hpp"
-#include "hyteg/types/flags.hpp"
-
-#include "core/mpi/SendBuffer.h"
-#include "core/mpi/RecvBuffer.h"
-#include "core/DataTypes.h"
-
-#include "hyteg/geometry/IdentityMap.hpp"
-
 #include <map>
 #include <memory>
 #include <vector>
-#include <map>
+
+#include "core/DataTypes.h"
+#include "core/NonCopyable.h"
+#include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
+#include "hyteg/PrimitiveID.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
+#include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
+#include "hyteg/primitivedata/PrimitiveDataID.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -71,6 +69,10 @@ private:
 
 class PrimitiveID;
 class PrimitiveStorage;
+namespace adaptiveRefinement{
+  template <class K_Simplex>
+  class K_Mesh;
+}
 
 class Vertex;
 class Edge;
@@ -99,6 +101,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   typedef internal::PrimitiveData PrimitiveData;
 

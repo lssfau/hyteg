@@ -21,8 +21,8 @@
 #include "EdgeDoFProjectNormalOperator.hpp"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/edgedofspace/freeslip/EdgeDoFProjectNormal.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
+#include "hyteg/edgedofspace/freeslip/EdgeDoFProjectNormal.hpp"
 
 namespace hyteg {
 
@@ -124,12 +124,10 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
    this->stopTiming( "Project" );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                        const EdgeDoFFunction< PetscInt >&          numU,
-                                                        const EdgeDoFFunction< PetscInt >&          numV,
-                                                        const EdgeDoFFunction< PetscInt >&          numW,
+                                                        const EdgeDoFFunction< idx_t >&             numU,
+                                                        const EdgeDoFFunction< idx_t >&             numV,
+                                                        const EdgeDoFFunction< idx_t >&             numW,
                                                         uint_t                                      level,
                                                         DoFType                                     flag ) const
 {
@@ -163,11 +161,11 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
          }
          else
          {
-            edgedof::saveEdgeIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
-            edgedof::saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
+            saveEdgeIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
+            saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
             if ( storage_->hasGlobalCells() )
             {
-               edgedof::saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
+               saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
             }
          }
       }
@@ -193,17 +191,15 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
          }
          else
          {
-            edgedof::saveFaceIdentityOperator( level, face, numU.getFaceDataID(), mat );
-            edgedof::saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
+            saveFaceIdentityOperator( level, face, numU.getFaceDataID(), mat );
+            saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
             if ( storage_->hasGlobalCells() )
             {
-               edgedof::saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
+               saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
             }
          }
       }
    }
 }
-
-#endif
 
 } // namespace hyteg

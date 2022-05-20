@@ -29,7 +29,6 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -63,7 +62,7 @@ caseResult analyseCase( std::shared_ptr< PrimitiveStorage > storage,
                         const funcType&                     u,
                         funcType&                           error )
 {
-   typedef typename FunctionTrait< typename funcType::template FunctionType< PetscInt > >::Tag funcTag;
+   typedef typename FunctionTrait< typename funcType::template FunctionType< idx_t > >::Tag funcTag;
 
    // embed numeric solution in next finer space
    P2toP2QuadraticProlongation embeddor;

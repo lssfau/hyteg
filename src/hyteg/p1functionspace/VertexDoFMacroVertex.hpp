@@ -184,33 +184,6 @@ inline void apply( Vertex&                                                      
 }
 
 template < typename ValueType >
-inline void applyPointwise( const uint_t&                                                 level,
-                            const Vertex&                                                 vertex,
-                            const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                            UpdateType                                                    update )
-{
-   auto opr_data = vertex.getData( operatorId )->getPointer( level );
-   auto src      = vertex.getData( srcId )->getPointer( level );
-   auto dst      = vertex.getData( dstId )->getPointer( level );
-
-   if ( update == Replace )
-   {
-      dst[0] = opr_data[0] * src[0];
-   }
-   else if ( update == Add )
-   {
-      dst[0] += opr_data[0] * src[0];
-   }
-
-   for ( size_t i = 0; i < vertex.getNumNeighborEdges(); ++i )
-   {
-      dst[0] += opr_data[i + 1] * src[i + 1];
-   }
-}
-
-template < typename ValueType >
 inline void smooth_gs( Vertex&                                                       vertex,
                        const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -303,14 +276,14 @@ inline void integrateDG( Vertex&                                                
    {
       Face* face = storage->getFace( faceIt.getID() );
 
-      real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->area / 3.0;
+      real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
 
       uint_t localFaceId = vertex.face_index( face->getID() );
 
       uint_t faceMemoryIndex = 2 * localFaceId;
 
       std::vector< PrimitiveID > adj_edges   = face->adjacent_edges( vertex.getID() );
-      uint_t                     edge_idx[2] = {vertex.edge_index( adj_edges[0] ) + 1, vertex.edge_index( adj_edges[1] ) + 1};
+      uint_t                     edge_idx[2] = { vertex.edge_index( adj_edges[0] ) + 1, vertex.edge_index( adj_edges[1] ) + 1 };
 
       tmp += weightedFaceArea * rhs[faceMemoryIndex] *
              ( 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[0]] ) + 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[1]] ) );
@@ -343,13 +316,12 @@ inline ValueType
    return src[0];
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-inline void saveOperator( Vertex&                                                      vertex,
-                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                         mat,
-                          uint_t                                                       level )
+inline void saveOperator( Vertex&                                                   vertex,
+                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&               mat,
+                          uint_t                                                    level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );
@@ -361,10 +333,10 @@ inline void saveOperator( Vertex&                                               
    }
 }
 
-inline void saveIdentityOperator( Vertex&                                                      vertex,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                                  const std::shared_ptr< SparseMatrixProxy >&                  mat,
-                                  uint_t                                                       level )
+inline void saveIdentityOperator( Vertex&                                                   vertex,
+                                  const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&               mat,
+                                  uint_t                                                    level )
 {
    auto dst = vertex.getData( dstId )->getPointer( level );
    mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
@@ -373,12 +345,12 @@ inline void saveIdentityOperator( Vertex&                                       
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   auto     src       = vertex.getData( srcId )->getPointer( level );
-   PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
+   auto  src       = vertex.getData( srcId )->getPointer( level );
+   idx_t numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
    vec->setValue( uint_c( numerator ), src[0] );
 }
@@ -386,23 +358,21 @@ inline void createVectorFromFunction( const Vertex&                             
 template < typename ValueType >
 inline void createFunctionFromVector( Vertex&                                                       vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   PetscInt numerator                              = vertex.getData( numeratorId )->getPointer( level )[0];
+   idx_t numerator                                 = vertex.getData( numeratorId )->getPointer( level )[0];
    vertex.getData( srcId )->getPointer( level )[0] = vec->getValue( uint_c( numerator ) );
 }
 
-inline void applyDirichletBC( Vertex&                                                      vertex,
-                              std::vector< PetscInt >&                                     mat,
-                              uint_t                                                       level,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& numeratorId )
+inline void applyDirichletBC( Vertex&                                                   vertex,
+                              std::vector< idx_t >&                                     mat,
+                              uint_t                                                    level,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& numeratorId )
 {
    mat.push_back( vertex.getData( numeratorId )->getPointer( level )[0] );
 }
-
-#endif
 
 } // namespace macrovertex
 } // namespace vertexdof

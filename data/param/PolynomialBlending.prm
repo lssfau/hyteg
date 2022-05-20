@@ -1,26 +1,34 @@
 Parameters
 {
-  level_h_coarse 0;
-  level_h_fine 0;
+  level_h_coarse 2;
+  level_h_fine 4;
+
+  // use P1 or P2 elements;
   elementType 1;
-  operatorType 0; # 0=constant, 1=variable, 2=polynomial;
 
-  # parameters for surrogate polynomials;
-  interpolationLevel 4;
-  minPolyDegree 7;
-  maxPolyDegree 7;
+  //operatorType:
+  // 0: old constant;
+  // 1: variable;
+  // 2: polynomial;
+  // 3: new constant;
+  operatorType 4;
 
-  annulus 1;# else rectangle;
-  blending 1;
-  nX 8;
+  // parameters for surrogate polynomials;
+  interpolationLevel 6;
+  polyDegree 12;
+
+  // domain shape: either annulus/spherical shell or rectangle/cuboid;
+  // if nZ > 1 the 3d version will be used;
+  annulus 1; // else rectangle;
+  blending 1; // apply geometry blending;
+  nX 2;
   nY 2;
-  macro_refinement 0;
+  nZ 1;
 
-  max_outer_iter 45;
-  max_cg_iter 1000000;
-  mg_tolerance 1e-16;
-  coarse_tolerance 1e-16;
+  max_outer_iter 8;
+  max_cg_iter 1000;
+  mg_tolerance 1e-10;
+  coarse_tolerance 1e-8;
 
   vtkOutput 0;
-  show_macrogrid 1;
 }

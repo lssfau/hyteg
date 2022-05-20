@@ -495,11 +495,11 @@ inline void applyVariableStencil(uint_t level,
    real_t* dstVertexDoF       = face.getData(dstVertexDoFID)->getPointer(level);
    real_t* dstEdgeDoF         = face.getData(dstEdgeDoFID)->getPointer(level);
 
-   Point3D x0(face.coords[0]), x;
+   Point3D x0(face.getCoordinates()[0]), x;
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
-   Point3D d0 = h * (face.coords[1] - face.coords[0]);
-   Point3D d2 = h * (face.coords[2] - face.coords[0]);
+   Point3D d0 = h * (face.getCoordinates()[1] - face.getCoordinates()[0]);
+   Point3D d2 = h * (face.getCoordinates()[2] - face.getCoordinates()[0]);
 
    P2Form form;
    form.setGeometryMap(face.getGeometryMap());
@@ -548,11 +548,11 @@ inline void smoothGSVariableStencil(uint_t level,
    const real_t* rhsVertexDoF = face.getData(rhsVertexDoFID)->getPointer(level);
    const real_t* rhsEdgeDoF   = face.getData(rhsEdgeDoFID)->getPointer(level);
 
-   Point3D x0(face.coords[0]), x;
+   Point3D x0(face.getCoordinates()[0]), x;
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
-   Point3D d0 = h * (face.coords[1] - face.coords[0]);
-   Point3D d2 = h * (face.coords[2] - face.coords[0]);
+   Point3D d0 = h * (face.getCoordinates()[1] - face.getCoordinates()[0]);
+   Point3D d2 = h * (face.getCoordinates()[2] - face.getCoordinates()[0]);
 
    P2Form form;
    form.setGeometryMap(face.getGeometryMap());
@@ -668,7 +668,7 @@ inline void applyVariableStencil(uint_t level,
    Face* faceS = storage->getFace(edge.neighborFaces()[0]);
    Face* faceN = (edge.getNumNeighborFaces() == 2) ? storage->getFace(edge.neighborFaces()[1]) : nullptr;
 
-   uint_t s_south, e_south, o_south, s_north, e_north, o_north;
+   uint_t s_south = 0, e_south = 0, o_south = 0, s_north = 0, e_north = 0, o_north = 0;
    s_south = faceS->vertex_index(edge.neighborVertices()[0]);
    e_south = faceS->vertex_index(edge.neighborVertices()[1]);
    o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
@@ -680,9 +680,9 @@ inline void applyVariableStencil(uint_t level,
       o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
    }
 
-   Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
-   Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
-   Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
+   Point3D dS_se = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south]);
+   Point3D dS_so = h * (faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south]);
+   Point3D dS_oe = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south]);
 
    // directions
    Point3D dirS  = -dS_oe;
@@ -694,8 +694,8 @@ inline void applyVariableStencil(uint_t level,
 
    if (faceN)
    {
-      Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
-      Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
+      Point3D dN_so = h * (faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north]);
+      Point3D dN_oe = h * (faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north]);
       dirN  = dN_so;
       dirNW = -dN_oe;
    }
@@ -854,7 +854,7 @@ inline void smoothGSVariableStencil(uint_t level,
    Face* faceS = storage->getFace(edge.neighborFaces()[0]);
    Face* faceN = (edge.getNumNeighborFaces() == 2) ? storage->getFace(edge.neighborFaces()[1]) : nullptr;
 
-   uint_t s_south, e_south, o_south, s_north, e_north, o_north;
+   uint_t s_south = 0, e_south = 0, o_south = 0, s_north = 0, e_north = 0, o_north = 0;
    s_south = faceS->vertex_index(edge.neighborVertices()[0]);
    e_south = faceS->vertex_index(edge.neighborVertices()[1]);
    o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
@@ -866,9 +866,9 @@ inline void smoothGSVariableStencil(uint_t level,
       o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
    }
 
-   Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
-   Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
-   Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
+   Point3D dS_se = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south]);
+   Point3D dS_so = h * (faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south]);
+   Point3D dS_oe = h * (faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south]);
 
    // directions
    Point3D dirS  = -dS_oe;
@@ -880,8 +880,8 @@ inline void smoothGSVariableStencil(uint_t level,
 
    if (faceN)
    {
-      Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
-      Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
+      Point3D dN_so = h * (faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north]);
+      Point3D dN_oe = h * (faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north]);
       dirN  = dN_so;
       dirNW = -dN_oe;
    }
@@ -1025,9 +1025,9 @@ inline void assembleStencil(const uint_t level, const Vertex& vertex, const std:
       auto adj_edges = face->adjacent_edges(vertex.getID());
       uint_t ne = adj_edges.size();
 
-      x = face->coords[vtx];
-      d0 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[0])->get_opposite_vertex(vertex.getID()))] - x) * h;
-      d2 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[1])->get_opposite_vertex(vertex.getID()))] - x) * h;
+      x = face->getCoordinates()[vtx];
+      d0 = (face->getCoordinates()[face->vertex_index(storage->getEdge(adj_edges[0])->get_opposite_vertex(vertex.getID()))] - x) * h;
+      d2 = (face->getCoordinates()[face->vertex_index(storage->getEdge(adj_edges[1])->get_opposite_vertex(vertex.getID()))] - x) * h;
 
       form.integrateAll({{x, x + d0, x + d2}}, elMat);
 

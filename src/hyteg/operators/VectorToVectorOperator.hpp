@@ -19,20 +19,27 @@
  */
 #pragma once
 
-#include "hyteg/Operator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
-template < class SrcVecFuncType, class DstVecFuncType >
-class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
+template < typename ValueType, template < typename > class SrcVecFuncKind, template < typename > class DstVecFuncKind >
+class VectorToVectorOperator : public Operator< SrcVecFuncKind< ValueType >, DstVecFuncKind< ValueType > >
 {
  public:
+   typedef SrcVecFuncKind< ValueType >                                                                            SrcVecFuncType;
+   typedef DstVecFuncKind< ValueType >                                                                            DstVecFuncType;
    typedef Operator< typename SrcVecFuncType::VectorComponentType, typename DstVecFuncType::VectorComponentType > scalarOpType;
+
+   // for compatibility with Operator class
+   typedef SrcVecFuncKind< ValueType > srcType;
+   typedef DstVecFuncKind< ValueType > dstType;
 
    VectorToVectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator< SrcVecFuncType, DstVecFuncType >( storage, minLevel, maxLevel )
@@ -72,21 +79,98 @@ class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
 
    void setSubOperator( uint_t i, uint_t j, std::shared_ptr< scalarOpType > subOp )
    {
-      WALBERLA_ASSERT_LESS_EQUAL( i, dim_ );
-      WALBERLA_ASSERT_LESS_EQUAL( j, dim_ );
+      WALBERLA_ASSERT_LESS( i, dim_ );
+      WALBERLA_ASSERT_LESS( j, dim_ );
       subOper_[i][j] = subOp;
    }
 
-  const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
+   const std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j ) const
    {
-      WALBERLA_ASSERT_LESS_EQUAL( i, dim_ );
-      WALBERLA_ASSERT_LESS_EQUAL( j, dim_ );
+      WALBERLA_ASSERT_LESS( i, dim_ );
+      WALBERLA_ASSERT_LESS( j, dim_ );
       return subOper_[i][j];
+   }
+
+   std::shared_ptr< scalarOpType > getSubOperator( uint_t i, uint_t j )
+   {
+      WALBERLA_ASSERT_LESS( i, dim_ );
+      WALBERLA_ASSERT_LESS( j, dim_ );
+      return subOper_[i][j];
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const SrcVecFuncKind< idx_t >&              src,
+                  const DstVecFuncKind< idx_t >&              dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         for ( uint_t j = 0; j < dim_; j++ )
+         {
+            if ( subOper_[i][j] != nullptr )
+            {
+               subOper_[i][j]->toMatrix( mat, src[j], dst[i], level, flag );
+            }
+         }
+      }
+   }
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues()
+   {
+      // operator must map between the same spaces
+      bool consistent = std::is_same< SrcVecFuncType, DstVecFuncType >::value;
+      WALBERLA_UNUSED( consistent );
+      WALBERLA_ASSERT( consistent );
+
+      using subType = typename SrcVecFuncType::VectorComponentType;
+
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         if ( auto* A_with_inv_diag = dynamic_cast< OperatorWithInverseDiagonal< subType >* >( subOper_[i][i].get() ) )
+         {
+            A_with_inv_diag->computeInverseDiagonalOperatorValues();
+         }
+         else
+         {
+            throw std::runtime_error(
+                "VectorToVectorOperator::computeInverseDiagonalOperatorValues() requires sub-operators with the OperatorWithInverseDiagonal interface." );
+         }
+      }
    }
 
  protected:
    std::vector< std::vector< std::shared_ptr< scalarOpType > > > subOper_;
    uint_t                                                        dim_;
+
+   std::shared_ptr< SrcVecFuncType > extractInverseDiagonal() const
+   {
+      // operator must map between the same spaces
+      bool consistent = std::is_same< SrcVecFuncType, DstVecFuncType >::value;
+      WALBERLA_UNUSED( consistent );
+      WALBERLA_ASSERT( consistent );
+
+      using subType = typename SrcVecFuncType::VectorComponentType;
+      std::vector< std::shared_ptr< subType > > diags;
+
+      for ( uint_t i = 0; i < dim_; i++ )
+      {
+         if ( const auto* A_with_inv_diag =
+                  dynamic_cast< const OperatorWithInverseDiagonal< subType >* >( subOper_[i][i].get() ) )
+         {
+            diags.push_back( A_with_inv_diag->getInverseDiagonalValues() );
+         }
+         else
+         {
+            throw std::runtime_error(
+                "Diagonal extraction from VectorToVectorOperator requires sub-operators with the OperatorWithInverseDiagonal interface." );
+         }
+      }
+
+      return std::make_shared< SrcVecFuncType >( "diagonal operator part", diags );
+   }
 };
 
 } // namespace hyteg

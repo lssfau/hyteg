@@ -25,7 +25,6 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
@@ -37,6 +36,8 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -95,7 +96,7 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    cOper.apply( funcInp, funcOut1, level, All );
    vOper.apply( funcInp, funcOut2, level, All );
 
-   funcErr.assign( {1.0, -1.0}, {funcOut1, funcOut2}, level, All );
+   funcErr.assign( { 1.0, -1.0 }, { funcOut1, funcOut2 }, level, All );
    real_t maxErr = funcErr.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal difference = " << maxErr );
    WALBERLA_CHECK_LESS( maxErr, bound );
@@ -116,10 +117,10 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
 template < class operType, class RowSumFormType >
 void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::shared_ptr< RowSumFormType >& rowSumForm )
 {
-   PETScManager                                                            petscManager;
-   PETScSparseMatrix< operType, operType::srcType::template FunctionType > matrix( storage, level, "diagonal matrix" );
+   PETScManager                  petscManager;
+   PETScSparseMatrix< operType > matrix( "diagonal matrix" );
 
-   typename operType::srcType::template FunctionType< PetscInt > enumerator( "enumerator", storage, level, level );
+   typename operType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
    operType oper( storage, level, level, rowSumForm );
@@ -134,11 +135,11 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
                       std::shared_ptr< RowSumFormType >&   rowSumForm,
                       real_t                               bound )
 {
-   PETScManager                                                              petscManager;
-   PETScSparseMatrix< vOperType, vOperType::srcType::template FunctionType > testMat( storage, level, "diagonal matrix 1" );
-   PETScSparseMatrix< cOperType, vOperType::srcType::template FunctionType > compMat( storage, level, "diagonal matrix 2" );
+   PETScManager                   petscManager;
+   PETScSparseMatrix< vOperType > testMat( "diagonal matrix 1" );
+   PETScSparseMatrix< cOperType > compMat( "diagonal matrix 2" );
 
-   typename vOperType::srcType::template FunctionType< PetscInt > enumerator( "enumerator", storage, level, level );
+   typename vOperType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
    vOperType vOper( storage, level, level, rowSumForm );
@@ -212,7 +213,7 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
    // exportOperator< cOperType >( cOper, "DiagonalMatrix_cOper.m", "cMat", storage, level, false, false, true );
    // exportOperator< vOperType >( vOper, "DiagonalMatrix_vOper.m", "vMat", storage, level, false, false, true );
 
-   std::array< real_t, 3 > limits = {bound, bound, bound};
+   std::array< real_t, 3 > limits = { bound, bound, bound };
 
    WALBERLA_CHECK_LESS_EQUAL( normFrb, limits[0] );
    WALBERLA_CHECK_LESS_EQUAL( normOne, limits[1] );
@@ -238,10 +239,10 @@ int main( int argc, char* argv[] )
        std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2 = std::make_shared< P2RowSumForm >( p2MassFormFenics );
 
-   auto                            p1MassFormHyTeG3D       = std::make_shared< P1Form_mass3D >();
+   auto                            p1MassFormHyTeG3D       = std::make_shared< forms::p1_mass_blending_q4 >();
    std::shared_ptr< P1RowSumForm > lumpedMassFormP1HyTeG3D = std::make_shared< P1RowSumForm >( p1MassFormHyTeG3D );
 
-   auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
+   auto                            p2MassFormHyTeG       = std::make_shared< forms::p2_mass_blending_q4 >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
 
    typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1LaplaceForm_T;

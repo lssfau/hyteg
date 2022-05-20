@@ -22,18 +22,16 @@
 #include <type_traits>
 #include <vector>
 
-#include "hyteg/Operator.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
-#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
+#include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -42,8 +40,8 @@ namespace hyteg {
 ///
 /// Usage Example:
 /// \code
-///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
-///     auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
+///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
+///     auto stokes = std::make_shared< hyteg::P1P1StokesOperator > ( storage, minLevel, maxLevel );
 ///     auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
 ///     auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
 ///     StokesOperator L( stokes, projection, FreeslipBoundary );
@@ -58,7 +56,6 @@ template < typename OpType, typename ProjOpType, bool PreProjection = false >
 class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typename OpType::dstType >
 {
  public:
-
    typedef typename OpType::BlockPreconditioner_T BlockPreconditioner_T;
 
    StrongFreeSlipWrapper( std::shared_ptr< OpType > op, std::shared_ptr< ProjOpType > projOp, DoFType projFlag )
@@ -94,7 +91,6 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
          projOp_->project( dst, level, projFlag_ );
    }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -103,21 +99,21 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
    ///
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                        mat,
-                             const typename OpType::srcType::template FunctionType< PetscInt >& numeratorSrc,
-                             const typename OpType::dstType::template FunctionType< PetscInt >& numeratorDst,
-                             uint_t                                                             level,
-                             DoFType                                                            flag ) const
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                     mat,
+                  const typename OpType::srcType::template FunctionType< idx_t >& numeratorSrc,
+                  const typename OpType::dstType::template FunctionType< idx_t >& numeratorDst,
+                  uint_t                                                          level,
+                  DoFType                                                         flag ) const
    {
       auto matProxyOp = mat->createCopy();
-      hyteg::petsc::createMatrix< OpType >( *op_, numeratorSrc, numeratorDst, matProxyOp, level, flag );
+      op_->toMatrix( matProxyOp, numeratorSrc, numeratorDst, level, flag );
 
       auto matProxyProjectionPost = mat->createCopy();
-      // projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
-      projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw, level, projFlag_ );
+
+      projOp_->toMatrix( matProxyProjectionPost, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
 
       // we need the Id also in the pressure block
-      petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPost, level, All );
+      saveIdentityOperator( numeratorDst.p(), matProxyProjectionPost, level, All );
 
       std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
       matrices.push_back( matProxyProjectionPost );
@@ -126,17 +122,16 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       if ( PreProjection )
       {
          auto matProxyProjectionPre = mat->createCopy();
-         // projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
-         projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw, level, projFlag_ );
 
-         petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPre, level, All );
+         projOp_->toMatrix( matProxyProjectionPre, numeratorSrc.uvw(), numeratorDst.uvw(), level, projFlag_ );
+
+         saveIdentityOperator( numeratorDst.p(), matProxyProjectionPre, level, All );
 
          matrices.push_back( matProxyProjectionPre );
       }
 
       mat->createFromMatrixProduct( matrices );
    }
-#endif
 
  private:
    std::shared_ptr< OpType >     op_;
@@ -146,78 +141,5 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
    std::shared_ptr< typename OpType::dstType > tmp_;
 };
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-namespace petsc {
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P1BlendingStokesOperator, P1ProjectNormalOperator, true >& opr,
-                          const P1StokesFunction< PetscInt >&                                             src,
-                          const P1StokesFunction< PetscInt >&                                             dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                     mat,
-                          size_t                                                                          level,
-                          DoFType                                                                         flag )
-{
-   WALBERLA_ABORT( "Not implemented." );
-}
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P1BlendingStokesOperator, P1ProjectNormalOperator, false >& opr,
-                          const P1StokesFunction< PetscInt >&                                              src,
-                          const P1StokesFunction< PetscInt >&                                              dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                      mat,
-                          size_t                                                                           level,
-                          DoFType                                                                          flag )
-{
-   WALBERLA_ABORT( "Not implemented." );
-}
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOperator, P2ProjectNormalOperator, true >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                 mat,
-                          size_t                                                                                      level,
-                          DoFType                                                                                     flag )
-{
-   opr.assembleLocalMatrix( mat, src, dst, level, flag );
-}
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOperator, P2ProjectNormalOperator, false >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                  mat,
-                          size_t                                                                                       level,
-                          DoFType                                                                                      flag )
-{
-   opr.assembleLocalMatrix( mat, src, dst, level, flag );
-}
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                 mat,
-                          size_t                                                                                      level,
-                          DoFType                                                                                     flag )
-{
-   opr.assembleLocalMatrix( mat, src, dst, level, flag );
-}
-
-template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, false >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                  mat,
-                          size_t                                                                                       level,
-                          DoFType                                                                                      flag )
-{
-   opr.assembleLocalMatrix( mat, src, dst, level, flag );
-}
-
-} // namespace petsc
-#endif
 
 } // namespace hyteg

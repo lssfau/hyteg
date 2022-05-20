@@ -23,7 +23,6 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -84,20 +83,19 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
    opType lapOp( storage, level, level );
 
    // determine indices and dimensions
-   funcType< PetscInt > enumerator( "enumerator", storage, level, level );
+   funcType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
+   typedef typename FunctionTrait< funcType< idx_t > >::Tag    enumTag;
    uint_t                                                      globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 
    // assemble matrices
-   PETScSparseMatrix< opType, funcType > lapMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< opType > lapMat( "Mat" );
 
    switch ( verbosity )
    {
-   case 2:
-   {
+   case 2: {
       lapMat.createMatrixFromOperator( lapOp, level, enumerator, All );
       lapMat.applyDirichletBC( enumerator, level );
 
@@ -117,17 +115,16 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
       //                             << globalDoFCount );
       // break;
    }
-   [[fallthrough]];
-   case 1:
-   {
+      [[fallthrough]];
+   case 1: {
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of global DoFs (HyTeG) ............. " << globalDoFs );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of local DoFs (HyTeG) .............. " << localDoFs );
       uint_t globalDoFCount = numberOfGlobalInnerDoFs< enumTag >( *storage, level );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... " << globalDoFCount );
       break;
    }
-   default:
-   {}
+   default: {
+   }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( " Entering PETSc solve " );
@@ -138,7 +135,7 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
 
    // check size of error
    funcType< real_t > error( "error", storage, level, level );
-   error.assign( {1.0, -1.0}, {u_exact, u}, level, All );
+   error.assign( { 1.0, -1.0 }, { u_exact, u }, level, All );
 
    VTKOutput vtkOutput( "../output", fileName, storage );
    // VTKOutput vtkOutput( "../output", "annulus", storage );
@@ -151,7 +148,9 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
 int main( int argc, char* argv[] )
 {
 #ifndef __APPLE__
-   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
 #endif
    // -------
    //  Setup

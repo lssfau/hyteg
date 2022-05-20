@@ -22,6 +22,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_add.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_3D_macrocell_vertexdof_to_edgedof_add.hpp"
@@ -102,6 +103,71 @@ VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator
 }
 
 template < class VertexDoFToEdgeDoFForm >
+void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                     const P1Function< idx_t >&                  src,
+                                                                     const EdgeDoFFunction< idx_t >&             dst,
+                                                                     size_t                                      level,
+                                                                     DoFType                                     flag ) const
+{
+   const auto storage = src.getStorage();
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         if ( storage->hasGlobalCells() )
+         {
+            VertexDoFToEdgeDoF::saveEdgeOperator3D(
+                level, edge, *storage, this->getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+         else
+         {
+            VertexDoFToEdgeDoF::saveEdgeOperator(
+                level, edge, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+      }
+   }
+
+   if ( level >= 1 )
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage->hasGlobalCells() )
+            {
+               VertexDoFToEdgeDoF::saveFaceOperator3D(
+                   level, face, *storage, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+            else
+            {
+               VertexDoFToEdgeDoF::saveFaceOperator(
+                   level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            VertexDoFToEdgeDoF::saveCellOperator(
+                level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+         }
+      }
+   }
+}
+
+template < class VertexDoFToEdgeDoFForm >
 void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 {
    using namespace P2Elements;
@@ -123,9 +189,9 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          form_.setGeometryMap( face.getGeometryMap() );
 
-         const Point3D faceBottomLeftCoords  = face.coords[0];
-         const Point3D faceBottomRightCoords = face.coords[1];
-         const Point3D faceTopLeftCoords     = face.coords[2];
+         const Point3D faceBottomLeftCoords  = face.getCoordinates()[0];
+         const Point3D faceBottomRightCoords = face.getCoordinates()[1];
+         const Point3D faceTopLeftCoords     = face.getCoordinates()[2];
 
          const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) /
                                                      walberla::real_c( levelinfo::num_microedges_per_edge( level ) ) ) *
@@ -153,7 +219,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          // Loop until first interior DoF is reached
          while ( edgeIt->row() == 0 || edgeIt->col() == 0 ||
-                 edgeIt->col() + edgeIt->row() == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+                 edgeIt->col() + edgeIt->row() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
             edgeIt++;
          }
@@ -231,9 +297,9 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          real_t h = 1.0 / ( walberla::real_c( rowsize ) );
 
-         Point3D dS_se = h * ( faceS->coords[e_south] - faceS->coords[s_south] );
-         //       Point3D dS_so = h * ( faceS->coords[o_south] - faceS->coords[s_south] );
-         Point3D dS_oe = h * ( faceS->coords[e_south] - faceS->coords[o_south] );
+         Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
+         //       Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
+         Point3D dS_oe = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[o_south] );
 
          Point3D dir_SE = 0.5 * dS_se - 1.0 * dS_oe;
          Point3D dir_E  = 0.5 * dS_se;
@@ -249,8 +315,8 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
             //          e_north = faceN->vertex_index( edge.neighborVertices()[1] );
             o_north = faceN->vertex_index( faceN->get_vertex_opposite_to_edge( edge.getID() ) );
 
-            Point3D dN_so = h * ( faceN->coords[o_north] - faceN->coords[s_north] );
-            //          Point3D dN_oe = h * ( faceN->coords[e_north] - faceN->coords[o_north] );
+            Point3D dN_so = h * ( faceN->getCoordinates()[o_north] - faceN->getCoordinates()[s_north] );
+            //          Point3D dN_oe = h * ( faceN->getCoordinates()[e_north] - faceN->getCoordinates()[o_north] );
 
             dir_NW = -0.5 * dS_se + 1.0 * dN_so;
          }
@@ -311,12 +377,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
@@ -373,12 +439,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -539,12 +605,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    this->timingTree_->start( "Macro-Edge" );
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
@@ -618,5 +684,35 @@ template class VertexDoFToEdgeDoFOperator<
 
 template class VertexDoFToEdgeDoFOperator< P2LinearCombinationForm >;
 template class VertexDoFToEdgeDoFOperator< P2RowSumForm >;
+
+// The following instantiations are required as building blocks in the P2ConstantEpsilon operator class
+// clang-format off
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_2_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise > >;
+// clang-format on
+
+// The following instantiations are required as building blocks in the P2ConstantFullViscousOperator class
+// clang-format off
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, p2_tet_stokes_full_tet_cell_integral_0_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, p2_tet_stokes_full_tet_cell_integral_1_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_2_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, p2_tet_stokes_full_tet_cell_integral_3_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, p2_tet_stokes_full_tet_cell_integral_4_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_5_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_6_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_7_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise > >;
+// clang-format on
 
 } // namespace hyteg

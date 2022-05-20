@@ -205,9 +205,9 @@ void restrict(const uint_t sourceLevel,
   typedef hyteg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBoundaryDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
-  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
-  indexing::FaceBoundaryDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+  indexing::FaceBoundaryDirection firstFaceBorderDirection  = indexing::getFaceBoundaryDirection( 0, face.getEdgeOrientation()[0] );
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBoundaryDirection( 1, face.getEdgeOrientation()[1] );
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection  = indexing::getFaceBoundaryDirection( 2, face.getEdgeOrientation()[2] );
 
   real_t tmp;
 
@@ -357,7 +357,7 @@ void restrict(const uint_t sourceLevel,
   }
 
   ///write data to edgedofs
-  if(face.edge_orientation[0] == 1){
+  if(face.getEdgeOrientation()[0] == 1){
     targetDirection = sD::EDGE_VE_N;
   } else {
     targetDirection = sD::EDGE_DI_NW;
@@ -374,7 +374,7 @@ void restrict(const uint_t sourceLevel,
     edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
 
-  if(face.edge_orientation[1] == 1){
+  if(face.getEdgeOrientation()[1] == 1){
     targetDirection = sD::EDGE_HO_W;
   } else {
     targetDirection = sD::EDGE_VE_S;
@@ -391,7 +391,7 @@ void restrict(const uint_t sourceLevel,
     edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
 
-  if(face.edge_orientation[2] == 1){
+  if(face.getEdgeOrientation()[2] == 1){
     targetDirection = sD::EDGE_DI_SE;
   } else {
     targetDirection = sD::EDGE_HO_E;
@@ -418,14 +418,14 @@ void postRestrict(const uint_t sourceLevel,
   typedef hyteg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBoundaryDirection firstFaceBorderDirection = indexing::getFaceBorderDirection(0, face.edge_orientation[0]);
-  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection(1, face.edge_orientation[1]);
-  indexing::FaceBoundaryDirection thirdFaceBorderDirection = indexing::getFaceBorderDirection(2, face.edge_orientation[2]);
+  indexing::FaceBoundaryDirection firstFaceBorderDirection = indexing::getFaceBoundaryDirection( 0, face.getEdgeOrientation()[0] );
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBoundaryDirection( 1, face.getEdgeOrientation()[1] );
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection = indexing::getFaceBoundaryDirection( 2, face.getEdgeOrientation()[2] );
 
   ValueType *vertexDofFineData = face.getData(vertexDoFMemoryID)->getPointer(sourceLevel);
   ValueType *edgeDofFineData = face.getData(edgeDoFMemoryID)->getPointer(sourceLevel);
 
-  if (face.edge_orientation[0] == 1) {
+  if (face.getEdgeOrientation()[0] == 1) {
     targetDirection = sD::EDGE_VE_N;
   } else {
     targetDirection = sD::EDGE_DI_NW;
@@ -442,7 +442,7 @@ void postRestrict(const uint_t sourceLevel,
     edgeDofFineData[targetIndex] /= 3.;
   }
 
-  if (face.edge_orientation[1] == 1) {
+  if (face.getEdgeOrientation()[1] == 1) {
     targetDirection = sD::EDGE_HO_W;
   } else {
     targetDirection = sD::EDGE_VE_S;
@@ -460,7 +460,7 @@ void postRestrict(const uint_t sourceLevel,
 
   }
 
-  if (face.edge_orientation[2] == 1) {
+  if (face.getEdgeOrientation()[2] == 1) {
     targetDirection = sD::EDGE_DI_SE;
   } else {
     targetDirection = sD::EDGE_HO_E;

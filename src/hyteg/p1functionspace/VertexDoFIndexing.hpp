@@ -25,7 +25,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/StencilDirections.hpp"
-#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
@@ -47,28 +47,28 @@ uint_t neighborFaceGhostLayerSize( const uint_t& level );
 uint_t neighborCellGhostLayerSize( const uint_t& level );
 
 /// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
-uint_t index( const uint_t& level, const uint_t& x );
+uint_t index( const uint_t& level, const idx_t& x );
 
 /// 'Enumerates' the inner vertexdofs. x is still the index but must not be located on the boundary.
-uint_t innerIndex( const uint_t& level, const uint_t& x );
+uint_t innerIndex( const uint_t& level, const idx_t& x );
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
 /// \param level Refinement level
 /// \param x index on the macro-edge
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
-uint_t indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor );
+uint_t indexOnNeighborFace( const uint_t& level, const idx_t& x, const uint_t& neighbor );
 
-uint_t indexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& neighbor, const uint_t& numNeighborFaces );
+uint_t indexOnNeighborCell( const uint_t& level, const idx_t& x, const uint_t& neighbor, const uint_t& numNeighborFaces );
 
 // Stencil access functions
 
 uint_t
-    indexFromVertexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& cellID, const uint_t& numNeighborFaces );
+    indexFromVertexOnNeighborCell( const uint_t& level, const idx_t& x, const uint_t& cellID, const uint_t& numNeighborFaces );
 
-uint_t indexFromVertexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& faceID, const stencilDirection& dir );
+uint_t indexFromVertexOnNeighborFace( const uint_t& level, const idx_t& x, const uint_t& faceID, const stencilDirection& dir );
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const stencilDirection& dir );
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const stencilDirection& dir );
 
 uint_t stencilIndexOnEdge( const stencilDirection& dir );
 
@@ -78,7 +78,7 @@ uint_t stencilIndexOnNeighborCell( const uint_t& cellID, const uint_t& numNeighb
 
 /// Have a look into the documentation to understand the calculations here
 /// The west vertices have the same col index as the horizonal edge
-uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const stencilDirection& dir );
+uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& x, const stencilDirection& dir );
 
 /// neighbor arrays from vertex dof
 constexpr std::array< stencilDirection, 7 > neighborsWithCenter          = {{hyteg::stencilDirection::VERTEX_C,
@@ -123,44 +123,44 @@ namespace macroface {
 /// Direct access functions
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y );
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y );
 
 /// 'Enumerates' the inner vertexdofs. x and y are still the indices but must not be located on the boundary.
-uint_t innerIndex( const uint_t& level, const uint_t& x, const uint_t& y );
+uint_t innerIndex( const uint_t& level, const idx_t& x, const idx_t& y );
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
 /// \param level Refinement level
 /// \param x x-index on the macro-face
 /// \param y y-index on the macro-face
 /// \param neighbor 0 or 1 for the respective neighbor
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& neighbor );
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const uint_t& neighbor );
 
 // Stencil access functions
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
 /// Have a look into the documentation to understand the calculations here
 /// The west vertex has the same col and row index as the horizonal edge
-uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromHorizontalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
 constexpr std::array< stencilDirection, 4 > neighborsFromHorizontalEdge = {
     {stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W}};
 
 /// Have a look into the documentation to understand the calculations here
 /// The south west vertex has the same col and row index as the horizonal edge
-uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromDiagonalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
 constexpr std::array< stencilDirection, 4 > neighborsFromDiagonalEdge = {
     {stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NE, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_SW}};
 
 /// Have a look into the documentation to understand the calculations here
 /// The south vertex has the same col and row index as the horizonal edge
-uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromVerticalEdge( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
-uint_t indexFromGrayFace( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromGrayFace( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
-uint_t indexFromBlueFace( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir );
+uint_t indexFromBlueFace( const uint_t& level, const idx_t& x, const idx_t& y, const stencilDirection& dir );
 
 constexpr std::array< stencilDirection, 13 > neighborsWithOneNeighborCellWithCenter = {{
     hyteg::stencilDirection::VERTEX_C,
@@ -277,10 +277,10 @@ typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > Stencil
 namespace macrocell {
 
 /// Index of a vertex DoF on a macro cell.
-uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z );
+uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z );
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const stencilDirection& dir );
+uint_t indexFromVertex( const uint_t& level, const idx_t& x, const idx_t& y, const idx_t& z, const stencilDirection& dir );
 
 /// neighbor arrays from vertex dof
 constexpr std::array< stencilDirection, 15 > neighborsWithCenter = {{

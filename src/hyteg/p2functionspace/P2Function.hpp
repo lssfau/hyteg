@@ -35,7 +35,7 @@ namespace hyteg {
 using walberla::real_c;
 
 template < typename ValueType >
-class P2Function : public Function< P2Function< ValueType > >
+class P2Function final : public Function< P2Function< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -115,16 +115,32 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
-   void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
+   /// @name Member functions for interpolation using BoundaryUID flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
+ 
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
+   //@}
+
+   /// @name Member functions for interpolation using DoFType flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
+   void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      this->interpolate( expr[0], level, flag );
+   };
 
    void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                      const std::vector< std::reference_wrapper< const P2Function< ValueType > > >&        srcFunctions,
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
+   //@}
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;
@@ -160,7 +176,7 @@ class P2Function : public Function< P2Function< ValueType > >
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All ) const;
 
-   void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                               scalars,
              const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
@@ -200,11 +216,11 @@ class P2Function : public Function< P2Function< ValueType > >
 
    void restrictInjection( uint_t sourceLevel, DoFType flag = All ) const;
 
-   ValueType getMaxValue( uint_t level, DoFType flag = All ) const;
+   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All ) const;
+   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMinValue( uint_t level, DoFType flag = All ) const;
+   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
    void setBoundaryCondition( BoundaryCondition bc );
@@ -221,11 +237,33 @@ class P2Function : public Function< P2Function< ValueType > >
 
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode );
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const P2Function< idx_t >&            numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      this->getVertexDoFFunction().toVector( numerator.getVertexDoFFunction(), vec, level, flag );
+      this->getEdgeDoFFunction().toVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+   }
+
+   void fromVector( const P2Function< idx_t >&            numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      this->getVertexDoFFunction().fromVector( numerator.getVertexDoFFunction(), vec, level, flag );
+      this->getEdgeDoFFunction().fromVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+   };
+   /// @}
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
 
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >              edgeDoFFunction_;
+
 };
 
 template <>
@@ -235,6 +273,7 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 
 extern template class P2Function< double >;
 extern template class P2Function< int >;
+extern template class P2Function< idx_t >;
 
 namespace p2function {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Andreas Wagner
+ * Copyright (c) 2020-2022 Andreas Wagner, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,6 +23,7 @@
 
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 #include "Solver.hpp"
 
@@ -33,6 +34,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
 {
  public:
    using FunctionType = typename OperatorType::srcType;
+   // using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
 
    ChebyshevSmoother( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : coefficients{}
@@ -44,14 +46,29 @@ class ChebyshevSmoother : public Solver< OperatorType >
    /// Executes an iteration step of the smoother.
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      std::shared_ptr< typename OperatorType::srcType > inverseDiagonalValues = nullptr;
+
+      if ( const auto* A_with_inv_diag =
+               dynamic_cast< const OperatorWithInverseDiagonal< typename OperatorType::srcType >* >( &A ) )
+      {
+         inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
+      }
+      else
+      {
+         throw std::runtime_error( "The Chebyshev-Smoother requires the OperatorWithInverseDiagonal interface." );
+      }
+
       tmp1_.copyBoundaryConditionFromFunction( x );
       tmp2_.copyBoundaryConditionFromFunction( x );
 
-      auto inverseDiagonalValues = A.getInverseDiagonalValues();
-
       WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
       WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
-      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
+
+      // CSFVectorFunctions currently do not support getMaxMagnitude()
+      if constexpr ( !std::is_base_of< CSFVectorFunction< FunctionType >, FunctionType >::value )
+      {
+         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
+      }
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
@@ -191,8 +208,13 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
                       DoFType                flag,
                       UpdateType             updateType = Replace ) const
    {
-      auto inverseDiagonalValues = wrappedOperator_.getInverseDiagonalValues();
-      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      auto A_with_inv_diag = dynamic_cast< const OperatorWithInverseDiagonal< SrcFunctionType >* >( &wrappedOperator_ );
+      auto inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
+      // CSFVectorFunctions currently do not support getMaxMagnitude()
+      if constexpr ( !std::is_base_of< CSFVectorFunction< SrcFunctionType >, SrcFunctionType >::value )
+      {
+         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      }
       wrappedOperator_.apply( src, dst, level, flag, updateType );
       dst.multElementwise( {*inverseDiagonalValues, dst}, level, flag );
    }

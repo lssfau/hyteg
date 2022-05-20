@@ -1,3 +1,22 @@
+/*
+* Copyright (c) 2017-2022 Nils Kohl.
+*
+* This file is part of HyTeG
+* (see https://i10git.cs.fau.de/hyteg/hyteg).
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include <memory>
@@ -39,21 +58,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
-   , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Amat",
-           petscCommunicator_ )
-   , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-                          "AmatNonEliminatedBC",
-                          petscCommunicator_ )
-   , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Pmat",
-           petscCommunicator_ )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
-   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
+   , Amat( "Amat", petscCommunicator_ )
+   , AmatNonEliminatedBC( "AmatNonEliminatedBC", petscCommunicator_ )
+   , Pmat( "Pmat", petscCommunicator_ )
+   , xVec( "xVec", petscCommunicator_ )
+   , bVec( "bVec", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
    , storage_( storage )
    , tolerance_( tolerance )
    , maxIterations_( maxIterations )
@@ -84,7 +94,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
-      WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
+      WALBERLA_CHECK_EQUAL( level, allocatedLevel_ )
 
       walberla::WcTimer timer;
 
@@ -107,8 +117,16 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       std::sort( velocityIndices.begin(), velocityIndices.end() );
       std::sort( pressureIndices.begin(), pressureIndices.end() );
-      ISCreateGeneral( petscCommunicator_, velocityIndices.size(), velocityIndices.data(), PETSC_COPY_VALUES, &is_[0] );
-      ISCreateGeneral( petscCommunicator_, pressureIndices.size(), pressureIndices.data(), PETSC_COPY_VALUES, &is_[1] );
+      ISCreateGeneral( petscCommunicator_,
+                       static_cast< PetscInt >( velocityIndices.size() ),
+                       velocityIndices.data(),
+                       PETSC_COPY_VALUES,
+                       &is_[0] );
+      ISCreateGeneral( petscCommunicator_,
+                       static_cast< PetscInt >( pressureIndices.size() ),
+                       pressureIndices.data(),
+                       PETSC_COPY_VALUES,
+                       &is_[1] );
 
       x.getStorage()->getTimingTree()->stop( "Index set setup" );
 
@@ -160,7 +178,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          KSPGetPC( ksp, &pc );
          PCSetType( pc, PCFIELDSPLIT );
          PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
-         PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, NULL );
+         PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr );
          PCFieldSplitSetIS( pc, "u", is_[0] );
          PCFieldSplitSetIS( pc, "p", is_[1] );
 
@@ -200,8 +218,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-         case 3:
-         {
+         case 3: {
             PCSetType( pc_u, PCHYPRE );
             break;
          }
@@ -209,7 +226,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
             PCSetType( pc_u, PCNONE );
             break;
          default:
-            WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
+            WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." )
             break;
          }
 
@@ -223,11 +240,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
             PCSetType( pc_p, PCJACOBI );
             break;
          default:
-            WALBERLA_ABORT( "Invalid pressure preconditioner for PETSc block prec MinRes solver." );
+            WALBERLA_ABORT( "Invalid pressure preconditioner for PETSc block prec MinRes solver." )
             break;
-
          }
-
       }
 
       timer.end();
@@ -250,7 +265,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: "
                                     << numKSPIterations << " | "
                                     << "PETSc KSPSolver time: " << petscKSPTimer << " | "
-                                    << "HyTeG to PETSc setup: " << hytegToPetscSetup );
+                                    << "HyTeG to PETSc setup: " << hytegToPetscSetup )
       }
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
@@ -267,89 +282,91 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    }
 
  private:
-   void gatherIndices( std::vector< PetscInt >&            velocityIndices,
-                       std::vector< PetscInt >&            pressureIndices,
-                       const PrimitiveStorage&             storage,
-                       uint_t                              level,
-                       const P1StokesFunction< PetscInt >& numerator )
+   void gatherIndices( std::vector< PetscInt >&         velocityIndices,
+                       std::vector< PetscInt >&         pressureIndices,
+                       const PrimitiveStorage&          storage,
+                       uint_t                           level,
+                       const P1StokesFunction< idx_t >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0], level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[0], level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
 
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1], level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[1], level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
 
       if ( storage.hasGlobalCells() )
       {
-         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[2], level ) )
+         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[2], level ) )
          {
-            velocityIndices.push_back( dof.value() );
+            velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.p, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p(), level ) )
       {
-         pressureIndices.push_back( dof.value() );
+         pressureIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
    }
 
-   void gatherIndices( std::vector< PetscInt >&                  velocityIndices,
-                       std::vector< PetscInt >&                  pressureIndices,
-                       const PrimitiveStorage&                   storage,
-                       uint_t                                    level,
-                       const P2P1TaylorHoodFunction< PetscInt >& numerator )
+   void gatherIndices( std::vector< PetscInt >&               velocityIndices,
+                       std::vector< PetscInt >&               pressureIndices,
+                       const PrimitiveStorage&                storage,
+                       uint_t                                 level,
+                       const P2P1TaylorHoodFunction< idx_t >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0].getVertexDoFFunction(), level ) )
+      for ( auto dof :
+            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[0].getVertexDoFFunction(), level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[0].getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[0].getEdgeDoFFunction(), level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1].getVertexDoFFunction(), level ) )
+      for ( auto dof :
+            FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[1].getVertexDoFFunction(), level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[1].getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[1].getEdgeDoFFunction(), level ) )
       {
-         velocityIndices.push_back( dof.value() );
+         velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
       if ( storage.hasGlobalCells() )
       {
          for ( auto dof :
-               FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[2].getVertexDoFFunction(), level ) )
+               FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.uvw()[2].getVertexDoFFunction(), level ) )
          {
-            velocityIndices.push_back( dof.value() );
+            velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
-         for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[2].getEdgeDoFFunction(), level ) )
+         for ( auto dof : FunctionIterator< EdgeDoFFunction< idx_t > >( numerator.uvw()[2].getEdgeDoFFunction(), level ) )
          {
-            velocityIndices.push_back( dof.value() );
+            velocityIndices.push_back( static_cast< PetscInt >( dof.value() ) );
          }
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.p, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< idx_t > >( numerator.p(), level ) )
       {
-         pressureIndices.push_back( dof.value() );
+         pressureIndices.push_back( static_cast< PetscInt >( dof.value() ) );
       }
    }
 
-   uint_t                                                                                            allocatedLevel_;
-   MPI_Comm                                                                                          petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   AmatNonEliminatedBC;
-   PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     bVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     nullspaceVec_;
+   uint_t                                                                                        allocatedLevel_;
+   MPI_Comm                                                                                      petscCommunicator_;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatNonEliminatedBC;
+   PETScSparseMatrix< BlockPreconditioner_T >                                                    Pmat;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
-   real_t   tolerance_;
-   PetscInt maxIterations_;
+   real_t tolerance_;
+   idx_t  maxIterations_;
 
    BlockPreconditioner_T blockPreconditioner_;
 

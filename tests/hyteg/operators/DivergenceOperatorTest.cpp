@@ -22,11 +22,9 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-// #include "hyteg/FunctionTraits.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
-#include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 

@@ -20,14 +20,12 @@
 
 #pragma once
 
-#include "hyteg/types/pointnd.hpp"
-
+#include <core/DataTypes.h>
+#include <hyteg/primitives/Primitive.hpp>
+#include <hyteg/types/types.hpp>
 #include <vector>
 
-#include <hyteg/types/flags.hpp>
-#include <hyteg/primitives/Primitive.hpp>
-
-#include <core/DataTypes.h>
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
@@ -40,6 +38,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   Edge( const PrimitiveID & primitiveID,
         const PrimitiveID & vertexID0,

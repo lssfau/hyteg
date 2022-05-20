@@ -30,10 +30,10 @@ namespace hyteg {
 template<typename ValueType, template <class> class F, class O>
 class PETScPreconditioner {
 public:
-
-
-  PETScPreconditioner(O& opr, std::shared_ptr<F<PetscInt>> &numerator, uint_t localSize, uint_t globalSize)
-   : opr_(opr), petscSolver(numerator, localSize, globalSize) {}
+  PETScPreconditioner( O& opr, std::shared_ptr< F< idx_t > >& numerator, uint_t localSize, uint_t globalSize )
+  : opr_( opr )
+  , petscSolver( numerator, localSize, globalSize )
+  {}
 
   // y = M^{-1} * x
   void apply(F<ValueType> &x, F<ValueType> &y, uint_t level, DoFType flag) {

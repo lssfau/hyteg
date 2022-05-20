@@ -1,0 +1,29 @@
+target_sources( hyteg
+    PRIVATE
+    P2P1StokesToP2P1StokesProlongation.hpp
+    P2P1StokesToP2P1StokesRestriction.hpp
+    P1toP1QuadraticProlongation.hpp
+    P1toP1LinearProlongation.cpp
+    P2toP1Conversion.cpp
+    P1toP1LinearRestriction.cpp
+    P1toP1InjectionRestriction.hpp
+    P1P1StokesToP1P1StokesProlongation.hpp
+    P1toP1QuadraticProlongationThroughP2Injection.hpp
+    P1toP2Conversion.cpp
+    P2toP2QuadraticRestriction.hpp
+    P2toP2QuadraticProlongation.cpp
+    ProlongationOperator.hpp
+    P1toP2Conversion.hpp
+    P2toP2QuadraticRestriction.cpp
+    P2toP2QuadraticProlongation.hpp
+    P1P1StokesToP1P1StokesRestriction.hpp
+    P1VectorFunctionLinearProlongation.hpp
+    P1toP1QuadraticProlongation.cpp
+    P1toP1LinearProlongation.hpp
+    P2toP1Conversion.hpp
+    P1VectorFunctionLinearRestriction.hpp
+    P1toP1InjectionRestriction.cpp
+    P1toP1LinearRestriction.hpp
+    RestrictionOperator.hpp     
+)
+add_subdirectory( generatedKernels )

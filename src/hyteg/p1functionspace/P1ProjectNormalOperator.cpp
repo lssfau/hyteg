@@ -20,11 +20,11 @@
 #include "P1ProjectNormalOperator.hpp"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/p1functionspace/freeslip/VertexDoFProjectNormal.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/freeslip/VertexDoFProjectNormal.hpp"
 
 namespace hyteg {
 
@@ -161,18 +161,18 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
 
    this->startTiming( "Project" );
 
-   for ( uint_t k = 0; k < dst.uvw.getDimension(); k++ )
+   for ( uint_t k = 0; k < dst.uvw().getDimension(); k++ )
    {
-      dst.uvw[k].communicate< Vertex, Edge >( level );
-      dst.uvw[k].communicate< Edge, Face >( level );
-      dst.uvw[k].communicate< Face, Cell >( level );
+      dst.uvw()[k].communicate< Vertex, Edge >( level );
+      dst.uvw()[k].communicate< Edge, Face >( level );
+      dst.uvw()[k].communicate< Face, Cell >( level );
    }
 
-   for ( uint_t k = 0; k < dst.uvw.getDimension(); k++ )
+   for ( uint_t k = 0; k < dst.uvw().getDimension(); k++ )
    {
-      dst.uvw[k].communicate< Cell, Face >( level );
-      dst.uvw[k].communicate< Face, Edge >( level );
-      dst.uvw[k].communicate< Edge, Vertex >( level );
+      dst.uvw()[k].communicate< Cell, Face >( level );
+      dst.uvw()[k].communicate< Face, Edge >( level );
+      dst.uvw()[k].communicate< Edge, Vertex >( level );
    }
 
    this->timingTree_->start( "Macro-Vertex" );
@@ -181,7 +181,7 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
    {
       Vertex& vertex = *it.second;
 
-      const DoFType vertexBC = dst.uvw.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      const DoFType vertexBC = dst.uvw().getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
@@ -190,14 +190,14 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
                                                                vertex,
                                                                storage_,
                                                                normal_function_,
-                                                               dst.uvw[0].getVertexDataID(),
-                                                               dst.uvw[1].getVertexDataID(),
-                                                               dst.uvw[2].getVertexDataID() );
+                                                               dst.uvw()[0].getVertexDataID(),
+                                                               dst.uvw()[1].getVertexDataID(),
+                                                               dst.uvw()[2].getVertexDataID() );
          }
          else
          {
             vertexdof::macrovertex::projectNormal2D< real_t >(
-                level, vertex, storage_, normal_function_, dst.uvw[0].getVertexDataID(), dst.uvw[1].getVertexDataID() );
+                level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
          }
       }
    }
@@ -212,7 +212,7 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
       {
          Edge& edge = *it.second;
 
-         const DoFType edgeBC = dst.uvw.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         const DoFType edgeBC = dst.uvw().getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if ( testFlag( edgeBC, flag ) )
          {
             if ( storage_->hasGlobalCells() )
@@ -221,14 +221,14 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
                                                                 edge,
                                                                 storage_,
                                                                 normal_function_,
-                                                                dst.uvw[0].getEdgeDataID(),
-                                                                dst.uvw[1].getEdgeDataID(),
-                                                                dst.uvw[2].getEdgeDataID() );
+                                                                dst.uvw()[0].getEdgeDataID(),
+                                                                dst.uvw()[1].getEdgeDataID(),
+                                                                dst.uvw()[2].getEdgeDataID() );
             }
             else
             {
                vertexdof::macroedge::projectNormal2D< real_t >(
-                   level, edge, storage_, normal_function_, dst.uvw[0].getEdgeDataID(), dst.uvw[1].getEdgeDataID() );
+                   level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
             }
          }
       }
@@ -244,7 +244,7 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
       {
          Face& face = *it.second;
 
-         const DoFType faceBC = dst.uvw.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         const DoFType faceBC = dst.uvw().getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
          {
             if ( storage_->hasGlobalCells() )
@@ -253,9 +253,9 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
                                                                 face,
                                                                 storage_,
                                                                 normal_function_,
-                                                                dst.uvw[0].getFaceDataID(),
-                                                                dst.uvw[1].getFaceDataID(),
-                                                                dst.uvw[2].getFaceDataID() );
+                                                                dst.uvw()[0].getFaceDataID(),
+                                                                dst.uvw()[1].getFaceDataID(),
+                                                                dst.uvw()[2].getFaceDataID() );
             }
          }
       }
@@ -266,14 +266,12 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
    this->stopTiming( "Project" );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                   const P1Function< PetscInt >&               numU,
-                                                   const P1Function< PetscInt >&               numV,
-                                                   const P1Function< PetscInt >&               numW,
-                                                   uint_t                                      level,
-                                                   DoFType                                     flag ) const
+void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P1Function< idx_t >&                  numU,
+                                        const P1Function< idx_t >&                  numV,
+                                        const P1Function< idx_t >&                  numW,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
 {
    communication::syncFunctionBetweenPrimitives( numU, level );
    communication::syncFunctionBetweenPrimitives( numV, level );
@@ -373,12 +371,7 @@ void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
             }
          }
       }
-
-
-
    }
 }
-
-#endif
 
 } // namespace hyteg

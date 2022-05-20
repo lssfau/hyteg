@@ -66,7 +66,7 @@ void exportFunction( const FunctionType< real_t >&       function,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs );
    }
-   FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+   FunctionType< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    // Fire up PETSc

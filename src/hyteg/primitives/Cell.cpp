@@ -109,7 +109,8 @@ void Cell::serializeSubclass( walberla::mpi::SendBuffer& sendBuffer ) const
    sendBuffer << edgeLocalVertexToCellLocalVertexMaps_;
    sendBuffer << faceLocalVertexToCellLocalVertexMaps_;
    sendBuffer << faceInwardNormals_;
-   sendBuffer << indirectNeighborCellIDs_;
+   sendBuffer << indirectNeighborCellIDsOverVertices_;
+   sendBuffer << indirectNeighborCellIDsOverFaces_;
 }
 
 void Cell::deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer )
@@ -118,7 +119,8 @@ void Cell::deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer )
    recvBuffer >> edgeLocalVertexToCellLocalVertexMaps_;
    recvBuffer >> faceLocalVertexToCellLocalVertexMaps_;
    recvBuffer >> faceInwardNormals_;
-   recvBuffer >> indirectNeighborCellIDs_;
+   recvBuffer >> indirectNeighborCellIDsOverVertices_;
+   recvBuffer >> indirectNeighborCellIDsOverFaces_;
 }
 
 } // namespace hyteg

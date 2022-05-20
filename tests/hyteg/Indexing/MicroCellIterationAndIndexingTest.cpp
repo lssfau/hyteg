@@ -115,7 +115,7 @@ int main( int argc, char* argv[] )
    // Select the top WHITE_UP cell and check its data dofs
    uint_t          width         = ( 1u << level ) + 1;
    uint_t          numVertexDoFs = ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
-   indexing::Index cIdx( 0, 0, width - 2 );
+   indexing::Index cIdx( 0, 0, idx_t( width - 2 ) );
 
    // check its vertex dof data indices
    std::array< uint_t, 4 > vertexDoFIndices;

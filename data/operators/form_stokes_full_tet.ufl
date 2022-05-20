@@ -1,0 +1,14 @@
+#
+# "Full" Stokes operator for the compressible case, i.e. the viscous operator
+# A is given by
+# 
+# A(u) = - div( grad(u) + grad(u)^T ) + 2/3 * grad( div( u ) )
+#
+
+v = TestFunction( testElement )
+u = TrialFunction( trialElement )
+
+forms = [ ( u.dx(i)*v.dx(j) - 2.0/3.0*u.dx(j)*v.dx(i) )*dx
+       for i in range(3) for j in range(3) ]
+for i in range(3):
+  forms[3*i+i] += dot(grad(u),grad(v))*dx

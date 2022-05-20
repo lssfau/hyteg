@@ -22,8 +22,9 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/solvers/Solver.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -40,8 +41,23 @@ class SymmetricGaussSeidelSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
-      A.smooth_gs( x, b, level, flag_ );
-      A.smooth_gs_backwards( x, b, level, flag_ );
+      if ( const auto* A_gs = dynamic_cast< const GSSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_gs->smooth_gs( x, b, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The symmetric Gauss-Seidel Operator requires the GSSmoothable interface." );
+      }
+
+      if ( const auto* A_gs_bw = dynamic_cast< const GSBackwardsSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_gs_bw->smooth_gs_backwards( x, b, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The symmetric Gauss-Seidel Operator requires the GSBackwardsSmoothable interface." );
+      }
    }
 
  private:

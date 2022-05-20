@@ -30,6 +30,12 @@ using walberla::real_c;
 using walberla::real_t;
 using namespace walberla::mpistubs;
 
+// some forward declarations
+template < typename value_t >
+class BlockFunction;
+template < typename value_t >
+class GenericFunction;
+
 template < typename FunctionTag_T, typename PrimitiveType >
 inline uint_t numberOfInnerDoFs( const uint_t& level );
 
@@ -138,7 +144,7 @@ inline uint_t numberOfLocalDoFs< EdgeDoFFunctionTag >( const PrimitiveStorage& p
 }
 
 template <>
-inline uint_t numberOfLocalDoFs< DGFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+inline uint_t numberOfLocalDoFs< FaceDoFFunction_old_Tag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
    return levelinfo::num_microfaces_per_face( level ) * primitiveStorage.getNumberOfLocalFaces();
 }
@@ -170,9 +176,33 @@ inline uint_t numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( const PrimitiveSto
 }
 
 template <>
+inline uint_t numberOfLocalDoFs< P2P1TaylorHoodBlockFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return numberOfLocalDoFs< P2VectorFunctionTag >( primitiveStorage, level ) +
+          numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+}
+
+template <>
 inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
    return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+}
+
+/// variant of numberOfLocalDoFs that works on a function object
+template < typename func_t >
+inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
+{
+   if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+   {
+      return func.getNumberOfLocalDoFs( level );
+   }
+   else
+   {
+      return numberOfLocalDoFs< typename func_t::Tag >( *( func.getStorage() ), level );
+   }
 }
 
 template < typename FunctionTag_T >
@@ -190,6 +220,26 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
    {
       return walberla::mpi::allReduce(
           numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ), walberla::mpi::SUM, communicator );
+   }
+}
+
+/// variant of numberOfGlobalDoFs that works on a function object
+template < typename func_t >
+inline uint_t numberOfGlobalDoFs( const func_t&   func,
+                                  const uint_t&   level,
+                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                  const bool&     onRootOnly   = false )
+{
+   if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+   {
+      return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+   }
+   else
+   {
+      return numberOfGlobalDoFs< typename func_t::Tag >( *( func.getStorage() ), level, communicator, onRootOnly );
    }
 }
 

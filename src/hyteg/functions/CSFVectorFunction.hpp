@@ -32,11 +32,11 @@ using walberla::uint_t;
 
 /// Base class for VectorFunctions
 ///
-/// This is the base class for all function classes in HyTeG representing vector fileds
+/// This is the base class for all function classes in HyTeG representing vector fields
 /// which have scalar component functions, i.e. where the VectorClass is basically a
 /// Container for Scalar Functions (CSF)
 template < typename VectorFunctionType >
-class CSFVectorFunction : public GenericFunction
+class CSFVectorFunction
 {
  public:
    typedef typename FunctionTrait< VectorFunctionType >::Tag                 Tag;
@@ -45,6 +45,11 @@ class CSFVectorFunction : public GenericFunction
 
    CSFVectorFunction( const std::string name )
    : functionName_( name )
+   {}
+
+   CSFVectorFunction( const std::string name, const std::vector< std::shared_ptr< VectorComponentType > >& compFunc )
+   : functionName_( name )
+   , compFunc_( compFunc )
    {}
 
    /// @name Query Functions
@@ -84,7 +89,7 @@ class CSFVectorFunction : public GenericFunction
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
-         compFunc_[k]->multElementwise( vectorFunctionTools::filter( 0, functions ), level, flag );
+         compFunc_[k]->multElementwise( vectorFunctionTools::filter( k, functions ), level, flag );
       }
    }
 
@@ -96,11 +101,19 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void interpolate( const valueType& constant, size_t level, DoFType flag = All ) const
+   void interpolate( valueType constant, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
          compFunc_[k]->interpolate( constant, level, flag );
+      }
+   }
+
+   void interpolate( valueType constant, size_t level, BoundaryUID boundaryUID ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->interpolate( constant, level, boundaryUID );
       }
    }
 
@@ -122,6 +135,38 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
+   void interpolate( const std::vector< valueType >& constants, size_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, flag );
+      }
+   }
+
+   void interpolate( const std::vector< valueType >& constants, size_t level, BoundaryUID boundaryUID ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( constants.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess constants!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( constants[k], level, boundaryUID );
+      }
+   }
+
    void interpolate( const std::vector< std::function< valueType( const Point3D& ) > >& expr,
                      uint_t                                                             level,
                      BoundaryUID                                                        boundaryUID ) const
@@ -140,7 +185,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   void add( valueType scalar, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -148,7 +193,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void add( const std::vector< walberla::real_t >                                    scalars,
+   void add( const std::vector< valueType >                                           scalars,
              const std::vector< std::reference_wrapper< const VectorFunctionType > >& functions,
              size_t                                                                   level,
              DoFType                                                                  flag = All ) const
@@ -188,7 +233,7 @@ class CSFVectorFunction : public GenericFunction
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         compFunc_[k]->setBoundaryCondition( vectorFunctionTools::filter( k, other ).getBoundaryCondition() );
+         compFunc_[k]->setBoundaryCondition( other[k].getBoundaryCondition() );
       }
    }
    /// @}
@@ -201,7 +246,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void assign( const std::vector< walberla::real_t >                                    scalars,
+   void assign( const std::vector< valueType >&                                          scalars,
                 const std::vector< std::reference_wrapper< const VectorFunctionType > >& functions,
                 size_t                                                                   level,
                 DoFType                                                                  flag = All ) const
@@ -212,7 +257,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   walberla::real_t dotLocal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
+   valueType dotLocal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
    {
       valueType sum = valueType( 0 );
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
@@ -222,7 +267,7 @@ class CSFVectorFunction : public GenericFunction
       return sum;
    }
 
-   walberla::real_t dotGlobal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
+   valueType dotGlobal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
    {
       auto sum = dotLocal( rhs, level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
@@ -235,10 +280,18 @@ class CSFVectorFunction : public GenericFunction
 
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         values.push_back( compFunc_[k]->getMaxMagnitude( level, flag, mpiReduce ) );
+         values.push_back( compFunc_[k]->getMaxMagnitude( level, flag, false ) );
       }
 
-      return *std::max_element( values.begin(), values.end() );
+      valueType localMax = *std::max_element( values.begin(), values.end() );
+
+      valueType globalMax = localMax;
+      if ( mpiReduce )
+      {
+         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+      }
+
+      return globalMax;
    }
 
    /// \brief Copies all values function data from other to this.
@@ -265,6 +318,82 @@ class CSFVectorFunction : public GenericFunction
          compFunc_[k]->copyFrom( other[k], level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
       }
    }
+
+   void enumerate( uint_t level ) const
+   {
+      uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
+
+      std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
+
+      valueType offset = 0;
+
+      for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+      {
+         offset += static_cast< valueType >( doFsPerRank[i] );
+      }
+
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->enumerate( level, offset );
+      }
+   }
+
+   void enumerate( uint_t level, valueType& offset ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); k++ )
+      {
+         compFunc_[k]->enumerate( level, offset );
+      }
+   }
+
+   /// conversion to/from linear algebra representation
+   ///
+   /// \todo Find a better solution. The latter would require to find a way to derive from
+   /// VectorFunctionType that we need in the interface a corresponding function with
+   /// different ValueType. So e.g. P1VectorFunction< idx_t > if VectorFunctionType equals
+   /// P1VectorFunction< real_t >.
+   ///
+   /// @{
+   template < template < class > class VectorFunctionIndexType >
+   void toVector( const VectorFunctionIndexType< idx_t >& numerator,
+                  const std::shared_ptr< VectorProxy >&   vec,
+                  uint_t                                  level,
+                  DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->toVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+
+   template < template < class > class VectorFunctionIndexType >
+   void fromVector( const VectorFunctionIndexType< idx_t >& numerator,
+                    const std::shared_ptr< VectorProxy >&   vec,
+                    uint_t                                  level,
+                    DoFType                                 flag ) const
+   {
+      if constexpr ( !std::is_same< VectorFunctionType, VectorFunctionIndexType< valueType > >::value )
+      {
+         WALBERLA_ABORT( "Template Identity Crisis Alert!" );
+      }
+      else
+      {
+         WALBERLA_ASSERT_EQUAL( numerator.getDimension(), compFunc_.size() );
+         for ( uint_t k = 0; k < compFunc_.size(); k++ )
+         {
+            compFunc_[k]->fromVector( numerator[k], vec, level, flag );
+         }
+      }
+   }
+   /// @}
 
  protected:
    const std::string                                     functionName_;

@@ -197,27 +197,27 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      u.uvw.interpolate( { initialU, initialV, initialW }, level, All );
-      u.uvw.interpolate( { solutionU, solutionV, solutionW }, level, DirichletBoundary );
-      u.p.interpolate( initialP, level, All );
+      u.uvw().interpolate( { initialU, initialV, initialW }, level, All );
+      u.uvw().interpolate( { solutionU, solutionV, solutionW }, level, DirichletBoundary );
+      u.p().interpolate( initialP, level, All );
 
       if ( RHSisZero )
       {
          if ( level < maxLevel )
          {
-            f.uvw.interpolate( 0, level, All );
-            f.p.interpolate( 0, level, All );
+            f.uvw().interpolate( 0, level, All );
+            f.p().interpolate( 0, level, All );
          }
       }
       else
       {
-         tmp.uvw.interpolate( { rhsU,rhsV, rhsW }, level, All );
+         tmp.uvw().interpolate( { rhsU,rhsV, rhsW }, level, All );
 
-         velocityMassOperator.apply( tmp.uvw[0], f.uvw[0], level, All );
-         velocityMassOperator.apply( tmp.uvw[1], f.uvw[1], level, All );
-         velocityMassOperator.apply( tmp.uvw[2], f.uvw[2], level, All );
+         velocityMassOperator.apply( tmp.uvw()[0], f.uvw()[0], level, All );
+         velocityMassOperator.apply( tmp.uvw()[1], f.uvw()[1], level, All );
+         velocityMassOperator.apply( tmp.uvw()[2], f.uvw()[2], level, All );
 
-         f.p.interpolate( 0, level, All );
+         f.p().interpolate( 0, level, All );
       }
    }
 
@@ -342,7 +342,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, currentLevel );
+         vertexdof::projectMean( u.p(), currentLevel );
       }
 
       errorAndResidual( A,
@@ -459,7 +459,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
 
       errorAndResidual( A,
@@ -493,7 +493,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
       if ( projectPressure )
       {
-         vertexdof::projectMean( u.p, maxLevel );
+         vertexdof::projectMean( u.p(), maxLevel );
       }
 
       errorAndResidual( A,
@@ -590,7 +590,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
    else
    {
       solveRHS0Implementation< P1StokesFunction,
-                               P1StokesOperator,
+                               P1P1StokesOperator,
                                P1ConstantMassOperator,
                                P1ConstantMassOperator,
                                P1P1StokesToP1P1StokesRestriction,

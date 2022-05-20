@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 
 #include "core/DataTypes.h"
 #include "core/math/Random.h"
@@ -60,12 +59,11 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------" );
 
    // determine indices and dimensions
-   FuncType< PetscInt > enumerator( "enumerator", storage, level, level );
+   FuncType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   typedef typename FunctionTrait< FuncType< PetscInt > >::Tag enumTag;
-   uint_t                                                      globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
-   uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
+   typedef typename FunctionTrait< FuncType< idx_t > >::Tag enumTag;
+   uint_t                                                   globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
 
    if ( beVerbose )
    {
@@ -77,10 +75,10 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    OpTypeConst constantOp( storage, level, level );
 
    // assemble matrices
-   PETScSparseMatrix< OpTypeElem, FuncType > elemWisePETScMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< OpTypeElem > elemWisePETScMat;
    elemWisePETScMat.createMatrixFromOperator( elemWiseOp, level, enumerator, All );
 
-   PETScSparseMatrix< OpTypeConst, FuncType > constantPETScMat( localDoFs, globalDoFs );
+   PETScSparseMatrix< OpTypeConst > constantPETScMat;
    constantPETScMat.createMatrixFromOperator( constantOp, level, enumerator, All );
 
    // determine difference between matrices and their norms
@@ -163,19 +161,19 @@ int main( int argc, char* argv[] )
    //  Run some 2D tests
    // -------------------
    compareMatrices< P1ConstantLaplaceOperator, P1ElementwiseLaplaceOperator, P1Function >(
-       storage, "P1Laplace", level, {1e-12, 1e-13, 1e-13}, beVerbose );
+       storage, "P1Laplace", level, { 1e-12, 1e-13, 1e-13 }, beVerbose );
    compareMatrices< P1ConstantMassOperator, P1ElementwiseMassOperator, P1Function >(
-       storage, "P1Mass", level, {1e-16, 1e-17, 1e-17}, beVerbose );
+       storage, "P1Mass", level, { 1e-16, 1e-17, 1e-17 }, beVerbose );
 
    level = 3;
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseLaplaceOperator, P2Function >(
-       storage, "P2Laplace", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2Laplace", level, { 1.5e-12, 1.5e-13, 1.5e-13 }, beVerbose );
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
-       storage, "P2Mass", level, {1e-16, 1e-17, 1e-17}, beVerbose );
+       storage, "P2Mass", level, { 1e-16, 1e-17, 1e-17 }, beVerbose );
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseDivKGradOperator, P2Function >(
-       storage, "P2DivKGrad", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2DivKGrad", level, { 1.5e-12, 1e-13, 1.5e-13 }, beVerbose );
    compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
-       storage, "P2P1StokesCC", level, {2.0e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2P1StokesCC", level, { 2.0e-12, 1.5e-13, 1.5e-13 }, beVerbose );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -191,16 +189,16 @@ int main( int argc, char* argv[] )
    // -------------------
    level = 3;
    compareMatrices< P1ConstantLaplaceOperator, P1ElementwiseLaplaceOperator, P1Function >(
-       storage3D, "P1Laplace - 3D", level, {1e-12, 1e-13, 1e-13}, beVerbose );
+       storage3D, "P1Laplace - 3D", level, { 1e-12, 1e-13, 1e-13 }, beVerbose );
    compareMatrices< P1ConstantMassOperator, P1ElementwiseMassOperator, P1Function >(
-       storage3D, "P1Mass - 3D", level, {1e-16, 1e-17, 1e-17}, beVerbose );
+       storage3D, "P1Mass - 3D", level, { 1e-16, 1e-17, 1e-17 }, beVerbose );
 
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseLaplaceOperator, P2Function >(
-       storage3D, "P2Laplace - 3D", level, {1e-13, 1e-13, 1e-13}, beVerbose );
+       storage3D, "P2Laplace - 3D", level, { 1e-13, 1e-13, 1e-13 }, beVerbose );
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
-       storage3D, "P2Mass - 3D", level, {1e-17, 1e-18, 1e-18}, beVerbose );
+       storage3D, "P2Mass - 3D", level, { 1e-17, 1e-18, 1e-18 }, beVerbose );
    compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
-       storage3D, "P2P1StokesCC", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage3D, "P2P1StokesCC", level, { 1.5e-12, 1.5e-13, 1.5e-13 }, beVerbose );
 
    return 0;
 }

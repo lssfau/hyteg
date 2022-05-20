@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 
 #include "hyteg/types/pointnd.hpp"
 
@@ -29,7 +29,8 @@
 #include "variablestencil/P2VariableStencilCommon.hpp"
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+#include <hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp>
+#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
@@ -37,13 +38,18 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/P2MacroFacePolynomial.hpp>
 
+#include "hyteg/communication/Syncing.hpp"
+
+
 namespace hyteg {
 
 template <class P2Form, OperatorType OprType>
-class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
+class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>,
+                            public GSSmoothable< P2Function< real_t > >,
+                            public ConstantJacobiSmoothable< P1Function< real_t > >
 {
- public:
-   P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
+public:
+P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
                                 uint_t minLevel, uint_t maxLevel, uint_t interpolationLevel)
       : Operator(storage, minLevel, maxLevel)
       , interpolationLevel_(interpolationLevel)
@@ -78,15 +84,15 @@ class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_
       std::array<real_t, P2::NumStencilentries2D::EtE> edgeToEdgeStencil;
 
       // we only use polynomials for face stencils
-      for (auto& it : storage_->getFaces())
+      for (auto& itF : storage_->getFaces())
       {
-         Face& face = *it.second;
+         Face& face = *itF.second;
          form_.setGeometryMap(face.getGeometryMap());
 
-         Point3D x0(face.coords[0]), x;
+         Point3D x0(face.getCoordinates()[0]), x;
 
-         Point3D D0 = face.coords[1] - face.coords[0];
-         Point3D D2 = face.coords[2] - face.coords[0];
+         Point3D D0 = face.getCoordinates()[1] - face.getCoordinates()[0];
+         Point3D D2 = face.getCoordinates()[2] - face.getCoordinates()[0];
 
          for (uint_t level = minLevel_; level <= maxLevel_; ++level)
          {
@@ -250,7 +256,7 @@ class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_
    }
 
    void smooth_gs(const P2Function<real_t>& dst, const P2Function<real_t>& rhs,
-                  const size_t level, DoFType flag) const
+                  const size_t level, DoFType flag) const override
    {
       checkForMissingPolynomial(level);
 
@@ -313,7 +319,7 @@ class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_
    }
 
    void smooth_jac(const P1Function<real_t>& dst, const P1Function<real_t>& rhs,
-                   const P1Function<real_t>& tmp, size_t level, DoFType flag) const
+                   const P1Function<real_t>& tmp, size_t level, DoFType flag) const override
    {
       WALBERLA_ABORT("To be implemented");
    }
@@ -333,6 +339,6 @@ class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_
 
 typedef P2SurrogateOperator<P2Form_laplace, OperatorType::EVEN> P2SurrogateLaplaceOperator;
 typedef P2SurrogateOperator<P2Form_divKgrad, OperatorType::EVEN> P2SurrogateDivKgradOperator;
-typedef P2SurrogateOperator<P2Form_mass, OperatorType::MASS>    P2SurrogateMassOperator;
+typedef P2SurrogateOperator<forms::p2_mass_blending_q4, OperatorType::MASS>    P2SurrogateMassOperator;
 
 } // namespace hyteg

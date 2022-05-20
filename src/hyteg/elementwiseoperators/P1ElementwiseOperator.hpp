@@ -24,16 +24,15 @@
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
-#include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
@@ -41,7 +40,9 @@ namespace hyteg {
 using walberla::real_t;
 
 template < class P1Form >
-class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                              public WeightedJacobiSmoothable< P1Function< real_t > >,
+                              public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
  public:
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -68,9 +69,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                     const P1Function< real_t >& src,
                     real_t                      omega,
                     size_t                      level,
-                    DoFType                     flag ) const;
+                    DoFType                     flag ) const override;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -80,12 +80,11 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P1Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override;
 
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
@@ -99,7 +98,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
 
    std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
    {
@@ -109,7 +108,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       return diagonalValues_;
    };
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,
@@ -162,8 +161,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    void computeLocalDiagonalContributions2D( const Face&                                face,
                                              const uint_t                               level,
-                                             const uint_t                               xIdx,
-                                             const uint_t                               yIdx,
+                                             const idx_t                                xIdx,
+                                             const idx_t                                yIdx,
                                              const P1Elements::P1Elements2D::P1Element& element,
                                              real_t* const                              dstVertexData );
 
@@ -180,24 +179,22 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
-#endif
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
@@ -347,5 +344,7 @@ typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet
 
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
+
+typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
 
 } // namespace hyteg

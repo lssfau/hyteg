@@ -223,9 +223,9 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::apply( const P1Function< real_t >&
       {
          Face& face = *it.second;
 
-         Point3D x0( face.coords[0] );
-         Point3D x1( face.coords[1] );
-         Point3D x2( face.coords[2] );
+         Point3D x0( face.getCoordinates()[0] );
+         Point3D x1( face.getCoordinates()[1] );
+         Point3D x2( face.getCoordinates()[2] );
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
@@ -402,7 +402,6 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalElementMatrix2D( cons
    form.integrateAll( coords, elMat );
 }
 
-
 template < class P1toP2Form >
 void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalElementMatrix3D( const Cell&            cell,
                                                                             uint_t                 level,
@@ -424,15 +423,13 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalElementMatrix3D( cons
    form.integrateAll( coords, elMat );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 // Assemble operator as sparse matrix for PETSc
 template < class P1toP2Form >
-void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                   const P1Function< PetscInt >&               src,
-                                                                   const P2Function< PetscInt >&               dst,
-                                                                   uint_t                                      level,
-                                                                   DoFType                                     flag ) const
+void P1ToP2ElementwiseOperator< P1toP2Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const P1Function< idx_t >&                  src,
+                                                        const P2Function< idx_t >&                  dst,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    WALBERLA_UNUSED( flag );
@@ -446,15 +443,15 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( const std::sh
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data in the two indexing functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstVertexDoFIdx = dst.getVertexDoFFunction().getCellDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcVertexDoFIdx = src.getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstVertexDoFIdx = dst.getVertexDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcVertexDoFIdx = src.getCellDataID();
 
-         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getCellDataID();
 
-         PetscInt* srcVertexIndices = cell.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstVertexIndices = cell.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcVertexIndices = cell.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstVertexIndices = cell.getData( dstVertexDoFIdx )->getPointer( level );
 
-         PetscInt* dstEdgeIndices = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+         idx_t* dstEdgeIndices = cell.getData( dstEdgeDoFIdx )->getPointer( level );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -474,33 +471,33 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( const std::sh
       {
          Face& face = *it.second;
 
-         Point3D x0( face.coords[0] );
-         Point3D x1( face.coords[1] );
-         Point3D x2( face.coords[2] );
+         Point3D x0( face.getCoordinates()[0] );
+         Point3D x1( face.getCoordinates()[1] );
+         Point3D x2( face.getCoordinates()[2] );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
-         uint_t                   xIdx, yIdx;
+         idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
 
          // get hold of the actual numerical data in the two functions
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcVertexDoFIdx = src.getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > srcVertexDoFIdx = src.getFaceDataID();
 
-         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< idx_t >, Face > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getFaceDataID();
 
-         PetscInt* srcVertexIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
-         PetscInt* dstVertexIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
+         idx_t* srcVertexIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
+         idx_t* dstVertexIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
 
-         PetscInt* dstEdgeIndices = face.getData( dstEdgeDoFIdx )->getPointer( level );
+         idx_t* dstEdgeIndices = face.getData( dstEdgeDoFIdx )->getPointer( level );
 
          // now loop over micro-faces of macro-face
-         for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+         for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
          {
             // loop over vertices in row with two associated triangles
-            for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+            for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
             {
                // we associate two elements with current micro-vertex
                localMatrixAssembly2D( mat,
@@ -540,13 +537,12 @@ template < class P1toP2Form >
 void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                                      const Face&                                 face,
                                                                      const uint_t                                level,
-                                                                     const uint_t                                xIdx,
-                                                                     const uint_t                                yIdx,
+                                                                     const idx_t                                 xIdx,
+                                                                     const idx_t                                 yIdx,
                                                                      const P2Elements::P2Element&                element,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       dstVertexIdx,
-                                                                     const PetscInt* const dstEdgeIdx ) const
-
+                                                                     const idx_t* const                          srcVertexIdx,
+                                                                     const idx_t* const                          dstVertexIdx,
+                                                                     const idx_t* const dstEdgeIdx ) const
 {
    Matrixr< 6, 3 >          elMat;
    indexing::Index          nodeIdx;
@@ -607,9 +603,9 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
                                                                      const uint_t                                level,
                                                                      const indexing::Index&                      microCell,
                                                                      const celldof::CellType                     cType,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       dstVertexIdx,
-                                                                     const PetscInt* const dstEdgeIdx ) const
+                                                                     const idx_t* const                          srcVertexIdx,
+                                                                     const idx_t* const                          dstVertexIdx,
+                                                                     const idx_t* const dstEdgeIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -656,8 +652,6 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
-#endif
-
 template class P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >;
 
@@ -667,8 +661,8 @@ template class P1ToP2ElementwiseOperator<
 template class P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > >;
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > >;
-template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 2 > >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_0_blending_q2 >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_1_blending_q2 >;
+template class P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_2_blending_q2 >;
 
 } // namespace hyteg

@@ -29,12 +29,13 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P2VectorFunction : public CSFVectorFunction< P2VectorFunction< ValueType > >
+class P2VectorFunction final : public CSFVectorFunction< P2VectorFunction< ValueType > >
 {
  public:
    using valueType = ValueType;
 
-   using FunctionType = P2VectorFunction< ValueType >;
+   template < typename VType >
+   using FunctionType = P2VectorFunction< VType >;
 
    using VectorComponentType = P2Function< ValueType >;
 
@@ -44,17 +45,29 @@ class P2VectorFunction : public CSFVectorFunction< P2VectorFunction< ValueType >
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel )
+   : P2VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+   {}
+
+   P2VectorFunction( const std::string&                         _name,
+                     const std::shared_ptr< PrimitiveStorage >& storage,
+                     size_t                                     minLevel,
+                     size_t                                     maxLevel,
+                     BoundaryCondition                          bc )
    : CSFVectorFunction< P2VectorFunction< ValueType > >( _name )
    {
       this->compFunc_.clear();
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel ) );
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc ) );
 
       if ( storage->hasGlobalCells() )
       {
-         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel ) );
+         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
       }
    }
+
+   P2VectorFunction( const std::string name, const std::vector< std::shared_ptr< P2Function< ValueType > > >& compFunc )
+   : CSFVectorFunction< P2VectorFunction< ValueType > >( name, compFunc )
+   {}
 };
 
 } // namespace hyteg

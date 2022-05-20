@@ -45,14 +45,14 @@ namespace hyteg {
 namespace edgedof {
 namespace macroedge {
 
+using indexing::Index;
 using walberla::real_c;
 using walberla::uint_t;
-using indexing::Index;
 
-inline Point3D coordinateFromIndex( const uint_t & level, const Edge & edge, const Index & index )
+inline Point3D coordinateFromIndex( const uint_t& level, const Edge& edge, const Index& index )
 {
    const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( level );
-   const Point3D step         = ( edge.getCoordinates()[1] - edge.getCoordinates()[0] ) * stepFrequency;
+   const Point3D step          = ( edge.getCoordinates()[1] - edge.getCoordinates()[0] ) * stepFrequency;
    return edge.getCoordinates()[0] + 0.5 * step + step * real_c( index.x() );
 }
 
@@ -351,11 +351,11 @@ inline void apply3D( const uint_t&                                              
          auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microedges_per_edge( level ) );
          const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
              edgeCenterOrientation, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
 
@@ -371,7 +371,7 @@ inline void apply3D( const uint_t&                                              
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                const auto leafIndexOnEdge = indexing::basisConversion(
-                   leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+                   leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microedges_per_edge( level ) );
 
                const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
                const auto onCellFacesSetOnEdge =
@@ -423,7 +423,7 @@ inline void apply3D( const uint_t&                                              
                   }
 
                   const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
-                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+                      leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
                   const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
                       leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
@@ -575,13 +575,11 @@ inline void
    }
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
@@ -598,7 +596,7 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
@@ -607,24 +605,23 @@ inline void createFunctionFromVector( const uint_t&                             
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      src[idx] = vec->getValue( numerator[idx] );
+      src[idx]         = vec->getValue( numerator[idx] );
    }
 }
 
-inline void applyDirichletBC( const uint_t&                                              Level,
-                              Edge&                                                      edge,
-                              std::vector< PetscInt >&                                   mat,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& numeratorId )
+inline void applyDirichletBC( const uint_t&                                           Level,
+                              Edge&                                                   edge,
+                              std::vector< idx_t >&                                   mat,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& numeratorId )
 {
    auto numerator = edge.getData( numeratorId )->getPointer( Level );
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      mat.push_back( numerator[idx] );
+      mat.push_back( static_cast< idx_t >( numerator[idx] ) );
    }
 }
-#endif
 
 } // namespace macroedge
 } // namespace edgedof

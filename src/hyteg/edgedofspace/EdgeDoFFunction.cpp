@@ -217,7 +217,7 @@ void EdgeDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Cel
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -228,6 +228,12 @@ void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_
    interpolateByPrimitiveType< Face >( constant, level, flag );
    interpolateByPrimitiveType< Cell >( constant, level, flag );
    this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
+{
+  interpolate( [constant]( const Point3D& ){ return constant; }, level, boundaryUID );
 }
 
 template < typename ValueType >
@@ -951,7 +957,7 @@ void EdgeDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
+void EdgeDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -1716,6 +1722,120 @@ unsigned long long edgedof::edgeDoFGlobalFunctionMemorySize( const uint_t & leve
    return memGlobal;
 }
 
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::toVector( const EdgeDoFFunction< idx_t >&       numerator,
+                                             const std::shared_ptr< VectorProxy >& vec,
+                                             uint_t                                level,
+                                             DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "EdgeDoFFunction< T >::toVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            edgedof::macroedge::createVectorFromFunction< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            edgedof::macroface::createVectorFromFunction< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            edgedof::macrocell::createVectorFromFunction< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::fromVector( const EdgeDoFFunction< idx_t >&       numerator,
+                                               const std::shared_ptr< VectorProxy >& vec,
+                                               uint_t                                level,
+                                               DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "EdgeDoFFunction< T >::fromVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      this->startCommunication< Vertex, Edge >( level );
+      this->endCommunication< Vertex, Edge >( level );
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            edgedof::macroedge::createFunctionFromVector< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Edge, Face >( level );
+      this->endCommunication< Edge, Face >( level );
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            edgedof::macroface::createFunctionFromVector< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            edgedof::macrocell::createFunctionFromVector< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
 // =================
 //  specialisations
 // =================
@@ -1831,8 +1951,9 @@ void EdgeDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, b
 //  explicit instantiation
 // ========================
 template class EdgeDoFFunction< double >;
-template class EdgeDoFFunction< int >;
-template class EdgeDoFFunction< long >;
+// template class EdgeDoFFunction< float >;
+template class EdgeDoFFunction< int32_t >;
+template class EdgeDoFFunction< int64_t >;
 
 template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                       uint_t        level,

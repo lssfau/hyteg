@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,13 +44,15 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
+using terraneo::SphericalHarmonicsTool;
 using walberla::real_c;
 using walberla::real_t;
 using namespace hyteg;
@@ -145,7 +147,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
 
    // describe eigenfunction
-   real_t                                    besselRoot    = roots[degree][nroot-1];
+   real_t                                    besselRoot    = roots[degree][nroot - 1];
    std::function< real_t( const Point3D& ) > eigenFunction = [sphTool, degree, order, besselRoot, outerRad]( const Point3D& x ) {
       real_t sph = sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
       real_t rad = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );

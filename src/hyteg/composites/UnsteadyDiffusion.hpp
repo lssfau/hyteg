@@ -22,19 +22,19 @@
 
 #include <core/math/MatrixMxN.h>
 
-#include "hyteg/Operator.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -43,6 +43,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
@@ -72,11 +73,17 @@ enum class DiffusionTimeIntegrator
 ///
 /// To solve the unsteady diffusion equation, see UnsteadyDiffusion.
 template < typename FunctionType,
-           template < class > class Operator_T,
+           template < class >
+           class Operator_T,
            typename LaplaceForm_T,
            typename MassForm_T,
            typename LinearCombinationForm_T >
-class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
+class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
+                                  public SORSmoothable< FunctionType >,
+                                  public SORBackwardsSmoothable< FunctionType >,
+                                  public GSSmoothable< FunctionType >,
+                                  public GSBackwardsSmoothable< FunctionType >,
+                                  public WeightedJacobiSmoothable< FunctionType >
 {
  public:
    UnsteadyDiffusionOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -107,33 +114,83 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
       unsteadyDiffusionOperator_->apply( src, dst, level, flag, updateType );
    }
 
-   void smooth_sor( const FunctionType& dst,
-                    const FunctionType& rhs,
-                    const real_t&       relax,
-                    size_t              level,
-                    DoFType             flag,
-                    const bool&         backwards = false ) const
+   void smooth_sor( const FunctionType& dst, const FunctionType& rhs, real_t relax, size_t level, DoFType flag ) const override
    {
-      unsteadyDiffusionOperator_->smooth_sor( dst, rhs, relax, level, flag, backwards );
+      smooth_sor( dst, rhs, relax, level, flag, false );
    }
 
-   void smooth_gs( const FunctionType& dst,
-                   const FunctionType& rhs,
-                   size_t              level,
-                   DoFType             flag,
-                   const bool&         backwards = false ) const
+   void smooth_sor_backwards( const FunctionType& dst,
+                              const FunctionType& rhs,
+                              real_t              relax,
+                              size_t              level,
+                              DoFType             flag ) const override
+   {
+      smooth_sor( dst, rhs, relax, level, flag, true );
+   }
+
+   void smooth_sor( const FunctionType& dst,
+                    const FunctionType& rhs,
+                    real_t              relax,
+                    size_t              level,
+                    DoFType             flag,
+                    const bool&         backwards ) const
+   {
+      if ( !backwards )
+      {
+         if ( const auto* op_sor = dynamic_cast< const SORSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+         {
+            op_sor->smooth_sor( dst, rhs, relax, level, flag );
+         }
+         else
+         {
+            throw std::runtime_error( "The UnsteadyDiffusionOperator requires the SORSmoothable interface." );
+         }
+      }
+      else
+      {
+         if ( const auto* op_sor =
+                  dynamic_cast< const SORBackwardsSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+         {
+            op_sor->smooth_sor_backwards( dst, rhs, relax, level, flag );
+         }
+         else
+         {
+            throw std::runtime_error( "The UnsteadyDiffusionOperator requires the SORBackwardsSmoothable interface." );
+         }
+      }
+   }
+
+   void smooth_gs( const FunctionType& dst, const FunctionType& rhs, size_t level, DoFType flag, const bool& backwards ) const
    {
       smooth_sor( dst, rhs, 1.0, level, flag, backwards );
+   }
+
+   void smooth_gs( const FunctionType& dst, const FunctionType& rhs, size_t level, DoFType flag ) const override
+   {
+      smooth_gs( dst, rhs, level, flag, false );
+   }
+
+   void smooth_gs_backwards( const FunctionType& dst, const FunctionType& rhs, size_t level, DoFType flag ) const override
+   {
+      smooth_gs( dst, rhs, level, flag, true );
    }
 
    void smooth_jac( const FunctionType& dst,
                     const FunctionType& rhs,
                     const FunctionType& src,
-                    const real_t&       relax,
+                    real_t              relax,
                     size_t              level,
-                    DoFType             flag ) const
+                    DoFType             flag ) const override
    {
-      unsteadyDiffusionOperator_->smooth_jac( dst, rhs, src, relax, level, flag );
+      if ( const auto* op_jac =
+               dynamic_cast< const WeightedJacobiSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+      {
+         op_jac->smooth_jac( dst, rhs, src, relax, level, flag );
+      }
+      else
+      {
+         throw std::runtime_error( "The UnsteadyDiffusionOperator requires the WeightedJacobiSmoothable interface." );
+      }
    }
 
    real_t dt() const { return dt_; }
@@ -146,6 +203,15 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
           minLevel_,
           maxLevel_,
           LinearCombinationForm_T( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                                    mat,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& src,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& dst,
+                  size_t                                                                                         level,
+                  DoFType                                                                                        flag ) const
+   {
+      unsteadyDiffusionOperator_->toMatrix( mat, src, dst, level, flag );
    }
 
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
@@ -179,7 +245,7 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
    real_t dt_;
 };
 
-template< typename P1Form >
+template < typename P1Form >
 using P1ConstantOperatorSingleTemplateParamter = P1ConstantOperator< P1Form, false, false, false >;
 
 typedef UnsteadyDiffusionOperator<
@@ -202,47 +268,9 @@ typedef UnsteadyDiffusionOperator<
 typedef UnsteadyDiffusionOperator< P2Function< real_t >,
                                    P2ElementwiseOperator,
                                    P2Form_laplace,
-                                   P2Form_mass,
+                                   forms::p2_mass_blending_q4,
                                    P2LinearCombinationForm >
     P2ElementwiseUnsteadyDiffusionOperator;
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-namespace petsc {
-template <>
-inline void createMatrix< P1ConstantUnsteadyDiffusionOperator >( const P1ConstantUnsteadyDiffusionOperator& opr,
-                                                                 const P1Function< PetscInt >&                 src,
-                                                                 const P1Function< PetscInt >&                 dst,
-                                                                 const std::shared_ptr< SparseMatrixProxy >&   mat,
-                                                                 uint_t                                        level,
-                                                                 DoFType                                       flag )
-{
-   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
-}
-
-template <>
-inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator&  opr,
-                                                                 const P2Function< PetscInt >&               src,
-                                                                 const P2Function< PetscInt >&               dst,
-                                                                 const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                 uint_t                                      level,
-                                                                 DoFType                                     flag )
-{
-   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
-}
-
-template <>
-inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2ElementwiseUnsteadyDiffusionOperator& opr,
-                                                                    const P2Function< PetscInt >&                 src,
-                                                                    const P2Function< PetscInt >&                 dst,
-                                                                    const std::shared_ptr< SparseMatrixProxy >&   mat,
-                                                                    uint_t                                        level,
-                                                                    DoFType                                       flag )
-{
-   createMatrix< P2ElementwiseOperator< P2LinearCombinationForm >, P2LinearCombinationForm >(
-       opr.getOperator(), src, dst, mat, level, flag );
-}
-} // namespace petsc
-#endif
 
 /// \brief Wrapper class to solve the unsteady diffusion equation in time.
 ///

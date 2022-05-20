@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,68 +19,87 @@
  */
 #pragma once
 
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #include "PETScWrapper.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-#include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
-#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScSparseMatrixInfo.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/sparseassembly/DirichletBCs.hpp"
 
 namespace hyteg {
 
 /// Wrapper class for PETSc sparse matrix usage
-template < class OperatorType, template < class > class FunctionType >
+template < class OperatorType >
 class PETScSparseMatrix
 {
  public:
-   PETScSparseMatrix() = delete;
+   template < typename ValueType >
+   using FunctionTypeSrc = typename OperatorType::srcType::template FunctionType< ValueType >;
 
-   PETScSparseMatrix( uint_t          localSize,
-                      uint_t          globalSize,
-                      const char      name[]            = "Mat",
-                      const MPI_Comm& petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : petscCommunicator_( petscCommunicator ), assembled_( false )
-   {
-      MatCreate( petscCommunicator, &mat );
-      MatSetType( mat, MATMPIAIJ );
-      MatSetSizes( mat, (PetscInt) localSize, (PetscInt) localSize, (PetscInt) globalSize, (PetscInt) globalSize );
-      // Roughly overestimate number of non-zero entries for faster assembly of matrix
-      MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
-      setName( name );
-      reset();
-   }
+   template < typename ValueType >
+   using FunctionTypeDst = typename OperatorType::dstType::template FunctionType< ValueType >;
 
-   PETScSparseMatrix( const std::shared_ptr< PrimitiveStorage >& storage,
-                      const uint_t&                              level,
-                      const char                                 name[] = "Mat",
-                      const MPI_Comm& petscCommunicator                 = walberla::mpi::MPIManager::instance()->comm() )
-   : PETScSparseMatrix( numberOfLocalDoFs< typename OperatorType::dstType::Tag >( *storage, level ),
-                        numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, petscCommunicator ),
-                        name,
-                        petscCommunicator )
+   PETScSparseMatrix( const std::string name              = "Mat",
+                      const MPI_Comm&   petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : name_( name )
+   , petscCommunicator_( petscCommunicator )
+   , allocated_( false )
+   , assembled_( false )
    {}
 
-   virtual ~PETScSparseMatrix() { MatDestroy( &mat ); }
+   virtual ~PETScSparseMatrix()
+   {
+      if ( allocated_ )
+      {
+         MatDestroy( &mat );
+      }
+   }
 
    inline void createMatrixFromOperator( const OperatorType&             op,
                                          uint_t                          level,
-                                         const FunctionType< PetscInt >& numerator,
+                                         const FunctionTypeSrc< idx_t >& numerator,
                                          DoFType                         flag = All )
    {
+      const uint_t localRows  = numberOfLocalDoFs( numerator, level );
+      const uint_t localCols  = numberOfLocalDoFs( numerator, level );
+      const uint_t globalRows = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
+      const uint_t globalCols = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
+
+      allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
+
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
-      hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, proxy, level, flag );
+      op.toMatrix( proxy, numerator, numerator, level, flag );
+
+      MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      assembled_ = true;
+   }
+
+   inline void createMatrixFromOperator( const OperatorType&             op,
+                                         uint_t                          level,
+                                         const FunctionTypeSrc< idx_t >& numeratorSrc,
+                                         const FunctionTypeDst< idx_t >& numeratorDst,
+                                         DoFType                         flag = All )
+   {
+      const uint_t localRows  = numberOfLocalDoFs( numeratorDst, level );
+      const uint_t localCols  = numberOfLocalDoFs( numeratorSrc, level );
+      const uint_t globalRows = numberOfGlobalDoFs( numeratorDst, level, petscCommunicator_ );
+      const uint_t globalCols = numberOfGlobalDoFs( numeratorSrc, level, petscCommunicator_ );
+
+      allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
+
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      op.toMatrix( proxy, numeratorSrc, numeratorDst, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -89,7 +108,7 @@ class PETScSparseMatrix
 
    inline bool createMatrixFromOperatorOnce( const OperatorType&             op,
                                              uint_t                          level,
-                                             const FunctionType< PetscInt >& numerator,
+                                             const FunctionTypeSrc< idx_t >& numerator,
                                              DoFType                         flag = All )
    {
       if ( assembled_ )
@@ -114,17 +133,31 @@ class PETScSparseMatrix
       PetscViewerDestroy( &viewer );
    }
 
-   void applyDirichletBC( const FunctionType< PetscInt >& numerator, uint_t level )
+   template < typename PETSCINT >
+   std::vector< PETSCINT > convertToPetscVector( std::vector< idx_t > idx_vector )
    {
-      std::vector< PetscInt > ind;
-      hyteg::petsc::applyDirichletBC( numerator, ind, level );
+      if constexpr ( std::is_same_v< idx_t, PETSCINT > )
+      {
+         return idx_vector;
+      }
+      else
+      {
+         return std::vector< PETSCINT >( idx_vector.begin(), idx_vector.end() );
+      }
+   }
+
+   void applyDirichletBC( const FunctionTypeSrc< idx_t >& numerator, uint_t level )
+   {
+      std::vector< idx_t > bcIndices;
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, ind.size(), ind.data(), 1.0, 0, 0 );
+      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -147,15 +180,16 @@ class PETScSparseMatrix
    /// \param rhsVec RHS of the system as PETSc vector - NOTE THAT THIS IS MODIFIED IN PLACE
    /// \param level the refinement level
    ///
-   void applyDirichletBCSymmetrically( const FunctionType< real_t >&        dirichletSolution,
-                                       const FunctionType< PetscInt >&      numerator,
-                                       PETScVector< real_t, FunctionType >& rhsVec,
-                                       const uint_t&                        level )
+   void applyDirichletBCSymmetrically( const FunctionTypeSrc< real_t >&                                     dirichletSolution,
+                                       const FunctionTypeSrc< idx_t >&                                      numerator,
+                                       PETScVector< real_t, OperatorType::dstType::template FunctionType >& rhsVec,
+                                       const uint_t&                                                        level )
    {
-      std::vector< PetscInt > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< idx_t > bcIndices;
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
-      PETScVector< real_t, FunctionType > dirichletSolutionVec(
+      PETScVector< real_t, FunctionTypeSrc > dirichletSolutionVec(
           dirichletSolution, numerator, level, All, "dirichletSolutionVec", rhsVec.getCommunicator() );
 
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
@@ -163,23 +197,26 @@ class PETScSparseMatrix
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
+      MatZeroRowsColumns(
+          mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
    ///
    /// \return Vector with global indices of the Dirichlet DoFs
-   std::vector< PetscInt > applyDirichletBCSymmetrically( const FunctionType< PetscInt >& numerator, const uint_t& level )
+   std::vector< idx_t > applyDirichletBCSymmetrically( const FunctionTypeSrc< idx_t >& numerator, const uint_t& level )
    {
-      std::vector< PetscInt > bcIndices;
-      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< idx_t > bcIndices;
+      hyteg::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
 
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, NULL, NULL );
+      MatZeroRowsColumns(
+          mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       return bcIndices;
    }
@@ -187,7 +224,13 @@ class PETScSparseMatrix
    inline void reset() { assembled_ = false; }
 
    /// \brief Sets all entries of the matrix to zero.
-   inline void zeroEntries() { MatZeroEntries( mat ); }
+   inline void zeroEntries()
+   {
+      if ( allocated_ )
+      {
+         MatZeroEntries( mat );
+      }
+   }
 
    inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) mat, name ); }
 
@@ -246,9 +289,32 @@ class PETScSparseMatrix
    };
 
  protected:
-   MPI_Comm petscCommunicator_;
-   Mat      mat;
-   bool     assembled_;
+   std::string name_;
+   MPI_Comm    petscCommunicator_;
+   Mat         mat;
+   bool        allocated_;
+   bool        assembled_;
+
+ private:
+   inline void allocateSparseMatrix( uint_t localRows, uint_t localCols, uint_t globalRows, uint_t globalCols )
+   {
+      if ( !allocated_ )
+      {
+         MatCreate( petscCommunicator_, &mat );
+         MatSetType( mat, MATMPIAIJ );
+         MatSetSizes( mat,
+                      static_cast< PetscInt >( localRows ),
+                      static_cast< PetscInt >( localCols ),
+                      static_cast< PetscInt >( globalRows ),
+                      static_cast< PetscInt >( globalCols ) );
+
+         // Roughly overestimate number of non-zero entries for faster assembly of matrix
+         MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
+         setName( name_.c_str() );
+         reset();
+         allocated_ = true;
+      }
+   }
 };
 
 } // namespace hyteg

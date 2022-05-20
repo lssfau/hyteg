@@ -33,6 +33,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 // Perform some basic test to check that methods of P[12]VectorFunctions
@@ -65,24 +66,35 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
    walberla::WcTimingPool timer;
 
    timer["Interpolate"].start();
-   vec_f.interpolate( { xComp, yComp }, maxLevel, DoFType::All );
+   vec_f.interpolate( {xComp, yComp}, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
    // Assign
    timer["Assign"].start();
-   aux_f.assign( { 3.0 }, { vec_f }, maxLevel, DoFType::All );
+   aux_f.assign( {3.0}, {vec_f}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    // Add
    timer["Add"].start();
-   aux_f.add( { { 4.0, 3.0 } }, { { vec_f, vec_f } }, maxLevel, DoFType::All );
+   aux_f.add( {{4.0, 3.0}}, {{vec_f, vec_f}}, maxLevel, DoFType::All );
    timer["Add"].end();
+
+   // GetMaxMagnitude
+   timer["GetMaxComponentMagnitude"].start();
+   aux_f.getMaxComponentMagnitude( maxLevel, DoFType::All );
+   timer["GetMaxComponentMagnitude"].end();
 
    // Dot
    timer["Dot"].start();
    const real_t scalarProduct = aux_f.dotGlobal( vec_f, maxLevel, DoFType::All );
    timer["Dot"].end();
    WALBERLA_LOG_INFO_ON_ROOT( "dot product = " << scalarProduct );
+
+   // try manipulating boundary conditions
+   BoundaryCondition fsBC;
+   fsBC.createFreeslipBC( "free-slip", 1 );
+   vec_f.setBoundaryCondition( fsBC );
+   aux_f.copyBoundaryConditionFromFunction( vec_f );
 
    // Output VTK
    if ( beVerbose )
@@ -102,7 +114,53 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
       vtkOutput2.write( maxLevel );
    }
 
+   // Construction from vector of pointers
+   using sType = typename vfType::VectorComponentType;
+   std::vector< std::shared_ptr< sType > > compFuncs;
+   compFuncs.push_back( std::make_shared< sType >( "scalarFunc1", storage, minLevel, maxLevel ) );
+   compFuncs.push_back( std::make_shared< sType >( "scalarFunc2", storage, minLevel, maxLevel ) );
+   timer["pointer c'tor"].start();
+   vfType tmpVec( "tmpVec", compFuncs );
+   timer["pointer c'tor"].end();
+
    WALBERLA_LOG_INFO_ON_ROOT( timer );
+}
+
+template < typename vfType >
+static void testEnumerate( bool beVerbose, std::string typeName )
+{
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Testing with " << typeName );
+   }
+
+   const uint_t minLevel = 3;
+   const uint_t maxLevel = 3;
+
+   MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/flow_around_cylinder.msh" );
+   // MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/quad_2el.msh" );
+
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   loadbalancing::roundRobin( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   vfType enumerator( "vecFunc", storage, minLevel, maxLevel );
+   enumerator.enumerate( maxLevel );
+
+   typename FunctionTrait< vfType >::ValueType maxIdx = enumerator.getMaxComponentMagnitude( maxLevel, All );
+   WALBERLA_LOG_INFO_ON_ROOT( "Maximal Value = " << maxIdx );
+
+#ifdef VISUAL_INSPECTION
+   // we can only write functions with valueType = real_t at the moment
+   if constexpr ( std::is_same< typename FunctionTrait< vfType >::ValueType, real_t >::value )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "VectorFunctionBasicTest::Enumerate";
+      VTKOutput   vtkOutput( fPath, fName, storage );
+      vtkOutput.add( enumerator );
+      vtkOutput.write( maxLevel );
+   }
+#endif
 }
 
 } // namespace hyteg
@@ -124,6 +182,17 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P2VectorFunction" );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    hyteg::testVectorFunction< hyteg::P2VectorFunction< walberla::real_t > >( true, "P2", "P2VectorFunction" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing Enumeration" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   hyteg::testEnumerate< hyteg::P1VectorFunction< int > >( true, "P1VectorFunction< int >" );
+   hyteg::testEnumerate< hyteg::P2VectorFunction< int > >( true, "P2VectorFunction< int >" );
+
+#ifdef VISUAL_INSPECTION
+   hyteg::testEnumerate< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1VectorFunction< real_t >" );
+   hyteg::testEnumerate< hyteg::P2VectorFunction< walberla::real_t > >( true, "P2VectorFunction< real_t >" );
+#endif
 
    return EXIT_SUCCESS;
 }

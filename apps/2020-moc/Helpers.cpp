@@ -237,7 +237,7 @@ void solve( MeshInfo&               meshInfo,
    FunctionType cMass( "cMass", storage, level, level );
    FunctionType tmp( "tmp", storage, level, level );
    FunctionType tmp2( "tmp2", storage, level, level );
-   
+
    typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvw( "uvw", storage, level, level );
    typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvwLast( "uvwLast", storage, level, level );
    // FunctionType u( "u", storage, level, level );
@@ -269,7 +269,8 @@ void solve( MeshInfo&               meshInfo,
 
    if ( enableDiffusion )
    {
-      solver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, std::numeric_limits< uint_t >::max(), 1e-12 );
+      solver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >(
+          storage, level, level, std::numeric_limits< uint_t >::max(), 1e-12 );
    }
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
@@ -302,7 +303,7 @@ void solve( MeshInfo&               meshInfo,
       printCurrentMemoryUsage();
    }
 
-   cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
+   cError.assign( { 1.0, -1.0 }, { c, cSolution }, level, All );
 
    if ( verbose )
    {
@@ -317,7 +318,9 @@ void solve( MeshInfo&               meshInfo,
    const auto initialMass = mass;
    auto       massChange  = ( mass / initialMass ) - 1.0;
    real_t     timeTotal   = 0;
-   real_t     vMax        = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
+   real_t     vMax        = 0;
+
+   vMax = velocityMaxMagnitude( uvw, tmp, tmp2, level, All );
 
    if ( verbose )
    {
@@ -382,15 +385,16 @@ void solve( MeshInfo&               meshInfo,
       // To implement re-init intervals > 1 for time dependent velocity fields, we need to
       // reverse the the velocity field over the period in which the solution is transported
       // in the Lagrangian domain.
-      auto lagrangeIntervalLength = resetParticlesInterval;
-      auto lagrangeIntervalIdx = (i - 1) / lagrangeIntervalLength;
-      auto lagrangeIntervalInnerIdx = (i - 1) % lagrangeIntervalLength;
-      auto tsVelocityCurrent = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx) - 1;
-      auto tsVelocityNext = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx);
+      auto lagrangeIntervalLength   = resetParticlesInterval;
+      auto lagrangeIntervalIdx      = ( i - 1 ) / lagrangeIntervalLength;
+      auto lagrangeIntervalInnerIdx = ( i - 1 ) % lagrangeIntervalLength;
+      auto tsVelocityCurrent =
+          lagrangeIntervalLength * lagrangeIntervalIdx + ( lagrangeIntervalLength - lagrangeIntervalInnerIdx ) - 1;
+      auto tsVelocityNext = lagrangeIntervalLength * lagrangeIntervalIdx + ( lagrangeIntervalLength - lagrangeIntervalInnerIdx );
 
-      velocityX.setTime( startTimeX + dt * real_c(tsVelocityCurrent) );
-      velocityY.setTime( startTimeY + dt * real_c(tsVelocityCurrent) );
-      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityCurrent) );
+      velocityX.setTime( startTimeX + dt * real_c( tsVelocityCurrent ) );
+      velocityY.setTime( startTimeY + dt * real_c( tsVelocityCurrent ) );
+      velocityZ.setTime( startTimeZ + dt * real_c( tsVelocityCurrent ) );
 
       uvwLast[0].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       uvwLast[1].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
@@ -399,9 +403,9 @@ void solve( MeshInfo&               meshInfo,
          uvwLast[2].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
 
-      velocityX.setTime( startTimeX + dt * real_c(tsVelocityNext) );
-      velocityY.setTime( startTimeY + dt * real_c(tsVelocityNext) );
-      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityNext) );
+      velocityX.setTime( startTimeX + dt * real_c( tsVelocityNext ) );
+      velocityY.setTime( startTimeY + dt * real_c( tsVelocityNext ) );
+      velocityZ.setTime( startTimeZ + dt * real_c( tsVelocityNext ) );
 
       uvw[0].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       uvw[1].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
@@ -415,13 +419,13 @@ void solve( MeshInfo&               meshInfo,
 
       real_t advectionTimeStepRunTime;
 
-      vMax = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
+      vMax = velocityMaxMagnitude( uvw, tmp, tmp2, level, All );
 
       if ( enableDiffusion && strangSplitting )
       {
          solution.incTime( 0.5 * dt );
 
-         cOld.assign( {1.0}, {c}, level, All );
+         cOld.assign( { 1.0 }, { c }, level, All );
 
          c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
 
@@ -459,7 +463,7 @@ void solve( MeshInfo&               meshInfo,
                          Inner,
                          dt,
                          1,
-                         i == 1 || ( resetParticles && (i-1) % resetParticlesInterval == 0 ),
+                         i == 1 || ( resetParticles && ( i - 1 ) % resetParticlesInterval == 0 ),
                          globalMaxLimiter,
                          setParticlesOutsideDomainToZero );
          localTimer.end();
@@ -475,7 +479,7 @@ void solve( MeshInfo&               meshInfo,
          solution.incTime( dt );
       }
 
-      cOld.assign( {1.0}, {c}, level, All );
+      cOld.assign( { 1.0 }, { c }, level, All );
 
       c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
 
@@ -487,7 +491,7 @@ void solve( MeshInfo&               meshInfo,
       }
 
       cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
-      cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
+      cError.assign( { 1.0, -1.0 }, { c, cSolution }, level, All );
 
       timeTotal += dt;
 

@@ -30,7 +30,7 @@
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/types/matrix.hpp"
-#include "hyteg/polynomial/Polynomial2D.hpp"
+#include "hyteg/polynomial/Polynomial.hpp"
 
 #include <string>
 
@@ -71,7 +71,7 @@ inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const 
 inline unsigned long long vertexDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
 {
    unsigned long long mem = 0;
-   
+
    for ( const auto & it : storage->getVertices() )
    {
       mem += vertexDoFMacroVertexFunctionMemorySize( level, *it.second );
@@ -91,7 +91,7 @@ inline unsigned long long vertexDoFLocalFunctionMemorySize( const uint_t & level
    {
       mem += vertexDoFMacroCellFunctionMemorySize( level, *it.second );
    }
-   
+
    return mem;
 }
 
@@ -137,7 +137,7 @@ inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const P
 
 inline uint_t vertexDoFMacroVertexPointwiseStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges(); 
+  return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges();
 }
 
 inline uint_t vertexDoFMacroEdgePointwiseStencilMemorySize( const uint_t & level, const Primitive & primitive )
@@ -154,7 +154,7 @@ inline uint_t vertexDoFMacroFacePointwiseStencilMemorySize( const uint_t & level
 {
   if ( primitive.getNumNeighborCells() == 0 )
   {
-    const uint_t numDoFs = levelinfo::num_microvertices_per_face( level ) - 
+    const uint_t numDoFs = levelinfo::num_microvertices_per_face( level ) -
       3 * (levelinfo::num_microvertices_per_edge( level ) - 1);
     return numDoFs * 7;
   }

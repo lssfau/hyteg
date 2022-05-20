@@ -53,22 +53,22 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t >   xTrilinos( "xTrilinos", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   xOriginal( "xOriginal", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   error( "error", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
 
-   xOriginal.uvw.interpolate( {f, f}, level, All );
-   xOriginal.p.interpolate( f, level, All );
+   xOriginal.uvw().interpolate( {f, f}, level, All );
+   xOriginal.p().interpolate( f, level, All );
 
    trilinos::TrilinosVector< P2P1TaylorHoodFunction > vector( storage, level );
    vector.fillFromFunction( xOriginal, numerator );
    vector.writeToFunction( xTrilinos, numerator );
 
    error.assign( {1.0, -1.0}, {xTrilinos, xOriginal}, level );
-   const auto maxMagnitudeU = error.uvw[0].getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.uvw[1].getMaxMagnitude( level );
-   const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
+   const auto maxMagnitudeP = error.p().getMaxMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
    WALBERLA_CHECK_LESS( maxMagnitudeV, 1e-14 );

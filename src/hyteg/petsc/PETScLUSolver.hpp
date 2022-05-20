@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -53,20 +53,11 @@ class PETScLUSolver : public Solver< OperatorType >
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
-   , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-           "Amat",
-           petscCommunicator_ )
-   , AmatUnsymmetric( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                      numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-                      "AmatUnsymmetric",
-                      petscCommunicator_ )
-   , AmatTmp( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-              numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
-              "AmatTmp",
-              petscCommunicator_ )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
+   , Amat( "Amat", petscCommunicator_ )
+   , AmatUnsymmetric( "AmatUnsymmetric", petscCommunicator_ )
+   , AmatTmp( "AmatTmp", petscCommunicator_ )
+   , xVec( "xVec", petscCommunicator_ )
+   , bVec( "bVec", petscCommunicator_ )
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
@@ -233,6 +224,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
       b.assign( { 1.0 }, { x }, level, DirichletBoundary );
       bVec.createVectorFromFunction( b, num, level, All );
+      xVec.createVectorFromFunction( x, num, level, All );
 
       if ( assumeSymmetry_ )
       {
@@ -268,12 +260,12 @@ class PETScLUSolver : public Solver< OperatorType >
    std::shared_ptr< PrimitiveStorage >                                                           storage_;
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatUnsymmetric;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatTmp;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
+   PETScSparseMatrix< OperatorType >                                                             AmatTmp;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
 #if 0
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
 #endif

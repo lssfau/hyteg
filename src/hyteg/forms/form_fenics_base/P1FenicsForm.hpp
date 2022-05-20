@@ -37,11 +37,14 @@
 #include "hyteg/forms/form_fenics_generated/p1_polar_mass.h"
 #include "hyteg/forms/form_fenics_generated/p1_pspg.h"
 #include "hyteg/forms/form_fenics_generated/p1_stokes_epsilon.h"
+#include "hyteg/forms/form_fenics_generated/p1_stokes_full.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_div_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_divt_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_mass.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_pspg_tet.h"
+#include "hyteg/forms/form_fenics_generated/p1_tet_stokes_epsilon_tet.h"
+#include "hyteg/forms/form_fenics_generated/p1_tet_stokes_full_tet.h"
 
 // P2
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
@@ -53,6 +56,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_tet_divt_tet.h"
 #include "hyteg/forms/form_fenics_generated/p2_tet_mass.h"
 #include "hyteg/forms/form_fenics_generated/p2_tet_pspg_tet.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_stokes_epsilon_tet.h"
 
 // P1 to P2
 #include "hyteg/forms/form_fenics_generated/p1_to_p2_divt.h"
@@ -110,6 +114,26 @@ class P1FenicsForm : public P1Form
       out[1] = localStiffnessMatrix( 0, 1 );
       out[2] = localStiffnessMatrix( 0, 2 );
       out[3] = localStiffnessMatrix( 0, 3 );
+   }
+
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override
+   {
+      Point3D row;
+      integrate(coords, row);
+      for (int i = 0; i < 3; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
+   }
+
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const override
+   {
+      Point4D row;
+      integrate(coords, row);
+      for (int i = 0; i < 4; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
    }
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const

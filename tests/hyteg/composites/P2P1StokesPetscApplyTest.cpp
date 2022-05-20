@@ -61,7 +61,7 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    P2P1TaylorHoodFunction< real_t >   petscDst( "petscDst", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   err( "error", storage, level, level );
    P2P1TaylorHoodFunction< real_t >   ones( "ones", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
@@ -82,7 +82,6 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    numerator.enumerate( level );
 
    const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
-   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -90,9 +89,9 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P2P1TaylorHoodFunction >                             srcPetscVec( localDoFs );
-   PETScVector< real_t, P2P1TaylorHoodFunction >                             dstPetscVec( localDoFs );
-   PETScSparseMatrix< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P2P1TaylorHoodFunction >     srcPetscVec;
+   PETScVector< real_t, P2P1TaylorHoodFunction >     dstPetscVec;
+   PETScSparseMatrix< P2P1TaylorHoodStokesOperator > petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -105,24 +104,24 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
-   auto maxError = err.uvw[0].getMaxMagnitude( level );
-   maxError = std::max(maxError,err.uvw[1].getMaxMagnitude( level ));
-   if ( err.uvw.getDimension() == 3 )
+   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
+   auto maxError = err.uvw()[0].getMaxMagnitude( level );
+   maxError      = std::max( maxError, err.uvw()[1].getMaxMagnitude( level ) );
+   if ( err.uvw().getDimension() == 3 )
    {
-      maxError = std::max( maxError, err.uvw[2].getMaxMagnitude( level ) );
+      maxError = std::max( maxError, err.uvw()[2].getMaxMagnitude( level ) );
    }
-   maxError = std::max( maxError, err.p.getMaxMagnitude( level ) );
+   maxError = std::max( maxError, err.p().getMaxMagnitude( level ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
 
    if ( writeVTK )
    {
       VTKOutput vtkOutput( "../../output", "P2P1StokesPetscApplyTest", storage );
-      vtkOutput.add( src.uvw );
-      vtkOutput.add( hhgDst.uvw );
-      vtkOutput.add( petscDst.uvw );
-      vtkOutput.add( err.uvw );
+      vtkOutput.add( src.uvw() );
+      vtkOutput.add( hhgDst.uvw() );
+      vtkOutput.add( petscDst.uvw() );
+      vtkOutput.add( err.uvw() );
       vtkOutput.write( level, 0 );
    }
 

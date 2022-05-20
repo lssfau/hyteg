@@ -23,15 +23,9 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_2_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_0_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_1_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
@@ -44,35 +38,22 @@ class P1P1ElementwiseAffineEpsilonStokesBlockPreconditioner
                                                           uint_t                                     minLevel,
                                                           uint_t                                     maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , A_0_0( storage, minLevel, maxLevel )
-   , A_0_1( storage, minLevel, maxLevel )
-   , A_0_2( storage, minLevel, maxLevel )
-   , A_1_0( storage, minLevel, maxLevel )
-   , A_1_1( storage, minLevel, maxLevel )
-   , A_1_2( storage, minLevel, maxLevel )
-   , A_2_0( storage, minLevel, maxLevel )
-   , A_2_1( storage, minLevel, maxLevel )
-   , A_2_2( storage, minLevel, maxLevel )
-   , P( storage,
-        minLevel,
-        maxLevel,
-        storage->hasGlobalCells() ? std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass3D >() ) :
-                                    std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass >() ) )
+   , A( storage, minLevel, maxLevel )
+   , P( storage, minLevel, maxLevel, std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   P1ElementwiseOperator< forms::p1_epsiloncc_0_0_affine_q2 > A_0_0;
-   P1ElementwiseOperator< forms::p1_epsiloncc_0_1_affine_q2 > A_0_1;
-   P1ElementwiseOperator< forms::p1_epsiloncc_0_2_affine_q2 > A_0_2;
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1StokesFunction< idx_t >&            src,
+                  const P1StokesFunction< idx_t >&            dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      P.toMatrix( mat, src.p(), dst.p(), level, flag );
+   }
 
-   P1ElementwiseOperator< forms::p1_epsiloncc_1_0_affine_q2 > A_1_0;
-   P1ElementwiseOperator< forms::p1_epsiloncc_1_1_affine_q2 > A_1_1;
-   P1ElementwiseOperator< forms::p1_epsiloncc_1_2_affine_q2 > A_1_2;
-
-   P1ElementwiseOperator< forms::p1_epsiloncc_2_0_affine_q2 > A_2_0;
-   P1ElementwiseOperator< forms::p1_epsiloncc_2_1_affine_q2 > A_2_1;
-   P1ElementwiseOperator< forms::p1_epsiloncc_2_2_affine_q2 > A_2_2;
-
+   P1ConstantEpsilonOperator A;
    P1BlendingLumpedDiagonalOperator P;
 
    bool hasGlobalCells_;

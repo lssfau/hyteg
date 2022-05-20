@@ -31,7 +31,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Face.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 namespace vertexdof {

@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -39,8 +40,23 @@ class SymmetricSORSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
-      A.smooth_sor( x, b, relax_, level, flag_ );
-      A.smooth_sor_backwards( x, b, relax_, level, flag_ );
+      if ( const auto* A_sor = dynamic_cast< const SORSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_sor->smooth_sor( x, b, relax_, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The symmetric SOR-Operator requires the SORSmoothable interface." );
+      }
+
+      if ( const auto* A_sor_bw = dynamic_cast< const SORBackwardsSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_sor_bw->smooth_sor_backwards( x, b, relax_, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The symmetric SOR-Operator requires the SORBackwardsSmoothable interface." );
+      }
    }
 
  private:

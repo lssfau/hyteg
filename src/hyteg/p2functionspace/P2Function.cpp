@@ -94,10 +94,17 @@ void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void P2Function< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.interpolate( constant, level, flag );
    edgeDoFFunction_.interpolate( constant, level, flag );
+}
+
+template < typename ValueType >
+void P2Function< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
+{
+   vertexDoFFunction_.interpolate( constant, level, boundaryUID );
+   edgeDoFFunction_.interpolate( constant, level, boundaryUID );
 }
 
 template < typename ValueType >
@@ -189,7 +196,7 @@ void P2Function< ValueType >::assign( const std::vector< ValueType >&           
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
+void P2Function< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.add( scalar, level, flag );
    edgeDoFFunction_.add( scalar, level, flag );
@@ -450,18 +457,24 @@ void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType fla
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = -std::numeric_limits< ValueType >::max();
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunction_.getMaxValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMax;
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = ValueType( 0.0 );
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxMagnitude( level, flag, false ) );
@@ -469,18 +482,30 @@ ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
 
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMax;
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMinValue( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMin = std::numeric_limits< ValueType >::max();
    localMin      = std::min( localMin, vertexDoFFunction_.getMinValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunction_.getMinValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMin;
+   ValueType globalMin = localMin;
+   if ( mpiReduce )
+   {
+      globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
+   }
+
+   return globalMin;
 }
 
 template < typename ValueType >
@@ -672,8 +697,9 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 //  explicit instantiation
 // ========================
 template class P2Function< double >;
-template class P2Function< int >;
-template class P2Function< long >;
+// template class P2Function< float >;
+template class P2Function< int32_t >;
+template class P2Function< int64_t >;
 
 namespace p2function {
 

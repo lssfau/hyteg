@@ -19,11 +19,11 @@
  */
 #pragma once
 
-#include "hyteg/solvers/Solver.hpp"
 #include "core/DataTypes.h"
-#include "hyteg/types/flags.hpp"
 
-
+#include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/solvers/Solver.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -40,7 +40,14 @@ class GaussSeidelSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
-      A.smooth_gs( x, b, level, flag_ );
+      if ( const auto* A_gs = dynamic_cast< const GSSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_gs->smooth_gs( x, b, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The Gauss-Seidel Operator requires the GSSmoothable interface." );
+      }
    }
 
  private:

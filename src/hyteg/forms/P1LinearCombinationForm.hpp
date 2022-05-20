@@ -40,13 +40,26 @@ class P1LinearCombinationForm : public P1Form
    P1LinearCombinationForm() = default;
 
    P1LinearCombinationForm( const std::vector< real_t >& scalars, const std::vector< P1Form* >& forms )
-   : scalars_( scalars )
-   , forms_( forms )
+       : scalars_unowned_forms_( scalars )
+       , unowned_forms_( forms )
    {
       WALBERLA_CHECK_EQUAL( scalars.size(), forms.size(), "Must pass same number of forms and scalars!" )
    }
 
    virtual ~P1LinearCombinationForm() = default;
+
+   template < typename NewFormType, typename... ConstructorArguments >
+   void addOwnedForm( const real_t& scalar, ConstructorArguments... args )
+   {
+      scalars_owned_forms_.push_back( scalar );
+      owned_forms_.push_back( std::make_shared< NewFormType >( args... ) );
+   }
+
+   void addUnownedForm( const real_t& scalar, P1Form* form )
+   {
+      scalars_unowned_forms_.push_back( scalar );
+      unowned_forms_.push_back( form );
+   }
 
    // ---------------------------
    //  2D versions for triangles
@@ -54,22 +67,44 @@ class P1LinearCombinationForm : public P1Form
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
       out.setAll( 0 );
-      for ( uint_t i = 0; i < forms_.size(); i++ )
+      for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point3D tmpOut;
-         forms_[i]->integrate( coords, tmpOut );
-         out += scalars_[i] * tmpOut;
+         unowned_forms_[i]->integrate( coords, tmpOut );
+         out += scalars_unowned_forms_[i] * tmpOut;
+      }
+      for ( uint_t i = 0; i < owned_forms_.size(); i++ )
+      {
+         Point3D tmpOut;
+         owned_forms_[i]->integrate( coords, tmpOut );
+         out += scalars_owned_forms_[i] * tmpOut;
+      }
+   }
+
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override
+   {
+      Point3D row;
+      integrate(coords, row);
+      for (int i = 0; i < 3; ++i)
+      {
+         elMat(0,i) = row[i];
       }
    }
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
       elMat.setAll( 0 );
-      for ( uint_t i = 0; i < forms_.size(); i++ )
+      for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix3r tmpOut;
-         forms_[i]->integrateAll( coords, tmpOut );
-         elMat += scalars_[i] * tmpOut;
+         unowned_forms_[i]->integrateAll( coords, tmpOut );
+         elMat += scalars_unowned_forms_[i] * tmpOut;
+      }
+      for ( uint_t i = 0; i < owned_forms_.size(); i++ )
+      {
+         Matrix3r tmpOut;
+         owned_forms_[i]->integrateAll( coords, tmpOut );
+         elMat += scalars_owned_forms_[i] * tmpOut;
       }
    }
 
@@ -79,30 +114,55 @@ class P1LinearCombinationForm : public P1Form
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
       out.setAll( 0 );
-      for ( uint_t i = 0; i < forms_.size(); i++ )
+      for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point4D tmpOut;
-         forms_[i]->integrate( coords, tmpOut );
-         out += scalars_[i] * tmpOut;
+         unowned_forms_[i]->integrate( coords, tmpOut );
+         out += scalars_unowned_forms_[i] * tmpOut;
+      }
+      for ( uint_t i = 0; i < owned_forms_.size(); i++ )
+      {
+         Point4D tmpOut;
+         owned_forms_[i]->integrate( coords, tmpOut );
+         out += scalars_owned_forms_[i] * tmpOut;
       }
    }
 
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const override
+   {
+      Point4D row;
+      integrate(coords, row);
+      for (int i = 0; i < 4; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
+   }
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
    {
       elMat.setAll( 0 );
-      for ( uint_t i = 0; i < forms_.size(); i++ )
+      for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix4r tmpOut;
-         forms_[i]->integrateAll( coords, tmpOut );
-         elMat += scalars_[i] * tmpOut;
+         unowned_forms_[i]->integrateAll( coords, tmpOut );
+         elMat += scalars_unowned_forms_[i] * tmpOut;
+      }
+      for ( uint_t i = 0; i < owned_forms_.size(); i++ )
+      {
+         Matrix4r tmpOut;
+         owned_forms_[i]->integrateAll( coords, tmpOut );
+         elMat += scalars_owned_forms_[i] * tmpOut;
       }
    }
 
    bool assemble2D() const override
    {
       bool assemble = true;
-      for ( const auto& form : forms_ )
+      for ( const auto& form : unowned_forms_ )
+      {
+         assemble &= form->assemble2D();
+      }
+      for ( const auto& form : owned_forms_ )
       {
          assemble &= form->assemble2D();
       }
@@ -112,7 +172,11 @@ class P1LinearCombinationForm : public P1Form
    bool assemble3D() const override
    {
       bool assemble = true;
-      for ( const auto& form : forms_ )
+      for ( const auto& form : unowned_forms_ )
+      {
+         assemble &= form->assemble3D();
+      }
+      for ( const auto& form : owned_forms_ )
       {
          assemble &= form->assemble3D();
       }
@@ -122,7 +186,11 @@ class P1LinearCombinationForm : public P1Form
    bool assembly2DDefined() const override
    {
       bool assemble = true;
-      for ( const auto& form : forms_ )
+      for ( const auto& form : unowned_forms_ )
+      {
+         assemble &= form->assembly2DDefined();
+      }
+      for ( const auto& form : owned_forms_ )
       {
          assemble &= form->assembly2DDefined();
       }
@@ -132,7 +200,11 @@ class P1LinearCombinationForm : public P1Form
    bool assembly3DDefined() const override
    {
       bool assemble = true;
-      for ( const auto& form : forms_ )
+      for ( const auto& form : unowned_forms_ )
+      {
+         assemble &= form->assembly3DDefined();
+      }
+      for ( const auto& form : owned_forms_ )
       {
          assemble &= form->assembly3DDefined();
       }
@@ -141,15 +213,22 @@ class P1LinearCombinationForm : public P1Form
 
    virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
    {
-      for ( auto& form : forms_ )
+      for ( auto& form : unowned_forms_ )
+      {
+         form->setGeometryMap( geometryMap );
+      }
+      for ( auto& form : owned_forms_ )
       {
          form->setGeometryMap( geometryMap );
       }
    }
 
  private:
-   std::vector< real_t >  scalars_;
-   std::vector< P1Form* > forms_;
+   std::vector< real_t >  scalars_unowned_forms_;
+   std::vector< P1Form* > unowned_forms_;
+
+   std::vector< real_t >                    scalars_owned_forms_;
+   std::vector< std::shared_ptr< P1Form > > owned_forms_;
 };
 
 } // namespace hyteg

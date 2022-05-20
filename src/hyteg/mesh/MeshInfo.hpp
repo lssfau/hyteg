@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,8 +28,8 @@
 #include "core/Abort.h"
 #include "core/debug/Debug.h"
 
-#include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -70,15 +70,15 @@ using walberla::uint_t;
 ///
 /*! \htmlonly
   <center>
-  <table>
+  <table border="1">
   <tr>
   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
   </tr>
   <tr>
-  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCriss.png"      width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleCross.png"      width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleCrissCross.png" width="600" height="600"/></td>
+  <td><img src="Mesh_RectangleDiamond.png"    width="600" height="600"/></td>
   </tr>
   <tr>
   <td align="center">CRISS</td>
@@ -87,21 +87,31 @@ using walberla::uint_t;
   <td align="center">DIAMOND</td>
   </tr>
   </table>
-  </center>
+  </center></br>
   \endhtmlonly
 */
 /// <b>Details of inline mesh generators for annuli:</b>
 ///
-/// Meshing of a partial annulus is (conceptually) handled by meshing the correspondig
+/// Meshing of a partial annulus is (conceptually) handled by meshing the corresponding
 /// rectangle in cartesian coordinates. In case of a partial annulus this is given by
 /// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
-/// - For a partial annulus the same four flavours as for rectangles can be specified.
-/// - A full annulus is meshed using a CRISSCROSS pattern resulting in
+/// In the case of a full annulus the rectangle is then "glued" together.
 ///
-/// |              |    \#vertices    |\#triangles  |
-/// |:-------------|:----------------:|:-----------:|
-/// | full annulus |  nTan*(2*nRad+1) | 4*nTan*nRad |
+/// For both a full and a partial annulus the same four  meshing flavours as for rectangles
+/// can be specified. Note, however, that blending only works together with CRISS or CROSS,
+/// but not for CRISSCROSS or DIAMOND.
 ///
+/// Number of mesh entities for different flavour and a full annulus
+/// |    \#vertices    |\#triangles  |   flavour  |
+/// |:----------------:|:-----------:|:----------:|
+/// |  nTan*(2*nRad+1) | 4*nTan*nRad | CRISSCROSS |
+/// |  nTan*(nRad+1)   | 2*nTan*nRad | CRISS      |
+/// |  nTan*(nRad+1)   | 2*nTan*nRad | CROSS      |
+/// |  nTan*(2*nRad+1) | 4*nTan*nRad | DIAMOND    |
+///
+/// The boundaryFlags for the full annulus are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+/// #flagInnerBoundary or #flagInterior.
+
 /*! \htmlonly
   <center>
   <table>
@@ -283,6 +293,14 @@ class MeshInfo
       SHELLMESH_CLASSIC     //!< meshing by midpoint refinement
    } shellMeshType;
 
+   /// Possible boundary flags for a hollow body
+   typedef enum
+   {
+      flagInterior      = 0,
+      flagInnerBoundary = 1,
+      flagOuterBoundary = 2
+   } hollowFlag;
+
    class Vertex
    {
     public:
@@ -382,13 +400,6 @@ class MeshInfo
          v.second.setCoordinates( newCoords );
       }
    }
-
-   void setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag );
-
-   /// Every primitive for which onBoundary() returns true for all / any (if allVertices == true / false) of the primitve's vertices is assigned the passed mesh boundary flag.
-   void setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
-                                              const std::function< bool( const Point3D& x ) >& onBoundary,
-                                              const bool&                                      allVertices = true );
 
    typedef std::map< IDType, Vertex >                VertexContainer;
    typedef std::map< std::array< IDType, 2 >, Edge > EdgeContainer;
@@ -533,6 +544,18 @@ class MeshInfo
                               real_t                toroidalStartAngle = 0,
                               real_t                poloidalStartAngle = 0 );
 
+   /// \brief Create a mesh composed of a single triangle
+   ///
+   /// For testing and performance checks this convenience method allows to generate
+   /// a mesh composed of a single triangle by providing its vertices.
+   static MeshInfo singleTriangle( const Point2D& v1, const Point2D& v2, const Point2D& v3 );
+
+   /// \brief Create a mesh composed of a single tetrahedron
+   ///
+   /// For testing and performance checks this convenience method allows to generate
+   /// a mesh composed of a single tetrahedron by providing its vertices.
+   static MeshInfo singleTetrahedron( const std::array< Point3D, 4 >& vertices );
+
    /// \brief Creates a finer coarse mesh from a given mesh
    ///
    /// Takes a given MeshInfo and refines it with the default refinment algorithm.
@@ -583,14 +606,19 @@ class MeshInfo
    /// \param tol         parameter used to determine, whether an edge is part of the boundary, or not
    void deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol );
 
-   /// Derive information on edges from vertices and faces (for full annulus)
+   /// Set the boundaryFlag of all edges automatically from that of their vertices
 
-   /// This method is used in the 2D inline mesh generator for the full annulus. The latter
-   /// provides only information on vertices and faces. The information on the edges is then
-   /// derived from the faces, as each face has three edges.
-   /// \param minTol  parameter used to determine, whether an edge is part of the inner boundary, or not
-   /// \param maxTol  parameter used to determine, whether an edge is part of the outer boundary, or not
-   void deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol );
+   /// Calling the method results in the boundaryFlag of all edges in the MeshInfo being (re)set.
+   /// The flag of a single edge is set to that of its two vertices, if the latter agree. Otherwise
+   /// it will be set to the value of the undecided argument.
+   void deduceEdgeFlagsFromVertices( uint_t flagInconsistent = 0 );
+
+   /// Set the boundaryFlag of all faces automatically from that of their vertices
+
+   /// Calling the method results in the boundaryFlag of all faces in the MeshInfo being (re)set.
+   /// The flag of a single face is set to that of its three vertices, if the latter agree. Otherwise
+   /// it will be set to the value of the undecided argument.
+   void deduceFaceFlagsFromVertices( uint_t flagInconsistent = 0 );
 
    VertexContainer vertices_;
    EdgeContainer   edges_;

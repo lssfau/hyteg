@@ -23,7 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -56,7 +56,7 @@ int main( int argc, char* argv[] )
    hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
    hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
 
-   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > bc_x = []( const hyteg::Point3D& x ) {
       if( x[0] < 1e-8 )
@@ -71,9 +71,9 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
+   u.uvw().interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
 
-   auto solver = hyteg::MinResSolver< hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
+   auto solver = hyteg::MinResSolver< hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
    solver.solve( L, u, f, maxLevel );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -83,6 +83,5 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
    WALBERLA_CHECK_LESS( final_residuum, 9.1e-07 );
-   //hyteg::VTKWriter<hyteg::P1Function< real_t >>({ u.u, u.v, u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
 }

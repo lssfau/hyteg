@@ -32,17 +32,17 @@ class P2FormHyTeG : public P2Form
 
    virtual ~P2FormHyTeG() {}
 
-   virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const = 0;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const override = 0;
 
-   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const = 0;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override = 0;
 
-   virtual bool assemble2D() const { return true; };
+   bool assemble2D() const override { return true; };
 
-   virtual bool assemble3D() const { return false; };
+   bool assemble3D() const override { return false; };
 
-   virtual bool assembly2DDefined() const { return true; };
+   bool assembly2DDefined() const override { return true; };
 
-   virtual bool assembly3DDefined() const { return false; };
+   bool assembly3DDefined() const override { return false; };
 };
 
 } // namespace hyteg

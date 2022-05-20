@@ -384,21 +384,21 @@ void popovBenchmark( uint_t          level,
    viscosity.interpolate( visc, maxLevel );
    rho.interpolate( dens, maxLevel );
 
-   u.uvw.interpolate( { solutionX, solutionY }, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( { solutionX, solutionY}, maxLevel );
+   u.uvw().interpolate( { solutionX, solutionY }, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( { solutionX, solutionY}, maxLevel );
    if ( !popov.twoDim )
    {
       WALBERLA_ABORT( "Solution not interpolated for 3D." )
    }
-   uExact.p.interpolate( solutionP, maxLevel );
+   uExact.p().interpolate( solutionP, maxLevel );
 
-   tmp.uvw.interpolate( { rhsX, rhsY }, maxLevel );
+   tmp.uvw().interpolate( { rhsX, rhsY }, maxLevel );
 
-   M.apply( tmp.uvw[0], f.uvw[0], maxLevel, Inner | NeumannBoundary );
-   M.apply( tmp.uvw[1], f.uvw[1], maxLevel, Inner | NeumannBoundary );
+   M.apply( tmp.uvw()[0], f.uvw()[0], maxLevel, Inner | NeumannBoundary );
+   M.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, Inner | NeumannBoundary );
    if ( !popov.twoDim )
    {
-      M.apply( tmp.uvw[2], f.uvw[2], maxLevel, Inner | NeumannBoundary );
+      M.apply( tmp.uvw()[2], f.uvw()[2], maxLevel, Inner | NeumannBoundary );
    }
 
    std::shared_ptr< Solver< StokesOperator > > solver;
@@ -413,8 +413,8 @@ void popovBenchmark( uint_t          level,
 
    solver->solve( A, u, f, maxLevel );
 
-   hyteg::vertexdof::projectMean( u.p, maxLevel );
-   hyteg::vertexdof::projectMean( uExact.p, maxLevel );
+   hyteg::vertexdof::projectMean( u.p(), maxLevel );
+   hyteg::vertexdof::projectMean( uExact.p(), maxLevel );
 
    A.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
@@ -428,12 +428,12 @@ void popovBenchmark( uint_t          level,
    uint_t velocityCompDoFs = numberOfGlobalDoFs< typename StokesFunctionType::VelocityFunction_T::Tag >( *storage, maxLevel ) / 3;
    uint_t pressureCompDoFs = numberOfGlobalDoFs< typename StokesFunctionType::PressureFunction_T::Tag >( *storage, maxLevel );
 
-   real_t discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_w = err.uvw.getDimension() == 3 ?
-                               std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / real_c( velocityCompDoFs ) ) :
+   real_t discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_w = err.uvw().getDimension() == 3 ?
+                               std::sqrt( err.uvw()[2].dotGlobal( err.uvw()[2], maxLevel ) / real_c( velocityCompDoFs ) ) :
                                real_c( 0 );
-   real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / real_c( pressureCompDoFs ) );
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel ) / real_c( pressureCompDoFs ) );
 
    errorResults.addErrorsL2( maxLevel, discr_l2_err_u, discr_l2_err_v, discr_l2_err_w, discr_l2_err_p );
 

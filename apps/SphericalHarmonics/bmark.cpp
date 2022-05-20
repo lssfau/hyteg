@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr
+ * Copyright (c) 2020 - 2022 Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,7 +50,6 @@ This app implements the Stokes benchmark described in:
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
@@ -65,9 +64,13 @@ This app implements the Stokes benchmark described in:
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
 using walberla::real_c;
 using walberla::real_t;
 using namespace hyteg;
+
+using terraneo::SphericalHarmonicsTool;
 
 #include "bmark_tools.hpp"
 
@@ -181,9 +184,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Computing weak right-hand side ..." );
    massOpType           mass( storage, maxLevel, maxLevel );
    feFuncType< real_t > rhs( "right-hand side", storage, minLevel, maxLevel );
-   mass.apply( forcing[0], rhs.uvw[0], maxLevel, All );
-   mass.apply( forcing[1], rhs.uvw[1], maxLevel, All );
-   mass.apply( forcing[2], rhs.uvw[2], maxLevel, All );
+   mass.apply( forcing[0], rhs.uvw()[0], maxLevel, All );
+   mass.apply( forcing[1], rhs.uvw()[1], maxLevel, All );
+   mass.apply( forcing[2], rhs.uvw()[2], maxLevel, All );
 
    // ---------------------
    //  Analytical Solution
@@ -199,10 +202,10 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    feFuncType< real_t > feSol( "Discrete Solution", storage, minLevel, maxLevel, bcVelocity );
 
    // set everything to zero (including boundaries)
-   feSol.uvw[0].setToZero( maxLevel );
-   feSol.uvw[1].setToZero( maxLevel );
-   feSol.uvw[2].setToZero( maxLevel );
-   feSol.p.setToZero( maxLevel );
+   feSol.uvw()[0].setToZero( maxLevel );
+   feSol.uvw()[1].setToZero( maxLevel );
+   feSol.uvw()[2].setToZero( maxLevel );
+   feSol.p().setToZero( maxLevel );
 
    // ---------------------
    //  Stuff for Free-Slip
@@ -269,7 +272,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    }
    case BC_MIXED:
    {
-      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-08, 200 );
+      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-30, 1e-08, 200 );
       // PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-08, 5000, 4, 1 );
       auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, maxLevel, 1e-08, 200, true );
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative solution with MINRES ... " );
@@ -284,7 +287,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    //  Determine error
    // -----------------
    vf_t error( "error", storage, maxLevel, maxLevel );
-   error.assign( {1.0, -1.0}, {u_exact, feSol.uvw}, maxLevel );
+   error.assign( {1.0, -1.0}, {u_exact, feSol.uvw()}, maxLevel );
 
    if ( problemCfg.getParameter< bool >( "compute_L2_error" ) )
    {
@@ -313,7 +316,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
 
       for ( uint_t idx = 0; idx < 3; ++idx )
       {
-         aux.assign( {1.0}, {feSol.uvw[idx]}, maxLevel );
+         aux.assign( {1.0}, {feSol.uvw()[idx]}, maxLevel );
          embedder.prolongate( aux, maxLevel, All );
          aux.assign( {1.0, -1.0}, {u_fine[idx], aux}, fLevel );
          real_t val = aux.getMaxMagnitude( fLevel );
@@ -330,9 +333,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    {
       hyteg::VTKOutput vtkOutput( "./output", "bmark", storage );
       vtkOutput.add( forcing );
-      vtkOutput.add( rhs.uvw );
+      vtkOutput.add( rhs.uvw() );
       vtkOutput.add( u_exact );
-      vtkOutput.add( feSol.uvw );
+      vtkOutput.add( feSol.uvw() );
       vtkOutput.add( error );
       vtkOutput.write( maxLevel, 0 );
    }
@@ -345,7 +348,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
 int main( int argc, char* argv[] )
 {
 #ifndef __APPLE__
+#ifndef _MSC_VER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 
    walberla::Environment env( argc, argv );

@@ -19,8 +19,10 @@
  */
 #pragma once
 
-#include "hyteg/solvers/Solver.hpp"
 #include "core/DataTypes.h"
+
+#include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -28,7 +30,7 @@ template < class OperatorType >
 class SORSmoother : public Solver< OperatorType >
 {
  public:
-   SORSmoother( const real_t & relax )
+   SORSmoother( const real_t& relax )
    : relax_( relax )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
@@ -38,7 +40,14 @@ class SORSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
-      A.smooth_sor( x, b, relax_, level, flag_ );
+      if ( const auto* A_sor = dynamic_cast< const SORSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_sor->smooth_sor( x, b, relax_, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The SOR-Smoother requires the SORSmoothable interface." );
+      }
    }
 
  private:

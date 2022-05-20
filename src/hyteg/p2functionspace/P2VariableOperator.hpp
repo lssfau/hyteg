@@ -20,154 +20,185 @@
 
 #pragma once
 
-#include <hyteg/Operator.hpp>
+#include <hyteg/communication/Syncing.hpp>
+#include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
+#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
 
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
-
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
-
-#include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
-#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
-
-#include <hyteg/communication/Syncing.hpp>
 #include <hyteg/types/pointnd.hpp>
 
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 
 namespace hyteg {
 
-template <class P2Form>
-class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
+template < class P2Form >
+class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< real_t > >,
+                           public GSSmoothable< P2Function< real_t > >,
+                           public ConstantJacobiSmoothable< P2Function< real_t > >
 {
  public:
-   P2VariableOperator(const std::shared_ptr<PrimitiveStorage>& storage, size_t minLevel, size_t maxLevel)
-      : Operator(storage, minLevel, maxLevel)
+   P2VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
    {}
 
    ~P2VariableOperator() override = default;
 
-   void apply(const P2Function<real_t>& src,
-              const P2Function<real_t>& dst,
-              size_t level,
-              DoFType flag,
-              UpdateType updateType = Replace) const
+   void apply( const P2Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
    {
-      WALBERLA_ASSERT_NOT_IDENTICAL(std::addressof(src), std::addressof(dst));
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      communication::syncP2FunctionBetweenPrimitives(src, level);
+      communication::syncP2FunctionBetweenPrimitives( src, level );
 
-      const vertexdof::VertexDoFFunction<real_t>&  srcVertexDoF   = src.getVertexDoFFunction();
-      const EdgeDoFFunction<real_t>&               srcEdgeDoF     = src.getEdgeDoFFunction();
-      const vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
-      const EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction< real_t >& srcVertexDoF = src.getVertexDoFFunction();
+      const EdgeDoFFunction< real_t >&              srcEdgeDoF   = src.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction< real_t >& dstVertexDoF = dst.getVertexDoFFunction();
+      const EdgeDoFFunction< real_t >&              dstEdgeDoF   = dst.getEdgeDoFFunction();
 
-      for (auto& it : storage_->getVertices())
+      for ( auto& it : storage_->getVertices() )
       {
          hyteg::Vertex& vertex = *it.second;
 
-         const DoFType vtxFlag = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
+         const DoFType vtxFlag = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
 
-         if (testFlag(vtxFlag, flag))
+         if ( testFlag( vtxFlag, flag ) )
          {
-            P2::variablestencil::macrovertex::applyVariableStencil<P2Form>(level, vertex, storage_, srcVertexDoF.getVertexDataID(), srcEdgeDoF.getVertexDataID(), dstVertexDoF.getVertexDataID(), updateType);
+            P2::variablestencil::macrovertex::applyVariableStencil< P2Form >( level,
+                                                                              vertex,
+                                                                              storage_,
+                                                                              srcVertexDoF.getVertexDataID(),
+                                                                              srcEdgeDoF.getVertexDataID(),
+                                                                              dstVertexDoF.getVertexDataID(),
+                                                                              updateType );
          }
       }
 
-      for (auto& it : storage_->getEdges())
+      for ( auto& it : storage_->getEdges() )
       {
          hyteg::Edge& edge = *it.second;
 
-         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
+         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
 
-         if (testFlag(edgeFlag, flag))
+         if ( testFlag( edgeFlag, flag ) )
          {
-            P2::variablestencil::macroedge::applyVariableStencil<P2Form>(level, edge, storage_, srcVertexDoF.getEdgeDataID(), srcEdgeDoF.getEdgeDataID(), dstVertexDoF.getEdgeDataID(), dstEdgeDoF.getEdgeDataID(), updateType);
+            P2::variablestencil::macroedge::applyVariableStencil< P2Form >( level,
+                                                                            edge,
+                                                                            storage_,
+                                                                            srcVertexDoF.getEdgeDataID(),
+                                                                            srcEdgeDoF.getEdgeDataID(),
+                                                                            dstVertexDoF.getEdgeDataID(),
+                                                                            dstEdgeDoF.getEdgeDataID(),
+                                                                            updateType );
          }
       }
 
-      for (auto& it : storage_->getFaces())
+      for ( auto& it : storage_->getFaces() )
       {
          hyteg::Face& face = *it.second;
 
-         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
+         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
 
-         if (testFlag(faceFlag, flag))
+         if ( testFlag( faceFlag, flag ) )
          {
-            P2::variablestencil::macroface::applyVariableStencil<P2Form>(level, face, srcVertexDoF.getFaceDataID(), srcEdgeDoF.getFaceDataID(), dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), updateType);
+            P2::variablestencil::macroface::applyVariableStencil< P2Form >( level,
+                                                                            face,
+                                                                            srcVertexDoF.getFaceDataID(),
+                                                                            srcEdgeDoF.getFaceDataID(),
+                                                                            dstVertexDoF.getFaceDataID(),
+                                                                            dstEdgeDoF.getFaceDataID(),
+                                                                            updateType );
          }
       }
    }
 
-   void smooth_gs(const P2Function<real_t>& dst,
-                  const P2Function<real_t>& rhs,
-                  size_t level,
-                  DoFType flag) const
+   void smooth_gs( const P2Function< real_t >& dst, const P2Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
-      communication::syncP2FunctionBetweenPrimitives(dst, level);
+      communication::syncP2FunctionBetweenPrimitives( dst, level );
 
-      const vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
-      const EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
-      const vertexdof::VertexDoFFunction<real_t>&  rhsVertexDoF   = rhs.getVertexDoFFunction();
-      const EdgeDoFFunction<real_t>&               rhsEdgeDoF     = rhs.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction< real_t >& dstVertexDoF = dst.getVertexDoFFunction();
+      const EdgeDoFFunction< real_t >&              dstEdgeDoF   = dst.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction< real_t >& rhsVertexDoF = rhs.getVertexDoFFunction();
+      const EdgeDoFFunction< real_t >&              rhsEdgeDoF   = rhs.getEdgeDoFFunction();
 
-      for (auto& it : storage_->getVertices())
+      for ( auto& it : storage_->getVertices() )
       {
          hyteg::Vertex& vertex = *it.second;
 
-         const DoFType vertexFlag = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
+         const DoFType vertexFlag = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
 
-         if (testFlag(vertexFlag, flag))
+         if ( testFlag( vertexFlag, flag ) )
          {
-            P2::variablestencil::macrovertex::smoothGSVariableStencil<P2Form>(level, vertex, storage_, dstVertexDoF.getVertexDataID(), dstEdgeDoF.getVertexDataID(), rhsVertexDoF.getVertexDataID());
+            P2::variablestencil::macrovertex::smoothGSVariableStencil< P2Form >( level,
+                                                                                 vertex,
+                                                                                 storage_,
+                                                                                 dstVertexDoF.getVertexDataID(),
+                                                                                 dstEdgeDoF.getVertexDataID(),
+                                                                                 rhsVertexDoF.getVertexDataID() );
          }
       }
 
-      communication::syncP2FunctionBetweenPrimitives(dst, level);
+      communication::syncP2FunctionBetweenPrimitives( dst, level );
 
-      for (auto& it : storage_->getEdges())
+      for ( auto& it : storage_->getEdges() )
       {
          hyteg::Edge& edge = *it.second;
 
-         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
+         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
 
-         if (testFlag(edgeFlag, flag))
+         if ( testFlag( edgeFlag, flag ) )
          {
-            P2::variablestencil::macroedge::smoothGSVariableStencil<P2Form>(level, edge, storage_, dstVertexDoF.getEdgeDataID(), dstEdgeDoF.getEdgeDataID(), rhsVertexDoF.getEdgeDataID(), rhsEdgeDoF.getEdgeDataID());
+            P2::variablestencil::macroedge::smoothGSVariableStencil< P2Form >( level,
+                                                                               edge,
+                                                                               storage_,
+                                                                               dstVertexDoF.getEdgeDataID(),
+                                                                               dstEdgeDoF.getEdgeDataID(),
+                                                                               rhsVertexDoF.getEdgeDataID(),
+                                                                               rhsEdgeDoF.getEdgeDataID() );
          }
       }
 
-      communication::syncP2FunctionBetweenPrimitives(dst, level);
+      communication::syncP2FunctionBetweenPrimitives( dst, level );
 
-      for (auto& it : storage_->getFaces())
+      for ( auto& it : storage_->getFaces() )
       {
          hyteg::Face& face = *it.second;
 
-         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
+         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
 
-         if (testFlag(faceFlag, flag))
+         if ( testFlag( faceFlag, flag ) )
          {
-            P2::variablestencil::macroface::smoothGSVariableStencil<P2Form>(level, face, dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), rhsVertexDoF.getFaceDataID(), rhsEdgeDoF.getFaceDataID());
+            P2::variablestencil::macroface::smoothGSVariableStencil< P2Form >( level,
+                                                                               face,
+                                                                               dstVertexDoF.getFaceDataID(),
+                                                                               dstEdgeDoF.getFaceDataID(),
+                                                                               rhsVertexDoF.getFaceDataID(),
+                                                                               rhsEdgeDoF.getFaceDataID() );
          }
       }
 
-      if (storage_->hasGlobalCells())
+      if ( storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT("P2VariableOperator not implemented for 3D")
+         WALBERLA_ABORT( "P2VariableOperator not implemented for 3D" )
       }
    }
 
-   void smooth_jac(const P2Function<real_t>& dst,
-                   const P2Function<real_t>& rhs,
-                   const P2Function<real_t>& tmp,
-                   size_t level,
-                   DoFType flag) const
+   void smooth_jac( const P2Function< real_t >& dst,
+                    const P2Function< real_t >& rhs,
+                    const P2Function< real_t >& tmp,
+                    size_t                      level,
+                    DoFType                     flag ) const override
    {
-      WALBERLA_ABORT("To be implemented");
+      WALBERLA_ABORT( "To be implemented" );
    }
 };
-typedef P2VariableOperator<P2Form_laplace> P2BlendingLaplaceOperator;
-typedef P2VariableOperator<P2Form_divKgrad> P2divKgradOperator;
-typedef P2VariableOperator<P2Form_mass>    P2BlendingMassOperator;
+typedef P2VariableOperator< P2Form_laplace >  P2BlendingLaplaceOperator;
+typedef P2VariableOperator< P2Form_divKgrad > P2divKgradOperator;
+typedef P2VariableOperator< forms::p2_mass_blending_q4 >     P2BlendingMassOperator;
 
 } // namespace hyteg

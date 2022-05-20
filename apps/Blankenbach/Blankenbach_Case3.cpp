@@ -116,9 +116,9 @@ void calculateStokesResiduals( const StokesOperator&       A,
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
    r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualU = normL2( r.uvw[0], tmp.uvw[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualV = normL2( r.uvw[1], tmp.uvw[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualU = normL2( r.uvw()[0], tmp.uvw()[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualV = normL2( r.uvw()[1], tmp.uvw()[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualP = normL2( r.p(), tmp.p(), Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
 }
 
 template < typename StokesFunction, typename VelocityMass >
@@ -129,8 +129,8 @@ real_t velocityRMS( const StokesFunction& u,
                     real_t                domainWidth,
                     uint_t                level )
 {
-   auto norm = std::pow( normL2( u.uvw[0], tmp.uvw[0], M, level, All ), 2.0 ) +
-               std::pow( normL2( u.uvw[1], tmp.uvw[1], M, level, All ), 2.0 );
+   auto norm = std::pow( normL2( u.uvw()[0], tmp.uvw()[0], M, level, All ), 2.0 ) +
+               std::pow( normL2( u.uvw()[1], tmp.uvw()[1], M, level, All ), 2.0 );
    const auto area = domainHeight * domainWidth;
    return std::sqrt( norm / area );
 }
@@ -400,7 +400,7 @@ void runBenchmark( real_t      cflMax,
 
    c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
    q.interpolate( internalHeating, level, All );
-   upwardNormal.uvw[1].interpolate( 1, level, All );
+   upwardNormal.uvw()[1].interpolate( 1, level, All );
 
    auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
       if ( in[0] < 0.75 )
@@ -443,7 +443,7 @@ void runBenchmark( real_t      cflMax,
    const real_t nusseltDiffH       = 2.5e-1 * hMin;
 
    real_t timeTotal = 0;
-   real_t vMax      = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+   real_t vMax      = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, level, All );
    real_t nu        = 0;
    real_t vRms      = 0;
    real_t residualU = 0;
@@ -490,12 +490,12 @@ void runBenchmark( real_t      cflMax,
 
    uint_t timeStep = 0;
 
-   MVelocity.apply( c, f.uvw[0], level, All );
-   MVelocity.apply( c, f.uvw[1], level, All );
-   f.uvw[0].multElementwise( {f.uvw[0], upwardNormal.uvw[0]}, level );
-   f.uvw[1].multElementwise( {f.uvw[1], upwardNormal.uvw[1]}, level );
-   f.uvw[0].assign( {rayleighNumber}, {f.uvw[0]}, level, All );
-   f.uvw[1].assign( {rayleighNumber}, {f.uvw[1]}, level, All );
+   MVelocity.apply( c, f.uvw()[0], level, All );
+   MVelocity.apply( c, f.uvw()[1], level, All );
+   f.uvw()[0].multElementwise( {f.uvw()[0], upwardNormal.uvw()[0]}, level );
+   f.uvw()[1].multElementwise( {f.uvw()[1], upwardNormal.uvw()[1]}, level );
+   f.uvw()[0].assign( {rayleighNumber}, {f.uvw()[0]}, level, All );
+   f.uvw()[1].assign( {rayleighNumber}, {f.uvw()[1]}, level, All );
    projectNormalOperator->project( f, level, FreeslipBoundary );
 
    localTimer.start();
@@ -503,7 +503,7 @@ void runBenchmark( real_t      cflMax,
    localTimer.end();
    timeStokes = localTimer.last();
 
-   vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+   vMax = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, level, All );
 
    if ( vtk )
    {
@@ -535,7 +535,7 @@ void runBenchmark( real_t      cflMax,
 
       // new time step size
 
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
+      vMax = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, level, All );
 
       real_t dt;
       if ( fixedTimeStep )
@@ -583,7 +583,7 @@ void runBenchmark( real_t      cflMax,
       }
 
       localTimer.start();
-      transport.step( cPr, u.uvw, uLast.uvw, level, All, dt, 1, true );
+      transport.step( cPr, u.uvw(), uLast.uvw(), level, All, dt, 1, true );
       localTimer.end();
       timeMMOC = localTimer.last();
 
@@ -600,12 +600,12 @@ void runBenchmark( real_t      cflMax,
 
       // Stokes
 
-      MVelocity.apply( cPr, f.uvw[0], level, All );
-      MVelocity.apply( cPr, f.uvw[1], level, All );
-      f.uvw[0].multElementwise( {f.uvw[0], upwardNormal.uvw[0]}, level );
-      f.uvw[1].multElementwise( {f.uvw[1], upwardNormal.uvw[1]}, level );
-      f.uvw[0].assign( {rayleighNumber}, {f.uvw[0]}, level, All );
-      f.uvw[1].assign( {rayleighNumber}, {f.uvw[1]}, level, All );
+      MVelocity.apply( cPr, f.uvw()[0], level, All );
+      MVelocity.apply( cPr, f.uvw()[1], level, All );
+      f.uvw()[0].multElementwise( {f.uvw()[0], upwardNormal.uvw()[0]}, level );
+      f.uvw()[1].multElementwise( {f.uvw()[1], upwardNormal.uvw()[1]}, level );
+      f.uvw()[0].assign( {rayleighNumber}, {f.uvw()[0]}, level, All );
+      f.uvw()[1].assign( {rayleighNumber}, {f.uvw()[1]}, level, All );
       projectNormalOperator->project( f, level, FreeslipBoundary );
 
       localTimer.start();
@@ -638,7 +638,7 @@ void runBenchmark( real_t      cflMax,
          // advection
 
          localTimer.start();
-         transport.step( c, u.uvw, uLast.uvw, level, All, dt, 1, true );
+         transport.step( c, u.uvw(), uLast.uvw(), level, All, dt, 1, true );
          localTimer.end();
          timeMMOC += localTimer.last();
 
@@ -656,12 +656,12 @@ void runBenchmark( real_t      cflMax,
 
          // Stokes
 
-         MVelocity.apply( c, f.uvw[0], level, All );
-         MVelocity.apply( c, f.uvw[1], level, All );
-         f.uvw[0].multElementwise( {f.uvw[0], upwardNormal.uvw[0]}, level );
-         f.uvw[1].multElementwise( {f.uvw[1], upwardNormal.uvw[1]}, level );
-         f.uvw[0].assign( {rayleighNumber}, {f.uvw[0]}, level, All );
-         f.uvw[1].assign( {rayleighNumber}, {f.uvw[1]}, level, All );
+         MVelocity.apply( c, f.uvw()[0], level, All );
+         MVelocity.apply( c, f.uvw()[1], level, All );
+         f.uvw()[0].multElementwise( {f.uvw()[0], upwardNormal.uvw()[0]}, level );
+         f.uvw()[1].multElementwise( {f.uvw()[1], upwardNormal.uvw()[1]}, level );
+         f.uvw()[0].assign( {rayleighNumber}, {f.uvw()[0]}, level, All );
+         f.uvw()[1].assign( {rayleighNumber}, {f.uvw()[1]}, level, All );
          projectNormalOperator->project( f, level, FreeslipBoundary );
 
          localTimer.start();

@@ -19,14 +19,15 @@
  */
 #include "VertexDoFFunction.hpp"
 
+#include <typeinfo>
 #include <utility>
 
 #include "core/OpenMP.h"
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/Intersection.hpp"
@@ -235,7 +236,7 @@ void VertexDoFFunction< ValueType >::setBoundaryCondition( BoundaryCondition bc 
 
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -249,6 +250,12 @@ void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uin
    interpolateByPrimitiveType< Cell >( constant, level, flag );
 
    this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
+{
+  interpolate( [constant]( const Point3D& ){ return constant; }, level, boundaryUID );
 }
 
 template < typename ValueType >
@@ -1067,7 +1074,7 @@ void VertexDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag ) const
+void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -1619,7 +1626,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&        rhs,
+void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >&        rhs,
                                                   VertexDoFFunction< ValueType >& rhsP1,
                                                   uint_t                          level,
                                                   DoFType                         flag )
@@ -1942,6 +1949,147 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    this->stopTiming( "Interpolate" );
 }
 
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::toVector( const VertexDoFFunction< idx_t >&     numerator,
+                                               const std::shared_ptr< VectorProxy >& vec,
+                                               uint_t                                level,
+                                               DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "VertexDoFFunction< T >::toVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            vertexdof::macrovertex::createVectorFromFunction< real_t >(
+                vertex, this->getVertexDataID(), numerator.getVertexDataID(), vec, level );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::createVectorFromFunction< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            vertexdof::macroface::createVectorFromFunction< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::createVectorFromFunction< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t >&     numerator,
+                                                 const std::shared_ptr< VectorProxy >& vec,
+                                                 uint_t                                level,
+                                                 DoFType                               flag ) const
+{
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( numerator );
+      WALBERLA_UNUSED( vec );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "VertexDoFFunction< T >::fromVector() not implemented for T = " << typeid( ValueType ).name() );
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            vertexdof::macrovertex::createFunctionFromVector< real_t >(
+                vertex, this->getVertexDataID(), numerator.getVertexDataID(), vec, level );
+         }
+      }
+
+      this->startCommunication< Vertex, Edge >( level );
+      this->endCommunication< Vertex, Edge >( level );
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::createFunctionFromVector< real_t >(
+                level, edge, this->getEdgeDataID(), numerator.getEdgeDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Edge, Face >( level );
+      this->endCommunication< Edge, Face >( level );
+
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            vertexdof::macroface::createFunctionFromVector< real_t >(
+                level, face, this->getFaceDataID(), numerator.getFaceDataID(), vec );
+         }
+      }
+
+      this->startCommunication< Face, Cell >( level );
+      this->endCommunication< Face, Cell >( level );
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::createFunctionFromVector< real_t >(
+                level, cell, this->getCellDataID(), numerator.getCellDataID(), vec );
+         }
+      }
+   }
+}
+
 // =================
 //  specialisations
 // =================
@@ -2088,8 +2236,9 @@ void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag,
 //  explicit instantiation
 // ========================
 template class VertexDoFFunction< double >;
-template class VertexDoFFunction< int >;
-template class VertexDoFFunction< long >;
+// template class VertexDoFFunction< float >;
+template class VertexDoFFunction< int32_t >;
+template class VertexDoFFunction< int64_t >;
 
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                         uint_t        level,

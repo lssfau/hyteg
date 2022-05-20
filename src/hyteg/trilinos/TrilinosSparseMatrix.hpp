@@ -25,12 +25,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/p1functionspace/P1Petsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/sparseassembly/DirichletBCs.hpp"
 #include "hyteg/trilinos/KokkosWrapper.hpp"
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
@@ -78,7 +74,7 @@ class TrilinosSparseMatrix
    ///
    /// This routine assembles the "Neumann" system. To incorporate Dirichlet boundary
    /// conditions, subsequent calls to applyDirichletBoundaryConditions*() must follow.
-   void assembleSystem( const OperatorType& op, const FunctionType< PetscInt >& numerator )
+   void assembleSystem( const OperatorType& op, const FunctionType< idx_t >& numerator )
    {
       if ( crsMatrix_->isFillComplete() )
       {
@@ -93,17 +89,17 @@ class TrilinosSparseMatrix
       {
          proxy->addValue( idx, idx, 0 );
       }
-      hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
+      op.toMatrix( proxy, numerator, numerator, level_, All );
       crsMatrix_->fillComplete();
    }
 
    /// \brief Modifies the system matrix to conform to the underlying Dirichlet problem.
    ///
    /// Sets the diagonal entry of all rows that correspond to DoFs on a Dirichlet boundary to 1.
-   void applyDirichletBoundaryConditions( const FunctionType< PetscInt >& numerator )
+   void applyDirichletBoundaryConditions( const FunctionType< idx_t >& numerator )
    {
-      std::vector< PetscInt > dirichletRowIndices;
-      hyteg::petsc::applyDirichletBC( numerator, dirichletRowIndices, level_ );
+      std::vector< idx_t > dirichletRowIndices;
+      hyteg::applyDirichletBC( numerator, dirichletRowIndices, level_ );
 
       zeroRows( dirichletRowIndices, 1.0 );
    }
@@ -114,7 +110,7 @@ class TrilinosSparseMatrix
    ///
    /// \param row the global row index of the row that shall be zeroed
    /// \param diagonalValue the value to be put on the diagonal (set to 0.0 to zero entire row)
-   void zeroRow( const PetscInt& row, const MatrixScalarType& diagonalValue = 1.0 ) { zeroRows( {row}, diagonalValue ); }
+   void zeroRow( const idx_t& row, const MatrixScalarType& diagonalValue = 1.0 ) { zeroRows( { row }, diagonalValue ); }
 
    /// \brief Zeroes all entries of the specified matrix rows but the diagonal values, which are set to the passed value.
    ///
@@ -122,7 +118,7 @@ class TrilinosSparseMatrix
    ///
    /// \param rows the global row indices of the rows that shall be zeroed
    /// \param diagonalValue the value to be put on the diagonal (set to 0.0 to zero entire row)
-   void zeroRows( const std::vector< PetscInt >& rows, const MatrixScalarType& diagonalValue = 1.0 )
+   void zeroRows( const std::vector< idx_t >& rows, const MatrixScalarType& diagonalValue = 1.0 )
    {
       WALBERLA_CHECK( crsMatrix_->hasColMap(), "Trilinos matrix was not assembled correctly." );
       RCP< const MapType > rowMap    = crsMatrix_->getRowMap();

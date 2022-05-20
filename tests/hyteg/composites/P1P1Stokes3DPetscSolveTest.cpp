@@ -35,7 +35,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1P1StokesOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -70,7 +70,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   hyteg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
   hyteg::P1StokesFunction< real_t >                      nullspace( "nullspace", storage, level, level );
 
-  hyteg::P1StokesOperator A( storage, level, level );
+  hyteg::P1P1StokesOperator A( storage, level, level );
   hyteg::P1ConstantMassOperator   M( storage, level, level );
 
 #if 0
@@ -107,15 +107,15 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
 #endif
 
-  b.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
-  b.p.interpolate( zero,   level, All );
+  b.uvw().interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
+  b.p().interpolate( zero,   level, All );
 
-  x.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
+  x.uvw().interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
 
-  x_exact.uvw.interpolate( { exactU, exactV, exactW }, level );
-  x_exact.p.interpolate( exactP, level );
+  x_exact.uvw().interpolate( { exactU, exactV, exactW }, level );
+  x_exact.p().interpolate( exactP, level );
 
-  nullspace.p.interpolate( ones, level, All );
+  nullspace.p().interpolate( ones, level, All );
 
 //  VTKOutput vtkOutput("../../output", "P1P1StokesPetscSolve", storage);
 //  vtkOutput.add( x.u );
@@ -141,9 +141,9 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
   WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1 );
 
-  PETScLUSolver< P1StokesOperator > solver_0( storage, level );
-  PETScMinResSolver< P1StokesOperator > solver_1( storage, level );
-  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level, 1e-12 );
+  PETScLUSolver< P1P1StokesOperator > solver_0( storage, level );
+  PETScMinResSolver< P1P1StokesOperator > solver_1( storage, level );
+  PETScBlockPreconditionedStokesSolver< P1P1StokesOperator > solver_2( storage, level, 1e-12 );
 
   walberla::WcTimer timer;
   switch ( solverType )
@@ -175,18 +175,18 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
   timer.end();
 
-  hyteg::vertexdof::projectMean( x.p, level );
-  hyteg::vertexdof::projectMean( x_exact.p, level );
+  hyteg::vertexdof::projectMean( x.p(), level );
+  hyteg::vertexdof::projectMean( x_exact.p(), level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hyteg::Inner );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_w = std::sqrt( err.uvw()[2].dotGlobal( err.uvw()[2], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );

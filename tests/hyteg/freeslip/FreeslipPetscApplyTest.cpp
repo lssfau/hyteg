@@ -49,8 +49,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
 {
-   Point2D left( {-channelLength / 2, 0} );
-   Point2D right( {channelLength / 2, channelHeight} );
+   Point2D left( { -channelLength / 2, 0 } );
+   Point2D right( { channelLength / 2, channelHeight } );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -88,23 +88,23 @@ void run( const real_t absErrorTolerance )
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 
-   StokesFunctionType                                             u_src( "u_src", storage, minLevel, maxLevel );
-   StokesFunctionType                                             u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
-   StokesFunctionType                                             u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel );
-   StokesFunctionType                                             diff( "diff", storage, minLevel, maxLevel );
-   typename StokesFunctionType::template FunctionType< PetscInt > numerator( "numerator", storage, minLevel, maxLevel );
+   StokesFunctionType                                          u_src( "u_src", storage, minLevel, maxLevel );
+   StokesFunctionType                                          u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
+   StokesFunctionType                                          u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel );
+   StokesFunctionType                                          diff( "diff", storage, minLevel, maxLevel );
+   typename StokesFunctionType::template FunctionType< idx_t > numerator( "numerator", storage, minLevel, maxLevel );
 
    numerator.enumerate( maxLevel );
 
    walberla::math::seedRandomGenerator( 1234 );
    auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
 
-   u_src.uvw.interpolate( {rand,rand,rand}, maxLevel, All );
-   u_src.p.interpolate( rand, maxLevel, All );
+   u_src.uvw().interpolate( { rand, rand, rand }, maxLevel, All );
+   u_src.p().interpolate( rand, maxLevel, All );
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
 
    auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
 
@@ -112,12 +112,11 @@ void run( const real_t absErrorTolerance )
 
    L.apply( u_src, u_dst_hyteg, maxLevel, All );
 
-   PETScSparseMatrix< StokesOperatorType, StokesFunctionType::template FunctionType > petscMatStokes(
-       storage, maxLevel, "stokes_pure" );
+   PETScSparseMatrix< StokesOperatorType > petscMatStokes( "stokes_pure" );
    petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
    // petscMatStokes.print( "/tmp/stokes.m" );
 
-   PETScSparseMatrix< StokesOperatorFS, StokesFunctionType::template FunctionType > petscMatFS( storage, maxLevel, "stokes_fs" );
+   PETScSparseMatrix< StokesOperatorFS > petscMatFS( "stokes_fs" );
    petscMatFS.createMatrixFromOperator( L, maxLevel, numerator );
    // petscMatFS.print( "/tmp/free_slip.m" );
 
@@ -128,7 +127,7 @@ void run( const real_t absErrorTolerance )
 
    dstVectorPetsc.createFunctionFromVector( u_dst_petsc, numerator, maxLevel );
 
-   diff.assign( {1, -1}, {u_dst_hyteg, u_dst_petsc}, maxLevel, All );
+   diff.assign( { 1, -1 }, { u_dst_hyteg, u_dst_petsc }, maxLevel, All );
    auto norm = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
 
    const bool outputVTK = false;

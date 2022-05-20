@@ -19,6 +19,7 @@ Parameters
     tubeLayerRadii             3; // list
     torodialStartAngle         0;
     polodialStartAngle         0;
+    refineCoarseMesh           0;
 
     delta                      0.32404302839;
     r1                         2.0;
@@ -26,12 +27,12 @@ Parameters
 
     coeff_R0                         6.2;
     coeff_R1                         2.0;
-    coeff_R2                         4.0;
+    coeff_R2                         3.70000001;
     coeff_delta                      0.32404302839;
     coeff_r_jump                     0.5;
     coeff_d_jump                     0.1;
-    coeff_k_min                      1e0;
-    coeff_k_max                      1e4;
+    coeff_k_min                      1e-6;
+    coeff_k_max                      1e0;
 
     // ------------------
     // ITER configuration
@@ -51,10 +52,17 @@ Parameters
     // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
     // fmg_wjac: HyTeG FMG with weighted Jacobi relaxation, and subsequent v-cycles until convergence
 
+    // coarse grid solvers:
+    // cg_hyteg: HyTeG CG
+    // cg_petsc: PETSc CG
+
     solverType                gmg_wjac;
+    coarseGridSolverType      cg_petsc;
+    cgHytegVerbose            false;
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;
+    maxCoarseGridSolverIterations 1000000000;
 
     // ################
     // # app settings #
@@ -62,9 +70,12 @@ Parameters
 
     coarseMeshAndQuit         false;
     dbFile                    Tokamak.db;
-    vtk                       true;
+    database                  false;
+    vtk                       false;
     vtkDirectory              ./vtk;
     precomputeElementMatrices true;
+    writeJson                 true;
+    jsonFileName              TokamakTiming.json;
 
     outputLinearSystem         false;
     outputLinearSystemBaseName test;

@@ -22,10 +22,9 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -64,7 +63,6 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -74,12 +72,11 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P2Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  src,
+                  const P2Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
 
  private:
    /// compute product of element local vector with element matrix
@@ -120,26 +117,24 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                      real_t* const           dstEdgeData,
                                      const Matrixr< 10, 4 >& elMat ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
-                               const uint_t                                xIdx,
-                               const uint_t                                yIdx,
+                               const idx_t                                 xIdx,
+                               const idx_t                                 yIdx,
                                const P2Elements::P2Element&                element,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcVertexIdx,
-                               const PetscInt* const                       dstVertexIdx,
-                               const PetscInt* const                       dstEdgeIdx ) const;
-#endif
+                               const idx_t* const                          srcVertexIdx,
+                               const idx_t* const                          dstVertexIdx,
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    void assembleLocalElementMatrix2D( const Face&            face,
                                       uint_t                 level,
@@ -229,8 +224,8 @@ typedef P1ToP2ElementwiseOperator<
 typedef P1ToP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP2ElementwiseDivTzOperator;
 
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > > P1ToP2ElementwiseBlendingDivTxOperator;
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > > P1ToP2ElementwiseBlendingDivTyOperator;
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 2 > > P1ToP2ElementwiseBlendingDivTzOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2ElementwiseBlendingDivTxOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2ElementwiseBlendingDivTyOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2ElementwiseBlendingDivTzOperator;
 
 } // namespace hyteg

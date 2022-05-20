@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include <hyteg/polynomial/Polynomial2D.hpp>
+#include <hyteg/polynomial/Polynomial.hpp>
 
 namespace hyteg {
 namespace P2 {

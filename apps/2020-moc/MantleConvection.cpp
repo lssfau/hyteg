@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <core/Environment.h>
 #include <core/math/Constants.h>
@@ -32,9 +33,11 @@
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/SphereTools.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
@@ -67,12 +70,15 @@
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 namespace hyteg {
 
 using walberla::int_c;
 using walberla::real_t;
 using walberla::math::pi;
+
+using terraneo::SphericalHarmonicsTool;
 
 #if 0
 static std::string getDateTimeID()
@@ -151,6 +157,22 @@ struct SolverInfo
    real_t uzawaOmega = 0.3;
 };
 
+struct OutputInfo
+{
+   bool        vtk;
+   bool        vtkOutputVelocity;
+   bool        sphericalTemperatureSlice;
+   int         sphericalTemperatureSliceNumMeridians;
+   int         sphericalTemperatureSliceNumParallels;
+   int         sphericalTemperatureSliceIcoRefinements;
+   uint_t      printInterval;
+   uint_t      vtkInterval;
+   uint_t      sphericalTemperatureSliceInterval;
+   bool        vtkOutputVertexDoFs;
+   std::string outputDirectory;
+   std::string outputBaseName;
+};
+
 /// Calculates and returns
 ///
 ///     ||u||_L2 = sqrt( u^T M u )
@@ -189,14 +211,14 @@ void calculateStokesResiduals( const StokesOperator&       A,
    tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
-   r.assign( { 1.0, -1.0 }, { b, tmp }, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residual = normL2Squared( r.uvw[0], tmp.uvw[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residual += normL2Squared( r.uvw[1], tmp.uvw[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual = normL2Squared( r.uvw()[0], tmp.uvw()[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual += normL2Squared( r.uvw()[1], tmp.uvw()[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    if ( x.getStorage()->hasGlobalCells() )
    {
-      residual += normL2Squared( r.uvw[2], tmp.uvw[2], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+      residual += normL2Squared( r.uvw()[2], tmp.uvw()[2], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    }
-   residual += normL2Squared( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual += normL2Squared( r.p(), tmp.p(), Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual = std::sqrt( residual );
 }
 
@@ -225,12 +247,12 @@ void calculateDiffusionResidual( UnsteadyDiffusion&               unsteadyDiffus
 template < typename StokesFunction, typename VelocityMass >
 real_t velocityRMS( const StokesFunction& u, const StokesFunction& tmp, const VelocityMass& M, real_t domainVolume, uint_t level )
 {
-   auto norm = std::pow( normL2( u.uvw[0], tmp.uvw[0], M, level, All ), 2.0 ) +
-               std::pow( normL2( u.uvw[1], tmp.uvw[1], M, level, All ), 2.0 );
+   auto norm = std::pow( normL2( u.uvw()[0], tmp.uvw()[0], M, level, All ), 2.0 ) +
+               std::pow( normL2( u.uvw()[1], tmp.uvw()[1], M, level, All ), 2.0 );
 
    if ( u.getStorage()->hasGlobalCells() )
    {
-      norm += std::pow( normL2( u.uvw[2], tmp.uvw[2], M, level, All ), 2.0 );
+      norm += std::pow( normL2( u.uvw()[2], tmp.uvw()[2], M, level, All ), 2.0 );
    }
 
    return std::sqrt( norm / domainVolume );
@@ -267,25 +289,19 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( DomainInfo domainIn
    return setupStorage;
 }
 
-void runBenchmark( real_t      cflMax,
-                   real_t      rayleighNumber,
-                   bool        fixedTimeStep,
-                   real_t      dtConstant,
-                   uint_t      maxNumTimeSteps,
-                   uint_t      minLevel,
-                   uint_t      level,
-                   SolverInfo  solverInfo,
-                   DomainInfo  domainInfo,
-                   bool        predictorCorrector,
-                   real_t      simulationTime,
-                   bool        vtk,
-                   bool        vtkOutputVelocity,
-                   uint_t      printInterval,
-                   uint_t      vtkInterval,
-                   bool        vtkOutputVertexDoFs,
-                   std::string outputDirectory,
-                   std::string outputBaseName,
-                   bool        verbose )
+void runBenchmark( real_t     cflMax,
+                   real_t     rayleighNumber,
+                   bool       fixedTimeStep,
+                   real_t     dtConstant,
+                   uint_t     maxNumTimeSteps,
+                   uint_t     minLevel,
+                   uint_t     level,
+                   SolverInfo solverInfo,
+                   DomainInfo domainInfo,
+                   bool       predictorCorrector,
+                   real_t     simulationTime,
+                   OutputInfo outputInfo,
+                   bool       verbose )
 {
    walberla::WcTimer localTimer;
 
@@ -305,14 +321,14 @@ void runBenchmark( real_t      cflMax,
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Writing domain partitioning VTK ..." );
       }
 
-      writeDomainPartitioningVTK( storage, outputDirectory, outputBaseName + "_domain" );
+      writeDomainPartitioningVTK( storage, outputInfo.outputDirectory, outputInfo.outputBaseName + "_domain" );
    }
 
    auto timer = storage->getTimingTree();
@@ -329,12 +345,13 @@ void runBenchmark( real_t      cflMax,
    const real_t hMin                = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax                = MeshQuality::getMaximalEdgeLength( storage, level );
 
-   const real_t diffusivity                 = 1.0;
-   const real_t internalHeating             = 0.0;
-   const real_t initialTemperatureSteepness = 10.0;
+   const real_t diffusivity     = 1.0;
+   const real_t internalHeating = 0.0;
+
+   const real_t sliceEvaluationRadius = domainInfo.rMin + 0.5 * ( domainInfo.rMax - domainInfo.rMin );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputBaseName )
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputInfo.outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + fixed time step:                              " << fixedTimeStep )
    if ( fixedTimeStep )
@@ -354,7 +371,11 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
    WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns temperature, including boundary:     " << unknownsTemperature )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns Stokes, including boundary:          " << unknownsStokes )
+   for ( uint_t l = minLevel; l <= level; l++ )
+   {
+      const uint_t unknownsStokesLevel = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns Stokes, including boundary, level " << l << ": " << unknownsStokesLevel )
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - benchmark settings: " )
@@ -365,21 +386,31 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + Uzawa omega:                                  " << solverInfo.uzawaOmega )
    WALBERLA_LOG_INFO_ON_ROOT( "   + diffusion solver:                             " << int_c( solverInfo.diffusionSolverType ) )
 
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
+      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << outputInfo.vtkInterval )
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + output directory:                             " << outputDirectory )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + output base name:                             " << outputBaseName )
+   if ( outputInfo.sphericalTemperatureSlice )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "   + spherical slice output interval:              " << outputInfo.sphericalTemperatureSliceInterval )
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << outputInfo.printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + output directory:                             " << outputInfo.outputDirectory )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + output base name:                             " << outputInfo.outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    auto storageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   FixedSizeSQLDB db( outputDirectory + "/" + outputBaseName + ".db" );
+   FixedSizeSQLDB db( outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + ".db" );
 
+   db.setConstantEntry( "ra", rayleighNumber );
+   db.setConstantEntry( "ntan", domainInfo.nTan );
+   db.setConstantEntry( "nrad", domainInfo.nRad );
+   db.setConstantEntry( "rmin", domainInfo.rMin );
+   db.setConstantEntry( "rmax", domainInfo.rMax );
    db.setConstantEntry( "fixed_time_step", fixedTimeStep );
    db.setConstantEntry( "cfl_max", cflMax );
    db.setConstantEntry( "dt_constant", dtConstant );
@@ -396,6 +427,7 @@ void runBenchmark( real_t      cflMax,
    db.setConstantEntry( "num_macro_primitives", uint_c( setupStorage->getNumberOfPrimitives() ) );
    db.setConstantEntry( "diffusivity", diffusivity );
 
+   // db.setConstantEntry( "stokes_solver_type", uint_c( solverInfo.stokesSolverType ) );
    db.setConstantEntry( "uzawa_omega", solverInfo.uzawaOmega );
    db.setConstantEntry( "uzawa_inner_smooth", solverInfo.uzawaInnerIterations );
    db.setConstantEntry( "uzawa_pre_smooth", solverInfo.uzawaPreSmooth );
@@ -444,9 +476,21 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp( "uTmp", storage, minLevel, level, bcVelocity );
    ScalarFunction uTmp2( "uTmp2", storage, minLevel, level, bcVelocity );
 
+   SphericalHarmonicsTool sphTool( 6 );
+
    std::function< real_t( const Point3D& ) > initialTemperature = [&]( const Point3D& x ) {
       auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      return std::exp( -initialTemperatureSteepness * ( ( radius - domainInfo.rMin ) / ( domainInfo.rMax - domainInfo.rMin ) ) );
+
+      const auto linearSlope =
+          std::max( real_c( 0 ), 1 - ( ( radius - domainInfo.rMin ) / ( domainInfo.rMax - domainInfo.rMin ) ) );
+
+      const auto xn = x / x.norm();
+
+      // sph ~ in (-2, 2)
+      const auto powerPertubation = sphTool.shconvert_eval( 4, 3, xn[0], xn[1], xn[2] );
+
+      const auto powerSlope = std::pow( linearSlope, 4 + powerPertubation );
+      return powerSlope;
    };
 
    if ( verbose )
@@ -471,11 +515,7 @@ void runBenchmark( real_t      cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      outwardNormal.uvw.interpolate( { normalX, normalY }, l );
-      if ( storage->hasGlobalCells() )
-      {
-         outwardNormal.uvw.interpolate( { normalX, normalY, normalZ }, l );
-      }
+      outwardNormal.uvw().interpolate( {normalX, normalY, normalZ}, l );
    }
 
    if ( verbose )
@@ -599,7 +639,7 @@ void runBenchmark( real_t      cflMax,
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, 10000, 1 );
+          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, 1000, 1 );
       petscSolverInternalTmp->setVerbose( verbose );
       auto coarseGridSolver = petscSolverInternalTmp;
 
@@ -686,7 +726,7 @@ void runBenchmark( real_t      cflMax,
    if ( solverInfo.diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
    {
       auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >(
-          storage, level, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
+          storage, level, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
       internalDiffusionSolver->reassembleMatrix( true );
       diffusionLinearSolver = internalDiffusionSolver;
    }
@@ -757,10 +797,10 @@ void runBenchmark( real_t      cflMax,
    real_t timeDiffusion = 0;
    real_t timeVTK       = 0;
 
-   hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
-   vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
+   hyteg::VTKOutput vtkOutput( outputInfo.outputDirectory, outputInfo.outputBaseName, storage, outputInfo.vtkInterval );
+   vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
 
-   if ( vtkOutputVertexDoFs )
+   if ( outputInfo.vtkOutputVertexDoFs )
    {
       vtkOutput.add( c.getVertexDoFFunction() );
    }
@@ -769,13 +809,13 @@ void runBenchmark( real_t      cflMax,
       vtkOutput.add( c );
    }
 
-   if ( vtkOutputVelocity )
+   if ( outputInfo.vtkOutputVelocity )
    {
-      if ( vtkOutputVertexDoFs )
+      if ( outputInfo.vtkOutputVertexDoFs )
       {
-         vtkOutput.add( u.uvw[0].getVertexDoFFunction() );
-         vtkOutput.add( u.uvw[1].getVertexDoFFunction() );
-         vtkOutput.add( u.uvw[2].getVertexDoFFunction() );
+         vtkOutput.add( u.uvw()[0].getVertexDoFFunction() );
+         vtkOutput.add( u.uvw()[1].getVertexDoFFunction() );
+         vtkOutput.add( u.uvw()[2].getVertexDoFFunction() );
       }
       else
       {
@@ -784,7 +824,7 @@ void runBenchmark( real_t      cflMax,
    }
    else
    {
-      if ( vtkOutputVertexDoFs )
+      if ( outputInfo.vtkOutputVertexDoFs )
       {
          vtkOutput.add( uMagnitudeSquared.getVertexDoFFunction() );
       }
@@ -816,15 +856,15 @@ void runBenchmark( real_t      cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      MVelocity.apply( c, f.uvw[0], l, All );
-      MVelocity.apply( c, f.uvw[1], l, All );
+      MVelocity.apply( c, f.uvw()[0], l, All );
+      MVelocity.apply( c, f.uvw()[1], l, All );
       if ( storage->hasGlobalCells() )
       {
-         MVelocity.apply( c, f.uvw[2], l, All );
+         MVelocity.apply( c, f.uvw()[2], l, All );
       }
 
-      f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
-      f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
+      f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+      f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
    }
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -839,22 +879,42 @@ void runBenchmark( real_t      cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-   if ( storage->hasGlobalCells() )
-   {
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
-   }
-   else
-   {
-      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
-   }
+   vMax = velocityMaxMagnitude( u.uvw(), uTmp, uMagnitudeSquared, level, All );
 
    localTimer.start();
-   if ( vtk )
+   if ( outputInfo.vtk )
    {
       vtkOutput.write( level );
    }
    localTimer.end();
    timeVTK = localTimer.last();
+
+   if ( outputInfo.sphericalTemperatureSlice && timeStep % outputInfo.sphericalTemperatureSliceInterval == 0 )
+   {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slices ..." );
+      }
+
+      evaluateSphericalSliceUV( sliceEvaluationRadius,
+                                outputInfo.sphericalTemperatureSliceNumMeridians,
+                                outputInfo.sphericalTemperatureSliceNumParallels,
+                                c,
+                                level,
+                                outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_uv_" +
+                                    std::to_string( timeStep ) + ".csv" );
+
+      evaluateSphericalSliceIco( sliceEvaluationRadius,
+                                 outputInfo.sphericalTemperatureSliceIcoRefinements,
+                                 c,
+                                 level,
+                                 outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_ico_" +
+                                     std::to_string( timeStep ) + ".csv" );
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+      }
+   }
 
    timeStepTimer.end();
    timeStepTotal = timeStepTimer.last();
@@ -911,15 +971,7 @@ void runBenchmark( real_t      cflMax,
       timeStep++;
 
       // new time step size
-
-      if ( storage->hasGlobalCells() )
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uTmp2, level, All );
-      }
-      else
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
-      }
+      vMax = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, level, All );
 
       real_t dt;
       if ( fixedTimeStep )
@@ -936,16 +988,16 @@ void runBenchmark( real_t      cflMax,
       // advection
 
       // start value for predictor
-      cPr.assign( { 1.0 }, { c }, level, All );
+      cPr.assign( {1.0}, {c}, level, All );
 
       // let's just use the current velocity for the prediction
-      uLast.assign( { 1.0 }, { u }, level, All );
+      uLast.assign( {1.0}, {u}, level, All );
 
       // diffusion
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       diffusionOperator.setDt( 0.5 * dt );
 
@@ -963,7 +1015,7 @@ void runBenchmark( real_t      cflMax,
       timeDiffusion = localTimer.last();
 
       localTimer.start();
-      transport.step( cPr, u.uvw, uLast.uvw, level, All, dt, 1, true );
+      transport.step( cPr, u.uvw(), uLast.uvw(), level, All, dt, 1, true );
       localTimer.end();
       timeMMOC = localTimer.last();
 
@@ -971,7 +1023,7 @@ void runBenchmark( real_t      cflMax,
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       calculateDiffusionResidual(
           diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -985,15 +1037,15 @@ void runBenchmark( real_t      cflMax,
 
       for ( uint_t l = minLevel; l <= level; l++ )
       {
-         MVelocity.apply( cPr, f.uvw[0], l, All );
-         MVelocity.apply( cPr, f.uvw[1], l, All );
+         MVelocity.apply( cPr, f.uvw()[0], l, All );
+         MVelocity.apply( cPr, f.uvw()[1], l, All );
          if ( storage->hasGlobalCells() )
          {
-            MVelocity.apply( cPr, f.uvw[2], l, All );
+            MVelocity.apply( cPr, f.uvw()[2], l, All );
          }
 
-         f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
-         f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
+         f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+         f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
       }
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1023,7 +1075,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1037,7 +1089,7 @@ void runBenchmark( real_t      cflMax,
          // advection
 
          localTimer.start();
-         transport.step( c, u.uvw, uLast.uvw, level, All, dt, 1, true );
+         transport.step( c, u.uvw(), uLast.uvw(), level, All, dt, 1, true );
          localTimer.end();
          timeMMOC += localTimer.last();
 
@@ -1045,7 +1097,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1060,15 +1112,15 @@ void runBenchmark( real_t      cflMax,
 
          for ( uint_t l = minLevel; l <= level; l++ )
          {
-            MVelocity.apply( c, f.uvw[0], l, All );
-            MVelocity.apply( c, f.uvw[1], l, All );
+            MVelocity.apply( c, f.uvw()[0], l, All );
+            MVelocity.apply( c, f.uvw()[1], l, All );
             if ( storage->hasGlobalCells() )
             {
-               MVelocity.apply( c, f.uvw[2], l, All );
+               MVelocity.apply( c, f.uvw()[2], l, All );
             }
 
-            f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
-            f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
+            f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
+            f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
          }
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1093,7 +1145,7 @@ void runBenchmark( real_t      cflMax,
       else
       {
          // use predicted value
-         c.assign( { 1.0 }, { cPr }, level, All );
+         c.assign( {1.0}, {cPr}, level, All );
 
          db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
          db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );
@@ -1104,23 +1156,42 @@ void runBenchmark( real_t      cflMax,
       timeTotal += dt;
 
       vRms = velocityRMS( u, stokesTmp, MVelocity, domainInfo.domainVolume(), level );
-
-      if ( storage->hasGlobalCells() )
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
-      }
-      else
-      {
-         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
-      }
+      vMax = velocityMaxMagnitude( u.uvw(), uTmp, uMagnitudeSquared, level, All );
 
       localTimer.start();
-      if ( vtk )
+      if ( outputInfo.vtk )
       {
          vtkOutput.write( level, timeStep );
       }
       localTimer.end();
       timeVTK = localTimer.last();
+
+      if ( outputInfo.sphericalTemperatureSlice && timeStep % outputInfo.sphericalTemperatureSliceInterval == 0 )
+      {
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Evaluating spherical slices ..." );
+         }
+
+         evaluateSphericalSliceUV( sliceEvaluationRadius,
+                                   outputInfo.sphericalTemperatureSliceNumMeridians,
+                                   outputInfo.sphericalTemperatureSliceNumParallels,
+                                   c,
+                                   level,
+                                   outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_uv_" +
+                                       std::to_string( timeStep ) + ".csv" );
+
+         evaluateSphericalSliceIco( sliceEvaluationRadius,
+                                    outputInfo.sphericalTemperatureSliceIcoRefinements,
+                                    c,
+                                    level,
+                                    outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_temp_slice_ico_" +
+                                        std::to_string( timeStep ) + ".csv" );
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+         }
+      }
 
       timeStepTimer.end();
       timeStepTotal = timeStepTimer.last();
@@ -1138,7 +1209,7 @@ void runBenchmark( real_t      cflMax,
 
       db.writeRowOnRoot();
 
-      if ( printInterval > 0 && timeStep % printInterval == 0 )
+      if ( outputInfo.printInterval > 0 && timeStep % outputInfo.printInterval == 0 )
       {
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
@@ -1164,8 +1235,9 @@ void runBenchmark( real_t      cflMax,
             WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
          }
 
-         writeTimingTreeJSON(
-             *timer, outputDirectory + "/" + outputBaseName + "_up_to_ts_" + std::to_string( timeStep ) + "_timing.json" );
+         writeTimingTreeJSON( *timer,
+                              outputInfo.outputDirectory + "/" + outputInfo.outputBaseName + "_up_to_ts_" +
+                                  std::to_string( timeStep ) + "_timing.json" );
       }
    }
 }
@@ -1197,6 +1269,7 @@ int main( int argc, char** argv )
 
    hyteg::DomainInfo domainInfo;
    hyteg::SolverInfo solverInfo;
+   hyteg::OutputInfo outputInfo;
 
    domainInfo.threeDim = mainConf.getParameter< bool >( "threeDim" );
    domainInfo.rMin     = mainConf.getParameter< hyteg::real_t >( "rMin" );
@@ -1229,12 +1302,18 @@ int main( int argc, char** argv )
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverInfo.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
-   const std::string outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
-   const std::string outputBaseName      = mainConf.getParameter< std::string >( "outputBaseName" );
-   const bool        vtk                 = mainConf.getParameter< bool >( "vtk" );
-   const bool        vtkOutputVelocity   = mainConf.getParameter< bool >( "vtkOutputVelocity" );
-   const uint_t      vtkOutputInterval   = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
-   const bool        vtkOutputVertexDoFs = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
+   outputInfo.outputDirectory                         = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputInfo.outputBaseName                          = mainConf.getParameter< std::string >( "outputBaseName" );
+   outputInfo.vtk                                     = mainConf.getParameter< bool >( "vtk" );
+   outputInfo.vtkOutputVelocity                       = mainConf.getParameter< bool >( "vtkOutputVelocity" );
+   outputInfo.vtkInterval                             = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
+   outputInfo.vtkOutputVertexDoFs                     = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
+   outputInfo.printInterval                           = 1;
+   outputInfo.sphericalTemperatureSlice               = mainConf.getParameter< bool >( "sphericalTemperatureSlice" );
+   outputInfo.sphericalTemperatureSliceInterval       = mainConf.getParameter< uint_t >( "sphericalTemperatureSliceInterval" );
+   outputInfo.sphericalTemperatureSliceNumMeridians   = mainConf.getParameter< int >( "sphericalTemperatureSliceNumMeridians" );
+   outputInfo.sphericalTemperatureSliceNumParallels   = mainConf.getParameter< int >( "sphericalTemperatureSliceNumParallels" );
+   outputInfo.sphericalTemperatureSliceIcoRefinements = mainConf.getParameter< int >( "sphericalTemperatureSliceIcoRefinements" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -1249,12 +1328,6 @@ int main( int argc, char** argv )
                         domainInfo,
                         true,
                         simulationTime,
-                        vtk,
-                        vtkOutputVelocity,
-                        1,
-                        vtkOutputInterval,
-                        vtkOutputVertexDoFs,
-                        outputDirectory,
-                        outputBaseName,
+                        outputInfo,
                         verbose );
 }

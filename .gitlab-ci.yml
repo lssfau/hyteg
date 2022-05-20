@@ -8,6 +8,7 @@ stages:
    - pretest
    - test
    - benchmark
+   - no_werror
 
 variables:
    GIT_SUBMODULE_STRATEGY: normal
@@ -34,7 +35,7 @@ variables:
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
       - cmake ..
-        -DWARNING_ERROR=ON
+        -DWARNING_ERROR=$WARNING_ERROR
         -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI
         -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
@@ -67,6 +68,7 @@ variables:
      WALBERLA_DOUBLE_ACCURACY: "ON"
      WALBERLA_BUILD_WITH_METIS: "ON"
      WALBERLA_BUILD_WITH_PARMETIS: "ON"
+     WARNING_ERROR: "ON"
 
 
 ###############################################################################
@@ -77,12 +79,9 @@ variables:
 
 
 
-intel_19_serial:
+intel_20_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -94,12 +93,9 @@ intel_19_serial:
       - docker
       - intel
 
-intel_19_mpionly:
+intel_20_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -109,12 +105,9 @@ intel_19_mpionly:
       - docker
       - intel
 
-intel_19_serial_dbg:
+intel_20_serial_dbg:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -124,12 +117,9 @@ intel_19_serial_dbg:
       - docker
       - intel
 
-intel_19_mpionly_dbg_eigen_petsc-complex_trilinos:
+intel_20_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -141,12 +131,9 @@ intel_19_mpionly_dbg_eigen_petsc-complex_trilinos:
       - docker
       - intel
 
-intel_19_mpionly_dbg_sp:
+intel_20_mpionly_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -157,12 +144,9 @@ intel_19_mpionly_dbg_sp:
       - docker
       - intel
 
-intel_19_mpionly_eigen_petsc_trilinos:
+intel_20_mpionly_eigen_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -173,12 +157,26 @@ intel_19_mpionly_eigen_petsc_trilinos:
       - docker
       - intel
 
+intel_20_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
+   needs: [ ]
+   tags:
+      - docker
+      - intel
+
 gcc_7_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -192,9 +190,6 @@ gcc_7_serial:
 gcc_7_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -206,15 +201,11 @@ gcc_7_mpionly:
 gcc_7_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
-      WALBERLA_ENABLE_GUI: "ON"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -224,9 +215,6 @@ gcc_7_serial_dbg:
 gcc_7_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -243,9 +231,6 @@ gcc_7_mpionly_dbg_eigen_petsc-complex_trilinos:
 gcc_7_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -261,9 +246,6 @@ gcc_7_mpionly_dbg_sp:
 gcc_7_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -279,9 +261,6 @@ gcc_7_mpionly_eigen_petsc_trilinos:
 gcc_8_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -295,9 +274,6 @@ gcc_8_serial:
 gcc_8_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -309,9 +285,6 @@ gcc_8_mpionly:
 gcc_8_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -326,9 +299,6 @@ gcc_8_serial_dbg:
 gcc_8_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -345,9 +315,6 @@ gcc_8_mpionly_dbg_eigen_petsc-complex_trilinos:
 gcc_8_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -363,9 +330,6 @@ gcc_8_mpionly_dbg_sp:
 gcc_8_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -494,6 +458,9 @@ gcc_10_serial_dbg:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
@@ -507,19 +474,24 @@ gcc_10_mpionly_dbg_eigen_petsc-complex_trilinos:
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc-complex"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_10_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
-   stage: pretest
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
@@ -532,15 +504,104 @@ gcc_10_mpionly_eigen_petsc_trilinos:
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_11_serial:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_11_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_11_serial_dbg:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+   tags:
+      - docker
+
+gcc_11_mpionly_dbg_eigen_petsc-complex_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc-complex"
+   tags:
+      - docker
+
+gcc_11_mpionly_dbg_sp:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   stage: pretest
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
+   tags:
+      - docker
+
+gcc_11_mpionly_eigen_petsc_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+
+gcc_11_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
+   needs: [ ]
    tags:
       - docker
 
 clang_6.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -554,9 +615,6 @@ clang_6.0_serial:
 clang_6.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -568,9 +626,6 @@ clang_6.0_mpionly:
 clang_6.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -585,9 +640,6 @@ clang_6.0_serial_dbg:
 clang_6.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -601,9 +653,6 @@ clang_6.0_mpionly_dbg_eigen_petsc-complex_trilinos:
 clang_6.0_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -619,9 +668,6 @@ clang_6.0_mpionly_dbg_sp:
 clang_6.0_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -637,9 +683,6 @@ clang_6.0_mpionly_eigen_petsc_trilinos:
 clang_7.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -653,9 +696,6 @@ clang_7.0_serial:
 clang_7.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -667,9 +707,6 @@ clang_7.0_mpionly:
 clang_7.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -684,9 +721,6 @@ clang_7.0_serial_dbg:
 clang_7.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -703,9 +737,6 @@ clang_7.0_mpionly_dbg_eigen_petsc-complex_trilinos:
 clang_7.0_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -721,9 +752,6 @@ clang_7.0_mpionly_dbg_sp:
 clang_7.0_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -739,9 +767,6 @@ clang_7.0_mpionly_eigen_petsc_trilinos:
 clang_8.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -755,9 +780,6 @@ clang_8.0_serial:
 clang_8.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -769,9 +791,6 @@ clang_8.0_mpionly:
 clang_8.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -786,9 +805,6 @@ clang_8.0_serial_dbg:
 clang_8.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -805,9 +821,6 @@ clang_8.0_mpionly_dbg_eigen_petsc-complex_trilinos:
 clang_8.0_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -823,9 +836,6 @@ clang_8.0_mpionly_dbg_sp:
 clang_8.0_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -841,9 +851,6 @@ clang_8.0_mpionly_eigen_petsc_trilinos:
 clang_9.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -857,9 +864,6 @@ clang_9.0_serial:
 clang_9.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -871,9 +875,6 @@ clang_9.0_mpionly:
 clang_9.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -888,9 +889,6 @@ clang_9.0_serial_dbg:
 clang_9.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -907,9 +905,6 @@ clang_9.0_mpionly_dbg_eigen_petsc-complex_trilinos:
 clang_9.0_mpionly_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -925,9 +920,6 @@ clang_9.0_mpionly_dbg_sp:
 clang_9.0_mpionly_eigen_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -943,9 +935,6 @@ clang_9.0_mpionly_eigen_petsc_trilinos:
 clang_10.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -959,9 +948,6 @@ clang_10.0_serial:
 clang_10.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -973,9 +959,258 @@ clang_10.0_mpionly:
 clang_10.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_10.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc-complex"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_10.0_mpionly_dbg_sp:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_10.0_mpionly_eigen_petsc_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_serial:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_serial_dbg:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc-complex"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_mpionly_dbg_sp:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_11.0_mpionly_eigen_petsc_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_serial:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_serial_dbg:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc-complex"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_mpionly_dbg_sp:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_12.0_mpionly_eigen_petsc_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_13.0_serial:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_13.0_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_13.0_serial_dbg:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -984,12 +1219,9 @@ clang_10.0_serial_dbg:
    tags:
       - docker
 
-clang_10.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_13.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1000,12 +1232,9 @@ clang_10.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_10.0_mpionly_dbg_sp:
+clang_13.0_mpionly_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1015,19 +1244,120 @@ clang_10.0_mpionly_dbg_sp:
    tags:
       - docker
 
-clang_10.0_mpionly_eigen_petsc_trilinos:
+clang_13.0_mpionly_eigen_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    stage: pretest
-   before_script:
-      - apt-get remove -y cmake
-      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+
+clang_13.0_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
+   needs: [ ]
+   tags:
+      - docker
+
+inteloneapi_22.1_serial:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+inteloneapi_22.1_serial_dbg:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly_dbg_eigen_petsc-complex_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc-complex"
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly_dbg_sp:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly_eigen_petsc_trilinos:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+   tags:
+      - docker
+
+inteloneapi_22.1_mpionly_eigen_petsc_trilinos_no_werror:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   stage: no_werror
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_PETSC: "ON"
+      HYTEG_BUILD_WITH_EIGEN: "ON"
+      HYTEG_BUILD_WITH_TRILINOS: "ON"
+      PETSC_DIR: "/opt/petsc"
+      WARNING_ERROR: "OFF"
+   when: manual
+   needs: [ ]
    tags:
       - docker
 
@@ -1222,7 +1552,7 @@ benchmark_build_time:
     - cd $CI_PROJECT_DIR/
     - cat BuildTiming.txt
     - python3 $CI_PROJECT_DIR/data/scripts/upload.py
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
   tags:
     - docker-benchmark
   variables:
@@ -1230,11 +1560,6 @@ benchmark_build_time:
 
 benchmark_ClangBuildAnalyzer:
   script:
-    - apt-get update --fix-missing
-    - apt-get -y install apt-transport-https ca-certificates gnupg software-properties-common wget
-    - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
-    - apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-    - apt-get -y install cmake ninja-build
     - cmake --version
     - ccache --version
     - mpirun --version
@@ -1256,7 +1581,7 @@ benchmark_ClangBuildAnalyzer:
     - ninja hyteg
     - ClangBuildAnalyzer --stop src CBA
     - ClangBuildAnalyzer --analyze CBA
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
   tags:
     - docker-benchmark
   variables:
@@ -1331,17 +1656,14 @@ benchmark_ClangBuildAnalyzer:
    needs: [ ]
    stage: benchmark
 
-benchmark_intel19:
+benchmark_intel20:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
-   before_script:
-     - apt-get remove -y cmake
-     - pip3 install cmake==3.13.3
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
 
-benchmark_gcc9:
+benchmark_gcc11:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
 
-benchmark_clang8:
+benchmark_clang13:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0

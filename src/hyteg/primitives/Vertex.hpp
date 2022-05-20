@@ -19,14 +19,13 @@
  */
 #pragma once
 
-#include "hyteg/types/pointnd.hpp"
 #include <core/DataTypes.h>
-#include <hyteg/types/flags.hpp>
-#include <hyteg/primitives/Primitive.hpp>
 #include <hyteg/mesh/MeshInfo.hpp>
-
+#include <hyteg/primitives/Primitive.hpp>
+#include <hyteg/types/types.hpp>
 #include <vector>
 
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
@@ -46,6 +45,8 @@ public:
 
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
+  template <class K_Simplex>
+  friend class adaptiveRefinement::K_Mesh;
 
   /// Constructs a vertex with given id and coordinates
   /// \param primitiveID Id of vertex

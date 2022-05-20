@@ -20,7 +20,7 @@
 
 #pragma once
 #include <array>
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1MacroFacePolynomial.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1PolynomialDataHandling.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>
@@ -28,8 +28,7 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
@@ -78,15 +77,15 @@ class P1ToP2SurrogateOperator : public Operator< P1Function< real_t >, P2Functio
       std::array< real_t, P2::NumStencilentries2D::VtE > vertexToEdgeStencil;
 
       // we only use polynomials for face stencils
-      for ( auto& it : storage_->getFaces() )
+      for ( auto& itF : storage_->getFaces() )
       {
-         Face& face = *it.second;
+         Face& face = *itF.second;
          form_.setGeometryMap( face.getGeometryMap() );
 
-         Point3D x0( face.coords[0] ), x;
+         Point3D x0( face.getCoordinates()[0] ), x;
 
-         Point3D D0 = face.coords[1] - face.coords[0];
-         Point3D D2 = face.coords[2] - face.coords[0];
+         Point3D D0 = face.getCoordinates()[1] - face.getCoordinates()[0];
+         Point3D D2 = face.getCoordinates()[2] - face.getCoordinates()[0];
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {
@@ -252,8 +251,8 @@ class P1ToP2SurrogateOperator : public Operator< P1Function< real_t >, P2Functio
    std::map< uint_t, PrimitiveDataID< P1toP2::FacePolynomialMemory, Face > > polynomialIDs_;
 };
 
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 0 > > P1ToP2SurrogateDivTxOperator;
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 1 > > P1ToP2SurrogateDivTyOperator;
-typedef P1ToP2SurrogateOperator< P1ToP2Form_divt< 2 > > P1ToP2SurrogateDivTzOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2SurrogateDivTxOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2SurrogateDivTyOperator;
+typedef P1ToP2SurrogateOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2SurrogateDivTzOperator;
 
 } // namespace hyteg

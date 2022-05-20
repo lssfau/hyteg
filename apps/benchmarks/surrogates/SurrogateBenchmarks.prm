@@ -1,0 +1,10 @@
+Parameters
+{
+    level 5;
+    samplelevel 5;
+    minTime 1;
+    kernelType constant; // either generated, constant, variable or surrogate
+    polyDegree 2;
+    dimension 3;
+    blending true;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Nils Kohl, Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -92,8 +92,8 @@ void exportLinearSystem( OperatorType                        op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
    }
-   PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, nameMatrix.c_str() );
-   FunctionType< PetscInt >                        numerator( "numerator", storage, level, level );
+   PETScSparseMatrix< OperatorType > petscMatrix( nameMatrix.c_str() );
+   FunctionType< idx_t >             numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
 
@@ -101,7 +101,7 @@ void exportLinearSystem( OperatorType                        op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting RHS to PETSc vector" );
    }
-   PETScVector< real_t, FunctionType > petscRHS( rhs, numerator, level, All, nameRHS );
+   PETScVector< real_t, OperatorType::dstType::template FunctionType > petscRHS( rhs, numerator, level, All, nameRHS );
 
    // Zero rows and columns of "Dirichlet DoFs"
    if ( elimDirichletBC )

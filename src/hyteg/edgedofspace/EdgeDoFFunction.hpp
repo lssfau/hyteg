@@ -23,6 +23,7 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 
@@ -60,7 +61,7 @@ unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t & level, const 
 } // namespace edgedof
 
 template < typename ValueType >
-class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
+class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -127,30 +128,44 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
                 uint_t                                                                             level,
                 DoFType                                                                            flag = All ) const;
 
-   void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                    scalars,
              const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
              uint_t                                                                             level,
              DoFType                                                                            flag = All ) const;
 
-   /// Interpolates a given expression to a EdgeDoFFunction
-
-   void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
+   /// @name Member functions for interpolation using BoundaryUID flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
                              uint_t                                                                               level,
-                             DoFType flag = All ) const;
+                             BoundaryUID boundaryUID ) const;
+   //@}
+
+   /// @name Member functions for interpolation using DoFType flags
+   //@{
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
+
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
                              uint_t                                                                               level,
-                             BoundaryUID boundaryUID ) const;
+                             DoFType flag = All ) const;
+
+   void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      this->interpolate( expr[0], level, flag );
+   };
+   //@}
 
    /// Compute the product of several functions in an elementwise fashion
    ///
@@ -170,7 +185,12 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    /// Replace values of the function by their inverses in an elementwise fashion
    void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
-   ValueType dotLocal( const EdgeDoFFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
+   ValueType dotLocal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
+
+   /// @name Unimplemented methods (only dummys for inheritance)
+   /// @{
+   ValueType dotGlobal( const EdgeDoFFunction< ValueType >&, uint_t, DoFType ) const {
+       WALBERLA_ABORT( "EdgeDoFFunction::dotGlobal not implemented!" )} /// @}
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
@@ -179,6 +199,8 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    void setToZero( const uint_t level ) const;
 
    void enumerate( uint_t level ) const;
+
+   void enumerate( uint_t level, ValueType& offset ) const;
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
@@ -337,13 +359,24 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
 
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const EdgeDoFFunction< idx_t >&       numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const EdgeDoFFunction< idx_t >&       numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
+
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
-   void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;

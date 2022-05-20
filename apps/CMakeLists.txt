@@ -46,27 +46,20 @@ waLBerla_add_executable( NAME refCellCouplingCount
         FILES refCellCouplingCount.cpp
         DEPENDS hyteg)
 
-if( HYTEG_BUILD_WITH_EIGEN )
-    waLBerla_add_executable( NAME cg_P1_blending
-            FILES cg_P1_blending.cpp
-            DEPENDS hyteg)
+waLBerla_add_executable(NAME cg_P1_blending
+      FILES cg_P1_blending.cpp
+      DEPENDS hyteg)
 
-    waLBerla_add_executable( NAME gmg_blending
-            FILES gmg_blending.cpp
-            DEPENDS hyteg)
+waLBerla_add_executable(NAME gmg_blending
+      FILES gmg_blending.cpp
+      DEPENDS hyteg)
 
-    waLBerla_add_executable( NAME PolynomialBlending
-            FILES PolynomialBlending.cpp
-            DEPENDS hyteg)
-
-    waLBerla_add_executable( NAME VariableCoeffLaplace_Surrogates
-            FILES VariableCoeffLaplace_Surrogates.cpp
-            DEPENDS hyteg)
-
-    waLBerla_add_executable( NAME Stokes2d_Surrogates
-            FILES Stokes2d_Surrogates.cpp
-            DEPENDS hyteg)
-endif()
+if (NOT APPLE)
+   # apple clang does not contain expint which is used in this app
+   waLBerla_add_executable(NAME adaptiveRefinement
+         FILES adaptiveRefinement.cpp
+         DEPENDS hyteg)
+endif ()
 
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
@@ -100,5 +93,6 @@ add_subdirectory(2021-tokamak)
 endif()
 add_subdirectory(GKBTestProblemGeneration)
 add_subdirectory(SphericalHarmonics)
+add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)

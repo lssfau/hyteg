@@ -38,8 +38,5 @@ std::vector< std::reference_wrapper< const typename vType::VectorComponentType >
    return functions_scalar;
 }
 
-template< typename vfType >
-real_t getMaxMagnitude( const vfType& vFunc, uint_t level, DoFType flag, bool mpiReduce = true );
-
 } // namespace vectorFunctionTools
 } // namespace hyteg

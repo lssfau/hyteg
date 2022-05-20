@@ -21,25 +21,26 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
-#include "core/timing/Timer.h"
 
+#include "hyteg/Git.hpp"
+#include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
+#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScExportFunctionAsVector.hpp"
 #include "hyteg/petsc/PETScExportLinearSystem.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
@@ -51,18 +52,24 @@ using walberla::uint_t;
 namespace hyteg {
 
 // Solver types
-const std::string CG       = "cg";
-const std::string GMG_WJAC = "gmg_wjac";
-const std::string FMG_WJAC = "fmg_wjac";
+const std::string_view CG       = "cg";
+const std::string_view GMG_WJAC = "gmg_wjac";
+const std::string_view FMG_WJAC = "fmg_wjac";
+
+const std::string_view COARSE_GRID_CG_HYTEG = "cg_hyteg";
+const std::string_view COARSE_GRID_CG_PETSC = "cg_petsc";
 
 struct SolverSettings
 {
    std::string solverType;
-   real_t      relativeResidualReduction;
-   uint_t      preSmooth;
-   uint_t      postSmooth;
+   std::string coarseGridSolverType;
+   real_t      relativeResidualReduction{};
+   uint_t      preSmooth{};
+   uint_t      postSmooth{};
+   uint_t      maxCoarseGridSolverIterations{};
+   bool        cgHytegVerbose{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Solver settings"
@@ -73,6 +80,7 @@ struct SolverSettings
       {
          ss << "  - pre smooth:                  " << preSmooth << "\n";
          ss << "  - post smooth:                 " << postSmooth << "\n";
+         ss << "  - coarse grid:                 " << coarseGridSolverType << "\n";
       }
       return ss.str();
    }
@@ -81,10 +89,10 @@ struct SolverSettings
 struct Discretization
 {
    std::string elementType;
-   uint_t      minLevel;
-   uint_t      maxLevel;
+   uint_t      minLevel{};
+   uint_t      maxLevel{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Discretization"
@@ -98,27 +106,28 @@ struct Discretization
 
 struct TokamakDomain
 {
-   uint_t                numToroidalSlices;
-   uint_t                numPoloidalSlices;
-   real_t                radiusOriginToCenterOfTube;
+   uint_t                numToroidalSlices{};
+   uint_t                numPoloidalSlices{};
+   real_t                radiusOriginToCenterOfTube{};
    std::vector< real_t > tubeLayerRadii;
-   real_t                torodialStartAngle;
-   real_t                polodialStartAngle;
+   real_t                torodialStartAngle{};
+   real_t                polodialStartAngle{};
+   uint_t                refineCoarseMesh{};
 
-   real_t delta;
-   real_t r1;
-   real_t r2;
+   real_t delta{};
+   real_t r1{};
+   real_t r2{};
 
-   real_t coeff_R0;
-   real_t coeff_R1;
-   real_t coeff_R2;
-   real_t coeff_delta;
-   real_t coeff_r_jump;
-   real_t coeff_d_jump;
-   real_t coeff_k_min;
-   real_t coeff_k_max;
+   real_t coeff_R0{};
+   real_t coeff_R1{};
+   real_t coeff_R2{};
+   real_t coeff_delta{};
+   real_t coeff_r_jump{};
+   real_t coeff_d_jump{};
+   real_t coeff_k_min{};
+   real_t coeff_k_max{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Tokamak domain and PDE config"
@@ -135,6 +144,7 @@ struct TokamakDomain
       ss << "  - coeff max:           " << coeff_k_max << "\n";
       ss << "  - coeff jump location: " << coeff_r_jump << "\n";
       ss << "  - coeff jump width:    " << coeff_d_jump << "\n";
+      ss << "  - coarse mesh refine:  " << refineCoarseMesh << "\n";
       return ss.str();
    }
 };
@@ -142,15 +152,18 @@ struct TokamakDomain
 struct AppSettings
 {
    std::string dbFile;
-   bool        coarseMeshAndQuit;
-   bool        vtk;
+   bool        coarseMeshAndQuit{};
+   bool        database{};
+   bool        vtk{};
    std::string vtkDirectory;
-   bool        precomputeElementMatrices;
-   bool        outputLinearSystem;
+   bool        precomputeElementMatrices{};
+   bool        outputLinearSystem{};
    std::string outputLinearSystemBaseName;
    std::string outputLinearSystemFormat;
+   bool        writeJson{};
+   std::string jsonFileName;
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "App settings"
@@ -167,13 +180,20 @@ struct AppSettings
    }
 };
 
-void writeDBEntry( FixedSizeSQLDB db, uint_t entryID, real_t residual, real_t error )
+void writeDBEntry( const std::shared_ptr< FixedSizeSQLDB >& db,
+                   uint_t                                   entryID,
+                   real_t                                   residual,
+                   real_t                                   error,
+                   bool                                     writeDataBase )
 {
-   db.setVariableEntry( "entryID", entryID );
-   db.setVariableEntry( "residual", residual );
-   db.setVariableEntry( "error", error );
+   if ( writeDataBase )
+   {
+      db->setVariableEntry( "entryID", entryID );
+      db->setVariableEntry( "residual", residual );
+      db->setVariableEntry( "error", error );
 
-   db.writeRowOnRoot();
+      db->writeRowOnRoot();
+   }
 }
 
 template < typename Function_T, typename LaplaceOperator_T >
@@ -203,56 +223,69 @@ template < template < class > class Function_T,
            typename MassOperator_T,
            typename Restriction_T,
            typename Prolongation_T >
-void tokamak( TokamakDomain tokamakDomain, Discretization discretization, SolverSettings solverSettings, AppSettings appSettings )
+void tokamak( TokamakDomain         tokamakDomain,
+              const Discretization& discretization,
+              SolverSettings        solverSettings,
+              const AppSettings&    appSettings )
 {
-   FixedSizeSQLDB db( appSettings.dbFile );
-
-   db.setConstantEntry( "solverType", solverSettings.solverType );
-   db.setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
-   db.setConstantEntry( "preSmooth", solverSettings.preSmooth );
-   db.setConstantEntry( "postSmooth", solverSettings.postSmooth );
-
-   db.setConstantEntry( "elementType", discretization.elementType );
-   db.setConstantEntry( "minLevel", discretization.minLevel );
-   db.setConstantEntry( "maxLevel", discretization.maxLevel );
-
-   db.setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
-   db.setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
-   db.setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
-   for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
+   std::shared_ptr< FixedSizeSQLDB > db;
+   if ( appSettings.database )
    {
-      db.setConstantEntry( "tubeLayerRadii_" + std::to_string( i ), tokamakDomain.tubeLayerRadii[i] );
+      db = std::make_shared< FixedSizeSQLDB >( appSettings.dbFile );
+
+      db->setConstantEntry( "solverType", solverSettings.solverType );
+      db->setConstantEntry( "coarseGridSolverType", solverSettings.coarseGridSolverType );
+      db->setConstantEntry( "maxCoarseGridSolverIterations", solverSettings.maxCoarseGridSolverIterations );
+      db->setConstantEntry( "cgHytegVerbose", solverSettings.cgHytegVerbose );
+      db->setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
+      db->setConstantEntry( "preSmooth", solverSettings.preSmooth );
+      db->setConstantEntry( "postSmooth", solverSettings.postSmooth );
+
+      db->setConstantEntry( "elementType", discretization.elementType );
+      db->setConstantEntry( "minLevel", discretization.minLevel );
+      db->setConstantEntry( "maxLevel", discretization.maxLevel );
+
+      db->setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
+      db->setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
+      db->setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
+      for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
+      {
+         db->setConstantEntry( "tubeLayerRadii_" + std::to_string( i ), tokamakDomain.tubeLayerRadii[i] );
+      }
+      db->setConstantEntry( "torodialStartAngle", tokamakDomain.torodialStartAngle );
+      db->setConstantEntry( "polodialStartAngle", tokamakDomain.polodialStartAngle );
+      db->setConstantEntry( "delta", tokamakDomain.delta );
+      db->setConstantEntry( "r1", tokamakDomain.r1 );
+      db->setConstantEntry( "r2", tokamakDomain.r2 );
+
+      db->setConstantEntry( "dbFile", appSettings.dbFile );
+      db->setConstantEntry( "coarseMeshAndQuit", appSettings.coarseMeshAndQuit );
+      db->setConstantEntry( "vtk", appSettings.vtk );
+      db->setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
+      db->setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
+      db->setConstantEntry( "outputLinearSystem", appSettings.outputLinearSystem );
+      db->setConstantEntry( "outputLinearSystemBaseName", appSettings.outputLinearSystemBaseName );
    }
-   db.setConstantEntry( "torodialStartAngle", tokamakDomain.torodialStartAngle );
-   db.setConstantEntry( "polodialStartAngle", tokamakDomain.polodialStartAngle );
-   db.setConstantEntry( "delta", tokamakDomain.delta );
-   db.setConstantEntry( "r1", tokamakDomain.r1 );
-   db.setConstantEntry( "r2", tokamakDomain.r2 );
-
-   db.setConstantEntry( "dbFile", appSettings.dbFile );
-   db.setConstantEntry( "coarseMeshAndQuit", appSettings.coarseMeshAndQuit );
-   db.setConstantEntry( "vtk", appSettings.vtk );
-   db.setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
-   db.setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
-   db.setConstantEntry( "outputLinearSystem", appSettings.outputLinearSystem );
-   db.setConstantEntry( "outputLinearSystemBaseName", appSettings.outputLinearSystemBaseName );
-
    const auto minLevel = discretization.minLevel;
    const auto maxLevel = discretization.maxLevel;
 
-   WALBERLA_LOG_INFO_ON_ROOT( solverSettings.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( discretization.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( tokamakDomain.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( appSettings.toString() );
+   WALBERLA_LOG_INFO_ON_ROOT( solverSettings.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( discretization.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( tokamakDomain.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( appSettings.toString() )
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
-   const auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
-                                              tokamakDomain.numPoloidalSlices,
-                                              tokamakDomain.radiusOriginToCenterOfTube,
-                                              tokamakDomain.tubeLayerRadii,
-                                              tokamakDomain.torodialStartAngle,
-                                              tokamakDomain.polodialStartAngle );
+   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
+                                        tokamakDomain.numPoloidalSlices,
+                                        tokamakDomain.radiusOriginToCenterOfTube,
+                                        tokamakDomain.tubeLayerRadii,
+                                        tokamakDomain.torodialStartAngle,
+                                        tokamakDomain.polodialStartAngle );
+   if ( tokamakDomain.refineCoarseMesh > 0 )
+   {
+      meshInfo = MeshInfo::refinedCoarseMesh( meshInfo, tokamakDomain.refineCoarseMesh );
+   }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -272,10 +305,10 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   WALBERLA_CHECK( storage->hasGlobalCells() );
+   WALBERLA_CHECK( storage->hasGlobalCells() )
 
    const auto domainInfo = storage->getGlobalInfo();
-   WALBERLA_LOG_INFO_ON_ROOT( domainInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( domainInfo )
 
    WALBERLA_LOG_INFO_ON_ROOT( "DoFs" )
    WALBERLA_LOG_INFO_ON_ROOT( "level |          inner |          total " )
@@ -284,9 +317,12 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) );
-      db.setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
-      db.setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5u | %14u | %14u", l, numInnerDoFs, numDoFs ) )
+      if ( appSettings.database )
+      {
+         db->setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
+         db->setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
+      }
    }
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------" )
 
@@ -318,263 +354,106 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       return std::max( 1e-100,
                        pow( x[2], 2 ) / pow( R2, 2 ) + pow( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ), 2 ) / pow( R1, 2 ) );
    };
-
    std::function< real_t( const hyteg::Point3D& ) > coeff = [=]( const hyteg::Point3D& x ) {
       return k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 );
    };
-
-   //! in order to test correctness of blending function, initialize dirichlet boundary with u = 0, rather than u = exact !
    std::function< real_t( const hyteg::Point3D& ) > exact = [=]( const hyteg::Point3D& x ) {
-      return -pow( x[2], 2 ) *
-             ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-             ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-             sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) / pow( R2, 2 );
+      auto x0 = x[2] / R2;
+      auto x1 = ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1;
+      auto x2 = asin( x0 );
+      auto x3 = x0 * asin( delta );
+      return -pow( x[2], 2 ) * ( x1 + cos( x2 - x3 ) ) * ( x1 - cos( x2 + x3 ) ) * sin( M_PI * x0 ) * sin( delta - x1 ) /
+             pow( R2, 2 );
    };
-
    std::function< real_t( const hyteg::Point3D& ) > rhs = [=]( const hyteg::Point3D& x ) {
-      return -( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( -pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) -
-             ( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( -pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) -
-             ( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( pow( x[2], 2 ) * pow( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ), 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) +
-                   2 * pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   pow( x[2], 2 ) * pow( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ), 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) +
-                   4 * x[2] * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   4 * x[2] * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   2 * ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 2 ) +
-                   2 * M_PI * pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) * cos( M_PI * x[2] / R2 ) / pow( R2, 3 ) -
-                   2 * M_PI * pow( x[2], 2 ) * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) * cos( M_PI * x[2] / R2 ) / pow( R2, 3 ) -
-                   4 * M_PI * x[2] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) * cos( M_PI * x[2] / R2 ) /
-                       pow( R2, 3 ) +
-                   pow( M_PI, 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 4 ) -
-                   pow( x[2], 3 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) /
-                       ( pow( R2, 5 ) * pow( 1 - pow( x[2], 2 ) / pow( R2, 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 3 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) /
-                       ( pow( R2, 5 ) * pow( 1 - pow( x[2], 2 ) / pow( R2, 2 ), 3.0L / 2.0L ) ) ) -
-             3.5 * x[2] * ( 0.5 * k_max - 0.5 * k_min ) * ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   pow( x[2], 2 ) * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   2 * x[2] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 2 ) -
-                   M_PI * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) * cos( M_PI * x[2] / R2 ) /
-                       pow( R2, 3 ) ) /
-                 ( pow( R2, 2 ) * d_jump * sqrt( r2( x ) ) ) -
-             3.5 * x[0] * ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) * ( 0.5 * k_max - 0.5 * k_min ) *
-                 ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( x[0] * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   x[0] * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   x[0] * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) /
-                 ( pow( R1, 2 ) * d_jump * sqrt( r2( x ) ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-             3.5 * x[1] * ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) * ( 0.5 * k_max - 0.5 * k_min ) *
-                 ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( pow( x[2], 2 ) * x[1] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) * x[1] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) * x[1] *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) /
-                 ( pow( R1, 2 ) * d_jump * sqrt( r2( x ) ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) );
+      auto x0  = 1.0 / R1;
+      auto x1  = pow( x[0], 2 );
+      auto x2  = pow( x[1], 2 );
+      auto x3  = x1 + x2;
+      auto x4  = sqrt( x3 );
+      auto x5  = 1.0 / x4;
+      auto x6  = x0 * x5;
+      auto x7  = 1.0 / R2;
+      auto x8  = x7 * x[2];
+      auto x9  = asin( x8 );
+      auto x10 = asin( delta );
+      auto x11 = x10 * x8;
+      auto x12 = -x11 + x9;
+      auto x13 = cos( x12 );
+      auto x14 = -R0 + x4;
+      auto x15 = x0 * x14;
+      auto x16 = x13 + x15;
+      auto x17 = delta - x15;
+      auto x18 = sin( x17 );
+      auto x19 = x16 * x18;
+      auto x20 = M_PI * x8;
+      auto x21 = sin( x20 );
+      auto x22 = pow( R2, -2 );
+      auto x23 = pow( x[2], 2 );
+      auto x24 = x22 * x23;
+      auto x25 = x21 * x24;
+      auto x26 = x19 * x25;
+      auto x27 = x26 * x6;
+      auto x28 = x11 + x9;
+      auto x29 = cos( x28 );
+      auto x30 = x15 - x29;
+      auto x31 = x18 * x21 * x30;
+      auto x32 = x24 * x31;
+      auto x33 = x32 * x6;
+      auto x34 = cos( x17 );
+      auto x35 = x30 * x34;
+      auto x36 = x16 * x35;
+      auto x37 = x25 * x36;
+      auto x38 = x37 * x6;
+      auto x39 = pow( R1, -2 );
+      auto x40 = 0.5 * k_max - 0.5 * k_min;
+      auto x41 = sqrt( r2( x ) );
+      auto x42 = 3.5 / d_jump;
+      auto x43 = tanh( x42 * ( -r_jump + x41 ) );
+      auto x44 = x40 * x42 * ( 1 - pow( x43, 2 ) ) / x41;
+      auto x45 = x14 * x39 * x44 * x5;
+      auto x46 = 2 * x16;
+      auto x47 = x22 * x31;
+      auto x48 = x46 * x47;
+      auto x49 = pow( R2, -3 );
+      auto x50 = cos( x20 );
+      auto x51 = M_PI * x23 * x49 * x50;
+      auto x52 = x19 * x30;
+      auto x53 = sin( x28 );
+      auto x54 = x10 * x7;
+      auto x55 = 1 - x24;
+      auto x56 = x7 / sqrt( x55 );
+      auto x57 = x54 + x56;
+      auto x58 = x53 * x57;
+      auto x59 = sin( x12 );
+      auto x60 = -x54 + x56;
+      auto x61 = x59 * x60;
+      auto x62 = k_min + x40 * ( x43 + 1 );
+      auto x63 = 2 * x18;
+      auto x64 = x1 * x25;
+      auto x65 = x39 / x3;
+      auto x66 = x64 * x65;
+      auto x67 = x0 / pow( x3, 3.0 / 2.0 );
+      auto x68 = x1 * x32;
+      auto x69 = x26 * x67;
+      auto x70 = 2 * x35;
+      auto x71 = x34 * x46;
+      auto x72 = -x27 - x33 + x38;
+      auto x73 = x2 * x65;
+      auto x74 = x25 * x63;
+      auto x75 = x2 * x67;
+      auto x76 = x25 * x73;
+      auto x77 = pow( x[2], 3 ) / ( pow( R2, 5 ) * pow( x55, 3.0 / 2.0 ) );
+      auto x78 = x19 * x21 * x53;
+      auto x79 = 4 * x[2];
+      return -x[0] * x45 * ( -x[0] * x27 - x[0] * x33 + x[0] * x38 ) -
+             x22 * x44 * x[2] * ( -x26 * x58 + x32 * x61 - x48 * x[2] - x51 * x52 ) -
+             x45 * x[1] * ( -x27 * x[1] - x33 * x[1] + x38 * x[1] ) -
+             x62 * ( x1 * x69 + x16 * x65 * x68 - x36 * x64 * x67 - x63 * x66 + x66 * x70 + x66 * x71 + x67 * x68 + x72 ) -
+             x62 * ( x16 * x32 * x73 + x2 * x69 + x32 * x75 - x37 * x75 + x70 * x76 + x71 * x76 + x72 - x73 * x74 ) -
+             x62 * ( x13 * x32 * pow( x60, 2 ) - x18 * x46 * x51 * x58 - x22 * x57 * x78 * x79 - x26 * x29 * pow( x57, 2 ) +
+                     x30 * x51 * x61 * x63 + x31 * x59 * x77 + x47 * x61 * x79 - x48 - M_PI * x49 * x50 * x52 * x79 +
+                     x58 * x61 * x74 - x77 * x78 + pow( M_PI, 2 ) * x16 * x23 * x31 / pow( R2, 4 ) );
    };
 
    LaplaceForm_T     form( coeff, coeff );
@@ -594,6 +473,9 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       A.computeAndStoreLocalElementMatrices();
       M.computeAndStoreLocalElementMatrices();
    }
+
+   hyteg::printFunctionAllocationInfo( *storage );
+   hyteg::printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )
 
@@ -645,55 +527,89 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    if ( solverSettings.solverType == CG )
    {
       auto cgSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, maxLevel );
-      cgSolver->setPrintInfo( true );
+      if ( solverSettings.cgHytegVerbose )
+      {
+         cgSolver->setPrintInfo( true );
+      }
       solver = cgSolver;
-   }
-   else if ( solverSettings.solverType == GMG_WJAC )
-   {
-      auto restriction  = std::make_shared< Restriction_T >();
-      auto prolongation = std::make_shared< Prolongation_T >();
-
-      auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-      auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
-
-      auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
-                                                                                          smoother,
-                                                                                          coarseGridSolver,
-                                                                                          restriction,
-                                                                                          prolongation,
-                                                                                          minLevel,
-                                                                                          maxLevel,
-                                                                                          solverSettings.preSmooth,
-                                                                                          solverSettings.postSmooth );
-      solver         = gmgSolver;
-   }
-   else if ( solverSettings.solverType == FMG_WJAC )
-   {
-      auto restriction  = std::make_shared< Restriction_T >();
-      auto prolongation = std::make_shared< Prolongation_T >();
-
-      auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-      auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
-
-      auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
-                                                                                          smoother,
-                                                                                          coarseGridSolver,
-                                                                                          restriction,
-                                                                                          prolongation,
-                                                                                          minLevel,
-                                                                                          maxLevel,
-                                                                                          solverSettings.preSmooth,
-                                                                                          solverSettings.postSmooth );
-
-      auto fmgSolver =
-          std::make_shared< FullMultigridSolver< LaplaceOperator_T > >( storage, gmgSolver, prolongation, minLevel, maxLevel );
-
-      solverPre = fmgSolver;
-      solver    = gmgSolver;
    }
    else
    {
-      WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
+      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
+
+      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
+      {
+         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >(
+             storage, minLevel, minLevel, solverSettings.maxCoarseGridSolverIterations );
+         if ( solverSettings.cgHytegVerbose )
+         {
+            actualCoarseGridSolver->setPrintInfo( true );
+         }
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
+      {
+         const auto relativeResidualToleranceCoarseGrid = 1e-30;
+         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
+         const auto maxIterationsCoarseGrid             = static_cast< idx_t >( solverSettings.maxCoarseGridSolverIterations );
+         auto       actualCoarseGridSolver =
+             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
+                                                                     minLevel,
+                                                                     relativeResidualToleranceCoarseGrid,
+                                                                     absoluteResidualToleranceCoarseGrid,
+                                                                     maxIterationsCoarseGrid );
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid coarse grid solver type." );
+      }
+
+      if ( solverSettings.solverType == GMG_WJAC )
+      {
+         auto restriction  = std::make_shared< Restriction_T >();
+         auto prolongation = std::make_shared< Prolongation_T >();
+
+         auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
+
+         auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
+                                                                                             smoother,
+                                                                                             coarseGridSolver,
+                                                                                             restriction,
+                                                                                             prolongation,
+                                                                                             minLevel,
+                                                                                             maxLevel,
+                                                                                             solverSettings.preSmooth,
+                                                                                             solverSettings.postSmooth );
+         solver         = gmgSolver;
+      }
+      else if ( solverSettings.solverType == FMG_WJAC )
+      {
+         auto restriction  = std::make_shared< Restriction_T >();
+         auto prolongation = std::make_shared< Prolongation_T >();
+
+         auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
+
+         auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
+                                                                                             smoother,
+                                                                                             coarseGridSolver,
+                                                                                             restriction,
+                                                                                             prolongation,
+                                                                                             minLevel,
+                                                                                             maxLevel,
+                                                                                             solverSettings.preSmooth,
+                                                                                             solverSettings.postSmooth );
+
+         auto fmgSolver =
+             std::make_shared< FullMultigridSolver< LaplaceOperator_T > >( storage, gmgSolver, prolongation, minLevel, maxLevel );
+
+         solverPre = fmgSolver;
+         solver    = gmgSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
+      }
    }
 
    VTKOutput vtkOutput( "./vtk", "Tokamak", storage );
@@ -710,7 +626,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    const real_t initialResidualL2 = residualL2;
 
-   writeDBEntry( db, dbEntry, residualL2, errorL2 );
+   writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
    dbEntry++;
 
    if ( appSettings.vtk )
@@ -726,51 +642,61 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
-
+   auto timingTree = storage->getTimingTree();
+   LIKWID_MARKER_START( "Solve" );
+   timingTree->start( "Solve" );
    if ( solverSettings.solverType == CG )
    {
+      timingTree->start( "CG" );
       solver->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-      writeDBEntry( db, dbEntry, residualL2, errorL2 );
+      writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
       auto residualRate = residualL2 / lastResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "final", residualL2, residualRate, errorL2 ) )
+      timingTree->stop( "CG" );
    }
    else if ( solverSettings.solverType == GMG_WJAC )
    {
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
+         timingTree->start( std::to_string( iteration ) );
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-         writeDBEntry( db, dbEntry, residualL2, errorL2 );
+         writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
          dbEntry++;
          auto residualRate = residualL2 / lastResidualL2;
          lastResidualL2    = residualL2;
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         timingTree->stop( std::to_string( iteration ) );
          iteration++;
       }
    }
    else if ( solverSettings.solverType == FMG_WJAC )
    {
+      timingTree->start( std::to_string( iteration ) );
       solverPre->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-      writeDBEntry( db, dbEntry, residualL2, errorL2 );
+      writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
       dbEntry++;
       auto residualRate = residualL2 / lastResidualL2;
       lastResidualL2    = residualL2;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "FMG", residualL2, residualRate, errorL2 ) )
+      timingTree->stop( std::to_string( iteration ) );
       iteration++;
 
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
+         timingTree->start( std::to_string( iteration ) );
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-         writeDBEntry( db, dbEntry, residualL2, errorL2 );
+         writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
          dbEntry++;
          residualRate   = residualL2 / lastResidualL2;
          lastResidualL2 = residualL2;
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         timingTree->stop( std::to_string( iteration ) );
          iteration++;
       }
    }
@@ -778,7 +704,8 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
    }
-
+   timingTree->stop( "Solve" );
+   LIKWID_MARKER_STOP( "Solve" );
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
@@ -796,7 +723,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
                                                                         PETSC_VIEWER_ASCII_MATLAB );
    }
 
-   writeDBEntry( db, dbEntry, residualL2, errorL2 );
+   writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
    dbEntry++;
 
    if ( appSettings.vtk )
@@ -804,10 +731,15 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing VTK ..." )
       vtkOutput.write( maxLevel, 1 );
    }
+   if ( appSettings.writeJson )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing JSON file:" << appSettings.jsonFileName )
+      hyteg::writeTimingTreeJSON( *( storage->getTimingTree() ), appSettings.jsonFileName );
+   }
 }
 
 template < typename T >
-std::vector< T > parseStringToVector( std::string inputStr )
+std::vector< T > parseStringToVector( const std::string& inputStr )
 {
    std::istringstream iss( inputStr );
    std::vector< T >   outputVtr{ std::istream_iterator< T >( iss ), std::istream_iterator< T >() };
@@ -816,16 +748,18 @@ std::vector< T > parseStringToVector( std::string inputStr )
 
 void run( int argc, char** argv )
 {
+   LIKWID_MARKER_INIT;
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-
-   PETScManager petScManager;
+   LIKWID_MARKER_THREADINIT;
+   PETScManager petScManager( &argc, &argv );
+   hyteg::printGitInfo();
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
       auto defaultFile = "./Tokamak.prm";
-      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile )
       cfg->readParameterFile( defaultFile );
    }
    else
@@ -846,6 +780,7 @@ void run( int argc, char** argv )
    tokamakDomain.tubeLayerRadii     = parseStringToVector< real_t >( mainConf.getParameter< std::string >( "tubeLayerRadii" ) );
    tokamakDomain.torodialStartAngle = mainConf.getParameter< real_t >( "torodialStartAngle" );
    tokamakDomain.polodialStartAngle = mainConf.getParameter< real_t >( "polodialStartAngle" );
+   tokamakDomain.refineCoarseMesh   = mainConf.getParameter< uint_t >( "refineCoarseMesh" );
 
    tokamakDomain.delta = mainConf.getParameter< real_t >( "delta" );
    tokamakDomain.r1    = mainConf.getParameter< real_t >( "r1" );
@@ -865,15 +800,23 @@ void run( int argc, char** argv )
    discretization.maxLevel    = mainConf.getParameter< uint_t >( "maxLevel" );
 
    solverSettings.solverType                = mainConf.getParameter< std::string >( "solverType" );
+   solverSettings.coarseGridSolverType      = mainConf.getParameter< std::string >( "coarseGridSolverType" );
    solverSettings.relativeResidualReduction = mainConf.getParameter< real_t >( "relativeResidualReduction" );
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
+   solverSettings.cgHytegVerbose            = mainConf.getParameter< bool >( "cgHytegVerbose" );
+   // use numeric_limits<int> here to prevent overflow when casting to PetscINt
+   solverSettings.maxCoarseGridSolverIterations =
+       mainConf.getParameter< uint_t >( "maxCoarseGridSolverIterations", std::numeric_limits< int >::max() );
 
    appSettings.dbFile                     = mainConf.getParameter< std::string >( "dbFile" );
    appSettings.coarseMeshAndQuit          = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
+   appSettings.database                   = mainConf.getParameter< bool >( "database" );
    appSettings.vtk                        = mainConf.getParameter< bool >( "vtk" );
    appSettings.vtkDirectory               = mainConf.getParameter< std::string >( "vtkDirectory" );
    appSettings.precomputeElementMatrices  = mainConf.getParameter< bool >( "precomputeElementMatrices" );
+   appSettings.jsonFileName               = mainConf.getParameter< std::string >( "jsonFileName" );
+   appSettings.writeJson                  = mainConf.getParameter< bool >( "writeJson" );
    appSettings.outputLinearSystem         = mainConf.getParameter< bool >( "outputLinearSystem" );
    appSettings.outputLinearSystemBaseName = mainConf.getParameter< std::string >( "outputLinearSystemBaseName" );
    appSettings.outputLinearSystemFormat   = mainConf.getParameter< std::string >( "outputLinearSystemFormat" );
@@ -889,8 +832,9 @@ void run( int argc, char** argv )
    }
    else
    {
-      WALBERLA_ABORT( "Discretization " << discretization.elementType << " not supported." );
+      WALBERLA_ABORT( "Discretization " << discretization.elementType << " not supported." )
    }
+   LIKWID_MARKER_CLOSE;
 }
 
 } // namespace hyteg

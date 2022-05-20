@@ -83,6 +83,7 @@ public:
     A.apply(x, r_, level, flag_);
     p_v.assign({1.0, -1.0}, {b, r_}, level, flag_);
 
+    p_z.interpolate(0, level, flag_);
     preconditioner_->solve(A, p_z, p_v, level );
 
     real_t gamma_old = 1.0;
@@ -117,6 +118,7 @@ public:
 
       p_vp.assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag_);
 
+      p_zp.interpolate(0, level, flag_);
       preconditioner_->solve(A, p_zp, p_vp, level );
 
       gamma_old = gamma_new;

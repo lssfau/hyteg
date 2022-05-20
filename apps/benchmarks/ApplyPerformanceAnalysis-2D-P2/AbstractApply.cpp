@@ -37,9 +37,9 @@ void apply_2d_vertex_to_vertex( double* WALBERLA_RESTRICT dstPtr,
                                 const uint_t                          level )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
-   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( idx_t j = 1; j < idx_t( rowsize ) - 2; ++j )
    {
-      for ( uint_t i = 1; i < rowsize -j - 1; ++i )
+      for ( idx_t i = 1; i < idx_t( rowsize ) -j - 1; ++i )
       {
          auto tmp = real_t( 0 );
          for ( const auto direction : vertexdof::macroface::neighborsWithCenter )

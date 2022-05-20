@@ -35,7 +35,6 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"

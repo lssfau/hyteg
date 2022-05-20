@@ -18,16 +18,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Face.hpp"
-#include "Edge.hpp"
-#include "Vertex.hpp"
-#include "hyteg/types/flags.hpp"
+
+#include <core/mpi/MPIManager.h>
+#include <cstddef>
+
 #include "hyteg/Math.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/types/types.hpp"
 
-#include <core/mpi/MPIManager.h>
-
-#include <cstddef>
+#include "Edge.hpp"
+#include "Vertex.hpp"
 
 namespace hyteg {
 using walberla::uint_c;
@@ -174,7 +175,8 @@ void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << coords[0];
   sendBuffer << coords[1];
   sendBuffer << coords[2];
-  sendBuffer << indirectNeighborFaceIDs_;
+  sendBuffer << indirectNeighborFaceIDsOverVertices_;
+  sendBuffer << indirectNeighborFaceIDsOverEdges_;
 }
 
 void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -186,7 +188,8 @@ void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> coords[0];
   recvBuffer >> coords[1];
   recvBuffer >> coords[2];
-  recvBuffer >> indirectNeighborFaceIDs_;
+  recvBuffer >> indirectNeighborFaceIDsOverVertices_;
+  recvBuffer >> indirectNeighborFaceIDsOverEdges_;
 }
 
 }

@@ -27,19 +27,18 @@
 
 #include "core/mpi/Gather.h"
 
-#include "hyteg/Operator.hpp"
 #include "hyteg/communication/BufferedCommunication.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
-#include "hyteg/functions/GenericFunction.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
 /// Base class for all HyTeG functions representing scalar fields
 template< typename FunctionType >
-class Function : public GenericFunction {
+class Function {
 public:
 
   typedef typename FunctionTrait< FunctionType >::Tag Tag;
@@ -77,7 +76,7 @@ public:
   const std::string &getFunctionName() const { return functionName_; }
 
   /// Returns a 1 as an object of this class represents a scalar field
-  uint_t getDimension() const override final { return 1; };
+  uint_t getDimension() const { return 1; };
 
   std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 

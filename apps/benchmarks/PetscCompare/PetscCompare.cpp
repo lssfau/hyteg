@@ -56,12 +56,13 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 
    auto cfg = std::make_shared< walberla::config::Config >();
-   if( env.config() == nullptr )
+   if ( env.config() == nullptr )
    {
       auto defaultFile = "./PetscCompare.prm";
       WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
-   } else
+   }
+   else
    {
       cfg = env.config();
    }
@@ -69,14 +70,15 @@ int main( int argc, char* argv[] )
    const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
 
    std::shared_ptr< hyteg::MeshInfo > meshInfo;
-   if( mainConf.getParameter< bool >( "useMeshFile" ) )
+   if ( mainConf.getParameter< bool >( "useMeshFile" ) )
    {
       std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
       meshInfo                 = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::fromGmshFile( meshFileName ) );
-   } else
+   }
+   else
    {
       uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
-      if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
+      if ( mainConf.getParameter< bool >( "facesTimesProcs" ) )
       {
          meshInfo = std::make_shared< hyteg::MeshInfo >(
              hyteg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
@@ -84,7 +86,7 @@ int main( int argc, char* argv[] )
    }
 
    hyteg::SetupPrimitiveStorage setupStorage( *meshInfo,
-                                            walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
@@ -101,7 +103,7 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
-   if( mainConf.getParameter< bool >( "writeDomain" ) )
+   if ( mainConf.getParameter< bool >( "writeDomain" ) )
    {
       hyteg::writeDomainPartitioningVTK( storage, "./output", "domain" );
    }
@@ -114,7 +116,7 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< double > diff( "diff", storage, level, level );
    x.interpolate( exact, level, hyteg::Inner );
    //hyteg::communication::syncFunctionBetweenPrimitives(x,level);
-   hyteg::P1Function< PetscInt >    numerator( "numerator", storage, level, level );
+   hyteg::P1Function< idx_t >       numerator( "numerator", storage, level, level );
    hyteg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    //  for (const auto & faceIT : storage->getFaces()) {
@@ -155,18 +157,19 @@ int main( int argc, char* argv[] )
    //   WALBERLA_CRITICAL_SECTION_START
    //  for (auto &edgeIT : storage->getEdges()) {
    //    auto edge = edgeIT.second;
-   //    hyteg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
+   //    hyteg::vertexdof::macroedge::printFunctionMemory< idx_t >(level, *edge, numerator.getEdgeDataID());
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 
    numerator.enumerate( level );
 
    LIKWID_MARKER_START( "PETSc-setup" );
-   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator, hyteg::P1Function > matPetsc( localDoFs, totalDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator > matPetsc;
    matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
-   hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc( localDoFs );
+   hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc;
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
-   hyteg::PETScVector< real_t, hyteg::P1Function > dstvecPetsc( localDoFs );
+   hyteg::PETScVector< real_t, hyteg::P1Function > dstvecPetsc;
+   dstvecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
    LIKWID_MARKER_STOP( "PETSc-setup" );
 
    walberla::WcTimer timer;
@@ -196,12 +199,12 @@ int main( int argc, char* argv[] )
 
    //dstvecPetsc.print("../output/vector1.vec");
 
-   diff.assign( {1.0, -1.0}, {z, y}, level, hyteg::All );
+   diff.assign( { 1.0, -1.0 }, { z, y }, level, hyteg::All );
 
-   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hyteg::VTKOutput vtkOutput("./output", "petscCompare", storage);
+      hyteg::VTKOutput vtkOutput( "./output", "petscCompare", storage );
       vtkOutput.add( x );
       vtkOutput.add( z );
       vtkOutput.add( y );
@@ -212,12 +215,12 @@ int main( int argc, char* argv[] )
    walberla::WcTimingTree tt  = timingTree->getReduced();
    auto                   tt2 = tt.getCopyWithRemainder();
 
-   if( mainConf.getParameter< bool >( "printTiming" ) )
+   if ( mainConf.getParameter< bool >( "printTiming" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( tt2 );
    }
 
-   if( mainConf.getParameter< bool >( "writeJSON" ) )
+   if ( mainConf.getParameter< bool >( "writeJSON" ) )
    {
       nlohmann::json ttjson = nlohmann::json( tt2 );
       std::ofstream  o( "PetscCompareOutput.json" );

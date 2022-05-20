@@ -21,7 +21,6 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
@@ -29,6 +28,7 @@
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p2functionspace/P2Elements3D.hpp"
 
 namespace hyteg {
@@ -49,6 +49,12 @@ class EdgeDoFOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >,
                uint_t                           level,
                DoFType                          flag,
                UpdateType                       updateType ) const;
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EdgeDoFFunction< idx_t >&             src,
+                  const EdgeDoFFunction< idx_t >&             dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const;
 
    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                             getEdgeStencilID() const;
    const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >& getEdgeStencil3DID() const;

@@ -44,6 +44,16 @@ public:
         return x*x*x*x*x*x;
       case 7:
         return x*x*x*x*x*x*x;
+      case 8:
+        return x*x*x*x*x*x*x*x;
+      case 9:
+        return x*x*x*x*x*x*x*x*x;
+      case 10:
+        return x*x*x*x*x*x*x*x*x*x;
+      case 11:
+        return x*x*x*x*x*x*x*x*x*x*x;
+      case 12:
+        return x*x*x*x*x*x*x*x*x*x*x*x;
       default:
         WALBERLA_ABORT("Polynomial basis " << basis << " was not generated");
     }
