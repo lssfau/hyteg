@@ -8,7 +8,7 @@ option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                        
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
-option ( BUILD_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
+option ( BUILD_TERRANEO_MODULE        "Build TerraNeo module"                         ON)
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
@@ -34,6 +34,17 @@ find_package( waLBerla )
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
     add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
+endif()
+
+# Add flags and libraries required to build terraneo submodule
+if( BUILD_TERRANEO_MODULE )
+   if(DEFINED CGAL_INCLUDE_PATH)
+     add_flag ( CMAKE_CXX_FLAGS "-I${CGAL_INCLUDE_PATH}/include -DCGAL_DISABLE_ROUNDING_MATH_CHECK" )
+     message( STATUS "Using CGAL_INCLUDE_PATH = ${CGAL_INCLUDE_PATH}" )
+   else()
+     message(FATAL_ERROR "If BUILD_TERRANEO_MODULE is ON, you need to specify -DCGAL_INCLUDE_PATH=<path to cgal directory>")
+   endif()
+     add_flag ( CMAKE_EXE_LINKER_FLAGS "-lmpfr -lgmp" )
 endif()
 
 # We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD
