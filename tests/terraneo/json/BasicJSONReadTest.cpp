@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
    printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
 
-   std::string   jsonFileName{"../../data/json/BasicJSONReadTest.json"};
+   std::string   jsonFileName{"../../data/terraneo/BasicJSONReadTest.json"};
    std::ifstream jsonFile;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Opening '" << jsonFileName << "'" );
