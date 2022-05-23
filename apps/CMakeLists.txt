@@ -71,6 +71,7 @@ waLBerla_add_executable( NAME annulus
         DEPENDS hyteg)
 endif()
 
+add_subdirectory(2DPlume)
 add_subdirectory(benchmarks)
 add_subdirectory(Blankenbach)
 add_subdirectory(MG_with_mixed_BCs)
