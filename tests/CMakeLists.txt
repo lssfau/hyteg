@@ -1,3 +1,6 @@
 add_subdirectory( hyteg )
 add_subdirectory( convection_particles )
-add_subdirectory( terraneo )
+
+if( BUILD_TERRANEO_MODULE )
+  add_subdirectory( terraneo )
+endif()
