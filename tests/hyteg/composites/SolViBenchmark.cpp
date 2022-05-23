@@ -48,6 +48,8 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/MeshQuality.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -69,8 +71,6 @@ by Cedric Thieulot and Wolfgang Bangerth
 
 [2]: "Analytical solutions for deformable elliptical inclusions in general shear" 
 by Daniel W. Schmid and Yuri Yu. Podladchikov
-
-
 */
 
 std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
@@ -122,8 +122,8 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
 
 
    // analytic solution for u,v,p
-   const real_t                                     C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
-   const real_t A = C_visc* (visc_inclusion - visc_matrix);
+   const real_t                                                    C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
+   const real_t                                                         A = C_visc* (visc_inclusion - visc_matrix);
    std::function<  hyteg::Point3D( const hyteg::Point3D& ) > analytic_uvp = [A,r_inclusion,visc_matrix,visc_inclusion]( const hyteg::Point3D& xx ) {
         std::complex<real_t> phi, psi, dphi;
         real_t r2_inclusion = r_inclusion * r_inclusion;
@@ -150,22 +150,22 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
         std::complex<real_t> v = (phi - z*conj(dphi) - conj(psi))/(2.0*visc); 
         return Point3D({v.real(), v.imag(), -2*dphi.real()});
     };
-   std::function< real_t( const hyteg::Point3D& ) > exactU = [analytic_uvp]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > analyticU = [analytic_uvp]( const hyteg::Point3D& xx ) {
         auto uvp =  analytic_uvp(xx);
         return uvp[0];
    };
-   std::function< real_t( const hyteg::Point3D& ) > exactV = [analytic_uvp]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > analyticV = [analytic_uvp]( const hyteg::Point3D& xx ) {
         auto uvp =  analytic_uvp(xx);
         return uvp[1];
    };
-   std::function< real_t( const hyteg::Point3D& ) > exactP = [analytic_uvp]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > analyticP = [analytic_uvp]( const hyteg::Point3D& xx ) {
         auto uvp =  analytic_uvp(xx);
         return uvp[2];
     };
-   x_exact.uvw().interpolate( { exactU, exactV }, level );
-   x_exact.p().interpolate( exactP, level );
-   x.uvw().interpolate( { exactU, exactV }, level, hyteg::DirichletBoundary );
-   //x.p().interpolate( { exactP }, level, hyteg::DirichletBoundary );
+   x_exact.uvw().interpolate( { analyticU, analyticV }, level );
+   x_exact.p().interpolate( analyticP, level );
+   x.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
+   //x.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
 
     // Right-hand-side: derivatives of u, v, p for x and y
@@ -181,7 +181,7 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
                 - 36.0*std::pow(xx[1],6.0)
             )/(std::pow(xx[0]*xx[0] + xx[1]*xx[1],5.0));
     };
-     std::function< real_t( const hyteg::Point3D& ) > ddy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+    std::function< real_t( const hyteg::Point3D& ) > ddy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
             return A*std::pow(r_inclusion,2.0)*xx[0]*(
                 std::pow(r_inclusion,2.0)
                 *(
@@ -229,7 +229,7 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
                 +36.0* std::pow(xx[1],6.0)
             )/(std::pow(xx[0]*xx[0] + xx[1]*xx[1],5.0));
     }; 
-  std::function< real_t( const hyteg::Point3D& ) > dxdy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+    std::function< real_t( const hyteg::Point3D& ) > dxdy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
           return A*std::pow(r_inclusion,2.0)*xx[1]*(
                 std::pow(r_inclusion,2.0)
                 *(
@@ -241,18 +241,11 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
                 - 4.0*std::pow(xx[1],6.0)
             )/(std::pow(xx[0]*xx[0] + xx[1]*xx[1],5.0));
     }; 
-     std::function< real_t( const hyteg::Point3D& ) > ddx_p = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
-          return (12.0*A*std::pow(r_inclusion,2.0)*(std::pow(xx[0],4.0) - 6.0*std::pow(xx[0],2.0)*std::pow(xx[1],2.0)+std::pow(xx[1],4.0))
-            )/(std::pow(xx[0]*xx[0] + xx[1]*xx[1],4.0));
-    }; 
-       std::function< real_t( const hyteg::Point3D& ) > ddy_p = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
-          return (-12.0*A*std::pow(r_inclusion,2.0)*(std::pow(xx[0],4.0) - 6.0*std::pow(xx[0],2.0)*std::pow(xx[1],2.0)+std::pow(xx[1],4.0))
-            )/(std::pow(xx[0]*xx[0] + xx[1]*xx[1],4.0));
-    }; 
 
-    // right hand side: setup by epsilon operator and gradient
+
+    // right hand side: setup by epsilon operator on u,v and gradient of p 
    std::function< real_t( const hyteg::Point3D& ) > rhsU =
-    [r_inclusion, A, rad, ddx_u, ddy_u, dydx_v, ddx_p, visc_matrix]( const hyteg::Point3D& xx ) {
+    [r_inclusion, A, rad, ddx_u, ddy_u, dydx_v,  visc_matrix]( const hyteg::Point3D& xx ) {
         if ( rad( xx ) < r_inclusion )
             return 0.0;
         else 
@@ -260,14 +253,13 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
     
     };
     std::function< real_t( const hyteg::Point3D& ) > rhsV =
-    [r_inclusion, A, rad, ddx_v, ddy_v,dxdy_u, ddy_p, visc_matrix]( const hyteg::Point3D& xx ) {
+    [r_inclusion, A, rad, ddx_v, ddy_v,dxdy_u,  visc_matrix]( const hyteg::Point3D& xx ) {
         if (   rad( xx ) < r_inclusion )
             return 0.0;
         else 
             return -0.5*(ddx_v(xx) + 2*ddy_v(xx) + dxdy_u(xx)) + real_c(2) * A * std::pow(r_inclusion,2.0) * (xx[0]*sin(2.0*atan(xx[1]/xx[0])) + xx[1]*cos(2.0*atan(xx[1]/xx[0])))/std::pow(xx[0]*xx[0] + xx[1]*xx[1],2.0); //+ ddy_p(xx);
 
     };
-    
     btmp.uvw().interpolate({rhsU, rhsV},level, hyteg::Inner);  
     P2ConstantMassOperator VelMassOp(storage, level, level);
     VelMassOp.apply(btmp.uvw()[0], b.uvw()[0], level,All);
@@ -299,39 +291,30 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
    OP.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner  );
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner  );
-   real_t discr_l2_err_u =
-       std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, hyteg::Inner ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_v =
-       std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, hyteg::Inner) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_p =
-       std::sqrt( err.p().dotGlobal( err.p(), level, hyteg::Inner ) / (real_t) globalDoFs1 );
-   real_t residuum_l2 =
-       std::sqrt( residuum.dotGlobal( residuum, level, hyteg::Inner  ) / (real_t) globalDoFs1 );
-  /*
-   WALBERLA_LOG_INFO_ON_ROOT( "initial errors and residual:" );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
-   WALBERLA_LOG_INFO_ON_ROOT( "residual = " << residuum_l2 );
-*/
-   // Solve
+   real_t discr_l2_err_u,discr_l2_err_v,residuum_l2,discr_l2_err_p;
+
+
+   // Solvers
    PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > BlockprecMINRES(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 0 );
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
-
-
+   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > MassPrecMINRES(
+       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 0, 0, 1 );
+   //PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
+   //    storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 100, true);
+   auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 100, true);
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, level, 1e-8, 100, true);
    walberla::WcTimer timer;
    switch ( solver )
    {
    case 0:
-      BlockprecMINRES.solve( OP, x, b, level );
+      ViscWeightedPMINRES->solve( OP, x, b, level );
       break;
    case 1:
-      GKB.solve( OP, x, b, level );
+      OnlyPressurePMINRES->solve(OP, x, b, level);
       break;
-      //   case 2: GMG.solve( A, x, b, level ); break;
+   case 2:
+       StdBlkdiagPMINRES->solve(OP, x, b, level);
+       break;
    default:
       LU.solve( OP, x, b, level );
    }
@@ -376,12 +359,12 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-
+    uint_t solver = 2;
     // compute errors
-    std::vector<uint_t> levels = {4,5,6,7};
+    std::vector<uint_t> levels = {6};
     std::vector<std::tuple<real_t, real_t, real_t>> errors_per_h;
     for(auto lvl : levels) {
-        auto error_per_h = SolViBenchmark( lvl, 2, 1, 0.2, 1000.0, 1.0 );
+        auto error_per_h = SolViBenchmark( lvl, solver, 1, 0.2, 1000.0, 1.0 );
         errors_per_h.push_back(error_per_h);
     }
 
