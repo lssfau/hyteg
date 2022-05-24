@@ -87,11 +87,16 @@ add_subdirectory(2020-moc)
 add_subdirectory(2020-tme)
 add_subdirectory(2020-scaling-workshop)
 add_subdirectory(GMRESTestApp)
-if( HYTEG_BUILD_WITH_PETSC )
-add_subdirectory(2021-tokamak)
-endif()
 add_subdirectory(GKBTestProblemGeneration)
-add_subdirectory(SphericalHarmonics)
+
+if( HYTEG_BUILD_WITH_PETSC )
+  add_subdirectory(2021-tokamak)
+endif()
+
+if( HYTEG_TERRANEO_MODULE )
+  add_subdirectory(SphericalHarmonics)
+endif()
+
 add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)
