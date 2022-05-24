@@ -5,7 +5,7 @@
 ################################################################################
 
 add_library( terraneo )
-target_link_libraries( terraneo PUBLIC core hyteg )
+target_link_libraries( terraneo PUBLIC core hyteg -lmpfr -lgmp )
 # target_sources( terraneo )
 
 add_subdirectory( dataimport )

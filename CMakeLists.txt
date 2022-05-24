@@ -44,7 +44,6 @@ if( HYTEG_TERRANEO_MODULE )
    else()
      message(FATAL_ERROR "If HYTEG_TERRANEO_MODULE is ON, you need to specify -DCGAL_INCLUDE_PATH=<path to cgal directory>")
    endif()
-     add_flag ( CMAKE_EXE_LINKER_FLAGS "-lmpfr -lgmp" )
 
    # Unpack plate topology file
    if( NOT EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson )
