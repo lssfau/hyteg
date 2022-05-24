@@ -45,6 +45,16 @@ if( HYTEG_TERRANEO_MODULE )
      message(FATAL_ERROR "If HYTEG_TERRANEO_MODULE is ON, you need to specify -DCGAL_INCLUDE_PATH=<path to cgal directory>")
    endif()
      add_flag ( CMAKE_EXE_LINKER_FLAGS "-lmpfr -lgmp" )
+
+   # Unpack plate topology file
+   if( NOT EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson )
+     if( EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson.bz2 )
+       message( STATUS "Unpacking plate topologies file" )
+       execute_process(COMMAND bunzip2 "--keep" "topologies0-100Ma.geojson.bz2" WORKING_DIRECTORY ${hyteg_SOURCE_DIR}/data/terraneo/plates )
+     else()
+       message( WARNING "Missing plate topologies file: ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson.bzip2" )
+     endif()
+   endif()
 endif()
 
 # We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD
