@@ -152,7 +152,8 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    P1DGEMassOperator M( storage, level, level );
 
-   dg::DGOperator M_pressure( storage, level, level, std::make_shared< dg::DGMassForm_Example >() );
+   auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+   dg::DGOperator M_pressure( storage, level, level, mass_form );
 
    P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
@@ -224,6 +225,17 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    P1DGEP0StokesFunction< real_t > sol( "sol", storage, level, level );
    P1DGEP0StokesFunction< real_t > err( "err", storage, level, level );
    P1DGEP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
+
+   auto copyBdry = []( P1DGEP0StokesFunction< real_t > fun ) {
+      fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() );
+   };
+
+   copyBdry( u );
+   copyBdry( f );
+   copyBdry( rhs );
+   copyBdry( sol );
+   copyBdry( err );
+   copyBdry( Merr );
 
    sol.uvw().interpolate( { u_x_expr, u_y_expr }, level, All );
    sol.p().interpolate( p_expr, level, All );

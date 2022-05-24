@@ -1888,5 +1888,174 @@ class DGVectorMassFormEDGEDG : public hyteg::dg::DGForm2D
    }
 };
 
+class DGMassFormP0P0 : public hyteg::dg::DGForm2D
+{
+ protected:
+   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                           const DGBasisInfo&                                       trialBasis,
+                           const DGBasisInfo&                                       testBasis,
+                           int                                                      trialDegree,
+                           int                                                      testDegree,
+                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coords[0]( 0 );
+      const auto p_affine_0_1 = coords[0]( 1 );
+
+      const auto p_affine_1_0 = coords[1]( 0 );
+      const auto p_affine_1_1 = coords[1]( 1 );
+
+      const auto p_affine_2_0 = coords[2]( 0 );
+      const auto p_affine_2_1 = coords[2]( 1 );
+
+      real_t tmp_0  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
+                               p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
+      real_t a_0_0  = 0.5 * tmp_0;
+      elMat( 0, 0 ) = a_0_0;
+   }
+
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+   }
+
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElementInner[0]( 0 );
+      const auto p_affine_0_1 = coordsElementInner[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElementInner[1]( 0 );
+      const auto p_affine_1_1 = coordsElementInner[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElementInner[2]( 0 );
+      const auto p_affine_2_1 = coordsElementInner[2]( 1 );
+
+      const auto p_affine_3_0 = coordsElementOuter[0]( 0 );
+      const auto p_affine_3_1 = coordsElementOuter[0]( 1 );
+
+      const auto p_affine_4_0 = coordsElementOuter[1]( 0 );
+      const auto p_affine_4_1 = coordsElementOuter[1]( 1 );
+
+      const auto p_affine_5_0 = coordsElementOuter[2]( 0 );
+      const auto p_affine_5_1 = coordsElementOuter[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertexInnerElement( 0 );
+      const auto p_affine_8_1 = oppositeVertexInnerElement( 1 );
+
+      const auto p_affine_9_0 = oppositeVertexOuterElement( 0 );
+      const auto p_affine_9_1 = oppositeVertexOuterElement( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+   };
+
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+   }
+
+   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                         const DGBasisInfo&                                       basis,
+                                         int                                                      degree,
+                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( oppositeVertex );
+      WALBERLA_UNUSED( outwardNormal );
+      WALBERLA_UNUSED( basis );
+      WALBERLA_UNUSED( degree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
+};
+
 } // namespace dg
 } // namespace hyteg
