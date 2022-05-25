@@ -18,9 +18,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <coupling_hyteg_convection_particles/MMOCTransport.hpp>
-#include <hyteg/dataexport/VTKOutput.hpp>
-
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
@@ -28,12 +25,15 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 namespace hyteg {
 std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()
@@ -47,18 +47,21 @@ std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()
 
 void runPlume()
 {
-   const uint_t minLevel       = 2;
-   const uint_t maxLevel       = 5;
-   const uint_t stokesSteps    = 100;
-   const uint_t transportSteps = 10;
-   const real_t convectivity   = 1e3;
-   uint_t       vtkStep        = 0;
+   const uint_t minLevel     = 2;
+   const uint_t maxLevel     = 6;
+   const uint_t stokesSteps  = 20;
+   const real_t convectivity = 1e4;
+   uint_t       vtkStep      = 0;
+   const bool   vtk          = false;
 
    auto storage = createPrimitiveStorage();
 
    const real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
 
-   writeDomainPartitioningVTK( storage, "vtk", "domain" );
+   if constexpr ( vtk )
+   {
+      writeDomainPartitioningVTK( storage, "vtk", "domain" );
+   }
    P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
@@ -74,23 +77,33 @@ void runPlume()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    std::function< real_t( const Point3D& ) > initialTemperature = []( const Point3D& x ) {
-      return std::exp(  2.0 * (2.0 - x[1]) );// * ( std::sin( walberla::math::pi * x[0] ) ) );
+      return std::exp( 2.0 * ( 2.0 - x[1] ) ) + 0.1 * std::sin( walberla::math::pi * x[0] );
    };
 
    c.interpolate( initialTemperature, maxLevel, All );
 
    VTKOutput vtkOutput( "vtk", "2DPlume", storage );
-   vtkOutput.add( c );
-   vtkOutput.add( u );
-   vtkOutput.add( f );
-   vtkOutput.write( maxLevel, vtkStep );
+   if constexpr ( vtk )
+   {
+      vtkOutput.add( c );
+      vtkOutput.add( u );
+      vtkOutput.add( f );
+      vtkOutput.write( maxLevel, vtkStep );
+   }
 
    auto laplace              = std::make_shared< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel );
    auto massVelocityOperator = std::make_shared< P2ConstantMassOperator >( storage, minLevel, maxLevel );
-   //auto solver = solvertemplates::stokesMinResSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, 1e-8, 10000, true );
-   auto solver = solvertemplates::stokesGMGUzawaSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
+   auto solver = solvertemplates::stokesMinResSolver< P2P1TaylorHoodStokesOperator >( storage, maxLevel, 1e-6, 10000, false );
+   //auto solver = solvertemplates::stokesGMGUzawaSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
 
    MMOCTransport< P2Function< real_t > > transportOperator( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+
+   auto calculateResidual = [&]() {
+      laplace->apply( u, r, maxLevel, Inner );
+      r.assign( { 1.0, -1.0 }, { f, r }, maxLevel, Inner );
+      return sqrt( r.dotGlobal( r, maxLevel, Inner ) ) /
+             real_c( numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel ) );
+   };
 
    for ( uint_t stokes = 0; stokes < stokesSteps; ++stokes )
    {
@@ -104,9 +117,11 @@ void runPlume()
       auto   vMax = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, maxLevel, All );
       real_t dt   = ( 1.0 / vMax ) * hMin;
       transportOperator.step( c, u.uvw(), u.uvw(), maxLevel, All, dt, 1, true );
-
-      vtkOutput.write( maxLevel, vtkStep );
-      WALBERLA_LOG_INFO_ON_ROOT( "Stokes Step: " << stokes );
+      if constexpr ( vtk )
+      {
+         vtkOutput.write( maxLevel, vtkStep );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "Stokes Step: " << stokes << " residual: " << calculateResidual() );
    }
    auto timingTree = storage->getTimingTree();
    writeTimingTreeJSON( *timingTree, "timingTree.json" );
