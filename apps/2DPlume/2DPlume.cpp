@@ -28,6 +28,8 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -48,8 +50,8 @@ std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()
 void runPlume()
 {
    const uint_t minLevel     = 2;
-   const uint_t maxLevel     = 6;
-   const uint_t stokesSteps  = 20;
+   const uint_t maxLevel     = 5;
+   const uint_t stokesSteps  = 2;
    const real_t convectivity = 1e4;
    uint_t       vtkStep      = 0;
    const bool   vtk          = false;
@@ -95,6 +97,8 @@ void runPlume()
    auto massVelocityOperator = std::make_shared< P2ConstantMassOperator >( storage, minLevel, maxLevel );
    auto solver = solvertemplates::stokesMinResSolver< P2P1TaylorHoodStokesOperator >( storage, maxLevel, 1e-6, 10000, false );
    //auto solver = solvertemplates::stokesGMGUzawaSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
+//   auto solver =
+//       std::make_shared< PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, maxLevel, 1e-6, 1e-16, 10000 );
 
    MMOCTransport< P2Function< real_t > > transportOperator( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
@@ -133,6 +137,7 @@ int main( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+   //hyteg::PETScManager petscManager( &argc, &argv );
 
    hyteg::runPlume();
    return 0;
