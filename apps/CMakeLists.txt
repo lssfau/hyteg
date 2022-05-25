@@ -94,7 +94,7 @@ if( HYTEG_BUILD_WITH_PETSC )
 endif()
 
 if( HYTEG_TERRANEO_MODULE )
-  add_subdirectory(SphericalHarmonics)
+  add_subdirectory(TerraNeo)
 endif()
 
 add_subdirectory(Surrogates)
