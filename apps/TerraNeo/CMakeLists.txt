@@ -1,3 +1,2 @@
-if( HYTEG_TERRANEO_MODULE )
-  add_subdirectory(SphericalHarmonics)
-endif()
+add_subdirectory(PlateVelocities)
+add_subdirectory(SphericalHarmonics)
