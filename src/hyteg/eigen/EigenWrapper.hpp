@@ -22,3 +22,6 @@
 #include "hyteg/HytegDefinitions.hpp"
 
 #include <Eigen/Dense>
+
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE uint_t
+
