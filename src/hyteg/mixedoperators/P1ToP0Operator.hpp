@@ -115,6 +115,15 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
       communication::syncFunctionBetweenPrimitives( src, level );
 
+      if ( !storage_->hasGlobalCells() )
+      {
+         src.template communicate< Face, Face >( level );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Not implemented." );
+      }
+
       const auto storage = this->getStorage();
 
       int dim = 2;
@@ -148,15 +157,13 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
          std::map< uint_t, VType* > glMemory;
 
-         // TODO: Handle P1 ghost layer memory (here probably) for neighboring macros.
-#if 0
          if ( dim == 2 )
          {
             WALBERLA_ASSERT( storage->faceExistsLocally( pid ) );
             const auto face = storage->getFace( pid );
             for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = face->template getData( src.getFaceGLDataID( n ) );
             }
          }
          else
@@ -165,11 +172,10 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
             const auto cell = storage->getCell( pid );
             for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = cell->template getData( src.getCellGLDataID( n ) );
             }
          }
 
-#endif
          const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
@@ -413,19 +419,18 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
                         if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
                         {
-                           WALBERLA_ABORT( "P1-P0 interface integrals at macro-macro boundary not implemented." );
-
                            ////////////////////////////////////////////////
                            // i) micro-interface on macro-macro-boundary //
                            ////////////////////////////////////////////////
-#if 0
+
                            // The neighboring micro-element coords have to be computed since they are now different as for an
                            // element on the same macro-volume.
+                           std::vector< Index >                         neighborElementVertexIndices;
                            std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
                            Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
 
                            neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                               n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+                               n, neighborElementVertexIndices, neighborElementVertexCoords, neighborOppositeVertexCoords );
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( dim,
@@ -442,9 +447,38 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                                           localMat );
 
                            // Now we need the DoFs from the neighboring element.
+                           //
+                           // Those are partly on the current macro, and partly on the ghost-layer. This makes things a little
+                           // more difficult for the CG element. We have to make sure that the order in which we plug in the
+                           // element coords into the form is the same order we put the src vertex DoFs.
+                           //
+                           // What we have at hand are the local micro-vertex from the perspective of the neighboring macro in the
+                           // correct order. Looping over those, we translate the indices to the indices of the micro-vertices
+                           // local to the dst macro. One of those is _not_ located on the macro-macro-boundary. This is the
+                           // micro-vertex that must be taken from the ghost-layer.
+
                            Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
                            std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
+                           std::vector< bool >   onGhostLayer( numSrcDofs );
+
+                           for ( const auto& nElementVertexIdx : neighborElementVertexIndices )
+                           {
+                              // basis trafo to local volume macro
+
+                              if ( vertexdof::macrocell::isOnCellFace( ... ) )
+                              {
+                                 // get index on GL
+                              }
+                              else
+                              {
+
+
+                                 // fetch DoFs from local mem
+                              }
+                           }
+
+
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                            {
@@ -519,7 +553,6 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                  }
                               }
                            }
-#endif
                         }
                         else
                         {
@@ -708,6 +741,6 @@ typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_0 > P1ToP0ConstantP1EDGVectorM
 typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >             P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
 
-typedef P1ToP0Operator< dg::DGDivtFormEDGP1 >         P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
+typedef P1ToP0Operator< dg::DGDivtFormEDGP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 
 } // namespace hyteg

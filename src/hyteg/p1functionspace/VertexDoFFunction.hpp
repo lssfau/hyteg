@@ -76,6 +76,13 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+   VertexDoFFunction( const std::string&                         name,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      uint_t                                     minLevel,
+                      uint_t                                     maxLevel,
+                      BoundaryCondition                          boundaryCondition,
+                      bool                                       addVolumeGhostLayer );
+
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
@@ -95,6 +102,19 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
+
+   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& getFaceGLDataID( uint_t glID ) const
+   {
+      WALBERLA_CHECK( hasVolumeGhostLayer() );
+      WALBERLA_CHECK( !this->getStorage()->hasGlobalCells() );
+      return faceGhostLayerDataIDs_[glID];
+   }
+   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& getCellGLDataID( uint_t glID ) const
+   {
+      WALBERLA_CHECK( hasVolumeGhostLayer() );
+      WALBERLA_CHECK( this->getStorage()->hasGlobalCells() );
+      return cellGhostLayerDataIDs_[glID];
+   }
 
    void swap( const VertexDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -426,6 +446,18 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
       return numberOfGlobalDoFs< P1FunctionTag >( *this->storage_, level, communicator, onRootOnly );
    }
 
+   bool hasVolumeGhostLayer() const
+   {
+      if ( this->getStorage()->hasGlobalCells() )
+      {
+         return !cellGhostLayerDataIDs_.empty();
+      }
+      else
+      {
+         return !faceGhostLayerDataIDs_.empty();
+      }
+   }
+
  private:
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
@@ -439,6 +471,11 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
+
+   /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
+   /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
 };
 
 inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )

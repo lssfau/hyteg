@@ -608,6 +608,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 }
 
 void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,
+                                                                    std::vector< Index >& neighborElementVertexIndices,
                                                                     std::vector< Point >& neighborElementVertexCoords,
                                                                     Point&                neighborOppositeVertexCoords ) const
 {
@@ -713,8 +714,10 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
          }
       }
 
-      const auto neighborElementVertexIndices =
+      const auto neighborElementVertexIndicesArr =
           celldof::macrocell::getMicroVerticesFromMicroCell( elementIdxNeighborMicro, nCellTypeLocalToNeighbor );
+      neighborElementVertexIndices.insert(
+          neighborElementVertexIndices.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
       // Find the idx of the opposing micro-vertex. It should not be located on the interface macro.
       Index opposingMicroVertexIdx;
@@ -796,8 +799,10 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       // In 2D the neighboring micro-face is always of type GRAY since only those are on the boundary.
       const auto nFaceTypeLocalToNeighbor = facedof::FaceType::GRAY;
 
-      const auto neighborElementVertexIndices =
+      const auto neighborElementVertexIndicesArr =
           facedof::macroface::getMicroVerticesFromMicroFace( elementIdxNeighborMicro, nFaceTypeLocalToNeighbor );
+      neighborElementVertexIndices.insert(
+          neighborElementVertexIndices.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
       // Eventually we need to know the coordinates of the micro-vertex that is opposite to the interface.
       // First find out what the local interface ID of the other macro-volume is.
