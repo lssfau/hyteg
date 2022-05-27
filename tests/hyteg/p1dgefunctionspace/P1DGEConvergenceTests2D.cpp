@@ -31,8 +31,8 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
@@ -180,44 +180,54 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
       const real_t y = p[1];
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( y );
-      return 0;
+      return std::sin( M_PI * x ) * std::sin( M_PI * y ) * std::sin( M_PI * ( x + y ) );
    };
 
    // rhs as a lambda function
    std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = M_PI * x;
-      const real_t x1 = std::sin( x0 );
-      const real_t x2 = M_PI * ( x + y );
-      const real_t x3 = std::pow( M_PI, 2 );
-      const real_t x4 = M_PI * y;
-      const real_t x5 = x3 * std::sin( x4 );
-      const real_t x6 = 2 * std::cos( x2 );
-      return -x1 * x3 * x6 * std::cos( x4 ) + 4 * x1 * x5 * std::sin( x2 ) - x5 * x6 * std::cos( x0 );
+      const real_t x   = p[0];
+      const real_t y   = p[1];
+      const real_t x0  = M_PI * y;
+      const real_t x1  = std::sin( x0 );
+      const real_t x2  = M_PI * x1;
+      const real_t x3  = M_PI * ( x + y );
+      const real_t x4  = std::cos( x3 );
+      const real_t x5  = M_PI * x;
+      const real_t x6  = std::sin( x5 );
+      const real_t x7  = x4 * x6;
+      const real_t x8  = std::cos( x5 );
+      const real_t x9  = std::sin( x3 );
+      const real_t x10 = std::pow( M_PI, 2 );
+      const real_t x11 = 2 * x10;
+      return 4 * x1 * x10 * x6 * x9 - x1 * x11 * x4 * x8 - x11 * x7 * std::cos( x0 ) + x2 * x7 + x2 * x8 * x9;
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = M_PI * x;
-      const real_t x1 = std::sin( x0 );
-      const real_t x2 = M_PI * ( x + y );
-      const real_t x3 = std::pow( M_PI, 2 );
-      const real_t x4 = M_PI * y;
-      const real_t x5 = x3 * std::sin( x4 );
-      const real_t x6 = 2 * std::cos( x2 );
-      return -x1 * x3 * x6 * std::cos( x4 ) + 4 * x1 * x5 * std::sin( x2 ) - x5 * x6 * std::cos( x0 );
+      const real_t x   = p[0];
+      const real_t y   = p[1];
+      const real_t x0  = M_PI * x;
+      const real_t x1  = std::sin( x0 );
+      const real_t x2  = M_PI * x1;
+      const real_t x3  = M_PI * ( x + y );
+      const real_t x4  = std::cos( x3 );
+      const real_t x5  = M_PI * y;
+      const real_t x6  = std::sin( x5 );
+      const real_t x7  = x4 * x6;
+      const real_t x8  = std::cos( x5 );
+      const real_t x9  = std::sin( x3 );
+      const real_t x10 = std::pow( M_PI, 2 );
+      const real_t x11 = 2 * x10;
+      return 4 * x1 * x10 * x6 * x9 - x1 * x11 * x4 * x8 - x11 * x7 * std::cos( x0 ) + x2 * x7 + x2 * x8 * x9;
    };
    std::function< real_t( const Point3D& p ) > g_expr = []( const Point3D& p ) -> real_t {
       const real_t x  = p[0];
       const real_t y  = p[1];
-      const real_t x0 = M_PI * x;
-      const real_t x1 = std::sin( x0 );
-      const real_t x2 = M_PI * y;
-      const real_t x3 = std::sin( x2 );
-      const real_t x4 = M_PI * ( x + y );
-      const real_t x5 = M_PI * std::sin( x4 );
-      return -2 * M_PI * x1 * x3 * std::cos( x4 ) - x1 * x5 * std::cos( x2 ) - x3 * x5 * std::cos( x0 );
+      const real_t x0 = M_PI * y;
+      const real_t x1 = M_PI * x;
+      const real_t x2 = std::sin( x1 );
+      const real_t x3 = M_PI * ( x + y );
+      const real_t x4 = M_PI * std::sin( x3 );
+      const real_t x5 = std::sin( x0 );
+      return -x2 * x4 * std::cos( x0 ) - 2 * M_PI * x2 * x5 * std::cos( x3 ) - x4 * x5 * std::cos( x1 );
    };
 
    P1DGEP0StokesFunction< real_t > u( "u", storage, level, level );
