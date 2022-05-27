@@ -49,30 +49,31 @@ template < typename feFuncType >
 void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > storage )
 {
    // initialise an oracle
-   std::string                             dataDir{"../../data/terraneo/plates/"};
+   std::string                             dataDir{ "../../../data/terraneo/plates/" };
    std::string                             fnameTopologies      = dataDir + "topologies0-100Ma.geojson";
    std::string                             fnameReconstructions = dataDir + "Global_EarthByte_230-0Ma_GK07_AREPS.rot";
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
 
    // set age we want to use
-   real_t age{real_t( 34 )};
+   real_t age{ real_t( 34 ) };
 
    // need that here, to capture it below ;-)
    uint_t coordIdx = 0;
 
    std::function< real_t( const Point3D& ) > computeVelocityComponent = [&oracle, age, &coordIdx]( const Point3D& point ) {
-      vec3D velocity = oracle.getPointVelocity( point, age );
+      vec3D coords{ point[0], point[1], point[2] };
+      vec3D velocity = oracle.getPointVelocity( coords, age );
       return velocity[coordIdx];
    };
 
    // set everything to zero in the interior
    feFuncType demoFunc( "demoFunc", storage, level, level );
-   demoFunc.interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, Inner );
+   demoFunc.interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, Inner );
 
    // now set plate velocities on boundary (both for the moment)
-   for ( uint_t coordIdx = 0; coordIdx < 3; ++coordIdx )
+   for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
    {
-     demoFunc.interpolate( oracle, level, Boundary );
+      demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
    }
 
    hyteg::VTKOutput vtkOutput( "./output", "PlateVelocities", storage );
@@ -132,11 +133,11 @@ int main( int argc, char* argv[] )
 
    if ( feSpace == "P1" )
    {
-      exportDemoFunc< P1Function< real_t > >( level, storage );
+      exportDemoFunc< P1VectorFunction< real_t > >( level, storage );
    }
    else if ( feSpace == "P2" )
    {
-      exportDemoFunc< P2Function< real_t > >( level, storage );
+      exportDemoFunc< P2VectorFunction< real_t > >( level, storage );
    }
 
    return EXIT_SUCCESS;
