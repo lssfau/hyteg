@@ -149,9 +149,9 @@ void MultiSinker2D( const uint_t& level,
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
        storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
  
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 100, true);
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-6, 1e-8, 100, true);
    auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 100, true);
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, level, 1e-8, 100, true);
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, level, 1e-6, 1e-8, 100, true);
  
 
    walberla::WcTimer timer;
@@ -214,7 +214,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D( 6, 5, 1, 10, 1, 1000, 200, 0.1 );
+   MultiSinker2D( 6, 4, 1, 5, 1, 1000, 200, 0.1 );
 
    return EXIT_SUCCESS;
 }

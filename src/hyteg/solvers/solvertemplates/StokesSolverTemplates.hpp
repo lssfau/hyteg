@@ -36,6 +36,7 @@
 #include "hyteg/gridtransferoperators/P2ToP2VectorRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2ToP2VectorProlongation.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 
 namespace hyteg {
 
@@ -77,7 +78,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
 ///
 /// The pressure is pre-multiplied with the inverse of the lumped mass matrix, weighted by the viscosity.
 /// It is assumed that the pressure is discretized with P1 finite elements.
-/// The Epsilon operator is inverted approximately via GMG cycle(s) or by a CG.
+/// The Epsilon operator is inverted approximately via GMG cycle(s).
 ///
 ///
 /// \param StokesOperatorType assumed to be TODO: only for affine epsilon 
@@ -92,15 +93,15 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > varViscS
             std::function< real_t( const hyteg::Point3D& ) >    viscosity,
             const uint_t&                                       nPrecCycles,
             const real_t&                                       absoluteTargetResidual,
+            const real_t&                                       relativeVelBlockResidual,
             const uint_t&                                       maxIterations,
             bool                                                printInfo 
 ) {
-
+   auto CG = std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, relativeVelBlockResidual, 1e-12);
    auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
    auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, P1BlendingLumpedDiagonalOperator  >>( 
        storage, maxLevel, 
        maxLevel, nPrecCycles, 
-       //TODO add correct viscosity weighted form
        LU, std::make_shared<P1RowSumForm>(std::make_shared<forms::p1_invk_mass_affine_q4>(viscosity, viscosity)) 
     );
 
@@ -110,33 +111,69 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > varViscS
    solver->setPrintInfo( printInfo );
    return solver;
 }
+
+/// \brief Returns a block preconditioned MINRES solver for the Stokes system with varying viscosity.
+///
+/// The pressure is pre-multiplied with the inverse of the lumped mass matrix.
+/// It is assumed that the pressure is discretized with P1 finite elements.
+/// The Epsilon operator is inverted approximately via GMG cycle(s).
+///
+///
+/// \param StokesOperatorType assumed to be TODO: only for affine epsilon 
+/// \param storage the PrimitiveStorage that defines the domain
+/// \param level the refinement level of the grid
+/// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
+/// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
+///
 std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > blkdiagPrecStokesMinResSolver( 
             const std::shared_ptr< PrimitiveStorage >&          storage,
+            const uint_t&                                       minLevel,
             const uint_t&                                       maxLevel,
             const real_t&                                       absoluteTargetResidual,
+            const real_t&                                       relativeVelBlockResidual,
             const uint_t&                                       maxIterations,
             bool                                                printInfo 
 ) {
-    //TODO smoother for MG?
- /*
+
+   // Velocity block solver
+   //auto CG = std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, relativeVelBlockResidual, 1e-12);
+   auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
    auto coarseGridSolver = std::make_shared< CGSolver< hyteg::P2ElementwiseAffineEpsilonOperator >  >( storage, minLevel, minLevel );
    auto smoother = std::make_shared< WeightedJacobiSmoother< hyteg::P2ElementwiseAffineEpsilonOperator>  >(storage, minLevel, maxLevel, 2.0/3.0);
    auto prolongationOperator = std::make_shared< P2toP2VectorProlongation >();
    auto restrictionOperator = std::make_shared< P2toP2VectorRestriction >();
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< hyteg::P2ElementwiseAffineEpsilonOperator  > >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel);
-   //hyteg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-   //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
-   //DiagonalNonConstantOperator<P1ElementwiseKMassOperator, P1RowSumForm, true > ViscWeightedInvLumpedMass(storage, maxLevel, maxLevel, P1RowSumForm(forms::p1_k_mass_affine_q4));
-  // BlockOperator<P2P1TaylorHoodFunction< real_t > ,P2P1TaylorHoodFunction< real_t > > stokesBlockDiagPrec(storage,minLevel,maxLevel,2,2);
- */
-   auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, P1BlendingLumpedDiagonalOperator  >>( storage, maxLevel, maxLevel, 1, LU);
+   auto CG = std::make_shared<CGSolver< P2ElementwiseAffineEpsilonOperator > >( 
+       storage, minLevel, 
+       maxLevel, std::numeric_limits< uint_t >::max(), 
+       relativeVelBlockResidual, gmgSolver
+    );
+   CG->setPrintInfo( printInfo );
+  
 
-   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
+   // preconditioner setup
+   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, P1BlendingLumpedDiagonalOperator  >>( 
+       storage, minLevel, 
+       maxLevel, 1, 
+       LU
+    );
+
+   // final solver setup
+   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, minLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
    solver->setPrintInfo( printInfo );
    return solver;
+
+
+       //TODO smoother for MG?
+   //hyteg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
+   //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
+   //DiagonalNonConstantOperator<P1ElementwiseKMassOperator, P1RowSumForm, true > ViscWeightedInvLumpedMass(storage, maxLevel, maxLevel, P1RowSumForm(forms::p1_k_mass_affine_q4));
+  // BlockOperator<P2P1TaylorHoodFunction< real_t > ,P2P1TaylorHoodFunction< real_t > > stokesBlockDiagPrec(storage,minLevel,maxLevel,2,2);
+ 
+   //auto CG = std::make_shared<CGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, maxLevel);
+   //CG->setPrintInfo(true);
 }
 
 /// \brief Returns a geometric multigrid solver for the constant-coefficient Stokes system.

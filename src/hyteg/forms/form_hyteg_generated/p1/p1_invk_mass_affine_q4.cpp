@@ -55,17 +55,17 @@ namespace forms {
       Scalar_Variable_Coefficient_2D_k( 0.10810301816807022*p_affine_0_0 + 0.44594849091596489*p_affine_1_0 + 0.44594849091596489*p_affine_2_0, 0.10810301816807022*p_affine_0_1 + 0.44594849091596489*p_affine_1_1 + 0.44594849091596489*p_affine_2_1, &Scalar_Variable_Coefficient_2D_k_out0_id5 );
       real_t tmp_0 = 0.091576213509770743;
       real_t tmp_1 = 1.0*std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_2 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id0;
+      real_t tmp_2 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id0, 1.0/2.0);
       real_t tmp_3 = 0.44594849091596489;
-      real_t tmp_4 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id1;
+      real_t tmp_4 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id1, 1.0/2.0);
       real_t tmp_5 = 0.091576213509770743;
-      real_t tmp_6 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id2;
+      real_t tmp_6 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id2, 1.0/2.0);
       real_t tmp_7 = 0.44594849091596489;
-      real_t tmp_8 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id3;
+      real_t tmp_8 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id3, 1.0/2.0);
       real_t tmp_9 = 0.81684757298045851;
-      real_t tmp_10 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id4;
+      real_t tmp_10 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id4, 1.0/2.0);
       real_t tmp_11 = 0.10810301816807022;
-      real_t tmp_12 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id5;
+      real_t tmp_12 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id5, 1.0/2.0);
       real_t tmp_13 = tmp_0*tmp_2;
       real_t tmp_14 = tmp_3*tmp_4;
       real_t tmp_15 = tmp_5*tmp_6;
@@ -117,17 +117,17 @@ namespace forms {
       Scalar_Variable_Coefficient_2D_k( 0.10810301816807022*p_affine_0_0 + 0.44594849091596489*p_affine_1_0 + 0.44594849091596489*p_affine_2_0, 0.10810301816807022*p_affine_0_1 + 0.44594849091596489*p_affine_1_1 + 0.44594849091596489*p_affine_2_1, &Scalar_Variable_Coefficient_2D_k_out0_id5 );
       real_t tmp_0 = 0.091576213509770743;
       real_t tmp_1 = 1.0*std::abs(p_affine_0_0*p_affine_1_1 - p_affine_0_0*p_affine_2_1 - p_affine_0_1*p_affine_1_0 + p_affine_0_1*p_affine_2_0 + p_affine_1_0*p_affine_2_1 - p_affine_1_1*p_affine_2_0);
-      real_t tmp_2 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id0;
+      real_t tmp_2 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id0, 1.0/2.0);
       real_t tmp_3 = 0.44594849091596489;
-      real_t tmp_4 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id1;
+      real_t tmp_4 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id1, 1.0/2.0);
       real_t tmp_5 = 0.091576213509770743;
-      real_t tmp_6 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id2;
+      real_t tmp_6 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id2, 1.0/2.0);
       real_t tmp_7 = 0.44594849091596489;
-      real_t tmp_8 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id3;
+      real_t tmp_8 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id3, 1.0/2.0);
       real_t tmp_9 = 0.81684757298045851;
-      real_t tmp_10 = 0.054975871827660928*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id4;
+      real_t tmp_10 = 0.054975871827660928*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id4, 1.0/2.0);
       real_t tmp_11 = 0.10810301816807022;
-      real_t tmp_12 = 0.11169079483900572*tmp_1/Scalar_Variable_Coefficient_2D_k_out0_id5;
+      real_t tmp_12 = 0.11169079483900572*tmp_1/std::pow(Scalar_Variable_Coefficient_2D_k_out0_id5, 1.0/2.0);
       real_t tmp_13 = tmp_0*tmp_2;
       real_t tmp_14 = tmp_3*tmp_4;
       real_t tmp_15 = tmp_5*tmp_6;
@@ -198,33 +198,33 @@ namespace forms {
       real_t tmp_11 = p_affine_2_0*p_affine_3_2;
       real_t tmp_12 = p_affine_2_1*p_affine_3_0;
       real_t tmp_13 = 1.0*std::abs(p_affine_0_0*tmp_10 - p_affine_0_0*tmp_3 + p_affine_0_1*tmp_11 - p_affine_0_1*tmp_6 + p_affine_0_2*tmp_12 - p_affine_0_2*tmp_9 - p_affine_1_0*tmp_10 + p_affine_1_0*tmp_3 - p_affine_1_1*tmp_11 + p_affine_1_1*tmp_6 - p_affine_1_2*tmp_12 + p_affine_1_2*tmp_9 - p_affine_2_0*tmp_5 + p_affine_2_0*tmp_8 + p_affine_2_1*tmp_2 - p_affine_2_1*tmp_7 - p_affine_2_2*tmp_1 + p_affine_2_2*tmp_4 + p_affine_3_0*tmp_5 - p_affine_3_0*tmp_8 - p_affine_3_1*tmp_2 + p_affine_3_1*tmp_7 + p_affine_3_2*tmp_1 - p_affine_3_2*tmp_4);
-      real_t tmp_14 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id0;
+      real_t tmp_14 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id0, 1.0/2.0);
       real_t tmp_15 = 0.092735250310891248;
-      real_t tmp_16 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id1;
+      real_t tmp_16 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id1, 1.0/2.0);
       real_t tmp_17 = 0.067342242210098102;
-      real_t tmp_18 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id10;
+      real_t tmp_18 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id10, 1.0/2.0);
       real_t tmp_19 = 0.72179424906732625;
-      real_t tmp_20 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id11;
+      real_t tmp_20 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id11, 1.0/2.0);
       real_t tmp_21 = 0.045503704125649636;
-      real_t tmp_22 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id12;
+      real_t tmp_22 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id12, 1.0/2.0);
       real_t tmp_23 = 0.045503704125649636;
-      real_t tmp_24 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id13;
+      real_t tmp_24 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id13, 1.0/2.0);
       real_t tmp_25 = 0.45449629587435036;
-      real_t tmp_26 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id2;
+      real_t tmp_26 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id2, 1.0/2.0);
       real_t tmp_27 = 0.045503704125649629;
-      real_t tmp_28 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id3;
+      real_t tmp_28 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id3, 1.0/2.0);
       real_t tmp_29 = 0.45449629587435036;
-      real_t tmp_30 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id4;
+      real_t tmp_30 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id4, 1.0/2.0);
       real_t tmp_31 = 0.45449629587435036;
-      real_t tmp_32 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id5;
+      real_t tmp_32 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id5, 1.0/2.0);
       real_t tmp_33 = 0.3108859192633005;
-      real_t tmp_34 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id6;
+      real_t tmp_34 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id6, 1.0/2.0);
       real_t tmp_35 = 0.092735250310891248;
-      real_t tmp_36 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id7;
+      real_t tmp_36 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id7, 1.0/2.0);
       real_t tmp_37 = 0.3108859192633005;
-      real_t tmp_38 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id8;
+      real_t tmp_38 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id8, 1.0/2.0);
       real_t tmp_39 = 0.092735250310891248;
-      real_t tmp_40 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id9;
+      real_t tmp_40 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id9, 1.0/2.0);
       real_t tmp_41 = tmp_0*tmp_14;
       real_t tmp_42 = tmp_15*tmp_16;
       real_t tmp_43 = tmp_17*tmp_18;
@@ -349,33 +349,33 @@ namespace forms {
       real_t tmp_11 = p_affine_2_0*p_affine_3_2;
       real_t tmp_12 = p_affine_2_1*p_affine_3_0;
       real_t tmp_13 = 1.0*std::abs(p_affine_0_0*tmp_10 - p_affine_0_0*tmp_3 + p_affine_0_1*tmp_11 - p_affine_0_1*tmp_6 + p_affine_0_2*tmp_12 - p_affine_0_2*tmp_9 - p_affine_1_0*tmp_10 + p_affine_1_0*tmp_3 - p_affine_1_1*tmp_11 + p_affine_1_1*tmp_6 - p_affine_1_2*tmp_12 + p_affine_1_2*tmp_9 - p_affine_2_0*tmp_5 + p_affine_2_0*tmp_8 + p_affine_2_1*tmp_2 - p_affine_2_1*tmp_7 - p_affine_2_2*tmp_1 + p_affine_2_2*tmp_4 + p_affine_3_0*tmp_5 - p_affine_3_0*tmp_8 - p_affine_3_1*tmp_2 + p_affine_3_1*tmp_7 + p_affine_3_2*tmp_1 - p_affine_3_2*tmp_4);
-      real_t tmp_14 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id0;
+      real_t tmp_14 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id0, 1.0/2.0);
       real_t tmp_15 = 0.092735250310891248;
-      real_t tmp_16 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id1;
+      real_t tmp_16 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id1, 1.0/2.0);
       real_t tmp_17 = 0.067342242210098102;
-      real_t tmp_18 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id10;
+      real_t tmp_18 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id10, 1.0/2.0);
       real_t tmp_19 = 0.72179424906732625;
-      real_t tmp_20 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id11;
+      real_t tmp_20 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id11, 1.0/2.0);
       real_t tmp_21 = 0.045503704125649636;
-      real_t tmp_22 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id12;
+      real_t tmp_22 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id12, 1.0/2.0);
       real_t tmp_23 = 0.045503704125649636;
-      real_t tmp_24 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id13;
+      real_t tmp_24 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id13, 1.0/2.0);
       real_t tmp_25 = 0.45449629587435036;
-      real_t tmp_26 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id2;
+      real_t tmp_26 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id2, 1.0/2.0);
       real_t tmp_27 = 0.045503704125649629;
-      real_t tmp_28 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id3;
+      real_t tmp_28 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id3, 1.0/2.0);
       real_t tmp_29 = 0.45449629587435036;
-      real_t tmp_30 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id4;
+      real_t tmp_30 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id4, 1.0/2.0);
       real_t tmp_31 = 0.45449629587435036;
-      real_t tmp_32 = 0.0070910034628469103*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id5;
+      real_t tmp_32 = 0.0070910034628469103*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id5, 1.0/2.0);
       real_t tmp_33 = 0.3108859192633005;
-      real_t tmp_34 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id6;
+      real_t tmp_34 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id6, 1.0/2.0);
       real_t tmp_35 = 0.092735250310891248;
-      real_t tmp_36 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id7;
+      real_t tmp_36 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id7, 1.0/2.0);
       real_t tmp_37 = 0.3108859192633005;
-      real_t tmp_38 = 0.018781320953002646*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id8;
+      real_t tmp_38 = 0.018781320953002646*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id8, 1.0/2.0);
       real_t tmp_39 = 0.092735250310891248;
-      real_t tmp_40 = 0.012248840519393657*tmp_13/Scalar_Variable_Coefficient_3D_k_out0_id9;
+      real_t tmp_40 = 0.012248840519393657*tmp_13/std::pow(Scalar_Variable_Coefficient_3D_k_out0_id9, 1.0/2.0);
       real_t tmp_41 = tmp_0*tmp_14;
       real_t tmp_42 = tmp_15*tmp_16;
       real_t tmp_43 = tmp_17*tmp_18;
@@ -412,3 +412,94 @@ namespace forms {
 
 } // namespace forms
 } // namespace hyteg
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

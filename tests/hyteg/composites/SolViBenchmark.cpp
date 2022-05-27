@@ -94,12 +94,12 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
 
 
    // function setup
-   hyteg::P2P1TaylorHoodFunction< real_t > x( "x", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t > x_exact( "x_exact", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t > btmp( "btmp", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t > b( "b", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t > residuum( "res", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > x( "x", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > x_exact( "x_exact", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > btmp( "btmp", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > b( "b", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > residuum( "res", storage, 2, level );
    std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
    std::function< real_t( const hyteg::Point3D& ) > ones =   []( const hyteg::Point3D&    ) { return real_c(1); };
 
@@ -118,7 +118,7 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
           else
              return visc_matrix;
        };
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator OP( storage, level, level, viscosity );
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator OP( storage, 2, level, viscosity );
 
 
    // analytic solution for u,v,p
@@ -261,7 +261,7 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
 
     };
     btmp.uvw().interpolate({rhsU, rhsV},level, hyteg::Inner);  
-    P2ConstantMassOperator VelMassOp(storage, level, level);
+    P2ConstantMassOperator VelMassOp(storage, 2, level);
     VelMassOp.apply(btmp.uvw()[0], b.uvw()[0], level,All);
     VelMassOp.apply(btmp.uvw()[1], b.uvw()[1], level,All);  
 
@@ -296,25 +296,31 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
 
    // Solvers
    PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > MassPrecMINRES(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 0, 0, 1 );
+   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > StdBlkdiagPMINRES_PETSc(
+       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 3, 1, 0 );
    //PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
    //    storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 100, true);
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 1e-9, 100, true);
    auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 100, true);
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, level, 1e-8, 100, true);
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, 2, level, 1e-8,  1e-9, 100, true);
+   
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
    walberla::WcTimer timer;
+   
    switch ( solver )
    {
    case 0:
-      ViscWeightedPMINRES->solve( OP, x, b, level );
-      break;
-   case 1:
       OnlyPressurePMINRES->solve(OP, x, b, level);
       break;
+   case 1:
+      ViscWeightedPMINRES->solve( OP, x, b, level );
+      break;
    case 2:
-       StdBlkdiagPMINRES->solve(OP, x, b, level);
-       break;
+      StdBlkdiagPMINRES->solve(OP, x, b, level);
+      break;
+   case 3:
+      StdBlkdiagPMINRES_PETSc.solve(OP, x, b, level);
+      break;
    default:
       LU.solve( OP, x, b, level );
    }
@@ -359,7 +365,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-    uint_t solver = 2;
+    uint_t solver = 1;
     // compute errors
     std::vector<uint_t> levels = {6};
     std::vector<std::tuple<real_t, real_t, real_t>> errors_per_h;
@@ -390,13 +396,13 @@ int main( int argc, char* argv[] )
 
     
     // write to plot file
-    /*
+    
     std::ofstream err_file;
     err_file.open ("err_file.txt");
     for(auto err : errors_per_h) {
         err_file << std::get<0>(err) << ", " << std::get<1>(err) << ", " << std::get<2>(err) << "\n";
     }
     err_file.close();
-    */
+    
     return EXIT_SUCCESS;
 }

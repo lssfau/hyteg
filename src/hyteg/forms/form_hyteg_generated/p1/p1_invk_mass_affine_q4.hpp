@@ -71,7 +71,7 @@ class p1_invk_mass_affine_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               59     102       6       0      1             52                 6
+   ///                                               59     102       0       6      1             52                 6
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -83,7 +83,7 @@ class p1_invk_mass_affine_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               44      84       6       0      1             37                 6
+   ///                                               44      84       0       6      1             37                 6
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -95,7 +95,7 @@ class p1_invk_mass_affine_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              279     414      14       0      1            133                14
+   ///                                              279     414       0      14      1            133                14
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -107,7 +107,7 @@ class p1_invk_mass_affine_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              201     316      14       0      1             89                14
+   ///                                              201     316       0      14      1             89                14
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 

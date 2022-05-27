@@ -510,8 +510,12 @@ if( HYTEG_BUILD_WITH_PETSC )
 endif()
 
 ## SolVi benchmark 
-waLBerla_compile_test(FILES composites/P2P1Stokes2DSolViBenchmark.cpp DEPENDS hyteg core )
-waLBerla_execute_test(NAME P2P1Stokes2DSolViBenchmark)
+waLBerla_compile_test(FILES composites/SolViBenchmark.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME SolViBenchmark)
+
+## Multi sinker benchmark 
+waLBerla_compile_test(FILES composites/MultiSinker2DBenchmark.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME MultiSinker2DBenchmark)
 
 
 waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core )
