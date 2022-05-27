@@ -31,6 +31,7 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -249,7 +250,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
 
    // TODO: replace by minres
-   PETScCGSolver< P1DGEP0StokesOperator > solver( storage, level, numerator );
+   PETScMinResSolver< P1DGEP0StokesOperator > solver( storage, level, numerator );
    solver.solve( K, u, rhs, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
