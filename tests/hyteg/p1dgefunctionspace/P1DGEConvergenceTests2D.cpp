@@ -244,7 +244,6 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    // Why do I need this?
    f.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
-   f.p().interpolate( p_expr, level, DirichletBoundary );
 
    M.apply( f.uvw(), rhs.uvw(), level, All, Replace );
    M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
