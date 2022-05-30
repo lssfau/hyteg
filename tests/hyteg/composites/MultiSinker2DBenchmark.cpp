@@ -72,6 +72,7 @@ void MultiSinker2D( const uint_t& level,
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
    writeDomainPartitioningVTK( storage, "../../output", "MultiSinker2DBenchmark_Domain" );
 
+   WALBERLA_LOG_INFO_ON_ROOT("#Sinkers: " << nSinkers << ", visc_max: " << visc_max);
 
    // function setup
    hyteg::P2P1TaylorHoodFunction< real_t >          x( "x", storage, level, level );
@@ -84,6 +85,7 @@ void MultiSinker2D( const uint_t& level,
    // generate sinker centers randomly (without them exiting the domain)
    std::uniform_real_distribution< real_t > unif( -1 + omega, 1 - omega );
    std::default_random_engine               re;
+   re.seed(1312412415);
    std::vector< Point3D >                   centers;
    for ( uint_t c = 0; c < nSinkers; c++ )
    {
@@ -149,30 +151,36 @@ void MultiSinker2D( const uint_t& level,
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
        storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
  
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-6, 1e-8, 100, true);
-   auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 100, true);
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, level, 1e-6, 1e-8, 100, true);
- 
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 1e-9, 1000, true);
+   auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 1000, true);
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, 2, level, 1e-8,  1e-9, 1000,  true);
+  
 
    walberla::WcTimer timer;
    switch ( solver )
    {
    case 0:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: StdBlkdiagPMINRES_PETSC");
       StdBlkdiagPMINRES_PETSC.solve( A, x, b, level );
       break;
    case 1:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: GKB");
       GKB.solve( A, x, b, level );
       break;
    case 2:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: LU");
       LU.solve( A, x, b, level );
       break;
    case 3:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: ViscWeightedPMINRES");
       ViscWeightedPMINRES->solve( A, x, b, level );
       break;
    case 4:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: StdBlkdiagPMINRES");
       StdBlkdiagPMINRES->solve( A, x, b, level );
       break;
    case 5:
+      WALBERLA_LOG_INFO_ON_ROOT("Solver: OnlyPressurePMINRES");
       OnlyPressurePMINRES->solve( A, x, b, level );
       break;
 
@@ -214,7 +222,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D( 6, 4, 1, 5, 1, 1000, 200, 0.1 );
+   MultiSinker2D( 6, atoi(argv[2]), 1, atoi(argv[3]), 1, atoi(argv[4]), 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
