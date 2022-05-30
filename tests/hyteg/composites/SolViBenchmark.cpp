@@ -78,7 +78,8 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
                      const uint_t& nxy,
                      const real_t  r_inclusion,
                      const real_t& visc_inclusion,
-                     const real_t& visc_matrix )
+                     const real_t& visc_matrix,
+                     const real_t& relax )
 {
    using namespace std::complex_literals;
 
@@ -302,7 +303,7 @@ std::tuple<real_t, real_t, real_t> SolViBenchmark( const uint_t& level,
    //    storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
    auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver(storage, level, viscosity, 1, 1e-8, 1e-9, 100, true);
    auto OnlyPressurePMINRES = solvertemplates::stokesMinResSolver<P2P1ElementwiseAffineEpsilonStokesOperator>(storage, level, 1e-8, 100, true);
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, 2, level, 1e-8,  1e-9, 100, true);
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver(storage, 2, level, 1e-8,  1e-9, 100, relax, true);
    
    WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
    walberla::WcTimer timer;
@@ -370,7 +371,9 @@ int main( int argc, char* argv[] )
     std::vector<uint_t> levels = {6};
     std::vector<std::tuple<real_t, real_t, real_t>> errors_per_h;
     for(auto lvl : levels) {
-        auto error_per_h = SolViBenchmark( lvl, solver, 1, 0.2, 1000.0, 1.0 );
+        WALBERLA_LOG_INFO_ON_ROOT("Relax = " << atof(argv[2]));
+    
+        auto error_per_h = SolViBenchmark( lvl, solver, 1, 0.2, 100.0, 1.0, atof(argv[2]) );
         errors_per_h.push_back(error_per_h);
     }
 

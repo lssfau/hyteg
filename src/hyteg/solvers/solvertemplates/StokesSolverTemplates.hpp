@@ -36,6 +36,7 @@
 #include "hyteg/gridtransferoperators/P2ToP2VectorRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2ToP2VectorProlongation.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 
 namespace hyteg {
@@ -102,7 +103,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > varViscS
    auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, P1BlendingLumpedDiagonalOperator  >>( 
        storage, maxLevel, 
        maxLevel, nPrecCycles, 
-       LU, std::make_shared<P1RowSumForm>(std::make_shared<forms::p1_invk_mass_affine_q4>(viscosity, viscosity)) 
+       LU, std::make_shared<P1RowSumForm>(std::make_shared<forms::p1_k_mass_affine_q4>(viscosity, viscosity)) 
     );
 
    auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
@@ -132,23 +133,32 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > blkdiagP
             const real_t&                                       absoluteTargetResidual,
             const real_t&                                       relativeVelBlockResidual,
             const uint_t&                                       maxIterations,
+            //const real_t&                                        relax,
             bool                                                printInfo 
 ) {
 
    // Velocity block solver
    //auto CG = std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, relativeVelBlockResidual, 1e-12);
    auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
-   auto coarseGridSolver = std::make_shared< CGSolver< hyteg::P2ElementwiseAffineEpsilonOperator >  >( storage, minLevel, minLevel );
-   auto smoother = std::make_shared< WeightedJacobiSmoother< hyteg::P2ElementwiseAffineEpsilonOperator>  >(storage, minLevel, maxLevel, 2.0/3.0);
+   auto coarseGridSolver = std::make_shared< PETScLUSolver< hyteg::P2ElementwiseAffineEpsilonOperator >  >( storage, minLevel );
+   auto smoother = std::make_shared< WeightedJacobiSmoother< hyteg::P2ElementwiseAffineEpsilonOperator>  >(storage, minLevel, maxLevel, 1.0);
    auto prolongationOperator = std::make_shared< P2toP2VectorProlongation >();
    auto restrictionOperator = std::make_shared< P2toP2VectorRestriction >();
-   auto gmgSolver = std::make_shared< GeometricMultigridSolver< hyteg::P2ElementwiseAffineEpsilonOperator  > >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel);
+   auto gmgSolver = std::make_shared< GeometricMultigridSolver< hyteg::P2ElementwiseAffineEpsilonOperator  > >( 
+       storage, smoother, 
+       coarseGridSolver, 
+       restrictionOperator, 
+       prolongationOperator, 
+       minLevel, maxLevel,
+       3, 3, 3
+    );
    auto CG = std::make_shared<CGSolver< P2ElementwiseAffineEpsilonOperator > >( 
        storage, minLevel, 
        maxLevel, std::numeric_limits< uint_t >::max(), 
        relativeVelBlockResidual, gmgSolver
     );
    CG->setPrintInfo( printInfo );
+   auto PETScCG =  std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator >>(storage, maxLevel);
   
 
    // preconditioner setup
