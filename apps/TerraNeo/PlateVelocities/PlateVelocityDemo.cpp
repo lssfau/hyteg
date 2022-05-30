@@ -36,6 +36,7 @@
 
 #include "terraneo/plates/PlateVelocityProvider.hpp"
 
+using walberla::int_c;
 using walberla::real_c;
 using walberla::real_t;
 using namespace hyteg;
@@ -63,20 +64,30 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    std::function< real_t( const Point3D& ) > computeVelocityComponent = [&oracle, age, &coordIdx]( const Point3D& point ) {
       vec3D coords{ point[0], point[1], point[2] };
       vec3D velocity = oracle.getPointVelocity( coords, age );
-      return velocity[coordIdx];
+      return velocity[ int_c(coordIdx) ];
+   };
+
+   std::function< real_t( const Point3D& ) > findPlateID = [&oracle, age]( const Point3D& point ) {
+      vec3D coords{ point[0], point[1], point[2] };
+      return oracle.findPlateID( coords, age );
    };
 
    // set everything to zero in the interior
    feFuncType demoFunc( "demoFunc", storage, level, level );
    demoFunc.interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, Inner );
 
+   typename feFuncType::VectorComponentType plates( "plateID", storage, level, level );
+   plates.interpolate( real_c( 0 ), level, Inner );
+
    // now set plate velocities on boundary (both for the moment)
    for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
    {
       demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
    }
+   plates.interpolate( findPlateID, level, Boundary );
 
    hyteg::VTKOutput vtkOutput( "./output", "PlateVelocities", storage );
+   vtkOutput.add( plates );
    vtkOutput.add( demoFunc );
    vtkOutput.write( level, 0 );
 }

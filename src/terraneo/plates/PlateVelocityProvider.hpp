@@ -48,6 +48,24 @@ class PlateVelocityProvider
       return getPointVelocity( point, age, LinearDistanceSmoother{ 0.015 } );
    }
 
+   uint_t findPlateID( const vec3D& point, const real_t age )
+   {
+      uint_t plateID{ 0 };
+      bool   plateFound{ false };
+      real_t distance{ real_c( -1 ) };
+
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
+      if ( plateFound )
+      {
+         std::cout << "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance << std::endl;
+      }
+      else
+      {
+         std::cout << "Point not found on any plate!" << std::endl;
+      }
+      return plateID;
+   }
+
    template < typename SmoothingStrategy >
    vec3D getPointVelocity( const vec3D& point, const real_t age, SmoothingStrategy computeSmoothing )
    {
