@@ -86,10 +86,10 @@ class PlateStorage
       {
          nPlates += entry.second.size();
       }
-      std::cout << "PlateStorage object:\n"
-                << " - stores plates for " << ageToPlatesMap_.size() << " age stages\n"
-                << " - stores a total of " << nPlates << " plates\n"
-                << " - data was obtained from file = '" << srcFile_ << "'" << std::endl;
+      WALBERLA_LOG_INFO_ON_ROOT( "PlateStorage object:\n"
+                                 << " - stores plates for " << ageToPlatesMap_.size() << " age stages\n"
+                                 << " - stores a total of " << nPlates << " plates\n"
+                                 << " - data was obtained from file = '" << srcFile_ << "'" );
    }
 
    plateVec_t& getPlatesForStage( real_t age )

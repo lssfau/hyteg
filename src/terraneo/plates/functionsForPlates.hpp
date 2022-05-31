@@ -84,12 +84,12 @@ std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const
                   distance = a;
                }
             }
-            std::cout << "Distance (km): " << distance << std::endl;
+            WALBERLA_LOG_INFO_ON_ROOT( "Distance (km): " << distance );
             plateFound = true;
             break;
 
          case CGAL::ON_BOUNDARY:
-            std::cout << " is on the polygon boundary.\n";
+            WALBERLA_LOG_INFO_ON_ROOT( " is on the polygon boundary." );
             distance   = real_c( 0 );
             plateFound = true;
             break;
@@ -101,7 +101,7 @@ std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const
       else
       {
          std::string exception{ "How to handle z value <= 0?" };
-         std::cout << exception << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( exception );
          // throw( exception );
       }
 
@@ -129,19 +129,18 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
 
    // Transform to the point to the xyz in a sphere of earthRadius;
    pxyz = terraneo::conversions::cart2sph( point );
-   std::cout << "Point (lon, lat): [" << pxyz[0] << ", " << pxyz[1] << "]" << std::endl;
+   WALBERLA_LOG_INFO_ON_ROOT( "Point (lon, lat): [" << pxyz[0] << ", " << pxyz[1] << "]" );
    pxyz = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
-   std::cout << "Point (x,y,z): [" << point[0] << ", " << point[1] << ", " << point[2] << "]" << std::endl;
-   std::cout << "\n";
+   WALBERLA_LOG_INFO_ON_ROOT( "Point (x,y,z): [" << point[0] << ", " << point[1] << ", " << point[2] << "]\n" );
    vec3D v = eVector.cross( pxyz );
 
-   std::cout << "Velocity (x,y,z) in cm/yr: [" << v[0] << ", " << v[1] << ", " << v[2] << "] " << std::endl;
+   WALBERLA_LOG_INFO_ON_ROOT( "Velocity (x,y,z) in cm/yr: [" << v[0] << ", " << v[1] << ", " << v[2] << "] " );
 
    v *= smoothing / toms;
 
-   std::cout << "Velocity (x,y,z) in m/s:   [" << v[0] << ", " << v[1] << ", " << v[2] << "] " << std::endl;
+   WALBERLA_LOG_INFO_ON_ROOT( "Velocity (x,y,z) in m/s:   [" << v[0] << ", " << v[1] << ", " << v[2] << "] " );
 
-   std::cout << "Velocity magnitude: " << sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] ) * toms * 100 << std::endl;
+   WALBERLA_LOG_INFO_ON_ROOT( "Velocity magnitude: " << sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] ) * toms * 100 );
    return v;
 }
 
@@ -182,7 +181,7 @@ vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
             break;
          }
       }
-      std::cout << "Looping ... (pID = " << pID << ")" << std::endl;
+      WALBERLA_LOG_INFO_ON_ROOT( "Looping ... (pID = " << pID << ")" );
    }
 
    std::array< FiniteRotation, 2 > finNahs = terraneo::plates::combineSeriesOfFiniteRotations( FinRot );
