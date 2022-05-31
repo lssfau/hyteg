@@ -232,8 +232,13 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
       WALBERLA_CHECK( !err );
 
+      MatScale(petscProxy->mat_,scalars.at(0));
+      WALBERLA_CHECK( !err );
+
       err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
       WALBERLA_CHECK( !err );
+
+
 
       for ( uint_t i = 1; i < matrices.size(); i++ )
       {
@@ -255,6 +260,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          mats[1] = petscProxy->mat_;
          //mat_, petscProxy->mat_,
          err = MatCreateComposite( PETSC_COMM_WORLD, 2, mats, &tmp );
+         WALBERLA_CHECK( !err );
+         err = MatCompositeMerge( tmp );
          WALBERLA_CHECK( !err );
          err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
          WALBERLA_CHECK( !err );
