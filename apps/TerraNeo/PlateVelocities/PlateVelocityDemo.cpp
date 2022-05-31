@@ -47,16 +47,13 @@ using namespace terraneo;
 //  for all DoFs on the surface of a sphere
 // =================================================================================
 template < typename feFuncType >
-void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > storage )
+void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > storage, real_t age )
 {
    // initialise an oracle
    std::string                             dataDir{ "../../../data/terraneo/plates/" };
    std::string                             fnameTopologies      = dataDir + "topologies0-100Ma.geojson";
    std::string                             fnameReconstructions = dataDir + "Global_EarthByte_230-0Ma_GK07_AREPS.rot";
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
-
-   // set age we want to use
-   real_t age{ real_t( 34 ) };
 
    // need that here, to capture it below ;-)
    uint_t coordIdx = 0;
@@ -82,13 +79,13 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    // now set plate velocities on boundary (both for the moment)
    for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
    {
-      demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
+      // demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
    }
    plates.interpolate( findPlateID, level, Boundary );
 
    hyteg::VTKOutput vtkOutput( "./output", "PlateVelocities", storage );
    vtkOutput.add( plates );
-   vtkOutput.add( demoFunc );
+   // vtkOutput.add( demoFunc );
    vtkOutput.write( level, 0 );
 }
 
@@ -99,6 +96,7 @@ int main( int argc, char* argv[] )
 {
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
 
    // ------------
    //  Parameters
@@ -126,7 +124,7 @@ int main( int argc, char* argv[] )
    const uint_t nRad  = params.getParameter< uint_t >( "nRad" );
    const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, 1.0, 2.0 );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, real_c(0.57), real_c(1.0) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
@@ -141,14 +139,15 @@ int main( int argc, char* argv[] )
    //  Delegation
    // ============
    std::string feSpace = params.getParameter< std::string >( "feSpace" );
+   const real_t age  = params.getParameter< real_t >( "age" );
 
    if ( feSpace == "P1" )
    {
-      exportDemoFunc< P1VectorFunction< real_t > >( level, storage );
+      exportDemoFunc< P1VectorFunction< real_t > >( level, storage, age );
    }
    else if ( feSpace == "P2" )
    {
-      exportDemoFunc< P2VectorFunction< real_t > >( level, storage );
+      exportDemoFunc< P2VectorFunction< real_t > >( level, storage, age );
    }
 
    return EXIT_SUCCESS;

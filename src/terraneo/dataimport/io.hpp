@@ -51,16 +51,19 @@ std::ifstream openFileForReading( std::string& fileName )
 /// Imports a file in JSON format
 nlohmann::json readJsonFile( std::string filename )
 {
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Starting to read datafile '" << filename << "'" );
    std::ifstream  infile{ openFileForReading( filename ) };
    nlohmann::json inobj;
    infile >> inobj;
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Finished reading datafile '" << filename << "'" );
    return inobj;
 }
 
 /// Imports data from a text file with rotation information
-std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string fileName )
+std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string filename )
 {
-   std::ifstream file{ openFileForReading( fileName ) };
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Starting to read datafile '" << filename << "'" );
+   std::ifstream file{ openFileForReading( filename ) };
 
    // Determine number of lines in file for reserving space
    std::string line;
@@ -72,7 +75,7 @@ std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string fil
    file.clear();    // clear EOF
    file.seekg( 0 ); // rewind stream
 
-   std::cout << "Detected " << numRotations << " rotations" << std::endl;
+   WALBERLA_LOG_INFO_ON_ROOT( "Found " << numRotations << " rotations in data-file" );
    std::vector< terraneo::plates::RotationInfo > rotations( numRotations, terraneo::plates::RotationInfo() );
 
    std::size_t charsUsed;
@@ -116,10 +119,12 @@ std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string fil
    // Safety check
    if ( k != numRotations )
    {
-      std::cout << " Imported " << k << " rotations,\n"
-                << " but should have been " << numRotations << std::endl;
-      std::abort();
+      WALBERLA_LOG_INFO_ON_ROOT( " Imported " << k << " rotations,\n"
+                                 << " but should have been " << numRotations );
+      WALBERLA_ABORT( "Data import error" );
    }
+
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Finished reading datafile '" << filename << "'" );
 
    return rotations;
 }

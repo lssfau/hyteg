@@ -3,8 +3,11 @@ Parameters
   // meshing parameters
   nTan 2;
   nRad 2;
-  level 3;
+  level 5;
 
   // FE space
   feSpace P2;
+
+  // age stage
+  age 1.0;
 }

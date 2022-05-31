@@ -45,23 +45,23 @@ class PlateVelocityProvider
 
    vec3D getPointVelocity( const vec3D& point, const real_t age )
    {
-      return getPointVelocity( point, age, LinearDistanceSmoother{ 0.015 } );
+      return getPointVelocity( point, age, LinearDistanceSmoother{0.015} );
    }
 
    uint_t findPlateID( const vec3D& point, const real_t age )
    {
-      uint_t plateID{ 0 };
-      bool   plateFound{ false };
-      real_t distance{ real_c( -1 ) };
+      uint_t plateID{0};
+      bool   plateFound{false};
+      real_t distance{real_c( -1 )};
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
       if ( plateFound )
       {
-         std::cout << "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance );
       }
       else
       {
-         std::cout << "Point not found on any plate!" << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Point not found on any plate!" );
       }
       return plateID;
    }
@@ -69,29 +69,28 @@ class PlateVelocityProvider
    template < typename SmoothingStrategy >
    vec3D getPointVelocity( const vec3D& point, const real_t age, SmoothingStrategy computeSmoothing )
    {
-      uint_t plateID{ 0 };
-      bool   plateFound{ false };
-      real_t distance{ real_c( -1 ) };
+      uint_t plateID{0};
+      bool   plateFound{false};
+      real_t distance{real_c( -1 )};
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
       if ( plateFound )
       {
-         std::cout << "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance );
       }
       else
       {
-         std::cout << "Point not found on any plate!" << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "Point not found on any plate!" );
       }
 
       real_t smoothingFactor = computeSmoothing( distance );
 
-      std::cout << "Smoothing Factor: " << smoothingFactor << "\n\n";
-      std::cout << "Plate ID: " << plateID << "\n\n";
+      WALBERLA_LOG_INFO_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Plate ID: " << plateID << "\n" );
       if ( plateID == 0 )
       {
-         std::cout << "No plate ID assigned (Plate ID =0). Velocity set to (0.0,0.0,0.0)" << std::endl;
-         // return{ real_c{0}, real_c{0}, real_c{0} };
-         return { 0.0, 0.0, 0.0 };
+         WALBERLA_LOG_INFO_ON_ROOT( "No plate ID assigned (Plate ID =0). Velocity set to (0.0,0.0,0.0)" );
+         return {real_c( 0 ), real_c( 0 ), real_c( 0 )};
       }
       else
       {
