@@ -59,8 +59,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1,
                                          const uint_t&  pressurePreconditionerType = 1,
-                                         const uint_t&  krylovSolverType = 0
-   )
+                                         const uint_t&  krylovSolverType           = 0 )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -78,12 +77,11 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
    , pressurePreconditionerType_( pressurePreconditionerType )
-   , krylovSolverType_(krylovSolverType)
+   , krylovSolverType_( krylovSolverType )
    , verbose_( false )
    , reassembleMatrix_( true )
    , matrixWasAssembledOnce_( false )
    {}
-
 
    ~PETScBlockPreconditionedStokesSolver() = default;
 
@@ -139,7 +137,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "Index set setup" );
 
       KSPCreate( petscCommunicator_, &ksp );
-     
+
       switch ( krylovSolverType_ )
       {
       case 0:
@@ -154,11 +152,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          KSPSetType( ksp, KSPPREONLY );
          WALBERLA_LOG_INFO_ON_ROOT( "Using only the preconditioner in PETScBlockPreconditionedStokesSolver " );
          break;
-     default:
+      default:
          WALBERLA_ABORT( "Invalid solver type for PETSc block prec MinRes solver." )
          break;
       }
-
 
       KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_FALSE );
@@ -201,7 +198,6 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Pmat.get() );
 
-      
       if ( velocityPreconditionerType_ == 2 )
       {
          KSPGetPC( ksp, &pc );
@@ -210,7 +206,6 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr );
          PCFieldSplitSetIS( pc, "0", is_[0] );
          PCFieldSplitSetIS( pc, "1", is_[1] );
-         
 
          PetscInt numSubKsps;
 
@@ -219,42 +214,39 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
          KSPSetType( sub_ksps_[0], KSPCG );
          KSPSetType( sub_ksps_[1], KSPCG );
-       
+
          KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
          KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
       else if ( velocityPreconditionerType_ == 5 )
       {
-
-          
          // Original system matrix A is used for the GKB preconditioner
          KSPSetOperators( ksp, Amat.get(), Amat.get() );
 
          // preconditioner setup
          KSPGetPC( ksp, &pc );
-         PCSetType( pc, PCFIELDSPLIT ); 
+         PCSetType( pc, PCFIELDSPLIT );
          PCFieldSplitSetType( pc, PC_COMPOSITE_GKB );
          PCFieldSplitSetIS( pc, "0", is_[0] );
          PCFieldSplitSetIS( pc, "1", is_[1] );
 
          // parameters of GKB
          PCFieldSplitSetGKBDelay( pc, 5 );
-         PCFieldSplitSetGKBMaxit( pc, maxIterations_);
+         PCFieldSplitSetGKBMaxit( pc, maxIterations_ );
          PCFieldSplitSetGKBNu( pc, 0 );
          PCFieldSplitSetGKBTol( pc, tolerance_ );
          PCSetUp( pc );
-         
+
          // one SubKsp: solver for M
          PetscInt numSubKsps;
          PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
-       
+
          // CG for M system
          KSPSetType( sub_ksps_[0], KSPCG );
-         KSPSetTolerances( sub_ksps_[0], tolerance_/10, tolerance_/10, PETSC_DEFAULT, maxIterations_ );
+         KSPSetTolerances( sub_ksps_[0], tolerance_ / 10, tolerance_ / 10, PETSC_DEFAULT, maxIterations_ );
          PC H_pc;
-         KSPGetPC(sub_ksps_[0], &H_pc );
-         PCSetType( H_pc, PCNONE ); 
-          
+         KSPGetPC( sub_ksps_[0], &H_pc );
+         PCSetType( H_pc, PCNONE );
       }
       else
       {
@@ -281,8 +273,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-         case 3:
-         {
+         case 3: {
             PCSetType( pc_u, PCHYPRE );
             break;
          }
@@ -446,9 +437,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    uint_t pressurePreconditionerType_;
    uint_t krylovSolverType_;
 
-   bool   verbose_;
-   bool   reassembleMatrix_;
-   bool   matrixWasAssembledOnce_;
+   bool verbose_;
+   bool reassembleMatrix_;
+   bool matrixWasAssembledOnce_;
 };
 
 } // namespace hyteg
