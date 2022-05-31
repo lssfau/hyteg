@@ -208,7 +208,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       }
    }
 
-   void createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
+   void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
+                                 const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       Mat tmp;
 
@@ -232,13 +233,11 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
       WALBERLA_CHECK( !err );
 
-      MatScale(petscProxy->mat_,scalars.at(0));
+      MatScale( petscProxy->mat_, scalars.at( 0 ) );
       WALBERLA_CHECK( !err );
 
       err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
       WALBERLA_CHECK( !err );
-
-
 
       for ( uint_t i = 1; i < matrices.size(); i++ )
       {
@@ -256,7 +255,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
          Mat mats[2];
          mats[0] = mat_;
-         MatScale(petscProxy->mat_,scalars.at(i));
+         MatScale( petscProxy->mat_, scalars.at( i ) );
          mats[1] = petscProxy->mat_;
          //mat_, petscProxy->mat_,
          err = MatCreateComposite( PETSC_COMM_WORLD, 2, mats, &tmp );
@@ -277,7 +276,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          WALBERLA_CHECK( !err );
       }
    }
-   
+
  private:
    Mat mat_;
 };
