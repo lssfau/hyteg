@@ -453,6 +453,7 @@ gcc_11_serial:
 gcc_11_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
