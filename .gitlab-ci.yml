@@ -456,9 +456,6 @@ gcc_11_mpionly:
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
