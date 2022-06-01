@@ -55,7 +55,7 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_0  = 0.063089014491502282;
       real_t tmp_1  = -p_affine_0_1;
       real_t tmp_2  = p_affine_2_1 + tmp_1;
       real_t tmp_3  = -p_affine_0_0;
@@ -65,48 +65,89 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_7  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
       real_t tmp_8  = tmp_7 * ( tmp_5 + tmp_6 );
-      real_t tmp_9  = 0.054975871827660928 * tmp_8;
-      real_t tmp_10 = 0.44594849091596489;
-      real_t tmp_11 = 0.11169079483900572 * tmp_8;
-      real_t tmp_12 = 0.091576213509770743;
-      real_t tmp_13 = 0.054975871827660928 * tmp_8;
-      real_t tmp_14 = 0.44594849091596489;
-      real_t tmp_15 = 0.11169079483900572 * tmp_8;
-      real_t tmp_16 = 0.81684757298045851;
-      real_t tmp_17 = 0.054975871827660928 * tmp_8;
-      real_t tmp_18 = 0.10810301816807022;
-      real_t tmp_19 = 0.11169079483900572 * tmp_8;
-      real_t tmp_20 = tmp_5 * tmp_7;
-      real_t tmp_21 = 0.054975871827660928 * tmp_0;
-      real_t tmp_22 = 0.11169079483900572 * tmp_10;
-      real_t tmp_23 = 0.054975871827660928 * tmp_12;
-      real_t tmp_24 = 0.11169079483900572 * tmp_14;
-      real_t tmp_25 = 0.054975871827660928 * tmp_16;
-      real_t tmp_26 = 0.11169079483900572 * tmp_18;
-      real_t tmp_27 = tmp_6 * tmp_7;
-      real_t tmp_28 = 0.0050344821763756674;
-      real_t tmp_29 = 0.049808341407659239;
-      real_t tmp_30 = 0.044906907474909594;
-      real_t tmp_31 = 0.012074112023687239;
-      real_t tmp_32 = 0.0050344821763756674;
-      real_t tmp_33 = 0.049808341407659239;
-      real_t tmp_34 = 0.044906907474909594;
-      real_t tmp_35 = 0.012074112023687239;
-      real_t tmp_36 = 0.0050344821763756674;
-      real_t tmp_37 = 0.049808341407659239;
-      real_t tmp_38 = 0.0050344821763756674;
-      real_t tmp_39 = 0.049808341407659239;
-      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19;
-      real_t a_0_1  = -tmp_20 * tmp_21 - tmp_20 * tmp_22 - tmp_20 * tmp_23 - tmp_20 * tmp_24 - tmp_20 * tmp_25 - tmp_20 * tmp_26;
-      real_t a_0_2  = -tmp_21 * tmp_27 - tmp_22 * tmp_27 - tmp_23 * tmp_27 - tmp_24 * tmp_27 - tmp_25 * tmp_27 - tmp_26 * tmp_27;
-      real_t a_1_0  = 0.44594849091596489 * tmp_11 + 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.091576213509770743 * tmp_9;
-      real_t a_1_1 = -tmp_20 * tmp_28 - tmp_20 * tmp_29 - tmp_20 * tmp_30 - tmp_20 * tmp_31 - tmp_20 * tmp_32 - tmp_20 * tmp_33;
-      real_t a_1_2 = -tmp_27 * tmp_28 - tmp_27 * tmp_29 - tmp_27 * tmp_30 - tmp_27 * tmp_31 - tmp_27 * tmp_32 - tmp_27 * tmp_33;
-      real_t a_2_0 = 0.10810301816807022 * tmp_11 + 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.81684757298045851 * tmp_9;
-      real_t a_2_1  = -tmp_20 * tmp_34 - tmp_20 * tmp_35 - tmp_20 * tmp_36 - tmp_20 * tmp_37 - tmp_20 * tmp_38 - tmp_20 * tmp_39;
-      real_t a_2_2  = -tmp_27 * tmp_34 - tmp_27 * tmp_35 - tmp_27 * tmp_36 - tmp_27 * tmp_37 - tmp_27 * tmp_38 - tmp_27 * tmp_39;
+      real_t tmp_9  = 0.025422453185103409 * tmp_8;
+      real_t tmp_10 = 0.24928674517091043;
+      real_t tmp_11 = 0.058393137863189684 * tmp_8;
+      real_t tmp_12 = 0.63650249912139867;
+      real_t tmp_13 = 0.041425537809186785 * tmp_8;
+      real_t tmp_14 = 0.053145049844816938;
+      real_t tmp_15 = 0.041425537809186785 * tmp_8;
+      real_t tmp_16 = 0.063089014491502227;
+      real_t tmp_17 = 0.025422453185103409 * tmp_8;
+      real_t tmp_18 = 0.24928674517091043;
+      real_t tmp_19 = 0.058393137863189684 * tmp_8;
+      real_t tmp_20 = 0.87382197101699566;
+      real_t tmp_21 = 0.025422453185103409 * tmp_8;
+      real_t tmp_22 = 0.50142650965817914;
+      real_t tmp_23 = 0.058393137863189684 * tmp_8;
+      real_t tmp_24 = 0.053145049844816938;
+      real_t tmp_25 = 0.041425537809186785 * tmp_8;
+      real_t tmp_26 = 0.63650249912139867;
+      real_t tmp_27 = 0.041425537809186785 * tmp_8;
+      real_t tmp_28 = 0.31035245103378439;
+      real_t tmp_29 = 0.041425537809186785 * tmp_8;
+      real_t tmp_30 = 0.31035245103378439;
+      real_t tmp_31 = 0.041425537809186785 * tmp_8;
+      real_t tmp_32 = tmp_5 * tmp_7;
+      real_t tmp_33 = 0.025422453185103409 * tmp_0;
+      real_t tmp_34 = 0.058393137863189684 * tmp_10;
+      real_t tmp_35 = 0.041425537809186785 * tmp_12;
+      real_t tmp_36 = 0.041425537809186785 * tmp_14;
+      real_t tmp_37 = 0.025422453185103409 * tmp_16;
+      real_t tmp_38 = 0.058393137863189684 * tmp_18;
+      real_t tmp_39 = 0.025422453185103409 * tmp_20;
+      real_t tmp_40 = 0.058393137863189684 * tmp_22;
+      real_t tmp_41 = 0.041425537809186785 * tmp_24;
+      real_t tmp_42 = 0.041425537809186785 * tmp_26;
+      real_t tmp_43 = 0.041425537809186785 * tmp_28;
+      real_t tmp_44 = 0.041425537809186785 * tmp_30;
+      real_t tmp_45 = tmp_6 * tmp_7;
+      real_t tmp_46 = 0.001603877517404526;
+      real_t tmp_47 = 0.012856517194473826;
+      real_t tmp_48 = 0.026367458342995378;
+      real_t tmp_49 = 0.014556635278230808;
+      real_t tmp_50 = 0.022214698150294358;
+      real_t tmp_51 = 0.029279867306728068;
+      real_t tmp_52 = 0.001603877517404526;
+      real_t tmp_53 = 0.014556635278230808;
+      real_t tmp_54 = 0.012856517194473826;
+      real_t tmp_55 = 0.0022015622717175805;
+      real_t tmp_56 = 0.026367458342995378;
+      real_t tmp_57 = 0.0022015622717175805;
+      real_t tmp_58 = 0.022214698150294358;
+      real_t tmp_59 = 0.0022015622717175805;
+      real_t tmp_60 = 0.012856517194473826;
+      real_t tmp_61 = 0.029279867306728068;
+      real_t tmp_62 = 0.001603877517404526;
+      real_t tmp_63 = 0.014556635278230808;
+      real_t tmp_64 = 0.001603877517404526;
+      real_t tmp_65 = 0.014556635278230808;
+      real_t tmp_66 = 0.026367458342995378;
+      real_t tmp_67 = 0.012856517194473826;
+      real_t tmp_68 = 0.0022015622717175805;
+      real_t tmp_69 = 0.026367458342995378;
+      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19 +
+                     tmp_20 * tmp_21 + tmp_22 * tmp_23 + tmp_24 * tmp_25 + tmp_26 * tmp_27 + tmp_28 * tmp_29 + tmp_30 * tmp_31;
+      real_t a_0_1 = -tmp_32 * tmp_33 - tmp_32 * tmp_34 - tmp_32 * tmp_35 - tmp_32 * tmp_36 - tmp_32 * tmp_37 - tmp_32 * tmp_38 -
+                     tmp_32 * tmp_39 - tmp_32 * tmp_40 - tmp_32 * tmp_41 - tmp_32 * tmp_42 - tmp_32 * tmp_43 - tmp_32 * tmp_44;
+      real_t a_0_2 = -tmp_33 * tmp_45 - tmp_34 * tmp_45 - tmp_35 * tmp_45 - tmp_36 * tmp_45 - tmp_37 * tmp_45 - tmp_38 * tmp_45 -
+                     tmp_39 * tmp_45 - tmp_40 * tmp_45 - tmp_41 * tmp_45 - tmp_42 * tmp_45 - tmp_43 * tmp_45 - tmp_44 * tmp_45;
+      real_t a_1_0 = 0.24928674517091043 * tmp_11 + 0.31035245103378439 * tmp_13 + 0.63650249912139867 * tmp_15 +
+                     0.87382197101699555 * tmp_17 + 0.50142650965817914 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.31035245103378439 * tmp_25 + 0.053145049844816938 * tmp_27 +
+                     0.63650249912139867 * tmp_29 + 0.053145049844816938 * tmp_31 + 0.063089014491502227 * tmp_9;
+      real_t a_1_1 = -tmp_32 * tmp_46 - tmp_32 * tmp_47 - tmp_32 * tmp_48 - tmp_32 * tmp_49 - tmp_32 * tmp_50 - tmp_32 * tmp_51 -
+                     tmp_32 * tmp_52 - tmp_32 * tmp_53 - tmp_32 * tmp_54 - tmp_32 * tmp_55 - tmp_32 * tmp_56 - tmp_32 * tmp_57;
+      real_t a_1_2 = -tmp_45 * tmp_46 - tmp_45 * tmp_47 - tmp_45 * tmp_48 - tmp_45 * tmp_49 - tmp_45 * tmp_50 - tmp_45 * tmp_51 -
+                     tmp_45 * tmp_52 - tmp_45 * tmp_53 - tmp_45 * tmp_54 - tmp_45 * tmp_55 - tmp_45 * tmp_56 - tmp_45 * tmp_57;
+      real_t a_2_0 = 0.50142650965817914 * tmp_11 + 0.053145049844816938 * tmp_13 + 0.31035245103378439 * tmp_15 +
+                     0.063089014491502227 * tmp_17 + 0.24928674517091043 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.63650249912139867 * tmp_25 + 0.31035245103378439 * tmp_27 +
+                     0.053145049844816938 * tmp_29 + 0.63650249912139867 * tmp_31 + 0.87382197101699555 * tmp_9;
+      real_t a_2_1 = -tmp_32 * tmp_58 - tmp_32 * tmp_59 - tmp_32 * tmp_60 - tmp_32 * tmp_61 - tmp_32 * tmp_62 - tmp_32 * tmp_63 -
+                     tmp_32 * tmp_64 - tmp_32 * tmp_65 - tmp_32 * tmp_66 - tmp_32 * tmp_67 - tmp_32 * tmp_68 - tmp_32 * tmp_69;
+      real_t a_2_2 = -tmp_45 * tmp_58 - tmp_45 * tmp_59 - tmp_45 * tmp_60 - tmp_45 * tmp_61 - tmp_45 * tmp_62 - tmp_45 * tmp_63 -
+                     tmp_45 * tmp_64 - tmp_45 * tmp_65 - tmp_45 * tmp_66 - tmp_45 * tmp_67 - tmp_45 * tmp_68 - tmp_45 * tmp_69;
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -158,70 +199,82 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -286,13 +339,13 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_3   = p_affine_5_1 + tmp_2;
       real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6   = p_affine_6_1 + 0.069431844202973714 * tmp_5;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
       real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
       real_t tmp_8   = tmp_1 * tmp_7;
       real_t tmp_9   = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10  = tmp_7 * tmp_9;
       real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12  = p_affine_6_0 + 0.069431844202973714 * tmp_11;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
       real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
       real_t tmp_14  = tmp_13 * tmp_3;
       real_t tmp_15  = p_affine_3_1 - p_affine_4_1;
@@ -312,13 +365,13 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_29  = p_affine_0_1 - p_affine_1_1;
       real_t tmp_30  = tmp_27 * tmp_29;
       real_t tmp_31  = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_32  = 0.17392742256872684 * tmp_31;
+      real_t tmp_32  = 0.11846344252809471 * tmp_31;
       real_t tmp_33  = tmp_32 * ( -tmp_24 - tmp_26 - tmp_28 - tmp_30 + 1 );
-      real_t tmp_34  = p_affine_6_1 + 0.33000947820757187 * tmp_5;
+      real_t tmp_34  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
       real_t tmp_35  = tmp_4 * ( tmp_2 + tmp_34 );
       real_t tmp_36  = tmp_1 * tmp_35;
       real_t tmp_37  = tmp_35 * tmp_9;
-      real_t tmp_38  = p_affine_6_0 + 0.33000947820757187 * tmp_11;
+      real_t tmp_38  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
       real_t tmp_39  = tmp_4 * ( tmp_0 + tmp_38 );
       real_t tmp_40  = tmp_3 * tmp_39;
       real_t tmp_41  = tmp_15 * tmp_39;
@@ -329,13 +382,13 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_46  = tmp_22 * ( tmp_18 + tmp_38 );
       real_t tmp_47  = tmp_21 * tmp_46;
       real_t tmp_48  = tmp_29 * tmp_46;
-      real_t tmp_49  = 0.3260725774312731 * tmp_31;
+      real_t tmp_49  = 0.2393143352496831 * tmp_31;
       real_t tmp_50  = tmp_49 * ( -tmp_44 - tmp_45 - tmp_47 - tmp_48 + 1 );
-      real_t tmp_51  = p_affine_6_1 + 0.66999052179242813 * tmp_5;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
       real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
       real_t tmp_53  = tmp_1 * tmp_52;
       real_t tmp_54  = tmp_52 * tmp_9;
-      real_t tmp_55  = p_affine_6_0 + 0.66999052179242813 * tmp_11;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
       real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
       real_t tmp_57  = tmp_3 * tmp_56;
       real_t tmp_58  = tmp_15 * tmp_56;
@@ -346,13 +399,13 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_63  = tmp_22 * ( tmp_18 + tmp_55 );
       real_t tmp_64  = tmp_21 * tmp_63;
       real_t tmp_65  = tmp_29 * tmp_63;
-      real_t tmp_66  = 0.3260725774312731 * tmp_31;
+      real_t tmp_66  = 0.2844444444444445 * tmp_31;
       real_t tmp_67  = tmp_66 * ( -tmp_61 - tmp_62 - tmp_64 - tmp_65 + 1 );
-      real_t tmp_68  = p_affine_6_1 + 0.93056815579702623 * tmp_5;
+      real_t tmp_68  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
       real_t tmp_69  = tmp_4 * ( tmp_2 + tmp_68 );
       real_t tmp_70  = tmp_1 * tmp_69;
       real_t tmp_71  = tmp_69 * tmp_9;
-      real_t tmp_72  = p_affine_6_0 + 0.93056815579702623 * tmp_11;
+      real_t tmp_72  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
       real_t tmp_73  = tmp_4 * ( tmp_0 + tmp_72 );
       real_t tmp_74  = tmp_3 * tmp_73;
       real_t tmp_75  = tmp_15 * tmp_73;
@@ -363,33 +416,54 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_80  = tmp_22 * ( tmp_18 + tmp_72 );
       real_t tmp_81  = tmp_21 * tmp_80;
       real_t tmp_82  = tmp_29 * tmp_80;
-      real_t tmp_83  = 0.17392742256872684 * tmp_31;
+      real_t tmp_83  = 0.2393143352496831 * tmp_31;
       real_t tmp_84  = tmp_83 * ( -tmp_78 - tmp_79 - tmp_81 - tmp_82 + 1 );
-      real_t tmp_85  = tmp_10 + tmp_14;
-      real_t tmp_86  = tmp_37 + tmp_40;
-      real_t tmp_87  = tmp_54 + tmp_57;
-      real_t tmp_88  = tmp_71 + tmp_74;
-      real_t tmp_89  = tmp_16 + tmp_8;
-      real_t tmp_90  = tmp_36 + tmp_41;
-      real_t tmp_91  = tmp_53 + tmp_58;
-      real_t tmp_92  = tmp_70 + tmp_75;
-      real_t tmp_93  = tmp_32 * ( tmp_26 + tmp_28 );
-      real_t tmp_94  = tmp_49 * ( tmp_45 + tmp_47 );
-      real_t tmp_95  = tmp_66 * ( tmp_62 + tmp_64 );
-      real_t tmp_96  = tmp_83 * ( tmp_79 + tmp_81 );
-      real_t tmp_97  = tmp_32 * ( tmp_24 + tmp_30 );
-      real_t tmp_98  = tmp_49 * ( tmp_44 + tmp_48 );
-      real_t tmp_99  = tmp_66 * ( tmp_61 + tmp_65 );
-      real_t tmp_100 = tmp_83 * ( tmp_78 + tmp_82 );
-      real_t a_0_0   = -tmp_17 * tmp_33 - tmp_42 * tmp_50 - tmp_59 * tmp_67 - tmp_76 * tmp_84;
-      real_t a_0_1   = -tmp_33 * tmp_85 - tmp_50 * tmp_86 - tmp_67 * tmp_87 - tmp_84 * tmp_88;
-      real_t a_0_2   = -tmp_33 * tmp_89 - tmp_50 * tmp_90 - tmp_67 * tmp_91 - tmp_84 * tmp_92;
-      real_t a_1_0   = -tmp_17 * tmp_93 - tmp_42 * tmp_94 - tmp_59 * tmp_95 - tmp_76 * tmp_96;
-      real_t a_1_1   = -tmp_85 * tmp_93 - tmp_86 * tmp_94 - tmp_87 * tmp_95 - tmp_88 * tmp_96;
-      real_t a_1_2   = -tmp_89 * tmp_93 - tmp_90 * tmp_94 - tmp_91 * tmp_95 - tmp_92 * tmp_96;
-      real_t a_2_0   = -tmp_100 * tmp_76 - tmp_17 * tmp_97 - tmp_42 * tmp_98 - tmp_59 * tmp_99;
-      real_t a_2_1   = -tmp_100 * tmp_88 - tmp_85 * tmp_97 - tmp_86 * tmp_98 - tmp_87 * tmp_99;
-      real_t a_2_2   = -tmp_100 * tmp_92 - tmp_89 * tmp_97 - tmp_90 * tmp_98 - tmp_91 * tmp_99;
+      real_t tmp_85  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_86  = tmp_4 * ( tmp_2 + tmp_85 );
+      real_t tmp_87  = tmp_1 * tmp_86;
+      real_t tmp_88  = tmp_86 * tmp_9;
+      real_t tmp_89  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_90  = tmp_4 * ( tmp_0 + tmp_89 );
+      real_t tmp_91  = tmp_3 * tmp_90;
+      real_t tmp_92  = tmp_15 * tmp_90;
+      real_t tmp_93  = -tmp_87 - tmp_88 - tmp_91 - tmp_92 + 1;
+      real_t tmp_94  = tmp_22 * ( tmp_20 + tmp_85 );
+      real_t tmp_95  = tmp_19 * tmp_94;
+      real_t tmp_96  = tmp_25 * tmp_94;
+      real_t tmp_97  = tmp_22 * ( tmp_18 + tmp_89 );
+      real_t tmp_98  = tmp_21 * tmp_97;
+      real_t tmp_99  = tmp_29 * tmp_97;
+      real_t tmp_100 = 0.11846344252809471 * tmp_31;
+      real_t tmp_101 = tmp_100 * ( -tmp_95 - tmp_96 - tmp_98 - tmp_99 + 1 );
+      real_t tmp_102 = tmp_10 + tmp_14;
+      real_t tmp_103 = tmp_37 + tmp_40;
+      real_t tmp_104 = tmp_54 + tmp_57;
+      real_t tmp_105 = tmp_71 + tmp_74;
+      real_t tmp_106 = tmp_88 + tmp_91;
+      real_t tmp_107 = tmp_16 + tmp_8;
+      real_t tmp_108 = tmp_36 + tmp_41;
+      real_t tmp_109 = tmp_53 + tmp_58;
+      real_t tmp_110 = tmp_70 + tmp_75;
+      real_t tmp_111 = tmp_87 + tmp_92;
+      real_t tmp_112 = tmp_32 * ( tmp_26 + tmp_28 );
+      real_t tmp_113 = tmp_49 * ( tmp_45 + tmp_47 );
+      real_t tmp_114 = tmp_66 * ( tmp_62 + tmp_64 );
+      real_t tmp_115 = tmp_83 * ( tmp_79 + tmp_81 );
+      real_t tmp_116 = tmp_100 * ( tmp_96 + tmp_98 );
+      real_t tmp_117 = tmp_32 * ( tmp_24 + tmp_30 );
+      real_t tmp_118 = tmp_49 * ( tmp_44 + tmp_48 );
+      real_t tmp_119 = tmp_66 * ( tmp_61 + tmp_65 );
+      real_t tmp_120 = tmp_83 * ( tmp_78 + tmp_82 );
+      real_t tmp_121 = tmp_100 * ( tmp_95 + tmp_99 );
+      real_t a_0_0   = -tmp_101 * tmp_93 - tmp_17 * tmp_33 - tmp_42 * tmp_50 - tmp_59 * tmp_67 - tmp_76 * tmp_84;
+      real_t a_0_1   = -tmp_101 * tmp_106 - tmp_102 * tmp_33 - tmp_103 * tmp_50 - tmp_104 * tmp_67 - tmp_105 * tmp_84;
+      real_t a_0_2   = -tmp_101 * tmp_111 - tmp_107 * tmp_33 - tmp_108 * tmp_50 - tmp_109 * tmp_67 - tmp_110 * tmp_84;
+      real_t a_1_0   = -tmp_112 * tmp_17 - tmp_113 * tmp_42 - tmp_114 * tmp_59 - tmp_115 * tmp_76 - tmp_116 * tmp_93;
+      real_t a_1_1   = -tmp_102 * tmp_112 - tmp_103 * tmp_113 - tmp_104 * tmp_114 - tmp_105 * tmp_115 - tmp_106 * tmp_116;
+      real_t a_1_2   = -tmp_107 * tmp_112 - tmp_108 * tmp_113 - tmp_109 * tmp_114 - tmp_110 * tmp_115 - tmp_111 * tmp_116;
+      real_t a_2_0   = -tmp_117 * tmp_17 - tmp_118 * tmp_42 - tmp_119 * tmp_59 - tmp_120 * tmp_76 - tmp_121 * tmp_93;
+      real_t a_2_1   = -tmp_102 * tmp_117 - tmp_103 * tmp_118 - tmp_104 * tmp_119 - tmp_105 * tmp_120 - tmp_106 * tmp_121;
+      real_t a_2_2   = -tmp_107 * tmp_117 - tmp_108 * tmp_118 - tmp_109 * tmp_119 - tmp_110 * tmp_120 - tmp_111 * tmp_121;
       elMat( 0, 0 )  = a_0_0;
       elMat( 0, 1 )  = a_0_1;
       elMat( 0, 2 )  = a_0_2;
@@ -441,70 +515,82 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -557,7 +643,7 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_0  = 0.063089014491502282;
       real_t tmp_1  = -p_affine_0_0;
       real_t tmp_2  = p_affine_1_0 + tmp_1;
       real_t tmp_3  = -p_affine_0_1;
@@ -567,48 +653,89 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_7  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
       real_t tmp_8  = tmp_7 * ( tmp_5 + tmp_6 );
-      real_t tmp_9  = 0.054975871827660928 * tmp_8;
-      real_t tmp_10 = 0.44594849091596489;
-      real_t tmp_11 = 0.11169079483900572 * tmp_8;
-      real_t tmp_12 = 0.091576213509770743;
-      real_t tmp_13 = 0.054975871827660928 * tmp_8;
-      real_t tmp_14 = 0.44594849091596489;
-      real_t tmp_15 = 0.11169079483900572 * tmp_8;
-      real_t tmp_16 = 0.81684757298045851;
-      real_t tmp_17 = 0.054975871827660928 * tmp_8;
-      real_t tmp_18 = 0.10810301816807022;
-      real_t tmp_19 = 0.11169079483900572 * tmp_8;
-      real_t tmp_20 = tmp_6 * tmp_7;
-      real_t tmp_21 = 0.054975871827660928 * tmp_0;
-      real_t tmp_22 = 0.11169079483900572 * tmp_10;
-      real_t tmp_23 = 0.054975871827660928 * tmp_12;
-      real_t tmp_24 = 0.11169079483900572 * tmp_14;
-      real_t tmp_25 = 0.054975871827660928 * tmp_16;
-      real_t tmp_26 = 0.11169079483900572 * tmp_18;
-      real_t tmp_27 = tmp_5 * tmp_7;
-      real_t tmp_28 = 0.0050344821763756674;
-      real_t tmp_29 = 0.049808341407659239;
-      real_t tmp_30 = 0.044906907474909594;
-      real_t tmp_31 = 0.012074112023687239;
-      real_t tmp_32 = 0.0050344821763756674;
-      real_t tmp_33 = 0.049808341407659239;
-      real_t tmp_34 = 0.044906907474909594;
-      real_t tmp_35 = 0.012074112023687239;
-      real_t tmp_36 = 0.0050344821763756674;
-      real_t tmp_37 = 0.049808341407659239;
-      real_t tmp_38 = 0.0050344821763756674;
-      real_t tmp_39 = 0.049808341407659239;
-      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19;
-      real_t a_0_1  = -tmp_20 * tmp_21 - tmp_20 * tmp_22 - tmp_20 * tmp_23 - tmp_20 * tmp_24 - tmp_20 * tmp_25 - tmp_20 * tmp_26;
-      real_t a_0_2  = -tmp_21 * tmp_27 - tmp_22 * tmp_27 - tmp_23 * tmp_27 - tmp_24 * tmp_27 - tmp_25 * tmp_27 - tmp_26 * tmp_27;
-      real_t a_1_0  = 0.44594849091596489 * tmp_11 + 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.091576213509770743 * tmp_9;
-      real_t a_1_1 = -tmp_20 * tmp_28 - tmp_20 * tmp_29 - tmp_20 * tmp_30 - tmp_20 * tmp_31 - tmp_20 * tmp_32 - tmp_20 * tmp_33;
-      real_t a_1_2 = -tmp_27 * tmp_28 - tmp_27 * tmp_29 - tmp_27 * tmp_30 - tmp_27 * tmp_31 - tmp_27 * tmp_32 - tmp_27 * tmp_33;
-      real_t a_2_0 = 0.10810301816807022 * tmp_11 + 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.81684757298045851 * tmp_9;
-      real_t a_2_1  = -tmp_20 * tmp_34 - tmp_20 * tmp_35 - tmp_20 * tmp_36 - tmp_20 * tmp_37 - tmp_20 * tmp_38 - tmp_20 * tmp_39;
-      real_t a_2_2  = -tmp_27 * tmp_34 - tmp_27 * tmp_35 - tmp_27 * tmp_36 - tmp_27 * tmp_37 - tmp_27 * tmp_38 - tmp_27 * tmp_39;
+      real_t tmp_9  = 0.025422453185103409 * tmp_8;
+      real_t tmp_10 = 0.24928674517091043;
+      real_t tmp_11 = 0.058393137863189684 * tmp_8;
+      real_t tmp_12 = 0.63650249912139867;
+      real_t tmp_13 = 0.041425537809186785 * tmp_8;
+      real_t tmp_14 = 0.053145049844816938;
+      real_t tmp_15 = 0.041425537809186785 * tmp_8;
+      real_t tmp_16 = 0.063089014491502227;
+      real_t tmp_17 = 0.025422453185103409 * tmp_8;
+      real_t tmp_18 = 0.24928674517091043;
+      real_t tmp_19 = 0.058393137863189684 * tmp_8;
+      real_t tmp_20 = 0.87382197101699566;
+      real_t tmp_21 = 0.025422453185103409 * tmp_8;
+      real_t tmp_22 = 0.50142650965817914;
+      real_t tmp_23 = 0.058393137863189684 * tmp_8;
+      real_t tmp_24 = 0.053145049844816938;
+      real_t tmp_25 = 0.041425537809186785 * tmp_8;
+      real_t tmp_26 = 0.63650249912139867;
+      real_t tmp_27 = 0.041425537809186785 * tmp_8;
+      real_t tmp_28 = 0.31035245103378439;
+      real_t tmp_29 = 0.041425537809186785 * tmp_8;
+      real_t tmp_30 = 0.31035245103378439;
+      real_t tmp_31 = 0.041425537809186785 * tmp_8;
+      real_t tmp_32 = tmp_6 * tmp_7;
+      real_t tmp_33 = 0.025422453185103409 * tmp_0;
+      real_t tmp_34 = 0.058393137863189684 * tmp_10;
+      real_t tmp_35 = 0.041425537809186785 * tmp_12;
+      real_t tmp_36 = 0.041425537809186785 * tmp_14;
+      real_t tmp_37 = 0.025422453185103409 * tmp_16;
+      real_t tmp_38 = 0.058393137863189684 * tmp_18;
+      real_t tmp_39 = 0.025422453185103409 * tmp_20;
+      real_t tmp_40 = 0.058393137863189684 * tmp_22;
+      real_t tmp_41 = 0.041425537809186785 * tmp_24;
+      real_t tmp_42 = 0.041425537809186785 * tmp_26;
+      real_t tmp_43 = 0.041425537809186785 * tmp_28;
+      real_t tmp_44 = 0.041425537809186785 * tmp_30;
+      real_t tmp_45 = tmp_5 * tmp_7;
+      real_t tmp_46 = 0.001603877517404526;
+      real_t tmp_47 = 0.012856517194473826;
+      real_t tmp_48 = 0.026367458342995378;
+      real_t tmp_49 = 0.014556635278230808;
+      real_t tmp_50 = 0.022214698150294358;
+      real_t tmp_51 = 0.029279867306728068;
+      real_t tmp_52 = 0.001603877517404526;
+      real_t tmp_53 = 0.014556635278230808;
+      real_t tmp_54 = 0.012856517194473826;
+      real_t tmp_55 = 0.0022015622717175805;
+      real_t tmp_56 = 0.026367458342995378;
+      real_t tmp_57 = 0.0022015622717175805;
+      real_t tmp_58 = 0.022214698150294358;
+      real_t tmp_59 = 0.0022015622717175805;
+      real_t tmp_60 = 0.012856517194473826;
+      real_t tmp_61 = 0.029279867306728068;
+      real_t tmp_62 = 0.001603877517404526;
+      real_t tmp_63 = 0.014556635278230808;
+      real_t tmp_64 = 0.001603877517404526;
+      real_t tmp_65 = 0.014556635278230808;
+      real_t tmp_66 = 0.026367458342995378;
+      real_t tmp_67 = 0.012856517194473826;
+      real_t tmp_68 = 0.0022015622717175805;
+      real_t tmp_69 = 0.026367458342995378;
+      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19 +
+                     tmp_20 * tmp_21 + tmp_22 * tmp_23 + tmp_24 * tmp_25 + tmp_26 * tmp_27 + tmp_28 * tmp_29 + tmp_30 * tmp_31;
+      real_t a_0_1 = -tmp_32 * tmp_33 - tmp_32 * tmp_34 - tmp_32 * tmp_35 - tmp_32 * tmp_36 - tmp_32 * tmp_37 - tmp_32 * tmp_38 -
+                     tmp_32 * tmp_39 - tmp_32 * tmp_40 - tmp_32 * tmp_41 - tmp_32 * tmp_42 - tmp_32 * tmp_43 - tmp_32 * tmp_44;
+      real_t a_0_2 = -tmp_33 * tmp_45 - tmp_34 * tmp_45 - tmp_35 * tmp_45 - tmp_36 * tmp_45 - tmp_37 * tmp_45 - tmp_38 * tmp_45 -
+                     tmp_39 * tmp_45 - tmp_40 * tmp_45 - tmp_41 * tmp_45 - tmp_42 * tmp_45 - tmp_43 * tmp_45 - tmp_44 * tmp_45;
+      real_t a_1_0 = 0.24928674517091043 * tmp_11 + 0.31035245103378439 * tmp_13 + 0.63650249912139867 * tmp_15 +
+                     0.87382197101699555 * tmp_17 + 0.50142650965817914 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.31035245103378439 * tmp_25 + 0.053145049844816938 * tmp_27 +
+                     0.63650249912139867 * tmp_29 + 0.053145049844816938 * tmp_31 + 0.063089014491502227 * tmp_9;
+      real_t a_1_1 = -tmp_32 * tmp_46 - tmp_32 * tmp_47 - tmp_32 * tmp_48 - tmp_32 * tmp_49 - tmp_32 * tmp_50 - tmp_32 * tmp_51 -
+                     tmp_32 * tmp_52 - tmp_32 * tmp_53 - tmp_32 * tmp_54 - tmp_32 * tmp_55 - tmp_32 * tmp_56 - tmp_32 * tmp_57;
+      real_t a_1_2 = -tmp_45 * tmp_46 - tmp_45 * tmp_47 - tmp_45 * tmp_48 - tmp_45 * tmp_49 - tmp_45 * tmp_50 - tmp_45 * tmp_51 -
+                     tmp_45 * tmp_52 - tmp_45 * tmp_53 - tmp_45 * tmp_54 - tmp_45 * tmp_55 - tmp_45 * tmp_56 - tmp_45 * tmp_57;
+      real_t a_2_0 = 0.50142650965817914 * tmp_11 + 0.053145049844816938 * tmp_13 + 0.31035245103378439 * tmp_15 +
+                     0.063089014491502227 * tmp_17 + 0.24928674517091043 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.63650249912139867 * tmp_25 + 0.31035245103378439 * tmp_27 +
+                     0.053145049844816938 * tmp_29 + 0.63650249912139867 * tmp_31 + 0.87382197101699555 * tmp_9;
+      real_t a_2_1 = -tmp_32 * tmp_58 - tmp_32 * tmp_59 - tmp_32 * tmp_60 - tmp_32 * tmp_61 - tmp_32 * tmp_62 - tmp_32 * tmp_63 -
+                     tmp_32 * tmp_64 - tmp_32 * tmp_65 - tmp_32 * tmp_66 - tmp_32 * tmp_67 - tmp_32 * tmp_68 - tmp_32 * tmp_69;
+      real_t a_2_2 = -tmp_45 * tmp_58 - tmp_45 * tmp_59 - tmp_45 * tmp_60 - tmp_45 * tmp_61 - tmp_45 * tmp_62 - tmp_45 * tmp_63 -
+                     tmp_45 * tmp_64 - tmp_45 * tmp_65 - tmp_45 * tmp_66 - tmp_45 * tmp_67 - tmp_45 * tmp_68 - tmp_45 * tmp_69;
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -660,70 +787,82 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -788,13 +927,13 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_3   = p_affine_5_1 + tmp_2;
       real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6   = p_affine_6_1 + 0.069431844202973714 * tmp_5;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
       real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
       real_t tmp_8   = tmp_1 * tmp_7;
       real_t tmp_9   = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10  = tmp_7 * tmp_9;
       real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12  = p_affine_6_0 + 0.069431844202973714 * tmp_11;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
       real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
       real_t tmp_14  = tmp_13 * tmp_3;
       real_t tmp_15  = p_affine_3_1 - p_affine_4_1;
@@ -814,13 +953,13 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_29  = p_affine_0_1 - p_affine_1_1;
       real_t tmp_30  = tmp_27 * tmp_29;
       real_t tmp_31  = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_32  = 0.17392742256872684 * tmp_31;
+      real_t tmp_32  = 0.11846344252809471 * tmp_31;
       real_t tmp_33  = tmp_32 * ( -tmp_24 - tmp_26 - tmp_28 - tmp_30 + 1 );
-      real_t tmp_34  = p_affine_6_1 + 0.33000947820757187 * tmp_5;
+      real_t tmp_34  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
       real_t tmp_35  = tmp_4 * ( tmp_2 + tmp_34 );
       real_t tmp_36  = tmp_1 * tmp_35;
       real_t tmp_37  = tmp_35 * tmp_9;
-      real_t tmp_38  = p_affine_6_0 + 0.33000947820757187 * tmp_11;
+      real_t tmp_38  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
       real_t tmp_39  = tmp_4 * ( tmp_0 + tmp_38 );
       real_t tmp_40  = tmp_3 * tmp_39;
       real_t tmp_41  = tmp_15 * tmp_39;
@@ -831,13 +970,13 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_46  = tmp_22 * ( tmp_18 + tmp_38 );
       real_t tmp_47  = tmp_21 * tmp_46;
       real_t tmp_48  = tmp_29 * tmp_46;
-      real_t tmp_49  = 0.3260725774312731 * tmp_31;
+      real_t tmp_49  = 0.2393143352496831 * tmp_31;
       real_t tmp_50  = tmp_49 * ( -tmp_44 - tmp_45 - tmp_47 - tmp_48 + 1 );
-      real_t tmp_51  = p_affine_6_1 + 0.66999052179242813 * tmp_5;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
       real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
       real_t tmp_53  = tmp_1 * tmp_52;
       real_t tmp_54  = tmp_52 * tmp_9;
-      real_t tmp_55  = p_affine_6_0 + 0.66999052179242813 * tmp_11;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
       real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
       real_t tmp_57  = tmp_3 * tmp_56;
       real_t tmp_58  = tmp_15 * tmp_56;
@@ -848,13 +987,13 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_63  = tmp_22 * ( tmp_18 + tmp_55 );
       real_t tmp_64  = tmp_21 * tmp_63;
       real_t tmp_65  = tmp_29 * tmp_63;
-      real_t tmp_66  = 0.3260725774312731 * tmp_31;
+      real_t tmp_66  = 0.2844444444444445 * tmp_31;
       real_t tmp_67  = tmp_66 * ( -tmp_61 - tmp_62 - tmp_64 - tmp_65 + 1 );
-      real_t tmp_68  = p_affine_6_1 + 0.93056815579702623 * tmp_5;
+      real_t tmp_68  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
       real_t tmp_69  = tmp_4 * ( tmp_2 + tmp_68 );
       real_t tmp_70  = tmp_1 * tmp_69;
       real_t tmp_71  = tmp_69 * tmp_9;
-      real_t tmp_72  = p_affine_6_0 + 0.93056815579702623 * tmp_11;
+      real_t tmp_72  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
       real_t tmp_73  = tmp_4 * ( tmp_0 + tmp_72 );
       real_t tmp_74  = tmp_3 * tmp_73;
       real_t tmp_75  = tmp_15 * tmp_73;
@@ -865,33 +1004,54 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_80  = tmp_22 * ( tmp_18 + tmp_72 );
       real_t tmp_81  = tmp_21 * tmp_80;
       real_t tmp_82  = tmp_29 * tmp_80;
-      real_t tmp_83  = 0.17392742256872684 * tmp_31;
+      real_t tmp_83  = 0.2393143352496831 * tmp_31;
       real_t tmp_84  = tmp_83 * ( -tmp_78 - tmp_79 - tmp_81 - tmp_82 + 1 );
-      real_t tmp_85  = tmp_10 + tmp_14;
-      real_t tmp_86  = tmp_37 + tmp_40;
-      real_t tmp_87  = tmp_54 + tmp_57;
-      real_t tmp_88  = tmp_71 + tmp_74;
-      real_t tmp_89  = tmp_16 + tmp_8;
-      real_t tmp_90  = tmp_36 + tmp_41;
-      real_t tmp_91  = tmp_53 + tmp_58;
-      real_t tmp_92  = tmp_70 + tmp_75;
-      real_t tmp_93  = tmp_32 * ( tmp_26 + tmp_28 );
-      real_t tmp_94  = tmp_49 * ( tmp_45 + tmp_47 );
-      real_t tmp_95  = tmp_66 * ( tmp_62 + tmp_64 );
-      real_t tmp_96  = tmp_83 * ( tmp_79 + tmp_81 );
-      real_t tmp_97  = tmp_32 * ( tmp_24 + tmp_30 );
-      real_t tmp_98  = tmp_49 * ( tmp_44 + tmp_48 );
-      real_t tmp_99  = tmp_66 * ( tmp_61 + tmp_65 );
-      real_t tmp_100 = tmp_83 * ( tmp_78 + tmp_82 );
-      real_t a_0_0   = -tmp_17 * tmp_33 - tmp_42 * tmp_50 - tmp_59 * tmp_67 - tmp_76 * tmp_84;
-      real_t a_0_1   = -tmp_33 * tmp_85 - tmp_50 * tmp_86 - tmp_67 * tmp_87 - tmp_84 * tmp_88;
-      real_t a_0_2   = -tmp_33 * tmp_89 - tmp_50 * tmp_90 - tmp_67 * tmp_91 - tmp_84 * tmp_92;
-      real_t a_1_0   = -tmp_17 * tmp_93 - tmp_42 * tmp_94 - tmp_59 * tmp_95 - tmp_76 * tmp_96;
-      real_t a_1_1   = -tmp_85 * tmp_93 - tmp_86 * tmp_94 - tmp_87 * tmp_95 - tmp_88 * tmp_96;
-      real_t a_1_2   = -tmp_89 * tmp_93 - tmp_90 * tmp_94 - tmp_91 * tmp_95 - tmp_92 * tmp_96;
-      real_t a_2_0   = -tmp_100 * tmp_76 - tmp_17 * tmp_97 - tmp_42 * tmp_98 - tmp_59 * tmp_99;
-      real_t a_2_1   = -tmp_100 * tmp_88 - tmp_85 * tmp_97 - tmp_86 * tmp_98 - tmp_87 * tmp_99;
-      real_t a_2_2   = -tmp_100 * tmp_92 - tmp_89 * tmp_97 - tmp_90 * tmp_98 - tmp_91 * tmp_99;
+      real_t tmp_85  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_86  = tmp_4 * ( tmp_2 + tmp_85 );
+      real_t tmp_87  = tmp_1 * tmp_86;
+      real_t tmp_88  = tmp_86 * tmp_9;
+      real_t tmp_89  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_90  = tmp_4 * ( tmp_0 + tmp_89 );
+      real_t tmp_91  = tmp_3 * tmp_90;
+      real_t tmp_92  = tmp_15 * tmp_90;
+      real_t tmp_93  = -tmp_87 - tmp_88 - tmp_91 - tmp_92 + 1;
+      real_t tmp_94  = tmp_22 * ( tmp_20 + tmp_85 );
+      real_t tmp_95  = tmp_19 * tmp_94;
+      real_t tmp_96  = tmp_25 * tmp_94;
+      real_t tmp_97  = tmp_22 * ( tmp_18 + tmp_89 );
+      real_t tmp_98  = tmp_21 * tmp_97;
+      real_t tmp_99  = tmp_29 * tmp_97;
+      real_t tmp_100 = 0.11846344252809471 * tmp_31;
+      real_t tmp_101 = tmp_100 * ( -tmp_95 - tmp_96 - tmp_98 - tmp_99 + 1 );
+      real_t tmp_102 = tmp_10 + tmp_14;
+      real_t tmp_103 = tmp_37 + tmp_40;
+      real_t tmp_104 = tmp_54 + tmp_57;
+      real_t tmp_105 = tmp_71 + tmp_74;
+      real_t tmp_106 = tmp_88 + tmp_91;
+      real_t tmp_107 = tmp_16 + tmp_8;
+      real_t tmp_108 = tmp_36 + tmp_41;
+      real_t tmp_109 = tmp_53 + tmp_58;
+      real_t tmp_110 = tmp_70 + tmp_75;
+      real_t tmp_111 = tmp_87 + tmp_92;
+      real_t tmp_112 = tmp_32 * ( tmp_26 + tmp_28 );
+      real_t tmp_113 = tmp_49 * ( tmp_45 + tmp_47 );
+      real_t tmp_114 = tmp_66 * ( tmp_62 + tmp_64 );
+      real_t tmp_115 = tmp_83 * ( tmp_79 + tmp_81 );
+      real_t tmp_116 = tmp_100 * ( tmp_96 + tmp_98 );
+      real_t tmp_117 = tmp_32 * ( tmp_24 + tmp_30 );
+      real_t tmp_118 = tmp_49 * ( tmp_44 + tmp_48 );
+      real_t tmp_119 = tmp_66 * ( tmp_61 + tmp_65 );
+      real_t tmp_120 = tmp_83 * ( tmp_78 + tmp_82 );
+      real_t tmp_121 = tmp_100 * ( tmp_95 + tmp_99 );
+      real_t a_0_0   = -tmp_101 * tmp_93 - tmp_17 * tmp_33 - tmp_42 * tmp_50 - tmp_59 * tmp_67 - tmp_76 * tmp_84;
+      real_t a_0_1   = -tmp_101 * tmp_106 - tmp_102 * tmp_33 - tmp_103 * tmp_50 - tmp_104 * tmp_67 - tmp_105 * tmp_84;
+      real_t a_0_2   = -tmp_101 * tmp_111 - tmp_107 * tmp_33 - tmp_108 * tmp_50 - tmp_109 * tmp_67 - tmp_110 * tmp_84;
+      real_t a_1_0   = -tmp_112 * tmp_17 - tmp_113 * tmp_42 - tmp_114 * tmp_59 - tmp_115 * tmp_76 - tmp_116 * tmp_93;
+      real_t a_1_1   = -tmp_102 * tmp_112 - tmp_103 * tmp_113 - tmp_104 * tmp_114 - tmp_105 * tmp_115 - tmp_106 * tmp_116;
+      real_t a_1_2   = -tmp_107 * tmp_112 - tmp_108 * tmp_113 - tmp_109 * tmp_114 - tmp_110 * tmp_115 - tmp_111 * tmp_116;
+      real_t a_2_0   = -tmp_117 * tmp_17 - tmp_118 * tmp_42 - tmp_119 * tmp_59 - tmp_120 * tmp_76 - tmp_121 * tmp_93;
+      real_t a_2_1   = -tmp_102 * tmp_117 - tmp_103 * tmp_118 - tmp_104 * tmp_119 - tmp_105 * tmp_120 - tmp_106 * tmp_121;
+      real_t a_2_2   = -tmp_107 * tmp_117 - tmp_108 * tmp_118 - tmp_109 * tmp_119 - tmp_110 * tmp_120 - tmp_111 * tmp_121;
       elMat( 0, 0 )  = a_0_0;
       elMat( 0, 1 )  = a_0_1;
       elMat( 0, 2 )  = a_0_2;
@@ -943,70 +1103,82 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -1069,18 +1241,30 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
                        tmp_4 * tmp_5 * ( p_affine_0_0 - p_affine_2_0 ) ) *
                      std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
-      real_t tmp_7  = 0.054975871827660928 * tmp_6;
-      real_t tmp_8  = 0.11169079483900572 * tmp_6;
-      real_t tmp_9  = 0.054975871827660928 * tmp_6;
-      real_t tmp_10 = 0.11169079483900572 * tmp_6;
-      real_t tmp_11 = 0.054975871827660928 * tmp_6;
-      real_t tmp_12 = 0.11169079483900572 * tmp_6;
-      real_t a_0_0  = 0.44594849091596489 * tmp_10 + 0.81684757298045851 * tmp_11 + 0.10810301816807022 * tmp_12 +
-                     0.091576213509770743 * tmp_7 + 0.44594849091596489 * tmp_8 + 0.091576213509770743 * tmp_9;
-      real_t a_1_0 = 0.10810301816807022 * tmp_10 + 0.091576213509770743 * tmp_11 + 0.44594849091596489 * tmp_12 +
-                     0.091576213509770743 * tmp_7 + 0.44594849091596489 * tmp_8 + 0.81684757298045851 * tmp_9;
-      real_t a_2_0 = 0.44594849091596489 * tmp_10 + 0.091576213509770743 * tmp_11 + 0.44594849091596489 * tmp_12 +
-                     0.81684757298045851 * tmp_7 + 0.10810301816807022 * tmp_8 + 0.091576213509770743 * tmp_9;
+      real_t tmp_7  = 0.025422453185103409 * tmp_6;
+      real_t tmp_8  = 0.058393137863189684 * tmp_6;
+      real_t tmp_9  = 0.041425537809186785 * tmp_6;
+      real_t tmp_10 = 0.041425537809186785 * tmp_6;
+      real_t tmp_11 = 0.025422453185103409 * tmp_6;
+      real_t tmp_12 = 0.058393137863189684 * tmp_6;
+      real_t tmp_13 = 0.025422453185103409 * tmp_6;
+      real_t tmp_14 = 0.058393137863189684 * tmp_6;
+      real_t tmp_15 = 0.041425537809186785 * tmp_6;
+      real_t tmp_16 = 0.041425537809186785 * tmp_6;
+      real_t tmp_17 = 0.041425537809186785 * tmp_6;
+      real_t tmp_18 = 0.041425537809186785 * tmp_6;
+      real_t a_0_0  = 0.053145049844816938 * tmp_10 + 0.063089014491502227 * tmp_11 + 0.24928674517091043 * tmp_12 +
+                     0.87382197101699566 * tmp_13 + 0.50142650965817914 * tmp_14 + 0.053145049844816938 * tmp_15 +
+                     0.63650249912139867 * tmp_16 + 0.31035245103378439 * tmp_17 + 0.31035245103378439 * tmp_18 +
+                     0.063089014491502282 * tmp_7 + 0.24928674517091043 * tmp_8 + 0.63650249912139867 * tmp_9;
+      real_t a_1_0 = 0.63650249912139867 * tmp_10 + 0.87382197101699555 * tmp_11 + 0.50142650965817914 * tmp_12 +
+                     0.063089014491502227 * tmp_13 + 0.24928674517091043 * tmp_14 + 0.31035245103378439 * tmp_15 +
+                     0.053145049844816938 * tmp_16 + 0.63650249912139867 * tmp_17 + 0.053145049844816938 * tmp_18 +
+                     0.063089014491502227 * tmp_7 + 0.24928674517091043 * tmp_8 + 0.31035245103378439 * tmp_9;
+      real_t a_2_0 = 0.31035245103378439 * tmp_10 + 0.063089014491502227 * tmp_11 + 0.24928674517091043 * tmp_12 +
+                     0.063089014491502227 * tmp_13 + 0.24928674517091043 * tmp_14 + 0.63650249912139867 * tmp_15 +
+                     0.31035245103378439 * tmp_16 + 0.053145049844816938 * tmp_17 + 0.63650249912139867 * tmp_18 +
+                     0.87382197101699555 * tmp_7 + 0.50142650965817914 * tmp_8 + 0.053145049844816938 * tmp_9;
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -1128,13 +1312,13 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_6  = 1.0 / ( tmp_1 * tmp_3 - tmp_4 * tmp_5 );
       real_t tmp_7  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_8  = p_affine_6_1 + tmp_2;
-      real_t tmp_9  = tmp_6 * ( 0.069431844202973714 * tmp_7 + tmp_8 );
+      real_t tmp_9  = tmp_6 * ( 0.046910077030668018 * tmp_7 + tmp_8 );
       real_t tmp_10 = tmp_1 * tmp_9;
       real_t tmp_11 = p_affine_0_0 - p_affine_2_0;
       real_t tmp_12 = tmp_11 * tmp_9;
       real_t tmp_13 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_14 = p_affine_6_0 + tmp_0;
-      real_t tmp_15 = tmp_6 * ( 0.069431844202973714 * tmp_13 + tmp_14 );
+      real_t tmp_15 = tmp_6 * ( 0.046910077030668018 * tmp_13 + tmp_14 );
       real_t tmp_16 = tmp_15 * tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15 * tmp_17;
@@ -1146,11 +1330,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_24 = p_affine_10_0 * ( tmp_1 * tmp_21 + tmp_23 * tmp_4 );
       real_t tmp_25 = p_affine_10_1 * ( tmp_21 * tmp_5 + tmp_23 * tmp_3 );
       real_t tmp_26 = std::abs( std::pow( ( tmp_13 * tmp_13 ) + ( tmp_7 * tmp_7 ), 1.0 / 2.0 ) );
-      real_t tmp_27 = 0.17392742256872684 * tmp_26;
-      real_t tmp_28 = tmp_6 * ( 0.33000947820757187 * tmp_7 + tmp_8 );
+      real_t tmp_27 = 0.11846344252809471 * tmp_26;
+      real_t tmp_28 = tmp_6 * ( 0.23076534494715845 * tmp_7 + tmp_8 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_11 * tmp_28;
-      real_t tmp_31 = tmp_6 * ( 0.33000947820757187 * tmp_13 + tmp_14 );
+      real_t tmp_31 = tmp_6 * ( 0.23076534494715845 * tmp_13 + tmp_14 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_17 * tmp_31;
       real_t tmp_34 = -0.5 * tmp_29 - 0.5 * tmp_30 - 0.5 * tmp_32 - 0.5 * tmp_33 + 0.5;
@@ -1160,11 +1344,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_38 = tmp_37 - 1.0 / 3.0;
       real_t tmp_39 = p_affine_10_0 * ( tmp_1 * tmp_36 + tmp_38 * tmp_4 );
       real_t tmp_40 = p_affine_10_1 * ( tmp_3 * tmp_38 + tmp_36 * tmp_5 );
-      real_t tmp_41 = 0.3260725774312731 * tmp_26;
-      real_t tmp_42 = tmp_6 * ( 0.66999052179242813 * tmp_7 + tmp_8 );
+      real_t tmp_41 = 0.2393143352496831 * tmp_26;
+      real_t tmp_42 = tmp_6 * ( 0.5 * tmp_7 + tmp_8 );
       real_t tmp_43 = tmp_1 * tmp_42;
       real_t tmp_44 = tmp_11 * tmp_42;
-      real_t tmp_45 = tmp_6 * ( 0.66999052179242813 * tmp_13 + tmp_14 );
+      real_t tmp_45 = tmp_6 * ( 0.5 * tmp_13 + tmp_14 );
       real_t tmp_46 = tmp_3 * tmp_45;
       real_t tmp_47 = tmp_17 * tmp_45;
       real_t tmp_48 = -0.5 * tmp_43 - 0.5 * tmp_44 - 0.5 * tmp_46 - 0.5 * tmp_47 + 0.5;
@@ -1174,11 +1358,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_52 = tmp_51 - 1.0 / 3.0;
       real_t tmp_53 = p_affine_10_0 * ( tmp_1 * tmp_50 + tmp_4 * tmp_52 );
       real_t tmp_54 = p_affine_10_1 * ( tmp_3 * tmp_52 + tmp_5 * tmp_50 );
-      real_t tmp_55 = 0.3260725774312731 * tmp_26;
-      real_t tmp_56 = tmp_6 * ( 0.93056815579702623 * tmp_7 + tmp_8 );
+      real_t tmp_55 = 0.2844444444444445 * tmp_26;
+      real_t tmp_56 = tmp_6 * ( 0.7692346550528415 * tmp_7 + tmp_8 );
       real_t tmp_57 = tmp_1 * tmp_56;
       real_t tmp_58 = tmp_11 * tmp_56;
-      real_t tmp_59 = tmp_6 * ( 0.93056815579702623 * tmp_13 + tmp_14 );
+      real_t tmp_59 = tmp_6 * ( 0.7692346550528415 * tmp_13 + tmp_14 );
       real_t tmp_60 = tmp_3 * tmp_59;
       real_t tmp_61 = tmp_17 * tmp_59;
       real_t tmp_62 = -0.5 * tmp_57 - 0.5 * tmp_58 - 0.5 * tmp_60 - 0.5 * tmp_61 + 0.5;
@@ -1188,21 +1372,40 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_66 = tmp_65 - 1.0 / 3.0;
       real_t tmp_67 = p_affine_10_0 * ( tmp_1 * tmp_64 + tmp_4 * tmp_66 );
       real_t tmp_68 = p_affine_10_1 * ( tmp_3 * tmp_66 + tmp_5 * tmp_64 );
-      real_t tmp_69 = 0.17392742256872684 * tmp_26;
-      real_t tmp_70 = 0.5 * tmp_20;
-      real_t tmp_71 = 0.5 * tmp_35;
-      real_t tmp_72 = 0.5 * tmp_49;
-      real_t tmp_73 = 0.5 * tmp_63;
-      real_t tmp_74 = 0.5 * tmp_22;
-      real_t tmp_75 = 0.5 * tmp_37;
-      real_t tmp_76 = 0.5 * tmp_51;
-      real_t tmp_77 = 0.5 * tmp_65;
+      real_t tmp_69 = 0.2393143352496831 * tmp_26;
+      real_t tmp_70 = tmp_6 * ( 0.95308992296933193 * tmp_7 + tmp_8 );
+      real_t tmp_71 = tmp_1 * tmp_70;
+      real_t tmp_72 = tmp_11 * tmp_70;
+      real_t tmp_73 = tmp_6 * ( 0.95308992296933193 * tmp_13 + tmp_14 );
+      real_t tmp_74 = tmp_3 * tmp_73;
+      real_t tmp_75 = tmp_17 * tmp_73;
+      real_t tmp_76 = -0.5 * tmp_71 - 0.5 * tmp_72 - 0.5 * tmp_74 - 0.5 * tmp_75 + 0.5;
+      real_t tmp_77 = tmp_72 + tmp_74;
+      real_t tmp_78 = tmp_77 - 1.0 / 3.0;
+      real_t tmp_79 = tmp_71 + tmp_75;
+      real_t tmp_80 = tmp_79 - 1.0 / 3.0;
+      real_t tmp_81 = p_affine_10_0 * ( tmp_1 * tmp_78 + tmp_4 * tmp_80 );
+      real_t tmp_82 = p_affine_10_1 * ( tmp_3 * tmp_80 + tmp_5 * tmp_78 );
+      real_t tmp_83 = 0.11846344252809471 * tmp_26;
+      real_t tmp_84 = 0.5 * tmp_20;
+      real_t tmp_85 = 0.5 * tmp_35;
+      real_t tmp_86 = 0.5 * tmp_49;
+      real_t tmp_87 = 0.5 * tmp_63;
+      real_t tmp_88 = 0.5 * tmp_77;
+      real_t tmp_89 = 0.5 * tmp_22;
+      real_t tmp_90 = 0.5 * tmp_37;
+      real_t tmp_91 = 0.5 * tmp_51;
+      real_t tmp_92 = 0.5 * tmp_65;
+      real_t tmp_93 = 0.5 * tmp_79;
       real_t a_0_0  = tmp_27 * ( tmp_19 * tmp_24 + tmp_19 * tmp_25 ) + tmp_41 * ( tmp_34 * tmp_39 + tmp_34 * tmp_40 ) +
-                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 );
-      real_t a_1_0 = tmp_27 * ( tmp_24 * tmp_70 + tmp_25 * tmp_70 ) + tmp_41 * ( tmp_39 * tmp_71 + tmp_40 * tmp_71 ) +
-                     tmp_55 * ( tmp_53 * tmp_72 + tmp_54 * tmp_72 ) + tmp_69 * ( tmp_67 * tmp_73 + tmp_68 * tmp_73 );
-      real_t a_2_0 = tmp_27 * ( tmp_24 * tmp_74 + tmp_25 * tmp_74 ) + tmp_41 * ( tmp_39 * tmp_75 + tmp_40 * tmp_75 ) +
-                     tmp_55 * ( tmp_53 * tmp_76 + tmp_54 * tmp_76 ) + tmp_69 * ( tmp_67 * tmp_77 + tmp_68 * tmp_77 );
+                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 ) +
+                     tmp_83 * ( tmp_76 * tmp_81 + tmp_76 * tmp_82 );
+      real_t a_1_0 = tmp_27 * ( tmp_24 * tmp_84 + tmp_25 * tmp_84 ) + tmp_41 * ( tmp_39 * tmp_85 + tmp_40 * tmp_85 ) +
+                     tmp_55 * ( tmp_53 * tmp_86 + tmp_54 * tmp_86 ) + tmp_69 * ( tmp_67 * tmp_87 + tmp_68 * tmp_87 ) +
+                     tmp_83 * ( tmp_81 * tmp_88 + tmp_82 * tmp_88 );
+      real_t a_2_0 = tmp_27 * ( tmp_24 * tmp_89 + tmp_25 * tmp_89 ) + tmp_41 * ( tmp_39 * tmp_90 + tmp_40 * tmp_90 ) +
+                     tmp_55 * ( tmp_53 * tmp_91 + tmp_54 * tmp_91 ) + tmp_69 * ( tmp_67 * tmp_92 + tmp_68 * tmp_92 ) +
+                     tmp_83 * ( tmp_81 * tmp_93 + tmp_82 * tmp_93 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -1255,103 +1458,124 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      real_t tmp_0  = -p_affine_0_0;
-      real_t tmp_1  = p_affine_1_0 + tmp_0;
-      real_t tmp_2  = -p_affine_0_1;
-      real_t tmp_3  = p_affine_2_1 + tmp_2;
-      real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
-      real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6  = p_affine_6_1 + 0.069431844202973714 * tmp_5;
-      real_t tmp_7  = tmp_4 * ( tmp_2 + tmp_6 );
-      real_t tmp_8  = tmp_1 * tmp_7;
-      real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
-      real_t tmp_10 = tmp_7 * tmp_9;
-      real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12 = p_affine_6_0 + 0.069431844202973714 * tmp_11;
-      real_t tmp_13 = tmp_4 * ( tmp_0 + tmp_12 );
-      real_t tmp_14 = tmp_13 * tmp_3;
-      real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
-      real_t tmp_16 = tmp_13 * tmp_15;
-      real_t tmp_17 = -0.5 * tmp_10 - 0.5 * tmp_14 - 0.5 * tmp_16 - 0.5 * tmp_8 + 0.5;
-      real_t tmp_18 = -p_affine_3_0;
-      real_t tmp_19 = p_affine_4_0 + tmp_18;
-      real_t tmp_20 = p_affine_3_0 - p_affine_5_0;
-      real_t tmp_21 = -p_affine_3_1;
-      real_t tmp_22 = p_affine_5_1 + tmp_21;
-      real_t tmp_23 = p_affine_5_0 + tmp_18;
-      real_t tmp_24 = p_affine_4_1 + tmp_21;
-      real_t tmp_25 = 1.0 / ( tmp_19 * tmp_22 - tmp_23 * tmp_24 );
-      real_t tmp_26 = tmp_25 * ( tmp_21 + tmp_6 );
-      real_t tmp_27 = tmp_25 * ( tmp_12 + tmp_18 );
-      real_t tmp_28 = tmp_20 * tmp_26 + tmp_22 * tmp_27 - 1.0 / 3.0;
-      real_t tmp_29 = p_affine_3_1 - p_affine_4_1;
-      real_t tmp_30 = tmp_19 * tmp_26 + tmp_27 * tmp_29 - 1.0 / 3.0;
-      real_t tmp_31 = p_affine_10_0 * ( tmp_19 * tmp_28 + tmp_23 * tmp_30 );
-      real_t tmp_32 = p_affine_10_1 * ( tmp_22 * tmp_30 + tmp_24 * tmp_28 );
-      real_t tmp_33 = std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_34 = 0.17392742256872684 * tmp_33;
-      real_t tmp_35 = p_affine_6_1 + 0.33000947820757187 * tmp_5;
-      real_t tmp_36 = tmp_4 * ( tmp_2 + tmp_35 );
-      real_t tmp_37 = tmp_1 * tmp_36;
-      real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = p_affine_6_0 + 0.33000947820757187 * tmp_11;
-      real_t tmp_40 = tmp_4 * ( tmp_0 + tmp_39 );
-      real_t tmp_41 = tmp_3 * tmp_40;
-      real_t tmp_42 = tmp_15 * tmp_40;
-      real_t tmp_43 = -0.5 * tmp_37 - 0.5 * tmp_38 - 0.5 * tmp_41 - 0.5 * tmp_42 + 0.5;
-      real_t tmp_44 = tmp_25 * ( tmp_21 + tmp_35 );
-      real_t tmp_45 = tmp_25 * ( tmp_18 + tmp_39 );
-      real_t tmp_46 = tmp_20 * tmp_44 + tmp_22 * tmp_45 - 1.0 / 3.0;
-      real_t tmp_47 = tmp_19 * tmp_44 + tmp_29 * tmp_45 - 1.0 / 3.0;
-      real_t tmp_48 = p_affine_10_0 * ( tmp_19 * tmp_46 + tmp_23 * tmp_47 );
-      real_t tmp_49 = p_affine_10_1 * ( tmp_22 * tmp_47 + tmp_24 * tmp_46 );
-      real_t tmp_50 = 0.3260725774312731 * tmp_33;
-      real_t tmp_51 = p_affine_6_1 + 0.66999052179242813 * tmp_5;
-      real_t tmp_52 = tmp_4 * ( tmp_2 + tmp_51 );
-      real_t tmp_53 = tmp_1 * tmp_52;
-      real_t tmp_54 = tmp_52 * tmp_9;
-      real_t tmp_55 = p_affine_6_0 + 0.66999052179242813 * tmp_11;
-      real_t tmp_56 = tmp_4 * ( tmp_0 + tmp_55 );
-      real_t tmp_57 = tmp_3 * tmp_56;
-      real_t tmp_58 = tmp_15 * tmp_56;
-      real_t tmp_59 = -0.5 * tmp_53 - 0.5 * tmp_54 - 0.5 * tmp_57 - 0.5 * tmp_58 + 0.5;
-      real_t tmp_60 = tmp_25 * ( tmp_21 + tmp_51 );
-      real_t tmp_61 = tmp_25 * ( tmp_18 + tmp_55 );
-      real_t tmp_62 = tmp_20 * tmp_60 + tmp_22 * tmp_61 - 1.0 / 3.0;
-      real_t tmp_63 = tmp_19 * tmp_60 + tmp_29 * tmp_61 - 1.0 / 3.0;
-      real_t tmp_64 = p_affine_10_0 * ( tmp_19 * tmp_62 + tmp_23 * tmp_63 );
-      real_t tmp_65 = p_affine_10_1 * ( tmp_22 * tmp_63 + tmp_24 * tmp_62 );
-      real_t tmp_66 = 0.3260725774312731 * tmp_33;
-      real_t tmp_67 = p_affine_6_1 + 0.93056815579702623 * tmp_5;
-      real_t tmp_68 = tmp_4 * ( tmp_2 + tmp_67 );
-      real_t tmp_69 = tmp_1 * tmp_68;
-      real_t tmp_70 = tmp_68 * tmp_9;
-      real_t tmp_71 = p_affine_6_0 + 0.93056815579702623 * tmp_11;
-      real_t tmp_72 = tmp_4 * ( tmp_0 + tmp_71 );
-      real_t tmp_73 = tmp_3 * tmp_72;
-      real_t tmp_74 = tmp_15 * tmp_72;
-      real_t tmp_75 = -0.5 * tmp_69 - 0.5 * tmp_70 - 0.5 * tmp_73 - 0.5 * tmp_74 + 0.5;
-      real_t tmp_76 = tmp_25 * ( tmp_21 + tmp_67 );
-      real_t tmp_77 = tmp_25 * ( tmp_18 + tmp_71 );
-      real_t tmp_78 = tmp_20 * tmp_76 + tmp_22 * tmp_77 - 1.0 / 3.0;
-      real_t tmp_79 = tmp_19 * tmp_76 + tmp_29 * tmp_77 - 1.0 / 3.0;
-      real_t tmp_80 = p_affine_10_0 * ( tmp_19 * tmp_78 + tmp_23 * tmp_79 );
-      real_t tmp_81 = p_affine_10_1 * ( tmp_22 * tmp_79 + tmp_24 * tmp_78 );
-      real_t tmp_82 = 0.17392742256872684 * tmp_33;
-      real_t tmp_83 = 0.5 * tmp_10 + 0.5 * tmp_14;
-      real_t tmp_84 = 0.5 * tmp_38 + 0.5 * tmp_41;
-      real_t tmp_85 = 0.5 * tmp_54 + 0.5 * tmp_57;
-      real_t tmp_86 = 0.5 * tmp_70 + 0.5 * tmp_73;
-      real_t tmp_87 = 0.5 * tmp_16 + 0.5 * tmp_8;
-      real_t tmp_88 = 0.5 * tmp_37 + 0.5 * tmp_42;
-      real_t tmp_89 = 0.5 * tmp_53 + 0.5 * tmp_58;
-      real_t tmp_90 = 0.5 * tmp_69 + 0.5 * tmp_74;
-      real_t a_0_0  = tmp_34 * ( -tmp_17 * tmp_31 - tmp_17 * tmp_32 ) + tmp_50 * ( -tmp_43 * tmp_48 - tmp_43 * tmp_49 ) +
-                     tmp_66 * ( -tmp_59 * tmp_64 - tmp_59 * tmp_65 ) + tmp_82 * ( -tmp_75 * tmp_80 - tmp_75 * tmp_81 );
-      real_t a_1_0 = tmp_34 * ( -tmp_31 * tmp_83 - tmp_32 * tmp_83 ) + tmp_50 * ( -tmp_48 * tmp_84 - tmp_49 * tmp_84 ) +
-                     tmp_66 * ( -tmp_64 * tmp_85 - tmp_65 * tmp_85 ) + tmp_82 * ( -tmp_80 * tmp_86 - tmp_81 * tmp_86 );
-      real_t a_2_0 = tmp_34 * ( -tmp_31 * tmp_87 - tmp_32 * tmp_87 ) + tmp_50 * ( -tmp_48 * tmp_88 - tmp_49 * tmp_88 ) +
-                     tmp_66 * ( -tmp_64 * tmp_89 - tmp_65 * tmp_89 ) + tmp_82 * ( -tmp_80 * tmp_90 - tmp_81 * tmp_90 );
+      real_t tmp_0   = -p_affine_0_0;
+      real_t tmp_1   = p_affine_1_0 + tmp_0;
+      real_t tmp_2   = -p_affine_0_1;
+      real_t tmp_3   = p_affine_2_1 + tmp_2;
+      real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
+      real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
+      real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
+      real_t tmp_8   = tmp_1 * tmp_7;
+      real_t tmp_9   = p_affine_0_0 - p_affine_2_0;
+      real_t tmp_10  = tmp_7 * tmp_9;
+      real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
+      real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
+      real_t tmp_14  = tmp_13 * tmp_3;
+      real_t tmp_15  = p_affine_0_1 - p_affine_1_1;
+      real_t tmp_16  = tmp_13 * tmp_15;
+      real_t tmp_17  = -0.5 * tmp_10 - 0.5 * tmp_14 - 0.5 * tmp_16 - 0.5 * tmp_8 + 0.5;
+      real_t tmp_18  = -p_affine_3_0;
+      real_t tmp_19  = p_affine_4_0 + tmp_18;
+      real_t tmp_20  = p_affine_3_0 - p_affine_5_0;
+      real_t tmp_21  = -p_affine_3_1;
+      real_t tmp_22  = p_affine_5_1 + tmp_21;
+      real_t tmp_23  = p_affine_5_0 + tmp_18;
+      real_t tmp_24  = p_affine_4_1 + tmp_21;
+      real_t tmp_25  = 1.0 / ( tmp_19 * tmp_22 - tmp_23 * tmp_24 );
+      real_t tmp_26  = tmp_25 * ( tmp_21 + tmp_6 );
+      real_t tmp_27  = tmp_25 * ( tmp_12 + tmp_18 );
+      real_t tmp_28  = tmp_20 * tmp_26 + tmp_22 * tmp_27 - 1.0 / 3.0;
+      real_t tmp_29  = p_affine_3_1 - p_affine_4_1;
+      real_t tmp_30  = tmp_19 * tmp_26 + tmp_27 * tmp_29 - 1.0 / 3.0;
+      real_t tmp_31  = p_affine_10_0 * ( tmp_19 * tmp_28 + tmp_23 * tmp_30 );
+      real_t tmp_32  = p_affine_10_1 * ( tmp_22 * tmp_30 + tmp_24 * tmp_28 );
+      real_t tmp_33  = std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
+      real_t tmp_34  = 0.11846344252809471 * tmp_33;
+      real_t tmp_35  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
+      real_t tmp_36  = tmp_4 * ( tmp_2 + tmp_35 );
+      real_t tmp_37  = tmp_1 * tmp_36;
+      real_t tmp_38  = tmp_36 * tmp_9;
+      real_t tmp_39  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
+      real_t tmp_40  = tmp_4 * ( tmp_0 + tmp_39 );
+      real_t tmp_41  = tmp_3 * tmp_40;
+      real_t tmp_42  = tmp_15 * tmp_40;
+      real_t tmp_43  = -0.5 * tmp_37 - 0.5 * tmp_38 - 0.5 * tmp_41 - 0.5 * tmp_42 + 0.5;
+      real_t tmp_44  = tmp_25 * ( tmp_21 + tmp_35 );
+      real_t tmp_45  = tmp_25 * ( tmp_18 + tmp_39 );
+      real_t tmp_46  = tmp_20 * tmp_44 + tmp_22 * tmp_45 - 1.0 / 3.0;
+      real_t tmp_47  = tmp_19 * tmp_44 + tmp_29 * tmp_45 - 1.0 / 3.0;
+      real_t tmp_48  = p_affine_10_0 * ( tmp_19 * tmp_46 + tmp_23 * tmp_47 );
+      real_t tmp_49  = p_affine_10_1 * ( tmp_22 * tmp_47 + tmp_24 * tmp_46 );
+      real_t tmp_50  = 0.2393143352496831 * tmp_33;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
+      real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
+      real_t tmp_53  = tmp_1 * tmp_52;
+      real_t tmp_54  = tmp_52 * tmp_9;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
+      real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
+      real_t tmp_57  = tmp_3 * tmp_56;
+      real_t tmp_58  = tmp_15 * tmp_56;
+      real_t tmp_59  = -0.5 * tmp_53 - 0.5 * tmp_54 - 0.5 * tmp_57 - 0.5 * tmp_58 + 0.5;
+      real_t tmp_60  = tmp_25 * ( tmp_21 + tmp_51 );
+      real_t tmp_61  = tmp_25 * ( tmp_18 + tmp_55 );
+      real_t tmp_62  = tmp_20 * tmp_60 + tmp_22 * tmp_61 - 1.0 / 3.0;
+      real_t tmp_63  = tmp_19 * tmp_60 + tmp_29 * tmp_61 - 1.0 / 3.0;
+      real_t tmp_64  = p_affine_10_0 * ( tmp_19 * tmp_62 + tmp_23 * tmp_63 );
+      real_t tmp_65  = p_affine_10_1 * ( tmp_22 * tmp_63 + tmp_24 * tmp_62 );
+      real_t tmp_66  = 0.2844444444444445 * tmp_33;
+      real_t tmp_67  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
+      real_t tmp_68  = tmp_4 * ( tmp_2 + tmp_67 );
+      real_t tmp_69  = tmp_1 * tmp_68;
+      real_t tmp_70  = tmp_68 * tmp_9;
+      real_t tmp_71  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
+      real_t tmp_72  = tmp_4 * ( tmp_0 + tmp_71 );
+      real_t tmp_73  = tmp_3 * tmp_72;
+      real_t tmp_74  = tmp_15 * tmp_72;
+      real_t tmp_75  = -0.5 * tmp_69 - 0.5 * tmp_70 - 0.5 * tmp_73 - 0.5 * tmp_74 + 0.5;
+      real_t tmp_76  = tmp_25 * ( tmp_21 + tmp_67 );
+      real_t tmp_77  = tmp_25 * ( tmp_18 + tmp_71 );
+      real_t tmp_78  = tmp_20 * tmp_76 + tmp_22 * tmp_77 - 1.0 / 3.0;
+      real_t tmp_79  = tmp_19 * tmp_76 + tmp_29 * tmp_77 - 1.0 / 3.0;
+      real_t tmp_80  = p_affine_10_0 * ( tmp_19 * tmp_78 + tmp_23 * tmp_79 );
+      real_t tmp_81  = p_affine_10_1 * ( tmp_22 * tmp_79 + tmp_24 * tmp_78 );
+      real_t tmp_82  = 0.2393143352496831 * tmp_33;
+      real_t tmp_83  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_84  = tmp_4 * ( tmp_2 + tmp_83 );
+      real_t tmp_85  = tmp_1 * tmp_84;
+      real_t tmp_86  = tmp_84 * tmp_9;
+      real_t tmp_87  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_88  = tmp_4 * ( tmp_0 + tmp_87 );
+      real_t tmp_89  = tmp_3 * tmp_88;
+      real_t tmp_90  = tmp_15 * tmp_88;
+      real_t tmp_91  = -0.5 * tmp_85 - 0.5 * tmp_86 - 0.5 * tmp_89 - 0.5 * tmp_90 + 0.5;
+      real_t tmp_92  = tmp_25 * ( tmp_21 + tmp_83 );
+      real_t tmp_93  = tmp_25 * ( tmp_18 + tmp_87 );
+      real_t tmp_94  = tmp_20 * tmp_92 + tmp_22 * tmp_93 - 1.0 / 3.0;
+      real_t tmp_95  = tmp_19 * tmp_92 + tmp_29 * tmp_93 - 1.0 / 3.0;
+      real_t tmp_96  = p_affine_10_0 * ( tmp_19 * tmp_94 + tmp_23 * tmp_95 );
+      real_t tmp_97  = p_affine_10_1 * ( tmp_22 * tmp_95 + tmp_24 * tmp_94 );
+      real_t tmp_98  = 0.11846344252809471 * tmp_33;
+      real_t tmp_99  = 0.5 * tmp_10 + 0.5 * tmp_14;
+      real_t tmp_100 = 0.5 * tmp_38 + 0.5 * tmp_41;
+      real_t tmp_101 = 0.5 * tmp_54 + 0.5 * tmp_57;
+      real_t tmp_102 = 0.5 * tmp_70 + 0.5 * tmp_73;
+      real_t tmp_103 = 0.5 * tmp_86 + 0.5 * tmp_89;
+      real_t tmp_104 = 0.5 * tmp_16 + 0.5 * tmp_8;
+      real_t tmp_105 = 0.5 * tmp_37 + 0.5 * tmp_42;
+      real_t tmp_106 = 0.5 * tmp_53 + 0.5 * tmp_58;
+      real_t tmp_107 = 0.5 * tmp_69 + 0.5 * tmp_74;
+      real_t tmp_108 = 0.5 * tmp_85 + 0.5 * tmp_90;
+      real_t a_0_0   = tmp_34 * ( -tmp_17 * tmp_31 - tmp_17 * tmp_32 ) + tmp_50 * ( -tmp_43 * tmp_48 - tmp_43 * tmp_49 ) +
+                     tmp_66 * ( -tmp_59 * tmp_64 - tmp_59 * tmp_65 ) + tmp_82 * ( -tmp_75 * tmp_80 - tmp_75 * tmp_81 ) +
+                     tmp_98 * ( -tmp_91 * tmp_96 - tmp_91 * tmp_97 );
+      real_t a_1_0 = tmp_34 * ( -tmp_31 * tmp_99 - tmp_32 * tmp_99 ) + tmp_50 * ( -tmp_100 * tmp_48 - tmp_100 * tmp_49 ) +
+                     tmp_66 * ( -tmp_101 * tmp_64 - tmp_101 * tmp_65 ) + tmp_82 * ( -tmp_102 * tmp_80 - tmp_102 * tmp_81 ) +
+                     tmp_98 * ( -tmp_103 * tmp_96 - tmp_103 * tmp_97 );
+      real_t a_2_0 = tmp_34 * ( -tmp_104 * tmp_31 - tmp_104 * tmp_32 ) + tmp_50 * ( -tmp_105 * tmp_48 - tmp_105 * tmp_49 ) +
+                     tmp_66 * ( -tmp_106 * tmp_64 - tmp_106 * tmp_65 ) + tmp_82 * ( -tmp_107 * tmp_80 - tmp_107 * tmp_81 ) +
+                     tmp_98 * ( -tmp_108 * tmp_96 - tmp_108 * tmp_97 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -1399,13 +1623,13 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_6  = 1.0 / ( tmp_1 * tmp_3 - tmp_4 * tmp_5 );
       real_t tmp_7  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_8  = p_affine_6_1 + tmp_2;
-      real_t tmp_9  = tmp_6 * ( 0.069431844202973714 * tmp_7 + tmp_8 );
+      real_t tmp_9  = tmp_6 * ( 0.046910077030668018 * tmp_7 + tmp_8 );
       real_t tmp_10 = tmp_1 * tmp_9;
       real_t tmp_11 = p_affine_0_0 - p_affine_2_0;
       real_t tmp_12 = tmp_11 * tmp_9;
       real_t tmp_13 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_14 = p_affine_6_0 + tmp_0;
-      real_t tmp_15 = tmp_6 * ( 0.069431844202973714 * tmp_13 + tmp_14 );
+      real_t tmp_15 = tmp_6 * ( 0.046910077030668018 * tmp_13 + tmp_14 );
       real_t tmp_16 = tmp_15 * tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15 * tmp_17;
@@ -1417,11 +1641,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_24 = p_affine_10_0 * ( tmp_1 * tmp_21 + tmp_23 * tmp_4 );
       real_t tmp_25 = p_affine_10_1 * ( tmp_21 * tmp_5 + tmp_23 * tmp_3 );
       real_t tmp_26 = std::abs( std::pow( ( tmp_13 * tmp_13 ) + ( tmp_7 * tmp_7 ), 1.0 / 2.0 ) );
-      real_t tmp_27 = 0.17392742256872684 * tmp_26;
-      real_t tmp_28 = tmp_6 * ( 0.33000947820757187 * tmp_7 + tmp_8 );
+      real_t tmp_27 = 0.11846344252809471 * tmp_26;
+      real_t tmp_28 = tmp_6 * ( 0.23076534494715845 * tmp_7 + tmp_8 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_11 * tmp_28;
-      real_t tmp_31 = tmp_6 * ( 0.33000947820757187 * tmp_13 + tmp_14 );
+      real_t tmp_31 = tmp_6 * ( 0.23076534494715845 * tmp_13 + tmp_14 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_17 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
@@ -1431,11 +1655,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_38 = tmp_37 - 1.0 / 3.0;
       real_t tmp_39 = p_affine_10_0 * ( tmp_1 * tmp_36 + tmp_38 * tmp_4 );
       real_t tmp_40 = p_affine_10_1 * ( tmp_3 * tmp_38 + tmp_36 * tmp_5 );
-      real_t tmp_41 = 0.3260725774312731 * tmp_26;
-      real_t tmp_42 = tmp_6 * ( 0.66999052179242813 * tmp_7 + tmp_8 );
+      real_t tmp_41 = 0.2393143352496831 * tmp_26;
+      real_t tmp_42 = tmp_6 * ( 0.5 * tmp_7 + tmp_8 );
       real_t tmp_43 = tmp_1 * tmp_42;
       real_t tmp_44 = tmp_11 * tmp_42;
-      real_t tmp_45 = tmp_6 * ( 0.66999052179242813 * tmp_13 + tmp_14 );
+      real_t tmp_45 = tmp_6 * ( 0.5 * tmp_13 + tmp_14 );
       real_t tmp_46 = tmp_3 * tmp_45;
       real_t tmp_47 = tmp_17 * tmp_45;
       real_t tmp_48 = -tmp_43 - tmp_44 - tmp_46 - tmp_47 + 1;
@@ -1445,11 +1669,11 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_52 = tmp_51 - 1.0 / 3.0;
       real_t tmp_53 = p_affine_10_0 * ( tmp_1 * tmp_50 + tmp_4 * tmp_52 );
       real_t tmp_54 = p_affine_10_1 * ( tmp_3 * tmp_52 + tmp_5 * tmp_50 );
-      real_t tmp_55 = 0.3260725774312731 * tmp_26;
-      real_t tmp_56 = tmp_6 * ( 0.93056815579702623 * tmp_7 + tmp_8 );
+      real_t tmp_55 = 0.2844444444444445 * tmp_26;
+      real_t tmp_56 = tmp_6 * ( 0.7692346550528415 * tmp_7 + tmp_8 );
       real_t tmp_57 = tmp_1 * tmp_56;
       real_t tmp_58 = tmp_11 * tmp_56;
-      real_t tmp_59 = tmp_6 * ( 0.93056815579702623 * tmp_13 + tmp_14 );
+      real_t tmp_59 = tmp_6 * ( 0.7692346550528415 * tmp_13 + tmp_14 );
       real_t tmp_60 = tmp_3 * tmp_59;
       real_t tmp_61 = tmp_17 * tmp_59;
       real_t tmp_62 = -tmp_57 - tmp_58 - tmp_60 - tmp_61 + 1;
@@ -1459,13 +1683,30 @@ class DGDivFormP1EDG : public hyteg::dg::DGForm2D
       real_t tmp_66 = tmp_65 - 1.0 / 3.0;
       real_t tmp_67 = p_affine_10_0 * ( tmp_1 * tmp_64 + tmp_4 * tmp_66 );
       real_t tmp_68 = p_affine_10_1 * ( tmp_3 * tmp_66 + tmp_5 * tmp_64 );
-      real_t tmp_69 = 0.17392742256872684 * tmp_26;
+      real_t tmp_69 = 0.2393143352496831 * tmp_26;
+      real_t tmp_70 = tmp_6 * ( 0.95308992296933193 * tmp_7 + tmp_8 );
+      real_t tmp_71 = tmp_1 * tmp_70;
+      real_t tmp_72 = tmp_11 * tmp_70;
+      real_t tmp_73 = tmp_6 * ( 0.95308992296933193 * tmp_13 + tmp_14 );
+      real_t tmp_74 = tmp_3 * tmp_73;
+      real_t tmp_75 = tmp_17 * tmp_73;
+      real_t tmp_76 = -tmp_71 - tmp_72 - tmp_74 - tmp_75 + 1;
+      real_t tmp_77 = tmp_72 + tmp_74;
+      real_t tmp_78 = tmp_77 - 1.0 / 3.0;
+      real_t tmp_79 = tmp_71 + tmp_75;
+      real_t tmp_80 = tmp_79 - 1.0 / 3.0;
+      real_t tmp_81 = p_affine_10_0 * ( tmp_1 * tmp_78 + tmp_4 * tmp_80 );
+      real_t tmp_82 = p_affine_10_1 * ( tmp_3 * tmp_80 + tmp_5 * tmp_78 );
+      real_t tmp_83 = 0.11846344252809471 * tmp_26;
       real_t a_0_0  = tmp_27 * ( tmp_19 * tmp_24 + tmp_19 * tmp_25 ) + tmp_41 * ( tmp_34 * tmp_39 + tmp_34 * tmp_40 ) +
-                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 );
+                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 ) +
+                     tmp_83 * ( tmp_76 * tmp_81 + tmp_76 * tmp_82 );
       real_t a_1_0 = tmp_27 * ( tmp_20 * tmp_24 + tmp_20 * tmp_25 ) + tmp_41 * ( tmp_35 * tmp_39 + tmp_35 * tmp_40 ) +
-                     tmp_55 * ( tmp_49 * tmp_53 + tmp_49 * tmp_54 ) + tmp_69 * ( tmp_63 * tmp_67 + tmp_63 * tmp_68 );
+                     tmp_55 * ( tmp_49 * tmp_53 + tmp_49 * tmp_54 ) + tmp_69 * ( tmp_63 * tmp_67 + tmp_63 * tmp_68 ) +
+                     tmp_83 * ( tmp_77 * tmp_81 + tmp_77 * tmp_82 );
       real_t a_2_0 = tmp_27 * ( tmp_22 * tmp_24 + tmp_22 * tmp_25 ) + tmp_41 * ( tmp_37 * tmp_39 + tmp_37 * tmp_40 ) +
-                     tmp_55 * ( tmp_51 * tmp_53 + tmp_51 * tmp_54 ) + tmp_69 * ( tmp_65 * tmp_67 + tmp_65 * tmp_68 );
+                     tmp_55 * ( tmp_51 * tmp_53 + tmp_51 * tmp_54 ) + tmp_69 * ( tmp_65 * tmp_67 + tmp_65 * tmp_68 ) +
+                     tmp_83 * ( tmp_79 * tmp_81 + tmp_79 * tmp_82 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -1512,7 +1753,7 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_0  = 0.063089014491502282;
       real_t tmp_1  = -p_affine_0_1;
       real_t tmp_2  = p_affine_2_1 + tmp_1;
       real_t tmp_3  = -p_affine_0_0;
@@ -1522,46 +1763,85 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_7  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
       real_t tmp_8  = tmp_7 * ( tmp_5 + tmp_6 );
-      real_t tmp_9  = 0.054975871827660928 * tmp_8;
-      real_t tmp_10 = 0.44594849091596489;
-      real_t tmp_11 = 0.11169079483900572 * tmp_8;
-      real_t tmp_12 = 0.091576213509770743;
-      real_t tmp_13 = 0.054975871827660928 * tmp_8;
-      real_t tmp_14 = 0.44594849091596489;
-      real_t tmp_15 = 0.11169079483900572 * tmp_8;
-      real_t tmp_16 = 0.81684757298045851;
-      real_t tmp_17 = 0.054975871827660928 * tmp_8;
-      real_t tmp_18 = 0.10810301816807022;
-      real_t tmp_19 = 0.11169079483900572 * tmp_8;
-      real_t tmp_20 = tmp_5 * tmp_7;
-      real_t tmp_21 = 0.054975871827660928 * tmp_20;
-      real_t tmp_22 = 0.11169079483900572 * tmp_20;
-      real_t tmp_23 = 0.054975871827660928 * tmp_20;
-      real_t tmp_24 = 0.11169079483900572 * tmp_20;
-      real_t tmp_25 = 0.054975871827660928 * tmp_20;
-      real_t tmp_26 = 0.11169079483900572 * tmp_20;
-      real_t tmp_27 = tmp_6 * tmp_7;
-      real_t tmp_28 = 0.054975871827660928 * tmp_27;
-      real_t tmp_29 = 0.11169079483900572 * tmp_27;
-      real_t tmp_30 = 0.054975871827660928 * tmp_27;
-      real_t tmp_31 = 0.11169079483900572 * tmp_27;
-      real_t tmp_32 = 0.054975871827660928 * tmp_27;
-      real_t tmp_33 = 0.11169079483900572 * tmp_27;
-      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19;
-      real_t a_0_1  = 0.44594849091596489 * tmp_11 + 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.091576213509770743 * tmp_9;
-      real_t a_0_2 = 0.10810301816807022 * tmp_11 + 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.81684757298045851 * tmp_9;
-      real_t a_1_0 = -tmp_0 * tmp_21 - tmp_10 * tmp_22 - tmp_12 * tmp_23 - tmp_14 * tmp_24 - tmp_16 * tmp_25 - tmp_18 * tmp_26;
-      real_t a_1_1 = -0.091576213509770743 * tmp_21 - 0.44594849091596489 * tmp_22 - 0.81684757298045851 * tmp_23 -
-                     0.10810301816807022 * tmp_24 - 0.091576213509770743 * tmp_25 - 0.44594849091596489 * tmp_26;
-      real_t a_1_2 = -0.81684757298045851 * tmp_21 - 0.10810301816807022 * tmp_22 - 0.091576213509770743 * tmp_23 -
-                     0.44594849091596489 * tmp_24 - 0.091576213509770743 * tmp_25 - 0.44594849091596489 * tmp_26;
-      real_t a_2_0 = -tmp_0 * tmp_28 - tmp_10 * tmp_29 - tmp_12 * tmp_30 - tmp_14 * tmp_31 - tmp_16 * tmp_32 - tmp_18 * tmp_33;
-      real_t a_2_1 = -0.091576213509770743 * tmp_28 - 0.44594849091596489 * tmp_29 - 0.81684757298045851 * tmp_30 -
-                     0.10810301816807022 * tmp_31 - 0.091576213509770743 * tmp_32 - 0.44594849091596489 * tmp_33;
-      real_t a_2_2 = -0.81684757298045851 * tmp_28 - 0.10810301816807022 * tmp_29 - 0.091576213509770743 * tmp_30 -
-                     0.44594849091596489 * tmp_31 - 0.091576213509770743 * tmp_32 - 0.44594849091596489 * tmp_33;
+      real_t tmp_9  = 0.025422453185103409 * tmp_8;
+      real_t tmp_10 = 0.24928674517091043;
+      real_t tmp_11 = 0.058393137863189684 * tmp_8;
+      real_t tmp_12 = 0.63650249912139867;
+      real_t tmp_13 = 0.041425537809186785 * tmp_8;
+      real_t tmp_14 = 0.053145049844816938;
+      real_t tmp_15 = 0.041425537809186785 * tmp_8;
+      real_t tmp_16 = 0.063089014491502227;
+      real_t tmp_17 = 0.025422453185103409 * tmp_8;
+      real_t tmp_18 = 0.24928674517091043;
+      real_t tmp_19 = 0.058393137863189684 * tmp_8;
+      real_t tmp_20 = 0.87382197101699566;
+      real_t tmp_21 = 0.025422453185103409 * tmp_8;
+      real_t tmp_22 = 0.50142650965817914;
+      real_t tmp_23 = 0.058393137863189684 * tmp_8;
+      real_t tmp_24 = 0.053145049844816938;
+      real_t tmp_25 = 0.041425537809186785 * tmp_8;
+      real_t tmp_26 = 0.63650249912139867;
+      real_t tmp_27 = 0.041425537809186785 * tmp_8;
+      real_t tmp_28 = 0.31035245103378439;
+      real_t tmp_29 = 0.041425537809186785 * tmp_8;
+      real_t tmp_30 = 0.31035245103378439;
+      real_t tmp_31 = 0.041425537809186785 * tmp_8;
+      real_t tmp_32 = tmp_5 * tmp_7;
+      real_t tmp_33 = 0.025422453185103409 * tmp_32;
+      real_t tmp_34 = 0.058393137863189684 * tmp_32;
+      real_t tmp_35 = 0.041425537809186785 * tmp_32;
+      real_t tmp_36 = 0.041425537809186785 * tmp_32;
+      real_t tmp_37 = 0.025422453185103409 * tmp_32;
+      real_t tmp_38 = 0.058393137863189684 * tmp_32;
+      real_t tmp_39 = 0.025422453185103409 * tmp_32;
+      real_t tmp_40 = 0.058393137863189684 * tmp_32;
+      real_t tmp_41 = 0.041425537809186785 * tmp_32;
+      real_t tmp_42 = 0.041425537809186785 * tmp_32;
+      real_t tmp_43 = 0.041425537809186785 * tmp_32;
+      real_t tmp_44 = 0.041425537809186785 * tmp_32;
+      real_t tmp_45 = tmp_6 * tmp_7;
+      real_t tmp_46 = 0.025422453185103409 * tmp_45;
+      real_t tmp_47 = 0.058393137863189684 * tmp_45;
+      real_t tmp_48 = 0.041425537809186785 * tmp_45;
+      real_t tmp_49 = 0.041425537809186785 * tmp_45;
+      real_t tmp_50 = 0.025422453185103409 * tmp_45;
+      real_t tmp_51 = 0.058393137863189684 * tmp_45;
+      real_t tmp_52 = 0.025422453185103409 * tmp_45;
+      real_t tmp_53 = 0.058393137863189684 * tmp_45;
+      real_t tmp_54 = 0.041425537809186785 * tmp_45;
+      real_t tmp_55 = 0.041425537809186785 * tmp_45;
+      real_t tmp_56 = 0.041425537809186785 * tmp_45;
+      real_t tmp_57 = 0.041425537809186785 * tmp_45;
+      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19 +
+                     tmp_20 * tmp_21 + tmp_22 * tmp_23 + tmp_24 * tmp_25 + tmp_26 * tmp_27 + tmp_28 * tmp_29 + tmp_30 * tmp_31;
+      real_t a_0_1 = 0.24928674517091043 * tmp_11 + 0.31035245103378439 * tmp_13 + 0.63650249912139867 * tmp_15 +
+                     0.87382197101699555 * tmp_17 + 0.50142650965817914 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.31035245103378439 * tmp_25 + 0.053145049844816938 * tmp_27 +
+                     0.63650249912139867 * tmp_29 + 0.053145049844816938 * tmp_31 + 0.063089014491502227 * tmp_9;
+      real_t a_0_2 = 0.50142650965817914 * tmp_11 + 0.053145049844816938 * tmp_13 + 0.31035245103378439 * tmp_15 +
+                     0.063089014491502227 * tmp_17 + 0.24928674517091043 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.63650249912139867 * tmp_25 + 0.31035245103378439 * tmp_27 +
+                     0.053145049844816938 * tmp_29 + 0.63650249912139867 * tmp_31 + 0.87382197101699555 * tmp_9;
+      real_t a_1_0 = -tmp_0 * tmp_33 - tmp_10 * tmp_34 - tmp_12 * tmp_35 - tmp_14 * tmp_36 - tmp_16 * tmp_37 - tmp_18 * tmp_38 -
+                     tmp_20 * tmp_39 - tmp_22 * tmp_40 - tmp_24 * tmp_41 - tmp_26 * tmp_42 - tmp_28 * tmp_43 - tmp_30 * tmp_44;
+      real_t a_1_1 = -0.063089014491502227 * tmp_33 - 0.24928674517091043 * tmp_34 - 0.31035245103378439 * tmp_35 -
+                     0.63650249912139867 * tmp_36 - 0.87382197101699555 * tmp_37 - 0.50142650965817914 * tmp_38 -
+                     0.063089014491502227 * tmp_39 - 0.24928674517091043 * tmp_40 - 0.31035245103378439 * tmp_41 -
+                     0.053145049844816938 * tmp_42 - 0.63650249912139867 * tmp_43 - 0.053145049844816938 * tmp_44;
+      real_t a_1_2 = -0.87382197101699555 * tmp_33 - 0.50142650965817914 * tmp_34 - 0.053145049844816938 * tmp_35 -
+                     0.31035245103378439 * tmp_36 - 0.063089014491502227 * tmp_37 - 0.24928674517091043 * tmp_38 -
+                     0.063089014491502227 * tmp_39 - 0.24928674517091043 * tmp_40 - 0.63650249912139867 * tmp_41 -
+                     0.31035245103378439 * tmp_42 - 0.053145049844816938 * tmp_43 - 0.63650249912139867 * tmp_44;
+      real_t a_2_0 = -tmp_0 * tmp_46 - tmp_10 * tmp_47 - tmp_12 * tmp_48 - tmp_14 * tmp_49 - tmp_16 * tmp_50 - tmp_18 * tmp_51 -
+                     tmp_20 * tmp_52 - tmp_22 * tmp_53 - tmp_24 * tmp_54 - tmp_26 * tmp_55 - tmp_28 * tmp_56 - tmp_30 * tmp_57;
+      real_t a_2_1 = -0.063089014491502227 * tmp_46 - 0.24928674517091043 * tmp_47 - 0.31035245103378439 * tmp_48 -
+                     0.63650249912139867 * tmp_49 - 0.87382197101699555 * tmp_50 - 0.50142650965817914 * tmp_51 -
+                     0.063089014491502227 * tmp_52 - 0.24928674517091043 * tmp_53 - 0.31035245103378439 * tmp_54 -
+                     0.053145049844816938 * tmp_55 - 0.63650249912139867 * tmp_56 - 0.053145049844816938 * tmp_57;
+      real_t a_2_2 = -0.87382197101699555 * tmp_46 - 0.50142650965817914 * tmp_47 - 0.053145049844816938 * tmp_48 -
+                     0.31035245103378439 * tmp_49 - 0.063089014491502227 * tmp_50 - 0.24928674517091043 * tmp_51 -
+                     0.063089014491502227 * tmp_52 - 0.24928674517091043 * tmp_53 - 0.63650249912139867 * tmp_54 -
+                     0.31035245103378439 * tmp_55 - 0.053145049844816938 * tmp_56 - 0.63650249912139867 * tmp_57;
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -1613,70 +1893,82 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -1741,13 +2033,13 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_3   = p_affine_5_1 + tmp_2;
       real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6   = p_affine_6_1 + 0.069431844202973714 * tmp_5;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
       real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
       real_t tmp_8   = tmp_1 * tmp_7;
       real_t tmp_9   = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10  = tmp_7 * tmp_9;
       real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12  = p_affine_6_0 + 0.069431844202973714 * tmp_11;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
       real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
       real_t tmp_14  = tmp_13 * tmp_3;
       real_t tmp_15  = p_affine_3_1 - p_affine_4_1;
@@ -1767,13 +2059,13 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_29  = p_affine_0_1 - p_affine_1_1;
       real_t tmp_30  = tmp_27 * tmp_29;
       real_t tmp_31  = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_32  = 0.17392742256872684 * tmp_31;
+      real_t tmp_32  = 0.11846344252809471 * tmp_31;
       real_t tmp_33  = tmp_32 * ( -tmp_24 - tmp_26 - tmp_28 - tmp_30 + 1 );
-      real_t tmp_34  = p_affine_6_1 + 0.33000947820757187 * tmp_5;
+      real_t tmp_34  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
       real_t tmp_35  = tmp_4 * ( tmp_2 + tmp_34 );
       real_t tmp_36  = tmp_1 * tmp_35;
       real_t tmp_37  = tmp_35 * tmp_9;
-      real_t tmp_38  = p_affine_6_0 + 0.33000947820757187 * tmp_11;
+      real_t tmp_38  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
       real_t tmp_39  = tmp_4 * ( tmp_0 + tmp_38 );
       real_t tmp_40  = tmp_3 * tmp_39;
       real_t tmp_41  = tmp_15 * tmp_39;
@@ -1784,13 +2076,13 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_46  = tmp_22 * ( tmp_18 + tmp_38 );
       real_t tmp_47  = tmp_21 * tmp_46;
       real_t tmp_48  = tmp_29 * tmp_46;
-      real_t tmp_49  = 0.3260725774312731 * tmp_31;
+      real_t tmp_49  = 0.2393143352496831 * tmp_31;
       real_t tmp_50  = tmp_49 * ( -tmp_44 - tmp_45 - tmp_47 - tmp_48 + 1 );
-      real_t tmp_51  = p_affine_6_1 + 0.66999052179242813 * tmp_5;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
       real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
       real_t tmp_53  = tmp_1 * tmp_52;
       real_t tmp_54  = tmp_52 * tmp_9;
-      real_t tmp_55  = p_affine_6_0 + 0.66999052179242813 * tmp_11;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
       real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
       real_t tmp_57  = tmp_3 * tmp_56;
       real_t tmp_58  = tmp_15 * tmp_56;
@@ -1801,13 +2093,13 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_63  = tmp_22 * ( tmp_18 + tmp_55 );
       real_t tmp_64  = tmp_21 * tmp_63;
       real_t tmp_65  = tmp_29 * tmp_63;
-      real_t tmp_66  = 0.3260725774312731 * tmp_31;
+      real_t tmp_66  = 0.2844444444444445 * tmp_31;
       real_t tmp_67  = tmp_66 * ( -tmp_61 - tmp_62 - tmp_64 - tmp_65 + 1 );
-      real_t tmp_68  = p_affine_6_1 + 0.93056815579702623 * tmp_5;
+      real_t tmp_68  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
       real_t tmp_69  = tmp_4 * ( tmp_2 + tmp_68 );
       real_t tmp_70  = tmp_1 * tmp_69;
       real_t tmp_71  = tmp_69 * tmp_9;
-      real_t tmp_72  = p_affine_6_0 + 0.93056815579702623 * tmp_11;
+      real_t tmp_72  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
       real_t tmp_73  = tmp_4 * ( tmp_0 + tmp_72 );
       real_t tmp_74  = tmp_3 * tmp_73;
       real_t tmp_75  = tmp_15 * tmp_73;
@@ -1818,33 +2110,54 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_80  = tmp_22 * ( tmp_18 + tmp_72 );
       real_t tmp_81  = tmp_21 * tmp_80;
       real_t tmp_82  = tmp_29 * tmp_80;
-      real_t tmp_83  = 0.17392742256872684 * tmp_31;
+      real_t tmp_83  = 0.2393143352496831 * tmp_31;
       real_t tmp_84  = tmp_83 * ( -tmp_78 - tmp_79 - tmp_81 - tmp_82 + 1 );
-      real_t tmp_85  = tmp_10 + tmp_14;
-      real_t tmp_86  = tmp_37 + tmp_40;
-      real_t tmp_87  = tmp_54 + tmp_57;
-      real_t tmp_88  = tmp_71 + tmp_74;
-      real_t tmp_89  = tmp_16 + tmp_8;
-      real_t tmp_90  = tmp_36 + tmp_41;
-      real_t tmp_91  = tmp_53 + tmp_58;
-      real_t tmp_92  = tmp_70 + tmp_75;
-      real_t tmp_93  = tmp_32 * ( tmp_26 + tmp_28 );
-      real_t tmp_94  = tmp_49 * ( tmp_45 + tmp_47 );
-      real_t tmp_95  = tmp_66 * ( tmp_62 + tmp_64 );
-      real_t tmp_96  = tmp_83 * ( tmp_79 + tmp_81 );
-      real_t tmp_97  = tmp_32 * ( tmp_24 + tmp_30 );
-      real_t tmp_98  = tmp_49 * ( tmp_44 + tmp_48 );
-      real_t tmp_99  = tmp_66 * ( tmp_61 + tmp_65 );
-      real_t tmp_100 = tmp_83 * ( tmp_78 + tmp_82 );
-      real_t a_0_0   = tmp_17 * tmp_33 + tmp_42 * tmp_50 + tmp_59 * tmp_67 + tmp_76 * tmp_84;
-      real_t a_0_1   = tmp_33 * tmp_85 + tmp_50 * tmp_86 + tmp_67 * tmp_87 + tmp_84 * tmp_88;
-      real_t a_0_2   = tmp_33 * tmp_89 + tmp_50 * tmp_90 + tmp_67 * tmp_91 + tmp_84 * tmp_92;
-      real_t a_1_0   = tmp_17 * tmp_93 + tmp_42 * tmp_94 + tmp_59 * tmp_95 + tmp_76 * tmp_96;
-      real_t a_1_1   = tmp_85 * tmp_93 + tmp_86 * tmp_94 + tmp_87 * tmp_95 + tmp_88 * tmp_96;
-      real_t a_1_2   = tmp_89 * tmp_93 + tmp_90 * tmp_94 + tmp_91 * tmp_95 + tmp_92 * tmp_96;
-      real_t a_2_0   = tmp_100 * tmp_76 + tmp_17 * tmp_97 + tmp_42 * tmp_98 + tmp_59 * tmp_99;
-      real_t a_2_1   = tmp_100 * tmp_88 + tmp_85 * tmp_97 + tmp_86 * tmp_98 + tmp_87 * tmp_99;
-      real_t a_2_2   = tmp_100 * tmp_92 + tmp_89 * tmp_97 + tmp_90 * tmp_98 + tmp_91 * tmp_99;
+      real_t tmp_85  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_86  = tmp_4 * ( tmp_2 + tmp_85 );
+      real_t tmp_87  = tmp_1 * tmp_86;
+      real_t tmp_88  = tmp_86 * tmp_9;
+      real_t tmp_89  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_90  = tmp_4 * ( tmp_0 + tmp_89 );
+      real_t tmp_91  = tmp_3 * tmp_90;
+      real_t tmp_92  = tmp_15 * tmp_90;
+      real_t tmp_93  = -tmp_87 - tmp_88 - tmp_91 - tmp_92 + 1;
+      real_t tmp_94  = tmp_22 * ( tmp_20 + tmp_85 );
+      real_t tmp_95  = tmp_19 * tmp_94;
+      real_t tmp_96  = tmp_25 * tmp_94;
+      real_t tmp_97  = tmp_22 * ( tmp_18 + tmp_89 );
+      real_t tmp_98  = tmp_21 * tmp_97;
+      real_t tmp_99  = tmp_29 * tmp_97;
+      real_t tmp_100 = 0.11846344252809471 * tmp_31;
+      real_t tmp_101 = tmp_100 * ( -tmp_95 - tmp_96 - tmp_98 - tmp_99 + 1 );
+      real_t tmp_102 = tmp_10 + tmp_14;
+      real_t tmp_103 = tmp_37 + tmp_40;
+      real_t tmp_104 = tmp_54 + tmp_57;
+      real_t tmp_105 = tmp_71 + tmp_74;
+      real_t tmp_106 = tmp_88 + tmp_91;
+      real_t tmp_107 = tmp_16 + tmp_8;
+      real_t tmp_108 = tmp_36 + tmp_41;
+      real_t tmp_109 = tmp_53 + tmp_58;
+      real_t tmp_110 = tmp_70 + tmp_75;
+      real_t tmp_111 = tmp_87 + tmp_92;
+      real_t tmp_112 = tmp_32 * ( tmp_26 + tmp_28 );
+      real_t tmp_113 = tmp_49 * ( tmp_45 + tmp_47 );
+      real_t tmp_114 = tmp_66 * ( tmp_62 + tmp_64 );
+      real_t tmp_115 = tmp_83 * ( tmp_79 + tmp_81 );
+      real_t tmp_116 = tmp_100 * ( tmp_96 + tmp_98 );
+      real_t tmp_117 = tmp_32 * ( tmp_24 + tmp_30 );
+      real_t tmp_118 = tmp_49 * ( tmp_44 + tmp_48 );
+      real_t tmp_119 = tmp_66 * ( tmp_61 + tmp_65 );
+      real_t tmp_120 = tmp_83 * ( tmp_78 + tmp_82 );
+      real_t tmp_121 = tmp_100 * ( tmp_95 + tmp_99 );
+      real_t a_0_0   = tmp_101 * tmp_93 + tmp_17 * tmp_33 + tmp_42 * tmp_50 + tmp_59 * tmp_67 + tmp_76 * tmp_84;
+      real_t a_0_1   = tmp_101 * tmp_106 + tmp_102 * tmp_33 + tmp_103 * tmp_50 + tmp_104 * tmp_67 + tmp_105 * tmp_84;
+      real_t a_0_2   = tmp_101 * tmp_111 + tmp_107 * tmp_33 + tmp_108 * tmp_50 + tmp_109 * tmp_67 + tmp_110 * tmp_84;
+      real_t a_1_0   = tmp_112 * tmp_17 + tmp_113 * tmp_42 + tmp_114 * tmp_59 + tmp_115 * tmp_76 + tmp_116 * tmp_93;
+      real_t a_1_1   = tmp_102 * tmp_112 + tmp_103 * tmp_113 + tmp_104 * tmp_114 + tmp_105 * tmp_115 + tmp_106 * tmp_116;
+      real_t a_1_2   = tmp_107 * tmp_112 + tmp_108 * tmp_113 + tmp_109 * tmp_114 + tmp_110 * tmp_115 + tmp_111 * tmp_116;
+      real_t a_2_0   = tmp_117 * tmp_17 + tmp_118 * tmp_42 + tmp_119 * tmp_59 + tmp_120 * tmp_76 + tmp_121 * tmp_93;
+      real_t a_2_1   = tmp_102 * tmp_117 + tmp_103 * tmp_118 + tmp_104 * tmp_119 + tmp_105 * tmp_120 + tmp_106 * tmp_121;
+      real_t a_2_2   = tmp_107 * tmp_117 + tmp_108 * tmp_118 + tmp_109 * tmp_119 + tmp_110 * tmp_120 + tmp_111 * tmp_121;
       elMat( 0, 0 )  = a_0_0;
       elMat( 0, 1 )  = a_0_1;
       elMat( 0, 2 )  = a_0_2;
@@ -1896,70 +2209,82 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2012,7 +2337,7 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       const auto p_affine_2_0 = coords[2]( 0 );
       const auto p_affine_2_1 = coords[2]( 1 );
 
-      real_t tmp_0  = 0.091576213509770743;
+      real_t tmp_0  = 0.063089014491502282;
       real_t tmp_1  = -p_affine_0_0;
       real_t tmp_2  = p_affine_1_0 + tmp_1;
       real_t tmp_3  = -p_affine_0_1;
@@ -2022,46 +2347,85 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_7  = std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
       real_t tmp_8  = tmp_7 * ( tmp_5 + tmp_6 );
-      real_t tmp_9  = 0.054975871827660928 * tmp_8;
-      real_t tmp_10 = 0.44594849091596489;
-      real_t tmp_11 = 0.11169079483900572 * tmp_8;
-      real_t tmp_12 = 0.091576213509770743;
-      real_t tmp_13 = 0.054975871827660928 * tmp_8;
-      real_t tmp_14 = 0.44594849091596489;
-      real_t tmp_15 = 0.11169079483900572 * tmp_8;
-      real_t tmp_16 = 0.81684757298045851;
-      real_t tmp_17 = 0.054975871827660928 * tmp_8;
-      real_t tmp_18 = 0.10810301816807022;
-      real_t tmp_19 = 0.11169079483900572 * tmp_8;
-      real_t tmp_20 = tmp_6 * tmp_7;
-      real_t tmp_21 = 0.054975871827660928 * tmp_20;
-      real_t tmp_22 = 0.11169079483900572 * tmp_20;
-      real_t tmp_23 = 0.054975871827660928 * tmp_20;
-      real_t tmp_24 = 0.11169079483900572 * tmp_20;
-      real_t tmp_25 = 0.054975871827660928 * tmp_20;
-      real_t tmp_26 = 0.11169079483900572 * tmp_20;
-      real_t tmp_27 = tmp_5 * tmp_7;
-      real_t tmp_28 = 0.054975871827660928 * tmp_27;
-      real_t tmp_29 = 0.11169079483900572 * tmp_27;
-      real_t tmp_30 = 0.054975871827660928 * tmp_27;
-      real_t tmp_31 = 0.11169079483900572 * tmp_27;
-      real_t tmp_32 = 0.054975871827660928 * tmp_27;
-      real_t tmp_33 = 0.11169079483900572 * tmp_27;
-      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19;
-      real_t a_0_1  = 0.44594849091596489 * tmp_11 + 0.81684757298045851 * tmp_13 + 0.10810301816807022 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.091576213509770743 * tmp_9;
-      real_t a_0_2 = 0.10810301816807022 * tmp_11 + 0.091576213509770743 * tmp_13 + 0.44594849091596489 * tmp_15 +
-                     0.091576213509770743 * tmp_17 + 0.44594849091596489 * tmp_19 + 0.81684757298045851 * tmp_9;
-      real_t a_1_0 = -tmp_0 * tmp_21 - tmp_10 * tmp_22 - tmp_12 * tmp_23 - tmp_14 * tmp_24 - tmp_16 * tmp_25 - tmp_18 * tmp_26;
-      real_t a_1_1 = -0.091576213509770743 * tmp_21 - 0.44594849091596489 * tmp_22 - 0.81684757298045851 * tmp_23 -
-                     0.10810301816807022 * tmp_24 - 0.091576213509770743 * tmp_25 - 0.44594849091596489 * tmp_26;
-      real_t a_1_2 = -0.81684757298045851 * tmp_21 - 0.10810301816807022 * tmp_22 - 0.091576213509770743 * tmp_23 -
-                     0.44594849091596489 * tmp_24 - 0.091576213509770743 * tmp_25 - 0.44594849091596489 * tmp_26;
-      real_t a_2_0 = -tmp_0 * tmp_28 - tmp_10 * tmp_29 - tmp_12 * tmp_30 - tmp_14 * tmp_31 - tmp_16 * tmp_32 - tmp_18 * tmp_33;
-      real_t a_2_1 = -0.091576213509770743 * tmp_28 - 0.44594849091596489 * tmp_29 - 0.81684757298045851 * tmp_30 -
-                     0.10810301816807022 * tmp_31 - 0.091576213509770743 * tmp_32 - 0.44594849091596489 * tmp_33;
-      real_t a_2_2 = -0.81684757298045851 * tmp_28 - 0.10810301816807022 * tmp_29 - 0.091576213509770743 * tmp_30 -
-                     0.44594849091596489 * tmp_31 - 0.091576213509770743 * tmp_32 - 0.44594849091596489 * tmp_33;
+      real_t tmp_9  = 0.025422453185103409 * tmp_8;
+      real_t tmp_10 = 0.24928674517091043;
+      real_t tmp_11 = 0.058393137863189684 * tmp_8;
+      real_t tmp_12 = 0.63650249912139867;
+      real_t tmp_13 = 0.041425537809186785 * tmp_8;
+      real_t tmp_14 = 0.053145049844816938;
+      real_t tmp_15 = 0.041425537809186785 * tmp_8;
+      real_t tmp_16 = 0.063089014491502227;
+      real_t tmp_17 = 0.025422453185103409 * tmp_8;
+      real_t tmp_18 = 0.24928674517091043;
+      real_t tmp_19 = 0.058393137863189684 * tmp_8;
+      real_t tmp_20 = 0.87382197101699566;
+      real_t tmp_21 = 0.025422453185103409 * tmp_8;
+      real_t tmp_22 = 0.50142650965817914;
+      real_t tmp_23 = 0.058393137863189684 * tmp_8;
+      real_t tmp_24 = 0.053145049844816938;
+      real_t tmp_25 = 0.041425537809186785 * tmp_8;
+      real_t tmp_26 = 0.63650249912139867;
+      real_t tmp_27 = 0.041425537809186785 * tmp_8;
+      real_t tmp_28 = 0.31035245103378439;
+      real_t tmp_29 = 0.041425537809186785 * tmp_8;
+      real_t tmp_30 = 0.31035245103378439;
+      real_t tmp_31 = 0.041425537809186785 * tmp_8;
+      real_t tmp_32 = tmp_6 * tmp_7;
+      real_t tmp_33 = 0.025422453185103409 * tmp_32;
+      real_t tmp_34 = 0.058393137863189684 * tmp_32;
+      real_t tmp_35 = 0.041425537809186785 * tmp_32;
+      real_t tmp_36 = 0.041425537809186785 * tmp_32;
+      real_t tmp_37 = 0.025422453185103409 * tmp_32;
+      real_t tmp_38 = 0.058393137863189684 * tmp_32;
+      real_t tmp_39 = 0.025422453185103409 * tmp_32;
+      real_t tmp_40 = 0.058393137863189684 * tmp_32;
+      real_t tmp_41 = 0.041425537809186785 * tmp_32;
+      real_t tmp_42 = 0.041425537809186785 * tmp_32;
+      real_t tmp_43 = 0.041425537809186785 * tmp_32;
+      real_t tmp_44 = 0.041425537809186785 * tmp_32;
+      real_t tmp_45 = tmp_5 * tmp_7;
+      real_t tmp_46 = 0.025422453185103409 * tmp_45;
+      real_t tmp_47 = 0.058393137863189684 * tmp_45;
+      real_t tmp_48 = 0.041425537809186785 * tmp_45;
+      real_t tmp_49 = 0.041425537809186785 * tmp_45;
+      real_t tmp_50 = 0.025422453185103409 * tmp_45;
+      real_t tmp_51 = 0.058393137863189684 * tmp_45;
+      real_t tmp_52 = 0.025422453185103409 * tmp_45;
+      real_t tmp_53 = 0.058393137863189684 * tmp_45;
+      real_t tmp_54 = 0.041425537809186785 * tmp_45;
+      real_t tmp_55 = 0.041425537809186785 * tmp_45;
+      real_t tmp_56 = 0.041425537809186785 * tmp_45;
+      real_t tmp_57 = 0.041425537809186785 * tmp_45;
+      real_t a_0_0  = tmp_0 * tmp_9 + tmp_10 * tmp_11 + tmp_12 * tmp_13 + tmp_14 * tmp_15 + tmp_16 * tmp_17 + tmp_18 * tmp_19 +
+                     tmp_20 * tmp_21 + tmp_22 * tmp_23 + tmp_24 * tmp_25 + tmp_26 * tmp_27 + tmp_28 * tmp_29 + tmp_30 * tmp_31;
+      real_t a_0_1 = 0.24928674517091043 * tmp_11 + 0.31035245103378439 * tmp_13 + 0.63650249912139867 * tmp_15 +
+                     0.87382197101699555 * tmp_17 + 0.50142650965817914 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.31035245103378439 * tmp_25 + 0.053145049844816938 * tmp_27 +
+                     0.63650249912139867 * tmp_29 + 0.053145049844816938 * tmp_31 + 0.063089014491502227 * tmp_9;
+      real_t a_0_2 = 0.50142650965817914 * tmp_11 + 0.053145049844816938 * tmp_13 + 0.31035245103378439 * tmp_15 +
+                     0.063089014491502227 * tmp_17 + 0.24928674517091043 * tmp_19 + 0.063089014491502227 * tmp_21 +
+                     0.24928674517091043 * tmp_23 + 0.63650249912139867 * tmp_25 + 0.31035245103378439 * tmp_27 +
+                     0.053145049844816938 * tmp_29 + 0.63650249912139867 * tmp_31 + 0.87382197101699555 * tmp_9;
+      real_t a_1_0 = -tmp_0 * tmp_33 - tmp_10 * tmp_34 - tmp_12 * tmp_35 - tmp_14 * tmp_36 - tmp_16 * tmp_37 - tmp_18 * tmp_38 -
+                     tmp_20 * tmp_39 - tmp_22 * tmp_40 - tmp_24 * tmp_41 - tmp_26 * tmp_42 - tmp_28 * tmp_43 - tmp_30 * tmp_44;
+      real_t a_1_1 = -0.063089014491502227 * tmp_33 - 0.24928674517091043 * tmp_34 - 0.31035245103378439 * tmp_35 -
+                     0.63650249912139867 * tmp_36 - 0.87382197101699555 * tmp_37 - 0.50142650965817914 * tmp_38 -
+                     0.063089014491502227 * tmp_39 - 0.24928674517091043 * tmp_40 - 0.31035245103378439 * tmp_41 -
+                     0.053145049844816938 * tmp_42 - 0.63650249912139867 * tmp_43 - 0.053145049844816938 * tmp_44;
+      real_t a_1_2 = -0.87382197101699555 * tmp_33 - 0.50142650965817914 * tmp_34 - 0.053145049844816938 * tmp_35 -
+                     0.31035245103378439 * tmp_36 - 0.063089014491502227 * tmp_37 - 0.24928674517091043 * tmp_38 -
+                     0.063089014491502227 * tmp_39 - 0.24928674517091043 * tmp_40 - 0.63650249912139867 * tmp_41 -
+                     0.31035245103378439 * tmp_42 - 0.053145049844816938 * tmp_43 - 0.63650249912139867 * tmp_44;
+      real_t a_2_0 = -tmp_0 * tmp_46 - tmp_10 * tmp_47 - tmp_12 * tmp_48 - tmp_14 * tmp_49 - tmp_16 * tmp_50 - tmp_18 * tmp_51 -
+                     tmp_20 * tmp_52 - tmp_22 * tmp_53 - tmp_24 * tmp_54 - tmp_26 * tmp_55 - tmp_28 * tmp_56 - tmp_30 * tmp_57;
+      real_t a_2_1 = -0.063089014491502227 * tmp_46 - 0.24928674517091043 * tmp_47 - 0.31035245103378439 * tmp_48 -
+                     0.63650249912139867 * tmp_49 - 0.87382197101699555 * tmp_50 - 0.50142650965817914 * tmp_51 -
+                     0.063089014491502227 * tmp_52 - 0.24928674517091043 * tmp_53 - 0.31035245103378439 * tmp_54 -
+                     0.053145049844816938 * tmp_55 - 0.63650249912139867 * tmp_56 - 0.053145049844816938 * tmp_57;
+      real_t a_2_2 = -0.87382197101699555 * tmp_46 - 0.50142650965817914 * tmp_47 - 0.053145049844816938 * tmp_48 -
+                     0.31035245103378439 * tmp_49 - 0.063089014491502227 * tmp_50 - 0.24928674517091043 * tmp_51 -
+                     0.063089014491502227 * tmp_52 - 0.24928674517091043 * tmp_53 - 0.63650249912139867 * tmp_54 -
+                     0.31035245103378439 * tmp_55 - 0.053145049844816938 * tmp_56 - 0.63650249912139867 * tmp_57;
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2113,70 +2477,82 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2241,13 +2617,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_3   = p_affine_5_1 + tmp_2;
       real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6   = p_affine_6_1 + 0.069431844202973714 * tmp_5;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
       real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
       real_t tmp_8   = tmp_1 * tmp_7;
       real_t tmp_9   = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10  = tmp_7 * tmp_9;
       real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12  = p_affine_6_0 + 0.069431844202973714 * tmp_11;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
       real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
       real_t tmp_14  = tmp_13 * tmp_3;
       real_t tmp_15  = p_affine_3_1 - p_affine_4_1;
@@ -2267,13 +2643,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_29  = p_affine_0_1 - p_affine_1_1;
       real_t tmp_30  = tmp_27 * tmp_29;
       real_t tmp_31  = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_32  = 0.17392742256872684 * tmp_31;
+      real_t tmp_32  = 0.11846344252809471 * tmp_31;
       real_t tmp_33  = tmp_32 * ( -tmp_24 - tmp_26 - tmp_28 - tmp_30 + 1 );
-      real_t tmp_34  = p_affine_6_1 + 0.33000947820757187 * tmp_5;
+      real_t tmp_34  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
       real_t tmp_35  = tmp_4 * ( tmp_2 + tmp_34 );
       real_t tmp_36  = tmp_1 * tmp_35;
       real_t tmp_37  = tmp_35 * tmp_9;
-      real_t tmp_38  = p_affine_6_0 + 0.33000947820757187 * tmp_11;
+      real_t tmp_38  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
       real_t tmp_39  = tmp_4 * ( tmp_0 + tmp_38 );
       real_t tmp_40  = tmp_3 * tmp_39;
       real_t tmp_41  = tmp_15 * tmp_39;
@@ -2284,13 +2660,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_46  = tmp_22 * ( tmp_18 + tmp_38 );
       real_t tmp_47  = tmp_21 * tmp_46;
       real_t tmp_48  = tmp_29 * tmp_46;
-      real_t tmp_49  = 0.3260725774312731 * tmp_31;
+      real_t tmp_49  = 0.2393143352496831 * tmp_31;
       real_t tmp_50  = tmp_49 * ( -tmp_44 - tmp_45 - tmp_47 - tmp_48 + 1 );
-      real_t tmp_51  = p_affine_6_1 + 0.66999052179242813 * tmp_5;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
       real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
       real_t tmp_53  = tmp_1 * tmp_52;
       real_t tmp_54  = tmp_52 * tmp_9;
-      real_t tmp_55  = p_affine_6_0 + 0.66999052179242813 * tmp_11;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
       real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
       real_t tmp_57  = tmp_3 * tmp_56;
       real_t tmp_58  = tmp_15 * tmp_56;
@@ -2301,13 +2677,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_63  = tmp_22 * ( tmp_18 + tmp_55 );
       real_t tmp_64  = tmp_21 * tmp_63;
       real_t tmp_65  = tmp_29 * tmp_63;
-      real_t tmp_66  = 0.3260725774312731 * tmp_31;
+      real_t tmp_66  = 0.2844444444444445 * tmp_31;
       real_t tmp_67  = tmp_66 * ( -tmp_61 - tmp_62 - tmp_64 - tmp_65 + 1 );
-      real_t tmp_68  = p_affine_6_1 + 0.93056815579702623 * tmp_5;
+      real_t tmp_68  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
       real_t tmp_69  = tmp_4 * ( tmp_2 + tmp_68 );
       real_t tmp_70  = tmp_1 * tmp_69;
       real_t tmp_71  = tmp_69 * tmp_9;
-      real_t tmp_72  = p_affine_6_0 + 0.93056815579702623 * tmp_11;
+      real_t tmp_72  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
       real_t tmp_73  = tmp_4 * ( tmp_0 + tmp_72 );
       real_t tmp_74  = tmp_3 * tmp_73;
       real_t tmp_75  = tmp_15 * tmp_73;
@@ -2318,33 +2694,54 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_80  = tmp_22 * ( tmp_18 + tmp_72 );
       real_t tmp_81  = tmp_21 * tmp_80;
       real_t tmp_82  = tmp_29 * tmp_80;
-      real_t tmp_83  = 0.17392742256872684 * tmp_31;
+      real_t tmp_83  = 0.2393143352496831 * tmp_31;
       real_t tmp_84  = tmp_83 * ( -tmp_78 - tmp_79 - tmp_81 - tmp_82 + 1 );
-      real_t tmp_85  = tmp_10 + tmp_14;
-      real_t tmp_86  = tmp_37 + tmp_40;
-      real_t tmp_87  = tmp_54 + tmp_57;
-      real_t tmp_88  = tmp_71 + tmp_74;
-      real_t tmp_89  = tmp_16 + tmp_8;
-      real_t tmp_90  = tmp_36 + tmp_41;
-      real_t tmp_91  = tmp_53 + tmp_58;
-      real_t tmp_92  = tmp_70 + tmp_75;
-      real_t tmp_93  = tmp_32 * ( tmp_26 + tmp_28 );
-      real_t tmp_94  = tmp_49 * ( tmp_45 + tmp_47 );
-      real_t tmp_95  = tmp_66 * ( tmp_62 + tmp_64 );
-      real_t tmp_96  = tmp_83 * ( tmp_79 + tmp_81 );
-      real_t tmp_97  = tmp_32 * ( tmp_24 + tmp_30 );
-      real_t tmp_98  = tmp_49 * ( tmp_44 + tmp_48 );
-      real_t tmp_99  = tmp_66 * ( tmp_61 + tmp_65 );
-      real_t tmp_100 = tmp_83 * ( tmp_78 + tmp_82 );
-      real_t a_0_0   = tmp_17 * tmp_33 + tmp_42 * tmp_50 + tmp_59 * tmp_67 + tmp_76 * tmp_84;
-      real_t a_0_1   = tmp_33 * tmp_85 + tmp_50 * tmp_86 + tmp_67 * tmp_87 + tmp_84 * tmp_88;
-      real_t a_0_2   = tmp_33 * tmp_89 + tmp_50 * tmp_90 + tmp_67 * tmp_91 + tmp_84 * tmp_92;
-      real_t a_1_0   = tmp_17 * tmp_93 + tmp_42 * tmp_94 + tmp_59 * tmp_95 + tmp_76 * tmp_96;
-      real_t a_1_1   = tmp_85 * tmp_93 + tmp_86 * tmp_94 + tmp_87 * tmp_95 + tmp_88 * tmp_96;
-      real_t a_1_2   = tmp_89 * tmp_93 + tmp_90 * tmp_94 + tmp_91 * tmp_95 + tmp_92 * tmp_96;
-      real_t a_2_0   = tmp_100 * tmp_76 + tmp_17 * tmp_97 + tmp_42 * tmp_98 + tmp_59 * tmp_99;
-      real_t a_2_1   = tmp_100 * tmp_88 + tmp_85 * tmp_97 + tmp_86 * tmp_98 + tmp_87 * tmp_99;
-      real_t a_2_2   = tmp_100 * tmp_92 + tmp_89 * tmp_97 + tmp_90 * tmp_98 + tmp_91 * tmp_99;
+      real_t tmp_85  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_86  = tmp_4 * ( tmp_2 + tmp_85 );
+      real_t tmp_87  = tmp_1 * tmp_86;
+      real_t tmp_88  = tmp_86 * tmp_9;
+      real_t tmp_89  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_90  = tmp_4 * ( tmp_0 + tmp_89 );
+      real_t tmp_91  = tmp_3 * tmp_90;
+      real_t tmp_92  = tmp_15 * tmp_90;
+      real_t tmp_93  = -tmp_87 - tmp_88 - tmp_91 - tmp_92 + 1;
+      real_t tmp_94  = tmp_22 * ( tmp_20 + tmp_85 );
+      real_t tmp_95  = tmp_19 * tmp_94;
+      real_t tmp_96  = tmp_25 * tmp_94;
+      real_t tmp_97  = tmp_22 * ( tmp_18 + tmp_89 );
+      real_t tmp_98  = tmp_21 * tmp_97;
+      real_t tmp_99  = tmp_29 * tmp_97;
+      real_t tmp_100 = 0.11846344252809471 * tmp_31;
+      real_t tmp_101 = tmp_100 * ( -tmp_95 - tmp_96 - tmp_98 - tmp_99 + 1 );
+      real_t tmp_102 = tmp_10 + tmp_14;
+      real_t tmp_103 = tmp_37 + tmp_40;
+      real_t tmp_104 = tmp_54 + tmp_57;
+      real_t tmp_105 = tmp_71 + tmp_74;
+      real_t tmp_106 = tmp_88 + tmp_91;
+      real_t tmp_107 = tmp_16 + tmp_8;
+      real_t tmp_108 = tmp_36 + tmp_41;
+      real_t tmp_109 = tmp_53 + tmp_58;
+      real_t tmp_110 = tmp_70 + tmp_75;
+      real_t tmp_111 = tmp_87 + tmp_92;
+      real_t tmp_112 = tmp_32 * ( tmp_26 + tmp_28 );
+      real_t tmp_113 = tmp_49 * ( tmp_45 + tmp_47 );
+      real_t tmp_114 = tmp_66 * ( tmp_62 + tmp_64 );
+      real_t tmp_115 = tmp_83 * ( tmp_79 + tmp_81 );
+      real_t tmp_116 = tmp_100 * ( tmp_96 + tmp_98 );
+      real_t tmp_117 = tmp_32 * ( tmp_24 + tmp_30 );
+      real_t tmp_118 = tmp_49 * ( tmp_44 + tmp_48 );
+      real_t tmp_119 = tmp_66 * ( tmp_61 + tmp_65 );
+      real_t tmp_120 = tmp_83 * ( tmp_78 + tmp_82 );
+      real_t tmp_121 = tmp_100 * ( tmp_95 + tmp_99 );
+      real_t a_0_0   = tmp_101 * tmp_93 + tmp_17 * tmp_33 + tmp_42 * tmp_50 + tmp_59 * tmp_67 + tmp_76 * tmp_84;
+      real_t a_0_1   = tmp_101 * tmp_106 + tmp_102 * tmp_33 + tmp_103 * tmp_50 + tmp_104 * tmp_67 + tmp_105 * tmp_84;
+      real_t a_0_2   = tmp_101 * tmp_111 + tmp_107 * tmp_33 + tmp_108 * tmp_50 + tmp_109 * tmp_67 + tmp_110 * tmp_84;
+      real_t a_1_0   = tmp_112 * tmp_17 + tmp_113 * tmp_42 + tmp_114 * tmp_59 + tmp_115 * tmp_76 + tmp_116 * tmp_93;
+      real_t a_1_1   = tmp_102 * tmp_112 + tmp_103 * tmp_113 + tmp_104 * tmp_114 + tmp_105 * tmp_115 + tmp_106 * tmp_116;
+      real_t a_1_2   = tmp_107 * tmp_112 + tmp_108 * tmp_113 + tmp_109 * tmp_114 + tmp_110 * tmp_115 + tmp_111 * tmp_116;
+      real_t a_2_0   = tmp_117 * tmp_17 + tmp_118 * tmp_42 + tmp_119 * tmp_59 + tmp_120 * tmp_76 + tmp_121 * tmp_93;
+      real_t a_2_1   = tmp_102 * tmp_117 + tmp_103 * tmp_118 + tmp_104 * tmp_119 + tmp_105 * tmp_120 + tmp_106 * tmp_121;
+      real_t a_2_2   = tmp_107 * tmp_117 + tmp_108 * tmp_118 + tmp_109 * tmp_119 + tmp_110 * tmp_120 + tmp_111 * tmp_121;
       elMat( 0, 0 )  = a_0_0;
       elMat( 0, 1 )  = a_0_1;
       elMat( 0, 2 )  = a_0_2;
@@ -2396,70 +2793,82 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1;
       real_t tmp_18 = p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_19 = 0.17392742256872684 * tmp_18;
-      real_t tmp_20 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_19 = 0.11846344252809471 * tmp_18;
+      real_t tmp_20 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_21 = tmp_1 * tmp_20;
       real_t tmp_22 = tmp_20 * tmp_9;
-      real_t tmp_23 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_24 = tmp_23 * tmp_3;
       real_t tmp_25 = tmp_15 * tmp_23;
       real_t tmp_26 = -tmp_21 - tmp_22 - tmp_24 - tmp_25 + 1;
-      real_t tmp_27 = 0.3260725774312731 * tmp_18;
-      real_t tmp_28 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_27 = 0.2393143352496831 * tmp_18;
+      real_t tmp_28 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_28 * tmp_9;
-      real_t tmp_31 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_31 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_15 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
-      real_t tmp_35 = 0.3260725774312731 * tmp_18;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_35 = 0.2844444444444445 * tmp_18;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_37 = tmp_1 * tmp_36;
       real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_39 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_40 = tmp_3 * tmp_39;
       real_t tmp_41 = tmp_15 * tmp_39;
       real_t tmp_42 = -tmp_37 - tmp_38 - tmp_40 - tmp_41 + 1;
-      real_t tmp_43 = 0.17392742256872684 * tmp_18;
-      real_t tmp_44 = tmp_10 + tmp_14;
-      real_t tmp_45 = tmp_17 * tmp_19;
-      real_t tmp_46 = tmp_22 + tmp_24;
-      real_t tmp_47 = tmp_26 * tmp_27;
-      real_t tmp_48 = tmp_30 + tmp_32;
-      real_t tmp_49 = tmp_34 * tmp_35;
-      real_t tmp_50 = tmp_38 + tmp_40;
-      real_t tmp_51 = tmp_42 * tmp_43;
-      real_t tmp_52 = tmp_44 * tmp_45 + tmp_46 * tmp_47 + tmp_48 * tmp_49 + tmp_50 * tmp_51;
-      real_t tmp_53 = tmp_16 + tmp_8;
-      real_t tmp_54 = tmp_21 + tmp_25;
-      real_t tmp_55 = tmp_29 + tmp_33;
-      real_t tmp_56 = tmp_37 + tmp_41;
-      real_t tmp_57 = tmp_45 * tmp_53 + tmp_47 * tmp_54 + tmp_49 * tmp_55 + tmp_51 * tmp_56;
-      real_t tmp_58 = tmp_19 * tmp_44 * tmp_53 + tmp_27 * tmp_46 * tmp_54 + tmp_35 * tmp_48 * tmp_55 + tmp_43 * tmp_50 * tmp_56;
-      real_t a_0_0  = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
-                     ( tmp_42 * tmp_42 ) * tmp_43;
-      real_t a_0_1 = tmp_52;
-      real_t a_0_2 = tmp_57;
-      real_t a_1_0 = tmp_52;
-      real_t a_1_1 = tmp_19 * ( tmp_44 * tmp_44 ) + tmp_27 * ( tmp_46 * tmp_46 ) + tmp_35 * ( tmp_48 * tmp_48 ) +
-                     tmp_43 * ( tmp_50 * tmp_50 );
-      real_t a_1_2 = tmp_58;
-      real_t a_2_0 = tmp_57;
-      real_t a_2_1 = tmp_58;
-      real_t a_2_2 = tmp_19 * ( tmp_53 * tmp_53 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_55 * tmp_55 ) +
-                     tmp_43 * ( tmp_56 * tmp_56 );
+      real_t tmp_43 = 0.2393143352496831 * tmp_18;
+      real_t tmp_44 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_45 = tmp_1 * tmp_44;
+      real_t tmp_46 = tmp_44 * tmp_9;
+      real_t tmp_47 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_48 = tmp_3 * tmp_47;
+      real_t tmp_49 = tmp_15 * tmp_47;
+      real_t tmp_50 = -tmp_45 - tmp_46 - tmp_48 - tmp_49 + 1;
+      real_t tmp_51 = 0.11846344252809471 * tmp_18;
+      real_t tmp_52 = tmp_10 + tmp_14;
+      real_t tmp_53 = tmp_17 * tmp_19;
+      real_t tmp_54 = tmp_22 + tmp_24;
+      real_t tmp_55 = tmp_26 * tmp_27;
+      real_t tmp_56 = tmp_30 + tmp_32;
+      real_t tmp_57 = tmp_34 * tmp_35;
+      real_t tmp_58 = tmp_38 + tmp_40;
+      real_t tmp_59 = tmp_42 * tmp_43;
+      real_t tmp_60 = tmp_46 + tmp_48;
+      real_t tmp_61 = tmp_50 * tmp_51;
+      real_t tmp_62 = tmp_52 * tmp_53 + tmp_54 * tmp_55 + tmp_56 * tmp_57 + tmp_58 * tmp_59 + tmp_60 * tmp_61;
+      real_t tmp_63 = tmp_16 + tmp_8;
+      real_t tmp_64 = tmp_21 + tmp_25;
+      real_t tmp_65 = tmp_29 + tmp_33;
+      real_t tmp_66 = tmp_37 + tmp_41;
+      real_t tmp_67 = tmp_45 + tmp_49;
+      real_t tmp_68 = tmp_53 * tmp_63 + tmp_55 * tmp_64 + tmp_57 * tmp_65 + tmp_59 * tmp_66 + tmp_61 * tmp_67;
+      real_t tmp_69 = tmp_19 * tmp_52 * tmp_63 + tmp_27 * tmp_54 * tmp_64 + tmp_35 * tmp_56 * tmp_65 + tmp_43 * tmp_58 * tmp_66 +
+                      tmp_51 * tmp_60 * tmp_67;
+      real_t a_0_0 = ( tmp_17 * tmp_17 ) * tmp_19 + ( tmp_26 * tmp_26 ) * tmp_27 + ( tmp_34 * tmp_34 ) * tmp_35 +
+                     ( tmp_42 * tmp_42 ) * tmp_43 + ( tmp_50 * tmp_50 ) * tmp_51;
+      real_t a_0_1 = tmp_62;
+      real_t a_0_2 = tmp_68;
+      real_t a_1_0 = tmp_62;
+      real_t a_1_1 = tmp_19 * ( tmp_52 * tmp_52 ) + tmp_27 * ( tmp_54 * tmp_54 ) + tmp_35 * ( tmp_56 * tmp_56 ) +
+                     tmp_43 * ( tmp_58 * tmp_58 ) + tmp_51 * ( tmp_60 * tmp_60 );
+      real_t a_1_2 = tmp_69;
+      real_t a_2_0 = tmp_68;
+      real_t a_2_1 = tmp_69;
+      real_t a_2_2 = tmp_19 * ( tmp_63 * tmp_63 ) + tmp_27 * ( tmp_64 * tmp_64 ) + tmp_35 * ( tmp_65 * tmp_65 ) +
+                     tmp_43 * ( tmp_66 * tmp_66 ) + tmp_51 * ( tmp_67 * tmp_67 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2522,18 +2931,30 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
                        tmp_4 * tmp_5 * ( p_affine_0_0 - p_affine_2_0 ) ) *
                      std::abs( p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                                p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0 );
-      real_t tmp_7  = 0.054975871827660928 * tmp_6;
-      real_t tmp_8  = 0.11169079483900572 * tmp_6;
-      real_t tmp_9  = 0.054975871827660928 * tmp_6;
-      real_t tmp_10 = 0.11169079483900572 * tmp_6;
-      real_t tmp_11 = 0.054975871827660928 * tmp_6;
-      real_t tmp_12 = 0.11169079483900572 * tmp_6;
-      real_t a_0_0  = 0.44594849091596489 * tmp_10 + 0.81684757298045851 * tmp_11 + 0.10810301816807022 * tmp_12 +
-                     0.091576213509770743 * tmp_7 + 0.44594849091596489 * tmp_8 + 0.091576213509770743 * tmp_9;
-      real_t a_0_1 = 0.10810301816807022 * tmp_10 + 0.091576213509770743 * tmp_11 + 0.44594849091596489 * tmp_12 +
-                     0.091576213509770743 * tmp_7 + 0.44594849091596489 * tmp_8 + 0.81684757298045851 * tmp_9;
-      real_t a_0_2 = 0.44594849091596489 * tmp_10 + 0.091576213509770743 * tmp_11 + 0.44594849091596489 * tmp_12 +
-                     0.81684757298045851 * tmp_7 + 0.10810301816807022 * tmp_8 + 0.091576213509770743 * tmp_9;
+      real_t tmp_7  = 0.025422453185103409 * tmp_6;
+      real_t tmp_8  = 0.058393137863189684 * tmp_6;
+      real_t tmp_9  = 0.041425537809186785 * tmp_6;
+      real_t tmp_10 = 0.041425537809186785 * tmp_6;
+      real_t tmp_11 = 0.025422453185103409 * tmp_6;
+      real_t tmp_12 = 0.058393137863189684 * tmp_6;
+      real_t tmp_13 = 0.025422453185103409 * tmp_6;
+      real_t tmp_14 = 0.058393137863189684 * tmp_6;
+      real_t tmp_15 = 0.041425537809186785 * tmp_6;
+      real_t tmp_16 = 0.041425537809186785 * tmp_6;
+      real_t tmp_17 = 0.041425537809186785 * tmp_6;
+      real_t tmp_18 = 0.041425537809186785 * tmp_6;
+      real_t a_0_0  = 0.053145049844816938 * tmp_10 + 0.063089014491502227 * tmp_11 + 0.24928674517091043 * tmp_12 +
+                     0.87382197101699566 * tmp_13 + 0.50142650965817914 * tmp_14 + 0.053145049844816938 * tmp_15 +
+                     0.63650249912139867 * tmp_16 + 0.31035245103378439 * tmp_17 + 0.31035245103378439 * tmp_18 +
+                     0.063089014491502282 * tmp_7 + 0.24928674517091043 * tmp_8 + 0.63650249912139867 * tmp_9;
+      real_t a_0_1 = 0.63650249912139867 * tmp_10 + 0.87382197101699555 * tmp_11 + 0.50142650965817914 * tmp_12 +
+                     0.063089014491502227 * tmp_13 + 0.24928674517091043 * tmp_14 + 0.31035245103378439 * tmp_15 +
+                     0.053145049844816938 * tmp_16 + 0.63650249912139867 * tmp_17 + 0.053145049844816938 * tmp_18 +
+                     0.063089014491502227 * tmp_7 + 0.24928674517091043 * tmp_8 + 0.31035245103378439 * tmp_9;
+      real_t a_0_2 = 0.31035245103378439 * tmp_10 + 0.063089014491502227 * tmp_11 + 0.24928674517091043 * tmp_12 +
+                     0.063089014491502227 * tmp_13 + 0.24928674517091043 * tmp_14 + 0.63650249912139867 * tmp_15 +
+                     0.31035245103378439 * tmp_16 + 0.053145049844816938 * tmp_17 + 0.63650249912139867 * tmp_18 +
+                     0.87382197101699555 * tmp_7 + 0.50142650965817914 * tmp_8 + 0.053145049844816938 * tmp_9;
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2581,13 +3002,13 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_6  = 1.0 / ( tmp_1 * tmp_3 - tmp_4 * tmp_5 );
       real_t tmp_7  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_8  = p_affine_6_1 + tmp_2;
-      real_t tmp_9  = tmp_6 * ( 0.069431844202973714 * tmp_7 + tmp_8 );
+      real_t tmp_9  = tmp_6 * ( 0.046910077030668018 * tmp_7 + tmp_8 );
       real_t tmp_10 = tmp_1 * tmp_9;
       real_t tmp_11 = p_affine_0_0 - p_affine_2_0;
       real_t tmp_12 = tmp_11 * tmp_9;
       real_t tmp_13 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_14 = p_affine_6_0 + tmp_0;
-      real_t tmp_15 = tmp_6 * ( 0.069431844202973714 * tmp_13 + tmp_14 );
+      real_t tmp_15 = tmp_6 * ( 0.046910077030668018 * tmp_13 + tmp_14 );
       real_t tmp_16 = tmp_15 * tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15 * tmp_17;
@@ -2599,11 +3020,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_24 = p_affine_10_0 * ( tmp_1 * tmp_21 + tmp_23 * tmp_4 );
       real_t tmp_25 = p_affine_10_1 * ( tmp_21 * tmp_5 + tmp_23 * tmp_3 );
       real_t tmp_26 = std::abs( std::pow( ( tmp_13 * tmp_13 ) + ( tmp_7 * tmp_7 ), 1.0 / 2.0 ) );
-      real_t tmp_27 = 0.17392742256872684 * tmp_26;
-      real_t tmp_28 = tmp_6 * ( 0.33000947820757187 * tmp_7 + tmp_8 );
+      real_t tmp_27 = 0.11846344252809471 * tmp_26;
+      real_t tmp_28 = tmp_6 * ( 0.23076534494715845 * tmp_7 + tmp_8 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_11 * tmp_28;
-      real_t tmp_31 = tmp_6 * ( 0.33000947820757187 * tmp_13 + tmp_14 );
+      real_t tmp_31 = tmp_6 * ( 0.23076534494715845 * tmp_13 + tmp_14 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_17 * tmp_31;
       real_t tmp_34 = -0.5 * tmp_29 - 0.5 * tmp_30 - 0.5 * tmp_32 - 0.5 * tmp_33 + 0.5;
@@ -2613,11 +3034,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_38 = tmp_37 - 1.0 / 3.0;
       real_t tmp_39 = p_affine_10_0 * ( tmp_1 * tmp_36 + tmp_38 * tmp_4 );
       real_t tmp_40 = p_affine_10_1 * ( tmp_3 * tmp_38 + tmp_36 * tmp_5 );
-      real_t tmp_41 = 0.3260725774312731 * tmp_26;
-      real_t tmp_42 = tmp_6 * ( 0.66999052179242813 * tmp_7 + tmp_8 );
+      real_t tmp_41 = 0.2393143352496831 * tmp_26;
+      real_t tmp_42 = tmp_6 * ( 0.5 * tmp_7 + tmp_8 );
       real_t tmp_43 = tmp_1 * tmp_42;
       real_t tmp_44 = tmp_11 * tmp_42;
-      real_t tmp_45 = tmp_6 * ( 0.66999052179242813 * tmp_13 + tmp_14 );
+      real_t tmp_45 = tmp_6 * ( 0.5 * tmp_13 + tmp_14 );
       real_t tmp_46 = tmp_3 * tmp_45;
       real_t tmp_47 = tmp_17 * tmp_45;
       real_t tmp_48 = -0.5 * tmp_43 - 0.5 * tmp_44 - 0.5 * tmp_46 - 0.5 * tmp_47 + 0.5;
@@ -2627,11 +3048,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_52 = tmp_51 - 1.0 / 3.0;
       real_t tmp_53 = p_affine_10_0 * ( tmp_1 * tmp_50 + tmp_4 * tmp_52 );
       real_t tmp_54 = p_affine_10_1 * ( tmp_3 * tmp_52 + tmp_5 * tmp_50 );
-      real_t tmp_55 = 0.3260725774312731 * tmp_26;
-      real_t tmp_56 = tmp_6 * ( 0.93056815579702623 * tmp_7 + tmp_8 );
+      real_t tmp_55 = 0.2844444444444445 * tmp_26;
+      real_t tmp_56 = tmp_6 * ( 0.7692346550528415 * tmp_7 + tmp_8 );
       real_t tmp_57 = tmp_1 * tmp_56;
       real_t tmp_58 = tmp_11 * tmp_56;
-      real_t tmp_59 = tmp_6 * ( 0.93056815579702623 * tmp_13 + tmp_14 );
+      real_t tmp_59 = tmp_6 * ( 0.7692346550528415 * tmp_13 + tmp_14 );
       real_t tmp_60 = tmp_3 * tmp_59;
       real_t tmp_61 = tmp_17 * tmp_59;
       real_t tmp_62 = -0.5 * tmp_57 - 0.5 * tmp_58 - 0.5 * tmp_60 - 0.5 * tmp_61 + 0.5;
@@ -2641,21 +3062,40 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_66 = tmp_65 - 1.0 / 3.0;
       real_t tmp_67 = p_affine_10_0 * ( tmp_1 * tmp_64 + tmp_4 * tmp_66 );
       real_t tmp_68 = p_affine_10_1 * ( tmp_3 * tmp_66 + tmp_5 * tmp_64 );
-      real_t tmp_69 = 0.17392742256872684 * tmp_26;
-      real_t tmp_70 = 0.5 * tmp_20;
-      real_t tmp_71 = 0.5 * tmp_35;
-      real_t tmp_72 = 0.5 * tmp_49;
-      real_t tmp_73 = 0.5 * tmp_63;
-      real_t tmp_74 = 0.5 * tmp_22;
-      real_t tmp_75 = 0.5 * tmp_37;
-      real_t tmp_76 = 0.5 * tmp_51;
-      real_t tmp_77 = 0.5 * tmp_65;
+      real_t tmp_69 = 0.2393143352496831 * tmp_26;
+      real_t tmp_70 = tmp_6 * ( 0.95308992296933193 * tmp_7 + tmp_8 );
+      real_t tmp_71 = tmp_1 * tmp_70;
+      real_t tmp_72 = tmp_11 * tmp_70;
+      real_t tmp_73 = tmp_6 * ( 0.95308992296933193 * tmp_13 + tmp_14 );
+      real_t tmp_74 = tmp_3 * tmp_73;
+      real_t tmp_75 = tmp_17 * tmp_73;
+      real_t tmp_76 = -0.5 * tmp_71 - 0.5 * tmp_72 - 0.5 * tmp_74 - 0.5 * tmp_75 + 0.5;
+      real_t tmp_77 = tmp_72 + tmp_74;
+      real_t tmp_78 = tmp_77 - 1.0 / 3.0;
+      real_t tmp_79 = tmp_71 + tmp_75;
+      real_t tmp_80 = tmp_79 - 1.0 / 3.0;
+      real_t tmp_81 = p_affine_10_0 * ( tmp_1 * tmp_78 + tmp_4 * tmp_80 );
+      real_t tmp_82 = p_affine_10_1 * ( tmp_3 * tmp_80 + tmp_5 * tmp_78 );
+      real_t tmp_83 = 0.11846344252809471 * tmp_26;
+      real_t tmp_84 = 0.5 * tmp_20;
+      real_t tmp_85 = 0.5 * tmp_35;
+      real_t tmp_86 = 0.5 * tmp_49;
+      real_t tmp_87 = 0.5 * tmp_63;
+      real_t tmp_88 = 0.5 * tmp_77;
+      real_t tmp_89 = 0.5 * tmp_22;
+      real_t tmp_90 = 0.5 * tmp_37;
+      real_t tmp_91 = 0.5 * tmp_51;
+      real_t tmp_92 = 0.5 * tmp_65;
+      real_t tmp_93 = 0.5 * tmp_79;
       real_t a_0_0  = tmp_27 * ( tmp_19 * tmp_24 + tmp_19 * tmp_25 ) + tmp_41 * ( tmp_34 * tmp_39 + tmp_34 * tmp_40 ) +
-                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 );
-      real_t a_0_1 = tmp_27 * ( tmp_24 * tmp_70 + tmp_25 * tmp_70 ) + tmp_41 * ( tmp_39 * tmp_71 + tmp_40 * tmp_71 ) +
-                     tmp_55 * ( tmp_53 * tmp_72 + tmp_54 * tmp_72 ) + tmp_69 * ( tmp_67 * tmp_73 + tmp_68 * tmp_73 );
-      real_t a_0_2 = tmp_27 * ( tmp_24 * tmp_74 + tmp_25 * tmp_74 ) + tmp_41 * ( tmp_39 * tmp_75 + tmp_40 * tmp_75 ) +
-                     tmp_55 * ( tmp_53 * tmp_76 + tmp_54 * tmp_76 ) + tmp_69 * ( tmp_67 * tmp_77 + tmp_68 * tmp_77 );
+                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 ) +
+                     tmp_83 * ( tmp_76 * tmp_81 + tmp_76 * tmp_82 );
+      real_t a_0_1 = tmp_27 * ( tmp_24 * tmp_84 + tmp_25 * tmp_84 ) + tmp_41 * ( tmp_39 * tmp_85 + tmp_40 * tmp_85 ) +
+                     tmp_55 * ( tmp_53 * tmp_86 + tmp_54 * tmp_86 ) + tmp_69 * ( tmp_67 * tmp_87 + tmp_68 * tmp_87 ) +
+                     tmp_83 * ( tmp_81 * tmp_88 + tmp_82 * tmp_88 );
+      real_t a_0_2 = tmp_27 * ( tmp_24 * tmp_89 + tmp_25 * tmp_89 ) + tmp_41 * ( tmp_39 * tmp_90 + tmp_40 * tmp_90 ) +
+                     tmp_55 * ( tmp_53 * tmp_91 + tmp_54 * tmp_91 ) + tmp_69 * ( tmp_67 * tmp_92 + tmp_68 * tmp_92 ) +
+                     tmp_83 * ( tmp_81 * tmp_93 + tmp_82 * tmp_93 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2708,103 +3148,124 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      real_t tmp_0  = -p_affine_3_0;
-      real_t tmp_1  = p_affine_4_0 + tmp_0;
-      real_t tmp_2  = -p_affine_3_1;
-      real_t tmp_3  = p_affine_5_1 + tmp_2;
-      real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
-      real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
-      real_t tmp_6  = p_affine_6_1 + 0.069431844202973714 * tmp_5;
-      real_t tmp_7  = tmp_4 * ( tmp_2 + tmp_6 );
-      real_t tmp_8  = tmp_1 * tmp_7;
-      real_t tmp_9  = p_affine_3_0 - p_affine_5_0;
-      real_t tmp_10 = tmp_7 * tmp_9;
-      real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
-      real_t tmp_12 = p_affine_6_0 + 0.069431844202973714 * tmp_11;
-      real_t tmp_13 = tmp_4 * ( tmp_0 + tmp_12 );
-      real_t tmp_14 = tmp_13 * tmp_3;
-      real_t tmp_15 = p_affine_3_1 - p_affine_4_1;
-      real_t tmp_16 = tmp_13 * tmp_15;
-      real_t tmp_17 = -0.5 * tmp_10 - 0.5 * tmp_14 - 0.5 * tmp_16 - 0.5 * tmp_8 + 0.5;
-      real_t tmp_18 = -p_affine_0_0;
-      real_t tmp_19 = p_affine_1_0 + tmp_18;
-      real_t tmp_20 = p_affine_0_0 - p_affine_2_0;
-      real_t tmp_21 = -p_affine_0_1;
-      real_t tmp_22 = p_affine_2_1 + tmp_21;
-      real_t tmp_23 = p_affine_2_0 + tmp_18;
-      real_t tmp_24 = p_affine_1_1 + tmp_21;
-      real_t tmp_25 = 1.0 / ( tmp_19 * tmp_22 - tmp_23 * tmp_24 );
-      real_t tmp_26 = tmp_25 * ( tmp_21 + tmp_6 );
-      real_t tmp_27 = tmp_25 * ( tmp_12 + tmp_18 );
-      real_t tmp_28 = tmp_20 * tmp_26 + tmp_22 * tmp_27 - 1.0 / 3.0;
-      real_t tmp_29 = p_affine_0_1 - p_affine_1_1;
-      real_t tmp_30 = tmp_19 * tmp_26 + tmp_27 * tmp_29 - 1.0 / 3.0;
-      real_t tmp_31 = p_affine_10_0 * ( tmp_19 * tmp_28 + tmp_23 * tmp_30 );
-      real_t tmp_32 = p_affine_10_1 * ( tmp_22 * tmp_30 + tmp_24 * tmp_28 );
-      real_t tmp_33 = std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_34 = 0.17392742256872684 * tmp_33;
-      real_t tmp_35 = p_affine_6_1 + 0.33000947820757187 * tmp_5;
-      real_t tmp_36 = tmp_4 * ( tmp_2 + tmp_35 );
-      real_t tmp_37 = tmp_1 * tmp_36;
-      real_t tmp_38 = tmp_36 * tmp_9;
-      real_t tmp_39 = p_affine_6_0 + 0.33000947820757187 * tmp_11;
-      real_t tmp_40 = tmp_4 * ( tmp_0 + tmp_39 );
-      real_t tmp_41 = tmp_3 * tmp_40;
-      real_t tmp_42 = tmp_15 * tmp_40;
-      real_t tmp_43 = -0.5 * tmp_37 - 0.5 * tmp_38 - 0.5 * tmp_41 - 0.5 * tmp_42 + 0.5;
-      real_t tmp_44 = tmp_25 * ( tmp_21 + tmp_35 );
-      real_t tmp_45 = tmp_25 * ( tmp_18 + tmp_39 );
-      real_t tmp_46 = tmp_20 * tmp_44 + tmp_22 * tmp_45 - 1.0 / 3.0;
-      real_t tmp_47 = tmp_19 * tmp_44 + tmp_29 * tmp_45 - 1.0 / 3.0;
-      real_t tmp_48 = p_affine_10_0 * ( tmp_19 * tmp_46 + tmp_23 * tmp_47 );
-      real_t tmp_49 = p_affine_10_1 * ( tmp_22 * tmp_47 + tmp_24 * tmp_46 );
-      real_t tmp_50 = 0.3260725774312731 * tmp_33;
-      real_t tmp_51 = p_affine_6_1 + 0.66999052179242813 * tmp_5;
-      real_t tmp_52 = tmp_4 * ( tmp_2 + tmp_51 );
-      real_t tmp_53 = tmp_1 * tmp_52;
-      real_t tmp_54 = tmp_52 * tmp_9;
-      real_t tmp_55 = p_affine_6_0 + 0.66999052179242813 * tmp_11;
-      real_t tmp_56 = tmp_4 * ( tmp_0 + tmp_55 );
-      real_t tmp_57 = tmp_3 * tmp_56;
-      real_t tmp_58 = tmp_15 * tmp_56;
-      real_t tmp_59 = -0.5 * tmp_53 - 0.5 * tmp_54 - 0.5 * tmp_57 - 0.5 * tmp_58 + 0.5;
-      real_t tmp_60 = tmp_25 * ( tmp_21 + tmp_51 );
-      real_t tmp_61 = tmp_25 * ( tmp_18 + tmp_55 );
-      real_t tmp_62 = tmp_20 * tmp_60 + tmp_22 * tmp_61 - 1.0 / 3.0;
-      real_t tmp_63 = tmp_19 * tmp_60 + tmp_29 * tmp_61 - 1.0 / 3.0;
-      real_t tmp_64 = p_affine_10_0 * ( tmp_19 * tmp_62 + tmp_23 * tmp_63 );
-      real_t tmp_65 = p_affine_10_1 * ( tmp_22 * tmp_63 + tmp_24 * tmp_62 );
-      real_t tmp_66 = 0.3260725774312731 * tmp_33;
-      real_t tmp_67 = p_affine_6_1 + 0.93056815579702623 * tmp_5;
-      real_t tmp_68 = tmp_4 * ( tmp_2 + tmp_67 );
-      real_t tmp_69 = tmp_1 * tmp_68;
-      real_t tmp_70 = tmp_68 * tmp_9;
-      real_t tmp_71 = p_affine_6_0 + 0.93056815579702623 * tmp_11;
-      real_t tmp_72 = tmp_4 * ( tmp_0 + tmp_71 );
-      real_t tmp_73 = tmp_3 * tmp_72;
-      real_t tmp_74 = tmp_15 * tmp_72;
-      real_t tmp_75 = -0.5 * tmp_69 - 0.5 * tmp_70 - 0.5 * tmp_73 - 0.5 * tmp_74 + 0.5;
-      real_t tmp_76 = tmp_25 * ( tmp_21 + tmp_67 );
-      real_t tmp_77 = tmp_25 * ( tmp_18 + tmp_71 );
-      real_t tmp_78 = tmp_20 * tmp_76 + tmp_22 * tmp_77 - 1.0 / 3.0;
-      real_t tmp_79 = tmp_19 * tmp_76 + tmp_29 * tmp_77 - 1.0 / 3.0;
-      real_t tmp_80 = p_affine_10_0 * ( tmp_19 * tmp_78 + tmp_23 * tmp_79 );
-      real_t tmp_81 = p_affine_10_1 * ( tmp_22 * tmp_79 + tmp_24 * tmp_78 );
-      real_t tmp_82 = 0.17392742256872684 * tmp_33;
-      real_t tmp_83 = 0.5 * tmp_10 + 0.5 * tmp_14;
-      real_t tmp_84 = 0.5 * tmp_38 + 0.5 * tmp_41;
-      real_t tmp_85 = 0.5 * tmp_54 + 0.5 * tmp_57;
-      real_t tmp_86 = 0.5 * tmp_70 + 0.5 * tmp_73;
-      real_t tmp_87 = 0.5 * tmp_16 + 0.5 * tmp_8;
-      real_t tmp_88 = 0.5 * tmp_37 + 0.5 * tmp_42;
-      real_t tmp_89 = 0.5 * tmp_53 + 0.5 * tmp_58;
-      real_t tmp_90 = 0.5 * tmp_69 + 0.5 * tmp_74;
-      real_t a_0_0  = tmp_34 * ( tmp_17 * tmp_31 + tmp_17 * tmp_32 ) + tmp_50 * ( tmp_43 * tmp_48 + tmp_43 * tmp_49 ) +
-                     tmp_66 * ( tmp_59 * tmp_64 + tmp_59 * tmp_65 ) + tmp_82 * ( tmp_75 * tmp_80 + tmp_75 * tmp_81 );
-      real_t a_0_1 = tmp_34 * ( tmp_31 * tmp_83 + tmp_32 * tmp_83 ) + tmp_50 * ( tmp_48 * tmp_84 + tmp_49 * tmp_84 ) +
-                     tmp_66 * ( tmp_64 * tmp_85 + tmp_65 * tmp_85 ) + tmp_82 * ( tmp_80 * tmp_86 + tmp_81 * tmp_86 );
-      real_t a_0_2 = tmp_34 * ( tmp_31 * tmp_87 + tmp_32 * tmp_87 ) + tmp_50 * ( tmp_48 * tmp_88 + tmp_49 * tmp_88 ) +
-                     tmp_66 * ( tmp_64 * tmp_89 + tmp_65 * tmp_89 ) + tmp_82 * ( tmp_80 * tmp_90 + tmp_81 * tmp_90 );
+      real_t tmp_0   = -p_affine_3_0;
+      real_t tmp_1   = p_affine_4_0 + tmp_0;
+      real_t tmp_2   = -p_affine_3_1;
+      real_t tmp_3   = p_affine_5_1 + tmp_2;
+      real_t tmp_4   = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
+      real_t tmp_5   = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_6   = p_affine_6_1 + 0.046910077030668018 * tmp_5;
+      real_t tmp_7   = tmp_4 * ( tmp_2 + tmp_6 );
+      real_t tmp_8   = tmp_1 * tmp_7;
+      real_t tmp_9   = p_affine_3_0 - p_affine_5_0;
+      real_t tmp_10  = tmp_7 * tmp_9;
+      real_t tmp_11  = -p_affine_6_0 + p_affine_7_0;
+      real_t tmp_12  = p_affine_6_0 + 0.046910077030668018 * tmp_11;
+      real_t tmp_13  = tmp_4 * ( tmp_0 + tmp_12 );
+      real_t tmp_14  = tmp_13 * tmp_3;
+      real_t tmp_15  = p_affine_3_1 - p_affine_4_1;
+      real_t tmp_16  = tmp_13 * tmp_15;
+      real_t tmp_17  = -0.5 * tmp_10 - 0.5 * tmp_14 - 0.5 * tmp_16 - 0.5 * tmp_8 + 0.5;
+      real_t tmp_18  = -p_affine_0_0;
+      real_t tmp_19  = p_affine_1_0 + tmp_18;
+      real_t tmp_20  = p_affine_0_0 - p_affine_2_0;
+      real_t tmp_21  = -p_affine_0_1;
+      real_t tmp_22  = p_affine_2_1 + tmp_21;
+      real_t tmp_23  = p_affine_2_0 + tmp_18;
+      real_t tmp_24  = p_affine_1_1 + tmp_21;
+      real_t tmp_25  = 1.0 / ( tmp_19 * tmp_22 - tmp_23 * tmp_24 );
+      real_t tmp_26  = tmp_25 * ( tmp_21 + tmp_6 );
+      real_t tmp_27  = tmp_25 * ( tmp_12 + tmp_18 );
+      real_t tmp_28  = tmp_20 * tmp_26 + tmp_22 * tmp_27 - 1.0 / 3.0;
+      real_t tmp_29  = p_affine_0_1 - p_affine_1_1;
+      real_t tmp_30  = tmp_19 * tmp_26 + tmp_27 * tmp_29 - 1.0 / 3.0;
+      real_t tmp_31  = p_affine_10_0 * ( tmp_19 * tmp_28 + tmp_23 * tmp_30 );
+      real_t tmp_32  = p_affine_10_1 * ( tmp_22 * tmp_30 + tmp_24 * tmp_28 );
+      real_t tmp_33  = std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
+      real_t tmp_34  = 0.11846344252809471 * tmp_33;
+      real_t tmp_35  = p_affine_6_1 + 0.23076534494715845 * tmp_5;
+      real_t tmp_36  = tmp_4 * ( tmp_2 + tmp_35 );
+      real_t tmp_37  = tmp_1 * tmp_36;
+      real_t tmp_38  = tmp_36 * tmp_9;
+      real_t tmp_39  = p_affine_6_0 + 0.23076534494715845 * tmp_11;
+      real_t tmp_40  = tmp_4 * ( tmp_0 + tmp_39 );
+      real_t tmp_41  = tmp_3 * tmp_40;
+      real_t tmp_42  = tmp_15 * tmp_40;
+      real_t tmp_43  = -0.5 * tmp_37 - 0.5 * tmp_38 - 0.5 * tmp_41 - 0.5 * tmp_42 + 0.5;
+      real_t tmp_44  = tmp_25 * ( tmp_21 + tmp_35 );
+      real_t tmp_45  = tmp_25 * ( tmp_18 + tmp_39 );
+      real_t tmp_46  = tmp_20 * tmp_44 + tmp_22 * tmp_45 - 1.0 / 3.0;
+      real_t tmp_47  = tmp_19 * tmp_44 + tmp_29 * tmp_45 - 1.0 / 3.0;
+      real_t tmp_48  = p_affine_10_0 * ( tmp_19 * tmp_46 + tmp_23 * tmp_47 );
+      real_t tmp_49  = p_affine_10_1 * ( tmp_22 * tmp_47 + tmp_24 * tmp_46 );
+      real_t tmp_50  = 0.2393143352496831 * tmp_33;
+      real_t tmp_51  = p_affine_6_1 + 0.5 * tmp_5;
+      real_t tmp_52  = tmp_4 * ( tmp_2 + tmp_51 );
+      real_t tmp_53  = tmp_1 * tmp_52;
+      real_t tmp_54  = tmp_52 * tmp_9;
+      real_t tmp_55  = p_affine_6_0 + 0.5 * tmp_11;
+      real_t tmp_56  = tmp_4 * ( tmp_0 + tmp_55 );
+      real_t tmp_57  = tmp_3 * tmp_56;
+      real_t tmp_58  = tmp_15 * tmp_56;
+      real_t tmp_59  = -0.5 * tmp_53 - 0.5 * tmp_54 - 0.5 * tmp_57 - 0.5 * tmp_58 + 0.5;
+      real_t tmp_60  = tmp_25 * ( tmp_21 + tmp_51 );
+      real_t tmp_61  = tmp_25 * ( tmp_18 + tmp_55 );
+      real_t tmp_62  = tmp_20 * tmp_60 + tmp_22 * tmp_61 - 1.0 / 3.0;
+      real_t tmp_63  = tmp_19 * tmp_60 + tmp_29 * tmp_61 - 1.0 / 3.0;
+      real_t tmp_64  = p_affine_10_0 * ( tmp_19 * tmp_62 + tmp_23 * tmp_63 );
+      real_t tmp_65  = p_affine_10_1 * ( tmp_22 * tmp_63 + tmp_24 * tmp_62 );
+      real_t tmp_66  = 0.2844444444444445 * tmp_33;
+      real_t tmp_67  = p_affine_6_1 + 0.7692346550528415 * tmp_5;
+      real_t tmp_68  = tmp_4 * ( tmp_2 + tmp_67 );
+      real_t tmp_69  = tmp_1 * tmp_68;
+      real_t tmp_70  = tmp_68 * tmp_9;
+      real_t tmp_71  = p_affine_6_0 + 0.7692346550528415 * tmp_11;
+      real_t tmp_72  = tmp_4 * ( tmp_0 + tmp_71 );
+      real_t tmp_73  = tmp_3 * tmp_72;
+      real_t tmp_74  = tmp_15 * tmp_72;
+      real_t tmp_75  = -0.5 * tmp_69 - 0.5 * tmp_70 - 0.5 * tmp_73 - 0.5 * tmp_74 + 0.5;
+      real_t tmp_76  = tmp_25 * ( tmp_21 + tmp_67 );
+      real_t tmp_77  = tmp_25 * ( tmp_18 + tmp_71 );
+      real_t tmp_78  = tmp_20 * tmp_76 + tmp_22 * tmp_77 - 1.0 / 3.0;
+      real_t tmp_79  = tmp_19 * tmp_76 + tmp_29 * tmp_77 - 1.0 / 3.0;
+      real_t tmp_80  = p_affine_10_0 * ( tmp_19 * tmp_78 + tmp_23 * tmp_79 );
+      real_t tmp_81  = p_affine_10_1 * ( tmp_22 * tmp_79 + tmp_24 * tmp_78 );
+      real_t tmp_82  = 0.2393143352496831 * tmp_33;
+      real_t tmp_83  = p_affine_6_1 + 0.95308992296933193 * tmp_5;
+      real_t tmp_84  = tmp_4 * ( tmp_2 + tmp_83 );
+      real_t tmp_85  = tmp_1 * tmp_84;
+      real_t tmp_86  = tmp_84 * tmp_9;
+      real_t tmp_87  = p_affine_6_0 + 0.95308992296933193 * tmp_11;
+      real_t tmp_88  = tmp_4 * ( tmp_0 + tmp_87 );
+      real_t tmp_89  = tmp_3 * tmp_88;
+      real_t tmp_90  = tmp_15 * tmp_88;
+      real_t tmp_91  = -0.5 * tmp_85 - 0.5 * tmp_86 - 0.5 * tmp_89 - 0.5 * tmp_90 + 0.5;
+      real_t tmp_92  = tmp_25 * ( tmp_21 + tmp_83 );
+      real_t tmp_93  = tmp_25 * ( tmp_18 + tmp_87 );
+      real_t tmp_94  = tmp_20 * tmp_92 + tmp_22 * tmp_93 - 1.0 / 3.0;
+      real_t tmp_95  = tmp_19 * tmp_92 + tmp_29 * tmp_93 - 1.0 / 3.0;
+      real_t tmp_96  = p_affine_10_0 * ( tmp_19 * tmp_94 + tmp_23 * tmp_95 );
+      real_t tmp_97  = p_affine_10_1 * ( tmp_22 * tmp_95 + tmp_24 * tmp_94 );
+      real_t tmp_98  = 0.11846344252809471 * tmp_33;
+      real_t tmp_99  = 0.5 * tmp_10 + 0.5 * tmp_14;
+      real_t tmp_100 = 0.5 * tmp_38 + 0.5 * tmp_41;
+      real_t tmp_101 = 0.5 * tmp_54 + 0.5 * tmp_57;
+      real_t tmp_102 = 0.5 * tmp_70 + 0.5 * tmp_73;
+      real_t tmp_103 = 0.5 * tmp_86 + 0.5 * tmp_89;
+      real_t tmp_104 = 0.5 * tmp_16 + 0.5 * tmp_8;
+      real_t tmp_105 = 0.5 * tmp_37 + 0.5 * tmp_42;
+      real_t tmp_106 = 0.5 * tmp_53 + 0.5 * tmp_58;
+      real_t tmp_107 = 0.5 * tmp_69 + 0.5 * tmp_74;
+      real_t tmp_108 = 0.5 * tmp_85 + 0.5 * tmp_90;
+      real_t a_0_0   = tmp_34 * ( tmp_17 * tmp_31 + tmp_17 * tmp_32 ) + tmp_50 * ( tmp_43 * tmp_48 + tmp_43 * tmp_49 ) +
+                     tmp_66 * ( tmp_59 * tmp_64 + tmp_59 * tmp_65 ) + tmp_82 * ( tmp_75 * tmp_80 + tmp_75 * tmp_81 ) +
+                     tmp_98 * ( tmp_91 * tmp_96 + tmp_91 * tmp_97 );
+      real_t a_0_1 = tmp_34 * ( tmp_31 * tmp_99 + tmp_32 * tmp_99 ) + tmp_50 * ( tmp_100 * tmp_48 + tmp_100 * tmp_49 ) +
+                     tmp_66 * ( tmp_101 * tmp_64 + tmp_101 * tmp_65 ) + tmp_82 * ( tmp_102 * tmp_80 + tmp_102 * tmp_81 ) +
+                     tmp_98 * ( tmp_103 * tmp_96 + tmp_103 * tmp_97 );
+      real_t a_0_2 = tmp_34 * ( tmp_104 * tmp_31 + tmp_104 * tmp_32 ) + tmp_50 * ( tmp_105 * tmp_48 + tmp_105 * tmp_49 ) +
+                     tmp_66 * ( tmp_106 * tmp_64 + tmp_106 * tmp_65 ) + tmp_82 * ( tmp_107 * tmp_80 + tmp_107 * tmp_81 ) +
+                     tmp_98 * ( tmp_108 * tmp_96 + tmp_108 * tmp_97 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -2852,13 +3313,13 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_6  = 1.0 / ( tmp_1 * tmp_3 - tmp_4 * tmp_5 );
       real_t tmp_7  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_8  = p_affine_6_1 + tmp_2;
-      real_t tmp_9  = tmp_6 * ( 0.069431844202973714 * tmp_7 + tmp_8 );
+      real_t tmp_9  = tmp_6 * ( 0.046910077030668018 * tmp_7 + tmp_8 );
       real_t tmp_10 = tmp_1 * tmp_9;
       real_t tmp_11 = p_affine_0_0 - p_affine_2_0;
       real_t tmp_12 = tmp_11 * tmp_9;
       real_t tmp_13 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_14 = p_affine_6_0 + tmp_0;
-      real_t tmp_15 = tmp_6 * ( 0.069431844202973714 * tmp_13 + tmp_14 );
+      real_t tmp_15 = tmp_6 * ( 0.046910077030668018 * tmp_13 + tmp_14 );
       real_t tmp_16 = tmp_15 * tmp_3;
       real_t tmp_17 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_18 = tmp_15 * tmp_17;
@@ -2870,11 +3331,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_24 = p_affine_10_0 * ( tmp_1 * tmp_21 + tmp_23 * tmp_4 );
       real_t tmp_25 = p_affine_10_1 * ( tmp_21 * tmp_5 + tmp_23 * tmp_3 );
       real_t tmp_26 = std::abs( std::pow( ( tmp_13 * tmp_13 ) + ( tmp_7 * tmp_7 ), 1.0 / 2.0 ) );
-      real_t tmp_27 = 0.17392742256872684 * tmp_26;
-      real_t tmp_28 = tmp_6 * ( 0.33000947820757187 * tmp_7 + tmp_8 );
+      real_t tmp_27 = 0.11846344252809471 * tmp_26;
+      real_t tmp_28 = tmp_6 * ( 0.23076534494715845 * tmp_7 + tmp_8 );
       real_t tmp_29 = tmp_1 * tmp_28;
       real_t tmp_30 = tmp_11 * tmp_28;
-      real_t tmp_31 = tmp_6 * ( 0.33000947820757187 * tmp_13 + tmp_14 );
+      real_t tmp_31 = tmp_6 * ( 0.23076534494715845 * tmp_13 + tmp_14 );
       real_t tmp_32 = tmp_3 * tmp_31;
       real_t tmp_33 = tmp_17 * tmp_31;
       real_t tmp_34 = -tmp_29 - tmp_30 - tmp_32 - tmp_33 + 1;
@@ -2884,11 +3345,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_38 = tmp_37 - 1.0 / 3.0;
       real_t tmp_39 = p_affine_10_0 * ( tmp_1 * tmp_36 + tmp_38 * tmp_4 );
       real_t tmp_40 = p_affine_10_1 * ( tmp_3 * tmp_38 + tmp_36 * tmp_5 );
-      real_t tmp_41 = 0.3260725774312731 * tmp_26;
-      real_t tmp_42 = tmp_6 * ( 0.66999052179242813 * tmp_7 + tmp_8 );
+      real_t tmp_41 = 0.2393143352496831 * tmp_26;
+      real_t tmp_42 = tmp_6 * ( 0.5 * tmp_7 + tmp_8 );
       real_t tmp_43 = tmp_1 * tmp_42;
       real_t tmp_44 = tmp_11 * tmp_42;
-      real_t tmp_45 = tmp_6 * ( 0.66999052179242813 * tmp_13 + tmp_14 );
+      real_t tmp_45 = tmp_6 * ( 0.5 * tmp_13 + tmp_14 );
       real_t tmp_46 = tmp_3 * tmp_45;
       real_t tmp_47 = tmp_17 * tmp_45;
       real_t tmp_48 = -tmp_43 - tmp_44 - tmp_46 - tmp_47 + 1;
@@ -2898,11 +3359,11 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_52 = tmp_51 - 1.0 / 3.0;
       real_t tmp_53 = p_affine_10_0 * ( tmp_1 * tmp_50 + tmp_4 * tmp_52 );
       real_t tmp_54 = p_affine_10_1 * ( tmp_3 * tmp_52 + tmp_5 * tmp_50 );
-      real_t tmp_55 = 0.3260725774312731 * tmp_26;
-      real_t tmp_56 = tmp_6 * ( 0.93056815579702623 * tmp_7 + tmp_8 );
+      real_t tmp_55 = 0.2844444444444445 * tmp_26;
+      real_t tmp_56 = tmp_6 * ( 0.7692346550528415 * tmp_7 + tmp_8 );
       real_t tmp_57 = tmp_1 * tmp_56;
       real_t tmp_58 = tmp_11 * tmp_56;
-      real_t tmp_59 = tmp_6 * ( 0.93056815579702623 * tmp_13 + tmp_14 );
+      real_t tmp_59 = tmp_6 * ( 0.7692346550528415 * tmp_13 + tmp_14 );
       real_t tmp_60 = tmp_3 * tmp_59;
       real_t tmp_61 = tmp_17 * tmp_59;
       real_t tmp_62 = -tmp_57 - tmp_58 - tmp_60 - tmp_61 + 1;
@@ -2912,13 +3373,30 @@ class DGDivtFormEDGP1 : public hyteg::dg::DGForm2D
       real_t tmp_66 = tmp_65 - 1.0 / 3.0;
       real_t tmp_67 = p_affine_10_0 * ( tmp_1 * tmp_64 + tmp_4 * tmp_66 );
       real_t tmp_68 = p_affine_10_1 * ( tmp_3 * tmp_66 + tmp_5 * tmp_64 );
-      real_t tmp_69 = 0.17392742256872684 * tmp_26;
+      real_t tmp_69 = 0.2393143352496831 * tmp_26;
+      real_t tmp_70 = tmp_6 * ( 0.95308992296933193 * tmp_7 + tmp_8 );
+      real_t tmp_71 = tmp_1 * tmp_70;
+      real_t tmp_72 = tmp_11 * tmp_70;
+      real_t tmp_73 = tmp_6 * ( 0.95308992296933193 * tmp_13 + tmp_14 );
+      real_t tmp_74 = tmp_3 * tmp_73;
+      real_t tmp_75 = tmp_17 * tmp_73;
+      real_t tmp_76 = -tmp_71 - tmp_72 - tmp_74 - tmp_75 + 1;
+      real_t tmp_77 = tmp_72 + tmp_74;
+      real_t tmp_78 = tmp_77 - 1.0 / 3.0;
+      real_t tmp_79 = tmp_71 + tmp_75;
+      real_t tmp_80 = tmp_79 - 1.0 / 3.0;
+      real_t tmp_81 = p_affine_10_0 * ( tmp_1 * tmp_78 + tmp_4 * tmp_80 );
+      real_t tmp_82 = p_affine_10_1 * ( tmp_3 * tmp_80 + tmp_5 * tmp_78 );
+      real_t tmp_83 = 0.11846344252809471 * tmp_26;
       real_t a_0_0  = tmp_27 * ( tmp_19 * tmp_24 + tmp_19 * tmp_25 ) + tmp_41 * ( tmp_34 * tmp_39 + tmp_34 * tmp_40 ) +
-                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 );
+                     tmp_55 * ( tmp_48 * tmp_53 + tmp_48 * tmp_54 ) + tmp_69 * ( tmp_62 * tmp_67 + tmp_62 * tmp_68 ) +
+                     tmp_83 * ( tmp_76 * tmp_81 + tmp_76 * tmp_82 );
       real_t a_0_1 = tmp_27 * ( tmp_20 * tmp_24 + tmp_20 * tmp_25 ) + tmp_41 * ( tmp_35 * tmp_39 + tmp_35 * tmp_40 ) +
-                     tmp_55 * ( tmp_49 * tmp_53 + tmp_49 * tmp_54 ) + tmp_69 * ( tmp_63 * tmp_67 + tmp_63 * tmp_68 );
+                     tmp_55 * ( tmp_49 * tmp_53 + tmp_49 * tmp_54 ) + tmp_69 * ( tmp_63 * tmp_67 + tmp_63 * tmp_68 ) +
+                     tmp_83 * ( tmp_77 * tmp_81 + tmp_77 * tmp_82 );
       real_t a_0_2 = tmp_27 * ( tmp_22 * tmp_24 + tmp_22 * tmp_25 ) + tmp_41 * ( tmp_37 * tmp_39 + tmp_37 * tmp_40 ) +
-                     tmp_55 * ( tmp_51 * tmp_53 + tmp_51 * tmp_54 ) + tmp_69 * ( tmp_65 * tmp_67 + tmp_65 * tmp_68 );
+                     tmp_55 * ( tmp_51 * tmp_53 + tmp_51 * tmp_54 ) + tmp_69 * ( tmp_65 * tmp_67 + tmp_65 * tmp_68 ) +
+                     tmp_83 * ( tmp_79 * tmp_81 + tmp_79 * tmp_82 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3024,45 +3502,53 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3122,45 +3608,53 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_3_1 - p_affine_4_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = -tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) - tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) -
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) - tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) - tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) -
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = -tmp_18 * ( tmp_10 + tmp_14 ) - tmp_25 * ( tmp_21 + tmp_23 ) - tmp_32 * ( tmp_28 + tmp_30 ) -
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) - tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = -tmp_18 * ( tmp_16 + tmp_8 ) - tmp_25 * ( tmp_20 + tmp_24 ) - tmp_32 * ( tmp_27 + tmp_31 ) -
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) - tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3206,45 +3700,53 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3350,45 +3852,53 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3448,45 +3958,53 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_4_1 + tmp_2 ) * ( p_affine_5_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_3_0 - p_affine_5_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_3_1 - p_affine_4_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = -tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) - tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) -
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) - tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) - tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) -
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = -tmp_18 * ( tmp_10 + tmp_14 ) - tmp_25 * ( tmp_21 + tmp_23 ) - tmp_32 * ( tmp_28 + tmp_30 ) -
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) - tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = -tmp_18 * ( tmp_16 + tmp_8 ) - tmp_25 * ( tmp_20 + tmp_24 ) - tmp_32 * ( tmp_27 + tmp_31 ) -
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) - tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3532,45 +4050,53 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 0, 1 ) = a_0_1;
       elMat( 0, 2 ) = a_0_2;
@@ -3676,34 +4202,40 @@ class DGDivFormP0EDG : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_1_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
       real_t tmp_18 = 0.5 * p_affine_10_0;
       real_t tmp_19 = 0.5 * p_affine_10_1;
-      real_t tmp_20 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_21 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_20 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_21 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_22 = tmp_20 * tmp_5 + tmp_21 * tmp_7 - 1.0 / 3.0;
       real_t tmp_23 = tmp_16 * tmp_21 + tmp_20 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_24 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_25 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_24 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_25 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_26 = tmp_24 * tmp_5 + tmp_25 * tmp_7 - 1.0 / 3.0;
       real_t tmp_27 = tmp_16 * tmp_25 + tmp_24 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_28 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_29 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_28 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_29 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_30 = tmp_28 * tmp_5 + tmp_29 * tmp_7 - 1.0 / 3.0;
       real_t tmp_31 = tmp_16 * tmp_29 + tmp_28 * tmp_4 - 1.0 / 3.0;
-      real_t a_0_0  = 0.17392742256872684 * tmp_2 *
+      real_t tmp_32 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_33 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_34 = tmp_32 * tmp_5 + tmp_33 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_35 = tmp_16 * tmp_33 + tmp_32 * tmp_4 - 1.0 / 3.0;
+      real_t a_0_0  = 0.11846344252809471 * tmp_2 *
                          ( tmp_18 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) + tmp_19 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2393143352496831 * tmp_2 *
                          ( tmp_18 * ( tmp_22 * tmp_4 + tmp_23 * tmp_8 ) + tmp_19 * ( tmp_22 * tmp_9 + tmp_23 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2844444444444445 * tmp_2 *
                          ( tmp_18 * ( tmp_26 * tmp_4 + tmp_27 * tmp_8 ) + tmp_19 * ( tmp_26 * tmp_9 + tmp_27 * tmp_7 ) ) +
-                     0.17392742256872684 * tmp_2 *
-                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) );
+                     0.2393143352496831 * tmp_2 *
+                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) ) +
+                     0.11846344252809471 * tmp_2 *
+                         ( tmp_18 * ( tmp_34 * tmp_4 + tmp_35 * tmp_8 ) + tmp_19 * ( tmp_34 * tmp_9 + tmp_35 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
    }
 
@@ -3766,34 +4298,40 @@ class DGDivFormP0EDG : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_4_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_3_1 - p_affine_4_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
       real_t tmp_18 = 0.5 * p_affine_10_0;
       real_t tmp_19 = 0.5 * p_affine_10_1;
-      real_t tmp_20 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_21 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_20 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_21 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_22 = tmp_20 * tmp_5 + tmp_21 * tmp_7 - 1.0 / 3.0;
       real_t tmp_23 = tmp_16 * tmp_21 + tmp_20 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_24 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_25 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_24 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_25 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_26 = tmp_24 * tmp_5 + tmp_25 * tmp_7 - 1.0 / 3.0;
       real_t tmp_27 = tmp_16 * tmp_25 + tmp_24 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_28 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_29 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_28 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_29 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_30 = tmp_28 * tmp_5 + tmp_29 * tmp_7 - 1.0 / 3.0;
       real_t tmp_31 = tmp_16 * tmp_29 + tmp_28 * tmp_4 - 1.0 / 3.0;
-      real_t a_0_0  = 0.17392742256872684 * tmp_2 *
+      real_t tmp_32 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_33 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_34 = tmp_32 * tmp_5 + tmp_33 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_35 = tmp_16 * tmp_33 + tmp_32 * tmp_4 - 1.0 / 3.0;
+      real_t a_0_0  = 0.11846344252809471 * tmp_2 *
                          ( -tmp_18 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) - tmp_19 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2393143352496831 * tmp_2 *
                          ( -tmp_18 * ( tmp_22 * tmp_4 + tmp_23 * tmp_8 ) - tmp_19 * ( tmp_22 * tmp_9 + tmp_23 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2844444444444445 * tmp_2 *
                          ( -tmp_18 * ( tmp_26 * tmp_4 + tmp_27 * tmp_8 ) - tmp_19 * ( tmp_26 * tmp_9 + tmp_27 * tmp_7 ) ) +
-                     0.17392742256872684 * tmp_2 *
-                         ( -tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) - tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) );
+                     0.2393143352496831 * tmp_2 *
+                         ( -tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) - tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) ) +
+                     0.11846344252809471 * tmp_2 *
+                         ( -tmp_18 * ( tmp_34 * tmp_4 + tmp_35 * tmp_8 ) - tmp_19 * ( tmp_34 * tmp_9 + tmp_35 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
    };
 
@@ -3842,33 +4380,39 @@ class DGDivFormP0EDG : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_1_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
-      real_t tmp_18 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_19 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_18 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_19 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_20 = tmp_18 * tmp_5 + tmp_19 * tmp_7 - 1.0 / 3.0;
       real_t tmp_21 = tmp_16 * tmp_19 + tmp_18 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_22 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_23 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_22 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_23 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_24 = tmp_22 * tmp_5 + tmp_23 * tmp_7 - 1.0 / 3.0;
       real_t tmp_25 = tmp_16 * tmp_23 + tmp_22 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_26 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_27 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_26 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_27 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_28 = tmp_26 * tmp_5 + tmp_27 * tmp_7 - 1.0 / 3.0;
       real_t tmp_29 = tmp_16 * tmp_27 + tmp_26 * tmp_4 - 1.0 / 3.0;
+      real_t tmp_30 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_31 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_32 = tmp_30 * tmp_5 + tmp_31 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_33 = tmp_16 * tmp_31 + tmp_30 * tmp_4 - 1.0 / 3.0;
       real_t a_0_0 =
-          0.17392742256872684 * tmp_2 *
+          0.11846344252809471 * tmp_2 *
               ( p_affine_10_0 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) + p_affine_10_1 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-          0.3260725774312731 * tmp_2 *
+          0.2393143352496831 * tmp_2 *
               ( p_affine_10_0 * ( tmp_20 * tmp_4 + tmp_21 * tmp_8 ) + p_affine_10_1 * ( tmp_20 * tmp_9 + tmp_21 * tmp_7 ) ) +
-          0.3260725774312731 * tmp_2 *
+          0.2844444444444445 * tmp_2 *
               ( p_affine_10_0 * ( tmp_24 * tmp_4 + tmp_25 * tmp_8 ) + p_affine_10_1 * ( tmp_24 * tmp_9 + tmp_25 * tmp_7 ) ) +
-          0.17392742256872684 * tmp_2 *
-              ( p_affine_10_0 * ( tmp_28 * tmp_4 + tmp_29 * tmp_8 ) + p_affine_10_1 * ( tmp_28 * tmp_9 + tmp_29 * tmp_7 ) );
+          0.2393143352496831 * tmp_2 *
+              ( p_affine_10_0 * ( tmp_28 * tmp_4 + tmp_29 * tmp_8 ) + p_affine_10_1 * ( tmp_28 * tmp_9 + tmp_29 * tmp_7 ) ) +
+          0.11846344252809471 * tmp_2 *
+              ( p_affine_10_0 * ( tmp_32 * tmp_4 + tmp_33 * tmp_8 ) + p_affine_10_1 * ( tmp_32 * tmp_9 + tmp_33 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
    }
 
@@ -3972,45 +4516,53 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4070,45 +4622,53 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4154,45 +4714,53 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4298,45 +4866,53 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4396,45 +4972,53 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = 0.5 * p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4480,45 +5064,53 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
       real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
       real_t tmp_6  = p_affine_6_1 + tmp_2;
-      real_t tmp_7  = tmp_4 * ( 0.069431844202973714 * tmp_5 + tmp_6 );
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
       real_t tmp_8  = tmp_1 * tmp_7;
       real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
       real_t tmp_10 = tmp_7 * tmp_9;
       real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
       real_t tmp_12 = p_affine_6_0 + tmp_0;
-      real_t tmp_13 = tmp_4 * ( 0.069431844202973714 * tmp_11 + tmp_12 );
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
       real_t tmp_14 = tmp_13 * tmp_3;
       real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_16 = tmp_13 * tmp_15;
       real_t tmp_17 = p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
-      real_t tmp_18 = 0.17392742256872684 * tmp_17;
-      real_t tmp_19 = tmp_4 * ( 0.33000947820757187 * tmp_5 + tmp_6 );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
       real_t tmp_20 = tmp_1 * tmp_19;
       real_t tmp_21 = tmp_19 * tmp_9;
-      real_t tmp_22 = tmp_4 * ( 0.33000947820757187 * tmp_11 + tmp_12 );
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
       real_t tmp_23 = tmp_22 * tmp_3;
       real_t tmp_24 = tmp_15 * tmp_22;
-      real_t tmp_25 = 0.3260725774312731 * tmp_17;
-      real_t tmp_26 = tmp_4 * ( 0.66999052179242813 * tmp_5 + tmp_6 );
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
       real_t tmp_27 = tmp_1 * tmp_26;
       real_t tmp_28 = tmp_26 * tmp_9;
-      real_t tmp_29 = tmp_4 * ( 0.66999052179242813 * tmp_11 + tmp_12 );
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
       real_t tmp_30 = tmp_29 * tmp_3;
       real_t tmp_31 = tmp_15 * tmp_29;
-      real_t tmp_32 = 0.3260725774312731 * tmp_17;
-      real_t tmp_33 = tmp_4 * ( 0.93056815579702623 * tmp_5 + tmp_6 );
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
       real_t tmp_34 = tmp_1 * tmp_33;
       real_t tmp_35 = tmp_33 * tmp_9;
-      real_t tmp_36 = tmp_4 * ( 0.93056815579702623 * tmp_11 + tmp_12 );
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
       real_t tmp_37 = tmp_3 * tmp_36;
       real_t tmp_38 = tmp_15 * tmp_36;
-      real_t tmp_39 = 0.17392742256872684 * tmp_17;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
       real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
-                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 );
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
       real_t a_1_0 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
-                     tmp_39 * ( tmp_35 + tmp_37 );
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
       real_t a_2_0 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
-                     tmp_39 * ( tmp_34 + tmp_38 );
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
       elMat( 0, 0 ) = a_0_0;
       elMat( 1, 0 ) = a_1_0;
       elMat( 2, 0 ) = a_2_0;
@@ -4624,34 +5216,40 @@ class DGDivtFormEDGP0 : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_1_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
       real_t tmp_18 = 0.5 * p_affine_10_0;
       real_t tmp_19 = 0.5 * p_affine_10_1;
-      real_t tmp_20 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_21 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_20 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_21 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_22 = tmp_20 * tmp_5 + tmp_21 * tmp_7 - 1.0 / 3.0;
       real_t tmp_23 = tmp_16 * tmp_21 + tmp_20 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_24 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_25 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_24 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_25 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_26 = tmp_24 * tmp_5 + tmp_25 * tmp_7 - 1.0 / 3.0;
       real_t tmp_27 = tmp_16 * tmp_25 + tmp_24 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_28 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_29 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_28 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_29 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_30 = tmp_28 * tmp_5 + tmp_29 * tmp_7 - 1.0 / 3.0;
       real_t tmp_31 = tmp_16 * tmp_29 + tmp_28 * tmp_4 - 1.0 / 3.0;
-      real_t a_0_0  = 0.17392742256872684 * tmp_2 *
+      real_t tmp_32 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_33 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_34 = tmp_32 * tmp_5 + tmp_33 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_35 = tmp_16 * tmp_33 + tmp_32 * tmp_4 - 1.0 / 3.0;
+      real_t a_0_0  = 0.11846344252809471 * tmp_2 *
                          ( tmp_18 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) + tmp_19 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2393143352496831 * tmp_2 *
                          ( tmp_18 * ( tmp_22 * tmp_4 + tmp_23 * tmp_8 ) + tmp_19 * ( tmp_22 * tmp_9 + tmp_23 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2844444444444445 * tmp_2 *
                          ( tmp_18 * ( tmp_26 * tmp_4 + tmp_27 * tmp_8 ) + tmp_19 * ( tmp_26 * tmp_9 + tmp_27 * tmp_7 ) ) +
-                     0.17392742256872684 * tmp_2 *
-                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) );
+                     0.2393143352496831 * tmp_2 *
+                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) ) +
+                     0.11846344252809471 * tmp_2 *
+                         ( tmp_18 * ( tmp_34 * tmp_4 + tmp_35 * tmp_8 ) + tmp_19 * ( tmp_34 * tmp_9 + tmp_35 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
    }
 
@@ -4714,34 +5312,40 @@ class DGDivtFormEDGP0 : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_1_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
       real_t tmp_18 = 0.5 * p_affine_10_0;
       real_t tmp_19 = 0.5 * p_affine_10_1;
-      real_t tmp_20 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_21 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_20 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_21 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_22 = tmp_20 * tmp_5 + tmp_21 * tmp_7 - 1.0 / 3.0;
       real_t tmp_23 = tmp_16 * tmp_21 + tmp_20 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_24 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_25 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_24 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_25 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_26 = tmp_24 * tmp_5 + tmp_25 * tmp_7 - 1.0 / 3.0;
       real_t tmp_27 = tmp_16 * tmp_25 + tmp_24 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_28 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_29 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_28 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_29 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_30 = tmp_28 * tmp_5 + tmp_29 * tmp_7 - 1.0 / 3.0;
       real_t tmp_31 = tmp_16 * tmp_29 + tmp_28 * tmp_4 - 1.0 / 3.0;
-      real_t a_0_0  = 0.17392742256872684 * tmp_2 *
+      real_t tmp_32 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_33 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_34 = tmp_32 * tmp_5 + tmp_33 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_35 = tmp_16 * tmp_33 + tmp_32 * tmp_4 - 1.0 / 3.0;
+      real_t a_0_0  = 0.11846344252809471 * tmp_2 *
                          ( tmp_18 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) + tmp_19 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2393143352496831 * tmp_2 *
                          ( tmp_18 * ( tmp_22 * tmp_4 + tmp_23 * tmp_8 ) + tmp_19 * ( tmp_22 * tmp_9 + tmp_23 * tmp_7 ) ) +
-                     0.3260725774312731 * tmp_2 *
+                     0.2844444444444445 * tmp_2 *
                          ( tmp_18 * ( tmp_26 * tmp_4 + tmp_27 * tmp_8 ) + tmp_19 * ( tmp_26 * tmp_9 + tmp_27 * tmp_7 ) ) +
-                     0.17392742256872684 * tmp_2 *
-                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) );
+                     0.2393143352496831 * tmp_2 *
+                         ( tmp_18 * ( tmp_30 * tmp_4 + tmp_31 * tmp_8 ) + tmp_19 * ( tmp_30 * tmp_9 + tmp_31 * tmp_7 ) ) +
+                     0.11846344252809471 * tmp_2 *
+                         ( tmp_18 * ( tmp_34 * tmp_4 + tmp_35 * tmp_8 ) + tmp_19 * ( tmp_34 * tmp_9 + tmp_35 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
    };
 
@@ -4790,34 +5394,496 @@ class DGDivtFormEDGP0 : public hyteg::dg::DGForm2D
       real_t tmp_9  = p_affine_1_1 + tmp_6;
       real_t tmp_10 = 1.0 / ( tmp_4 * tmp_7 - tmp_8 * tmp_9 );
       real_t tmp_11 = p_affine_6_1 + tmp_6;
-      real_t tmp_12 = tmp_10 * ( 0.069431844202973714 * tmp_1 + tmp_11 );
+      real_t tmp_12 = tmp_10 * ( 0.046910077030668018 * tmp_1 + tmp_11 );
       real_t tmp_13 = p_affine_6_0 + tmp_3;
-      real_t tmp_14 = tmp_10 * ( 0.069431844202973714 * tmp_0 + tmp_13 );
+      real_t tmp_14 = tmp_10 * ( 0.046910077030668018 * tmp_0 + tmp_13 );
       real_t tmp_15 = tmp_12 * tmp_5 + tmp_14 * tmp_7 - 1.0 / 3.0;
       real_t tmp_16 = p_affine_0_1 - p_affine_1_1;
       real_t tmp_17 = tmp_12 * tmp_4 + tmp_14 * tmp_16 - 1.0 / 3.0;
-      real_t tmp_18 = tmp_10 * ( 0.33000947820757187 * tmp_1 + tmp_11 );
-      real_t tmp_19 = tmp_10 * ( 0.33000947820757187 * tmp_0 + tmp_13 );
+      real_t tmp_18 = tmp_10 * ( 0.23076534494715845 * tmp_1 + tmp_11 );
+      real_t tmp_19 = tmp_10 * ( 0.23076534494715845 * tmp_0 + tmp_13 );
       real_t tmp_20 = tmp_18 * tmp_5 + tmp_19 * tmp_7 - 1.0 / 3.0;
       real_t tmp_21 = tmp_16 * tmp_19 + tmp_18 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_22 = tmp_10 * ( 0.66999052179242813 * tmp_1 + tmp_11 );
-      real_t tmp_23 = tmp_10 * ( 0.66999052179242813 * tmp_0 + tmp_13 );
+      real_t tmp_22 = tmp_10 * ( 0.5 * tmp_1 + tmp_11 );
+      real_t tmp_23 = tmp_10 * ( 0.5 * tmp_0 + tmp_13 );
       real_t tmp_24 = tmp_22 * tmp_5 + tmp_23 * tmp_7 - 1.0 / 3.0;
       real_t tmp_25 = tmp_16 * tmp_23 + tmp_22 * tmp_4 - 1.0 / 3.0;
-      real_t tmp_26 = tmp_10 * ( 0.93056815579702623 * tmp_1 + tmp_11 );
-      real_t tmp_27 = tmp_10 * ( 0.93056815579702623 * tmp_0 + tmp_13 );
+      real_t tmp_26 = tmp_10 * ( 0.7692346550528415 * tmp_1 + tmp_11 );
+      real_t tmp_27 = tmp_10 * ( 0.7692346550528415 * tmp_0 + tmp_13 );
       real_t tmp_28 = tmp_26 * tmp_5 + tmp_27 * tmp_7 - 1.0 / 3.0;
       real_t tmp_29 = tmp_16 * tmp_27 + tmp_26 * tmp_4 - 1.0 / 3.0;
+      real_t tmp_30 = tmp_10 * ( 0.95308992296933193 * tmp_1 + tmp_11 );
+      real_t tmp_31 = tmp_10 * ( 0.95308992296933193 * tmp_0 + tmp_13 );
+      real_t tmp_32 = tmp_30 * tmp_5 + tmp_31 * tmp_7 - 1.0 / 3.0;
+      real_t tmp_33 = tmp_16 * tmp_31 + tmp_30 * tmp_4 - 1.0 / 3.0;
       real_t a_0_0 =
-          0.17392742256872684 * tmp_2 *
+          0.11846344252809471 * tmp_2 *
               ( p_affine_10_0 * ( tmp_15 * tmp_4 + tmp_17 * tmp_8 ) + p_affine_10_1 * ( tmp_15 * tmp_9 + tmp_17 * tmp_7 ) ) +
-          0.3260725774312731 * tmp_2 *
+          0.2393143352496831 * tmp_2 *
               ( p_affine_10_0 * ( tmp_20 * tmp_4 + tmp_21 * tmp_8 ) + p_affine_10_1 * ( tmp_20 * tmp_9 + tmp_21 * tmp_7 ) ) +
-          0.3260725774312731 * tmp_2 *
+          0.2844444444444445 * tmp_2 *
               ( p_affine_10_0 * ( tmp_24 * tmp_4 + tmp_25 * tmp_8 ) + p_affine_10_1 * ( tmp_24 * tmp_9 + tmp_25 * tmp_7 ) ) +
-          0.17392742256872684 * tmp_2 *
-              ( p_affine_10_0 * ( tmp_28 * tmp_4 + tmp_29 * tmp_8 ) + p_affine_10_1 * ( tmp_28 * tmp_9 + tmp_29 * tmp_7 ) );
+          0.2393143352496831 * tmp_2 *
+              ( p_affine_10_0 * ( tmp_28 * tmp_4 + tmp_29 * tmp_8 ) + p_affine_10_1 * ( tmp_28 * tmp_9 + tmp_29 * tmp_7 ) ) +
+          0.11846344252809471 * tmp_2 *
+              ( p_affine_10_0 * ( tmp_32 * tmp_4 + tmp_33 * tmp_8 ) + p_affine_10_1 * ( tmp_32 * tmp_9 + tmp_33 * tmp_7 ) );
       elMat( 0, 0 ) = a_0_0;
+   }
+
+   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                         const DGBasisInfo&                                       basis,
+                                         int                                                      degree,
+                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( oppositeVertex );
+      WALBERLA_UNUSED( outwardNormal );
+      WALBERLA_UNUSED( basis );
+      WALBERLA_UNUSED( degree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
+};
+
+class DGDivtFormDirichletBoundaryP1P0_0 : public hyteg::dg::DGForm2D
+{
+ protected:
+   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                           const DGBasisInfo&                                       trialBasis,
+                           const DGBasisInfo&                                       testBasis,
+                           int                                                      trialDegree,
+                           int                                                      testDegree,
+                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coords[0]( 0 );
+      const auto p_affine_0_1 = coords[0]( 1 );
+
+      const auto p_affine_1_0 = coords[1]( 0 );
+      const auto p_affine_1_1 = coords[1]( 1 );
+
+      const auto p_affine_2_0 = coords[2]( 0 );
+      const auto p_affine_2_1 = coords[2]( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   }
+
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   }
+
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElementInner[0]( 0 );
+      const auto p_affine_0_1 = coordsElementInner[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElementInner[1]( 0 );
+      const auto p_affine_1_1 = coordsElementInner[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElementInner[2]( 0 );
+      const auto p_affine_2_1 = coordsElementInner[2]( 1 );
+
+      const auto p_affine_3_0 = coordsElementOuter[0]( 0 );
+      const auto p_affine_3_1 = coordsElementOuter[0]( 1 );
+
+      const auto p_affine_4_0 = coordsElementOuter[1]( 0 );
+      const auto p_affine_4_1 = coordsElementOuter[1]( 1 );
+
+      const auto p_affine_5_0 = coordsElementOuter[2]( 0 );
+      const auto p_affine_5_1 = coordsElementOuter[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertexInnerElement( 0 );
+      const auto p_affine_8_1 = oppositeVertexInnerElement( 1 );
+
+      const auto p_affine_9_0 = oppositeVertexOuterElement( 0 );
+      const auto p_affine_9_1 = oppositeVertexOuterElement( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   };
+
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t tmp_0  = -p_affine_0_0;
+      real_t tmp_1  = p_affine_1_0 + tmp_0;
+      real_t tmp_2  = -p_affine_0_1;
+      real_t tmp_3  = p_affine_2_1 + tmp_2;
+      real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
+      real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_6  = p_affine_6_1 + tmp_2;
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
+      real_t tmp_8  = tmp_1 * tmp_7;
+      real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
+      real_t tmp_10 = tmp_7 * tmp_9;
+      real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
+      real_t tmp_12 = p_affine_6_0 + tmp_0;
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
+      real_t tmp_14 = tmp_13 * tmp_3;
+      real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
+      real_t tmp_16 = tmp_13 * tmp_15;
+      real_t tmp_17 = p_affine_10_0 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
+      real_t tmp_20 = tmp_1 * tmp_19;
+      real_t tmp_21 = tmp_19 * tmp_9;
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_22 * tmp_3;
+      real_t tmp_24 = tmp_15 * tmp_22;
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
+      real_t tmp_27 = tmp_1 * tmp_26;
+      real_t tmp_28 = tmp_26 * tmp_9;
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
+      real_t tmp_30 = tmp_29 * tmp_3;
+      real_t tmp_31 = tmp_15 * tmp_29;
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
+      real_t tmp_34 = tmp_1 * tmp_33;
+      real_t tmp_35 = tmp_33 * tmp_9;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
+      real_t tmp_37 = tmp_3 * tmp_36;
+      real_t tmp_38 = tmp_15 * tmp_36;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
+      real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
+      real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
+      real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
+   }
+
+   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                         const DGBasisInfo&                                       basis,
+                                         int                                                      degree,
+                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      WALBERLA_UNUSED( coordsElement );
+      WALBERLA_UNUSED( coordsFacet );
+      WALBERLA_UNUSED( oppositeVertex );
+      WALBERLA_UNUSED( outwardNormal );
+      WALBERLA_UNUSED( basis );
+      WALBERLA_UNUSED( degree );
+      WALBERLA_UNUSED( elMat );
+
+      // Does nothing.
+   }
+};
+
+class DGDivtFormDirichletBoundaryP1P0_1 : public hyteg::dg::DGForm2D
+{
+ protected:
+   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                           const DGBasisInfo&                                       trialBasis,
+                           const DGBasisInfo&                                       testBasis,
+                           int                                                      trialDegree,
+                           int                                                      testDegree,
+                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coords[0]( 0 );
+      const auto p_affine_0_1 = coords[0]( 1 );
+
+      const auto p_affine_1_0 = coords[1]( 0 );
+      const auto p_affine_1_1 = coords[1]( 1 );
+
+      const auto p_affine_2_0 = coords[2]( 0 );
+      const auto p_affine_2_1 = coords[2]( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   }
+
+   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const DGBasisInfo&                                       trialBasis,
+                                       const DGBasisInfo&                                       testBasis,
+                                       int                                                      trialDegree,
+                                       int                                                      testDegree,
+                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   }
+
+   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
+                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
+                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                          const DGBasisInfo&                                       trialBasis,
+                                          const DGBasisInfo&                                       testBasis,
+                                          int                                                      trialDegree,
+                                          int                                                      testDegree,
+                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElementInner[0]( 0 );
+      const auto p_affine_0_1 = coordsElementInner[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElementInner[1]( 0 );
+      const auto p_affine_1_1 = coordsElementInner[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElementInner[2]( 0 );
+      const auto p_affine_2_1 = coordsElementInner[2]( 1 );
+
+      const auto p_affine_3_0 = coordsElementOuter[0]( 0 );
+      const auto p_affine_3_1 = coordsElementOuter[0]( 1 );
+
+      const auto p_affine_4_0 = coordsElementOuter[1]( 0 );
+      const auto p_affine_4_1 = coordsElementOuter[1]( 1 );
+
+      const auto p_affine_5_0 = coordsElementOuter[2]( 0 );
+      const auto p_affine_5_1 = coordsElementOuter[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertexInnerElement( 0 );
+      const auto p_affine_8_1 = oppositeVertexInnerElement( 1 );
+
+      const auto p_affine_9_0 = oppositeVertexOuterElement( 0 );
+      const auto p_affine_9_1 = oppositeVertexOuterElement( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      elMat( 0, 0 ) = 0;
+      elMat( 0, 1 ) = 0;
+      elMat( 0, 2 ) = 0;
+   };
+
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
+                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                                   const DGBasisInfo&                                       trialBasis,
+                                                   const DGBasisInfo&                                       testBasis,
+                                                   int                                                      trialDegree,
+                                                   int                                                      testDegree,
+                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+   {
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
+
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_8_0 = oppositeVertex( 0 );
+      const auto p_affine_8_1 = oppositeVertex( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t tmp_0  = -p_affine_0_0;
+      real_t tmp_1  = p_affine_1_0 + tmp_0;
+      real_t tmp_2  = -p_affine_0_1;
+      real_t tmp_3  = p_affine_2_1 + tmp_2;
+      real_t tmp_4  = 1.0 / ( tmp_1 * tmp_3 - ( p_affine_1_1 + tmp_2 ) * ( p_affine_2_0 + tmp_0 ) );
+      real_t tmp_5  = -p_affine_6_1 + p_affine_7_1;
+      real_t tmp_6  = p_affine_6_1 + tmp_2;
+      real_t tmp_7  = tmp_4 * ( 0.046910077030668018 * tmp_5 + tmp_6 );
+      real_t tmp_8  = tmp_1 * tmp_7;
+      real_t tmp_9  = p_affine_0_0 - p_affine_2_0;
+      real_t tmp_10 = tmp_7 * tmp_9;
+      real_t tmp_11 = -p_affine_6_0 + p_affine_7_0;
+      real_t tmp_12 = p_affine_6_0 + tmp_0;
+      real_t tmp_13 = tmp_4 * ( 0.046910077030668018 * tmp_11 + tmp_12 );
+      real_t tmp_14 = tmp_13 * tmp_3;
+      real_t tmp_15 = p_affine_0_1 - p_affine_1_1;
+      real_t tmp_16 = tmp_13 * tmp_15;
+      real_t tmp_17 = p_affine_10_1 * std::abs( std::pow( ( tmp_11 * tmp_11 ) + ( tmp_5 * tmp_5 ), 1.0 / 2.0 ) );
+      real_t tmp_18 = 0.11846344252809471 * tmp_17;
+      real_t tmp_19 = tmp_4 * ( 0.23076534494715845 * tmp_5 + tmp_6 );
+      real_t tmp_20 = tmp_1 * tmp_19;
+      real_t tmp_21 = tmp_19 * tmp_9;
+      real_t tmp_22 = tmp_4 * ( 0.23076534494715845 * tmp_11 + tmp_12 );
+      real_t tmp_23 = tmp_22 * tmp_3;
+      real_t tmp_24 = tmp_15 * tmp_22;
+      real_t tmp_25 = 0.2393143352496831 * tmp_17;
+      real_t tmp_26 = tmp_4 * ( 0.5 * tmp_5 + tmp_6 );
+      real_t tmp_27 = tmp_1 * tmp_26;
+      real_t tmp_28 = tmp_26 * tmp_9;
+      real_t tmp_29 = tmp_4 * ( 0.5 * tmp_11 + tmp_12 );
+      real_t tmp_30 = tmp_29 * tmp_3;
+      real_t tmp_31 = tmp_15 * tmp_29;
+      real_t tmp_32 = 0.2844444444444445 * tmp_17;
+      real_t tmp_33 = tmp_4 * ( 0.7692346550528415 * tmp_5 + tmp_6 );
+      real_t tmp_34 = tmp_1 * tmp_33;
+      real_t tmp_35 = tmp_33 * tmp_9;
+      real_t tmp_36 = tmp_4 * ( 0.7692346550528415 * tmp_11 + tmp_12 );
+      real_t tmp_37 = tmp_3 * tmp_36;
+      real_t tmp_38 = tmp_15 * tmp_36;
+      real_t tmp_39 = 0.2393143352496831 * tmp_17;
+      real_t tmp_40 = tmp_4 * ( 0.95308992296933193 * tmp_5 + tmp_6 );
+      real_t tmp_41 = tmp_1 * tmp_40;
+      real_t tmp_42 = tmp_40 * tmp_9;
+      real_t tmp_43 = tmp_4 * ( 0.95308992296933193 * tmp_11 + tmp_12 );
+      real_t tmp_44 = tmp_3 * tmp_43;
+      real_t tmp_45 = tmp_15 * tmp_43;
+      real_t tmp_46 = 0.11846344252809471 * tmp_17;
+      real_t a_0_0  = tmp_18 * ( -tmp_10 - tmp_14 - tmp_16 - tmp_8 + 1 ) + tmp_25 * ( -tmp_20 - tmp_21 - tmp_23 - tmp_24 + 1 ) +
+                     tmp_32 * ( -tmp_27 - tmp_28 - tmp_30 - tmp_31 + 1 ) + tmp_39 * ( -tmp_34 - tmp_35 - tmp_37 - tmp_38 + 1 ) +
+                     tmp_46 * ( -tmp_41 - tmp_42 - tmp_44 - tmp_45 + 1 );
+      real_t a_0_1 = tmp_18 * ( tmp_10 + tmp_14 ) + tmp_25 * ( tmp_21 + tmp_23 ) + tmp_32 * ( tmp_28 + tmp_30 ) +
+                     tmp_39 * ( tmp_35 + tmp_37 ) + tmp_46 * ( tmp_42 + tmp_44 );
+      real_t a_0_2 = tmp_18 * ( tmp_16 + tmp_8 ) + tmp_25 * ( tmp_20 + tmp_24 ) + tmp_32 * ( tmp_27 + tmp_31 ) +
+                     tmp_39 * ( tmp_34 + tmp_38 ) + tmp_46 * ( tmp_41 + tmp_45 );
+      elMat( 0, 0 ) = a_0_0;
+      elMat( 0, 1 ) = a_0_1;
+      elMat( 0, 2 ) = a_0_2;
    }
 
    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,

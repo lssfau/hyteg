@@ -47,9 +47,6 @@ static void testLaplace( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
-   auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
-
    P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
    P1DGELaplaceOperator   L( storage, level, level );
 
@@ -65,6 +62,30 @@ static void testLaplace( const std::string& meshFile, const uint_t& level )
    WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
 }
 
+static void testMass( const std::string& meshFile, const uint_t& level )
+{
+   using namespace dg;
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
+   P1DGEMassOperator      L( storage, level, level );
+
+   numerator.enumerate( level );
+
+   PETScSparseMatrix< P1DGEMassOperator > Lpetsc;
+   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+
+   Lpetsc.print( "../P1DGE_Mass.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
+                   "P1DGE vector Mass _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Mass symmetric for: level = " << level << ", mesh: " << meshFile );
+}
+
 static void testStokes( const std::string& meshFile, const uint_t& level )
 {
    using namespace dg;
@@ -78,10 +99,9 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
    P1DGEP0StokesOperator          L( storage, level, level );
 
    {
-      WALBERLA_LOG_WARNING(
-          "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
-          "This is just a temporary workaround for testing things! ");
-      numerator.p().setBoundaryCondition(numerator.uvw().getBoundaryCondition());
+      WALBERLA_LOG_WARNING( "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
+                            "This is just a temporary workaround for testing things! " );
+      numerator.p().setBoundaryCondition( numerator.uvw().getBoundaryCondition() );
    }
 
    numerator.enumerate( level );
@@ -107,6 +127,7 @@ int main( int argc, char* argv[] )
    for ( uint_t level = 2; level <= 3; level++ )
    {
       hyteg::testLaplace( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testMass( "../../data/meshes/tri_1el.msh", level );
       hyteg::testStokes( "../../data/meshes/tri_1el.msh", level );
 #if 0
       // requires P1CG-DG0 interface integrals at macro-boundaries
