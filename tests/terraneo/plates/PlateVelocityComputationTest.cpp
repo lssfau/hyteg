@@ -137,13 +137,25 @@ int main( int argc, char* argv[] )
          real_t absDiff = std::abs( testCase.velocity[k] - velXYZ[k] );
          real_t relDiff = absDiff / std::abs( testCase.velocity[k] );
 
-         std::cout << std::scientific << "\n computed value .... " << velXYZ[k] << "\n reference value ... "
-                   << testCase.velocity[k] << "\n absolute error .... " << absDiff << "\n relative .......... " << relDiff
-                   << std::endl;
+         WALBERLA_LOG_INFO_ON_ROOT( "" << std::scientific << "\n computed value .... " << velXYZ[k] << "\n reference value ... "
+                                       << testCase.velocity[k] << "\n absolute error .... " << absDiff
+                                       << "\n relative .......... " << relDiff );
 
          WALBERLA_CHECK_LESS_EQUAL( absDiff, absTol );
          WALBERLA_CHECK_LESS_EQUAL( relDiff, relTol );
       }
+
+      // orthogonality check
+      real_t angleTol  = real_c( 1e-15 );
+      real_t innerProd = velXYZ.dot( pointXYZ );
+      real_t angle     = std::acos( innerProd / ( velXYZ.norm() * pointXYZ.norm() ) );
+      angle *= real_c( 180 ) / terraneo::conversions::pi;
+      real_t magDiff = std::abs( real_c( 90 ) - angle );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" << std::scientific << "\n orthogonality check:"
+                                 << "\n computed angle ...... " << angle
+                                 << "\n error magnitude ..... " << magDiff );
+      WALBERLA_CHECK_LESS_EQUAL( magDiff, angleTol );
    }
 
    return EXIT_SUCCESS;
