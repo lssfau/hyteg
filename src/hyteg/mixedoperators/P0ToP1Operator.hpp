@@ -24,8 +24,10 @@
 #include <hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp>
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
