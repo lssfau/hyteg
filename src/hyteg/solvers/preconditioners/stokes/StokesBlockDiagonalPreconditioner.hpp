@@ -33,18 +33,19 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    typedef typename OperatorType::srcType FunctionType;
 
    StokesBlockDiagonalPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                    storage,
-       uint_t                                                                        minLevel,
-       uint_t                                                                        maxLevel,
-       uint_t                                                                        velocityPreconditionSteps,
+       const std::shared_ptr< PrimitiveStorage >& storage,
+       uint_t                                     minLevel,
+       uint_t                                     maxLevel,
+       uint_t                                     velocityPreconditionSteps,
+       const std::shared_ptr< pressureBlockPreconditionerType >&                     pressureBlockPreconditioner,
        std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner =
-         std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >(),
-       const std::shared_ptr< P1RowSumForm >&                                        massForm =
-         std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ))
+           std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
+   // const std::shared_ptr< RowSumForm >& massForm =
+   //     std::make_shared< RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ))
    : velocityPreconditionSteps_( velocityPreconditionSteps )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )
-   , pressureBlockPreconditioner_( std::make_shared< pressureBlockPreconditionerType >( storage, minLevel, maxLevel, massForm ) )
+   , pressureBlockPreconditioner_( pressureBlockPreconditioner )
    {}
 
    // y = M^{-1} * x
