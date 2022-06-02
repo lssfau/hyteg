@@ -25,15 +25,12 @@
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
-#include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
@@ -109,9 +106,6 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
 
    sol.interpolate( { u_x_expr, u_y_expr }, level, All );
    f.interpolate( { f_x_expr, f_y_expr }, level, All );
-
-   // Why do I need this?
-   f.interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
    M.apply( f, rhs, level, All, Replace );
 
@@ -302,16 +296,8 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    };
 
    // rhs as a lambda function
-   std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 0;
-   };
-   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 0;
-   };
+   std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& ) -> real_t { return 0; };
+   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& ) -> real_t { return 0; };
 
    P1DGEFunction< real_t > u( "u", storage, level, level );
    P1DGEFunction< real_t > f( "f", storage, level, level );
@@ -361,7 +347,7 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    return discrL2;
 }
 
-real_t testStokesInHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
+real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false, bool simple = false )
 {
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -383,42 +369,71 @@ real_t testStokesInHomogeneousDirichlet( const std::string& meshFile, const uint
    numerator.enumerate( level );
 
    // solution as a lambda function
-   std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
+   std::function< real_t( const Point3D& p ) > u_x_expr = [simple]( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return y + 2 * std::sin( M_PI * ( x + y ) ) + 4;
+      if ( simple )
+      {
+         return y;
+      }
+      else
+      {
+         return y + 2 * std::sin( M_PI * ( x + y ) ) + 4;
+      }
    };
 
-   std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
+   std::function< real_t( const Point3D& p ) > u_y_expr = [simple]( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return -x - 2 * std::sin( M_PI * ( x + y ) ) + 3;
+      if ( simple )
+      {
+         return x;
+      }
+      else
+      {
+         return -x - 2 * std::sin( M_PI * ( x + y ) ) + 3;
+      }
    };
 
-   std::function< real_t( const Point3D& p ) > p_expr = []( const Point3D& p ) -> real_t {
+   std::function< real_t( const Point3D& p ) > p_expr = [simple]( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      WALBERLA_UNUSED( x );
-      WALBERLA_UNUSED( y );
-      return 2 * x - y + 1;
+      if ( simple )
+      {
+         return 0;
+      }
+      else
+      {
+         return 2 * x - y + 1;
+      }
    };
 
    // rhs as a lambda function
-   std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
+   std::function< real_t( const Point3D& p ) > f_x_expr = [simple]( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return 4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) + 2;
+      if ( simple )
+      {
+         return 0;
+      }
+      else
+      {
+         return 4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) + 2;
+      }
    };
-   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
+   std::function< real_t( const Point3D& p ) > f_y_expr = [simple]( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return -4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) - 1;
+      if ( simple )
+      {
+         return 0;
+      }
+      else
+      {
+         return -4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) - 1;
+      }
    };
-   std::function< real_t( const Point3D& p ) > g_expr = []( const Point3D& p ) -> real_t {
-      const real_t x = p[0];
-      const real_t y = p[1];
-      return 0.;
-   };
+   std::function< real_t( const Point3D& p ) > g_expr = []( const Point3D& ) -> real_t { return 0.; };
 
    P1DGEP0StokesFunction< real_t > u( "u", storage, level, level );
    P1DGEP0StokesFunction< real_t > f( "f", storage, level, level );
@@ -495,7 +510,7 @@ void runLaplace()
    for ( uint_t level = 6; level <= 7; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
+      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -524,7 +539,7 @@ void runStokes()
    WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
 }
 
-void runInhomogeneousStokes()
+void runStokesDirichlet()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
    real_t lastError    = std::nan( "" );
@@ -533,7 +548,7 @@ void runInhomogeneousStokes()
    for ( uint_t level = 5; level <= 6; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testStokesInHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
+      currentError = hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", level, true );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -551,11 +566,12 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   WALBERLA_CHECK_LESS( std::abs(hyteg::testLaplaceDirichlet("../../data/meshes/tri_1el.msh", 6, true )), 1e-13 );
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", 4, true, true ) ), 1e-12 );
 
    hyteg::runLaplace();
    hyteg::runStokes();
-   hyteg::runInhomogeneousStokes();
+   hyteg::runStokesDirichlet();
 
    return 0;
 }
