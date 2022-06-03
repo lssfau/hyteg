@@ -537,7 +537,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                            const auto nSrcDof =
                                srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
                                                                              neighborInfo.neighborElementIndices( n ).y(),
-                                                                             faceType,
+                                                                             neighborInfo.neighborFaceType( n ),
                                                                              0,
                                                                              1,
                                                                              level,
