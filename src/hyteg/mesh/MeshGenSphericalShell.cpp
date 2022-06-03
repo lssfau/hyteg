@@ -299,14 +299,14 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
    return resultingCoordinates;
 }
 
-static Point3D getVertex( uint_t                  idx,
-                          uint_t                  ntan,
-                          uint_t                  nrad,
-                          double                  iNode[12][3],
-                          uint_t                  dNode[10][4],
-                          std::vector< double >   layers,
-                          double****              nodeCoords,
-                          MeshInfo::shellMeshType flavour )
+static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t                  idx,
+                                                              uint_t                  ntan,
+                                                              uint_t                  nrad,
+                                                              double                  iNode[12][3],
+                                                              uint_t                  dNode[10][4],
+                                                              std::vector< double >   layers,
+                                                              double****              nodeCoords,
+                                                              MeshInfo::shellMeshType flavour )
 {
    // Find address tuple of vertex
    uint_t is1, is2, id, ir;
@@ -335,7 +335,19 @@ static Point3D getVertex( uint_t                  idx,
       WALBERLA_ABORT( "Unreachable branch reached!" );
    }
 
-   return vertex;
+   // Determine whether this is a vertex in the interior, on the outer surface
+   // of the thick spherical shell, or on the inner one
+   MeshInfo::hollowFlag topologyMarker = MeshInfo::flagInterior;
+   if ( ir == 0 )
+   {
+      topologyMarker = MeshInfo::flagInnerBoundary;
+   }
+   else if ( ir == nrad - 1 )
+   {
+      topologyMarker = MeshInfo::flagOuterBoundary;
+   }
+
+   return std::make_tuple( vertex, topologyMarker );
 }
 
 static std::vector< uint_t >
@@ -798,8 +810,11 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
 
    for ( uint_t vertexID = 0; vertexID < nVerts_; vertexID++ )
    {
-      auto vertexCoordinates = meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshType );
-      meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoordinates, 0 );
+      Point3D              vertexCoordinates;
+      MeshInfo::hollowFlag topologyMarker;
+      std::tie( vertexCoordinates, topologyMarker ) =
+          meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshType );
+      meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoordinates, topologyMarker );
    }
 
    for ( uint_t cellID = 0; cellID < nElems_; cellID++ )
@@ -827,6 +842,10 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
       meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
       meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
    }
+
+   // Set correct "boundary" flags for our edges and faces
+   meshInfo.deduceEdgeFlagsFromVertices( MeshInfo::flagInterior );
+   meshInfo.deduceFaceFlagsFromVertices( MeshInfo::flagInterior );
 
    // De-allocate 4D array
    if ( nodeCoords != nullptr )

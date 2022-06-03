@@ -270,9 +270,8 @@ using walberla::uint_t;
      \endhtmlonly
 */
 ///
-///
-/// \note The inline mesh generators currently set all vertex and edge primitives' boundary flags on the domain boundary to
-///       1 and those inside the domain, and of course all face primitives, to 0
+/// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+/// #flagInnerBoundary or #flagInterior.
 class MeshInfo
 {
  public:
