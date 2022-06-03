@@ -510,7 +510,7 @@ void runLaplace()
    for ( uint_t level = 6; level <= 7; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
+      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -529,7 +529,7 @@ void runStokes()
    for ( uint_t level = 5; level <= 6; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, true );
+      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -548,7 +548,7 @@ void runStokesDirichlet()
    for ( uint_t level = 5; level <= 6; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", level, true );
+      currentError = hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", level, false );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
