@@ -222,7 +222,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
             std::vector< uint_t > vertexDoFIndices( numDofs );
             std::vector< real_t > dofValues( numDofs );
 
-            for ( uint_t d = 0; d < 2; d += 1 )
+            for ( int d = 0; d < 2; d += 1 )
             {
                auto dofs = u_conforming_->getStorage()
                                ->getFace( faceID )
