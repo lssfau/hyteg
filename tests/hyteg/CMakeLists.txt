@@ -751,6 +751,8 @@ endif ()
 ## BoundaryUID stuff ##
 waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BoundaryUIDTest)
+waLBerla_compile_test(FILES boundaryUID/HollowBodyUIDTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HollowBodyUIDTest)
 
 ## BlockFunctions + BlockOperators ##
 waLBerla_compile_test(FILES BlockFunctions/FunctionWrapperTest.cpp DEPENDS hyteg core)
