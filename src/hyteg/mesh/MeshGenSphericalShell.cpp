@@ -29,10 +29,10 @@
 
 namespace hyteg {
 
-namespace meshGenSphShell {
-
 using walberla::real_c;
 using walberla::real_t;
+
+namespace meshGenSphShell {
 
 static void
     elemIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jelem, uint_t& it, uint_t& is1, uint_t& is2, uint_t& id, uint_t& ir )
@@ -127,16 +127,16 @@ static void vertIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jvert, uint_t& is1
 // =================
 //  findVertexOnArc
 // =================
-void findVertexOnArc( double* vL, double* vR, double& xpos, double& ypos, double& zpos, uint_t nPoints, uint_t idx )
+void findVertexOnArc( real_t* vL, real_t* vR, real_t& xpos, real_t& ypos, real_t& zpos, uint_t nPoints, uint_t idx )
 {
    // angle between left and right vertex
-   double alpha = acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
+   real_t alpha = acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
 
    // weights for spherical interpolation
-   double gamma = (double) idx * ( alpha / (double) ( nPoints - 1 ) );
-   double beta  = alpha - gamma;
-   double omg1  = sin( beta ) / sin( alpha );
-   double omg2  = sin( gamma ) / sin( alpha );
+   real_t gamma = real_c( idx ) * ( alpha / real_c( nPoints - 1 ) );
+   real_t beta  = alpha - gamma;
+   real_t omg1  = sin( beta ) / sin( alpha );
+   real_t omg2  = sin( gamma ) / sin( alpha );
 
    // compute vertex coordinates
    xpos = omg1 * vL[0] + omg2 * vR[0];
@@ -198,12 +198,12 @@ static uint_t tuple2VertIdx( uint_t ntan_, uint_t nrad_, uint_t is1, uint_t is2,
    return jvert;
 }
 
-static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t id, double iNode[12][3], uint_t dNode[10][4] )
+static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t id, real_t iNode[12][3], uint_t dNode[10][4] )
 {
    Point3D resultingCoordinates;
 
    // get coords of four vertices of diamond
-   double vT[3], vL[3], vR[3], vB[3];
+   real_t vT[3], vL[3], vR[3], vB[3];
 
    vT[0] = iNode[dNode[id][0]][0];
    vT[1] = iNode[dNode[id][0]][1];
@@ -255,7 +255,7 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
    // Case 5: vertex on upper triangle (seen from pole)
    else if ( js1 + js2 < ntan - 1 )
    {
-      double xL[3], xR[3];
+      real_t xL[3], xR[3];
       uint_t k = js1 + js2;
 
       // find node on left edge
@@ -277,7 +277,7 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
    // Case 7: vertex on lower triangle (seen from pole)
    else if ( js1 + js2 > ntan - 1 )
    {
-      double xL[3], xR[3];
+      real_t xL[3], xR[3];
       uint_t k = js1 + js2 - ntan + 1;
 
       // find node on left edge
@@ -302,10 +302,10 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
 static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t                  idx,
                                                               uint_t                  ntan,
                                                               uint_t                  nrad,
-                                                              double                  iNode[12][3],
+                                                              real_t                  iNode[12][3],
                                                               uint_t                  dNode[10][4],
-                                                              std::vector< double >   layers,
-                                                              double****              nodeCoords,
+                                                              std::vector< real_t >   layers,
+                                                              real_t****              nodeCoords,
                                                               MeshInfo::shellMeshType flavour )
 {
    // Find address tuple of vertex
@@ -324,9 +324,9 @@ static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t            
 
    case MeshInfo::SHELLMESH_CLASSIC: {
       WALBERLA_ASSERT_NOT_NULLPTR( nodeCoords );
-      double x = nodeCoords[is1][is2][id][0] * layers[ir];
-      double y = nodeCoords[is1][is2][id][1] * layers[ir];
-      double z = nodeCoords[is1][is2][id][2] * layers[ir];
+      real_t x = nodeCoords[is1][is2][id][0] * layers[ir];
+      real_t y = nodeCoords[is1][is2][id][1] * layers[ir];
+      real_t z = nodeCoords[is1][is2][id][2] * layers[ir];
       vertex   = Point3D( { x, y, z } );
       break;
    }
@@ -403,9 +403,9 @@ static std::vector< uint_t >
    return vertexIDs;
 }
 
-static void setupCoordsClassic( uint_t ntan, double iNode[12][3], uint_t dNode[10][4], double***** coords )
+static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[10][4], real_t***** coords )
 {
-   double**** nodeCoords;
+   real_t**** nodeCoords;
 
    // -------------------
    //  Consistency Check
@@ -431,16 +431,16 @@ static void setupCoordsClassic( uint_t ntan, double iNode[12][3], uint_t dNode[1
    size_t memsize;
 
    memsize    = ntan;
-   nodeCoords = new double***[memsize];
+   nodeCoords = new real_t***[memsize];
 
    memsize *= ntan;
-   nodeCoords[0] = new double**[memsize];
+   nodeCoords[0] = new real_t**[memsize];
 
    memsize *= 10;
-   nodeCoords[0][0] = new double*[memsize];
+   nodeCoords[0][0] = new real_t*[memsize];
 
    memsize *= 3;
-   nodeCoords[0][0][0] = new double[memsize];
+   nodeCoords[0][0][0] = new real_t[memsize];
 
    // set pointers
    for ( uint_t k = 1; k < ntan; ++k )
@@ -493,7 +493,7 @@ static void setupCoordsClassic( uint_t ntan, double iNode[12][3], uint_t dNode[1
 
       // Loop over refinement levels
       uint_t m, l, l2, j1, j2, i1, i2;
-      double x, y, z, scl;
+      real_t x, y, z, scl;
       for ( m = 1; m < ntan - 1; m *= 2 )
       {
          l  = ( ntan - 1 ) / m;
@@ -573,17 +573,17 @@ static void setupCoordsClassic( uint_t ntan, double iNode[12][3], uint_t dNode[1
 
 } // namespace meshGenSphShell
 
-MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax, shellMeshType meshType )
+MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, real_t rmin, real_t rmax, shellMeshType meshType )
 {
-   std::vector< double > layers( nrad, 0.0 );
+   std::vector< real_t > layers( nrad, 0.0 );
    for ( uint_t layer = 0; layer < nrad; layer++ )
    {
-      layers[layer] = rmin + ( ( rmax - rmin ) / (double) ( nrad - 1 ) ) * (double) layer;
+      layers[layer] = rmin + ( ( rmax - rmin ) / real_c( nrad - 1 ) ) * real_c( layer );
    }
    return meshSphericalShell( ntan, layers, meshType );
 }
 
-MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >& layers, shellMeshType meshType )
+MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >& layers, shellMeshType meshType )
 {
    uint_t nrad = layers.size();
 
@@ -599,7 +599,7 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
    /// The resulting meshes are also not nested!
 
    /// Coordinates of the twelve icosahedral nodes of the base grid
-   double iNode[12][3];
+   real_t iNode[12][3];
 
    /// Association of the ten diamonds to the twelve icosahedral nodes
    ///
@@ -634,11 +634,11 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
    // -----------------------------------------
 
    // the pentagonal nodes on each "ring" are given in anti-clockwise ordering
-   double fifthpi = 0.4 * std::asin( 1.0 );
-   double w       = 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) );
-   double cosw    = std::cos( w );
-   double sinw    = std::sin( w );
-   double phi     = 0.0;
+   real_t fifthpi = 0.4 * std::asin( 1.0 );
+   real_t w       = 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) );
+   real_t cosw    = std::cos( w );
+   real_t sinw    = std::sin( w );
+   real_t phi     = 0.0;
 
    // north pole
    iNode[0][0] = 0.0;
@@ -653,7 +653,7 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
    // upper ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi         = 2.0 * ( (double) k - 0.5 ) * fifthpi;
+      phi         = 2.0 * ( real_c( k ) - 0.5 ) * fifthpi;
       iNode[k][0] = sinw * std::cos( phi );
       iNode[k][1] = sinw * std::sin( phi );
       iNode[k][2] = cosw;
@@ -662,7 +662,7 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
    // lower ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi             = 2.0 * ( (double) k - 1 ) * fifthpi;
+      phi             = 2.0 * ( real_c( k ) - 1 ) * fifthpi;
       iNode[k + 5][0] = sinw * std::cos( phi );
       iNode[k + 5][1] = sinw * std::sin( phi );
       iNode[k + 5][2] = -cosw;
@@ -796,7 +796,7 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double >&
    sNode[5][3] = 7;
 
    // if required, run setup routine for meshing unit sphere
-   double**** nodeCoords = nullptr;
+   real_t**** nodeCoords = nullptr;
    if ( meshType == shellMeshType::SHELLMESH_CLASSIC )
    {
       meshGenSphShell::setupCoordsClassic( ntan, iNode, dNode, &nodeCoords );
