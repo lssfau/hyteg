@@ -53,15 +53,27 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
                      BoundaryCondition                          bc )
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, false )
+   {}
+
+   P1VectorFunction( const std::string&                         _name,
+                     const std::shared_ptr< PrimitiveStorage >& storage,
+                     size_t                                     minLevel,
+                     size_t                                     maxLevel,
+                     BoundaryCondition                          bc,
+                     bool                                       addVolumeGhostLayer )
    : CSFVectorFunction< P1VectorFunction< ValueType > >( _name )
    {
       this->compFunc_.clear();
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc ) );
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc ) );
+      this->compFunc_.push_back(
+          std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
+      this->compFunc_.push_back(
+          std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
 
       if ( storage->hasGlobalCells() )
       {
-         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
+         this->compFunc_.push_back(
+             std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
       }
    }
 

@@ -158,7 +158,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
             const auto face = storage->getFace( pid );
             for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = src.getDGFunction()->volumeDoFFunction()->glMemory( pid, level, n );
             }
          }
          else
@@ -167,7 +167,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
             const auto cell = storage->getCell( pid );
             for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = src.getDGFunction()->volumeDoFFunction()->glMemory( pid, level, n );
             }
          }
 
@@ -405,11 +405,12 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
                            // The neighboring micro-element coords have to be computed since they are now different as for an
                            // element on the same macro-volume.
+                           std::vector< Index >                         neighborElementVertexIndices;
                            std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
                            Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
 
                            neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                               n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+                               n, neighborElementVertexIndices, neighborElementVertexCoords, neighborOppositeVertexCoords );
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( dim,
@@ -419,8 +420,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           neighborInfo.oppositeVertexCoords( n ),
                                                           neighborOppositeVertexCoords,
                                                           neighborInfo.outwardNormal( n ),
-                                                          *src.basis(),
-                                                          *dst.basis(),
+                                                          *src.getDGFunction()->basis(),
+                                                          dstBasis,
                                                           srcPolyDegree,
                                                           dstPolyDegree,
                                                           localMat );
@@ -514,7 +515,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                            const auto nSrcDof =
                                srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
                                                                              neighborInfo.neighborElementIndices( n ).y(),
-                                                                             faceType,
+                                                                             neighborInfo.neighborFaceType( n ),
                                                                              0,
                                                                              1,
                                                                              level,

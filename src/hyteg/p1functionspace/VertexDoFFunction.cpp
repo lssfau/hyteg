@@ -152,8 +152,14 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
          allocateMemory( level, *it.second );
       }
 
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
-          level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level,
+                                                                                              vertexDataID_,
+                                                                                              edgeDataID_,
+                                                                                              faceDataID_,
+                                                                                              cellDataID_,
+                                                                                              faceGhostLayerDataIDs_,
+                                                                                              cellGhostLayerDataIDs_,
+                                                                                              this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }

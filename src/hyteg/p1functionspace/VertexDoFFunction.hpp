@@ -107,13 +107,13 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    {
       WALBERLA_CHECK( hasVolumeGhostLayer() );
       WALBERLA_CHECK( !this->getStorage()->hasGlobalCells() );
-      return faceGhostLayerDataIDs_[glID];
+      return faceGhostLayerDataIDs_.at( glID );
    }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& getCellGLDataID( uint_t glID ) const
    {
       WALBERLA_CHECK( hasVolumeGhostLayer() );
       WALBERLA_CHECK( this->getStorage()->hasGlobalCells() );
-      return cellGhostLayerDataIDs_[glID];
+      return cellGhostLayerDataIDs_.at( glID );
    }
 
    void swap( const VertexDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;

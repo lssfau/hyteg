@@ -417,7 +417,7 @@ P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                   
                                            uint_t                                     maxLevel,
                                            BoundaryCondition                          bc )
 : Function< P1DGEFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name + "_conforming", storage, minLevel, maxLevel, bc ) }
+, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name + "_conforming", storage, minLevel, maxLevel, bc, true ) }
 , u_discontinuous_{ std::make_shared< P0Function< ValueType > >( name + "_discontinuous", storage, minLevel, maxLevel, bc ) }
 , basis_conforming_()
 , basis_discontinuous_()

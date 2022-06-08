@@ -888,7 +888,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                  
 template < typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sender, Face* receiver ) const
 {
-   this->storage_->getTimingTree()->start( "VertexDoF - Face to Face" );
+   this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Face" );
 
    // Which local edges do we iterate on?
 
@@ -946,7 +946,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
 
       glMicroVolumeIdx++;
    }
-   this->storage_->getTimingTree()->stop( "VertexDoF - Face to Face" );
+   this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Face to Face" );
 }
 
 template < typename ValueType >

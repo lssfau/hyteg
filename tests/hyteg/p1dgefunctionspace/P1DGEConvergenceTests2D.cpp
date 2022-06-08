@@ -31,8 +31,8 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
@@ -56,7 +56,7 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
    P1DGEMassOperator      M( storage, level, level );
 
    numerator.enumerate( level );
-
+#if 0
    // solution as a lambda function
    std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
@@ -99,7 +99,32 @@ real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& leve
       const real_t x8 = 8 * std::cos( x2 );
       return -( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
    };
+#else
+   // solution as a lambda function
+   std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return std::sin( M_PI * x ) * std::sin( M_PI * y );
+   };
 
+   std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
+      const real_t x  = p[0];
+      const real_t y  = p[1];
+      return std::sin( M_PI * x ) * std::sin( M_PI * y );
+   };
+
+   // rhs as a lambda function
+   std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 * M_PI * M_PI * std::sin( M_PI * x ) * std::sin( M_PI * y );
+   };
+   std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 * M_PI * M_PI * std::sin( M_PI * x ) * std::sin( M_PI * y );
+   };
+#endif
    P1DGEFunction< real_t > u( "u", storage, level, level );
    P1DGEFunction< real_t > f( "f", storage, level, level );
    P1DGEFunction< real_t > rhs( "rhs", storage, level, level );
@@ -284,9 +309,9 @@ void runLaplace()
    real_t currentRate  = std::nan( "" );
    for ( uint_t level = 3; level <= 6; level++ )
    {
-      lastError    = currentError;
+      lastError = currentError;
       // currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
-      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_2el.msh", level, true );
+      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/quad_16el.msh", level, true );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }

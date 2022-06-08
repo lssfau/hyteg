@@ -444,11 +444,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                            // The neighboring micro-element coords have to be computed since they are now different as for an
                            // element on the same macro-volume.
+                           std::vector< Index >                         neighborElementVertexIndices;
                            std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
                            Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
 
                            neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                               n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+                               n, neighborElementVertexIndices, neighborElementVertexCoords, neighborOppositeVertexCoords );
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( dim,
