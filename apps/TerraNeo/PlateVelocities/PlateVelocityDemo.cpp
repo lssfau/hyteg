@@ -79,13 +79,13 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    // now set plate velocities on boundary (both for the moment)
    for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
    {
-      // demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
+     demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
    }
    plates.interpolate( findPlateID, level, Boundary );
 
    hyteg::VTKOutput vtkOutput( "./output", "PlateVelocities", storage );
    vtkOutput.add( plates );
-   // vtkOutput.add( demoFunc );
+   vtkOutput.add( demoFunc );
    vtkOutput.write( level, 0 );
 }
 
