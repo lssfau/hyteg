@@ -142,7 +142,7 @@ void P2Function< ValueType >::interpolate(
    }
 
    vertexDoFFunction_.interpolate( expr, vertexDoFFunctions, level, flag );
-   edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
+   edgeDoFFunction_.interpolate( expr, edgeDoFFunctions, level, flag );
 }
 
 template < typename ValueType >

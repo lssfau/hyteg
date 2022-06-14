@@ -52,9 +52,9 @@ uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive&
 
 uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const Primitive& primitive );
 
-unsigned long long edgeDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+unsigned long long edgeDoFLocalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage );
 
-unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage );
 
 ///@}
 
@@ -82,20 +82,20 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                     const uint_t&                              maxLevel,
                     const BoundaryCondition&                   boundaryCondition );
 
-   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
 
-   void allocateMemory( const uint_t & level, const Vertex & vertex );
-   void allocateMemory( const uint_t & level, const Edge & edge );
-   void allocateMemory( const uint_t & level, const Face & face );
-   void allocateMemory( const uint_t & level, const Cell & cell );
+   void allocateMemory( const uint_t& level, const Vertex& vertex );
+   void allocateMemory( const uint_t& level, const Edge& edge );
+   void allocateMemory( const uint_t& level, const Face& face );
+   void allocateMemory( const uint_t& level, const Cell& cell );
 
-   void deleteMemory( const uint_t & level, const Vertex & vertex );
-   void deleteMemory( const uint_t & level, const Edge & edge );
-   void deleteMemory( const uint_t & level, const Face & face );
-   void deleteMemory( const uint_t & level, const Cell & cell );
+   void deleteMemory( const uint_t& level, const Vertex& vertex );
+   void deleteMemory( const uint_t& level, const Edge& edge );
+   void deleteMemory( const uint_t& level, const Face& face );
+   void deleteMemory( const uint_t& level, const Cell& cell );
 
    void swap( const EdgeDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -141,10 +141,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
-                             uint_t                                                                               level,
-                             BoundaryUID boundaryUID ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                     uint_t                                                                               level,
+                     BoundaryUID                                                                          boundaryUID ) const;
    //@}
 
    /// @name Member functions for interpolation using DoFType flags
@@ -153,10 +153,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
-                             uint_t                                                                               level,
-                             DoFType flag = All ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                     uint_t                                                                               level,
+                     DoFType                                                                              flag = All ) const;
 
    void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
                      uint_t                                                             level,
@@ -212,10 +212,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
-   inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
+   inline void              setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
 
-   template< typename OtherFunctionValueType >
-   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType > & other )
+   template < typename OtherFunctionValueType >
+   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType >& other )
    {
       setBoundaryCondition( other.getBoundaryCondition() );
    }
@@ -251,7 +251,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// asynchronous tasks. endAdditiveCommunication has to be called manually!
    /// See communicateAdditively( const uint_t& ) const for more details
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -272,7 +272,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    inline void startAdditiveCommunication( const uint_t&           level,
                                            const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                            const PrimitiveStorage& primitiveStorage,
-                                           const bool & zeroOutDestination = true ) const
+                                           const bool&             zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -327,7 +327,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// \param zeroOutDestination if true, sets all values on the destination function to zero
    ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
