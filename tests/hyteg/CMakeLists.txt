@@ -692,6 +692,9 @@ waLBerla_execute_test(NAME FunctionPropertiesTest)
 waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 
+waLBerla_compile_test(FILES functions/FunctionExtendedExpressionInterpolationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionExtendedExpressionInterpolationTest)
+
 ## numeric tools ##
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SpectrumEstimationTest)
