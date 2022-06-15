@@ -50,7 +50,7 @@ template < typename feFuncType >
 void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > storage, real_t age )
 {
    // initialise an oracle
-   std::string                             dataDir{ "../../../data/terraneo/plates/" };
+   std::string                             dataDir{"../../../data/terraneo/plates/"};
    std::string                             fnameTopologies      = dataDir + "topologies0-100Ma.geojson";
    std::string                             fnameReconstructions = dataDir + "Global_EarthByte_230-0Ma_GK07_AREPS.rot";
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
@@ -59,29 +59,37 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    uint_t coordIdx = 0;
 
    std::function< real_t( const Point3D& ) > computeVelocityComponent = [&oracle, age, &coordIdx]( const Point3D& point ) {
-      vec3D coords{ point[0], point[1], point[2] };
+      vec3D coords{point[0], point[1], point[2]};
       vec3D velocity = oracle.getPointVelocity( coords, age );
-      return velocity[ int_c(coordIdx) ];
+      return velocity[int_c( coordIdx )];
    };
 
    std::function< real_t( const Point3D& ) > findPlateID = [&oracle, age]( const Point3D& point ) {
-      vec3D coords{ point[0], point[1], point[2] };
+      vec3D coords{point[0], point[1], point[2]};
       return oracle.findPlateID( coords, age );
    };
 
-   // set everything to zero in the interior
+   // create boundary condition object for the two surfaces
+   BoundaryCondition bcs;
+   BoundaryUID       regionSurface = bcs.createDirichletBC( "surface", MeshInfo::flagOuterBoundary );
+   BoundaryUID       regionCMB     = bcs.createDirichletBC( "core-mantle-boundary", MeshInfo::flagInnerBoundary );
+
+   // set everything to zero in the interior and on the CMB
    feFuncType demoFunc( "demoFunc", storage, level, level );
-   demoFunc.interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, Inner );
+   demoFunc.setBoundaryCondition( bcs );
+   demoFunc.interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, Inner );
+   demoFunc.interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, regionCMB );
 
    typename feFuncType::VectorComponentType plates( "plateID", storage, level, level );
+   plates.setBoundaryCondition( bcs );
    plates.interpolate( real_c( 0 ), level, Inner );
+   plates.interpolate( real_c( 0 ), level, regionCMB );
 
-   // now set plate velocities on boundary (both for the moment)
    for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
    {
-     demoFunc[coordIdx].interpolate( computeVelocityComponent, level, Boundary );
+      demoFunc[coordIdx].interpolate( computeVelocityComponent, level, regionSurface );
    }
-   plates.interpolate( findPlateID, level, Boundary );
+   plates.interpolate( findPlateID, level, regionSurface );
 
    hyteg::VTKOutput vtkOutput( "./output", "PlateVelocities", storage );
    vtkOutput.add( plates );
@@ -124,12 +132,10 @@ int main( int argc, char* argv[] )
    const uint_t nRad  = params.getParameter< uint_t >( "nRad" );
    const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, real_c(0.57), real_c(1.0) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, real_c( 0.57 ), real_c( 1.0 ) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
-
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    IcosahedralShellMap::setMap( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
@@ -138,8 +144,8 @@ int main( int argc, char* argv[] )
    // ============
    //  Delegation
    // ============
-   std::string feSpace = params.getParameter< std::string >( "feSpace" );
-   const real_t age  = params.getParameter< real_t >( "age" );
+   std::string  feSpace = params.getParameter< std::string >( "feSpace" );
+   const real_t age     = params.getParameter< real_t >( "age" );
 
    if ( feSpace == "P1" )
    {
