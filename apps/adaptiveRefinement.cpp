@@ -185,7 +185,7 @@ struct ModelProblem
 
          if ( dim == 2 )
          {
-            _u = [=]( const hyteg::Point3D& x ) -> real_t { return 5e5 - std::log( x.norm() ) / ( 2.0 * pi ); };
+            _u = [=]( const hyteg::Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
          }
          else
          {
@@ -271,7 +271,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
 
 // solve problem with current refinement and return list of elementwise squared errors of local elements
 template < class A_t >
-adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      storage,
+adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                mesh,
                                        const ModelProblem&                      problem,
                                        uint_t                                   u0,
                                        std::shared_ptr< P1Function< real_t > >& u_old,
@@ -280,9 +280,17 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
                                        uint_t                                   max_iter,
                                        real_t                                   tol,
                                        std::string                              vtkname,
+                                       bool                                     writePartitioning,
                                        uint_t                                   refinement_step,
                                        bool                                     l2_error_each_iteration = true )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
+   auto storage = mesh.make_storage();
+   printCurrentMemoryUsage();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
+
    // operators
    std::shared_ptr< A_t > A;
    auto                   M = std::make_shared< Mass >( storage, l_min, l_max + 1 );
@@ -310,6 +318,31 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
    P1Function< real_t > err_f( "e_h_filtered", storage, l_max + 1, l_max + 1 );
 
+   // global DoF
+   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
+   auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
+
+   // computation of residual and L2 error
+   err.setToZero( l_max );
+   err.setToZero( l_max + 1 );
+   tmp.setToZero( l_max );
+   tmp.setToZero( l_max + 1 );
+   auto compute_residual = [&]() -> real_t {
+      A->apply( *u, tmp, l_max, hyteg::Inner, Replace );
+      r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
+      M->apply( r, tmp, l_max, hyteg::Inner, Replace );
+      return std::sqrt( r.dotGlobal( tmp, l_max, hyteg::Inner ) );
+   };
+   auto compute_L2error = [&]() -> real_t {
+      P->prolongate( *u, l_max, hyteg::Inner );
+      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, hyteg::Inner );
+      problem.apply_error_filter( err, err_f, l_max + 1 );
+      M->apply( err_f, tmp, l_max + 1, hyteg::Inner, Replace );
+      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1, hyteg::Inner ) );
+   };
+
+   // initialize functions
    problem.init( storage, u_anal, f, *u, b, l_max );
 
    /* initialize u_h with values from previous refinement
@@ -317,7 +350,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
    */
    if ( u_old != nullptr )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "initialize u=u_old" );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
          real_t ux = 0.0;
          if ( !u_old->evaluate( x, l_max, ux, 1e-16 ) )
@@ -331,12 +364,8 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
       // todo: add loadbalancing
    }
 
-
-
-   // global DoF
-   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
-   auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
+   // initial residual
+   real_t norm_r = compute_residual();
 
    // solver
    auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( max_iter, n_dof ), tol * 1e-1 );
@@ -344,57 +373,28 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
 
    GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
 
-   // computation of residual and L2 error
-   err.setToZero( l_max );
-   err.setToZero( l_max + 1 );
-   tmp.setToZero( l_max );
-   tmp.setToZero( l_max + 1 );
-   auto compute_residual = [&]() -> real_t {
-      A->apply( *u, tmp, l_max, hyteg::Inner, Replace );
-      r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
-      return std::sqrt( r.dotGlobal( r, l_max, hyteg::Inner ) );
-   };
-   auto compute_L2error = [&]() -> real_t {
-      P->prolongate( *u, l_max, hyteg::Inner );
-      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, hyteg::Inner );
-      problem.apply_error_filter( err, err_f, l_max + 1 );
-      M->apply( err_f, tmp, l_max + 1, hyteg::All, Replace );
-      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1 ) );
-   };
-
    // solve
    WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s |%18s |%13s", "k", "||r_k||/||r_0||", "L2 error" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s |%18s |%13s", "k", "||r_k||_L2", "||e_k||_L2" ) );
 
-   real_t norm_r0 = compute_residual();
-   real_t norm_r  = 0;
-   real_t l2err   = 0;
-   uint_t iter    = 0;
-   do
+   uint_t iter = 0;
+   while ( norm_r > tol && iter < max_iter )
    {
-      ++iter;
-
-      gmg.solve( *A, *u, b, l_max );
-
-      norm_r = compute_residual();
-
       if ( l2_error_each_iteration )
       {
-         l2err = compute_L2error();
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r / norm_r0, l2err ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, compute_L2error() ) );
       }
       else
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r / norm_r0 ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r ) );
       }
 
-   } while ( norm_r / norm_r0 > tol && iter < max_iter );
-
-   if ( !l2_error_each_iteration )
-   {
-      l2err = compute_L2error();
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s  %18s |%13.3e", "", "", l2err ) );
+      ++iter;
+      gmg.solve( *A, *u, b, l_max );
+      norm_r = compute_residual();
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, compute_L2error() ) );
 
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
@@ -469,6 +469,11 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage >      
       vtkOutput.write( l_max, refinement_step );
    }
 
+   if ( writePartitioning )
+   {
+      writeDomainPartitioningVTK( storage, "output", vtkname + "_partitioning_ts" + std::to_string( refinement_step ) );
+   }
+
    if ( u0 == 1 )
    {
       u_old.swap( u );
@@ -492,33 +497,30 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
-   // PrimitiveStorage
-   std::shared_ptr< PrimitiveStorage >     storage = nullptr;
-   std::shared_ptr< P1Function< real_t > > u_old   = nullptr;
+   // store solution from previous refinement as initial guess
+   std::shared_ptr< P1Function< real_t > > u_old = nullptr;
 
    uint_t refinement = 0;
    while ( 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
-      auto lb = ( refinement == 0 ) ? adaptiveRefinement::CLUSTERING : adaptiveRefinement::INHERITED;
-      storage = mesh.make_storage( lb );
-      printCurrentMemoryUsage();
-
-      WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
-         local_errors = solve< Laplace >( storage, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, refinement );
+         local_errors =
+             solve< Laplace >( mesh, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
       else
-         local_errors = solve< DivkGrad >( storage, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, refinement );
+         local_errors =
+             solve< DivkGrad >( mesh, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
 
       if ( refinement >= n_ref )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( "* maximum number of refinements!" );
          break;
       }
 
       auto n_el_old = mesh.n_elements();
       ++refinement;
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( "* apply refinement " << refinement );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
@@ -554,11 +556,6 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
              "* refinement can't be applied to all required elements\n  without breaking the max number of elements!" );
          break;
       }
-   }
-
-   if ( writePartitioning )
-   {
-      writeDomainPartitioningVTK( storage, "output", vtkname + "_partitioning" );
    }
 }
 
@@ -616,7 +613,7 @@ int main( int argc, char* argv[] )
    // solve/refine iteratively
    if ( vtkname == "auto" )
    {
-      vtkname = problem.name(); // + "_ref=" + std::to_string( p_refinement );
+      vtkname = problem.name();
    }
    solve_for_each_refinement( setupStorage,
                               problem,

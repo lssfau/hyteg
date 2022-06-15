@@ -350,7 +350,7 @@ class Mesh
    /* construct PrimitiveStorage corresponding to current refinement
       @param loadbalancing scheme used for load balancing
    */
-   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = ROUND_ROBIN )
+   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = INHERITED )
    {
       if ( _DIM == 3 )
       {

@@ -9,7 +9,7 @@ Parameters
   // offset from singularity where the error will be ignored (unused if there is no singularity)
   offset 0.01;
   // only use offset for computation of total error but still consider the respective elements for refinement
-  refine_all 0;
+  refine_all 1;
   // standard deviation used when mp=1
   sigma 0.1;
 
@@ -25,14 +25,14 @@ Parameters
   n_el_max -1; // max number of macro elements
 
   // local regular refinement
-  microlevel 1;
+  microlevel 7;
 
   // linear solver (GMG)
-  initial_guess 1; // 0: zero, 1: u_h from previous refinement
-  n_iterations 10;
-  tolerance 1e-4;
+  initial_guess 0; // 0: zero, 1: u_h from previous refinement
+  n_iterations 20;
+  tolerance 1e-10;
 
   // misc
   // vtkName auto;
-  writeDomainPartitioning 1;
+  writeDomainPartitioning 0;
 }
