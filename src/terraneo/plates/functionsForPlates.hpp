@@ -84,12 +84,10 @@ std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const
                   distance = a;
                }
             }
-            WALBERLA_LOG_INFO_ON_ROOT( "Distance (km): " << distance );
             plateFound = true;
             break;
 
          case CGAL::ON_BOUNDARY:
-            WALBERLA_LOG_INFO_ON_ROOT( " is on the polygon boundary." );
             distance   = real_c( 0 );
             plateFound = true;
             break;
@@ -100,8 +98,8 @@ std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const
       }
       else
       {
-         std::string exception{ "How to handle z value <= 0?" };
-         WALBERLA_LOG_INFO_ON_ROOT( exception );
+         // std::string exception{ "How to handle z value <= 0?" };
+         // WALBERLA_LOG_INFO_ON_ROOT( exception );
          // throw( exception );
       }
 
@@ -129,18 +127,11 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
 
    // Transform to the point to the xyz in a sphere of earthRadius;
    pxyz = terraneo::conversions::cart2sph( point );
-   WALBERLA_LOG_INFO_ON_ROOT( "Point (lon, lat): [" << pxyz[0] << ", " << pxyz[1] << "]" );
    pxyz = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
-   WALBERLA_LOG_INFO_ON_ROOT( "Point (x,y,z): [" << point[0] << ", " << point[1] << ", " << point[2] << "]\n" );
    vec3D v = eVector.cross( pxyz );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Velocity (x,y,z) in cm/yr: [" << v[0] << ", " << v[1] << ", " << v[2] << "] " );
 
    v *= smoothing / toms;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Velocity (x,y,z) in m/s:   [" << v[0] << ", " << v[1] << ", " << v[2] << "] " );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Velocity magnitude: " << sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] ) * toms * 100 );
    return v;
 }
 
@@ -152,7 +143,7 @@ vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
                                       const vec3D&                 point,
                                       const real_t                 smoothing )
 {
-   // age of the euler pole is defined by ((age1 +age2)/2)
+   // age of the euler pole is defined by ((age1 + age2)/2)
    std::array< real_t, 2 >     time{ age, age + 1 };
    std::vector< RotationInfo > recTree;
 
@@ -181,7 +172,7 @@ vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
             break;
          }
       }
-      WALBERLA_LOG_INFO_ON_ROOT( "Looping ... (pID = " << pID << ")" );
+      // WALBERLA_LOG_DETAIL_ON_ROOT( "Looping ... (pID = " << pID << ")" );
    }
 
    std::array< FiniteRotation, 2 > finNahs = terraneo::plates::combineSeriesOfFiniteRotations( FinRot );

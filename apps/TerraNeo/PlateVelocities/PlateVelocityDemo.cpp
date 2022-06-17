@@ -53,14 +53,16 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    std::string                             dataDir{"../../../data/terraneo/plates/"};
    std::string                             fnameTopologies      = dataDir + "topologies0-100Ma.geojson";
    std::string                             fnameReconstructions = dataDir + "Global_EarthByte_230-0Ma_GK07_AREPS.rot";
+
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
 
    // need that here, to capture it below ;-)
    uint_t coordIdx = 0;
+   terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
 
-   std::function< real_t( const Point3D& ) > computeVelocityComponent = [&oracle, age, &coordIdx]( const Point3D& point ) {
+   std::function< real_t( const Point3D& ) > computeVelocityComponent = [&oracle, age, &coordIdx, &handlerWithStatistics]( const Point3D& point ) {
       vec3D coords{point[0], point[1], point[2]};
-      vec3D velocity = oracle.getPointVelocity( coords, age );
+      vec3D velocity = oracle.getPointVelocity( coords, age, terraneo::plates::LinearDistanceSmoother{0.015}, handlerWithStatistics );
       return velocity[int_c( coordIdx )];
    };
 
@@ -95,6 +97,8 @@ void exportDemoFunc( uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > st
    vtkOutput.add( plates );
    vtkOutput.add( demoFunc );
    vtkOutput.write( level, 0 );
+
+   handlerWithStatistics.generateReport();
 }
 
 // ========

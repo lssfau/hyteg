@@ -1,9 +1,9 @@
 Parameters
 {
   // meshing parameters
-  nTan 2;
+  nTan 3;
   nRad 2;
-  level 5;
+  level 3;
 
   // FE space
   feSpace P2;

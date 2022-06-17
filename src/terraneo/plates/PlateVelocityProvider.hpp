@@ -21,6 +21,7 @@
 #pragma once
 
 #include "terraneo/dataimport/io.hpp"
+#include "terraneo/plates/PlateNotFoundHandlers.hpp"
 #include "terraneo/plates/PlateRotationProvider.hpp"
 #include "terraneo/plates/PlateStorage.hpp"
 #include "terraneo/plates/SmoothingStrategies.hpp"
@@ -43,60 +44,51 @@ class PlateVelocityProvider
                       []( const std::string& filename ) { return terraneo::io::readRotationsFile( filename ); } )
    {}
 
-   vec3D getPointVelocity( const vec3D& point, const real_t age )
-   {
-      return getPointVelocity( point, age, LinearDistanceSmoother{0.015} );
-   }
-
    uint_t findPlateID( const vec3D& point, const real_t age )
    {
-      uint_t plateID{0};
+      uint_t plateID{idWhenNoPlateFound};
       bool   plateFound{false};
       real_t distance{real_c( -1 )};
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
-      if ( plateFound )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance );
-      }
-      else
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Point not found on any plate!" );
-      }
+
       return plateID;
    }
 
-   template < typename SmoothingStrategy >
-   vec3D getPointVelocity( const vec3D& point, const real_t age, SmoothingStrategy computeSmoothing )
+   vec3D getPointVelocity( const vec3D& point, const real_t age )
+   {
+      return getPointVelocity( point, age, LinearDistanceSmoother{0.015}, DefaultPlateNotFoundHandler{} );
+   }
+
+   template < typename SmoothingStrategy, typename PlateNoteFoundStrategy >
+   vec3D getPointVelocity( const vec3D&             point,
+                           const real_t             age,
+                           SmoothingStrategy        computeSmoothing,
+                           PlateNoteFoundStrategy&& errorHandler )
    {
       uint_t plateID{0};
       bool   plateFound{false};
       real_t distance{real_c( -1 )};
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
-      if ( plateFound )
+
+      if ( !plateFound )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance );
+         return errorHandler( point, age );
       }
-      else
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Point not found on any plate!" );
-      }
+      // else
+      // {
+      //    WALBERLA_LOG_DETAIL_ON_ROOT( "Point found on plate with ID = " << plateID << ", distance to boundary = " << distance );
+      // }
 
       real_t smoothingFactor = computeSmoothing( distance );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Plate ID: " << plateID << "\n" );
-      if ( plateID == 0 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "No plate ID assigned (Plate ID =0). Velocity set to (0.0,0.0,0.0)" );
-         return {real_c( 0 ), real_c( 0 ), real_c( 0 )};
-      }
-      else
-      {
-         return computeCartesianVelocityVector( plateRotations_, plateID, age, point, smoothingFactor );
-      }
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
+      return computeCartesianVelocityVector( plateRotations_, plateID, age, point, smoothingFactor );
    };
+
+   const uint_t idWhenNoPlateFound{0};
 
  private:
    PlateStorage          plateTopologies_;
