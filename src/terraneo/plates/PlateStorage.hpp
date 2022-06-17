@@ -20,8 +20,11 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "core/extern/json.hpp"
 
+#include "terraneo/dataimport/io.hpp"
 #include "terraneo/helpers/conversions.hpp"
 #include "terraneo/helpers/typeAliases.hpp"
 #include "terraneo/plates/functionsForRotations.hpp"
@@ -89,6 +92,8 @@ class PlateStorage
       WALBERLA_LOG_INFO_ON_ROOT( "PlateStorage object:\n"
                                  << " - stores plates for " << ageToPlatesMap_.size() << " age stages\n"
                                  << " - stores a total of " << nPlates << " plates\n"
+                                 << " - age stages range from " << *listOfPlateStages_.begin() << " to "
+                                 << listOfPlateStages_.back() << " Ma\n"
                                  << " - data was obtained from file = '" << srcFile_ << "'" );
    }
 
@@ -116,6 +121,8 @@ class PlateStorage
       return iter->second;
    }
 
+   const std::vector< real_t >& getListOfPlateStages() const { return listOfPlateStages_; }
+
  private:
    // assemble key from age
    inline std::string ageToKey( real_t age ) const
@@ -127,6 +134,13 @@ class PlateStorage
       return key.str();
    }
 
+   // convert key/ageName to an age value
+   inline real_t keyToAge( const std::string& key ) const
+   {
+      std::string ageStr = key.substr( 9, 6 );
+      return PLATES_IO_STR_TO_FP( ageStr );
+   }
+
    /// method for data preparation
    ///
    /// this method will convert the imported data into a format more suitable for
@@ -135,6 +149,10 @@ class PlateStorage
    /// plates into vectors depending on their age stage
    void extractPlateInfo( const nlohmann::json& rootNode )
    {
+      // we need to fill the list of age stages and do a reservation here
+      listOfPlateStages_.clear();
+      listOfPlateStages_.reserve( rootNode.size() );
+
       for ( uint_t idx = 0; idx < rootNode.size(); ++idx )
       {
          // prepare key for map entry and vector to hold plates for this age stage
@@ -143,6 +161,9 @@ class PlateStorage
          ageToPlatesMap_.emplace( ageName, plateVec_t( nPlates ) );
 
          plateVec_t& plates = ageToPlatesMap_[ageName];
+
+         // convert ageName to numeric age value and insert it
+         listOfPlateStages_.push_back( keyToAge( ageName ) );
 
          // extract plates for this age stage and put into vector of plates
          for ( uint_t k = 0; k < nPlates; ++k )
@@ -167,6 +188,10 @@ class PlateStorage
             plates[k].center /= plates[k].boundary.size();
          }
       }
+
+      // sort the list of plate stages (should be sorted in data-file, but hey,
+      // better safe than sorry
+      std::sort( listOfPlateStages_.begin(), listOfPlateStages_.end() );
    };
 
    /// Rotate plates to xy-plane, so that their pseudo-barycenter lies at the origin
@@ -195,6 +220,9 @@ class PlateStorage
 
    /// map to allow retrieving all plates of a certain age stage by giving that age
    ageToPlatesMap_t ageToPlatesMap_;
+
+   /// a vector containing a sorted list of the ages of the plate stages found in data-file
+   std::vector< real_t > listOfPlateStages_;
 };
 
 } // namespace plates
