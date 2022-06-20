@@ -130,6 +130,9 @@ class K_Mesh
    const std::vector< Point3D >& get_vertices() const { return _vertices; }
 
  private:
+
+   MigrationInfo loadbalancing_roundRobin();
+
    /* remove green edges from _T and replace them with their parents
    */
    void remove_green_edges();

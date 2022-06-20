@@ -300,32 +300,113 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
-   WALBERLA_LOG_INFO("inherit targetRank from volume elements");
+   WALBERLA_LOG_INFO( "inherit targetRank from volume elements" );
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
-   WALBERLA_LOG_INFO("update targetRank");
-   update_targetRank(vtxs, edges, faces, cells);
+   WALBERLA_LOG_INFO( "update targetRank" );
+   update_targetRank( vtxs, edges, faces, cells );
 
    // create storage
-   WALBERLA_LOG_INFO("create storage");
+   WALBERLA_LOG_INFO( "create storage" );
    return make_localPrimitives( vtxs, edges, faces, cells );
 }
 
 template < class K_Simplex >
 MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 {
+   if ( lb == ROUND_ROBIN )
+   {
+      return loadbalancing_roundRobin();
+   }
+
+   WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
+
+   return loadbalancing_roundRobin();
+}
+
+template < class K_Simplex >
+MigrationInfo K_Mesh< K_Simplex >::loadbalancing_roundRobin()
+{
+   const uint_t rank = walberla::mpi::MPIManager::instance()->rank();
+
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
-   std::vector< VertexData >   vtxs;
-   std::vector< EdgeData >     edges;
-   std::vector< FaceData >     faces;
-   std::vector< CellData >     cells;
+   std::vector< VertexData >   vtxs_old;
+   std::vector< EdgeData >     edges_old;
+   std::vector< FaceData >     faces_old;
+   std::vector< CellData >     cells_old;
    std::vector< Neighborhood > nbrHood;
+   extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
+
+   // reset target ranks
+   for ( auto el : _T )
+   {
+      el->setTargetRank( _n_processes );
+   }
+
+   // apply roundRobin to volume elments
+   if ( rank == 0 )
+   {
+      uint_t                targetRnk = 0;
+      std::vector< uint_t > n_vol_on_rnk( _n_processes );
+      uint_t                n_vol_max = _n_elements / _n_processes;
+      for ( auto el : _T )
+      {
+         // already asigned
+         if ( el->getTargetRank() < _n_processes )
+         {
+            continue;
+         }
+
+         // process saturated -> move to next process
+         while ( n_vol_on_rnk[targetRnk] >= n_vol_max )
+         {
+            ++targetRnk;
+
+            // round robin complete but unasigned elements left
+            if ( targetRnk == _n_processes )
+            {
+               targetRnk = 0;
+               ++n_vol_max;
+            }
+         }
+
+         // assign el to targetRnk
+         if ( el->has_green_edge() )
+         {
+            /* elements coming from a green step must reside on the same process
+                  to ensure compatibility with further refinement (interpolation between grids)
+               */
+            for ( auto s : el->get_siblings() )
+            {
+               s->setTargetRank( targetRnk );
+               ++n_vol_on_rnk[targetRnk];
+            }
+            // also change rank of parent s.th. next refinement resides on same process
+            el->get_parent()->setTargetRank( targetRnk );
+         }
+         else
+         {
+            el->setTargetRank( targetRnk );
+            ++n_vol_on_rnk[targetRnk];
+         }
+      }
+   }
+
+   // extract data with new targetRank
+   std::vector< VertexData > vtxs;
+   std::vector< EdgeData >   edges;
+   std::vector< FaceData >   faces;
+   std::vector< CellData >   cells;
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
-   // apply loadbalancing
-   auto migrationInfo = adaptiveRefinement::loadbalancing(
-       vtxs, edges, faces, cells, _n_processes, uint_t( walberla::mpi::MPIManager::instance()->rank() ) );
-   switch ( lb )
+   // assign interface primitives
+   inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+
+   // gather migration data
+   MigrationMap_T migrationMap;
+   uint_t         numReceivingPrimitives = 0;
+   for ( uint_t i = 0; i < vtxs.size(); ++i )
    {
+<<<<<<< HEAD
       //todo cleanup
    case INHERITED:
       WALBERLA_ABORT( "loadbalancing(INHERITED) not implemented!" );
@@ -347,12 +428,64 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
       WALBERLA_ABORT( "loadbalancing(CLUSTERING) not implemented!" );
       break;
 >>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
+=======
+      auto currentRnk = vtxs_old[i].getTargetRank();
+      auto targetRnk  = vtxs[i].getTargetRank();
+
+      if ( rank == currentRnk )
+      {
+         migrationMap[vtxs[i].getPrimitiveID().getID()] = targetRnk;
+      }
+      if ( rank == targetRnk )
+      {
+         ++numReceivingPrimitives;
+      }
+>>>>>>> 632de7f50 (bugfix)
+   }
+   for ( uint_t i = 0; i < edges.size(); ++i )
+   {
+      auto currentRnk = edges_old[i].getTargetRank();
+      auto targetRnk  = edges[i].getTargetRank();
+
+      if ( rank == currentRnk )
+      {
+         migrationMap[edges[i].getPrimitiveID().getID()] = targetRnk;
+      }
+      if ( rank == targetRnk )
+      {
+         ++numReceivingPrimitives;
+      }
+   }
+   for ( uint_t i = 0; i < faces.size(); ++i )
+   {
+      auto currentRnk = faces_old[i].getTargetRank();
+      auto targetRnk  = faces[i].getTargetRank();
+
+      if ( rank == currentRnk )
+      {
+         migrationMap[faces[i].getPrimitiveID().getID()] = targetRnk;
+      }
+      if ( rank == targetRnk )
+      {
+         ++numReceivingPrimitives;
+      }
+   }
+   for ( uint_t i = 0; i < cells.size(); ++i )
+   {
+      auto currentRnk = cells_old[i].getTargetRank();
+      auto targetRnk  = cells[i].getTargetRank();
+
+      if ( rank == currentRnk )
+      {
+         migrationMap[cells[i].getPrimitiveID().getID()] = targetRnk;
+      }
+      if ( rank == targetRnk )
+      {
+         ++numReceivingPrimitives;
+      }
    }
 
-   WALBERLA_LOG_INFO("update targetRank");
-   update_targetRank(vtxs, edges, faces, cells);
-
-   return migrationInfo;
+   return MigrationInfo( migrationMap, numReceivingPrimitives );
 }
 
 template < class K_Simplex >
@@ -1023,7 +1156,7 @@ void K_Mesh< K_Simplex >::update_targetRank( const std::vector< VertexData >& vt
 
       // add targetRank to vertices
       uint_t i;
-      for (i = 0; i < _n_vertices; ++i)
+      for ( i = 0; i < _n_vertices; ++i )
       {
          _vertexTargetRank[i] = vtxData[i].getTargetRank();
       }
@@ -1031,24 +1164,24 @@ void K_Mesh< K_Simplex >::update_targetRank( const std::vector< VertexData >& vt
       i = 0;
       for ( auto& edge : edges )
       {
-         WALBERLA_ASSERT(edge->getPrimitiveID() == edgeData[i].getPrimitiveID());
-         edge->setTargetRank(edgeData[i].getTargetRank());
+         WALBERLA_ASSERT( edge->getPrimitiveID() == edgeData[i].getPrimitiveID() );
+         edge->setTargetRank( edgeData[i].getTargetRank() );
          ++i;
       }
       // add targetRank to faces
       i = 0;
       for ( auto& face : faces )
       {
-         WALBERLA_ASSERT(face->getPrimitiveID() == faceData[i].getPrimitiveID());
-         face->setTargetRank(faceData[i].getTargetRank());
+         WALBERLA_ASSERT( face->getPrimitiveID() == faceData[i].getPrimitiveID() );
+         face->setTargetRank( faceData[i].getTargetRank() );
          ++i;
       }
       // add targetRank to cells
       i = 0;
       for ( auto& cell : cells )
       {
-         WALBERLA_ASSERT(cell->getPrimitiveID() == cellData[i].getPrimitiveID());
-         cell->setTargetRank(cellData[i].getTargetRank());
+         WALBERLA_ASSERT( cell->getPrimitiveID() == cellData[i].getPrimitiveID() );
+         cell->setTargetRank( cellData[i].getTargetRank() );
          ++i;
       }
    }
