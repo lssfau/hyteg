@@ -41,8 +41,6 @@ struct RefinedElements
 
 enum Loadbalancing
 {
-   // todo: add method Mesh::updateTargetRank s.th. external loadbalancing works together with Loadbalancing::INHERITED
-   INHERITED, // assign all primitives to the same process as their parents -> enables interpolation between the unrefined and refined mesh!)
    ROUND_ROBIN, // cheap loadbalancer
    CLUSTERING   // assign clusters of primitives to each process
 };
@@ -130,8 +128,9 @@ class K_Mesh
    const std::vector< Point3D >& get_vertices() const { return _vertices; }
 
  private:
-
-   MigrationInfo loadbalancing_roundRobin();
+   /* apply round robin loadbalancing to volume elements
+   */
+   void loadbalancing_roundRobin();
 
    /* remove green edges from _T and replace them with their parents
    */

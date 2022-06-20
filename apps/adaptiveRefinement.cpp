@@ -391,9 +391,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       u->interpolate( u_init, l_max, Inner );
 
       // apply loadbalancing
-      WALBERLA_LOG_INFO( "apply loadbalancing" );
       auto migrationInfo = mesh.loadbalancing();
-      WALBERLA_LOG_INFO( "migrate primitives" );
       storage->migratePrimitives( migrationInfo );
    }
 

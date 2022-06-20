@@ -300,33 +300,23 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
-   WALBERLA_LOG_INFO( "inherit targetRank from volume elements" );
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
-   WALBERLA_LOG_INFO( "update targetRank" );
    update_targetRank( vtxs, edges, faces, cells );
 
    // create storage
-   WALBERLA_LOG_INFO( "create storage" );
    return make_localPrimitives( vtxs, edges, faces, cells );
 }
 
 template < class K_Simplex >
 MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 {
-   if ( lb == ROUND_ROBIN )
-   {
-      return loadbalancing_roundRobin();
-   }
-
-   WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
-
-   return loadbalancing_roundRobin();
-}
-
-template < class K_Simplex >
-MigrationInfo K_Mesh< K_Simplex >::loadbalancing_roundRobin()
-{
    const uint_t rank = walberla::mpi::MPIManager::instance()->rank();
+
+   // reset target ranks
+   for ( auto el : _T )
+   {
+      el->setTargetRank( _n_processes );
+   }
 
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::vector< VertexData >   vtxs_old;
@@ -336,59 +326,14 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing_roundRobin()
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
 
-   // reset target ranks
-   for ( auto el : _T )
+   if ( lb == ROUND_ROBIN )
    {
-      el->setTargetRank( _n_processes );
+      loadbalancing_roundRobin();
    }
-
-   // apply roundRobin to volume elments
-   if ( rank == 0 )
+   else
    {
-      uint_t                targetRnk = 0;
-      std::vector< uint_t > n_vol_on_rnk( _n_processes );
-      uint_t                n_vol_max = _n_elements / _n_processes;
-      for ( auto el : _T )
-      {
-         // already asigned
-         if ( el->getTargetRank() < _n_processes )
-         {
-            continue;
-         }
-
-         // process saturated -> move to next process
-         while ( n_vol_on_rnk[targetRnk] >= n_vol_max )
-         {
-            ++targetRnk;
-
-            // round robin complete but unasigned elements left
-            if ( targetRnk == _n_processes )
-            {
-               targetRnk = 0;
-               ++n_vol_max;
-            }
-         }
-
-         // assign el to targetRnk
-         if ( el->has_green_edge() )
-         {
-            /* elements coming from a green step must reside on the same process
-                  to ensure compatibility with further refinement (interpolation between grids)
-               */
-            for ( auto s : el->get_siblings() )
-            {
-               s->setTargetRank( targetRnk );
-               ++n_vol_on_rnk[targetRnk];
-            }
-            // also change rank of parent s.th. next refinement resides on same process
-            el->get_parent()->setTargetRank( targetRnk );
-         }
-         else
-         {
-            el->setTargetRank( targetRnk );
-            ++n_vol_on_rnk[targetRnk];
-         }
-      }
+      // todo: implement better loadbalancing
+      WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
    }
 
    // extract data with new targetRank
@@ -400,6 +345,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing_roundRobin()
 
    // assign interface primitives
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+   // update_targetRank( vtxs, edges, faces, cells );
 
    // gather migration data
    MigrationMap_T migrationMap;
@@ -486,6 +432,61 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing_roundRobin()
    }
 
    return MigrationInfo( migrationMap, numReceivingPrimitives );
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
+{
+   const uint_t rank = walberla::mpi::MPIManager::instance()->rank();
+
+   // apply roundRobin to volume elments
+   if ( rank == 0 )
+   {
+      uint_t                targetRnk = 0;
+      std::vector< uint_t > n_vol_on_rnk( _n_processes );
+      uint_t                n_vol_max = _n_elements / _n_processes;
+      for ( auto el : _T )
+      {
+         // already asigned
+         if ( el->getTargetRank() < _n_processes )
+         {
+            continue;
+         }
+
+         // process saturated -> move to next process
+         while ( n_vol_on_rnk[targetRnk] >= n_vol_max )
+         {
+            ++targetRnk;
+
+            // round robin complete but unasigned elements left
+            if ( targetRnk == _n_processes )
+            {
+               targetRnk = 0;
+               ++n_vol_max;
+            }
+         }
+
+         // assign el to targetRnk
+         if ( el->has_green_edge() )
+         {
+            /* elements coming from a green step must reside on the same process
+                  to ensure compatibility with further refinement (interpolation between grids)
+               */
+            for ( auto s : el->get_siblings() )
+            {
+               s->setTargetRank( targetRnk );
+               ++n_vol_on_rnk[targetRnk];
+            }
+            // also change rank of parent s.th. next refinement resides on same process
+            el->get_parent()->setTargetRank( targetRnk );
+         }
+         else
+         {
+            el->setTargetRank( targetRnk );
+            ++n_vol_on_rnk[targetRnk];
+         }
+      }
+   }
 }
 
 template < class K_Simplex >
