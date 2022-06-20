@@ -403,12 +403,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto eL2 = compute_L2error();
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
 
-   // update u_old
-   if ( u0 == 1 )
-   {
-      u_old.swap( u );
-   }
-
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
 
@@ -497,6 +491,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          writeDomainPartitioningVTK(
              *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, realData );
       }
+   }
+
+   // update u_old
+   if ( u0 == 1 )
+   {
+      u_old.swap( u );
    }
 
    return err_2_elwise_loc;
