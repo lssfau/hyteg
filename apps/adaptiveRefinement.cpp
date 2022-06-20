@@ -343,42 +343,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       return std::sqrt( err_f.dotGlobal( tmp, l_max + 1, hyteg::Inner ) );
    };
 
-   // initialize functions
+   // initialize analytic solution, rhs and boundary values
    problem.init( storage, u_anal, f, *u, b, l_max );
 
-   /* initialize u_h with values from previous refinement
-      and apply loadbalancing
-   */
-   if ( u_old != nullptr )
+   // initialize u_h
+   if ( u0 == 1 && u_old != nullptr )
    {
-      if ( writePartitioning )
-      {
-         std::map< std::string, std::map< PrimitiveID, real_t > > realData;
-
-         writeDomainPartitioningVTK( *storage,
-                                     "output",
-                                     vtkname + "_partitioning_vertices_beforeLB_ts" + std::to_string( refinement_step ),
-                                     VTK_VERTEX,
-                                     realData );
-         writeDomainPartitioningVTK( *storage,
-                                     "output",
-                                     vtkname + "_partitioning_edges_beforeLB_ts" + std::to_string( refinement_step ),
-                                     VTK_LINE,
-                                     realData );
-         writeDomainPartitioningVTK( *storage,
-                                     "output",
-                                     vtkname + "_partitioning_faces_beforeLB_ts" + std::to_string( refinement_step ),
-                                     VTK_TRIANGLE,
-                                     realData );
-         if ( storage->hasGlobalCells() )
-         {
-            writeDomainPartitioningVTK( *storage,
-                                        "output",
-                                        vtkname + "_partitioning_cells_beforeLB_ts" + std::to_string( refinement_step ),
-                                        VTK_TETRA,
-                                        realData );
-         }
-      }
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
          real_t ux = 0.0;
@@ -389,11 +359,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          return ux;
       };
       u->interpolate( u_init, l_max, Inner );
-
-      // apply loadbalancing
-      auto migrationInfo = mesh.loadbalancing();
-      storage->migratePrimitives( migrationInfo );
    }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=0" );
+   }
+
+   // apply loadbalancing
+   auto migrationInfo = mesh.loadbalancing();
+   storage->migratePrimitives( migrationInfo );
 
    // initial residual
    real_t norm_r = compute_residual();
@@ -428,6 +402,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    auto eL2 = compute_L2error();
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
+
+   // update u_old
+   if ( u0 == 1 )
+   {
+      u_old.swap( u );
+   }
 
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
@@ -517,11 +497,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          writeDomainPartitioningVTK(
              *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, realData );
       }
-   }
-
-   if ( u0 == 1 )
-   {
-      u_old.swap( u );
    }
 
    return err_2_elwise_loc;

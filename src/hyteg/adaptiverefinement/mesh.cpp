@@ -310,14 +310,6 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 template < class K_Simplex >
 MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 {
-   const uint_t rank = walberla::mpi::MPIManager::instance()->rank();
-
-   // reset target ranks
-   for ( auto el : _T )
-   {
-      el->setTargetRank( _n_processes );
-   }
-
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::vector< VertexData >   vtxs_old;
    std::vector< EdgeData >     edges_old;
@@ -326,6 +318,13 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
 
+   // reset target ranks
+   for ( auto el : _T )
+   {
+      el->setTargetRank( _n_processes );
+   }
+
+   // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
       loadbalancing_roundRobin();
@@ -345,9 +344,10 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 
    // assign interface primitives
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
-   // update_targetRank( vtxs, edges, faces, cells );
+   update_targetRank( vtxs, edges, faces, cells );
 
    // gather migration data
+   const uint_t   rank = walberla::mpi::MPIManager::instance()->rank();
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
    for ( uint_t i = 0; i < vtxs.size(); ++i )
@@ -437,54 +437,49 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
 {
-   const uint_t rank = walberla::mpi::MPIManager::instance()->rank();
-
    // apply roundRobin to volume elments
-   if ( rank == 0 )
+   uint_t                targetRnk = 0;
+   std::vector< uint_t > n_vol_on_rnk( _n_processes );
+   uint_t                n_vol_max = _n_elements / _n_processes;
+   for ( auto el : _T )
    {
-      uint_t                targetRnk = 0;
-      std::vector< uint_t > n_vol_on_rnk( _n_processes );
-      uint_t                n_vol_max = _n_elements / _n_processes;
-      for ( auto el : _T )
+      // already asigned
+      if ( el->getTargetRank() < _n_processes )
       {
-         // already asigned
-         if ( el->getTargetRank() < _n_processes )
-         {
-            continue;
-         }
+         continue;
+      }
 
-         // process saturated -> move to next process
-         while ( n_vol_on_rnk[targetRnk] >= n_vol_max )
-         {
-            ++targetRnk;
+      // process saturated -> move to next process
+      while ( n_vol_on_rnk[targetRnk] >= n_vol_max )
+      {
+         ++targetRnk;
 
-            // round robin complete but unasigned elements left
-            if ( targetRnk == _n_processes )
-            {
-               targetRnk = 0;
-               ++n_vol_max;
-            }
+         // round robin complete but unasigned elements left
+         if ( targetRnk == _n_processes )
+         {
+            targetRnk = 0;
+            ++n_vol_max;
          }
+      }
 
-         // assign el to targetRnk
-         if ( el->has_green_edge() )
+      // assign el to targetRnk
+      if ( el->has_green_edge() )
+      {
+         /* elements coming from a green step must reside on the same process
+            to ensure compatibility with further refinement (interpolation between grids)
+         */
+         for ( auto s : el->get_siblings() )
          {
-            /* elements coming from a green step must reside on the same process
-                  to ensure compatibility with further refinement (interpolation between grids)
-               */
-            for ( auto s : el->get_siblings() )
-            {
-               s->setTargetRank( targetRnk );
-               ++n_vol_on_rnk[targetRnk];
-            }
-            // also change rank of parent s.th. next refinement resides on same process
-            el->get_parent()->setTargetRank( targetRnk );
-         }
-         else
-         {
-            el->setTargetRank( targetRnk );
+            s->setTargetRank( targetRnk );
             ++n_vol_on_rnk[targetRnk];
          }
+         // also change rank of parent s.th. next refinement resides on same process
+         el->get_parent()->setTargetRank( targetRnk );
+      }
+      else
+      {
+         el->setTargetRank( targetRnk );
+         ++n_vol_on_rnk[targetRnk];
       }
    }
 }
