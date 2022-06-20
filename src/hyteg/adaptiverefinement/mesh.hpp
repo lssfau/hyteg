@@ -112,9 +112,14 @@ class K_Mesh
    std::pair< real_t, real_t > min_max_volume() const;
 
    /* construct PrimitiveStorage corresponding to current refinement
-      @param loadbalancing scheme used for load balancing
    */
-   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = INHERITED );
+   std::shared_ptr< PrimitiveStorage > make_storage();
+
+   /* apply loadbalancing scheme to current refinement
+      @param lbScheme scheme used for load balancing
+      @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
+   */
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -170,6 +175,12 @@ class K_Mesh
                       std::vector< FaceData >&     faceData,
                       std::vector< CellData >&     cellData,
                       std::vector< Neighborhood >& nbrHood ) const;
+
+   /* update target rank for all primitives */
+   void update_targetRank( const std::vector< VertexData >& vtxData,
+                           const std::vector< EdgeData >&   edgeData,
+                           const std::vector< FaceData >&   faceData,
+                           const std::vector< CellData >&   cellData );
 
    /* create PrimitiveStorage from SimplexData */
    std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,
@@ -348,19 +359,34 @@ class Mesh
    }
 
    /* construct PrimitiveStorage corresponding to current refinement
-      @param loadbalancing scheme used for load balancing
    */
-   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = INHERITED )
+   std::shared_ptr< PrimitiveStorage > make_storage()
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->make_storage( loadbalancing );
+         return _mesh3D->make_storage();
       }
       else
       {
-         return _mesh2D->make_storage( loadbalancing );
+         return _mesh2D->make_storage();
       }
    };
+
+   /* apply loadbalancing scheme to current refinement
+      @param lbScheme scheme used for load balancing
+      @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
+   */
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->loadbalancing( lbScheme );
+      }
+      else
+      {
+         return _mesh2D->loadbalancing( lbScheme );
+      }
+   }
 
    // get number of elements in current refinement
    inline uint_t n_elements() const

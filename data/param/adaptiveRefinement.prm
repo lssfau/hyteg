@@ -4,7 +4,7 @@ Parameters
   dim 2;
   // model problem
   // 0: Poisson on [-1,1]^d with f=δ (dirac)
-  // 1: Poisson on [-1,1]^d with f=δ_ref (regularized dirac, i.e., gauss)
+  // 1: Poisson on [-1,1]^d with f=δ_reg (regularized dirac, i.e., gauss)
   modelProblem 0;
   // offset from singularity where the error will be ignored (unused if there is no singularity)
   offset 0.01;
@@ -20,19 +20,19 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 10; // number of refinement steps
+  n_refinements 3; // number of refinement steps
   percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
   n_el_max -1; // max number of macro elements
 
   // local regular refinement
-  microlevel 7;
+  microlevel 3;
 
   // linear solver (GMG)
-  initial_guess 0; // 0: zero, 1: u_h from previous refinement
-  n_iterations 20;
+  initial_guess 1; // 0: zero, 1: u_h from previous refinement
+  n_iterations 3;
   tolerance 1e-10;
 
   // misc
-  // vtkName auto;
-  writeDomainPartitioning 0;
+  vtkName auto;
+  writeDomainPartitioning 1;
 }

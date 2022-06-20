@@ -36,6 +36,7 @@
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -350,6 +351,34 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    */
    if ( u_old != nullptr )
    {
+      if ( writePartitioning )
+      {
+         std::map< std::string, std::map< PrimitiveID, real_t > > realData;
+
+         writeDomainPartitioningVTK( *storage,
+                                     "output",
+                                     vtkname + "_partitioning_vertices_beforeLB_ts" + std::to_string( refinement_step ),
+                                     VTK_VERTEX,
+                                     realData );
+         writeDomainPartitioningVTK( *storage,
+                                     "output",
+                                     vtkname + "_partitioning_edges_beforeLB_ts" + std::to_string( refinement_step ),
+                                     VTK_LINE,
+                                     realData );
+         writeDomainPartitioningVTK( *storage,
+                                     "output",
+                                     vtkname + "_partitioning_faces_beforeLB_ts" + std::to_string( refinement_step ),
+                                     VTK_TRIANGLE,
+                                     realData );
+         if ( storage->hasGlobalCells() )
+         {
+            writeDomainPartitioningVTK( *storage,
+                                        "output",
+                                        vtkname + "_partitioning_cells_beforeLB_ts" + std::to_string( refinement_step ),
+                                        VTK_TETRA,
+                                        realData );
+         }
+      }
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
          real_t ux = 0.0;
@@ -361,7 +390,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       };
       u->interpolate( u_init, l_max, Inner );
 
-      // todo: add loadbalancing
+      // apply loadbalancing
+      WALBERLA_LOG_INFO( "apply loadbalancing" );
+      auto migrationInfo = mesh.loadbalancing();
+      WALBERLA_LOG_INFO( "migrate primitives" );
+      storage->migratePrimitives( migrationInfo );
    }
 
    // initial residual
@@ -382,7 +415,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    {
       if ( l2_error_each_iteration )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, compute_L2error() ) );
+         auto eL2 = compute_L2error();
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
       }
       else
       {
@@ -394,7 +428,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       norm_r = compute_residual();
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, compute_L2error() ) );
+   auto eL2 = compute_L2error();
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
 
    // compute elementwise error
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
@@ -471,7 +506,19 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    if ( writePartitioning )
    {
-      writeDomainPartitioningVTK( storage, "output", vtkname + "_partitioning_ts" + std::to_string( refinement_step ) );
+      std::map< std::string, std::map< PrimitiveID, real_t > > realData;
+
+      writeDomainPartitioningVTK(
+          *storage, "output", vtkname + "_partitioning_vertices_ts" + std::to_string( refinement_step ), VTK_VERTEX, realData );
+      writeDomainPartitioningVTK(
+          *storage, "output", vtkname + "_partitioning_edges_ts" + std::to_string( refinement_step ), VTK_LINE, realData );
+      writeDomainPartitioningVTK(
+          *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, realData );
+      if ( storage->hasGlobalCells() )
+      {
+         writeDomainPartitioningVTK(
+             *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, realData );
+      }
    }
 
    if ( u0 == 1 )

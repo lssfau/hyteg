@@ -23,6 +23,8 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+
 #include "simplex.hpp"
 
 namespace hyteg {
@@ -137,11 +139,12 @@ using CellData   = SimplexData< CELL >;
 using Neighborhood = std::array< std::vector< uint_t >, ALL >;
 
 /* apply loadbalancing (round robin) directly on our datastructures */
-void loadbalancing( std::vector< VertexData >& vtxs,
-                    std::vector< EdgeData >&   edges,
-                    std::vector< FaceData >&   faces,
-                    std::vector< CellData >&   cells,
-                    const uint_t&              n_processes );
+MigrationInfo loadbalancing( std::vector< VertexData >& vtxs,
+                             std::vector< EdgeData >&   edges,
+                             std::vector< FaceData >&   faces,
+                             std::vector< CellData >&   cells,
+                             const uint_t&              n_processes,
+                             const uint_t&              rank );
 
 /* apply neighborhood aware loadbalancing directly on our datastructures */
 // void loadbalancing( std::vector< VertexData >&         vtxs,
