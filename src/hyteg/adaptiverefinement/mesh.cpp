@@ -347,7 +347,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    update_targetRank( vtxs, edges, faces, cells );
 
    // gather migration data
-   const uint_t   rank = walberla::mpi::MPIManager::instance()->rank();
+   const uint_t   rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
    for ( uint_t i = 0; i < vtxs.size(); ++i )
