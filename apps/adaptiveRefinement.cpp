@@ -276,6 +276,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        const ModelProblem&                      problem,
                                        uint_t                                   u0,
                                        std::shared_ptr< P1Function< real_t > >& u_old,
+                                       uint_t                                   l_interpolate,
                                        uint_t                                   l_min,
                                        uint_t                                   l_max,
                                        uint_t                                   max_iter,
@@ -352,7 +353,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
          real_t ux = 0.0;
-         if ( !u_old->evaluate( x, l_max, ux, 1e-16 ) )
+         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-16 ) )
          {
             WALBERLA_LOG_INFO( "no value for x=" << x );
          }
@@ -509,9 +510,12 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 real_t                       p_ref,
                                 uint_t                       l_min,
                                 uint_t                       l_max,
+                                uint_t                       l_final,
                                 uint_t                       u0,
                                 uint_t                       max_iter,
                                 real_t                       tol,
+                                uint_t                       max_iter_final,
+                                real_t                       tol_final,
                                 std::string                  vtkname,
                                 bool                         writePartitioning )
 {
@@ -525,11 +529,11 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
    {
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
-         local_errors =
-             solve< Laplace >( mesh, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
+         local_errors = solve< Laplace >(
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
       else
-         local_errors =
-             solve< DivkGrad >( mesh, problem, u0, u_old, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
+         local_errors = solve< DivkGrad >(
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
 
       if ( refinement >= n_ref )
       {
@@ -573,8 +577,25 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       if ( ratio < 0.95 )
       {
          WALBERLA_LOG_INFO_ON_ROOT(
-             "* refinement can't be applied to all required elements\n  without breaking the max number of elements!" );
+             "* refinement could not be applied to all required elements\n  without exceeding the max number of elements!" );
          break;
+      }
+   }
+
+   if ( l_final > l_max )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "* final solve with higher resolution" );
+
+      if ( problem.constant_coefficient() )
+      {
+         solve< Laplace >(
+             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, vtkname, writePartitioning, refinement );
+      }
+      else
+      {
+         solve< DivkGrad >(
+             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, vtkname, writePartitioning, refinement );
       }
    }
 }
@@ -614,12 +635,15 @@ int main( int argc, char* argv[] )
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
 
-   const uint_t l_max = parameters.getParameter< uint_t >( "microlevel" );
-   const uint_t l_min = 0;
+   const uint_t l_min   = 0;
+   const uint_t l_max   = parameters.getParameter< uint_t >( "microlevel" );
+   const uint_t l_final = parameters.getParameter< uint_t >( "microlevel_final", l_max );
 
-   const uint_t u0       = parameters.getParameter< uint_t >( "initial_guess", 0 );
-   const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
-   const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
+   const uint_t u0             = parameters.getParameter< uint_t >( "initial_guess", 0 );
+   const uint_t max_iter       = parameters.getParameter< uint_t >( "n_iterations" );
+   const uint_t max_iter_final = parameters.getParameter< uint_t >( "n_iterations_final", max_iter );
+   const real_t tol            = parameters.getParameter< real_t >( "tolerance" );
+   const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
 
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -642,9 +666,12 @@ int main( int argc, char* argv[] )
                               p_refinement,
                               l_min,
                               l_max,
+                              l_final,
                               u0,
                               max_iter,
                               tol,
+                              max_iter_final,
+                              tol_final,
                               vtkname,
                               writePartitioning );
 
