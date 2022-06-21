@@ -1,13 +1,13 @@
 Parameters
 {
   // spacial dimension of domain
-  dim 2;
+  dim 3;
   // model problem
   // 0: Poisson on [-1,1]^d with f=δ (dirac)
   // 1: Poisson on [-1,1]^d with f=δ_reg (regularized dirac, i.e., gauss)
   modelProblem 0;
   // offset from singularity where the error will be ignored (unused if there is no singularity)
-  offset 0.01;
+  offset 1e-10;
   // only use offset for computation of total error but still consider the respective elements for refinement
   refine_all 1;
   // standard deviation used when mp=1
@@ -20,24 +20,24 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 20; // number of refinement steps
+  n_refinements 3; // number of refinement steps
   percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
-  n_el_max 512; // max number of macro elements
+  n_el_max -1; // max number of macro elements
 
   // local regular refinement
-  microlevel 5;
-  // apply additional solve on final grid with higher micro-level
-  microlevel_final 7;
+  microlevel 1;
+  // use different micro level for final solve step
+  microlevel_final 1;
 
   // linear solver (GMG)
   initial_guess 1; // 0: zero, 1: u_h from previous refinement
-  n_iterations 4;
+  n_iterations 1;
   tolerance 1e-6;
-  // use different number of iterations and tolerance for final solve step (only used if microlevel < microlevel_final)
+  // use different number of iterations and tolerance for final solve step
   n_iterations_final 10;
   tolerance_final 1e-9;
 
   // misc
-  // vtkName auto;
+  vtkName auto;
   writeDomainPartitioning 0;
 }

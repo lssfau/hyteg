@@ -582,10 +582,16 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       }
    }
 
-   if ( l_final > l_max )
+   if ( l_final > l_max || max_iter_final > max_iter || tol_final < tol )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      WALBERLA_LOG_INFO_ON_ROOT( "* final solve with higher resolution" );
+      WALBERLA_LOG_INFO_ON_ROOT( "* final solve with " );
+      if ( l_final > l_max )
+         WALBERLA_LOG_INFO_ON_ROOT( "    higher micro-level" );
+      if ( max_iter_final > max_iter )
+         WALBERLA_LOG_INFO_ON_ROOT( "    greater number of iterations" );
+      if ( tol_final < tol )
+         WALBERLA_LOG_INFO_ON_ROOT( "    smaller tolerance for residual" );
 
       if ( problem.constant_coefficient() )
       {
