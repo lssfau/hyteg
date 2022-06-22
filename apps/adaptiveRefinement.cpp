@@ -61,6 +61,7 @@ struct ModelProblem
    {
       DIRAC,
       DIRAC_REGULARIZED,
+      CRACK,
       NOT_AVAILABLE
    };
 
@@ -95,6 +96,10 @@ struct ModelProblem
 
       case DIRAC_REGULARIZED:
          ss << "dirac_regularized"; // << "_" << sigma;
+         break;
+
+      case CRACK:
+         ss << "crack";
          break;
 
       default:
@@ -194,6 +199,26 @@ struct ModelProblem
          }
       }
 
+      if ( type == CRACK )
+      {
+         constexpr real_t alpha = 0.5;
+
+         if ( dim == 3 )
+         {
+            WALBERLA_ABORT( "crack not implemented for 3d" );
+         }
+
+         _f = []( const hyteg::Point3D& ) -> real_t { return 0.0; };
+         _u = [=]( const hyteg::Point3D& x ) -> real_t {
+            auto r   = x.norm();
+            auto phi = std::atan2( x[1], x[0] ); // only valid in 2D!
+            if ( phi < 0 )
+               phi += 2 * pi;
+
+            return std::pow( r, alpha ) * std::sin( alpha * phi );
+         };
+      }
+
       // interpolate rhs of pde
       f.interpolate( _f, lvl );
       // construct rhs of linear system s.th. b_i = ∫fφ_i
@@ -266,6 +291,16 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   if ( problem.type == ModelProblem::CRACK )
+   {
+      if ( N % 2 != 0 )
+      {
+         WALBERLA_ABORT( "Initial resolution for crack must be an even number!" );
+      }
+      auto onBoundary = []( const hyteg::Point3D& x ) -> bool { return std::abs( x[1] ) < 1e-50 && x[0] >= 0.0; };
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary, true );
+   }
 
    return setupStorage;
 }
@@ -638,7 +673,7 @@ int main( int argc, char* argv[] )
 
    const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", 1 );
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max" );
+   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
 
    const uint_t l_min   = 0;
