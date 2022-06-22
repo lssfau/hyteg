@@ -4,7 +4,8 @@ Parameters
   // 0: dirac on rhs
   // 1: regularized dirac on rhs
   // 2: crack in domain
-  modelProblem 0;
+  // 3: domain with reentrant corner
+  modelProblem 3;
   // spacial dimension of domain
   dim 2;
 
@@ -16,18 +17,18 @@ Parameters
   sigma 0.1;
 
   // initial number of elements in each direction
-  initial_resolution 1;
+  initial_resolution 2;
 
   // adaptive refinement:
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 5; // number of refinement steps
-  percentile 1; // minimum proportion of elements to refine in each step [0,1]
-  // n_el_max 8200; // max number of macro elements
+  n_refinements 25; // number of refinement steps
+  percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
+  // n_el_max 6144; // max number of macro elements
 
   // local regular refinement
-  microlevel 6;
+  microlevel 5;
   // use different micro level for final solve step
   // microlevel_final 4;
 

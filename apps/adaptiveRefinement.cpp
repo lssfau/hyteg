@@ -62,6 +62,7 @@ struct ModelProblem
       DIRAC,
       DIRAC_REGULARIZED,
       CRACK,
+      REENTRANT_CORNER,
       NOT_AVAILABLE
    };
 
@@ -100,6 +101,10 @@ struct ModelProblem
 
       case CRACK:
          ss << "crack";
+         break;
+
+      case REENTRANT_CORNER:
+         ss << "reentrant_corner";
          break;
 
       default:
@@ -199,13 +204,13 @@ struct ModelProblem
          }
       }
 
-      if ( type == CRACK )
+      if ( type == CRACK || type == REENTRANT_CORNER )
       {
-         constexpr real_t alpha = 0.5;
+         const real_t alpha = ( type == CRACK ) ? 1.0 / 2.0 : 2.0 / 3.0;
 
          if ( dim == 3 )
          {
-            WALBERLA_ABORT( "crack not implemented for 3d" );
+            WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
          }
 
          _f = []( const hyteg::Point3D& ) -> real_t { return 0.0; };
@@ -279,8 +284,21 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
 
    if ( problem.dim == 2 )
    {
-      Point2D n( { 1, 1 } );
-      meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N, N );
+      if ( problem.type == ModelProblem::REENTRANT_CORNER )
+      {
+         if ( N % 2 != 0 || N < 2 || N > 10 )
+         {
+            WALBERLA_ABORT( "Initial resolution for reentrant corner must be an even number with 2 <= N <= 10!" );
+         }
+         uint_t n_el     = N * N * 3 / 2;
+         auto   filename = "data/meshes/LShape_" + std::to_string( n_el ) + "el.msh";
+         meshInfo        = MeshInfo::fromGmshFile( filename );
+      }
+      else
+      {
+         Point2D n( { 1, 1 } );
+         meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N, N );
+      }
    }
    else
    {
