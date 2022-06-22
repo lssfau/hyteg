@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2022 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,14 +82,23 @@ int main( int argc, char* argv[] )
 
    // check (de)serialisation works at least formally
    walberla::mpi::SendBuffer sendBuffer;
-   walberla::mpi::RecvBuffer recvBuffer;
    sendBuffer << matMPI;
+   walberla::mpi::RecvBuffer recvBuffer( sendBuffer );
    recvBuffer >> matRef;
+   WALBERLA_CHECK_FLOAT_EQUAL( ( matMPI - matRef ).cwiseAbs().maxCoeff(), real_c( 0 ) );
 
    // real check with communication (requires >= 2 MPI procs to make sense)
-   matRef = matMPI;
-   walberla::mpi::broadcastObject( matMPI );
-   WALBERLA_CHECK_FLOAT_EQUAL( (matMPI - matRef).cwiseAbs().maxCoeff(), real_c( 0 ) );
+   const auto rank   = walberla::mpi::MPIManager::instance()->rank();
+   const auto nProcs = walberla::mpi::MPIManager::instance()->numProcesses();
+   if ( nProcs > 1 )
+   {
+      if ( rank == 0 )
+      {
+         matMPI *= real_c( 2 );
+      }
+      walberla::mpi::broadcastObject( matMPI );
+      WALBERLA_CHECK_FLOAT_EQUAL( ( matMPI - real_c( 2 ) * matRef ).cwiseAbs().maxCoeff(), real_c( 0 ) );
+   }
 
    return EXIT_SUCCESS;
 }
