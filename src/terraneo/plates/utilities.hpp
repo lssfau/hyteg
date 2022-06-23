@@ -50,7 +50,7 @@ inline std::string ageToKeyStr( const real_t age )
 /// It has no deeper meaning but allows to e.g. use std::set< vec3D >.
 template<>
 struct std::less< terraneo::vec3D > {
-  constexpr bool operator()( const terraneo::vec3D& a, const terraneo::vec3D& b ) const {
+  bool operator()( const terraneo::vec3D& a, const terraneo::vec3D& b ) const {
     if( a(0) < b(0) ) { return true; }
     else if ( a(0) == b(0) && a(1) < b(1) ) { return true; }
     else if ( a(0) == b(0) && a(1) == b(1) && a(2) < b(2) ) { return true; }
