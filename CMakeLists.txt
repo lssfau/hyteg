@@ -72,6 +72,7 @@ if( HYTEG_TERRANEO_MODULE )
 
    # fix to prevent cgal cmake warning
    set(CGAL_DATA_DIR "dummy")
+   set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
    find_package(CGAL HINTS ${hyteg_BINARY_DIR}/_deps/cgal_library-src/ )
 
    # Unpack plate topology file
