@@ -23,6 +23,11 @@
 #include <algorithm>
 #include <vector>
 
+#include "core/mpi/BufferDataTypeExtensions.h"
+#include "core/mpi/Gatherv.h"
+
+#include "terraneo/plates/utilities.hpp"
+
 namespace terraneo::plates {
 
 /// \defgroup PlateNotFoundHandlers PlateNotFoundHandlers
@@ -53,9 +58,11 @@ class DefaultPlateNotFoundHandler
 class StatisticsPlateNotFoundHandler
 {
  public:
+   using map_t = std::map< std::string, std::vector< vec3D > >;
+
    vec3D operator()( const vec3D& point, const real_t age )
    {
-      pointsNotFound_[age].push_back( point );
+      pointsNotFound_[ageToKeyStr( age )].push_back( point );
       return {real_c( 0 ), real_c( 0 ), real_c( 0 )};
    }
 
@@ -67,21 +74,75 @@ class StatisticsPlateNotFoundHandler
       // auto last = std::unique( pointsNotFound_.begin(), pointsNotFound_.end() );
       // pointsNotFound_.erase( last, pointsNotFound_.end() );
 
-      for ( const auto& elem : pointsNotFound_ )
+      map_t pointsNotFoundGlobal = collectDataOnRoot();
+
+      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
       {
-         real_t                      age          = elem.first;
-         const std::vector< vec3D >& pointsForAge = elem.second;
-         WALBERLA_LOG_INFO( "List of points w/o plateID for age = " << age << ":" );
-         for ( uint k = 0; k < pointsForAge.size(); ++k )
+         for ( const auto& elem : pointsNotFoundGlobal )
          {
-            WALBERLA_LOG_INFO( "" << std::setw( 3 ) << k << ": (" << std::scientific << std::showpos << pointsForAge[k]( 0 )
-                                  << ", " << pointsForAge[k]( 1 ) << ", " << pointsForAge[k]( 2 ) << ")" );
+            std::string                 keyStr       = elem.first;
+            const std::vector< vec3D >& pointsForAge = elem.second;
+            WALBERLA_LOG_INFO( "List of points w/o plateID for age = " << keyStrToAge( keyStr ) << ":" );
+            for ( uint k = 0; k < pointsForAge.size(); ++k )
+            {
+               WALBERLA_LOG_INFO( "" << std::setw( 3 ) << k << ": (" << std::scientific << std::showpos << pointsForAge[k]( 0 )
+                                     << ", " << pointsForAge[k]( 1 ) << ", " << pointsForAge[k]( 2 ) << ")" );
+            }
          }
       }
    }
 
  private:
-   std::map< real_t, std::vector< vec3D > > pointsNotFound_;
+   void combineMaps( map_t& dstMap, const map_t& srcMap )
+   {
+      // loop over source map
+      for ( auto [key, srcVec] : srcMap )
+      {
+         // check for key in destination map
+         auto keyPos = dstMap.find( key );
+
+         // if key does not exist, simlpe insert new key, vector pair
+         if ( keyPos == dstMap.end() )
+         {
+            dstMap[key] = srcVec;
+         }
+
+         // key exists, so append vector contents
+         else
+         {
+            auto& dstVec = keyPos->second;
+            dstVec.insert( dstVec.end(), srcVec.begin(), srcVec.end() );
+         }
+      }
+   }
+
+   map_t collectDataOnRoot()
+   {
+      walberla::mpi::SendBuffer sendBuffer;
+      sendBuffer << pointsNotFound_;
+      walberla::mpi::RecvBuffer recvBuffer;
+      walberla::mpi::gathervBuffer( sendBuffer, recvBuffer );
+
+      const auto myRank = walberla::mpi::MPIManager::instance()->rank();
+      const auto nProcs = walberla::mpi::MPIManager::instance()->numProcesses();
+
+      map_t globalMap;
+
+      // extract individual maps and combine them in global one
+      if ( myRank == 0 )
+      {
+         map_t singleMap;
+         for ( uint_t k = 0; k < nProcs; ++k )
+         {
+            recvBuffer >> singleMap;
+            combineMaps( globalMap, singleMap );
+         }
+      }
+
+      return globalMap;
+   }
+
+   map_t pointsNotFound_;
 };
 
 /// @}
