@@ -29,6 +29,7 @@
 #include "terraneo/helpers/typeAliases.hpp"
 #include "terraneo/plates/functionsForRotations.hpp"
 #include "terraneo/plates/types.hpp"
+#include "terraneo/plates/utilities.hpp"
 
 namespace terraneo {
 namespace plates {
@@ -41,10 +42,10 @@ class PlateStorage
    struct PlateInfo
    {
       /// Set to true, after plate was rotated to xy-plane
-      bool rotatedToXY{ false };
+      bool rotatedToXY{false};
 
       /// ID of the plate
-      uint_t id{ 0 };
+      uint_t id{0};
 
       /// Nodes describing the boundary of the plate
       Polygon boundary;
@@ -54,7 +55,7 @@ class PlateStorage
       /// If the plate was a 2D object, this would represent its barycenter.
       /// The center is not rotated to the xy-plane, but kept at its original
       /// position.
-      vec3D center{ real_c( 0 ), real_c( 0 ), real_c( 0 ) };
+      vec3D center{real_c( 0 ), real_c( 0 ), real_c( 0 )};
 
       /// Textual name of plate
       std::string name;
@@ -84,7 +85,7 @@ class PlateStorage
    /// Report statistics on what an object of this class stores
    void printStatistics()
    {
-      uint_t nPlates{ 0 };
+      uint_t nPlates{0};
       for ( auto entry : ageToPlatesMap_ )
       {
          nPlates += entry.second.size();
@@ -99,10 +100,10 @@ class PlateStorage
 
    plateVec_t& getPlatesForStage( real_t age )
    {
-      auto iter = ageToPlatesMap_.find( ageToKey( age ) );
+      auto iter = ageToPlatesMap_.find( ageToKeyStr( age ) );
       if ( iter == ageToPlatesMap_.end() )
       {
-         std::cerr << "No plates found for " << ageToKey( age ) << std::endl;
+         std::cerr << "No plates found for " << ageToKeyStr( age ) << std::endl;
          std::abort();
       }
 
@@ -111,10 +112,10 @@ class PlateStorage
 
    const plateVec_t& getPlatesForStage( real_t age ) const
    {
-      auto iter = ageToPlatesMap_.find( ageToKey( age ) );
+      auto iter = ageToPlatesMap_.find( ageToKeyStr( age ) );
       if ( iter == ageToPlatesMap_.end() )
       {
-         std::cerr << "No plates found for " << ageToKey( age ) << std::endl;
+         std::cerr << "No plates found for " << ageToKeyStr( age ) << std::endl;
          std::abort();
       }
 
@@ -124,23 +125,6 @@ class PlateStorage
    const std::vector< real_t >& getListOfPlateStages() const { return listOfPlateStages_; }
 
  private:
-   // assemble key from age
-   inline std::string ageToKey( real_t age ) const
-   {
-      std::stringstream key;
-      key.precision( 4 );
-      key << std::fixed;
-      key << "topology_" << age << "Ma_polygon";
-      return key.str();
-   }
-
-   // convert key/ageName to an age value
-   inline real_t keyToAge( const std::string& key ) const
-   {
-      std::string ageStr = key.substr( 9, 6 );
-      return PLATES_IO_STR_TO_FP( ageStr );
-   }
-
    /// method for data preparation
    ///
    /// this method will convert the imported data into a format more suitable for
@@ -163,7 +147,7 @@ class PlateStorage
          plateVec_t& plates = ageToPlatesMap_[ageName];
 
          // convert ageName to numeric age value and insert it
-         listOfPlateStages_.push_back( keyToAge( ageName ) );
+         listOfPlateStages_.push_back( keyStrToAge( ageName ) );
 
          // extract plates for this age stage and put into vector of plates
          for ( uint_t k = 0; k < nPlates; ++k )
@@ -176,13 +160,13 @@ class PlateStorage
             const nlohmann::json coordinates = rootNode[idx]["features"][k]["geometry"]["coordinates"][0];
             for ( auto& element : coordinates )
             {
-               plates[k].boundary.push_back( { element[0], element[1], real_c( 0 ) } );
+               plates[k].boundary.push_back( {element[0], element[1], real_c( 0 )} );
             }
 
             // convert to cartesian coordinates and compute center of plate
             for ( auto& node : plates[k].boundary )
             {
-               node = terraneo::conversions::sph2cart( { node[0], node[1] }, sphereRadius_ );
+               node = terraneo::conversions::sph2cart( {node[0], node[1]}, sphereRadius_ );
                plates[k].center += node;
             }
             plates[k].center /= plates[k].boundary.size();
