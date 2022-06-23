@@ -146,7 +146,7 @@ int main( int argc, char* argv[] )
       }
 
       // orthogonality check
-      real_t angleTol  = real_c( 1e-15 );
+      real_t angleTol  = real_c( 1e-13 );
       real_t innerProd = velXYZ.dot( pointXYZ );
       real_t angle     = std::acos( innerProd / ( velXYZ.norm() * pointXYZ.norm() ) );
       angle *= real_c( 180 ) / terraneo::conversions::pi;
