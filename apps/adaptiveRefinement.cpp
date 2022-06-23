@@ -61,7 +61,7 @@ struct ModelProblem
    {
       DIRAC,
       DIRAC_REGULARIZED,
-      CRACK,
+      SLIT,
       REENTRANT_CORNER,
       NOT_AVAILABLE
    };
@@ -99,8 +99,8 @@ struct ModelProblem
          ss << "dirac_regularized"; // << "_" << sigma;
          break;
 
-      case CRACK:
-         ss << "crack";
+      case SLIT:
+         ss << "slit";
          break;
 
       case REENTRANT_CORNER:
@@ -138,11 +138,11 @@ struct ModelProblem
 
    auto coeff() const
    {
-      std::function< real_t( const hyteg::Point3D& ) > k;
+      std::function< real_t( const Point3D& ) > k;
 
       if ( constant_coefficient() )
       {
-         k = [=]( const hyteg::Point3D& ) { return 1.0; };
+         k = [=]( const Point3D& ) { return 1.0; };
       }
       // todo: add required coefficients
 
@@ -160,8 +160,8 @@ struct ModelProblem
       using walberla::math::pi;
 
       // setup rhs function f and analytic solution u of pde
-      std::function< real_t( const hyteg::Point3D& ) > _f;
-      std::function< real_t( const hyteg::Point3D& ) > _u;
+      std::function< real_t( const Point3D& ) > _f;
+      std::function< real_t( const Point3D& ) > _u;
 
       if ( type == DIRAC_REGULARIZED )
       {
@@ -175,10 +175,8 @@ struct ModelProblem
          }
          else
          {
-            _f = [=]( const hyteg::Point3D& x ) -> real_t {
-               return std::exp( -0.5 * x.normSq() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 );
-            };
-            _u = [=]( const hyteg::Point3D& x ) -> real_t {
+            _f = [=]( const Point3D& x ) -> real_t { return std::exp( -0.5 * x.normSq() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 ); };
+            _u = [=]( const Point3D& x ) -> real_t {
                real_t r = x.norm();
                if ( r <= 0.0 )
                   return 1.0 / ( sqrt_2pi_pow_3 * sigma );
@@ -190,31 +188,31 @@ struct ModelProblem
 
       if ( type == DIRAC )
       {
-         _f = [=]( const hyteg::Point3D& x ) -> real_t {
+         _f = [=]( const Point3D& x ) -> real_t {
             return ( x.norm() < 1e-100 ) ? std::numeric_limits< real_t >::infinity() : 0.0;
          };
 
          if ( dim == 2 )
          {
-            _u = [=]( const hyteg::Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
+            _u = [=]( const Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
          }
          else
          {
-            _u = [=]( const hyteg::Point3D& x ) -> real_t { return 1.0 / ( 4.0 * pi * x.norm() ); };
+            _u = [=]( const Point3D& x ) -> real_t { return 1.0 / ( 4.0 * pi * x.norm() ); };
          }
       }
 
-      if ( type == CRACK || type == REENTRANT_CORNER )
+      if ( type == SLIT || type == REENTRANT_CORNER )
       {
-         const real_t alpha = ( type == CRACK ) ? 1.0 / 2.0 : 2.0 / 3.0;
+         const real_t alpha = ( type == SLIT ) ? 1.0 / 2.0 : 2.0 / 3.0;
 
-         if ( dim == 3 )
+         if ( type == REENTRANT_CORNER && dim == 3 )
          {
             WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
          }
 
-         _f = []( const hyteg::Point3D& ) -> real_t { return 0.0; };
-         _u = [=]( const hyteg::Point3D& x ) -> real_t {
+         _f = []( const Point3D& ) -> real_t { return 0.0; };
+         _u = [=]( const Point3D& x ) -> real_t {
             auto r   = x.norm();
             auto phi = std::atan2( x[1], x[0] ); // only valid in 2D!
             if ( phi < 0 )
@@ -230,7 +228,7 @@ struct ModelProblem
       if ( type == DIRAC )
       {
          // ∫δ_0 φ_i = φ_i(0)
-         auto _b = [=]( const hyteg::Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
+         auto _b = [=]( const Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
          b.interpolate( _b, lvl );
       }
       else
@@ -255,7 +253,7 @@ struct ModelProblem
    {
       if ( offset_err > 0 )
       {
-         auto filter = [=]( const hyteg::Point3D& x ) -> real_t {
+         auto filter = [=]( const Point3D& x ) -> real_t {
             real_t ex = 0.0;
             if ( x.norm() >= offset_err )
                e.evaluate( x, lvl, ex );
@@ -302,21 +300,42 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
    }
    else
    {
-      Point3D n( { 1, 1, 1 } );
-      meshInfo = MeshInfo::meshCuboid( -n, n, N, N, N );
+      if ( problem.type == ModelProblem::SLIT )
+      {
+         if ( N % 2 != 0 )
+         {
+            WALBERLA_ABORT( "Initial resolution for slit domain must be an even number!" );
+         }
+         Point3D n( { 1, 1, 0.1 } );
+         meshInfo = MeshInfo::meshCuboid( -n, n, N, N, 1 );
+      }
+      else
+      {
+         Point3D n( { 1, 1, 1 } );
+         meshInfo = MeshInfo::meshCuboid( -n, n, N, N, N );
+      }
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
+   // setup boundary conditions
+
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   if ( problem.type == ModelProblem::CRACK )
+   if ( problem.type == ModelProblem::SLIT )
    {
-      if ( N % 2 != 0 )
+      if ( problem.dim == 3 )
       {
-         WALBERLA_ABORT( "Initial resolution for crack must be an even number!" );
+         // neumann boundary on top and bottom of plate
+         setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
+         auto onBoundary = []( const Point3D& x ) -> bool {
+            return std::abs( x[0] ) >= 1 - 1e-15 || //
+                   std::abs( x[1] ) >= 1 - 1e-15;
+         };
+         setupStorage.setMeshBoundaryFlagsByCentroidLocation(1, onBoundary, true);
       }
-      auto onBoundary = []( const hyteg::Point3D& x ) -> bool { return std::abs( x[1] ) < 1e-50 && x[0] >= 0.0; };
+      // dirichlet boundary on slit
+      auto onBoundary = []( const Point3D& x ) -> bool { return std::abs( x[1] ) < 1e-50 && x[0] >= 0.0; };
       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary, true );
    }
 
@@ -374,7 +393,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    P1Function< real_t > err_f( "e_h_filtered", storage, l_max + 1, l_max + 1 );
 
    // global DoF
-   tmp.interpolate( []( const hyteg::Point3D& ) { return 1.0; }, l_max, hyteg::Inner );
+   tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
    auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
@@ -384,17 +403,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    tmp.setToZero( l_max );
    tmp.setToZero( l_max + 1 );
    auto compute_residual = [&]() -> real_t {
-      A->apply( *u, tmp, l_max, hyteg::Inner, Replace );
-      r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, hyteg::Inner );
-      M->apply( r, tmp, l_max, hyteg::Inner, Replace );
-      return std::sqrt( r.dotGlobal( tmp, l_max, hyteg::Inner ) );
+      A->apply( *u, tmp, l_max, Inner | NeumannBoundary, Replace );
+      r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, Inner | NeumannBoundary );
+      M->apply( r, tmp, l_max, Inner | NeumannBoundary, Replace );
+      return std::sqrt( r.dotGlobal( tmp, l_max, Inner | NeumannBoundary ) );
    };
    auto compute_L2error = [&]() -> real_t {
-      P->prolongate( *u, l_max, hyteg::Inner );
-      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, hyteg::Inner );
+      P->prolongate( *u, l_max, Inner | NeumannBoundary );
+      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, Inner | NeumannBoundary );
       problem.apply_error_filter( err, err_f, l_max + 1 );
-      M->apply( err_f, tmp, l_max + 1, hyteg::Inner, Replace );
-      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1, hyteg::Inner ) );
+      M->apply( err_f, tmp, l_max + 1, Inner | NeumannBoundary, Replace );
+      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1, Inner | NeumannBoundary ) );
    };
 
    // initialize analytic solution, rhs and boundary values
@@ -404,11 +423,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    if ( u0 == 1 && u_old != nullptr )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
-      auto u_init = [&]( const hyteg::Point3D& x ) -> real_t {
+      auto u_init = [&]( const Point3D& x ) -> real_t {
          real_t ux = 0.0;
-         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-16 ) )
+         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-12 ) )
          {
-            WALBERLA_LOG_INFO( "no value for x=" << x );
+            WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
          }
          return ux;
       };
@@ -511,11 +530,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       k.interpolate( problem.coeff(), l_max );
 
       // error
-      R->restrict( err, l_max + 1, hyteg::Inner );
+      R->restrict( err, l_max + 1, Inner | NeumannBoundary );
 
       // squared error
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
-      err_2.multElementwise( { err, err }, l_max, hyteg::All );
+      err_2.multElementwise( { err, err }, l_max, All );
 
       // write vtkfile
       VTKOutput vtkOutput( "output", vtkname, storage );
@@ -713,6 +732,8 @@ int main( int argc, char* argv[] )
    problem.set_params( sigma, offset, refine_all );
    // setup domain
    auto setupStorage = domain( problem, N );
+   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   //    setupStorage.toStream( std::cout, true );
    // solve/refine iteratively
    if ( vtkname == "auto" )
    {
