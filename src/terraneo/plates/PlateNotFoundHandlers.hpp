@@ -58,11 +58,11 @@ class DefaultPlateNotFoundHandler
 class StatisticsPlateNotFoundHandler
 {
  public:
-   using map_t = std::map< std::string, std::vector< vec3D > >;
+   using map_t = std::map< std::string, std::set< vec3D > >;
 
    vec3D operator()( const vec3D& point, const real_t age )
    {
-      pointsNotFound_[ageToKeyStr( age )].push_back( point );
+      pointsNotFound_[ageToKeyStr( age )].insert( point );
       return {real_c( 0 ), real_c( 0 ), real_c( 0 )};
    }
 
@@ -80,13 +80,14 @@ class StatisticsPlateNotFoundHandler
       {
          for ( const auto& elem : pointsNotFoundGlobal )
          {
-            std::string                 keyStr       = elem.first;
-            const std::vector< vec3D >& pointsForAge = elem.second;
+            std::string              keyStr       = elem.first;
+            const std::set< vec3D >& pointsForAge = elem.second;
             WALBERLA_LOG_INFO( "List of points w/o plateID for age = " << keyStrToAge( keyStr ) << ":" );
-            for ( uint k = 0; k < pointsForAge.size(); ++k )
+            uint_t k = 1;
+            for ( const auto& point : pointsForAge )
             {
-               WALBERLA_LOG_INFO( "" << std::setw( 3 ) << k << ": (" << std::scientific << std::showpos << pointsForAge[k]( 0 )
-                                     << ", " << pointsForAge[k]( 1 ) << ", " << pointsForAge[k]( 2 ) << ")" );
+               WALBERLA_LOG_INFO( "" << std::setw( 3 ) << k++ << ": (" << std::scientific << std::showpos << point( 0 )
+                                     << ", " << point( 1 ) << ", " << point( 2 ) << ")" );
             }
          }
       }
@@ -96,22 +97,22 @@ class StatisticsPlateNotFoundHandler
    void combineMaps( map_t& dstMap, const map_t& srcMap )
    {
       // loop over source map
-      for ( auto [key, srcVec] : srcMap )
+      for ( auto [key, srcSet] : srcMap )
       {
          // check for key in destination map
          auto keyPos = dstMap.find( key );
 
-         // if key does not exist, simlpe insert new key, vector pair
+         // if key does not exist, simply insert new key, set pair
          if ( keyPos == dstMap.end() )
          {
-            dstMap[key] = srcVec;
+            dstMap[key] = srcSet;
          }
 
-         // key exists, so append vector contents
+         // key exists, so merge the sets
          else
          {
-            auto& dstVec = keyPos->second;
-            dstVec.insert( dstVec.end(), srcVec.begin(), srcVec.end() );
+            auto& dstSet = keyPos->second;
+            dstSet.insert( srcSet.begin(), srcSet.end() );
          }
       }
    }
@@ -128,7 +129,7 @@ class StatisticsPlateNotFoundHandler
 
       map_t globalMap;
 
-      // extract individual maps and combine them in global one
+      // extract individual maps and combine them into a global one
       if ( myRank == 0 )
       {
          map_t singleMap;
