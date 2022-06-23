@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
    // using mat3D = Eigen::Matrix3d;
 
    vec3D vec1;
-   vec3D vec2{ real_c( 1 ), real_c( 1 ), real_c( -1 ) };
+   vec3D vec2{real_c( 1 ), real_c( 1 ), real_c( -1 )};
 
    for ( uint_t i = 0; i < 3; ++i )
    {
@@ -99,6 +99,25 @@ int main( int argc, char* argv[] )
       walberla::mpi::broadcastObject( matMPI );
       WALBERLA_CHECK_FLOAT_EQUAL( ( matMPI - real_c( 2 ) * matRef ).cwiseAbs().maxCoeff(), real_c( 0 ) );
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing Container (De)Serialisation" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
+
+   std::vector< vec3D > sendVec1{ vec1, vec2 };
+   std::vector< vec3D > sendVec2{ vec1 };
+
+   walberla::mpi::SendBuffer sBuf;
+   sBuf << sendVec1 << sendVec2 << real_c( 42 );
+
+   std::vector< vec3D > recvVec1;
+   std::vector< vec3D > recvVec2;
+   walberla::mpi::RecvBuffer rBuf( sBuf );
+   real_t recvVal;
+   rBuf >> recvVec1 >> recvVec2 >> recvVal;
+
+   WALBERLA_CHECK_FLOAT_EQUAL( recvVal, real_c( 42 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( ( recvVec2[0] - sendVec2[0] ).norm(), real_c( 0 ) );
 
    return EXIT_SUCCESS;
 }
