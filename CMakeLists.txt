@@ -72,7 +72,7 @@ if( HYTEG_TERRANEO_MODULE )
 
    # fix to prevent cgal cmake warning
    set(CGAL_DATA_DIR "dummy")
-   find_package(cgal HINTS ${hyteg_BINARY_DIR}/_deps/cgal_library-src/ )
+   find_package(CGAL HINTS ${hyteg_BINARY_DIR}/_deps/cgal_library-src/ )
 
    # Unpack plate topology file
    if( NOT EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson )
