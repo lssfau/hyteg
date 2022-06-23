@@ -9,6 +9,7 @@ option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                     
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
+option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for CGAL"    OFF)
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
@@ -36,14 +37,42 @@ if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
 endif()
 
+include(FetchContent)
+FetchContent_Declare(
+      boost
+      URL      https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2
+      URL_HASH SHA256=475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39
+)
+
+FetchContent_Declare(
+      cgal_library
+      URL      https://github.com/CGAL/cgal/releases/download/v5.4.1/CGAL-5.4.1-library.tar.xz
+      URL_HASH MD5=bb467caea2f5818e700cb6b46b501ada
+)
+
+if( HYTEG_DOWNLOAD_BOOST )
+   FetchContent_Populate( boost )
+   set(BOOST_ROOT ${hyteg_BINARY_DIR}/_deps/boost-src/ CACHE PATH "Path to boost root")
+endif()
+
 # Add flags and libraries required to build terraneo submodule
 if( HYTEG_TERRANEO_MODULE )
-   if(DEFINED CGAL_INCLUDE_PATH)
-     add_flag ( CMAKE_CXX_FLAGS "-I${CGAL_INCLUDE_PATH}/include -DCGAL_DISABLE_ROUNDING_MATH_CHECK" )
-     message( STATUS "Using CGAL_INCLUDE_PATH = ${CGAL_INCLUDE_PATH}" )
-   else()
-     message(FATAL_ERROR "If HYTEG_TERRANEO_MODULE is ON, you need to specify -DCGAL_INCLUDE_PATH=<path to cgal directory>")
+   if(NOT DEFINED CGAL_INCLUDE_PATH)
+     message(STATUS "Downloading CGAL since CGAL_INCLUDE_PATH was not defined")
+     FetchContent_Populate( cgal_library )
+     set(CGAL_INCLUDE_PATH ${hyteg_BINARY_DIR}/_deps/cgal_library-src/ CACHE PATH "Path to CGAL library")
    endif()
+
+   find_package( Boost 1.48 )
+   if( NOT Boost_FOUND )
+      message( FATAL_ERROR "Boost is required for CGAL but was not found.
+      Please define BOOST_ROOT (e.g. cmake -DBOOST_ROOT=/local/boost/)
+      or enable the cmake option HYTEG_DOWNLOAD_BOOST (e.g. cmake -DHYTEG_DOWNLOAD_BOOST=ON)")
+   endif()
+
+   # fix to prevent cgal cmake warning
+   set(CGAL_DATA_DIR "dummy")
+   find_package(cgal HINTS ${hyteg_BINARY_DIR}/_deps/cgal_library-src/ )
 
    # Unpack plate topology file
    if( NOT EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson )
