@@ -101,9 +101,14 @@ void performComputations( uint_t                                     level,
        };
 
    // callback function for determining plate IDs
-   std::function< real_t( const Point3D& ) > findPlateID = [&oracle, age]( const Point3D& point ) {
-      vec3D coords{ point[0], point[1], point[2] };
-      return oracle.findPlateID( coords, age );
+   std::function< real_t( const Point3D& ) > findPlateID = [&oracle, age, &handlerWithStatistics]( const Point3D& point ) {
+      vec3D  coords{ point[0], point[1], point[2] };
+      uint_t id = oracle.findPlateID( coords, age );
+      if ( id == oracle.idWhenNoPlateFound )
+      {
+         handlerWithStatistics( coords, age );
+      }
+      return id;
    };
 
    // create boundary condition object for the two surfaces

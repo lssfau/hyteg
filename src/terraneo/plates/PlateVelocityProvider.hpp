@@ -44,6 +44,10 @@ class PlateVelocityProvider
                       []( const std::string& filename ) { return terraneo::io::readRotationsFile( filename ); } )
    {}
 
+   /// Returns the plate ID for a point at a given age stage
+   ///
+   /// This is basically an auxilliary function for testing plate detection and allows to
+   /// generate data to visualise plate movement.
    uint_t findPlateID( const vec3D& point, const real_t age )
    {
       uint_t plateID{ idWhenNoPlateFound };
@@ -55,11 +59,20 @@ class PlateVelocityProvider
       return plateID;
    }
 
+   /// Returns velocity vector for a point determined from the velocity of the associated plate at given age stage
+   ///
+   /// This is the convenience (non-expert) version of the method which uses a
+   /// - LinearDistanceSmoother{ 0.015 }
+   /// - DefaultPlateNotFoundHandler{}
    vec3D getPointVelocity( const vec3D& point, const real_t age )
    {
       return getPointVelocity( point, age, LinearDistanceSmoother{ 0.015 }, DefaultPlateNotFoundHandler{} );
    }
 
+   /// Returns velocity vector for a point determined from the velocity of the associated plate at given age stage
+   ///
+   /// This is the expert version of the method which allows to explicitely set a SmoothingStrategy and
+   /// a PlateNotFoundStrategy.
    template < typename SmoothingStrategy, typename PlateNoteFoundStrategy >
    vec3D getPointVelocity( const vec3D&             point,
                            const real_t             age,
@@ -88,8 +101,10 @@ class PlateVelocityProvider
       return computeCartesianVelocityVector( plateRotations_, plateID, age, point, smoothingFactor );
    };
 
+   /// Query function to obtain a vector of plate stages avaible in the datafiles
    const std::vector< real_t >& getListOfPlateStages() const { return plateTopologies_.getListOfPlateStages(); }
 
+   /// Plate ID to be used when no associated plate was found for a point
    const uint_t idWhenNoPlateFound{ 0 };
 
  private:
