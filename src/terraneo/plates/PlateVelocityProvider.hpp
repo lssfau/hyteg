@@ -46,9 +46,9 @@ class PlateVelocityProvider
 
    uint_t findPlateID( const vec3D& point, const real_t age )
    {
-      uint_t plateID{idWhenNoPlateFound};
-      bool   plateFound{false};
-      real_t distance{real_c( -1 )};
+      uint_t plateID{ idWhenNoPlateFound };
+      bool   plateFound{ false };
+      real_t distance{ real_c( -1 ) };
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
 
@@ -57,7 +57,7 @@ class PlateVelocityProvider
 
    vec3D getPointVelocity( const vec3D& point, const real_t age )
    {
-      return getPointVelocity( point, age, LinearDistanceSmoother{0.015}, DefaultPlateNotFoundHandler{} );
+      return getPointVelocity( point, age, LinearDistanceSmoother{ 0.015 }, DefaultPlateNotFoundHandler{} );
    }
 
    template < typename SmoothingStrategy, typename PlateNoteFoundStrategy >
@@ -66,9 +66,9 @@ class PlateVelocityProvider
                            SmoothingStrategy        computeSmoothing,
                            PlateNoteFoundStrategy&& errorHandler )
    {
-      uint_t plateID{0};
-      bool   plateFound{false};
-      real_t distance{real_c( -1 )};
+      uint_t plateID{ 0 };
+      bool   plateFound{ false };
+      real_t distance{ real_c( -1 ) };
 
       std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
 
@@ -88,7 +88,9 @@ class PlateVelocityProvider
       return computeCartesianVelocityVector( plateRotations_, plateID, age, point, smoothingFactor );
    };
 
-   const uint_t idWhenNoPlateFound{0};
+   const std::vector< real_t >& getListOfPlateStages() const { return plateTopologies_.getListOfPlateStages(); }
+
+   const uint_t idWhenNoPlateFound{ 0 };
 
  private:
    PlateStorage          plateTopologies_;
