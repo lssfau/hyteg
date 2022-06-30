@@ -251,20 +251,18 @@ struct ModelProblem
 
    void apply_error_filter( const P1Function< real_t >& e, P1Function< real_t >& e_f, uint_t lvl ) const
    {
-      if ( offset_err > 0 )
-      {
-         auto filter = [=]( const Point3D& x ) -> real_t {
-            real_t ex = 0.0;
-            if ( x.norm() >= offset_err )
-               e.evaluate( x, lvl, ex );
-            return ex;
-         };
-         e_f.interpolate( filter, lvl );
-      }
-      else
-      {
-         e_f.copyFrom( e, lvl );
-      }
+      e.communicate< Vertex, Edge >( lvl );
+      e.communicate< Edge, Face >( lvl );
+      e.communicate< Face, Cell >( lvl );
+
+      auto filter = [=]( const Point3D& x, const std::vector< real_t >& val ) -> real_t {
+         return ( x.norm() >= offset_err ) ? val[0] : 0.0;
+      };
+      e_f.interpolate( filter, { e }, lvl );
+
+      e_f.communicate< Vertex, Edge >( lvl );
+      e_f.communicate< Edge, Face >( lvl );
+      e_f.communicate< Face, Cell >( lvl );
    }
 
    // general setting
@@ -332,7 +330,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N )
             return std::abs( x[0] ) >= 1 - 1e-15 || //
                    std::abs( x[1] ) >= 1 - 1e-15;
          };
-         setupStorage.setMeshBoundaryFlagsByCentroidLocation(1, onBoundary, true);
+         setupStorage.setMeshBoundaryFlagsByCentroidLocation( 1, onBoundary, true );
       }
       // dirichlet boundary on slit
       auto onBoundary = []( const Point3D& x ) -> bool { return std::abs( x[1] ) < 1e-50 && x[0] >= 0.0; };
