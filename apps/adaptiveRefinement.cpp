@@ -356,14 +356,20 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     l2_error_each_iteration = true )
 {
+   double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
-   auto storage = mesh.make_storage();
+   t0             = walberla::timing::getWcTime();
+   auto storage   = mesh.make_storage();
+   t1             = walberla::timing::getWcTime();
    printCurrentMemoryUsage();
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent to create storage: %12.3e", t1 - t0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
+   WALBERLA_LOG_INFO_ON_ROOT( "* setup system ..." );
 
    // operators
+   t0 = walberla::timing::getWcTime();
    std::shared_ptr< A_t > A;
    auto                   M = std::make_shared< Mass >( storage, l_min, l_max + 1 );
    auto                   P = std::make_shared< P1toP1LinearProlongation >();
@@ -392,38 +398,54 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // global DoF
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
-   auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
+   auto n_dof  = uint_t( tmp.dotGlobal( tmp, l_max ) );
+   t0          = walberla::timing::getWcTime();
+   auto t_init = t1 - t0;
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
    // computation of residual and L2 error
+   t0 = walberla::timing::getWcTime();
    err.setToZero( l_max );
    err.setToZero( l_max + 1 );
    tmp.setToZero( l_max );
    tmp.setToZero( l_max + 1 );
-   auto compute_residual = [&]() -> real_t {
+   double t_residual = 0, t_error = 0;
+   auto   compute_residual = [&]() -> real_t {
+      auto my_t0 = walberla::timing::getWcTime();
       A->apply( *u, tmp, l_max, Inner | NeumannBoundary, Replace );
       r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, Inner | NeumannBoundary );
       M->apply( r, tmp, l_max, Inner | NeumannBoundary, Replace );
-      return std::sqrt( r.dotGlobal( tmp, l_max, Inner | NeumannBoundary ) );
+      auto norm_r = std::sqrt( r.dotGlobal( tmp, l_max, Inner | NeumannBoundary ) );
+      auto my_t1  = walberla::timing::getWcTime();
+      t_residual += my_t1 - my_t0;
+      return norm_r;
    };
    auto compute_L2error = [&]() -> real_t {
+      auto my_t0 = walberla::timing::getWcTime();
       P->prolongate( *u, l_max, Inner | NeumannBoundary );
       err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, Inner | NeumannBoundary );
       problem.apply_error_filter( err, err_f, l_max + 1 );
       M->apply( err_f, tmp, l_max + 1, Inner | NeumannBoundary, Replace );
-      return std::sqrt( err_f.dotGlobal( tmp, l_max + 1, Inner | NeumannBoundary ) );
+      auto norm_e = std::sqrt( err_f.dotGlobal( tmp, l_max + 1, Inner | NeumannBoundary ) );
+      auto my_t1  = walberla::timing::getWcTime();
+      t_error += my_t1 - my_t0;
+      return norm_e;
    };
 
    // initialize analytic solution, rhs and boundary values
    problem.init( storage, u_anal, f, *u, b, l_max );
 
+   t1 = walberla::timing::getWcTime();
+   t_init += t1 - t0;
+
    // initialize u_h
+   t0 = walberla::timing::getWcTime();
    if ( u0 == 1 && u_old != nullptr )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const Point3D& x ) -> real_t {
          real_t ux = 0.0;
-         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-12 ) )
+         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-10 ) )
          {
             WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
          }
@@ -435,25 +457,41 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    {
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=0" );
    }
+   t1                 = walberla::timing::getWcTime();
+   auto t_interpolate = t1 - t0;
 
    // apply loadbalancing
+   t0                 = walberla::timing::getWcTime();
    auto migrationInfo = mesh.loadbalancing();
    storage->migratePrimitives( migrationInfo );
-
-   // initial residual
-   real_t norm_r = compute_residual();
+   t1                   = walberla::timing::getWcTime();
+   auto t_loadbalancing = t1 - t0;
 
    // solver
+   t0                    = walberla::timing::getWcTime();
    auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( max_iter, n_dof ), tol * 1e-1 );
    auto smoother         = std::make_shared< GaussSeidelSmoother< A_t > >();
 
    GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
+   t1 = walberla::timing::getWcTime();
+   t_init += t1 - t0;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "initialize problem", t_init ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "interpolate u0", t_interpolate ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "loadbalancing", t_loadbalancing ) );
 
    // solve
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
    WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s |%18s |%13s", "k", "||r_k||_L2", "||e_k||_L2" ) );
 
-   uint_t iter = 0;
+   // initial residual
+   real_t norm_r = compute_residual();
+
+   uint_t iter    = 0;
+   double t_solve = 0;
    while ( norm_r > tol && iter < max_iter )
    {
       if ( l2_error_each_iteration )
@@ -467,7 +505,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       }
 
       ++iter;
+      t0 = walberla::timing::getWcTime();
       gmg.solve( *A, *u, b, l_max );
+      t1 = walberla::timing::getWcTime();
+      t_solve += t1 - t0;
       norm_r = compute_residual();
    }
 
@@ -475,6 +516,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
 
    // compute elementwise error
+   t0 = walberla::timing::getWcTime();
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
 
    P1Function< real_t >& err_for_refinement = ( problem.ignore_offset_for_refinement ) ? err : err_f;
@@ -519,6 +561,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          err_2_elwise_loc.push_back( { err_2_face, id } );
       }
    }
+
+   t1                  = walberla::timing::getWcTime();
+   auto t_elwise_error = t1 - t0;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute residual", t_residual ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute error", t_error ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute elwise err", t_elwise_error ) );
 
    // export to vtk
    if ( vtkname != "" )
@@ -631,7 +682,10 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       };
 
       // apply refinement
+      auto t0    = walberla::timing::getWcTime();
       auto ratio = mesh.refineRG( local_errors, criterion, n_el_max );
+      auto t1    = walberla::timing::getWcTime();
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent for refinement: %12.3e", t1 - t0 ) );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
       // compute mesh quality
       auto v_mean       = mesh.volume() / real_t( mesh.n_elements() );
