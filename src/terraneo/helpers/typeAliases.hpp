@@ -28,7 +28,12 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
+#ifdef WALBERLA_DOUBLE_ACCURACY
 using vec3D = Eigen::Vector3d;
 using mat3D = Eigen::Matrix3d;
+#else
+using vec3D = Eigen::Vector3f;
+using mat3D = Eigen::Matrix3f;
+#endif
 
 } // namespace terraneo
