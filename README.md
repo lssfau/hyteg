@@ -30,15 +30,15 @@ multigrid benchmark setting) invoke:
 
     hyteg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
 
-## Submodules
+## Modules
 
 ### TerraNeo
 
-TerraNeo is a submodule of HyTeG that is providing functionality for running mantle convection models from Geodynamics. As this is a specialised application, the submodule is not build by default. In order to compile the corresponding sources, tests and apps (re)run CMake with the following option
+TerraNeo is a module of HyTeG that is providing functionality for running mantle convection models from Geodynamics. As this is a specialised application, the module is not build by default. In order to compile the corresponding sources, tests and apps (re)run CMake with the following option
 
     -DHYTEG_TERRANEO_MODULE=yes
 
-Please note that the submodule depends on [CGAL (The Computational Geometry Algorithms Library)](https://www.cgal.org/), which in turn has some dependencies on the [Boost](https://www.boost.org/) libraries. Both are header-only libraries.
+Please note that the module depends on [CGAL (The Computational Geometry Algorithms Library)](https://www.cgal.org/), which in turn has some dependencies on the [Boost](https://www.boost.org/) libraries. Both are header-only libraries.
 
 CMake will download CGAL once as part of the configuration process. If you already have CGAL installed on your system, you can alternatively provide the path to that installation using
 
