@@ -38,6 +38,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -80,12 +84,13 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
 
    // function setup
-   hyteg::P2P1TaylorHoodFunction< real_t >          x( "x", storage, 2, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          x_exact( "x_exact", storage, 2, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          btmp( "btmp", storage, 2, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          b( "b", storage, 2, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          err( "err", storage, 2, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          residuum( "res", storage, 2, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          x( "x", storage, 0, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          x_exact( "x_exact", storage, 0, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          btmp( "btmp", storage, 0, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          b( "b", storage, 0, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          err( "err", storage, 0, level );
+   hyteg::P2P1TaylorHoodFunction< real_t >          residuum( "res", storage, 0, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      nullspace( "nullspace", storage, level, level );
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
 
@@ -102,7 +107,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
           else
              return visc_matrix;
        };
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator OP( storage, 2, level, viscosity );
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator OP( storage, 0, level, viscosity );
 
    // analytic solution for u,v,p
    const real_t                                             C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
@@ -149,6 +154,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    x_exact.uvw().interpolate( { analyticU, analyticV }, level );
    x_exact.p().interpolate( analyticP, level );
    x.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
+   hyteg::vertexdof::projectMean( x_exact.p(), level );
+   nullspace.p().interpolate( ones, level, All );
    //x.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
    // Right-hand-side: derivatives of u, v, p for x and y
@@ -224,12 +231,12 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddy_p(xx);
        };
    btmp.uvw().interpolate( { rhsU, rhsV }, level, hyteg::Inner );
-   P2ConstantMassOperator VelMassOp( storage, 2, level );
+   P2ConstantMassOperator VelMassOp( storage, 0, level );
    VelMassOp.apply( btmp.uvw()[0], b.uvw()[0], level, All );
    VelMassOp.apply( btmp.uvw()[1], b.uvw()[1], level, All );
 
    // Visualization
-   /*
+   
    VTKOutput vtkOutput( "../../output", "SolViBenchmark", storage );
    vtkOutput.add( x.uvw() );
    vtkOutput.add( x.p() );
@@ -239,9 +246,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    vtkOutput.add( err.p() );
    vtkOutput.add( b.uvw() );
    vtkOutput.add( b.p() );
-   //vtkOutput.add( mask);   
    vtkOutput.write( level, 0 );
-   */
+   
 
    // DoFs
    uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -252,6 +258,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    OP.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner );
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
+
+   
    real_t discr_l2_err_u, discr_l2_err_v, residuum_l2, discr_l2_err_p;
 
    // Solvers
@@ -263,9 +271,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-8, 1e-9, 100, true );
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-8, 100, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-8, 1e-9, 100, true );
-   auto WBFBT_PMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-8, 1e-9, 100, true );
-   
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 0, level, 1e-8, 1e-9, 100, true );
+   auto wBFBT_PMINRES     = solvertemplates::wBFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 100, true );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
    walberla::WcTimer timer;
@@ -276,13 +283,22 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       OnlyPressurePMINRES->solve( OP, x, b, level );
       break;
    case 1:
+   
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: ViscWeightedPMINRES" );
       ViscWeightedPMINRES->solve( OP, x, b, level );
       break;
    case 2:
+   
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES" );
       StdBlkdiagPMINRES->solve( OP, x, b, level );
       break;
    case 3:
       StdBlkdiagPMINRES_PETSc.solve( OP, x, b, level );
+      break;
+   case 4:
+   
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: wBFBT_PMINRES" );
+      wBFBT_PMINRES->solve( OP, x, b, level );
       break;
    default:
       LU.solve( OP, x, b, level );
@@ -306,7 +322,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residual = " << residuum_l2 );
 
-   //vtkOutput.write( level, 1 );
+   vtkOutput.write( level, 1 );
 
    real_t h       = MeshQuality::getMaximalEdgeLength( storage, level );
    real_t err_vel = std::sqrt( err.uvw().dotGlobal( err.uvw(), level, hyteg::Inner ) / (real_t) globalDoFs1 );
@@ -323,11 +339,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-    // configure solver and level
-   uint_t solver = 1;
-   std::vector< uint_t >                               levels = { 6 };
+   // configure solver and level
+   uint_t                solver = atoi( argv[2] );
+   std::vector< uint_t > levels = { 4};
 
-    // collect errors
+   // collect errors
    std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
    for ( auto lvl : levels )
    {
