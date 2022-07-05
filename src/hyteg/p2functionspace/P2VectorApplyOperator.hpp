@@ -45,8 +45,8 @@ class P2VectorApplyOperator : public VectorToVectorOperator< real_t, P2VectorFun
                DoFType               flag,
                UpdateType            updateType = Replace ) const
    {
-      dst.assign({1}, {src}, level, flag);
-      dst.multElementwise({*diagonal_},level, flag);
+      //dst.assign({1}, {src}, level, flag);
+      dst.multElementwise({*diagonal_, src},level, flag);
    }
 
    std::shared_ptr<P2VectorFunction<real_t>> diagonal_;
