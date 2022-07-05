@@ -1,0 +1,12 @@
+Parameters
+{
+  // setting index triplet to describe eigenfunction
+  degree 3;   // degree of spherical harmonics part
+  order  2;   // order of spherical harmonics part
+  nroot  1;   // root of spherical Bessel function (1-based)
+
+  // meshing parameters
+  nTan 2;
+  nRad 2;
+  level 3;
+}

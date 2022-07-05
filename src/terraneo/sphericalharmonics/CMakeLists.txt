@@ -1,4 +1,4 @@
-target_sources( hyteg
+target_sources( terraneo
     PRIVATE
     SphericalHarmonicsTool.cpp
     SphericalHarmonicsTool.hpp     

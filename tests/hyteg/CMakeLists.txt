@@ -821,3 +821,7 @@ waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 ## Structural
 waLBerla_compile_test(FILES PrintInfoTest.cpp)
 waLBerla_execute_test(NAME PrintInfoTest)
+
+waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
+waLBerla_execute_test(NAME EigenBasicTest)
+waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
