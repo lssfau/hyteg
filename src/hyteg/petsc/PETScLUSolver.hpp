@@ -61,11 +61,11 @@ class PETScLUSolver : public Solver< OperatorType >
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
-   , flag_( hyteg::All )
+   , flag_( hyteg::Inner )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
-   , assumeSymmetry_( true )
+   , assumeSymmetry_( false )
    , solverType_( PETScDirectSolverType::MUMPS )
    {
       num.enumerate( level );
