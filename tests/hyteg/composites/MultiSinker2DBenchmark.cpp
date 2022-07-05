@@ -87,6 +87,8 @@ void MultiSinker2D( const uint_t& level,
    std::uniform_real_distribution< real_t > unif( -1 + omega, 1 - omega );
    std::default_random_engine               re;
    re.seed( 1312412415 );
+   //re.seed( 213512512 );
+   
    std::vector< Point3D > centers;
    for ( uint_t c = 0; c < nSinkers; c++ )
    {
@@ -140,15 +142,15 @@ void MultiSinker2D( const uint_t& level,
    // Solve
    PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > StdBlkdiagPMINRES_PETSC(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 0 );
+       storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 0 );
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
+       storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
 
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-8, 1e-9, 1000, true );
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 1e-9, 10000, true );
    auto OnlyPressurePMINRES =
-       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-8, 1000, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-8, 1e-9, 1000, true );
-   auto wBFBT_PMINRES     = solvertemplates::wBFBTStokesMinResSolver( storage, level,viscosity, 1e-8, 1000, true );
+       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-6, 10000, true );
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-6, 1e-9, 10000, true );
+   auto wBFBT_PMINRES     = solvertemplates::wBFBTStokesMinResSolver( storage, level,viscosity, 1e-6, 10000, true );
 
    walberla::WcTimer timer;
    switch ( solver )
@@ -219,7 +221,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D( 6, atoi( argv[2] ), 1, atoi( argv[3] ), 1, atoi( argv[4] ), 200, 0.1 );
+   MultiSinker2D( 3, atoi( argv[2] ), 1, atoi( argv[3] ), 1, atoi( argv[4] ), 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
