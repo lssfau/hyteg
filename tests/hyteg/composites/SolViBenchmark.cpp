@@ -272,7 +272,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-8, 100, true );
    auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 0, level, 1e-8, 1e-9, 100, true );
-   auto wBFBT_PMINRES     = solvertemplates::wBFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 100, true );
+   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 100, true );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
    walberla::WcTimer timer;
@@ -297,8 +297,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       break;
    case 4:
    
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: wBFBT_PMINRES" );
-      wBFBT_PMINRES->solve( OP, x, b, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
+      BFBT_PMINRES->solve( OP, x, b, level );
       break;
    default:
       LU.solve( OP, x, b, level );

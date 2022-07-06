@@ -132,6 +132,7 @@ void MultiSinker2D( const uint_t& level,
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
    // Initial errors and residual
+   x.interpolate( zero, level, hyteg::DirichletBoundary );
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner | hyteg::NeumannBoundary );
    real_t residuum_l2_1 =
@@ -146,11 +147,14 @@ void MultiSinker2D( const uint_t& level,
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
        storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
 
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 1e-9, 10000, true );
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-15, 1e-9, 10000, true );
    auto OnlyPressurePMINRES =
-       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-6, 10000, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-6, 1e-9, 10000, true );
-   auto wBFBT_PMINRES     = solvertemplates::wBFBTStokesMinResSolver( storage, level,viscosity, 1e-6, 10000, true );
+       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-15, 1e-11, 10000, true );
+   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 10000, true, x.uvw()[0].getBoundaryCondition() );
+
+   //auto bfbtop = std::make_shared<BFBT_P2P1>( storage, level, level, viscosity );
+   //bfbtop->printComponentMatrices(level, storage);
 
    walberla::WcTimer timer;
    switch ( solver )
@@ -176,8 +180,8 @@ void MultiSinker2D( const uint_t& level,
       StdBlkdiagPMINRES->solve( A, x, b, level );
       break;
    case 5:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: wBFBT_PMINRES" );
-      wBFBT_PMINRES->solve( A, x, b, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
+      BFBT_PMINRES->solve( A, x, b, level );
       break;
    case 6:
       WALBERLA_LOG_INFO_ON_ROOT( "Solver: OnlyPressurePMINRES" );
@@ -221,7 +225,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D( 3, atoi( argv[2] ), 1, atoi( argv[3] ), 1, atoi( argv[4] ), 200, 0.1 );
+   MultiSinker2D( 4, atoi( argv[2] ), 1, atoi( argv[3] ), 1, atoi( argv[4] ), 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
