@@ -23,6 +23,11 @@
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -39,7 +44,7 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
-#include "hyteg/operators/combinedoperators/WeightedBFBTOperator.hpp"
+#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 
 namespace hyteg {
 
@@ -136,13 +141,15 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
 
-std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > wBFBTStokesMinResSolver( 
+std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStokesMinResSolver( 
             const std::shared_ptr< PrimitiveStorage >&          storage,
             const uint_t&                                       maxLevel,
             std::function< real_t( const hyteg::Point3D& ) >    viscosity,
             const real_t&                                       absoluteTargetResidual,
             const uint_t&                                       maxIterations,
-            bool                                                printInfo 
+            bool                                                printInfo,
+            const BoundaryCondition& VelocitySpaceBC
+
 ) {
 
   auto CG = std::make_shared< CGSolver< P2ElementwiseAffineEpsilonOperator > >(
@@ -151,14 +158,15 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > wBFBTSto
 
     auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
-   // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
-   auto pPrecOp = std::make_shared< WBFBT_P2P1 >(
+   // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P2 mass matrix
+   auto pPrecOp = std::make_shared< BFBT_P2P1 >(
        storage,
        maxLevel,
        maxLevel,
-       viscosity
+       viscosity,
+       VelocitySpaceBC
     );
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, WBFBT_P2P1 >>( 
+   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, BFBT_P2P1 >>( 
        storage, maxLevel, 
        maxLevel, 1, 
        pPrecOp,
