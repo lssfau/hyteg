@@ -27,6 +27,7 @@
 
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -39,6 +40,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
@@ -51,6 +53,7 @@ using walberla::uint_t;
 
 using Mass         = P1ConstantMassOperator;
 using Laplace      = P1ConstantLaplaceOperator;
+// using Laplace      = P1ElementwiseLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
 using DivkGrad     = P1VariableOperator< DivkGradForm >;
 
@@ -351,6 +354,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   l_max,
                                        uint_t                                   max_iter,
                                        real_t                                   tol,
+                                       real_t                                   cg_tol,
                                        std::string                              vtkname,
                                        bool                                     writePartitioning,
                                        uint_t                                   refinement_step,
@@ -399,6 +403,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // global DoF
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
    auto n_dof  = uint_t( tmp.dotGlobal( tmp, l_max ) );
+   // cg-dof
+   tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_min, Inner | NeumannBoundary );
+   auto n_dof_coarse  = uint_t( tmp.dotGlobal( tmp, l_min ) );
+
    t0          = walberla::timing::getWcTime();
    auto t_init = t1 - t0;
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
@@ -469,8 +477,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // solver
    t0                    = walberla::timing::getWcTime();
-   auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( max_iter, n_dof ), tol * 1e-1 );
+   auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( uint_t( 5 ), n_dof_coarse ), cg_tol );
    auto smoother         = std::make_shared< GaussSeidelSmoother< A_t > >();
+   // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
 
    GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
    t1 = walberla::timing::getWcTime();
@@ -637,6 +646,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 real_t                       tol,
                                 uint_t                       max_iter_final,
                                 real_t                       tol_final,
+                                real_t                       cg_tol,
                                 std::string                  vtkname,
                                 bool                         writePartitioning )
 {
@@ -651,10 +661,10 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
          local_errors = solve< Laplace >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement );
       else
          local_errors = solve< DivkGrad >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement );
 
       if ( refinement >= n_ref )
       {
@@ -720,12 +730,12 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       if ( problem.constant_coefficient() )
       {
          solve< Laplace >(
-             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, cg_tol, vtkname, writePartitioning, refinement );
       }
       else
       {
          solve< DivkGrad >(
-             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, cg_tol, vtkname, writePartitioning, refinement );
       }
    }
 }
@@ -774,6 +784,7 @@ int main( int argc, char* argv[] )
    const uint_t max_iter_final = parameters.getParameter< uint_t >( "n_iterations_final", max_iter );
    const real_t tol            = parameters.getParameter< real_t >( "tolerance" );
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
+   const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -804,6 +815,7 @@ int main( int argc, char* argv[] )
                               tol,
                               max_iter_final,
                               tol_final,
+                              cg_tol,
                               vtkname,
                               writePartitioning );
 

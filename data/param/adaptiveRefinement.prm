@@ -12,7 +12,7 @@ Parameters
   // offset from singularity where the error will be ignored (unused if there is no singularity)
   offset 1e-10;
   // only use offset for computation of total error but still consider the respective elements for refinement
-  refine_all 0;
+  // refine_all 0;
   // standard deviation used when mp=1
   sigma 0.1;
 
@@ -36,11 +36,12 @@ Parameters
   initial_guess 1; // 0: zero, 1: u_h from previous refinement
   n_iterations 3;
   tolerance 1e-9;
+  // cg_tolerance 1e-9;
   // use different number of iterations and tolerance for final solve step
   // n_iterations_final 5;
   // tolerance_final 1e-9;
 
   // misc
-  vtkName auto;
-  writeDomainPartitioning 0;
+  // vtkName auto;
+  // writeDomainPartitioning 0;
 }
