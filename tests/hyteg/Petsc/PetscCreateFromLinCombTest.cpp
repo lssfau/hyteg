@@ -83,7 +83,7 @@ int main( int argc, char* argv[] )
        { 2, -1 }, { std::make_shared< PETScSparseMatrixProxy >( pM1 ), std::make_shared< PETScSparseMatrixProxy >( pM2 ) } );
 
    // check result
-   PetscScalar val = 0;
+   PetscReal val = 0;
    for ( int i = 0; i < 2; ++i )
    {
       for ( int j = 0; j < 2; ++j )
