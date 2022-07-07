@@ -363,9 +363,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
-   t0             = walberla::timing::getWcTime();
-   auto storage   = mesh.make_storage();
-   t1             = walberla::timing::getWcTime();
+   t0           = walberla::timing::getWcTime();
+   auto storage = mesh.make_storage();
+   t1           = walberla::timing::getWcTime();
    printCurrentMemoryUsage();
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent to create storage: %12.3e", t1 - t0 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -470,7 +470,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // apply loadbalancing
    t0                 = walberla::timing::getWcTime();
-   auto migrationInfo = mesh.loadbalancing();
+   auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
    storage->migratePrimitives( migrationInfo );
    t1                   = walberla::timing::getWcTime();
    auto t_loadbalancing = t1 - t0;

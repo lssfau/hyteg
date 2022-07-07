@@ -26,6 +26,7 @@
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <queue>
 #include <type_traits>
 
 #include "hyteg/Algorithms.hpp"
@@ -329,6 +330,10 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    {
       loadbalancing_roundRobin();
    }
+   else if ( lb == GREEDY )
+   {
+      loadbalancing_greedy( nbrHood );
+   }
    else
    {
       // todo: implement better loadbalancing
@@ -481,6 +486,127 @@ void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
          el->setTargetRank( targetRnk );
          ++n_vol_on_rnk[targetRnk];
       }
+   }
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::vector< Neighborhood >& nbrHood )
+{
+   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
+      return;
+
+   std::vector< uint_t > n_vol_on_rnk( _n_processes );
+   uint_t                n_vol_max0     = _n_elements / _n_processes;
+   uint_t                n_vol_max1     = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
+   uint_t                n_assigned     = 0;
+   bool                  fill_any       = false;
+   auto                  random_element = _T.begin();
+
+   std::map< uint_t, K_Simplex* >            id_to_el;
+   std::map< uint_t, std::vector< uint_t > > nbrs;
+   uint_t                                    idx = 0;
+   for ( auto& el : _T )
+   {
+      id_to_el[el->getPrimitiveID().getID()] = el.get();
+      nbrs[el->getPrimitiveID().getID()]     = nbrHood[idx][K_Simplex::TYPE];
+
+      ++idx;
+   }
+
+   while ( n_assigned < _n_elements )
+   {
+      for ( uint_t targetRnk = 0; targetRnk < _n_processes; ++targetRnk )
+      {
+         std::queue< std::vector< K_Simplex* > > Q;
+         std::unordered_map< K_Simplex*, bool >  visited;
+         auto                                    add_to_Q = [&]( K_Simplex* el ) -> bool {
+            if ( visited[el] || el->getTargetRank() < _n_processes )
+            {
+               return false;
+            }
+
+            std::vector< K_Simplex* > next;
+            if ( el->has_green_edge() )
+            {
+               /* elements coming from a green step must reside on the same process
+                  to ensure compatibility with further refinement (interpolation between grids)
+               */
+               for ( auto s : el->get_siblings() )
+               {
+                  next.push_back( s.get() );
+                  visited[s.get()] = true;
+               }
+            }
+            else
+            {
+               next.push_back( el );
+               visited[el] = true;
+            }
+
+            Q.push( next );
+
+            return true;
+         };
+
+         // assign elements to targetRnk until saturated
+         while ( n_vol_on_rnk[targetRnk] < n_vol_max1 && n_assigned < _n_elements )
+         {
+            if ( Q.empty() && n_assigned < _n_elements )
+            {
+               // put a random elment (+siblings) into the queue
+               if ( n_vol_on_rnk[targetRnk] < n_vol_max0 || fill_any )
+               {
+                  // find the next unassigned element
+                  while ( ( *random_element )->getTargetRank() < _n_processes )
+                  {
+                     ++random_element;
+                  }
+
+                  add_to_Q( random_element->get() );
+               }
+               // don't start a new queue for just one element
+               else
+               {
+                  break;
+               }
+            }
+
+            // take next element (+siblings) from queue
+            auto next = Q.front();
+            do
+            {
+               next = Q.front();
+               Q.pop();
+            } while ( n_vol_on_rnk[targetRnk] + next.size() > n_vol_max1 && !Q.empty() );
+
+            // assign next (+siblings) to targetRnk
+            for ( auto el : next )
+            {
+               if ( el->getTargetRank() < _n_processes )
+               {
+                  WALBERLA_ABORT( "something went wrong here" );
+               }
+               el->setTargetRank( targetRnk );
+               ++n_vol_on_rnk[targetRnk];
+               ++n_assigned;
+            }
+            // also change rank of parent s.th. future refinement of parent resides on same process
+            if ( next[0]->get_parent() )
+               next[0]->get_parent()->setTargetRank( targetRnk );
+
+            // add nbrs to queue
+            for ( auto el : next )
+            {
+               for ( auto nbrID : nbrs[el->getPrimitiveID().getID()] )
+               {
+                  add_to_Q( id_to_el[nbrID] );
+               }
+            }
+         }
+      }
+
+      // all ranks have been assigned at least n_vol_max0 elements but there are still elements left
+      fill_any = true;
    }
 }
 

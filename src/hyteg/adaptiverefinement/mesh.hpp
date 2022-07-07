@@ -42,7 +42,8 @@ struct RefinedElements
 enum Loadbalancing
 {
    ROUND_ROBIN, // cheap loadbalancer
-   CLUSTERING   // assign clusters of primitives to each process
+   CLUSTERING,  // assign clusters of primitives to each process
+   GREEDY       // assign elements to processes using greedy algorithm
 };
 
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
@@ -131,6 +132,10 @@ class K_Mesh
    /* apply round robin loadbalancing to volume elements
    */
    void loadbalancing_roundRobin();
+
+   /* apply greedy loadbalancing to volume elements
+   */
+   void loadbalancing_greedy( const std::vector< Neighborhood >& nbrHood );
 
    /* remove green edges from _T and replace them with their parents
    */
