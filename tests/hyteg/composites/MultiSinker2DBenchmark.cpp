@@ -151,7 +151,9 @@ void MultiSinker2D( const uint_t& level,
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
    auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-15, 1e-11, 10000, true );
-   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 10000, true, x.uvw()[0].getBoundaryCondition() );
+   
+   auto velocityBCs = {x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition()};
+   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 100, true, velocityBCs );
 
    //auto bfbtop = std::make_shared<BFBT_P2P1>( storage, level, level, viscosity );
    //bfbtop->printComponentMatrices(level, storage);
