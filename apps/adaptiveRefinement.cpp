@@ -43,6 +43,7 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+#include "hyteg/solvers/controlflow/AgglomerationWrapper.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -477,12 +478,19 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // solver
    t0 = walberla::timing::getWcTime();
-   auto coarseGridSolver =
-       std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( uint_t( 5 ), n_dof_coarse ), cg_tol );
+   // coarse grid (agglomerated)
+   auto cgsAgglomerated = std::make_shared< AgglomerationWrapper< A_t > >( storage, l_min );
+   auto npAgglomeration = std::min( uint_t( walberla::mpi::MPIManager::instance()->numProcesses() ), n_dof_coarse / 100 + 1 );
+   cgsAgglomerated->setStrategyContinuousProcesses( 0, npAgglomeration - 1 );
+   auto cgIter    = std::max( uint_t( 5 ), n_dof_coarse );
+   auto cgStorage = cgsAgglomerated->getAgglomerationStorage();
+   auto cgs       = std::make_shared< CGSolver< A_t > >( cgStorage, l_min, l_min, cgIter, cg_tol );
+   cgsAgglomerated->setSolver( cgs );
+   // smoother
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
    // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
-
-   GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
+   // multigrid
+   GeometricMultigridSolver< A_t > gmg( storage, smoother, cgsAgglomerated, R, P, l_min, l_max, 3, 3 );
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
