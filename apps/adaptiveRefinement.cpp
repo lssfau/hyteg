@@ -40,9 +40,9 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -51,8 +51,8 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-using Mass         = P1ConstantMassOperator;
-using Laplace      = P1ConstantLaplaceOperator;
+using Mass    = P1ConstantMassOperator;
+using Laplace = P1ConstantLaplaceOperator;
 // using Laplace      = P1ElementwiseLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
 using DivkGrad     = P1VariableOperator< DivkGradForm >;
@@ -402,10 +402,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // global DoF
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
-   auto n_dof  = uint_t( tmp.dotGlobal( tmp, l_max ) );
+   auto n_dof = uint_t( tmp.dotGlobal( tmp, l_max ) );
    // cg-dof
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_min, Inner | NeumannBoundary );
-   auto n_dof_coarse  = uint_t( tmp.dotGlobal( tmp, l_min ) );
+   auto n_dof_coarse = uint_t( tmp.dotGlobal( tmp, l_min ) );
 
    t0          = walberla::timing::getWcTime();
    auto t_init = t1 - t0;
@@ -476,9 +476,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto t_loadbalancing = t1 - t0;
 
    // solver
-   t0                    = walberla::timing::getWcTime();
-   auto coarseGridSolver = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( uint_t( 5 ), n_dof_coarse ), cg_tol );
-   auto smoother         = std::make_shared< GaussSeidelSmoother< A_t > >();
+   t0 = walberla::timing::getWcTime();
+   auto coarseGridSolver =
+       std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, std::max( uint_t( 5 ), n_dof_coarse ), cg_tol );
+   auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
    // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
 
    GeometricMultigridSolver< A_t > gmg( storage, smoother, coarseGridSolver, R, P, l_min, l_max, 3, 3 );
@@ -729,13 +730,35 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
 
       if ( problem.constant_coefficient() )
       {
-         solve< Laplace >(
-             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, cg_tol, vtkname, writePartitioning, refinement );
+         solve< Laplace >( mesh,
+                           problem,
+                           u0,
+                           u_old,
+                           l_max,
+                           l_min,
+                           l_final,
+                           max_iter_final,
+                           tol_final,
+                           cg_tol,
+                           vtkname,
+                           writePartitioning,
+                           refinement );
       }
       else
       {
-         solve< DivkGrad >(
-             mesh, problem, u0, u_old, l_max, l_min, l_final, max_iter_final, tol_final, cg_tol, vtkname, writePartitioning, refinement );
+         solve< DivkGrad >( mesh,
+                            problem,
+                            u0,
+                            u_old,
+                            l_max,
+                            l_min,
+                            l_final,
+                            max_iter_final,
+                            tol_final,
+                            cg_tol,
+                            vtkname,
+                            writePartitioning,
+                            refinement );
       }
    }
 }
