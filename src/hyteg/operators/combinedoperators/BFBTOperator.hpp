@@ -5,6 +5,7 @@
 //#include "hyteg/forms/form_hyteg_generated/p2/p2_invk_mass_affine_q6.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.cpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_invk_mass_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_k_mass_affine_q4.hpp"
 #include "hyteg/p2functionspace/P2FunctionApplyOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -33,7 +34,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    : Operator< PressureFunctionType, PressureFunctionType >( storage, maxLevel, maxLevel )
    , A( storage, maxLevel, maxLevel, viscosity ) // A should be a discretization of the velocity block with non constant viscosity
    , Z( storage, maxLevel, viscosity, VelocitySpaceBCs )
-   , ZSolver( std::make_shared< CGSolver< BFBTSubOperator > >( storage, maxLevel, maxLevel) )
+   , ZSolver( std::make_shared< CGSolver< BFBTSubOperator > >( storage, maxLevel, maxLevel ) )
    , storage_( storage )
    , pTmp( "pTmp", storage, maxLevel, maxLevel )
    , vTmp( "vTmp", storage, maxLevel, maxLevel )
@@ -85,20 +86,6 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       pTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
       vTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
       vTmp2.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
-      /*    vTmp.setBoundaryCondition(BoundaryCondition(hyteg::All^hyteg::DirichletBoundary));
-      vTmp2.setBoundaryCondition(BoundaryCondition(hyteg::All^hyteg::DirichletBoundary));
-
-  
-      WALBERLA_LOG_INFO_ON_ROOT( "pTmp bc type for 1: " << pTmp.getBoundaryCondition().getBoundaryType( 1 ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "pTmp bc type for 0: " << pTmp.getBoundaryCondition().getBoundaryType( 0 ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "vTmp bc type for 1: " << vTmp.getBoundaryCondition().getBoundaryType( 1 ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "vTmp bc type for 0: " << vTmp.getBoundaryCondition().getBoundaryType( 0 ) );
-      */
-      /*
-      pTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::All );
-      vTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::All );
-      vTmp2.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::All );
-      */
 
       VTKOutput vtkOutput_pTmp(
           "../../output", "BFBT_intres_BFBTApply_pTmp", Operator< PressureFunctionType, PressureFunctionType >::storage_ );
@@ -122,15 +109,15 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       vtkOutput_vTmp.write( level, 0 );
 
       //Z.Minv.apply( vTmp, vTmp2, level, hyteg::Inner ); // vTmp2 = M^{-1}*vTmp
-      Z.MSolver->solve(Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
-     
+      Z.MSolver->solve( Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
+
       vtkOutput_vTmp2.write( level, 0 );
       A.apply( vTmp2, vTmp, level, hyteg::Inner ); // vtmp= A*vTmp2
       vtkOutput_vTmp.write( level, 1 );
 
       //Z.Minv.apply( vTmp, vTmp2, level, hyteg::Inner ); // vTmp2 = M^{-1}*vTmp
-      Z.MSolver->solve(Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
-    
+      Z.MSolver->solve( Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
+
       vtkOutput_vTmp2.write( level, 1 );
 
       Z.B.apply( vTmp2, pTmp, level, hyteg::Inner ); // pTmp = B*vTmp2
@@ -154,21 +141,27 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    {
       typename VelocityFunctionType::template FunctionType< idx_t > VelocityNum(
           "VelocityNum", storage /*Operator< PressureFunctionType, PressureFunctionType >::storage_*/, level, level );
+      typename PressureFunctionType::template FunctionType< idx_t > PressureNum(
+          "PressureNum", Operator< PressureFunctionType, PressureFunctionType >::storage_, level, level );
 
       VelocityNum.enumerate( level );
+      PressureNum.enumerate( level );
 
-      PETScSparseMatrix< P2FunctionApplyOperator > MinvMat;
-      MinvMat.createMatrixFromOperator( Z.Minv, level, VelocityNum );
-
+      PETScSparseMatrix< VectorVelocityMassOp >               MMat;
+      PETScSparseMatrix< DivOpType >                          BMat;
+      PETScSparseMatrix< DivOpTType >                         BTMat;
       PETScSparseMatrix< P2ElementwiseAffineEpsilonOperator > AMat;
-      AMat.createMatrixFromOperator( A, level, VelocityNum );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Minv:" );
-      //MatView( MinvMat.get(), PETSC_VIEWER_STDOUT_WORLD );
-      MinvMat.print( "MinvMat", false, PETSC_VIEWER_DEFAULT );
-      WALBERLA_LOG_INFO_ON_ROOT( "A:" );
-      //MatView( AMat.get(), PETSC_VIEWER_STDOUT_WORLD );
-      AMat.print( "AMat", false, PETSC_VIEWER_DEFAULT );
+      MMat.createMatrixFromOperator( Z.M, level, VelocityNum );
+      AMat.createMatrixFromOperator( A, level, VelocityNum );
+      BMat.createMatrixFromOperator( Z.B, level, VelocityNum, PressureNum );
+      BTMat.createMatrixFromOperator( Z.BT, level, PressureNum, VelocityNum );
+
+      MMat.print( "FOR_MATLAB_MMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      AMat.print( "FOR_MATLAB_AMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      BMat.print( "FOR_MATLAB_BMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      BTMat.print( "FOR_MATLAB_BTMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      
    }
 
    // this implements the suboperator Z = BM(w)^{-1}B^T
@@ -185,7 +178,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       , B( storage, level, level )
       , BT( storage, level, level )
       //, Minv( storage, level )
-      , M( storage, level, level) 
+      , M( storage, level, level )
       , MSolver( std::make_shared< PETScLUSolver< VectorVelocityMassOp > >( storage, level ) )
       , storage_( storage )
       , tmp( "tmp", storage, level, level )
@@ -197,8 +190,9 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
             tmp2.setBoundaryCondition( VelocitySpaceBCs[c], c );
          }
 
-         auto form = hyteg::forms::p2_sqrtk_mass_affine_q4( viscosity, viscosity );
-         auto P2Mass = std::make_shared<P2ElementwiseOperator< hyteg::forms::p2_sqrtk_mass_affine_q4>>(storage, level, level, form);
+         using massForm = hyteg::forms::p2_sqrtk_mass_affine_q4;
+         auto P2Mass =
+             std::make_shared< P2ElementwiseOperator< massForm > >( storage, level, level, massForm( viscosity, viscosity ) );
          M.setSubOperator( 0, 0, P2Mass );
          M.setSubOperator( 1, 1, P2Mass );
       }
@@ -226,7 +220,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
          BT.apply( src, tmp, level, hyteg::Inner ); // tmp = B^T*src
 
          //Minv.apply( tmp, tmp2, level, hyteg::Inner ); // tmp2 = M^{-1}*tmp
-         MSolver->solve(M, tmp2, tmp, level);
+         MSolver->solve( M, tmp2, tmp, level );
          B.apply( tmp2, dst, level, hyteg::Inner ); // dst = B*tmp2
       }
 
@@ -239,7 +233,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
          // Z = BM(w)^{-1}B^T to matrix
 
          WALBERLA_ABORT( "Should not be used yet!" );
-/*
+         /*
          // Sparse matrix objects for sub operators
          PETScSparseMatrix< P2FunctionApplyOperator > MinvMat;
          PETScSparseMatrix< DivOpType >               BMat;
@@ -276,14 +270,14 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
          mat->createFromMatrixProduct( { BTMatProxy, MinvMatProxy, BMatProxy } ); */
       }
 
-      DivOpType                                 B;
-      DivOpTType                                BT;
+      DivOpType  B;
+      DivOpTType BT;
       //P2FunctionApplyOperator                   Minv;
-      VectorVelocityMassOp M;
-      std::shared_ptr< PETScLUSolver< VectorVelocityMassOp > >      MSolver;
-      VelocityFunctionType                      tmp;
-      VelocityFunctionType                      tmp2;
-      const std::shared_ptr< PrimitiveStorage > storage_;
+      VectorVelocityMassOp                                     M;
+      std::shared_ptr< PETScLUSolver< VectorVelocityMassOp > > MSolver;
+      VelocityFunctionType                                     tmp;
+      VelocityFunctionType                                     tmp2;
+      const std::shared_ptr< PrimitiveStorage >                storage_;
    };
 
  private:
