@@ -148,7 +148,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
             const real_t&                                       absoluteTargetResidual,
             const uint_t&                                       maxIterations,
             bool                                                printInfo,
-            const BoundaryCondition& VelocitySpaceBC
+            const std::vector<BoundaryCondition>&                     VelocitySpaceBCs
 
 ) {
 
@@ -164,7 +164,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
        maxLevel,
        maxLevel,
        viscosity,
-       VelocitySpaceBC
+       VelocitySpaceBCs
     );
    auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, BFBT_P2P1 >>( 
        storage, maxLevel, 

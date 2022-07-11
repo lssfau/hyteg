@@ -23,6 +23,7 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 
 namespace hyteg {
 
