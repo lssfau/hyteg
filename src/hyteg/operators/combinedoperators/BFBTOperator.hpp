@@ -10,6 +10,7 @@
 #include "hyteg/p2functionspace/P2FunctionApplyOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 
 namespace hyteg {
 

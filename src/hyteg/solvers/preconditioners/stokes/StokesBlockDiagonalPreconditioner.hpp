@@ -23,6 +23,7 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/EmptySolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 
 namespace hyteg {
 
