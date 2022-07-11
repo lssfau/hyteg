@@ -88,7 +88,7 @@ void MultiSinker2D( const uint_t& level,
    std::default_random_engine               re;
    re.seed( 1312412415 );
    //re.seed( 213512512 );
-   
+
    std::vector< Point3D > centers;
    for ( uint_t c = 0; c < nSinkers; c++ )
    {
@@ -147,16 +147,36 @@ void MultiSinker2D( const uint_t& level,
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
        storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
 
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-15, 1e-9, 10000, true );
+   auto ViscWeightedPMINRES =
+       solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-15, 1e-9, 10000, true );
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
    auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-15, 1e-11, 10000, true );
-   
-   auto velocityBCs = {x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition()};
-   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 100, true, velocityBCs );
 
-   //auto bfbtop = std::make_shared<BFBT_P2P1>( storage, level, level, viscosity );
-   //bfbtop->printComponentMatrices(level, storage);
+   auto velocityBCs  = { x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition() };
+   auto BFBT_PMINRES = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 100, true, velocityBCs );
+
+   hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
+   THNumerator.copyBoundaryConditionFromFunction( x );
+   THNumerator.enumerate( level );
+
+   bool printOperands = false;
+   bool printResult   = true;
+   if ( printOperands )
+   {
+      auto bfbtop = std::make_shared< BFBT_P2P1 >( storage, level, level, viscosity, velocityBCs );
+      bfbtop->printComponentMatrices( level, storage );
+      PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
+      StokesMat.createMatrixFromOperator( A, level, THNumerator, All );
+      
+      PETScVector bVec( b, THNumerator, level );
+      StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
+      bVec.print( "FOR_MATLAB_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      StokesMat.print( "FOR_MATLAB_StokesMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   WALBERLA_ABORT( "bye" );
+   }
+
 
    walberla::WcTimer timer;
    switch ( solver )
@@ -194,6 +214,12 @@ void MultiSinker2D( const uint_t& level,
       WALBERLA_ABORT( "No solver chosen! aborting..." );
    }
    timer.end();
+
+   if ( printResult )
+   {
+      PETScVector xVec( x, THNumerator, level );
+      xVec.print( "FOR_MATLAB_xVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   }
 
    hyteg::vertexdof::projectMean( x.p(), level );
 

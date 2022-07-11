@@ -7,6 +7,9 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
@@ -38,11 +41,6 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
@@ -230,11 +228,15 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
                         ( xx[0] * sin( 2.0 * atan( xx[1] / xx[0] ) ) + xx[1] * cos( 2.0 * atan( xx[1] / xx[0] ) ) ) /
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddy_p(xx);
        };
-   btmp.uvw().interpolate( { rhsU, rhsV }, level, hyteg::Inner );
+   btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
    P2ConstantMassOperator VelMassOp( storage, 0, level );
+   b.uvw().interpolate( { analyticU, analyticV }, level, DirichletBoundary );
+ //  b.p().interpolate( analyticP, level, DirichletBoundary );
    VelMassOp.apply( btmp.uvw()[0], b.uvw()[0], level, All );
    VelMassOp.apply( btmp.uvw()[1], b.uvw()[1], level, All );
-
+   
+   
+   
    // Visualization
    
    VTKOutput vtkOutput( "../../output", "SolViBenchmark", storage );
@@ -275,6 +277,30 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    auto velocityBCs = {x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition()};
    auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 10, true,  velocityBCs);
 
+
+  hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
+   THNumerator.copyBoundaryConditionFromFunction( x );
+   THNumerator.enumerate( level );
+
+   bool printOperands = true;
+   bool printResult   = true;
+   if ( printOperands )
+   {
+      //auto bfbtop = std::make_shared< BFBT_P2P1 >( storage, level, level, viscosity, velocityBCs );
+      //bfbtop->printComponentMatrices( level, storage );
+      PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
+      StokesMat.createMatrixFromOperator( OP, level, THNumerator, All );
+      
+      PETScVector bVec( b, THNumerator, level );
+      StokesMat.applyDirichletBC(  THNumerator,  level );
+      bVec.print( "FOR_MATLAB_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      StokesMat.print( "FOR_MATLAB_StokesMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   }
+
+
+
+
    WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
    walberla::WcTimer timer;
 
@@ -284,12 +310,10 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       OnlyPressurePMINRES->solve( OP, x, b, level );
       break;
    case 1:
-   
       WALBERLA_LOG_INFO_ON_ROOT( "Solver: ViscWeightedPMINRES" );
       ViscWeightedPMINRES->solve( OP, x, b, level );
       break;
    case 2:
-   
       WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES" );
       StdBlkdiagPMINRES->solve( OP, x, b, level );
       break;
@@ -297,17 +321,25 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       StdBlkdiagPMINRES_PETSc.solve( OP, x, b, level );
       break;
    case 4:
-   
       WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
       BFBT_PMINRES->solve( OP, x, b, level );
       break;
    default:
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: LU" );
       LU.solve( OP, x, b, level );
    }
    timer.end();
 
+ 
+
    hyteg::vertexdof::projectMean( x.p(), level );
    hyteg::vertexdof::projectMean( x_exact.p(), level );
+ if ( printResult )
+   {
+      PETScVector xVec( x, THNumerator, level );
+      xVec.print( "FOR_MATLAB_xVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   }
+  
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    OP.apply( x, btmp, level, hyteg::Inner );
