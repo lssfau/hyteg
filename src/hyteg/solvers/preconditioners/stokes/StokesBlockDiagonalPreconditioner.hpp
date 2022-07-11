@@ -37,7 +37,7 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
        uint_t                                     velocityPreconditionSteps,
-       const std::shared_ptr< pressureBlockPreconditionerType >&                     pressureBlockPreconditioner,
+       std::shared_ptr< pressureBlockPreconditionerType >                  pressureBlockPreconditioner,
        std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner =
            std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
    // const std::shared_ptr< RowSumForm >& massForm =
