@@ -78,75 +78,123 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
                                                    BoundaryCondition                          boundaryCondition )
+: VertexDoFFunction( name, storage, minLevel, maxLevel, boundaryCondition, false )
+{}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
+                                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                                   uint_t                                     minLevel,
+                                                   uint_t                                     maxLevel,
+                                                   BoundaryCondition                          boundaryCondition,
+                                                   bool                                       addVolumeGhostLayer )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
    auto faceVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
    auto edgeVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge > >();
-   auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >();
+   auto vertexVertexDoFFunctionMemoryDataHandling =
+       std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >();
 
    storage->addCellData( cellDataID_, cellVertexDoFFunctionMemoryDataHandling, name );
    storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
    storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
    storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
 
+   if ( addVolumeGhostLayer )
+   {
+      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(),
+                                    1,
+                                    "You are trying to extend the ghost-layers to the neighbor volume interior for "
+                                    "VertexDoFFunctions. This requires an additional halo depth of at least 1 in the "
+                                    "PrimitiveStorage. This can be set in the PrimitiveStorage constructor. Bye." )
+
+      if ( !storage->hasGlobalCells() )
+      {
+         // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+         const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
+
+         // Create three data IDs for all faces.
+         storage->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
+         storage->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
+         storage->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
+      }
+      else
+      {
+         // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+         const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+         // Create three data IDs for all faces.
+         storage->addCellData( cellGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroCellGL0Data" );
+         storage->addCellData( cellGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroCellGL1Data" );
+         storage->addCellData( cellGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroCellGL2Data" );
+         storage->addCellData( cellGhostLayerDataIDs_[3], dofDataHandlingGL, "VolumeDoFMacroCellGL3Data" );
+      }
+   }
+
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
-      for ( const auto & it : storage->getVertices() )
+      for ( const auto& it : storage->getVertices() )
       {
          allocateMemory( level, *it.second );
       }
-      for ( const auto & it : storage->getEdges() )
+      for ( const auto& it : storage->getEdges() )
       {
          allocateMemory( level, *it.second );
       }
-      for ( const auto & it : storage->getFaces() )
+      for ( const auto& it : storage->getFaces() )
       {
          allocateMemory( level, *it.second );
       }
-      for ( const auto & it : storage->getCells() )
+      for ( const auto& it : storage->getCells() )
       {
          allocateMemory( level, *it.second );
       }
 
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
-          level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level,
+                                                                                              vertexDataID_,
+                                                                                              edgeDataID_,
+                                                                                              faceDataID_,
+                                                                                              cellDataID_,
+                                                                                              faceGhostLayerDataIDs_,
+                                                                                              cellGhostLayerDataIDs_,
+                                                                                              this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
 }
 
 template < typename ValueType >
-bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const
 {
    WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
    return vertex.hasData( getVertexDataID() ) && vertex.getData( getVertexDataID() )->hasLevel( level );
 }
 
 template < typename ValueType >
-bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Edge & edge ) const
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t& level, const Edge& edge ) const
 {
    WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
    return edge.hasData( getEdgeDataID() ) && edge.getData( getEdgeDataID() )->hasLevel( level );
 }
 
 template < typename ValueType >
-bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Face & face ) const
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t& level, const Face& face ) const
 {
    WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
    return face.hasData( getFaceDataID() ) && face.getData( getFaceDataID() )->hasLevel( level );
 }
 
 template < typename ValueType >
-bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Cell & cell ) const
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t& level, const Cell& cell ) const
 {
    WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
    return cell.hasData( getCellDataID() ) && cell.getData( getCellDataID() )->hasLevel( level );
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Vertex & vertex )
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Vertex& vertex )
 {
    WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
    WALBERLA_CHECK( vertex.hasData( getVertexDataID() ) )
@@ -156,7 +204,7 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Edge & edge )
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Edge& edge )
 {
    WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
    WALBERLA_CHECK( edge.hasData( getEdgeDataID() ) )
@@ -166,27 +214,43 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Face & face )
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Face& face )
 {
    WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
    WALBERLA_CHECK( face.hasData( getFaceDataID() ) )
    if ( hasMemoryAllocated( level, face ) )
       return;
    face.getData( getFaceDataID() )->addData( level, vertexDoFMacroFaceFunctionMemorySize( level, face ), 0 );
+
+   if ( !this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
+   {
+      for ( uint_t glID = 0; glID < 3; glID++ )
+      {
+         face.getData( getFaceGLDataID( glID ) )->addData( level, levelinfo::num_microedges_per_edge( level ), 0 );
+      }
+   }
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Cell & cell )
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Cell& cell )
 {
    WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
    WALBERLA_CHECK( cell.hasData( getCellDataID() ) )
    if ( hasMemoryAllocated( level, cell ) )
       return;
    cell.getData( getCellDataID() )->addData( level, vertexDoFMacroCellFunctionMemorySize( level, cell ), 0 );
+
+   if ( this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
+   {
+      for ( uint_t glID = 0; glID < 4; glID++ )
+      {
+         cell.getData( getCellGLDataID( glID ) )->addData( level, levelinfo::num_microfaces_per_face( level ), 0 );
+      }
+   }
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Vertex & vertex )
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Vertex& vertex )
 {
    WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
    if ( !hasMemoryAllocated( level, vertex ) )
@@ -195,7 +259,7 @@ void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const V
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Edge & edge )
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Edge& edge )
 {
    WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
    if ( !hasMemoryAllocated( level, edge ) )
@@ -204,7 +268,7 @@ void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const E
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Face & face )
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Face& face )
 {
    WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
    if ( !hasMemoryAllocated( level, face ) )
@@ -213,14 +277,13 @@ void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const F
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Cell & cell )
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Cell& cell )
 {
    WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
    if ( !hasMemoryAllocated( level, cell ) )
       return;
    cell.getData( getCellDataID() )->deleteData( level );
 }
-
 
 template < typename ValueType >
 BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const
@@ -233,7 +296,6 @@ void VertexDoFFunction< ValueType >::setBoundaryCondition( BoundaryCondition bc 
 {
    boundaryCondition_ = bc;
 }
-
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
@@ -255,7 +317,7 @@ void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t lev
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const
 {
-  interpolate( [constant]( const Point3D& ){ return constant; }, level, boundaryUID );
+   interpolate( [constant]( const Point3D& ) { return constant; }, level, boundaryUID );
 }
 
 template < typename ValueType >
@@ -313,12 +375,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -327,12 +389,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -341,12 +403,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -355,12 +417,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
@@ -397,12 +459,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ uint_c( i ) ] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -411,12 +473,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c( i ) ] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -425,12 +487,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[ uint_c( i ) ] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -439,12 +501,12 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -511,15 +573,15 @@ bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
 {
    if ( !this->getStorage()->hasGlobalCells() )
    {
-      Point2D coordinates2D( {coordinates[0], coordinates[1]} );
+      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
 
       for ( auto& it : this->getStorage()->getFaces() )
       {
          Face& face = *it.second;
 
-         Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-         Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-         Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+         Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+         Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+         Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
          if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
          {
@@ -534,15 +596,12 @@ bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
          {
             Face& face = *it.second;
 
-            Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-            Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-            Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
-            if ( circleTriangleIntersection( coordinates2D,
-                                             searchToleranceRadius,
-                                             faceCoodinates0,
-                                             faceCoodinates1,
-                                             faceCoodinates2 ) )
+            if ( circleTriangleIntersection(
+                     coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
             {
                value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
                return true;
@@ -751,7 +810,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
    }
    this->startTiming( "Copy" );
 
-   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 9563 );
+   walberla::mpi::BufferSystem        bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 9563 );
    std::set< walberla::mpi::MPIRank > receiverRanks;
    for ( auto it : localPrimitiveIDsToRank )
    {
@@ -883,17 +942,26 @@ void macroFaceAssign< double >( const uint_t&                                   
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -901,11 +969,17 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-         WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -915,7 +989,10 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-         WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
@@ -1005,48 +1082,48 @@ void VertexDoFFunction< ValueType >::assign(
       srcCellIDs.push_back( function.cellDataID_ );
    }
    this->getStorage()->getTimingTree()->start( "Vertex" );
-   
+
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
-   
+
    this->getStorage()->getTimingTree()->stop( "Vertex" );
    this->getStorage()->getTimingTree()->start( "Edge" );
-   
+
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
-   
+
    this->getStorage()->getTimingTree()->stop( "Edge" );
    this->getStorage()->getTimingTree()->start( "Face" );
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1058,12 +1135,12 @@ void VertexDoFFunction< ValueType >::assign(
    this->getStorage()->getTimingTree()->start( "Cell" );
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
@@ -1083,12 +1160,12 @@ void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFTyp
    this->startTiming( "Add" );
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1097,12 +1174,12 @@ void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFTyp
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1111,12 +1188,12 @@ void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFTyp
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1125,12 +1202,12 @@ void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFTyp
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
@@ -1161,17 +1238,26 @@ void macroFaceAdd< double >( const uint_t&                                      
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1179,11 +1265,17 @@ void macroFaceAdd< double >( const uint_t&                                      
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1193,7 +1285,10 @@ void macroFaceAdd< double >( const uint_t&                                      
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
@@ -1259,12 +1354,12 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1273,12 +1368,12 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1287,12 +1382,12 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1301,12 +1396,12 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          macroCellAdd< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
@@ -1341,12 +1436,12 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1355,12 +1450,12 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1369,12 +1464,12 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1383,13 +1478,13 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
-      
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
+
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
@@ -1427,14 +1522,14 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
-   ValueType scalarProductVertices = 0;
-   std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for reduction(+: scalarProductVertices)
-   #endif
+   ValueType                  scalarProductVertices = 0;
+   std::vector< PrimitiveID > vertexIDs             = this->getStorage()->getVertexIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for reduction( + : scalarProductVertices )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ uint_c( i ) ] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1445,14 +1540,14 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
    if ( level >= 1 )
    {
-      ValueType scalarProductEdges = 0;
-      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductEdges)
-      #endif
+      ValueType                  scalarProductEdges = 0;
+      std::vector< PrimitiveID > edgeIDs            = this->getStorage()->getEdgeIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for reduction( + : scalarProductEdges )
+#endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c( i ) ] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1461,14 +1556,14 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       }
       scalarProduct += scalarProductEdges;
 
-      ValueType scalarProductFaces = 0;
-      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductFaces)
-      #endif
+      ValueType                  scalarProductFaces = 0;
+      std::vector< PrimitiveID > faceIDs            = this->getStorage()->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for reduction( + : scalarProductFaces )
+#endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[ uint_c( i ) ] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1477,14 +1572,14 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       }
       scalarProduct += scalarProductFaces;
 
-      ValueType scalarProductCells = 0;
-      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductCells)
-      #endif
+      ValueType                  scalarProductCells = 0;
+      std::vector< PrimitiveID > cellIDs            = this->getStorage()->getCellIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for reduction( + : scalarProductCells )
+#endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1626,10 +1721,10 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >&        rhs,
-                                                  VertexDoFFunction< ValueType >& rhsP1,
-                                                  uint_t                          level,
-                                                  DoFType                         flag )
+void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >& rhs,
+                                                  VertexDoFFunction< ValueType >&   rhsP1,
+                                                  uint_t                            level,
+                                                  DoFType                           flag )
 {
    if ( isDummy() )
    {
@@ -1884,12 +1979,12 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    if ( std::is_same< PrimitiveType, Vertex >::value )
    {
       std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
       {
-         Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+         Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1900,12 +1995,12 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Edge >::value )
    {
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1916,12 +2011,12 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Face >::value )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1932,12 +2027,12 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Cell >::value )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
