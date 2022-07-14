@@ -259,8 +259,6 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    P1DGELaplaceOperator   L( storage, level, level );
    P1DGEMassOperator      M( storage, level, level );
 
-   P1DGELaplaceBoundaryOperator Lboundary( storage, level, level );
-
    numerator.enumerate( level );
 
    // solution as a lambda function
@@ -340,9 +338,6 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
    P1DGEP0StokesOperator K( storage, level, level );
-
-   P1DGELaplaceBoundaryOperator Lboundary_velocity( storage, level, level );
-   P1DGEToP0DivBoundaryOperator Lboundary_pressure( storage, level, level );
 
    numerator.enumerate( level );
 
@@ -481,11 +476,11 @@ void runLaplace()
    real_t lastError    = std::nan( "" );
    real_t currentError = std::nan( "" );
    real_t currentRate  = std::nan( "" );
-   for ( uint_t level = 3; level <= 6; level++ )
+   for ( uint_t level = 5; level <= 6; level++ )
    {
       lastError = currentError;
       // currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
-      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/quad_16el.msh", level, true );
+      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/quad_16el.msh", level, false );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -541,8 +536,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/quad_16el.msh", 4, true ) ), 1e-12 );
-   WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/quad_16el.msh", 4, true, true ) ), 1e-11 );
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/quad_16el.msh", 3, false ) ), 1e-12 );
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/quad_16el.msh", 3, false, true ) ), 1e-11 );
 
    hyteg::runLaplace();
    hyteg::runStokes();

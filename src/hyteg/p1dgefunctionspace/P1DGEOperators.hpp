@@ -123,48 +123,6 @@ class P1DGEToP0DivOperator final : public Operator< P1DGEFunction< real_t >, P0F
    P0Operator< dg::DGDivFormP0EDG >      edg_to_p0;
 };
 
-class P1DGEToP0DivBoundaryOperator final : public Operator< P1DGEFunction< real_t >, P0Function< real_t > >
-{
- public:
-   P1DGEToP0DivBoundaryOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-       : Operator< P1DGEFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
-       , p1x_to_p0( storage, minLevel, maxLevel )
-       , p1y_to_p0( storage, minLevel, maxLevel )
-   {}
-
-   void apply( const P1DGEFunction< real_t >& src,
-               const P0Function< real_t >&    dst,
-               size_t                         level,
-               DoFType                        flag,
-               UpdateType                     updateType ) const override
-   {
-      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
-      dst.communicate( level );
-      src.getDiscontinuousPart()->communicate( level );
-
-      p1x_to_p0.apply( src.getConformingPart()->component( 0 ), dst, level, flag, updateType );
-      p1y_to_p0.apply( src.getConformingPart()->component( 1 ), dst, level, flag, Add );
-   }
-
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&               src,
-                  const P0Function< idx_t >&                  dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const override
-   {
-      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
-      dst.communicate( level );
-      src.getDiscontinuousPart()->communicate( level );
-
-      p1x_to_p0.toMatrix( mat, src.getConformingPart()->component( 0 ), dst, level, flag );
-      p1y_to_p0.toMatrix( mat, src.getConformingPart()->component( 1 ), dst, level, flag );
-   }
-
- private:
-   P1ToP0Operator< dg::DGDivtFormDirichletBoundaryP1P0_0 > p1x_to_p0;
-   P1ToP0Operator< dg::DGDivtFormDirichletBoundaryP1P0_1 > p1y_to_p0;
-};
-
 class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
 {
  public:
@@ -259,58 +217,6 @@ class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1D
    P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator cg_to_eg_coupling_;
    P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator eg_to_cg_coupling_;
    P0Operator< dg::DGVectorLaplaceFormEDGEDG >      eg_to_eg_coupling_;
-};
-
-class P1DGELaplaceBoundaryOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
-{
- public:
-   P1DGELaplaceBoundaryOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
-   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
-   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
-   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::DGVectorLaplaceFormDirichletBoundaryEDGEDG >() )
-   {}
-
-   void apply( const P1DGEFunction< real_t >& src,
-               const P1DGEFunction< real_t >& dst,
-               size_t                         level,
-               DoFType                        flag,
-               UpdateType                     updateType ) const override
-   {
-      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
-
-      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
-      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
-   }
-
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&               src,
-                  const P1DGEFunction< idx_t >&               dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const override
-   {
-      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
-      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
-      src.getDiscontinuousPart()->communicate( level );
-      dst.getDiscontinuousPart()->communicate( level );
-
-      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
-      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
-      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
-   }
-
- private:
-   P1VectorToP0ScalarOperator< P1ToP0Operator< dg::DGVectorLaplaceFormDirichletBoundaryEDGP1_0 >,
-                               P1ToP0Operator< dg::DGVectorLaplaceFormDirichletBoundaryEDGP1_1 >,
-                               P1ToP0Operator< dg::DGFormAbort > >
-       cg_to_eg_coupling_;
-
-   P0ScalarToP1VectorOperator< P0ToP1Operator< dg::DGVectorLaplaceFormDirichletBoundaryP1EDG_0 >,
-                               P0ToP1Operator< dg::DGVectorLaplaceFormDirichletBoundaryP1EDG_1 >,
-                               P0ToP1Operator< dg::DGFormAbort > >
-       eg_to_cg_coupling_;
-
-   P0Operator< dg::DGVectorLaplaceFormDirichletBoundaryEDGEDG > eg_to_eg_coupling_;
 };
 
 } // namespace hyteg
