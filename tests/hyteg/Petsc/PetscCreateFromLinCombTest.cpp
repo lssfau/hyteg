@@ -83,13 +83,13 @@ int main( int argc, char* argv[] )
        { 2, -1 }, { std::make_shared< PETScSparseMatrixProxy >( pM1 ), std::make_shared< PETScSparseMatrixProxy >( pM2 ) } );
 
    // check result
-   PetscReal val = 0;
+   PetscScalar val = 0;
    for ( int i = 0; i < 2; ++i )
    {
       for ( int j = 0; j < 2; ++j )
       {
          MatGetValue( M3, i, j, &val );
-         WALBERLA_CHECK_FLOAT_EQUAL( val, 0.0 );
+         WALBERLA_CHECK_FLOAT_EQUAL( (double)PetscRealPart(val), 0.0 );
       }
    }
    return EXIT_SUCCESS;
