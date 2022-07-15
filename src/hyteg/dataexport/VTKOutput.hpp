@@ -28,13 +28,14 @@
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 // our friends and helpers
 
@@ -43,9 +44,10 @@
 #include "hyteg/dataexport/VTKHelpers.hpp"
 // clang on
 
-#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
+#include "hyteg/dataexport/VTKN1E1Writer.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
 
@@ -123,6 +125,12 @@ class VTKOutput
    inline void add( const dg::DGFunction< value_t >& function )
    {
       dgFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const n1e1::N1E1VectorFunction< value_t >& function )
+   {
+      n1e1Functions_.push_back( function );
    }
 
    template < typename value_t >
@@ -245,10 +253,11 @@ class VTKOutput
    FunctionMultiStore< P1VectorFunction > p1VecFunctions_;
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
-   FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
+   FunctionMultiStore< EdgeDoFFunction >     edgeDoFFunctions_;
    FunctionMultiStore< FaceDoFFunction_old > faceDoFFunctions_;
 
-   FunctionMultiStore< dg::DGFunction > dgFunctions_;
+   FunctionMultiStore< dg::DGFunction >           dgFunctions_;
+   FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
@@ -261,6 +270,7 @@ class VTKOutput
    friend class VTKP1Writer;
    friend class VTKP2Writer;
    friend class VTKDGWriter;
+   friend class VTKN1E1Writer;
 };
 
 } // namespace hyteg

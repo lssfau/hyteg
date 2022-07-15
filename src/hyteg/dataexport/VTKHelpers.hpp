@@ -40,7 +40,8 @@ enum class DoFType
    EDGE_YZ,
    EDGE_XYZ,
    DG,
-   P2
+   P2,
+   N1E1
 };
 
 inline void writeXMLHeader( std::ostream& output )

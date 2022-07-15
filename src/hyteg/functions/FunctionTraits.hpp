@@ -49,6 +49,8 @@ struct FaceDoFFunction_old_Tag
 {};
 struct DGFunctionTag
 {};
+struct N1E1VectorFunctionTag
+{};
 struct P2FunctionTag
 {};
 struct P1StokesFunctionTag
@@ -94,6 +96,11 @@ template < typename VType >
 class DGFunction;
 }
 
+namespace n1e1 {
+template < typename VType >
+class N1E1VectorFunction;
+};
+
 // Composites
 
 template < typename VType >
@@ -135,6 +142,7 @@ typedef enum
    VOLUME_DOF_FUNCTION,
    FACE_DOF_FUNCTION_OLD,
    DG_FUNCTION,
+   N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
    OTHER_FUNCTION
@@ -221,6 +229,18 @@ struct FunctionTrait< dg::DGFunction< VType > >
    static std::string getTypeName() { return "DGFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::DG_FUNCTION;
+};
+
+/// N1E1VectorFunction specialization
+template < typename VType >
+struct FunctionTrait< n1e1::N1E1VectorFunction< VType > >
+{
+   typedef VType                 ValueType;
+   typedef N1E1VectorFunctionTag Tag;
+
+   static std::string getTypeName() { return "N1E1VectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::N1E1_VECTOR_FUNCTION;
 };
 
 /// P2 specialization
