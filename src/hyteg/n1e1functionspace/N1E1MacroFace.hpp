@@ -91,7 +91,7 @@ inline void add( const uint_t&                                            level,
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( ( it.col() + it.row() ) != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      if ( ( it.col() + it.row() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          dstData[idxDiagonal] += dofScalarDiagonal;
       }
@@ -131,7 +131,7 @@ inline void interpolate( const uint_t&                                          
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( ( it.col() + it.row() ) != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      if ( ( it.col() + it.row() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          faceData[edgedof::macroface::diagonalIndex( level, it.col(), it.row() )] = dofScalarDiagonal;
       }
@@ -204,7 +204,7 @@ inline void
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( ( it.col() + it.row() ) != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      if ( ( it.col() + it.row() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
 

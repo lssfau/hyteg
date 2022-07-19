@@ -21,10 +21,11 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/functions/VectorFunction.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+
+#include "Eigen/Dense"
 
 namespace hyteg {
 namespace n1e1 {

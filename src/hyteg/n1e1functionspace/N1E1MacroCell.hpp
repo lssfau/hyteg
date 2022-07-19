@@ -192,7 +192,7 @@ inline VectorType< real_t > evaluate( const uint_t&                             
 
    auto localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
-   // 5. transform to global coordinates
+   // 5. transform to computational space
 
    Eigen::Matrix3d A;
    A.row( 0 ) = toEigen( microTet1 - microTet0 );

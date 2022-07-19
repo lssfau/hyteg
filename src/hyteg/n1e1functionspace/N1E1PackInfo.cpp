@@ -19,8 +19,6 @@
  */
 #include "N1E1PackInfo.hpp"
 
-#include "hyteg/Algorithms.hpp"
-#include "hyteg/Levelinfo.hpp"
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
