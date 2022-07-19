@@ -825,3 +825,16 @@ waLBerla_execute_test(NAME PrintInfoTest)
 waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
 waLBerla_execute_test(NAME EigenBasicTest)
 waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
+
+## N1E1 ##
+waLBerla_compile_test(FILES N1E1/N1E1AddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AddTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AssignTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AssignTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1EvaluateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1EvaluateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1InterpolateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1InterpolateTest)
