@@ -73,6 +73,30 @@ MPI is enabled by default but can be disabled using:
     
     
 ### Additional components
+### TerraNeo
+
+TerraNeo is a module of HyTeG that is providing functionality for running
+mantle convection models from Geodynamics. As this is a specialised application,
+the module is not build by default. In order to compile the corresponding
+sources, tests and apps (re)run CMake with the following option
+
+    -DHYTEG_TERRANEO_MODULE=yes
+
+Please note that the module depends on
+[CGAL (The Computational Geometry Algorithms Library)](https://www.cgal.org/),
+which in turn has some dependencies on the [Boost](https://www.boost.org/)
+libraries. Both are header-only libraries.
+
+CMake will download CGAL once as part of the configuration process. If you
+already have CGAL installed on your system, you can alternatively provide the
+path to that installation using
+
+    -DCGAL_INCLUDE_PATH=<path to your local installation>
+
+CMake will search for installed Boost libraries. Should these not be found, you
+can tell it to download them also by setting
+
+    -DHYTEG_DOWNLOAD_BOOST=yes
 
 #### PETSc
 
