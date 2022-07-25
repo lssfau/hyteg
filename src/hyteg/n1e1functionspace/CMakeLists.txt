@@ -1,5 +1,6 @@
 target_sources( hyteg
     PRIVATE
+    N1E1Indexing.hpp
     N1E1MacroCell.hpp
     N1E1MacroEdge.hpp
     N1E1MacroFace.hpp

@@ -25,6 +25,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
@@ -71,6 +72,7 @@ inline Eigen::Vector3d microEdgeDirection( const uint_t& level, const Cell& cell
    }
 }
 
+// TODO local evaluate (like in DG)
 inline VectorType< real_t > evaluate( const uint_t&                                            level,
                                       const Cell&                                              cell,
                                       const Point3D&                                           coordinates,
@@ -86,7 +88,7 @@ inline VectorType< real_t > evaluate( const uint_t&                             
 
    volumedofspace::getLocalElementFromCoordinates< ValueType >(
        level, cell, coordinates, elementIndex, cellType, localCoordinates );
-   auto microCellIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
+   auto microCellIndices = getMicroVerticesFromMicroCell( elementIndex, cellType );
 
    // 2. get coordinates, indices and DoFs from microcell
 
@@ -146,35 +148,7 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    auto valueTetE4 = edgedofData[tetE4ArrayIdx];
    auto valueTetE5 = edgedofData[tetE5ArrayIdx];
 
-   // 3. account for edge direction in microcell
-
-   switch ( cellType )
-   {
-   case celldof::CellType::WHITE_UP:
-      break;
-   case celldof::CellType::BLUE_UP:
-      valueTetE2 *= -1;
-      break;
-   case celldof::CellType::GREEN_UP:
-      valueTetE5 *= -1;
-      break;
-   case celldof::CellType::WHITE_DOWN:
-      valueTetE2 *= -1;
-      valueTetE4 *= -1;
-      valueTetE5 *= -1;
-      break;
-   case celldof::CellType::BLUE_DOWN:
-      valueTetE1 *= -1;
-      valueTetE2 *= -1;
-      valueTetE3 *= -1;
-      valueTetE4 *= -1;
-      valueTetE5 *= -1;
-      break;
-   case celldof::CellType::GREEN_DOWN:
-      break;
-   }
-
-   // 4. evaluate function in reference tet
+   // 3. evaluate function in reference tet
    // basis functions N1E1 N(x, y, z):
    //   at [0.5 0.  0. ]: (-y-z+1, x     , x     )ᵀ
    //   at [0.  0.5 0. ]: (y     , -x-z+1, y     )ᵀ
@@ -192,8 +166,9 @@ inline VectorType< real_t > evaluate( const uint_t&                             
 
    auto localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
-   // 5. transform to computational space
+   // 4. transform to computational space
 
+   // TODO precompute and store foctorized A (for each cell type)
    Eigen::Matrix3d A;
    A.row( 0 ) = toEigen( microTet1 - microTet0 );
    A.row( 1 ) = toEigen( microTet2 - microTet0 );

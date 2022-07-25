@@ -30,6 +30,7 @@
 namespace hyteg {
 namespace n1e1 {
 
+// TODO convergence test (L2-norm)
 template < typename ValueType >
 class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< ValueType > >
 {

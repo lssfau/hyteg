@@ -44,6 +44,7 @@ class PrimitiveID;
 
 namespace n1e1 {
 
+// TODO constructor argument for additive
 template < typename ValueType >
 class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
 {
