@@ -22,8 +22,12 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -37,11 +41,13 @@
 using walberla::real_t;
 using walberla::uint_t;
 
+using TestCase = std::function<real_t(const std::string&, const uint_t&, bool)>;
+
 namespace hyteg {
 
 /// Manufactured solution for u = (sin(pi x) * sin(pi y) * sin(pi (x+y)), (sin(2 pi x) * sin(2 pi y) * sin(2 pi (x+y))
 /// which has homogeneous dirichlet boundary conditions on a rectangular unit triangle.
-real_t testHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
+real_t testLaplaceHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
 {
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -347,8 +353,9 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    return discrL2;
 }
 
-real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false, bool simple = false )
+real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
 {
+   bool simple = true;
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -501,54 +508,112 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    return discrL2_velocity;
 }
 
-void runLaplace()
-{
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
-   real_t lastError    = std::nan( "" );
-   real_t currentError = std::nan( "" );
-   real_t currentRate  = std::nan( "" );
-   for ( uint_t level = 6; level <= 7; level++ )
-   {
-      lastError    = currentError;
-      currentError = hyteg::testHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
-      currentRate  = lastError / currentError;
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
-   }
+real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t& level, bool writeVTK = false ) {
 
-   const real_t expectedRate = 4.;
-   WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
-   WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
+   // mesh info and storage
+   //MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
+   auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, 1, 1 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   // data functions
+   hyteg::P2P1TaylorHoodFunction< real_t > x( "x", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > x_exact( "x_exact", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > b( "b", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > btmp( "btmp", storage, level, level );
+
+   // operators
+   hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
+
+   // continuous solution and rhs
+   std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
+      return std::sin(M_PI*(xx[0]+1.0)/2.0)*std::sin(M_PI*(xx[1]+1.0)/2.0);
+   };
+   std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) {
+      return std::sin(M_PI*(xx[0]+1.0)/2.0)*std::sin(M_PI*(xx[1]+1.0)/2.0);
+   };
+   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) {
+      return xx[0]*xx[1];
+   };
+    std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& xx ) {
+      return xx[1] + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+   };
+   std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& xx ) {
+      return xx[0] + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+   };
+   std::function< real_t( const hyteg::Point3D& ) > rhsP = []( const hyteg::Point3D& xx ) {
+      return M_PI*std::sin(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2))/2 + M_PI*std::sin(M_PI*(xx[1]/2 + 1/2))*std::cos(M_PI*(xx[0]/2 + 1/2))/2;
+   };
+   
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
+
+   // interpolation to FEM spaces
+   // velocity rhs
+   btmp.uvw().interpolate( { rhsU, rhsV }, level);
+   P2ConstantMassOperator VelMassOp( storage, level, level );
+   VelMassOp.apply( btmp.uvw()[0], b.uvw()[0], level, All );
+   VelMassOp.apply( btmp.uvw()[1], b.uvw()[1], level, All );
+
+   // pressure rhs
+   btmp.p().interpolate( { rhsP }, level);
+   P1ConstantMassOperator PMassOp( storage, level, level );
+   PMassOp.apply( btmp.p(), b.p(), level, All );
+
+   // not necessary due to 0-BC
+   //x.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
+   x_exact.uvw().interpolate( { exactU, exactV }, level );
+   x_exact.p().interpolate( exactP, level );
+
+   // output
+   VTKOutput vtkOutput( "../../output", "P1DGEConvergenceTest_EpsilonHomogeneousDirichlet", storage );
+   vtkOutput.add( x.uvw() );
+   vtkOutput.add( x.p() );
+   vtkOutput.add( x_exact.uvw() );
+   vtkOutput.add( x_exact.p() );
+   vtkOutput.add( err.uvw() );
+   vtkOutput.add( err.p() );
+   vtkOutput.add( b.uvw() );
+   vtkOutput.add( b.p() );
+   if(writeVTK)
+      vtkOutput.write( level, 0 );
+   
+   // count DoFs -> size of linear system
+   uint_t velocitydofs = numberOfGlobalDoFs( x.uvw(), level );
+   uint_t pressuredofs = numberOfGlobalDoFs( x.p(), level );
+   uint_t dofs         = velocitydofs + pressuredofs;
+   
+
+   // solve
+   PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
+   solver.solve( A, x, b, level );
+
+   // A.apply( x, residuum, level, hyteg::Inner );
+   if(writeVTK)
+      vtkOutput.write( level, 1 );
+   
+
+   // log and check final errors and residuals
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
+   real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) velocitydofs );
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) pressuredofs );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
+   return discr_l2_err_u;
 }
 
-void runStokes()
+void run(TestCase testCase, const std::string& meshFile, const uint_t& minLevel, const uint_t& maxLevel)
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
    real_t lastError    = std::nan( "" );
    real_t currentError = std::nan( "" );
    real_t currentRate  = std::nan( "" );
-   for ( uint_t level = 5; level <= 6; level++ )
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       lastError    = currentError;
-      currentError = hyteg::testStokesHomogeneousDirichlet( "../../data/meshes/tri_1el.msh", level, false );
-      currentRate  = lastError / currentError;
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
-   }
-
-   const real_t expectedRate = 4.;
-   WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
-   WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
-}
-
-void runStokesDirichlet()
-{
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
-   real_t lastError    = std::nan( "" );
-   real_t currentError = std::nan( "" );
-   real_t currentRate  = std::nan( "" );
-   for ( uint_t level = 5; level <= 6; level++ )
-   {
-      lastError    = currentError;
-      currentError = hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", level, false );
+      currentError = testCase( meshFile, level, false );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -566,12 +631,15 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
-   WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", 4, true, true ) ), 1e-12 );
+   //WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
+   //WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
 
-   hyteg::runLaplace();
-   hyteg::runStokes();
-   hyteg::runStokesDirichlet();
-
+   //hyteg::run(hyteg::testLaplaceHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
+   //hyteg::run(hyteg::testStokesHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
+   //hyteg::run(hyteg::testLaplaceDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
+   //hyteg::run(hyteg::testStokesDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
+   hyteg::run(hyteg::testEpsilonHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 3, 6);
+   
+   
    return 0;
 }
