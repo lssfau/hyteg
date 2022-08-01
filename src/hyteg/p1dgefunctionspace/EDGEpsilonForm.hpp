@@ -34,7 +34,7 @@
 namespace hyteg {
 namespace dg{    
 
-class EDGEpsilonFormEDGP1_0 : public hyteg::dg::DGForm2D
+class EDGConstEpsilonFormEDGP1_0 : public hyteg::dg::DGForm2D
 {
  public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
@@ -448,7 +448,7 @@ class EDGEpsilonFormEDGP1_0 : public hyteg::dg::DGForm2D
 
 
 
-class EDGEpsilonFormP1EDG_0 : public hyteg::dg::DGForm2D
+class EDGConstEpsilonFormP1EDG_0 : public hyteg::dg::DGForm2D
 {
  public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
@@ -862,7 +862,7 @@ class EDGEpsilonFormP1EDG_0 : public hyteg::dg::DGForm2D
 
 
 
-class EDGEpsilonFormEDGP1_1 : public hyteg::dg::DGForm2D
+class EDGConstEpsilonFormEDGP1_1 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
@@ -1276,7 +1276,7 @@ class EDGEpsilonFormEDGP1_1 : public hyteg::dg::DGForm2D
 
 
 
-class EDGEpsilonFormP1EDG_1 : public hyteg::dg::DGForm2D
+class EDGConstEpsilonFormP1EDG_1 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
@@ -1690,7 +1690,7 @@ class EDGEpsilonFormP1EDG_1 : public hyteg::dg::DGForm2D
 
 
 
-class EDGEpsilonFormEDGEDG : public hyteg::dg::DGForm2D
+class EDGConstEpsilonFormEDGEDG : public hyteg::dg::DGForm2D
 {
  public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,

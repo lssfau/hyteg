@@ -80,6 +80,12 @@ typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGVectorLaplaceXCouplingOpe
                                     P0ToP1ConstantP1EDGVectorLaplaceZCouplingOperator >
     P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator;
 
+
+typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGEpsilonXCouplingOperator,
+                                    P0ToP1ConstantP1EDGEpsilonYCouplingOperator,
+                                    P0ToP1ConstantP1EDGEpsilonZCouplingOperator >  P0ToP1ConstantP1EDGEpsilonCouplingOperator;
+
+
 typedef P0ScalarToP1VectorOperator< P0ToP1ConstantP1EDGVectorMassXCouplingOperator,
                                     P0ToP1ConstantP1EDGVectorMassYCouplingOperator,
                                     P0ToP1ConstantP1EDGVectorMassZCouplingOperator >

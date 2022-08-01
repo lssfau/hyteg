@@ -24,14 +24,13 @@
 
 namespace hyteg {
 
-class P1DGEP0StokesOperator : public Operator< P1DGEP0StokesFunction< real_t >, P1DGEP0StokesFunction< real_t > >
+template < typename VelocityBlockOperator >
+class P1DGEP0StokesOperatorType : public Operator< P1DGEP0StokesFunction< real_t >, P1DGEP0StokesFunction< real_t > >
 {
  public:
-   typedef P1DGELaplaceOperator VelocityBlockOperator_T;
-
    P1DGEP0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
-   , Lapl( storage, minLevel, maxLevel )
+   , velocityBlockOp( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    {}
@@ -41,7 +40,7 @@ class P1DGEP0StokesOperator : public Operator< P1DGEP0StokesFunction< real_t >, 
                const uint_t                           level,
                const DoFType                          flag ) const
    {
-      Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
       div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
@@ -52,14 +51,17 @@ class P1DGEP0StokesOperator : public Operator< P1DGEP0StokesFunction< real_t >, 
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
-      Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   VelocityBlockOperator_T Lapl;
-   P1DGEToP0DivOperator    div;
-   P0ToP1DGEDivTOperator   divT;
+   VelocityBlockOperator velocityBlockOp;
+   P1DGEToP0DivOperator  div;
+   P0ToP1DGEDivTOperator divT;
 };
+
+using P1DGEP0StokesOperatorType< P1DGELaplaceOperator >         = P1DGEP0StokesOperator;
+using P1DGEP0StokesOperatorType< P1DGEConstantEpsilonOperator > = P1DGEP0ConstEpsilonStokesOperator;
 
 } // namespace hyteg

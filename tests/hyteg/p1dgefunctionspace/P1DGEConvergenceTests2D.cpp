@@ -508,7 +508,7 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    return discrL2_velocity;
 }
 
-real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t& level, bool writeVTK = false ) {
+real_t testConstantEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t& level, bool writeVTK = false ) {
 
    // mesh info and storage
    //MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
@@ -522,10 +522,9 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
    hyteg::P2P1TaylorHoodFunction< real_t > x_exact( "x_exact", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t > b( "b", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > Merr( "Merr", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t > btmp( "btmp", storage, level, level );
 
-   // operators
-   hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
 
    // continuous solution and rhs
    std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
@@ -535,13 +534,13 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
       return std::sin(M_PI*(xx[0]+1.0)/2.0)*std::sin(M_PI*(xx[1]+1.0)/2.0);
    };
    std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) {
-      return xx[0]*xx[1];
+      return xx[0] + xx[1];
    };
     std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& xx ) {
-      return xx[1] + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+      return real_c(1) + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& xx ) {
-      return xx[0] + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+      return real_c(1) + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsP = []( const hyteg::Point3D& xx ) {
       return M_PI*std::sin(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2))/2 + M_PI*std::sin(M_PI*(xx[1]/2 + 1/2))*std::cos(M_PI*(xx[0]/2 + 1/2))/2;
@@ -552,15 +551,18 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
 
    // interpolation to FEM spaces
    // velocity rhs
+   b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
    btmp.uvw().interpolate( { rhsU, rhsV }, level);
-   P2ConstantMassOperator VelMassOp( storage, level, level );
-   VelMassOp.apply( btmp.uvw()[0], b.uvw()[0], level, All );
-   VelMassOp.apply( btmp.uvw()[1], b.uvw()[1], level, All );
+   P2ConstantMassOperator M_vel( storage, level, level );
+   M_vel.apply( btmp.uvw()[0], b.uvw()[0], level, Inner );
+   M_vel.apply( btmp.uvw()[1], b.uvw()[1], level, Inner );
+   
 
    // pressure rhs
    btmp.p().interpolate( { rhsP }, level);
-   P1ConstantMassOperator PMassOp( storage, level, level );
-   PMassOp.apply( btmp.p(), b.p(), level, All );
+   P1ConstantMassOperator M_p( storage, level, level );
+   M_p.apply( btmp.p(), b.p(), level, All );
+   
 
    // not necessary due to 0-BC
    //x.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
@@ -568,7 +570,7 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
    x_exact.p().interpolate( exactP, level );
 
    // output
-   VTKOutput vtkOutput( "../../output", "P1DGEConvergenceTest_EpsilonHomogeneousDirichlet", storage );
+   VTKOutput vtkOutput( "../../output", "P1DGEConvergenceTest_ConstantEpsilonHomogeneousDirichlet", storage );
    vtkOutput.add( x.uvw() );
    vtkOutput.add( x.p() );
    vtkOutput.add( x_exact.uvw() );
@@ -586,9 +588,16 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
    uint_t dofs         = velocitydofs + pressuredofs;
    
 
-   // solve
-   PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
+   // problem operator and solve
+   //hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
+   //PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
+   hyteg::P1DGEP0ConstEpsilonStokesOperator A( storage, level, level );
+   PETScMinResSolver< hyteg::P1DGEP0ConstEpsilonStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
    solver.solve( A, x, b, level );
+
+
+   hyteg::vertexdof::projectMean( x.p(), level );
+   hyteg::vertexdof::projectMean( x_exact.p(), level );
 
    // A.apply( x, residuum, level, hyteg::Inner );
    if(writeVTK)
@@ -597,8 +606,14 @@ real_t testEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t
 
    // log and check final errors and residuals
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
-   real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) velocitydofs );
-   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) pressuredofs );
+   M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, All, Replace );
+   M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, All, Replace );
+   M_p.apply( err.p(), Merr.p(), level, All, Replace );
+   real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( Merr.p(), level, Inner) );
+   
+   //real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) dofs );
+   //real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) dofs );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
    return discr_l2_err_u;
@@ -613,7 +628,7 @@ void run(TestCase testCase, const std::string& meshFile, const uint_t& minLevel,
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       lastError    = currentError;
-      currentError = testCase( meshFile, level, false );
+      currentError = testCase( meshFile, level, true );
       currentRate  = lastError / currentError;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
    }
@@ -638,7 +653,7 @@ int main( int argc, char* argv[] )
    //hyteg::run(hyteg::testStokesHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
    //hyteg::run(hyteg::testLaplaceDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
    //hyteg::run(hyteg::testStokesDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
-   hyteg::run(hyteg::testEpsilonHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 3, 6);
+   hyteg::run(hyteg::testConstantEpsilonHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 3, 6);
    
    
    return 0;

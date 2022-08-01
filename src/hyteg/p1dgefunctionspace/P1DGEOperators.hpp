@@ -127,9 +127,9 @@ class P1DGEToP0DivBoundaryOperator final : public Operator< P1DGEFunction< real_
 {
  public:
    P1DGEToP0DivBoundaryOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-       : Operator< P1DGEFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
-       , p1x_to_p0( storage, minLevel, maxLevel )
-       , p1y_to_p0( storage, minLevel, maxLevel )
+   : Operator< P1DGEFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
+   , p1x_to_p0( storage, minLevel, maxLevel )
+   , p1y_to_p0( storage, minLevel, maxLevel )
    {}
 
    void apply( const P1DGEFunction< real_t >& src,
@@ -311,6 +311,55 @@ class P1DGELaplaceBoundaryOperator final : public Operator< P1DGEFunction< real_
        eg_to_cg_coupling_;
 
    P0Operator< dg::DGVectorLaplaceFormDirichletBoundaryEDGEDG > eg_to_eg_coupling_;
+};
+
+
+class P1DGEConstantEpsilonOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
+{
+ public:
+   P1DGEElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::EDGEpsilonFormEDGEDG >() )
+   {}
+
+   void apply( const P1DGEFunction< real_t >& src,
+               const P1DGEFunction< real_t >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1DGEFunction< idx_t >&               src,
+                  const P1DGEFunction< idx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      src.getDiscontinuousPart()->communicate( level );
+      dst.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+   P1ConstantEpsilonOperator                  cg_to_cg_coupling_;
+   P1ToP0ConstantP1EDGEpsilonCouplingOperator cg_to_eg_coupling_;
+   P0ToP1ConstantP1EDGEpsilonCouplingOperator eg_to_cg_coupling_;
+   P0Operator< dg::EDGConstEpsilonFormEDGEDG >     eg_to_eg_coupling_;
 };
 
 } // namespace hyteg

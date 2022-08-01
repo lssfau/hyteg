@@ -671,6 +671,12 @@ typedef P0ToP1Operator< dg::DGVectorLaplaceFormP1EDG_0 > P0ToP1ConstantP1EDGVect
 typedef P0ToP1Operator< dg::DGVectorLaplaceFormP1EDG_1 > P0ToP1ConstantP1EDGVectorLaplaceYCouplingOperator;
 typedef P0ToP1Operator< dg::DGFormAbort >                P0ToP1ConstantP1EDGVectorLaplaceZCouplingOperator;
 
+
+typedef P0ToP1Operator< dg::EDGConstEpsilonFormP1EDG_0 >  P0ToP1ConstantP1EDGEpsilonXCouplingOperator;
+typedef P0ToP1Operator< dg::EDGConstEpsilonFormP1EDG_1 >  P0ToP1ConstantP1EDGEpsilonYCouplingOperator;
+typedef P0ToP1Operator< dg::DGFormAbort >                 P0ToP1ConstantP1EDGEpsilonZCouplingOperator;
+
+
 typedef P0ToP1Operator< dg::DGVectorMassFormP1EDG_0 > P0ToP1ConstantP1EDGVectorMassXCouplingOperator;
 typedef P0ToP1Operator< dg::DGVectorMassFormP1EDG_1 > P0ToP1ConstantP1EDGVectorMassYCouplingOperator;
 typedef P0ToP1Operator< dg::DGFormAbort >             P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
