@@ -35,6 +35,7 @@
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
@@ -59,50 +60,30 @@ real_t testLaplaceHomogeneousDirichlet( const std::string& meshFile, const uint_
    P1DGEMassOperator      M( storage, level, level );
 
    numerator.enumerate( level );
-
    // solution as a lambda function
    std::function< real_t( const Point3D& p ) > u_x_expr = []( const Point3D& p ) -> real_t {
       const real_t x = p[0];
       const real_t y = p[1];
-      return std::sin( M_PI * x ) * std::sin( M_PI * y ) * std::sin( M_PI * ( x + y ) );
+      return std::sin( M_PI * x ) * std::sin( M_PI * y );
    };
 
    std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
       const real_t x  = p[0];
       const real_t y  = p[1];
-      const real_t x0 = 2 * x;
-      const real_t x1 = 2 * y;
-      return std::sin( M_PI * x0 ) * std::sin( M_PI * x1 ) * std::sin( M_PI * ( x0 + x1 ) );
+      return std::sin( M_PI * x ) * std::sin( M_PI * y );
    };
 
    // rhs as a lambda function
    std::function< real_t( const Point3D& p ) > f_x_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = M_PI * x;
-      const real_t x1 = std::sin( x0 );
-      const real_t x2 = M_PI * ( x + y );
-      const real_t x3 = std::pow( M_PI, 2 );
-      const real_t x4 = M_PI * y;
-      const real_t x5 = x3 * std::sin( x4 );
-      const real_t x6 = 2 * std::cos( x2 );
-      return -( x1 * x3 * x6 * std::cos( x4 ) - 4 * x1 * x5 * std::sin( x2 ) + x5 * x6 * std::cos( x0 ) );
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 * M_PI * M_PI * std::sin( M_PI * x ) * std::sin( M_PI * y );
    };
    std::function< real_t( const Point3D& p ) > f_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
-      const real_t x0 = 2 * x;
-      const real_t x1 = 2 * y;
-      const real_t x2 = M_PI * ( x0 + x1 );
-      const real_t x3 = M_PI * x0;
-      const real_t x4 = std::sin( x3 );
-      const real_t x5 = std::pow( M_PI, 2 );
-      const real_t x6 = M_PI * x1;
-      const real_t x7 = x5 * std::sin( x6 );
-      const real_t x8 = 8 * std::cos( x2 );
-      return -( x4 * x5 * x8 * std::cos( x6 ) - 16 * x4 * x7 * std::sin( x2 ) + x7 * x8 * std::cos( x3 ) );
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return 2 * M_PI * M_PI * std::sin( M_PI * x ) * std::sin( M_PI * y );
    };
-
    P1DGEFunction< real_t > u( "u", storage, level, level );
    P1DGEFunction< real_t > f( "f", storage, level, level );
    P1DGEFunction< real_t > rhs( "rhs", storage, level, level );
@@ -258,7 +239,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
 
    if ( writeVTK )
    {
-      VTKOutput vtk( "../../", "P1DGEStokes2DHomogeneousDirichletConvergenceTest", storage );
+      VTKOutput vtk( "../../output", "P1DGEStokes2DHomogeneousDirichletConvergenceTest", storage );
       vtk.add( u );
       vtk.add( sol );
       vtk.add( err );
@@ -283,8 +264,6 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
    P1DGELaplaceOperator   L( storage, level, level );
    P1DGEMassOperator      M( storage, level, level );
-
-   P1DGELaplaceBoundaryOperator Lboundary( storage, level, level );
 
    numerator.enumerate( level );
 
@@ -315,13 +294,9 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
    P1DGEFunction< real_t > Merr( "Merr", storage, level, level );
 
    sol.interpolate( { u_x_expr, u_y_expr }, level, All );
-   solOnBoundary.assign( { 1 }, { sol }, level, DirichletBoundary );
-   solOnBoundary.interpolate( 0, level, Inner );
    f.interpolate( { f_x_expr, f_y_expr }, level, All );
-   Lboundary.apply( sol, f2, level, All, Replace );
 
    M.apply( f, rhs, level, All, Replace );
-   rhs.assign( { 1, 1 }, { rhs, f2 }, level, All );
 
    u.getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
@@ -341,6 +316,7 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
       vtk.add( sol );
       vtk.add( err );
       vtk.add( f );
+      vtk.add( rhs );
       vtk.add( *u.getConformingPart() );
       vtk.add( *u.getDiscontinuousPart() );
       vtk.add( *numerator.getConformingPart() );
@@ -369,9 +345,6 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
 
    P1DGEP0StokesOperator K( storage, level, level );
-
-   P1DGELaplaceBoundaryOperator Lboundary_velocity( storage, level, level );
-   P1DGEToP0DivBoundaryOperator Lboundary_pressure( storage, level, level );
 
    numerator.enumerate( level );
 
@@ -472,12 +445,8 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    solOnBoundary.uvw().assign( { 1 }, { sol.uvw() }, level, DirichletBoundary );
    solOnBoundary.interpolate( 0, level, Inner );
 
-   Lboundary_velocity.apply( solOnBoundary.uvw(), f2.uvw(), level, All, Replace );
-   Lboundary_pressure.apply( solOnBoundary.uvw(), f2.p(), level, All, Replace );
-
    M.apply( f.uvw(), rhs.uvw(), level, All, Replace );
    M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
-   rhs.assign( { 1, 1 }, { rhs, f2 }, level, All );
 
    u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
@@ -646,8 +615,17 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
+<<<<<<< HEAD
    //WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
    //WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
+=======
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/quad_16el.msh", 3, false ) ), 1e-12 );
+   WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/quad_16el.msh", 3, false, true ) ), 1e-11 );
+
+   hyteg::runLaplace();
+   hyteg::runStokes();
+   hyteg::runStokesDirichlet();
+>>>>>>> wagnandr/stokes-eg-example
 
    //hyteg::run(hyteg::testLaplaceHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
    //hyteg::run(hyteg::testStokesHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);

@@ -366,6 +366,7 @@ class ElementNeighborInfo
    }
 
    void macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,
+                                                  std::vector< Index >& neighborElementVertexIndices,
                                                   std::vector< Point >& neighborElementVertexCoords,
                                                   Point&                neighborOppositeVertexCoords ) const;
 

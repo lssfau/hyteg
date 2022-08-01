@@ -154,15 +154,13 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
          std::map< uint_t, VType* > glMemory;
 
-         // TODO: Handle P1 ghost layer memory (here probably) for neighboring macros.
-#if 0
          if ( dim == 2 )
          {
             WALBERLA_ASSERT( storage->faceExistsLocally( pid ) );
             const auto face = storage->getFace( pid );
             for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = src.getDGFunction()->volumeDoFFunction()->glMemory( pid, level, n );
             }
          }
          else
@@ -171,11 +169,10 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
             const auto cell = storage->getCell( pid );
             for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
             {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+               glMemory[n] = src.getDGFunction()->volumeDoFFunction()->glMemory( pid, level, n );
             }
          }
 
-#endif
          const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
@@ -404,19 +401,18 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
                         if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
                         {
-                           WALBERLA_ABORT( "P0-P1 interface integrals at macro-macro boundary not implemented." );
-
                            ////////////////////////////////////////////////
                            // i) micro-interface on macro-macro-boundary //
                            ////////////////////////////////////////////////
-#if 0
+
                            // The neighboring micro-element coords have to be computed since they are now different as for an
                            // element on the same macro-volume.
+                           std::vector< Index >                         neighborElementVertexIndices;
                            std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
                            Eigen::Matrix< real_t, 3, 1 >                neighborOppositeVertexCoords;
 
                            neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                               n, neighborElementVertexCoords, neighborOppositeVertexCoords );
+                               n, neighborElementVertexIndices, neighborElementVertexCoords, neighborOppositeVertexCoords );
 
                            localMat.setZero();
                            form_->integrateFacetCoupling( dim,
@@ -426,52 +422,50 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           neighborInfo.oppositeVertexCoords( n ),
                                                           neighborOppositeVertexCoords,
                                                           neighborInfo.outwardNormal( n ),
-                                                          *src.basis(),
-                                                          *dst.basis(),
+                                                          *src.getDGFunction()->basis(),
+                                                          dstBasis,
                                                           srcPolyDegree,
                                                           dstPolyDegree,
                                                           localMat );
 
                            // Now we need the DoFs from the neighboring element.
-                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
-                           nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
-                           std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
+                           // There is only one DoF (the single P0/DG DoF)
 
-                           for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                           real_t nSrcDoF;
+                           uint_t nSrcDoFArrIndex = std::numeric_limits< uint_t >::max();
+
+                           if ( dim == 2 )
                            {
-                              if ( dim == 2 )
-                              {
-                                 nSrcDoFArrIndices[srcDofIdx] =
-                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
-                                                                                          elementIdx.x(),
-                                                                                          elementIdx.y(),
-                                                                                          faceType,
-                                                                                          srcDofIdx,
-                                                                                          numSrcDofs,
-                                                                                          level,
-                                                                                          srcMemLayout );
-                              }
-                              else
-                              {
-                                 nSrcDoFArrIndices[srcDofIdx] =
-                                     volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
-                                                                                          elementIdx.x(),
-                                                                                          elementIdx.y(),
-                                                                                          elementIdx.z(),
-                                                                                          cellType,
-                                                                                          srcDofIdx,
-                                                                                          numSrcDofs,
-                                                                                          level,
-                                                                                          srcMemLayout );
-                              }
-
-                              nSrcDofs( srcDofIdx ) = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
+                              nSrcDoFArrIndex =
+                                  volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                       elementIdx.x(),
+                                                                                       elementIdx.y(),
+                                                                                       faceType,
+                                                                                       0,
+                                                                                       numSrcDofs,
+                                                                                       level,
+                                                                                       srcMemLayout );
                            }
+                           else
+                           {
+                              nSrcDoFArrIndex =
+                                  volumedofspace::indexing::indexNeighborInGhostLayer( neighborInfo.macroBoundaryID( n ),
+                                                                                       elementIdx.x(),
+                                                                                       elementIdx.y(),
+                                                                                       elementIdx.z(),
+                                                                                       cellType,
+                                                                                       0,
+                                                                                       numSrcDofs,
+                                                                                       level,
+                                                                                       srcMemLayout );
+                           }
+
+                           nSrcDoF = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndex];
 
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
-                              dstDofs += localMat * nSrcDofs;
+                              dstDofs += localMat * nSrcDoF;
                            }
                            else
                            {
@@ -479,38 +473,21 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                               // TODO: maybe there is a nicer way to do the gl stuff ...
                               for ( uint_t dstDofIdx = 0; dstDofIdx < numDstDofs; dstDofIdx++ )
                               {
-                                 for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
+                                 uint_t globalRowIdx;
+                                 if ( dim == 2 )
                                  {
-                                    uint_t globalRowIdx;
-                                    if ( dim == 2 )
-                                    {
-                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                                                    elementIdx.y(),
-                                                                                                    faceType,
-                                                                                                    dstDofIdx,
-                                                                                                    numDstDofs,
-                                                                                                    level,
-                                                                                                    dstMemLayout )];
-                                    }
-                                    else
-                                    {
-                                       globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                                                    elementIdx.y(),
-                                                                                                    elementIdx.z(),
-                                                                                                    cellType,
-                                                                                                    dstDofIdx,
-                                                                                                    numDstDofs,
-                                                                                                    level,
-                                                                                                    dstMemLayout )];
-                                    }
-                                    const auto globalColIdx =
-                                        glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
-
-                                    mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
+                                    globalRowIdx = dstDofMemory[vertexdof::macroface::index(
+                                        level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )];
                                  }
+                                 else
+                                 {
+                                    WALBERLA_ABORT( "Not implemented" );
+                                 }
+                                 const auto globalColIdx = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndex];
+
+                                 mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, 0 ) );
                               }
                            }
-#endif
                         }
                         else
                         {
@@ -532,6 +509,9 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           dstPolyDegree,
                                                           localMat );
 
+                           WALBERLA_CHECK( !storage->hasGlobalCells(),
+                                           "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
+
                            // Now we need the DoFs from the neighboring element.
                            // P0 has only one DoF
                            const auto nSrcDof =
@@ -543,39 +523,6 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                                              level,
                                                                              srcMemLayout )];
 
-                           std::vector< Index > nVertexDoFIndices;
-                           if ( dim == 2 )
-                           {
-                              auto nVertexDoFIndicesArray = facedof::macroface::getMicroVerticesFromMicroFace(
-                                  neighborInfo.neighborElementIndices( n ), neighborInfo.neighborFaceType( n ) );
-                              nVertexDoFIndices.insert(
-                                  nVertexDoFIndices.begin(), nVertexDoFIndicesArray.begin(), nVertexDoFIndicesArray.end() );
-                           }
-                           else
-                           {
-                              auto nVertexDoFIndicesArray = celldof::macrocell::getMicroVerticesFromMicroCell(
-                                  neighborInfo.neighborElementIndices( n ), neighborInfo.neighborCellType( n ) );
-                              nVertexDoFIndices.insert(
-                                  nVertexDoFIndices.begin(), nVertexDoFIndicesArray.begin(), nVertexDoFIndicesArray.end() );
-                           }
-#if 0
-                           for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
-                           {
-                              if ( dim == 2 )
-                              {
-                                 nSrcDofs( Eigen::Index( srcDofIdx ) ) = srcDofMemory[vertexdof::macroface::index(
-                                     level, nVertexDoFIndices[srcDofIdx].x(), nVertexDoFIndices[srcDofIdx].y() )];
-                              }
-                              else
-                              {
-                                 nSrcDofs( Eigen::Index( srcDofIdx ) ) =
-                                     srcDofMemory[vertexdof::macrocell::index( level,
-                                                                               nVertexDoFIndices[srcDofIdx].x(),
-                                                                               nVertexDoFIndices[srcDofIdx].y(),
-                                                                               nVertexDoFIndices[srcDofIdx].z() )];
-                              }
-                           }
-#endif
                            if ( mat == nullptr )
                            {
                               // Matrix-vector multiplication.
