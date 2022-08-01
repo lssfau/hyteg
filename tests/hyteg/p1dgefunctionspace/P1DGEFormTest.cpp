@@ -386,7 +386,7 @@ void testEpsilonForm()
    // volume integrals: (epsilon, epsilon) term
    // edg, edg pairing
    {
-      hyteg::dg::EDGEpsilonFormEDGEDG form;
+      hyteg::dg::EDGConstEpsilonFormEDGEDG form;
 
       // (2 * \int_T \epsilon(\phi_{edg}) : \epsilon(\phi_{edg}) dx from sympy notebook
       real_t expected_t1 = 2 * 1.0; // 2*0.96080;
@@ -405,7 +405,7 @@ void testEpsilonForm()
 
    // p1, edg pairing
    {
-      hyteg::dg::EDGEpsilonFormP1EDG_0 form;
+      hyteg::dg::EDGConstEpsilonFormP1EDG_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -437,7 +437,7 @@ void testEpsilonForm()
 
    // edg, p1 pairing
    {
-      hyteg::dg::EDGEpsilonFormEDGP1_0 form;
+      hyteg::dg::EDGConstEpsilonFormEDGP1_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -471,7 +471,7 @@ void testEpsilonForm()
    {
       // edg, edg pairing
       {
-         hyteg::dg::EDGEpsilonFormEDGEDG form;
+         hyteg::dg::EDGConstEpsilonFormEDGEDG form;
          {
             elMat.resize( 1, 1 );
 
@@ -499,7 +499,7 @@ void testEpsilonForm()
 
       // edg, p1 pairing
       {
-         hyteg::dg::EDGEpsilonFormEDGP1_0 form;
+         hyteg::dg::EDGConstEpsilonFormEDGP1_0 form;
 
          // inner  side of facet integral
          {
@@ -542,7 +542,7 @@ void testEpsilonForm()
       
       // p1, edg pairing
       {
-         hyteg::dg::EDGEpsilonFormP1EDG_0 form;
+         hyteg::dg::EDGConstEpsilonFormP1EDG_0 form;
 
          // inner  side of facet integral
          {
