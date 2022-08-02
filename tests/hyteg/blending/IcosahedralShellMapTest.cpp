@@ -86,7 +86,7 @@ int main( int argc, char** argv )
    hyteg::testInverse( real_c( 0.5 ), real_c( 1.0 ) );
 
    // Check numerical stability for large radii, see issue #183
-   hyteg::testBlending( real_c( 200 ), real_c( 400 ) );
+   hyteg::testBlending( real_c( 2e6 ), real_c( 4e6 ) );
 
    return 0;
 }
