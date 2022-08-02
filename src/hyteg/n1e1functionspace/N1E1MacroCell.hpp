@@ -157,14 +157,14 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    //   at [0.5 0.  0.5]: (-z    , 0     , x     )ᵀ
    //   at [0.  0.5 0.5]: (0     , -z    , y     )ᵀ
 
-   auto scaleE0 = valueTetE0 * VectorType< ValueType >{ -y - z + 1, x, x };
-   auto scaleE1 = valueTetE1 * VectorType< ValueType >{ y, -x - z + 1, y };
-   auto scaleE2 = valueTetE2 * VectorType< ValueType >{ -y, x, 0 };
-   auto scaleE3 = valueTetE3 * VectorType< ValueType >{ z, z, -x - y + 1 };
-   auto scaleE4 = valueTetE4 * VectorType< ValueType >{ -z, 0, x };
-   auto scaleE5 = valueTetE5 * VectorType< ValueType >{ 0, -z, y };
+   VectorType< ValueType > scaleE0 = valueTetE0 * VectorType< ValueType >{ -y - z + 1, x, x };
+   VectorType< ValueType > scaleE1 = valueTetE1 * VectorType< ValueType >{ y, -x - z + 1, y };
+   VectorType< ValueType > scaleE2 = valueTetE2 * VectorType< ValueType >{ -y, x, 0 };
+   VectorType< ValueType > scaleE3 = valueTetE3 * VectorType< ValueType >{ z, z, -x - y + 1 };
+   VectorType< ValueType > scaleE4 = valueTetE4 * VectorType< ValueType >{ -z, 0, x };
+   VectorType< ValueType > scaleE5 = valueTetE5 * VectorType< ValueType >{ 0, -z, y };
 
-   auto localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
+   VectorType< ValueType > localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
    // 4. transform to computational space
 

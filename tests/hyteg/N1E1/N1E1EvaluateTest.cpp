@@ -45,9 +45,11 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    // most general function in N1E1 space
-   const Eigen::Vector3d a        = { 1, 2, 3 };
-   const Eigen::Vector3d b        = { 4, 5, 6 };
-   const auto            testFunc = [&]( const Point3D& x ) { return Eigen::Vector3d{ a + b.cross( toEigen( x ) ) }; };
+   const Eigen::Vector3d                                    a        = { 1, 2, 3 };
+   const Eigen::Vector3d                                    b        = { 4, 5, 6 };
+   const std::function< Eigen::Vector3d( const Point3D& ) > testFunc = [&]( const Point3D& x ) {
+      return ( a + b.cross( toEigen( x ) ) ).eval();
+   };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
 
