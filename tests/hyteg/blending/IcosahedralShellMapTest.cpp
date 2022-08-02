@@ -31,10 +31,10 @@
 
 namespace hyteg {
 
-void testInverse()
+void testInverse( real_t radInnerShell, real_t radOuterShell )
 {
    const uint_t level    = 4;
-   auto         meshInfo = MeshInfo::meshSphericalShell( 5, 2, 0.5, 1.0 );
+   auto         meshInfo = MeshInfo::meshSphericalShell( 5, 2, radInnerShell, radOuterShell );
    auto         setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
@@ -53,15 +53,15 @@ void testInverse()
          geometryMap.evalF( position, mappedPosition );
          geometryMap.evalFinv( mappedPosition, invMappedPosition );
          auto error = ( position - invMappedPosition ).norm();
-         WALBERLA_CHECK_LESS( error, 1e-14 );
+         WALBERLA_CHECK_LESS( error, 5e-13 );
       }
    }
 }
 
-void checkIssue183()
+void testBlending( real_t radInnerShell, real_t radOuterShell )
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-   meshInfo          = MeshInfo::meshSphericalShell( 3, 3, real_c(200.f), real_c(400.f) );
+   meshInfo          = MeshInfo::meshSphericalShell( 2, 3, radInnerShell, radOuterShell );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -75,13 +75,18 @@ void checkIssue183()
 
 } // namespace hyteg
 
+using walberla::real_c;
+
 int main( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testInverse();
-   hyteg::checkIssue183();
+   hyteg::testInverse( real_c( 0.5 ), real_c( 1.0 ) );
+
+   // Check numerical stability for large radii, see issue #183
+   hyteg::testBlending( real_c( 200 ), real_c( 400 ) );
+
    return 0;
 }
