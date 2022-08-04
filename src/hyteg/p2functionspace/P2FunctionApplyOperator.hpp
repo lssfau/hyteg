@@ -57,6 +57,7 @@ class P2FunctionApplyOperator : public VectorToVectorOperator< real_t, P2VectorF
    {
       WALBERLA_UNUSED( dst );
       //std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
+      diagonal_->interpolate(1,level,hyteg::DirichletBoundary);
       for ( uint_t i = 0; i < dim_; i++ )
       {
          workaround::externalDiagonalAssembly< P2Function<real_t> >( mat, diagonal_->component(i), src[i], level, flag );
