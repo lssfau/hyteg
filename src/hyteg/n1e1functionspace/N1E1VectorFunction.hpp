@@ -177,19 +177,22 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    /// \param functions  the functions forming the product
    /// \param level      level on which the multiplication should be computed
    /// \param flag       marks those primitives which are partaking in the computation of the product
-   //void multElementwise( const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >& functions,
-   //                      uint_t                                                                                   level,
-   //                      DoFType flag = All ) const;
+   void multElementwise( const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >& functions,
+                         uint_t                                                                                level,
+                         DoFType                                                                               flag = All ) const;
 
-   /// Replace values of the function by their inverses in an elementwise fashion
-   //void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
-
-   //ValueType dotLocal( const N1E1VectorFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
+   inline ValueType
+       dotLocal( const N1E1VectorFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const
+   {
+      return dofs_->dotLocal( *secondOp.getDoFs(), level, flag );
+   }
 
    /// @name Unimplemented methods (only dummys for inheritance)
    /// @{
-   //ValueType dotGlobal( const N1E1VectorFunction< ValueType >&, uint_t, DoFType ) const {
-   //    WALBERLA_ABORT( "N1E1VectorFunction::dotGlobal not implemented!" ) } /// @}
+   ValueType dotGlobal( const N1E1VectorFunction< ValueType >&, uint_t, DoFType ) const
+   {
+      WALBERLA_ABORT( "N1E1VectorFunction::dotGlobal not implemented!" )
+   } /// @}
 
    /// Set all function DoFs to zero including the ones in the halos
    inline void setToZero( const uint_t level ) const { dofs_->setToZero( level ); }
@@ -254,6 +257,38 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    {
       dofs_->fromVector( *numerator.getDoFs(), vec, level, flag );
    }
+   /// @}
+
+   /// @name Scalar methods are needed for compatibility with \sa FunctionWrapper.
+   /// They work like their vector counterparts with all vector-components being equal to the scalar.
+   /// @{
+   inline void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
+   {
+      add( VectorType{ scalar, scalar, scalar }, level, flag );
+   }
+
+   inline void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
+   {
+      interpolate( VectorType{ constant, constant, constant }, level, flag );
+   }
+
+   inline void
+       interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
+   {
+      std::function< VectorType( const Point3D& ) > exprVector = [&expr]( const hyteg::Point3D& x ) {
+         const ValueType scalar = expr( x );
+         return VectorType{ scalar, scalar, scalar };
+      };
+      interpolate( exprVector, level, flag );
+   };
+
+   inline void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+                            uint_t                                                                    level,
+                            DoFType                                                                   flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      interpolate( expr[0], level, flag );
+   };
    /// @}
 
  private:

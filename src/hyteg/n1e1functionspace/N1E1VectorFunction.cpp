@@ -146,6 +146,22 @@ void N1E1VectorFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
+void N1E1VectorFunction< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >& functions,
+    uint_t                                                                                level,
+    DoFType                                                                               flag ) const
+{
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > > dofFunctions;
+
+   for ( const N1E1VectorFunction& function : functions )
+   {
+      dofFunctions.push_back( *function.getDoFs() );
+   }
+
+   dofs_->multElementwise( dofFunctions, level, flag );
+}
+
+template < typename ValueType >
 void N1E1VectorFunction< ValueType >::add( VectorType vector, uint_t level, DoFType flag ) const
 {
    WALBERLA_UNUSED( vector );
