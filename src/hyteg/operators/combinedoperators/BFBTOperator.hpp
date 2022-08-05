@@ -23,10 +23,17 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    static_assert( std::is_same< typename VelocityBlockOpType::srcType, typename VelocityBlockOpType::dstType >::value == true );
    static_assert( std::is_same< typename VelocityBlockOpType::srcType, typename DivOpType::srcType >::value == true );
    static_assert( std::is_same< typename DivOpType::dstType, typename DivOpTType::srcType >::value == true );
+
+   // types for component functions
    using PressureFunctionType    = typename DivOpType::dstType;
    using VelocityFunctionType    = typename DivOpType::srcType;
    using VectorVelocityMassOp    = VectorToVectorOperator< walberla::real_t, P2VectorFunction, P2VectorFunction >;
    using SaddlePointFunctionType = typename SaddlePointOpType::srcType;
+
+   // types for numerators
+   using VelocityNumeratorType    = typename VelocityFunctionType::template FunctionType< idx_t >;
+   using PressureNumeratorType    = typename PressureFunctionType::template FunctionType< idx_t >;
+   using SaddlePointNumeratorType = typename SaddlePointFunctionType::template FunctionType< idx_t >;
 
  public:
    BFBTOperator( const std::shared_ptr< PrimitiveStorage >&       storage,
@@ -37,46 +44,21 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    : Operator< PressureFunctionType, PressureFunctionType >( storage, maxLevel, maxLevel )
    , A( storage, maxLevel, maxLevel, viscosity ) // A should be a discretization of the velocity block with non constant viscosity
    , Z( storage, maxLevel, viscosity, VelocitySpaceBCs )
-   , ZSolver( std::make_shared< PETScLUSolver< BFBTSubOperator > >( storage, maxLevel ) )
+   , ZSolver( std::make_shared< CGSolver< BFBTSubOperator > >( storage, maxLevel, maxLevel ) )
    , storage_( storage )
    , pTmp( "pTmp", storage, maxLevel, maxLevel )
    , vTmp( "vTmp", storage, maxLevel, maxLevel )
    , vTmp2( "vTmp2", storage, maxLevel, maxLevel )
    {
-      A.computeInverseDiagonalOperatorValues();
-      Z.Minv.diagonal_ = A.getInverseDiagonalValues();
+      //ZSolver->setPrintInfo( true );
+      ZSolver->setDoFType(hyteg::All);
 
+      // get BCs for artificial velocity space used in BFBT
       for ( uint_t c = 0; c < VelocitySpaceBCs.size(); c++ )
       {
          vTmp.setBoundaryCondition( VelocitySpaceBCs[c], c );
          vTmp2.setBoundaryCondition( VelocitySpaceBCs[c], c );
       }
-      // test for Minv
-      /*
-      // Tmp funcs
-      VelocityFunctionType tmpf1( "tmp0", storage_, maxLevel, maxLevel );
-      VelocityFunctionType tmpf2( "tmp1", storage_, maxLevel, maxLevel );
-      
-      // mult Minv with 1 
-      tmpf1.interpolate( []( const hyteg::Point3D& ) { return real_c( 1 ); }, maxLevel, hyteg::All );
-      Z.Minv.apply(tmpf1, tmpf2, maxLevel, hyteg::All);
-      P2FunctionApplyOperator tmpOp( storage, maxLevel );
-      tmpOp.diagonal_ = std::make_shared<VelocityFunctionType>(tmpf2);
-      
-      // print
-      typename VelocityFunctionType::template FunctionType< idx_t > VelocityNum(
-          "VelocityNum", storage , maxLevel, maxLevel );
-      VelocityNum.enumerate( maxLevel );
-
-      PETScSparseMatrix< P2FunctionApplyOperator > tmpMat;
-      tmpMat.createMatrixFromOperator( tmpOp, maxLevel, VelocityNum );
-      tmpMat.print( "tmpMat", false, PETSC_VIEWER_DEFAULT );
-      printComponentMatrices(maxLevel, storage);
-      WALBERLA_ABORT("bye");
-    */
-
-      //ZSolver->setPrintInfo( true );
-      //printComponentMatrices(maxLevel, storage);
    }
 
    void apply( const PressureFunctionType& src,
@@ -87,49 +69,39 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    {
       //S_{w-BFBT}^{-1} = Z^{-1}*(BM(w)^{-1}AM(w)^{-1}B^t)*Z^{-1}
       pTmp.copyBoundaryConditionFromFunction( src );
-      pTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
-      vTmp.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
-      vTmp2.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::Inner );
-
-      VTKOutput vtkOutput_pTmp(
-          "../../output", "BFBT_intres_BFBTApply_pTmp", Operator< PressureFunctionType, PressureFunctionType >::storage_ );
-      VTKOutput vtkOutput_vTmp(
-          "../../output", "BFBT_intres_BFBTApply_vTmp", Operator< PressureFunctionType, PressureFunctionType >::storage_ );
-      VTKOutput vtkOutput_vTmp2(
-          "../../output", "BFBT_intres_BFBTApply_vTmp2", Operator< PressureFunctionType, PressureFunctionType >::storage_ );
-      vtkOutput_pTmp.add( pTmp );
-      vtkOutput_pTmp.add( dst );
-
-      vtkOutput_vTmp.add( vTmp );
-      vtkOutput_vTmp2.add( vTmp2 );
-      vtkOutput_pTmp.write( level, 0 );
+      /*vTmp.interpolate( 0, level, hyteg::Inner );
+      pTmp.interpolate( 0, level, hyteg::Inner );
+      vTmp2.interpolate( 0, level, hyteg::Inner );
+      // random initial guess
+        std::uniform_real_distribution< real_t > unif( -1, 1 );
+        std::default_random_engine               re;
+        re.seed( 1312412415 );
+        pTmp.interpolate( [&unif, &re]( const hyteg::Point3D& xx ) { return unif( re ); }, level, hyteg::Inner );*/
 
       ZSolver->solve( Z, pTmp, src, level ); // pTmp = Z^{-1}*src
+                                             //  pTmp.interpolate( 0, level, hyteg::DirichletBoundary );
+                                             //  hyteg::vertexdof::projectMean( pTmp, level );
 
-      //vtkOutput_pTmp.write( level, 1 );
+      Z.BT.apply( pTmp, vTmp, level, hyteg::All ); // vTmp = B^t*pTmp
+      vTmp.interpolate( 0, level, hyteg::DirichletBoundary );
 
-      Z.BT.apply( pTmp, vTmp, level, hyteg::Inner ); // vTmp = B^t*pTmp
+      vTmp2.multElementwise( { *( Z.invDiagA ), vTmp }, level, hyteg::All );
+      vTmp2.interpolate( 0, level, hyteg::DirichletBoundary );
 
-      //vtkOutput_vTmp.write( level, 0 );
+      A.apply( vTmp2, vTmp, level, hyteg::All ); // vtmp= A*vTmp2
+      vTmp.interpolate( 0, level, hyteg::DirichletBoundary );
 
-      Z.Minv.apply( vTmp, vTmp2, level, hyteg::Inner ); // vTmp2 = M^{-1}*vTmp
-      //Z.MSolver->solve( Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
+      vTmp2.multElementwise( { *( Z.invDiagA ), vTmp }, level, hyteg::All );
+      vTmp2.interpolate( 0, level, hyteg::DirichletBoundary );
 
-      //vtkOutput_vTmp2.write( level, 0 );
-      A.apply( vTmp2, vTmp, level, hyteg::Inner ); // vtmp= A*vTmp2
-      //vtkOutput_vTmp.write( level, 1 );
+      Z.B.apply( vTmp2, pTmp, level, hyteg::All ); // pTmp = B*vTmp2
+                                                   // pTmp.interpolate( 0, level, hyteg::DirichletBoundary );
 
-      Z.Minv.apply( vTmp, vTmp2, level, hyteg::Inner ); // vTmp2 = M^{-1}*vTmp
-      //Z.MSolver->solve( Z.M, vTmp2, vTmp, level ); // vTmp2= M(w)^{-1}*vTmp
-
-      //vtkOutput_vTmp2.write( level, 1 );
-
-      Z.B.apply( vTmp2, pTmp, level, hyteg::Inner ); // pTmp = B*vTmp2
-      //vtkOutput_pTmp.write( level, 2 );
+      // dst.interpolate( [&unif, &re]( const hyteg::Point3D& xx ) { return unif( re ); }, level, hyteg::Inner );
 
       ZSolver->solve( Z, dst, pTmp, level ); // dst = Z^{-1}*pTmp
-
-      //vtkOutput_pTmp.write( level, 3 );
+                                             //  dst.interpolate( 0, level, hyteg::DirichletBoundary );
+                                             // hyteg::vertexdof::projectMean( dst, level );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                          mat,
@@ -141,37 +113,6 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       WALBERLA_ABORT( "Requires exact inversion of A, should not be used!" );
    }
 
-   void printComponentMatrices( size_t level, std::shared_ptr< PrimitiveStorage > storage )
-   {
-      typename VelocityFunctionType::template FunctionType< idx_t > VelocityNum(
-          "VelocityNum", storage /*Operator< PressureFunctionType, PressureFunctionType >::storage_*/, level, level );
-
-      typename PressureFunctionType::template FunctionType< idx_t > PressureNum(
-          "PressureNum", Operator< PressureFunctionType, PressureFunctionType >::storage_, level, level );
-
-      VelocityNum.enumerate( level );
-      PressureNum.enumerate( level );
-
-      PETScSparseMatrix< VectorVelocityMassOp >               MMat;
-      PETScSparseMatrix< DivOpType >                          BMat;
-      PETScSparseMatrix< DivOpTType >                         BTMat;
-      PETScSparseMatrix< P2ElementwiseAffineEpsilonOperator > AMat;
-
-      MMat.createMatrixFromOperator( Z.Minv, level, VelocityNum );
-      AMat.createMatrixFromOperator( A, level, VelocityNum );
-      BMat.createMatrixFromOperator( Z.B, level, VelocityNum, PressureNum );
-      BTMat.createMatrixFromOperator( Z.BT, level, PressureNum, VelocityNum );
-      MMat.applyDirichletBCSymmetrically( VelocityNum, level );
-      AMat.applyDirichletBCSymmetrically( VelocityNum, level );
-      BMat.applyDirichletBCSymmetrically( VelocityNum, level );
-      BTMat.applyDirichletBCSymmetrically( PressureNum, level );
-
-      MMat.print( "FOR_MATLAB_MinvMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      AMat.print( "FOR_MATLAB_AMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      BMat.print( "FOR_MATLAB_BMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      BTMat.print( "FOR_MATLAB_BTMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   }
-
    // this implements the suboperator Z = BM(w)^{-1}B^T
    class BFBTSubOperator : public Operator< PressureFunctionType, PressureFunctionType >
    {
@@ -179,31 +120,38 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       BFBTSubOperator( const std::shared_ptr< PrimitiveStorage >&       storage,
                        size_t                                           level,
                        std::function< real_t( const hyteg::Point3D& ) > viscosity,
-                       const std::vector< BoundaryCondition >&          VelocitySpaceBCs
-                       //std::shared_ptr<P2VectorFunction< real_t >> diagonal
-                       )
+                       const std::vector< BoundaryCondition >&          VelocitySpaceBCs )
       : Operator< PressureFunctionType, PressureFunctionType >( storage, level, level )
       , B( storage, level, level )
       , BT( storage, level, level )
       , Minv( storage, level )
       , K( storage, level, level, viscosity )
-      //, M( storage, level, level )
-      //, MSolver( std::make_shared< PETScLUSolver< VectorVelocityMassOp > >( storage, level ) )
       , storage_( storage )
       , tmp( "tmp", storage, level, level )
       , tmp2( "tmp2", storage, level, level )
+      , tmp3( "tmp3", storage, level, level )
+      , level_( level )
+      , invDiagAAssembled( false )
       {
+         // get BCs for temporaries
          for ( uint_t c = 0; c < VelocitySpaceBCs.size(); c++ )
          {
             tmp.setBoundaryCondition( VelocitySpaceBCs[c], c );
             tmp2.setBoundaryCondition( VelocitySpaceBCs[c], c );
          }
+         tmp3.setBoundaryCondition( VelocitySpaceBCs[0] );
 
-         //using massForm = hyteg::forms::p2_sqrtk_mass_affine_q4;
-         //auto P2Mass =
-         //   std::make_shared< P2ElementwiseOperator< massForm > >( storage, level, level, massForm( viscosity, viscosity ) );
-         //M.setSubOperator( 0, 0, P2Mass );
-         //M.setSubOperator( 1, 1, P2Mass );
+         // obtain inverse diagonal of viscous block
+         auto [SPNum, VelocityNum, PressureNum]                          = getNumerators();
+         auto [nVelDoFs, velRange, velIndices, nPDoFs, pRange, pIndices] = getIndexSets();
+         auto                 invDiagonalVec   = getVelocityBlockDiagonal( nVelDoFs, velRange, VelocityNum );
+         auto                 invDiagonalProxy = std::make_shared< PETScVectorProxy >( invDiagonalVec );
+         VelocityFunctionType invDiagonalFunction( "Z_invDiagVec_Hyteg", storage_, level_, level_ );
+         invDiagonalFunction.fromVector( VelocityNum, invDiagonalProxy, level_, hyteg::All );
+         //  PETScVector invDiagVec( invDiagonalFunction, VelocityNum, level, All, "Z_invDiagVec_Hyteg" );
+         //  invDiagVec.print( "FOR_MATLAB_DEBUG_Z_invDiagVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+         tmp2.multElementwise( { invDiagonalFunction, tmp }, level, hyteg::All );
+         invDiagA = std::make_shared< VelocityFunctionType >( invDiagonalFunction );
       }
 
       void apply( const PressureFunctionType& src,
@@ -212,24 +160,110 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
                   DoFType                     flag,
                   UpdateType                  updateType = Replace ) const
       {
-         // tmp0.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::All );
-         //  tmp1.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::All );
-         //tmp0.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::DirichletBoundary );
-         // tmp1.interpolate( []( const hyteg::Point3D& ) { return real_c( 0 ); }, level, hyteg::DirichletBoundary );
+         auto [SPNum, VelocityNum, PressureNum] = getNumerators();
+         bool print                             = false;
+         if ( print )
+         {
+            PETScVector srcVec( src, PressureNum, level, All, "Z_srcVec_Hyteg" );
+            srcVec.print( "FOR_MATLAB_DEBUG_Z_srcVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+         }
 
-         //tmp0.setBoundaryCondition(BoundaryCondition(hyteg::Inner));
-         //tmp1.setBoundaryCondition(BoundaryCondition(hyteg::Inner));
-
-         //WALBERLA_LOG_INFO_ON_ROOT( "tmp0 bc type for 1: " << tmp0.getBoundaryCondition().getBoundaryType( 1 ) );
-
-         //WALBERLA_LOG_INFO_ON_ROOT( "tmp0 bc type for 0: " << tmp0.getBoundaryCondition().getBoundaryType( 0 ) );
          BT.apply( src, tmp, level, hyteg::All ); // tmp = B^T*src
+         tmp.interpolate( 0, level, hyteg::DirichletBoundary );
 
-         Minv.apply( tmp, tmp2, level, hyteg::All ); // tmp2 = M^{-1}*tmp
-         //MSolver->solve( M, tmp2, tmp, level );
-         B.apply( tmp2, dst, level, hyteg::All ); // dst = B*tmp2
+         tmp2.multElementwise( { *invDiagA, tmp }, level, hyteg::All );
+         tmp2.interpolate( 0, level, hyteg::DirichletBoundary );
+
+         if ( print )
+         {
+            PETScVector tmp2Vec( tmp2, VelocityNum, level, All, "Z_tmp2Vec_Hyteg" );
+            tmp2Vec.print( "FOR_MATLAB_DEBUG_Z_tmp2Vec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+         }
+
+         B.apply( tmp2, tmp3, level, hyteg::All ); // dst = B*tmp
+         //Why does this destroy everything?
+         // tmp3.interpolate( 0, level, hyteg::DirichletBoundary );
+
+         if ( print )
+         {
+            PETScVector tmp3Vec( tmp3, PressureNum, level, All, "Z_tmp3Vec_Hyteg" );
+            tmp3Vec.print( "FOR_MATLAB_DEBUG_Z_tmp3Vec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+            WALBERLA_ABORT( "BYE" )
+         }
+
+         dst.assign( { 1 }, { tmp3 }, level, hyteg::All );
       }
-      void catchPetscError( PetscErrorCode PetscErr ){};
+
+      auto getNumerators() const
+      {
+         VelocityNumeratorType    VelocityNum( "VelocityNum", storage_, level_, level_ );
+         PressureNumeratorType    PressureNum( "PressureNum", storage_, level_, level_ );
+         SaddlePointNumeratorType SPNum( "SPNum", storage_, level_, level_ );
+         SPNum.enumerate( level_ );
+         VelocityNum.enumerate( level_ );
+         PressureNum.enumerate( level_ );
+         return std::make_tuple( std::move( SPNum ), std::move( VelocityNum ), std::move( PressureNum ) );
+      }
+
+      auto getIndexSets() const
+      {
+         uint_t                  nPDoFs   = numberOfGlobalDoFs< P1FunctionTag >( *storage_, level_ );
+         uint_t                  nDoFs    = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage_, level_ );
+         uint_t                  nVelDoFs = nDoFs - nPDoFs;
+         std::vector< PetscInt > velRange( nVelDoFs );
+         for ( PetscInt i = 0; i < nVelDoFs; ++i )
+         {
+            velRange[i] = i;
+         }
+         std::vector< PetscInt > pRange( nPDoFs );
+         for ( PetscInt i = nVelDoFs; i < nDoFs; ++i )
+         {
+            pRange[i - nVelDoFs] = i;
+         }
+         IS             velIndices, pIndices;
+         PetscErrorCode PetscErr;
+         PetscErr = ISCreateGeneral( PETSC_COMM_WORLD, nVelDoFs, velRange.data(), PETSC_COPY_VALUES, &velIndices );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = ISCreateGeneral( PETSC_COMM_WORLD, nPDoFs, pRange.data(), PETSC_COPY_VALUES, &pIndices );
+         WALBERLA_CHECK( !PetscErr );
+         return std::make_tuple(
+             nVelDoFs, std::move( velRange ), std::move( velIndices ), nPDoFs, std::move( pRange ), std::move( pIndices ) );
+      }
+
+      auto
+          getVelocityBlockDiagonal( uint_t nVelDoFs, std::vector< PetscInt >& velRange, VelocityNumeratorType& VelocityNum ) const
+      {
+         PetscErrorCode PetscErr;
+
+         // assemble visous block
+         PETScSparseMatrix< VelocityBlockOpType > AMat;
+         AMat.createMatrixFromOperator( K.viscOp, level_, VelocityNum, All );
+         AMat.applyDirichletBCSymmetrically( VelocityNum, level_ );
+
+         // extract diagonal
+         Vec diagonal;
+         PetscErr = VecCreateSeq( PETSC_COMM_WORLD, nVelDoFs, &diagonal );
+         WALBERLA_CHECK( !PetscErr );
+         std::vector< PetscScalar > vals( nVelDoFs );
+         PetscErr = MatGetDiagonal( AMat.get(), diagonal );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = VecGetValues( diagonal, nVelDoFs, velRange.data(), vals.data() );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyBegin( AMat.get(), MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyEnd( AMat.get(), MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
+
+         // invert diagonal and put back into vector
+         for ( PetscInt i = 0; i < nVelDoFs; ++i )
+         {
+            vals[i] = 1.0 / vals[i];
+         }
+         PetscErr = VecSetValues( diagonal, nVelDoFs, velRange.data(), vals.data(), INSERT_VALUES );
+         WALBERLA_CHECK( !PetscErr );
+
+         return diagonal;
+      }
 
       void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                          mat,
                      const typename PressureFunctionType::template FunctionType< idx_t >& src,
@@ -238,158 +272,90 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
                      DoFType                                                              flag ) const
       {
          // Z = BM(w)^{-1}B^T to matrix
+         // this assembly only happens once in the solver, so no need to have an assembledOnce mechanism
 
-       //  if ( !assembledOnce_ )
-       //  {
-            // Sparse matrix objects for sub operators
-            PETScSparseMatrix< P2FunctionApplyOperator > MinvMat( "MinvMat" );
+         // numerators
+         auto [SPNum, VelocityNum, PressureNum] = getNumerators();
 
-            // numerators
-            typename VelocityFunctionType::template FunctionType< idx_t >    VelocityNum( "VelocityNum", storage_, level, level );
-            typename PressureFunctionType::template FunctionType< idx_t >    PressureNum( "PressureNum", storage_, level, level );
-            typename SaddlePointFunctionType::template FunctionType< idx_t > SPNum( "SPNum", storage_, level, level );
-            SPNum.enumerate( level );
-            VelocityNum.enumerate( level );
-            PressureNum.enumerate( level );
+         PetscErrorCode PetscErr;
+         // assemble K, apply boundary conditions
+         PETScSparseMatrix< SaddlePointOpType > KMat;
+         KMat.createMatrixFromOperator( K, level_, SPNum, All );
+         KMat.applyDirichletBCSymmetrically( SPNum, level_ );
 
-            // assemble Minv
-            // MinvMat.createMatrixFromOperator( Minv, level, VelocityNum );
-            // MinvMat.applyDirichletBCSymmetrically( VelocityNum, level );
+         // gather index sets for B, BT
+         auto [nVelDoFs, velRange, velIndices, nPDoFs, pRange, pIndices] = getIndexSets();
+         IS BBTSrcIndices[2]                                             = { velIndices, pIndices };
+         IS BBTDstIndices[2]                                             = { pIndices, velIndices };
 
-            // assemble K, apply boundary conditions
-            PETScSparseMatrix< SaddlePointOpType > KMat;
-            KMat.createMatrixFromOperator( K, level, SPNum, All );
-            KMat.applyDirichletBCSymmetrically( SPNum, level );
+         // get B and BT from K
+         Mat BMat, BTMat, AMat;
+         PetscErr = MatCreateSubMatrix( KMat.get(), velIndices, pIndices, MAT_INITIAL_MATRIX, &BTMat );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatCreateSubMatrix( KMat.get(), pIndices, velIndices, MAT_INITIAL_MATRIX, &BMat );
+         WALBERLA_CHECK( !PetscErr );
 
-            // gather index sets for B, BT
-            uint_t   nPDoFs   = numberOfGlobalDoFs< P1FunctionTag >( *storage_, level );
-            uint_t   nDoFs    = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage_, level );
-            uint_t   nVelDoFs = nDoFs - nPDoFs;
-            PetscInt velRange[nVelDoFs];
-            for ( PetscInt i = 0; i < nVelDoFs; ++i )
-            {
-               velRange[i] = i;
-            }
-            PetscInt pRange[nPDoFs];
-            for ( PetscInt i = nVelDoFs; i < nDoFs; ++i )
-            {
-               pRange[i - nVelDoFs] = i;
-            }
-            IS             velIndices, pIndices;
-            PetscErrorCode PetscErr;
-            PetscErr = ISCreateGeneral( PETSC_COMM_WORLD, nVelDoFs, velRange, PETSC_COPY_VALUES, &velIndices );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = ISCreateGeneral( PETSC_COMM_WORLD, nPDoFs, pRange, PETSC_COPY_VALUES, &pIndices );
-            WALBERLA_CHECK( !PetscErr );
-            IS BBTSrcIndices[2] = { velIndices, pIndices };
-            IS BBTDstIndices[2] = { pIndices, velIndices };
+         // get A
+         PetscErr = MatCreateSubMatrix( KMat.get(), velIndices, velIndices, MAT_INITIAL_MATRIX, &AMat );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyBegin( AMat, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyEnd( AMat, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
 
-            // get B and BT from K
-            Mat BMat, BTMat, AMat;
-            PetscErr = MatCreateSubMatrix( KMat.get(), velIndices, pIndices, MAT_INITIAL_MATRIX, &BTMat );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatCreateSubMatrix( KMat.get(), pIndices, velIndices, MAT_INITIAL_MATRIX, &BMat );
-            WALBERLA_CHECK( !PetscErr );
+         // extract inverted diagonal
+         Vec invDiagonal = getVelocityBlockDiagonal( nVelDoFs, velRange, VelocityNum );
 
-            // get A
-            PetscErr = MatCreateSubMatrix( KMat.get(), velIndices, velIndices, MAT_INITIAL_MATRIX, &AMat );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatAssemblyBegin( AMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatAssemblyEnd( AMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
-            // MatView(AMat, PETSC_VIEWER_STDOUT_WORLD);
+         // insert inverted diagonal
+         Mat diagAMat;
+         PetscErr = MatCreate( PETSC_COMM_WORLD, &diagAMat );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatSetType( diagAMat, MATMPIAIJ );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatSetSizes( diagAMat, nVelDoFs, nVelDoFs, nVelDoFs, nVelDoFs );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatMPIAIJSetPreallocation( diagAMat, 1, NULL, 0, NULL );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatDiagonalSet( diagAMat, invDiagonal, INSERT_VALUES );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyBegin( diagAMat, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
+         PetscErr = MatAssemblyEnd( diagAMat, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK( !PetscErr );
 
-            // extract diagonal
-            Vec diagonal;
-            PetscErr = VecCreateSeq( PETSC_COMM_WORLD, nVelDoFs, &diagonal );
-            WALBERLA_CHECK( !PetscErr );
-            std::vector< PetscScalar > vals( nVelDoFs );
-            PetscErr = MatGetDiagonal( AMat, diagonal );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = VecGetValues( diagonal, nVelDoFs, velRange, vals.data() );
-            WALBERLA_CHECK( !PetscErr );
-            //MatView(diagAMat, PETSC_VIEWER_STDOUT_WORLD);
-            PetscErr = MatAssemblyBegin( AMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatAssemblyEnd( AMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
+         // Proxy objects for createFromMatrixProduct
+         auto MinvMatProxy = std::make_shared< PETScSparseMatrixProxy >( diagAMat );
+         auto BMatProxy    = std::make_shared< PETScSparseMatrixProxy >( BMat );
+         auto BTMatProxy   = std::make_shared< PETScSparseMatrixProxy >( BTMat );
 
-            // invert diagonal and put back into vector
-            for ( PetscInt i = 0; i < nVelDoFs; ++i )
-            {
-               vals[i] = 1.0 / vals[i];
-            }
-            PetscErr = VecSetValues( diagonal, nVelDoFs, velRange, vals.data(), INSERT_VALUES );
-            WALBERLA_CHECK( !PetscErr );
-            // MatView(diagAMat, PETSC_VIEWER_STDOUT_WORLD);
-
-            // insert inverted diagonal
-            Mat diagAMat;
-            PetscErr = MatCreate( PETSC_COMM_WORLD, &diagAMat );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatSetType( diagAMat, MATMPIAIJ );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatSetSizes( diagAMat, nVelDoFs, nVelDoFs, nVelDoFs, nVelDoFs );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatMPIAIJSetPreallocation( diagAMat, 1, NULL, 0, NULL );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatDiagonalSet( diagAMat, diagonal, INSERT_VALUES );
-            WALBERLA_CHECK( !PetscErr );
-         
-         
-            PetscErr = MatAssemblyBegin( diagAMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
-            PetscErr = MatAssemblyEnd( diagAMat, MAT_FINAL_ASSEMBLY );
-            WALBERLA_CHECK( !PetscErr );
-            //MatCreateSubMatrices( KMat.get(), 2, BBTDstIndices, BBTSrcIndices, MAT_INITIAL_MATRIX, BBTPtrs );
-
-            // PetscViewer viewer;
-            /*
-         PetscViewer viewer;
-         PetscViewerASCIIOpen( PETSC_COMM_WORLD, "FOR_MATLAB_invMMat_Sinker.m", &viewer );
-         PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
-         MatView(diagAMat,  viewer );
-         
-         PetscViewerDestroy( &viewer );
-         PetscViewerASCIIOpen( PETSC_COMM_WORLD, "FOR_MATLAB_BMat_Sinker.m", &viewer );
-         PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
-         MatView(BMat,  viewer );
-         */
-
-            // Proxy objects for createFromMatrixProduct
-            auto MinvMatProxy = std::make_shared< PETScSparseMatrixProxy >( diagAMat );
-            auto BMatProxy    = std::make_shared< PETScSparseMatrixProxy >( BMat );
-            auto BTMatProxy   = std::make_shared< PETScSparseMatrixProxy >( BTMat );
-
-            // final BMinvBT matrix creation
-            mat->createFromMatrixProduct( { BTMatProxy, MinvMatProxy, BMatProxy } );
-        // }
-        // else {}
-         /*
-         PetscViewerDestroy( &viewer );
-           PetscViewerASCIIOpen( PETSC_COMM_WORLD, "FOR_MATLAB_BinvMBTMat_Sinker.m", &viewer );
-         PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
-         MatView(std::dynamic_pointer_cast< PETScSparseMatrixProxy >( mat )->mat_,  viewer );
-      */
+         // final BMinvBT matrix creation
+         mat->createFromMatrixProduct( { BTMatProxy, MinvMatProxy, BMatProxy } );
       }
 
-      SaddlePointOpType       K;
+      SaddlePointOpType K;
+      //TODO save K only once
       DivOpType               B;
       DivOpTType              BT;
       P2FunctionApplyOperator Minv;
       //VectorVelocityMassOp                                     M;
       //std::shared_ptr< PETScLUSolver< VectorVelocityMassOp > > MSolver;
-      VelocityFunctionType                      tmp;
-      VelocityFunctionType                      tmp2;
+
+      //TODO reuse temporaries
+      VelocityFunctionType tmp;
+      VelocityFunctionType tmp2;
+      PressureFunctionType tmp3;
+
+      std::shared_ptr< VelocityFunctionType >   invDiagA;
       const std::shared_ptr< PrimitiveStorage > storage_;
+      const uint_t                              level_;
+      bool                                      invDiagAAssembled;
    };
 
  private:
    VelocityBlockOpType A;
    BFBTSubOperator     Z;
 
-   std::shared_ptr< PETScLUSolver< BFBTSubOperator > > ZSolver;
+   std::shared_ptr< PETScCGSolver< BFBTSubOperator > > ZSolver;
 
    const std::shared_ptr< PrimitiveStorage > storage_;
    PressureFunctionType                      pTmp;
