@@ -61,11 +61,13 @@ void MultiSinker2D( const uint_t& level,
                     const uint_t& solver,
                     const uint_t& nxy,
                     const uint_t& nSinkers,
-                    const real_t& visc_min,
-                    const real_t& visc_max,
+                    const real_t& DR,
                     const real_t& delta,
                     const real_t& omega )
 {
+   real_t visc_min = std::pow(DR,-0.5);
+   real_t visc_max = std::pow(DR,0.5);
+
    // storage and domain
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -133,6 +135,7 @@ void MultiSinker2D( const uint_t& level,
 
    // Initial errors and residual
    x.interpolate( zero, level, hyteg::DirichletBoundary );
+   x.interpolate([&unif, &re]( const hyteg::Point3D& xx ) { return unif(re); },level,hyteg::Inner);
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner | hyteg::NeumannBoundary );
    real_t residuum_l2_1 =
@@ -148,31 +151,53 @@ void MultiSinker2D( const uint_t& level,
        storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
 
    auto ViscWeightedPMINRES =
-       solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-15, 1e-9, 10000, true );
+       solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 10000, true );
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-15, 1e-11, 10000, true );
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-6, 1e-6, 10000, true );
 
    auto velocityBCs  = { x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition() };
-   auto BFBT_PMINRES = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-15, 100, true, velocityBCs );
+   auto BFBT_PMINRES = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-6, 100, true, velocityBCs );
 
    hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
-   THNumerator.copyBoundaryConditionFromFunction( x );
+ //  THNumerator.copyBoundaryConditionFromFunction( x );
    THNumerator.enumerate( level );
 
    bool printOperands = false;
-   bool printResult   = true;
+   bool printResult   = false;
    if ( printOperands )
    {
-      auto bfbtop = std::make_shared< BFBT_P2P1 >( storage, level, level, viscosity, velocityBCs );
-      bfbtop->printComponentMatrices( level, storage );
+      P1LumpedMassOperator PMass(
+       storage,
+       level,
+       level
+      );
+      PETScSparseMatrix< hyteg::P1LumpedMassOperator > PMassMat;
+      hyteg::P1Function< idx_t > PNumerator( "PNum", storage, level, level );
+      PNumerator.enumerate(level);
+      PMassMat.createMatrixFromOperator( PMass, level, PNumerator, All );
+      PMassMat.print( "FOR_MATLAB_PMassMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      
+      P1BlendingLumpedDiagonalOperator PMassViscWeighted(
+       storage,
+       level,
+       level,
+       std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
+      PETScSparseMatrix< hyteg::P1BlendingLumpedDiagonalOperator > PMassViscWeightedMat;
+      PMassViscWeightedMat.createMatrixFromOperator( PMassViscWeighted, level, PNumerator, All );
+      PMassViscWeightedMat.print( "FOR_MATLAB_PMassViscWeightedMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   
       PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
       StokesMat.createMatrixFromOperator( A, level, THNumerator, All );
       
+      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
       PETScVector bVec( b, THNumerator, level );
+      bVec.createVectorFromFunction( b, THNumerator, level, All );
       StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
-      bVec.print( "FOR_MATLAB_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      StokesMat.print( "FOR_MATLAB_StokesMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      //StokesMat.applyDirichletBC( THNumerator, level );
+      
+      bVec.print( "FOR_MATLAB_bVec_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      StokesMat.print( "FOR_MATLAB_StokesMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
    WALBERLA_ABORT( "bye" );
    }
@@ -224,6 +249,8 @@ void MultiSinker2D( const uint_t& level,
    hyteg::vertexdof::projectMean( x.p(), level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
+   x.interpolate( zero, level, hyteg::DirichletBoundary );
+ 
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level );
    residuum_l2_1 =
@@ -253,7 +280,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D( 4, atoi( argv[2] ), 1, atoi( argv[3] ), 1, atoi( argv[4] ), 200, 0.1 );
+   MultiSinker2D(4, atoi( argv[2] ), 1, atoi( argv[3] ), atoi( argv[4] ), 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
