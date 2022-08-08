@@ -97,7 +97,7 @@ public:
 
     real_t c_old = 1.0;
     real_t c_new = 1.0;
-
+    
     if (printInfo_) {
       WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: "<< std::scientific << std::abs(gamma_new));
     }
@@ -155,7 +155,7 @@ public:
 
       if (printInfo_)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("[MinRes] iter: %6d | residuum: %10.5e", i, std::abs(eta)));
+        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("[MinRes] iter: %6d | rel. residuum: %10.5e | residuum: %10.5e", i,std::abs(eta)/res_start, std::abs(eta)));
       }
 
       if (std::abs(eta)/res_start < relativeTolerance_ || std::abs(eta) < absoluteTolerance_ )
@@ -173,6 +173,7 @@ public:
   void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
   void setAbsoluteTolerance( real_t absoluteTolerance ) { absoluteTolerance_ = absoluteTolerance; }
   void setRelativeTolerance( real_t relativeTolerance ) { relativeTolerance_ = relativeTolerance; }
+  void setDoFType(hyteg::DoFType f) { flag_ = f; }
 
 private:
 

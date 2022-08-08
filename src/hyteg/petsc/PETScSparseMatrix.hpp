@@ -151,13 +151,15 @@ class PETScSparseMatrix
       std::vector< idx_t > bcIndices;
       hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
-
-      // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
+      std::cout << "Indexset of BCs of " << name_ << ": " << std::endl;
+      for (std::vector<PetscInt>::const_iterator i = PetscIntBcIndices.begin(); i != PetscIntBcIndices.end(); ++i)
+         std::cout << *i << ' ';
+       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
+     MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -227,6 +229,7 @@ class PETScSparseMatrix
       return bcIndices;
    }
 
+   
    inline void reset() { assembled_ = false; }
 
    /// \brief Sets all entries of the matrix to zero.
