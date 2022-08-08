@@ -21,7 +21,7 @@
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -40,8 +40,8 @@ void testP1DGEFunctionSpace() {
    uint_t minLevel = 2;
    uint_t maxLevel = 3;
 
-   P1DGEFunction< real_t > u("u", storage, minLevel, maxLevel);
-   P1DGEFunction< real_t > rhs("rhs", storage, minLevel, maxLevel);
+   EGFunction< real_t > u("u", storage, minLevel, maxLevel);
+   EGFunction< real_t > rhs("rhs", storage, minLevel, maxLevel);
 
    auto f0 = [](Point3D p){ return p[0] + 2 * p[1]; };
    auto f1 = [](Point3D p){ return 0.5 * p[0] + p[1]; };

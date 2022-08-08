@@ -39,6 +39,11 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
+#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGMassForm.hpp"
+#include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/egfunctionspace/EGDivForm.hpp"
+#include "hyteg/egfunctionspace/EGDivtForm.hpp"
 namespace hyteg {
 
 using namespace dg;
@@ -760,20 +765,20 @@ typedef P1ToP0Operator< dg::p1_to_p0_div_0_affine_q0 > P1ToP0ConstantDivxOperato
 typedef P1ToP0Operator< dg::p1_to_p0_div_1_affine_q0 > P1ToP0ConstantDivyOperator;
 typedef P1ToP0Operator< dg::p1_to_p0_div_2_affine_q0 > P1ToP0ConstantDivzOperator;
 
-typedef P1ToP0Operator< dg::DGVectorLaplaceFormEDGP1_0 > P1ToP0ConstantP1EDGVectorLaplaceXCouplingOperator;
-typedef P1ToP0Operator< dg::DGVectorLaplaceFormEDGP1_1 > P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_0 > P1ToP0ConstantP1EDGVectorLaplaceXCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_1 > P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >                P1ToP0ConstantP1EDGVectorLaplaceZCouplingOperator;
 
 
-typedef P1ToP0Operator< dg::EDGConstEpsilonFormEDGP1_0 >  P1ToP0ConstantP1EDGEpsilonXCouplingOperator;
-typedef P1ToP0Operator< dg::EDGConstEpsilonFormEDGP1_1 >  P1ToP0ConstantP1EDGEpsilonYCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 >  P1ToP0ConstantP1EDGEpsilonXCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 >  P1ToP0ConstantP1EDGEpsilonYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >            P1ToP0ConstantP1EDGEpsilonZCouplingOperator;
 
 
-typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
-typedef P1ToP0Operator< dg::DGVectorMassFormEDGP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
 typedef P1ToP0Operator< dg::DGFormAbort >             P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
 
-typedef P1ToP0Operator< dg::DGDivtFormEDGP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 
 } // namespace hyteg

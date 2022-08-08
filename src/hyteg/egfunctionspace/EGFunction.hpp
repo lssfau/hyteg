@@ -22,22 +22,22 @@
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
-#include "hyteg/p1dgefunctionspace/DGBasisEnriched.hpp"
+#include "hyteg/egfunctionspace/EGBasis.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-namespace hyteg {
+namespace hyteg{
 
 template < typename ValueType >
-class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
+class EGFunction final : public Function< EGFunction< ValueType > >
 {
  public:
    using valueType = ValueType;
 
    template < typename VType >
-   using FunctionType = P1DGEFunction< VType >;
+   using FunctionType = EGFunction< VType >;
 
-   P1DGEFunction( const std::string&                         name,
+   EGFunction( const std::string&                         name,
                   const std::shared_ptr< PrimitiveStorage >& storage,
                   uint_t                                     minLevel,
                   uint_t                                     maxLevel,
@@ -68,7 +68,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    };
 
    void add( const std::vector< ValueType >                                                   scalars,
-             const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
+             const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
              uint_t                                                                           level,
              DoFType                                                                          flag = All ) const
    {
@@ -76,7 +76,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->add( scalars, filter_discontinuous( functions ), level, flag );
    };
 
-   void multElementwise( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
+   void multElementwise( const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
                          uint_t                                                                           level,
                          DoFType                                                                          flag = All ) const
    {
@@ -104,13 +104,13 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->interpolate( 0, level, flag );
    };
 
-   void swap( const P1DGEFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   void swap( const EGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
       u_conforming_->swap( *other.getConformingPart(), level, flag );
       u_discontinuous_->swap( *other.getDiscontinuousPart(), level, flag );
    };
 
-   void copyFrom( const P1DGEFunction< ValueType >&              other,
+   void copyFrom( const EGFunction< ValueType >&              other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
@@ -129,7 +129,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    }
 
    void assign( const std::vector< ValueType >&                                                  scalars,
-                const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions,
+                const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
                 uint_t                                                                           level,
                 DoFType                                                                          flag = All ) const
    {
@@ -137,7 +137,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->assign( scalars, filter_discontinuous( functions ), level, flag );
    }
 
-   ValueType dotGlobal( const P1DGEFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
+   ValueType dotGlobal( const EGFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
       real_t result = 0;
       result += u_conforming_->dotGlobal( *rhs.getConformingPart(), level, flag );
@@ -145,7 +145,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       return result;
    }
 
-   ValueType dotLocal( const P1DGEFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
+   ValueType dotLocal( const EGFunction< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
       real_t result = 0;
       result += u_conforming_->dotLocal( *rhs.getConformingPart(), level, flag );
@@ -169,7 +169,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
    /// conversion to/from linear algebra representation
    /// @{
-   void toVector( const P1DGEFunction< idx_t >&         numerator,
+   void toVector( const EGFunction< idx_t >&         numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
                   DoFType                               flag ) const
@@ -178,7 +178,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
       u_discontinuous_->toVector( *numerator.getDiscontinuousPart(), vec, level, flag );
    }
 
-   void fromVector( const P1DGEFunction< idx_t >&         numerator,
+   void fromVector( const EGFunction< idx_t >&         numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const
@@ -373,7 +373,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    }
 
    template < typename OtherValueType >
-   void copyBoundaryConditionFromFunction( const P1DGEFunction< OtherValueType >& other )
+   void copyBoundaryConditionFromFunction( const EGFunction< OtherValueType >& other )
    {
       u_conforming_->copyBoundaryConditionFromFunction( *( other.getConformingPart() ) );
       u_discontinuous_->copyBoundaryConditionFromFunction( *( other.getDiscontinuousPart() ) );
@@ -381,7 +381,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
 
  protected:
    static std::vector< std::reference_wrapper< const P0Function< ValueType > > >
-       filter_discontinuous( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions )
+       filter_discontinuous( const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions )
    {
       std::vector< std::reference_wrapper< const P0Function< ValueType > > > dg_list;
       for ( auto& f : functions )
@@ -392,7 +392,7 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    }
 
    static std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > >
-       filter_conforming( const std::vector< std::reference_wrapper< const P1DGEFunction< ValueType > > >& functions )
+       filter_conforming( const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions )
    {
       std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > conforming_list;
       for ( auto& f : functions )
@@ -407,22 +407,22 @@ class P1DGEFunction final : public Function< P1DGEFunction< ValueType > >
    std::shared_ptr< P0Function< ValueType > >       u_discontinuous_;
 
    dg::DGBasisLinearLagrange_Example basis_conforming_;
-   DGBasisEnriched                   basis_discontinuous_;
+   EGBasis                   basis_discontinuous_;
 };
 
 template < typename ValueType >
-P1DGEFunction< ValueType >::P1DGEFunction( const std::string&                         name,
-                                           const std::shared_ptr< PrimitiveStorage >& storage,
+EGFunction< ValueType >::EGFunction( const std::string&                         name,
+                                           const std::shared_ptr< hyteg::PrimitiveStorage >& storage,
                                            uint_t                                     minLevel,
                                            uint_t                                     maxLevel,
                                            BoundaryCondition                          bc )
-: Function< P1DGEFunction< ValueType > >( name, storage, minLevel, maxLevel )
+: Function< EGFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name + "_conforming", storage, minLevel, maxLevel, bc, true ) }
 , u_discontinuous_{ std::make_shared< P0Function< ValueType > >( name + "_discontinuous", storage, minLevel, maxLevel, bc ) }
 , basis_conforming_()
 , basis_discontinuous_()
 {}
 
-void applyDirichletBC( const P1DGEFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+void applyDirichletBC( const EGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
 
 } // namespace hyteg

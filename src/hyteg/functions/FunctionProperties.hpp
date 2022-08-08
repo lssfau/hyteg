@@ -207,7 +207,7 @@ inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
                   std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
                   std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P1DGEFunction< typename func_t::valueType >, func_t > )
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfLocalDoFs( level );
    }
@@ -248,7 +248,7 @@ inline uint_t numberOfGlobalDoFs( const func_t&   func,
                   std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
                   std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P1DGEFunction< typename func_t::valueType >, func_t > )
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }

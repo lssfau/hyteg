@@ -802,21 +802,23 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES dg/DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
 
-    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEFunctionspaceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P1DGEFunctionspaceTest)
+    waLBerla_compile_test(FILES egfunctionspace/EGFunctionspaceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGFunctionspaceTest)
 
-    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGESymmetryTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P1DGESymmetryTest)
+    waLBerla_compile_test(FILES egfunctionspace/EGSymmetryTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGSymmetryTest)
 
-    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEConvergenceTests2D.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P1DGEConvergenceTest2D)
+    waLBerla_compile_test(FILES egfunctionspace/EGConvergenceTests2D.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGConvergenceTest2D)
 
-    waLBerla_compile_test(FILES p1dgefunctionspace/P1DGEFormTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P1DGEFormTest)
+    waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGFormTest)
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 endif()
+
+
 
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)

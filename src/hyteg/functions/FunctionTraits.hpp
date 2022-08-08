@@ -65,9 +65,9 @@ struct P2VectorFunctionTag
 {};
 struct DGVectorFunctionTag
 {};
-struct P1DGEFunctionTag
+struct EGFunctionTag
 {};
-struct P1DGEP1StokesFunctionTag
+struct EGP0StokesFunctionTag
 {};
 
 //////////////////////////
@@ -132,10 +132,10 @@ class DGVectorFunction;
 }
 
 template < typename VType >
-class P1DGEFunction;
+class EGFunction;
 
 template < typename VType >
-class P1DGEP0StokesFunction;
+class EGP0StokesFunction;
 
 ///////////////////////////////////////////////////////////////////
 // Enum for getting info on type of a GenericFunction
@@ -155,7 +155,7 @@ typedef enum
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
    DG_VECTOR_FUNCTION,
-   P1DGE_FUNCTION,
+   EG_FUNCTION,
    OTHER_FUNCTION
 } FunctionKind;
 
@@ -345,27 +345,27 @@ struct FunctionTrait< dg::DGVectorFunction< VType > >
    static const functionTraits::FunctionKind kind = functionTraits::DG_VECTOR_FUNCTION;
 };
 
-/// P1DGEFunction specialization
+/// EGFunction specialization
 template < typename VType >
-struct FunctionTrait< P1DGEFunction< VType > >
+struct FunctionTrait< EGFunction< VType > >
 {
    typedef VType                  ValueType;
-   typedef P1DGEFunctionTag       Tag;
-   typedef P1DGEFunction< VType > VectorComponentType;
+   typedef EGFunctionTag       Tag;
+   typedef EGFunction< VType > VectorComponentType;
 
-   static std::string getTypeName() { return "P1DGEVectorFunction"; }
+   static std::string getTypeName() { return "EGVectorFunction"; }
 
-   static const functionTraits::FunctionKind kind = functionTraits::P1DGE_FUNCTION;
+   static const functionTraits::FunctionKind kind = functionTraits::EG_FUNCTION;
 };
 
-/// P1DGEP1StokesFunction specialization
+/// EGP0StokesFunction specialization
 template < typename VType >
-struct FunctionTrait< P1DGEP0StokesFunction< VType > >
+struct FunctionTrait< EGP0StokesFunction< VType > >
 {
    typedef VType                    ValueType;
-   typedef P1DGEP1StokesFunctionTag Tag;
+   typedef EGP0StokesFunctionTag Tag;
 
-   static std::string getTypeName() { return "P1DGEP1StokesFunction"; }
+   static std::string getTypeName() { return "EGP0StokesFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };

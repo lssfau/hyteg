@@ -35,7 +35,7 @@
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -118,7 +118,7 @@ class VTKOutput
    }
 
    template < typename value_t >
-   inline void add( const P1DGEFunction< value_t >& function )
+   inline void add( const EGFunction< value_t >& function )
    {
       p1dgeVecFunctions_.push_back( function );
    }
@@ -155,7 +155,7 @@ class VTKOutput
 
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
-   void add( const P1DGEP0StokesFunction< real_t >& function );
+   void add( const EGP0StokesFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -269,7 +269,7 @@ class VTKOutput
 
    FunctionMultiStore< dg::DGVectorFunction > dgVecFunctions_;
 
-   FunctionMultiStore< P1DGEFunction > p1dgeVecFunctions_;
+   FunctionMultiStore< EGFunction > p1dgeVecFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

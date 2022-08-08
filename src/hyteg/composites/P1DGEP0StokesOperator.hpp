@@ -20,23 +20,24 @@
 #pragma once
 
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
 
 namespace hyteg {
-
+namespace dg {
+namespace eg {
 template < typename VelocityBlockOperator >
-class P1DGEP0StokesOperatorType : public Operator< P1DGEP0StokesFunction< real_t >, P1DGEP0StokesFunction< real_t > >
+class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
 {
  public:
-   P1DGEP0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   EGP0StokesOperatorType( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1DGEP0StokesFunction< real_t >& src,
-               const P1DGEP0StokesFunction< real_t >& dst,
+   void apply( const EGP0StokesFunction< real_t >& src,
+               const EGP0StokesFunction< real_t >& dst,
                const uint_t                           level,
                const DoFType                          flag ) const
    {
@@ -46,8 +47,8 @@ class P1DGEP0StokesOperatorType : public Operator< P1DGEP0StokesFunction< real_t
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEP0StokesFunction< idx_t >&       src,
-                  const P1DGEP0StokesFunction< idx_t >&       dst,
+                  const EGP0StokesFunction< idx_t >&       src,
+                  const EGP0StokesFunction< idx_t >&       dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -57,11 +58,12 @@ class P1DGEP0StokesOperatorType : public Operator< P1DGEP0StokesFunction< real_t
    }
 
    VelocityBlockOperator velocityBlockOp;
-   P1DGEToP0DivOperator  div;
-   P0ToP1DGEDivTOperator divT;
+   EGToP0DivOperator  div;
+   P0ToEGDivTOperator divT;
 };
 
-using P1DGEP0StokesOperatorType< P1DGELaplaceOperator >         = P1DGEP0StokesOperator;
-using P1DGEP0StokesOperatorType< P1DGEConstantEpsilonOperator > = P1DGEP0ConstEpsilonStokesOperator;
-
+typedef EGP0StokesOperatorType< EGLaplaceOperator >       EGP0StokesOperator;
+typedef EGP0StokesOperatorType< EGConstantEpsilonOperator >  EGP0ConstEpsilonStokesOperator;
+} // namespace eg
+} // namespace dg
 } // namespace hyteg

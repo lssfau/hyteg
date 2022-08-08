@@ -23,8 +23,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/p1dgefunctionspace/EDGEpsilonForm.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
+#include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
 using walberla::real_t;

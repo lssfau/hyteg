@@ -74,7 +74,7 @@ void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
    add( function.p() );
 }
 
-void VTKOutput::add( const P1DGEP0StokesFunction< real_t >& function )
+void VTKOutput::add( const EGP0StokesFunction< real_t >& function )
 {
    add( function.uvw() );
    add( function.p() );
@@ -360,7 +360,7 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // no communication necessary
 
    // ---------------------------------------------
-   //  P1DGEFunction [double, int32_t, int64_t]
+   //  EGFunction [double, int32_t, int64_t]
    // ---------------------------------------------
    for ( const auto& function : p1dgeVecFunctions_.getFunctions< double >() )
    {

@@ -33,7 +33,7 @@ class VTKP1DGEWriter
  private:
    template < typename value_t >
    static void writeVectorFunction( std::ostream&                              output,
-                                    const P1DGEFunction< value_t >&            function,
+                                    const EGFunction< value_t >&            function,
                                     const std::shared_ptr< PrimitiveStorage >& storage,
                                     const uint_t&                              level,
                                     bool                                       write2D,

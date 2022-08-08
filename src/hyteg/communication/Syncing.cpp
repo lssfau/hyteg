@@ -22,7 +22,7 @@
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
@@ -78,7 +78,7 @@ void syncVectorFunctionBetweenPrimitives( const dg::DGVectorFunction< vType >& v
 }
 
 template < typename vType >
-void syncVectorFunctionBetweenPrimitives( const P1DGEFunction< vType >& p1dgeFunc, const uint_t& level )
+void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& p1dgeFunc, const uint_t& level )
 {
    auto& vecFunc = *(p1dgeFunc.getConformingPart());
    for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
@@ -109,9 +109,9 @@ template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< doubl
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int32_t >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int64_t >& function, const uint_t& level );
 
-template void syncVectorFunctionBetweenPrimitives( const P1DGEFunction< double >& function, const uint_t& level );
-template void syncVectorFunctionBetweenPrimitives( const P1DGEFunction< int32_t >& function, const uint_t& level );
-template void syncVectorFunctionBetweenPrimitives( const P1DGEFunction< int64_t >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< double >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< int32_t >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< int64_t >& function, const uint_t& level );
 
 } // namespace communication
 } // namespace hyteg

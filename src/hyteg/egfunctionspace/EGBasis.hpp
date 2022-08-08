@@ -28,7 +28,7 @@
 
 namespace hyteg {
 
-class DGBasisEnriched {
+class EGBasis {
  public:
 
    void integrateBasisFunction( uint_t                                                degree,

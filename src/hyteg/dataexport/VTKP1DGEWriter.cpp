@@ -101,7 +101,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
 template < typename value_t >
 void VTKP1DGEWriter::writeVectorFunction( std::ostream&                              output,
-                                          const P1DGEFunction< value_t >&            function,
+                                          const EGFunction< value_t >&            function,
                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                           const uint_t&                              level,
                                           bool                                       write2D,
@@ -141,7 +141,7 @@ void VTKP1DGEWriter::writeVectorFunction( std::ostream&                         
    }
    else
    {
-      WALBERLA_ABORT( "P1DGEFunction VTK not implemented in 3D." );
+      WALBERLA_ABORT( "EGFunction VTK not implemented in 3D." );
    }
 
    streamWriter.toStream( output );

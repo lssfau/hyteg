@@ -31,23 +31,25 @@
 #include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-
+#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 namespace hyteg {
+namespace dg {
+namespace eg {
 
-class P0ToP1DGEDivTOperator final : public Operator< P0Function< real_t >, P1DGEFunction< real_t > >
+class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFunction< real_t > >
 {
  public:
-   P0ToP1DGEDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< P0Function< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   P0ToEGDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , p0_to_p1x( storage, minLevel, maxLevel )
    , p0_to_p1y( storage, minLevel, maxLevel )
    , p0_to_edg( storage, minLevel, maxLevel )
    {}
 
    void apply( const P0Function< real_t >&    src,
-               const P1DGEFunction< real_t >& dst,
+               const EGFunction< real_t >& dst,
                size_t                         level,
                DoFType                        flag,
                UpdateType                     updateType ) const override
@@ -59,7 +61,7 @@ class P0ToP1DGEDivTOperator final : public Operator< P0Function< real_t >, P1DGE
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P0Function< idx_t >&                  src,
-                  const P1DGEFunction< idx_t >&               dst,
+                  const EGFunction< idx_t >&               dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
@@ -72,22 +74,22 @@ class P0ToP1DGEDivTOperator final : public Operator< P0Function< real_t >, P1DGE
    }
 
  private:
-   P0ToP1Operator< dg::DGDivtFormP1P0_0 > p0_to_p1x;
-   P0ToP1Operator< dg::DGDivtFormP1P0_1 > p0_to_p1y;
-   P0Operator< dg::DGDivtFormEDGP0 >      p0_to_edg;
+   P0ToP1Operator< DGDivtFormP1P0_0 > p0_to_p1x;
+   P0ToP1Operator< DGDivtFormP1P0_1 > p0_to_p1y;
+   P0Operator< EGDivtFormEP0 >      p0_to_edg;
 };
 
-class P1DGEToP0DivOperator final : public Operator< P1DGEFunction< real_t >, P0Function< real_t > >
+class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Function< real_t > >
 {
  public:
-   P1DGEToP0DivOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< P1DGEFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
+   EGToP0DivOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< EGFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
    , p1x_to_p0( storage, minLevel, maxLevel )
    , p1y_to_p0( storage, minLevel, maxLevel )
    , edg_to_p0( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1DGEFunction< real_t >& src,
+   void apply( const EGFunction< real_t >& src,
                const P0Function< real_t >&    dst,
                size_t                         level,
                DoFType                        flag,
@@ -103,7 +105,7 @@ class P1DGEToP0DivOperator final : public Operator< P1DGEFunction< real_t >, P0F
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&               src,
+                  const EGFunction< idx_t >&               src,
                   const P0Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
@@ -118,24 +120,24 @@ class P1DGEToP0DivOperator final : public Operator< P1DGEFunction< real_t >, P0F
    }
 
  private:
-   P1ToP0Operator< dg::DGDivFormP0P1_0 > p1x_to_p0;
-   P1ToP0Operator< dg::DGDivFormP0P1_1 > p1y_to_p0;
-   P0Operator< dg::DGDivFormP0EDG >      edg_to_p0;
+   P1ToP0Operator< DGDivFormP0P1_0 > p1x_to_p0;
+   P1ToP0Operator< DGDivFormP0P1_1 > p1y_to_p0;
+   P0Operator< EGDivFormP0E >      edg_to_p0;
 };
 
-class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
+class EGMassOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
 {
  public:
-   P1DGEMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   EGMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel )
    , eg_to_cg_coupling_( storage, minLevel, maxLevel )
    , cg_to_eg_coupling_( storage, minLevel, maxLevel )
-   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::DGVectorMassFormEDGEDG >() )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::eg::EGVectorMassFormEE >() )
    {}
 
-   void apply( const P1DGEFunction< real_t >& src,
-               const P1DGEFunction< real_t >& dst,
+   void apply( const EGFunction< real_t >& src,
+               const EGFunction< real_t >& dst,
                size_t                         level,
                DoFType                        flag,
                UpdateType                     updateType ) const override
@@ -148,8 +150,8 @@ class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEF
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&               src,
-                  const P1DGEFunction< idx_t >&               dst,
+                  const EGFunction< idx_t >&               src,
+                  const EGFunction< idx_t >&               dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
@@ -168,22 +170,22 @@ class P1DGEMassOperator final : public Operator< P1DGEFunction< real_t >, P1DGEF
    P1ConstantVectorMassOperator                  cg_to_cg_coupling_;
    P1ToP0ConstantP1EDGVectorMassCouplingOperator cg_to_eg_coupling_;
    P0ToP1ConstantP1EDGVectorMassCouplingOperator eg_to_cg_coupling_;
-   P0Operator< dg::DGVectorMassFormEDGEDG >      eg_to_eg_coupling_;
+   P0Operator< EGVectorMassFormEE >      eg_to_eg_coupling_;
 };
 
-class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >
+class EGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
 {
  public:
-   P1DGELaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< P1DGEFunction< real_t >, P1DGEFunction< real_t > >( storage, minLevel, maxLevel )
+   EGLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel )
    , eg_to_cg_coupling_( storage, minLevel, maxLevel )
    , cg_to_eg_coupling_( storage, minLevel, maxLevel )
-   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::DGVectorLaplaceFormEDGEDG >() )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::eg::EGVectorLaplaceFormEE >() )
    {}
 
-   void apply( const P1DGEFunction< real_t >& src,
-               const P1DGEFunction< real_t >& dst,
+   void apply( const EGFunction< real_t >& src,
+               const EGFunction< real_t >& dst,
                size_t                         level,
                DoFType                        flag,
                UpdateType                     updateType ) const override
@@ -196,8 +198,8 @@ class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1D
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1DGEFunction< idx_t >&               src,
-                  const P1DGEFunction< idx_t >&               dst,
+                  const EGFunction< idx_t >&               src,
+                  const EGFunction< idx_t >&               dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
@@ -216,7 +218,56 @@ class P1DGELaplaceOperator final : public Operator< P1DGEFunction< real_t >, P1D
    P1ConstantVectorLaplaceOperator                  cg_to_cg_coupling_;
    P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator cg_to_eg_coupling_;
    P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator eg_to_cg_coupling_;
-   P0Operator< dg::DGVectorLaplaceFormEDGEDG >      eg_to_eg_coupling_;
+   P0Operator< EGVectorLaplaceFormEE >      eg_to_eg_coupling_;
 };
 
+class EGConstantEpsilonOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
+{
+ public:
+   EGConstantEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+   , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::eg::EGConstEpsilonFormEE >() )
+   {}
+
+   void apply( const EGFunction< real_t >& src,
+               const EGFunction< real_t >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
+   {
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EGFunction< idx_t >&               src,
+                  const EGFunction< idx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      src.getDiscontinuousPart()->communicate( level );
+      dst.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+   P1ConstantEpsilonOperator                   cg_to_cg_coupling_;
+   P1ToP0ConstantP1EDGEpsilonCouplingOperator  cg_to_eg_coupling_;
+   P0ToP1ConstantP1EDGEpsilonCouplingOperator  eg_to_cg_coupling_;
+   P0Operator< EGConstEpsilonFormEE > eg_to_eg_coupling_;
+};
+} // namespace eg
+} // namespace dg
 } // namespace hyteg

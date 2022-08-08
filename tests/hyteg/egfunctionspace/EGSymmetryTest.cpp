@@ -28,7 +28,7 @@
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1dgefunctionspace/P1DGEOperators.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -47,12 +47,12 @@ static void testLaplace( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
-   P1DGELaplaceOperator   L( storage, level, level );
+   EGFunction< idx_t > numerator( "numerator", storage, level, level );
+   EGLaplaceOperator   L( storage, level, level );
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P1DGELaplaceOperator > Lpetsc;
+   PETScSparseMatrix< EGLaplaceOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    Lpetsc.print( "../P1DGE_Laplace.m", false, PETSC_VIEWER_ASCII_MATLAB );
@@ -71,12 +71,12 @@ static void testMass( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEFunction< idx_t > numerator( "numerator", storage, level, level );
-   P1DGEMassOperator      L( storage, level, level );
+   EGFunction< idx_t > numerator( "numerator", storage, level, level );
+   EGMassOperator      L( storage, level, level );
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P1DGEMassOperator > Lpetsc;
+   PETScSparseMatrix< EGMassOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    Lpetsc.print( "../P1DGE_Mass.m", false, PETSC_VIEWER_ASCII_MATLAB );
@@ -95,8 +95,8 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   P1DGEP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
-   P1DGEP0StokesOperator          L( storage, level, level );
+   EGP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
+   EGP0StokesOperator          L( storage, level, level );
 
    {
       WALBERLA_LOG_WARNING( "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
@@ -106,7 +106,7 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
 
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P1DGEP0StokesOperator > Lpetsc;
+   PETScSparseMatrix< EGP0StokesOperator > Lpetsc;
    Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
    Lpetsc.print( "../P1DGE_Stokes.m", false, PETSC_VIEWER_ASCII_MATLAB );

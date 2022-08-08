@@ -18,13 +18,13 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "P1DGEFunction.hpp"
+#include "EGFunction.hpp"
 
 #include "hyteg/sparseassembly/DirichletBCs.hpp"
 
 namespace hyteg {
 
-void applyDirichletBC( const P1DGEFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+void applyDirichletBC( const EGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    WALBERLA_LOG_INFO( "Warning EDG applies dirichlet boundary conditions for P1!"
                       "This is could (should?) be done weakly with Nietsche's method." )

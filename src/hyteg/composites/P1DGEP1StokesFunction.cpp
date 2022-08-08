@@ -24,7 +24,7 @@
 
 namespace hyteg {
 
-void applyDirichletBC( const P1DGEP0StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+void applyDirichletBC( const EGP0StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw(), mat, level );
 }
