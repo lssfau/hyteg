@@ -22,16 +22,15 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -42,16 +41,14 @@
 using walberla::real_t;
 using walberla::uint_t;
 
-using TestCase = std::function<real_t(const std::string&, const uint_t&, bool)>;
-using hyteg::dg::eg::EGMassOperator;
+using TestCase = std::function< real_t( const std::string&, const uint_t&, bool ) >;
 using hyteg::dg::eg::EGLaplaceOperator;
-using hyteg::dg::eg::EGP0StokesOperator;
+using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
+using hyteg::dg::eg::EGP0StokesOperator;
 
 namespace hyteg {
-   auto copyBdry = []( EGP0StokesFunction< real_t > fun ) {
-      fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() );
-   };
+auto copyBdry = []( EGP0StokesFunction< real_t > fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
 
 /// Manufactured solution for u = (sin(pi x) * sin(pi y) * sin(pi (x+y)), (sin(2 pi x) * sin(2 pi y) * sin(2 pi (x+y))
 /// which has homogeneous dirichlet boundary conditions on a rectangular unit triangle.
@@ -75,8 +72,8 @@ real_t testLaplaceHomogeneousDirichlet( const std::string& meshFile, const uint_
    };
 
    std::function< real_t( const Point3D& p ) > u_y_expr = []( const Point3D& p ) -> real_t {
-      const real_t x  = p[0];
-      const real_t y  = p[1];
+      const real_t x = p[0];
+      const real_t y = p[1];
       return std::sin( M_PI * x ) * std::sin( M_PI * y );
    };
 
@@ -215,7 +212,6 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    EGP0StokesFunction< real_t > err( "err", storage, level, level );
    EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
 
-  
    copyBdry( u );
    copyBdry( f );
    copyBdry( rhs );
@@ -238,7 +234,7 @@ real_t testStokesHomogeneousDirichlet( const std::string& meshFile, const uint_t
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
 
    // calculate the error in the L2 norm
-   M.apply( err.uvw(), Merr.uvw(), level, All, Replace );
+   M.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
    auto discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
 
    if ( writeVTK )
@@ -335,8 +331,8 @@ real_t testLaplaceDirichlet( const std::string& meshFile, const uint_t& level, b
 
 real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
 {
-   bool simple = true;
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   bool                  simple = true;
+   MeshInfo              mesh   = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -428,7 +424,6 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    EGP0StokesFunction< real_t > err( "err", storage, level, level );
    EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
 
-
    copyBdry( u );
    copyBdry( f );
    copyBdry( rhs );
@@ -478,8 +473,8 @@ real_t testStokesDirichlet( const std::string& meshFile, const uint_t& level, bo
    return discrL2_velocity;
 }
 
-real_t testConstantEpsilonHomogeneousDirichlet(const std::string& meshFile, const uint_t& level, bool writeVTK = false ) {
-std::cout << "1" << std::endl;
+real_t testConstantEpsilonHomogeneousDirichlet( const std::string& meshFile, const uint_t& level, bool writeVTK = false )
+{
    // mesh info and storage
    //MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, 1, 1 );
@@ -494,66 +489,59 @@ std::cout << "1" << std::endl;
    EGP0StokesFunction< real_t > err( "err", storage, level, level );
    EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
    EGP0StokesFunction< real_t > btmp( "btmp", storage, level, level );
-copyBdry( x );
+   copyBdry( x );
    copyBdry( b );
    copyBdry( x_exact );
    copyBdry( err );
    copyBdry( Merr );
-   
    copyBdry( btmp );
-std::cout << "2" << std::endl;
 
    // continuous solution and rhs
    std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
-      return std::sin(M_PI*(xx[0]+1.0)/2.0)*std::sin(M_PI*(xx[1]+1.0)/2.0);
+      return std::sin( M_PI * ( xx[0] + 1.0 ) / 2.0 ) * std::sin( M_PI * ( xx[1] + 1.0 ) / 2.0 );
    };
    std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) {
-      return std::sin(M_PI*(xx[0]+1.0)/2.0)*std::sin(M_PI*(xx[1]+1.0)/2.0);
+      return std::sin( M_PI * ( xx[0] + 1.0 ) / 2.0 ) * std::sin( M_PI * ( xx[1] + 1.0 ) / 2.0 );
    };
-   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) {
-      return xx[0] + xx[1];
-   };
-    std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& xx ) {
-      return real_c(1) + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return xx[0] + xx[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > rhsU   = []( const hyteg::Point3D& xx ) {
+      return real_c( 1 ) +
+             0.75 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( xx[0] / 2 + 1 / 2 ) ) * std::sin( M_PI * ( xx[1] / 2 + 1 / 2 ) ) -
+             0.25 * std::pow( M_PI, 2 ) * std::cos( M_PI * ( xx[0] / 2 + 1 / 2 ) ) * std::cos( M_PI * ( xx[1] / 2 + 1 / 2 ) );
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& xx ) {
-      return real_c(1) + 0.75*std::pow(M_PI,2)*std::sin(M_PI*(xx[0]/2 + 1/2))*std::sin(M_PI*(xx[1]/2 + 1/2)) - 0.25*std::pow(M_PI,2)*std::cos(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2));
+      return real_c( 1 ) +
+             0.75 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( xx[0] / 2 + 1 / 2 ) ) * std::sin( M_PI * ( xx[1] / 2 + 1 / 2 ) ) -
+             0.25 * std::pow( M_PI, 2 ) * std::cos( M_PI * ( xx[0] / 2 + 1 / 2 ) ) * std::cos( M_PI * ( xx[1] / 2 + 1 / 2 ) );
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsP = []( const hyteg::Point3D& xx ) {
-      return M_PI*std::sin(M_PI*(xx[0]/2 + 1/2))*std::cos(M_PI*(xx[1]/2 + 1/2))/2 + M_PI*std::sin(M_PI*(xx[1]/2 + 1/2))*std::cos(M_PI*(xx[0]/2 + 1/2))/2;
+      return M_PI * std::sin( M_PI * ( xx[0] / 2 + 1 / 2 ) ) * std::cos( M_PI * ( xx[1] / 2 + 1 / 2 ) ) / 2 +
+             M_PI * std::sin( M_PI * ( xx[1] / 2 + 1 / 2 ) ) * std::cos( M_PI * ( xx[0] / 2 + 1 / 2 ) ) / 2;
    };
-   
+
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
 
    // interpolation to FEM spaces
    // velocity rhs
-   b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
-   btmp.uvw().interpolate( { rhsU, rhsV }, level);
+   btmp.uvw().interpolate( { rhsU, rhsV }, level );
    EGMassOperator M_vel( storage, level, level );
-   M_vel.apply( btmp.uvw(), b.uvw(), level, Inner, Replace );
-   std::cout << "3" << std::endl;
-
-
+   M_vel.apply( btmp.uvw(), b.uvw(), level, All, Replace );
+   b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
+   x.uvw().getConformingPart()->interpolate( 0, level, DirichletBoundary );
+   
    // pressure rhs
-   btmp.p().interpolate( { rhsP }, level);
-   
-std::cout << "4" << std::endl;
-      auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-      
-std::cout << "5" << std::endl;
+   btmp.p().interpolate( { rhsP }, level );
+   auto mass_form = std::make_shared< dg::DGMassFormP0P0 >();
    dg::DGOperator M_p( storage, level, level, mass_form );
-   
-std::cout << "6" << std::endl;
+
    //P0ConstantMassOperator M_p( storage, level, level );
-   M_p.apply( *btmp.p().getDGFunction(), *b.p().getDGFunction(),level, All,Replace );
-   
-std::cout << "7" << std::endl;
+   M_p.apply( *btmp.p().getDGFunction(), *b.p().getDGFunction(), level, All, Replace );
 
    // not necessary due to 0-BC
    //x.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
-   x_exact.uvw().interpolate( { exactU, exactV }, level );
-   x_exact.p().interpolate( exactP, level );
+   x_exact.uvw().interpolate( { exactU, exactV }, level, All );
+   x_exact.p().interpolate( exactP, level, All );
 
    // output
    /*
@@ -569,21 +557,18 @@ std::cout << "7" << std::endl;
    if(writeVTK)
       vtkOutput.write( level, 0 );
       */
-   
+
    // count DoFs -> size of linear system
    uint_t velocitydofs = numberOfGlobalDoFs( x.uvw(), level );
    uint_t pressuredofs = numberOfGlobalDoFs( x.p(), level );
    uint_t dofs         = velocitydofs + pressuredofs;
-   
 
    // problem operator and solve
    //hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
    //PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
-   EGP0ConstEpsilonStokesOperator A( storage, level, level );
+   EGP0ConstEpsilonStokesOperator                      A( storage, level, level );
    PETScMinResSolver< EGP0ConstEpsilonStokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
    solver.solve( A, x, b, level );
-std::cout << "8" << std::endl;
-
 
    //hyteg::vertexdof::projectMean( x.p(), level );
    //hyteg::vertexdof::projectMean( x_exact.p(), level );
@@ -591,27 +576,24 @@ std::cout << "8" << std::endl;
    // A.apply( x, residuum, level, hyteg::Inner );
    //if(writeVTK)
    //   vtkOutput.write( level, 1 );
-   
 
    // log and check final errors and residuals
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
    M_vel.apply( err.uvw(), Merr.uvw(), level, All, Replace );
    //M_p.apply( err.p(), Merr.p(), level, All, Replace );
-   
-   M_p.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(),level, All,Replace );
+   M_p.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
    real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
-   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( Merr.p(), level, Inner) );
-   
+   real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
+
    //real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) dofs );
    //real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) dofs );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
-   std::cout << "9" << std::endl;
 
    return discr_l2_err_u;
 }
 
-void run(TestCase testCase, const std::string& meshFile, const uint_t& minLevel, const uint_t& maxLevel)
+void run( TestCase testCase, const std::string& meshFile, const uint_t& minLevel, const uint_t& maxLevel )
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
    real_t lastError    = std::nan( "" );
@@ -641,13 +623,11 @@ int main( int argc, char* argv[] )
    //WALBERLA_CHECK_LESS( std::abs( hyteg::testLaplaceDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
    //WALBERLA_CHECK_LESS( std::abs( hyteg::testStokesDirichlet( "../../data/meshes/tri_1el.msh", 4, true ) ), 1e-12 );
 
-
    //hyteg::run(hyteg::testLaplaceHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
    //hyteg::run(hyteg::testStokesHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
    //hyteg::run(hyteg::testLaplaceDirichlet, "../../data/meshes/tri_1el.msh", 6, 7);
    //hyteg::run(hyteg::testStokesDirichlet, "../../data/meshes/tri_1el.msh", 5, 6);
-   hyteg::run(hyteg::testConstantEpsilonHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 3, 6);
-   
-   
+   hyteg::run( hyteg::testConstantEpsilonHomogeneousDirichlet, "../../data/meshes/tri_1el.msh", 3, 6 );
+
    return 0;
 }
