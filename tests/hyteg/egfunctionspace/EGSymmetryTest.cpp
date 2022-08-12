@@ -111,7 +111,7 @@ static void testStokes( const std::string& meshFile, const uint_t& level )
 
    Lpetsc.print( "../P1DGE_Stokes.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
-   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
+   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-10 ),
                    "P1DGEP1 Stokes _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
    WALBERLA_LOG_INFO_ON_ROOT( "P1DGEP1 Stokes symmetric for: level = " << level << ", mesh: " << meshFile );
 }
