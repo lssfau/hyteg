@@ -23,6 +23,11 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_0_affine_q2_hfg.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_1_affine_q2_hfg.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_0_affine_q2_hfg.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_1_affine_q2_hfg.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.cpp"
 
 namespace hyteg {
 
@@ -90,10 +95,28 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
  public:
    P1ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                        size_t                                     minLevel,
-                                       size_t                                     maxLevel,
-                                       std::function< real_t( const Point3D& ) >  viscosity )
+                                       size_t                                     maxLevel
+                                       //,std::function< real_t( const Point3D& ) >  viscosity
+                                        )
    : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
    {
+      /*
+      //TODO switch back
+      typedef P1ElementwiseOperator< forms::p1_epsiloncc_0_0_affine_q2_hfg > eps_0_0;
+      typedef P1ElementwiseOperator< forms::p1_epsiloncc_0_1_affine_q2_hfg > eps_0_1;
+
+      typedef P1ElementwiseOperator< forms::p1_epsiloncc_1_0_affine_q2_hfg > eps_1_0;
+      typedef P1ElementwiseOperator< forms::p1_epsiloncc_1_1_affine_q2_hfg > eps_1_1;
+
+         this->subOper_[0][0] = std::make_shared< eps_0_0 >( storage, minLevel, maxLevel );
+         this->subOper_[0][1] = std::make_shared< eps_0_1 >( storage, minLevel, maxLevel );
+
+         this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel );
+         this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel);
+      */
+      std::function< real_t( const Point3D& p ) > viscosity = []( const Point3D& p ) -> real_t {
+      return 1;
+   };
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 > eps_0_0;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 > eps_0_1;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 > eps_0_2;
@@ -146,6 +169,7 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
          this->subOper_[1][0] = std::make_shared< eps_1_0 >( storage, minLevel, maxLevel, form_1_0 );
          this->subOper_[1][1] = std::make_shared< eps_1_1 >( storage, minLevel, maxLevel, form_1_1 );
       }
+      
    }
 
    std::shared_ptr< P1VectorFunction< real_t > > getInverseDiagonalValues() const override final

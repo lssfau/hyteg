@@ -263,7 +263,7 @@ class EGConstantEpsilonOperator final : public Operator< EGFunction< real_t >, E
    }
 
  private:
-   P1ConstantEpsilonOperator                   cg_to_cg_coupling_;
+   P1ElementwiseAffineEpsilonOperator                   cg_to_cg_coupling_;
    P1ToP0ConstantP1EDGEpsilonCouplingOperator  cg_to_eg_coupling_;
    P0ToP1ConstantP1EDGEpsilonCouplingOperator  eg_to_cg_coupling_;
    P0Operator< EGConstEpsilonFormEE > eg_to_eg_coupling_;
