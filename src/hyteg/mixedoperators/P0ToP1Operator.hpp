@@ -119,7 +119,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
 
-      WALBERLA_CHECK( updateType == Replace );
+     // WALBERLA_CHECK( updateType == Replace );
 
       const auto storage = this->getStorage();
 

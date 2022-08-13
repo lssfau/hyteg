@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
@@ -252,7 +253,7 @@ class PETScSparseMatrix
       MatTranspose( mat, MAT_INITIAL_MATRIX, &B );
       MatAYPX( B, -1.0, mat, DIFFERENT_NONZERO_PATTERN );
       MatNorm( B, NORM_INFINITY, &norm );
-       WALBERLA_LOG_DEVEL_ON_ROOT( "PETSC_NORM = " << norm );
+      // WALBERLA_LOG_DEVEL_ON_ROOT( "PETSC_NORM = " << norm );
       MatDestroy( &B );
       return norm < tol;
    }

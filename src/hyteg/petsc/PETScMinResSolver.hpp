@@ -63,7 +63,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , xVec( "xVec", petscCommunicator_ )
    , bVec( "bVec", petscCommunicator_ )
    , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
-   , flag_( hyteg::All )
+   , flag_( hyteg::Inner )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
    {

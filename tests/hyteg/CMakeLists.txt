@@ -10,7 +10,6 @@ waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
 
-
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
@@ -805,6 +804,7 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGFunctionspaceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFunctionspaceTest)
 
+
     waLBerla_compile_test(FILES egfunctionspace/EGSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGSymmetryTest)
 
@@ -817,7 +817,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 endif()
-
 
 
 ## Basic Smoothing and Solving

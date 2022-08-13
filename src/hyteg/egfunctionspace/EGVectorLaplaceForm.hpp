@@ -1924,7 +1924,8 @@ class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm2D
    }
 };
 
-class EGVectorLaplaceFormEE : public hyteg::dg::DGForm2D
+class EGVectorLaplaceFormEE
+ : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,

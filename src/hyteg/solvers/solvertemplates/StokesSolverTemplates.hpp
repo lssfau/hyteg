@@ -75,8 +75,6 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
    return pressurePreconditionedMinResSolver;
 }
 
-<<<<<<< Updated upstream
-=======
 /// \brief Returns a block preconditioned MINRES (viscosity weighted mass matrix preconditioning for p) solver for the Stokes system with varying viscosity
 ///
 ///

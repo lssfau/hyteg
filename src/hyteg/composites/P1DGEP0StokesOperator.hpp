@@ -38,8 +38,8 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
 
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
-               const uint_t                           level,
-               const DoFType                          flag ) const
+               const uint_t                        level,
+               const DoFType                       flag ) const
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -47,8 +47,8 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const EGP0StokesFunction< idx_t >&       src,
-                  const EGP0StokesFunction< idx_t >&       dst,
+                  const EGP0StokesFunction< idx_t >&          src,
+                  const EGP0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
                   DoFType                                     flag ) const
    {
@@ -58,12 +58,12 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    }
 
    VelocityBlockOperator velocityBlockOp;
-   EGToP0DivOperator  div;
-   P0ToEGDivTOperator divT;
+   EGToP0DivOperator     div;
+   P0ToEGDivTOperator    divT;
 };
 
-typedef EGP0StokesOperatorType< EGLaplaceOperator >       EGP0StokesOperator;
-typedef EGP0StokesOperatorType< EGConstantEpsilonOperator >  EGP0ConstEpsilonStokesOperator;
+typedef EGP0StokesOperatorType< EGLaplaceOperator >         EGP0StokesOperator;
+typedef EGP0StokesOperatorType< EGConstantEpsilonOperator > EGP0ConstEpsilonStokesOperator;
 } // namespace eg
 } // namespace dg
 } // namespace hyteg

@@ -47,5 +47,14 @@ target_sources( hyteg
     p1_full_stokescc_affine_q1.cpp
     p1_divdiv_affine_q2.cpp
     p1_divdiv_affine_q2.hpp
+    p1_epsiloncc_0_0_affine_q2_hfg.cpp
+    p1_epsiloncc_0_0_affine_q2_hfg.hpp
+    p1_epsiloncc_0_1_affine_q2_hfg.cpp
+    p1_epsiloncc_0_1_affine_q2_hfg.hpp
+    p1_epsiloncc_1_0_affine_q2_hfg.cpp
+    p1_epsiloncc_1_0_affine_q2_hfg.hpp
+    p1_epsiloncc_1_1_affine_q2_hfg.cpp
+    p1_epsiloncc_1_1_affine_q2_hfg.hpp
+    
 )
 
