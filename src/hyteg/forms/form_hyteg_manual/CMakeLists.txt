@@ -4,6 +4,7 @@ target_sources( hyteg
     QuadratureRules.hpp
     ShapeFunctionMacros.hpp
     P2FormDivKGrad.cpp
-    P2FormLaplace.hpp     
+    P2FormLaplace.hpp
+    N1E1FormCurlCurl.hpp
 )
 add_subdirectory( kernels )
