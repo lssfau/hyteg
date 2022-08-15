@@ -1240,6 +1240,18 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
 }
 
 template < typename ValueType >
+ValueType EdgeDoFFunction< ValueType >::dotGlobal( const EdgeDoFFunction< ValueType >& secondOp,
+                                                   const uint_t                        level,
+                                                   const DoFType                       flag ) const
+{
+   ValueType scalarProduct = dotLocal( secondOp, level, flag );
+   this->startTiming( "Dot (reduce)" );
+   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   this->stopTiming( "Dot (reduce)" );
+   return scalarProduct;
+}
+
+template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
    ValueType sum = sumLocal( level, flag, absolute );

@@ -25,6 +25,8 @@
 #include "core/Abort.h"
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 
 namespace hyteg {
@@ -88,5 +90,43 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microC
 }
 
 } // namespace macrocell
+
+/// Return data indices for the edge dofs of a given micro-cell in a macro-cell
+inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
+                                                              const celldof::CellType& cellType,
+                                                              const uint_t             level,
+                                                              std::array< uint_t, 6 >& edgeDoFIndices )
+{
+   // get indices of micro-vertices forming the micro-cell
+   std::array< indexing::Index, 4 > verts = n1e1::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+
+   // loop over micro-vertex pairs
+   std::array< std::pair< uint_t, uint_t >, 6 > pairs = { std::make_pair( 2, 3 ),
+                                                          std::make_pair( 1, 3 ),
+                                                          std::make_pair( 1, 2 ),
+                                                          std::make_pair( 0, 3 ),
+                                                          std::make_pair( 0, 2 ),
+                                                          std::make_pair( 0, 1 ) };
+
+   for ( uint_t k = 0; k < 6; ++k )
+   {
+      // generate IndexIncrements for vertices in the current pair
+      uint_t n1 = pairs[k].first;
+      uint_t n2 = pairs[k].second;
+
+      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
+      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
+
+      // get edge orientation
+      edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
+
+      // get index for this edgeDoF
+      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
+
+      // finally get the data index of the edgeDoF
+      edgeDoFIndices[k] = edgedof::macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
+   }
+}
+
 } // namespace n1e1
 } // namespace hyteg

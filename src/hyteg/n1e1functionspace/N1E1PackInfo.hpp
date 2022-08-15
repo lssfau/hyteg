@@ -44,7 +44,6 @@ class PrimitiveID;
 
 namespace n1e1 {
 
-// TODO constructor argument for additive
 template < typename ValueType >
 class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
 {
@@ -177,10 +176,7 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
       dofPackInfo_.unpackCellFromEdge( receiver, sender, buffer );
    }
 
-   inline void communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const override
-   {
-      dofPackInfo_.communicateLocalEdgeToCell( sender, receiver );
-   }
+   void communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const override;
 
  private:
    using communication::DoFSpacePackInfo< ValueType >::level_;

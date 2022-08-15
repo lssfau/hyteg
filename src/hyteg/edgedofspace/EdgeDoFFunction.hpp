@@ -189,11 +189,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
    ValueType dotLocal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
-
-   /// @name Unimplemented methods (only dummys for inheritance)
-   /// @{
-   ValueType dotGlobal( const EdgeDoFFunction< ValueType >&, uint_t, DoFType ) const {
-       WALBERLA_ABORT( "EdgeDoFFunction::dotGlobal not implemented!" )} /// @}
+   ValueType dotGlobal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;

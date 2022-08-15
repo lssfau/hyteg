@@ -187,12 +187,10 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
       return dofs_->dotLocal( *secondOp.getDoFs(), level, flag );
    }
 
-   /// @name Unimplemented methods (only dummys for inheritance)
-   /// @{
-   ValueType dotGlobal( const N1E1VectorFunction< ValueType >&, uint_t, DoFType ) const
+   ValueType dotGlobal( const N1E1VectorFunction< ValueType >& secondOp, uint_t level, DoFType flag = All ) const
    {
-      WALBERLA_ABORT( "N1E1VectorFunction::dotGlobal not implemented!" )
-   } /// @}
+      return dofs_->dotGlobal( *secondOp.getDoFs(), level, flag );
+   }
 
    /// Set all function DoFs to zero including the ones in the halos
    inline void setToZero( const uint_t level ) const { dofs_->setToZero( level ); }

@@ -19,6 +19,7 @@
  */
 #include "N1E1PackInfo.hpp"
 
+#include "hyteg/Algorithms.hpp"
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
@@ -79,6 +80,39 @@ void N1E1PackInfo< ValueType >::communicateLocalFaceToCell( const Face* sender, 
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
    this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Face to Cell" );
+}
+
+template < typename ValueType >
+void N1E1PackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Edge only meaningful in 3D." );
+
+   WALBERLA_ASSERT_GREATER( sender->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( sender->neighborPrimitiveExists( receiver->getID() ) );
+
+   ValueType* cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
+
+   const uint_t localEdgeID      = receiver->getLocalEdgeID( sender->getID() );
+   const uint_t iterationVertex0 = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
+   const uint_t iterationVertex1 = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
+   const uint_t iterationVertex2 =
+       algorithms::getMissingIntegersAscending< 2, 4 >( { iterationVertex0, iterationVertex1 } ).at( 2 );
+
+   auto srcEdgeOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   ValueType sign = ( iterationVertex1 < iterationVertex0 ) ? -1 : 1;
+
+   auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   const ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
+   {
+      cellData[edgedof::macrocell::index( level_, cellIterator->x(), cellIterator->y(), cellIterator->z(), srcEdgeOrientation )] =
+          sign * edgeData[edgedof::macroedge::index( level_, it.x() )];
+      cellIterator++;
+   }
 }
 
 template class N1E1PackInfo< double >;
