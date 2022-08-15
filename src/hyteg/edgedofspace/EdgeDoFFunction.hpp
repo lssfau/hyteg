@@ -165,6 +165,9 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
+
+   template < typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
    //@}
 
    /// Compute the product of several functions in an elementwise fashion
@@ -375,9 +378,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
-   template < typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;
 

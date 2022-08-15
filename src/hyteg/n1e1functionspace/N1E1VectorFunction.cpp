@@ -21,6 +21,7 @@
 #include "N1E1VectorFunction.hpp"
 
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/n1e1functionspace/N1E1AdditivePackInfo.hpp"
 #include "hyteg/n1e1functionspace/N1E1PackInfo.hpp"
 
 #include "N1E1MacroCell.hpp"
@@ -59,8 +60,12 @@ N1E1VectorFunction< ValueType >::N1E1VectorFunction( const std::string&         
                                                                                          dofs_->getFaceDataID(),
                                                                                          dofs_->getCellDataID(),
                                                                                          this->getStorage() ) );
-      // additiveCommunicators_[level]->addPackInfo( std::make_shared< EdgeDoFAdditivePackInfo< ValueType > >(
-      //   level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+      additiveCommunicators_[level]->addPackInfo( std::make_shared< N1E1AdditivePackInfo< ValueType > >( level,
+                                                                                                         dofs_->getVertexDataID(),
+                                                                                                         dofs_->getEdgeDataID(),
+                                                                                                         dofs_->getFaceDataID(),
+                                                                                                         dofs_->getCellDataID(),
+                                                                                                         this->getStorage() ) );
    }
 }
 

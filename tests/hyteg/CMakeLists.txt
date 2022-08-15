@@ -838,3 +838,6 @@ waLBerla_execute_test(NAME N1E1EvaluateTest)
 
 waLBerla_compile_test(FILES N1E1/N1E1InterpolateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1InterpolateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AdditiveCommunicationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AdditiveCommunicationTest)
