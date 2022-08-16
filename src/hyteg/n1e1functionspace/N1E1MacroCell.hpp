@@ -72,25 +72,18 @@ inline Eigen::Vector3d microEdgeDirection( const uint_t& level, const Cell& cell
    }
 }
 
-// TODO local evaluate (like in DG)
-inline VectorType< real_t > evaluate( const uint_t&                                            level,
-                                      const Cell&                                              cell,
-                                      const Point3D&                                           coordinates,
-                                      const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dataID )
+inline VectorType< real_t > evaluateOnMicroElement( const uint_t&                                            level,
+                                                    const Cell&                                              cell,
+                                                    const hyteg::indexing::Index                             elementIndex,
+                                                    const celldof::CellType                                  cellType,
+                                                    const Point3D&                                           coordinates,
+                                                    const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dataID )
 {
    using ValueType = real_t;
 
-   // 1. find microcell which contains `coordinates`
+   // get vertices of microcell
 
-   indexing::Index   elementIndex;
-   celldof::CellType cellType;
-   Point3D           localCoordinates;
-
-   volumedofspace::getLocalElementFromCoordinates< ValueType >(
-       level, cell, coordinates, elementIndex, cellType, localCoordinates );
    auto microCellIndices = getMicroVerticesFromMicroCell( elementIndex, cellType );
-
-   // 2. get coordinates, indices and DoFs from microcell
 
    auto microTet0 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[0] );
    auto microTet1 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[1] );
@@ -106,6 +99,8 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    IndexIncrement vertexIndex3 =
        IndexIncrement( int_c( microCellIndices[3].x() ), int_c( microCellIndices[3].y() ), int_c( microCellIndices[3].z() ) );
 
+   // get edges of microcell
+
    auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
    auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );
    auto edgeIndex2 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex2 );
@@ -120,11 +115,15 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    auto edgeOrientation4 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex3 );
    auto edgeOrientation5 = edgedof::calcEdgeDoFOrientation( vertexIndex2, vertexIndex3 );
 
+   // get local coordinates
+
    auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
    auto x = xLocal[0];
    auto y = xLocal[1];
    auto z = xLocal[2];
+
+   // get DoFs
 
    const auto tetE0ArrayIdx =
        edgedof::macrocell::index( level, edgeIndex0.x(), edgeIndex0.y(), edgeIndex0.z(), edgeOrientation0 );
@@ -148,8 +147,10 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    auto valueTetE4 = edgedofData[tetE4ArrayIdx];
    auto valueTetE5 = edgedofData[tetE5ArrayIdx];
 
-   // 3. evaluate function in reference tet
-   // basis functions N1E1 N(x, y, z):
+   // evaluate function in reference tet
+
+   // basis functions N1E1 phi(x, y, z):
+   // TODO use FEniCS ordering (for consistency)
    //   at [0.5 0.  0. ]: (-y-z+1, x     , x     )ᵀ
    //   at [0.  0.5 0. ]: (y     , -x-z+1, y     )ᵀ
    //   at [0.5 0.5 0. ]: (-y    , x     , 0     )ᵀ
@@ -166,15 +167,36 @@ inline VectorType< real_t > evaluate( const uint_t&                             
 
    VectorType< ValueType > localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
-   // 4. transform to computational space
+   // transform to computational space (covariant Piola mapping)
 
-   // TODO precompute and store foctorized A (for each cell type)
+   // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Eigen::Matrix3d A;
    A.row( 0 ) = toEigen( microTet1 - microTet0 );
    A.row( 1 ) = toEigen( microTet2 - microTet0 );
    A.row( 2 ) = toEigen( microTet3 - microTet0 );
 
    return A.fullPivLu().solve( localValue );
+}
+
+inline VectorType< real_t > evaluate( const uint_t&                                            level,
+                                      const Cell&                                              cell,
+                                      const Point3D&                                           coordinates,
+                                      const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dataID )
+{
+   using ValueType = real_t;
+
+   // find microcell which contains `coordinates`
+   // note that local coordinates are determined with respect to a different vertex ordering
+   // and are therefore wrong!
+
+   indexing::Index   elementIndex;
+   celldof::CellType cellType;
+   Point3D           wrongLocalCoordinates;
+
+   volumedofspace::getLocalElementFromCoordinates< ValueType >(
+       level, cell, coordinates, elementIndex, cellType, wrongLocalCoordinates );
+
+   return evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dataID );
 }
 
 inline void add( const uint_t&                                            level,

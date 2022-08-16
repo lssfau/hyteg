@@ -20,8 +20,10 @@
 #pragma once
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/functions/VectorFunction.hpp"
+#include "hyteg/indexing/Common.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
@@ -121,6 +123,34 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    /// \return true if the function was evaluated successfully, false otherwise
    ///
    bool evaluate( const Point3D& coordinates, uint_t level, VectorType& value, real_t searchToleranceRadius = 1e-05 ) const;
+
+   /// \brief Evaluate finite element function on a specific micro-cell.
+   ///
+   /// The standard evaluate() function does not take the discontinuity (normal to faces) of the function into account.
+   /// If the function is evaluated at a discontinuity with evaluate(), it is kind of "random" which of the neighboring elements
+   /// is used to evaluate the polynom.
+   ///
+   /// This is for example an issue for accurate visualization of discontinuities.
+   ///
+   /// The present method solves this issue by taking a specific (micro-)element as input argument. This way the function can be
+   /// evaluated on _different_ elements at the same coordinate. Note that regardless of whether the specified coordinate is
+   /// located on the element or not - the local polynomial is extrapolated.
+   ///
+   /// Furthermore, determining the macro- and micro-elements from global coordinates is quite expensive.
+   /// Favor this method over evaluate() in case the elements are already known.
+   ///
+   /// \param coordinates  where the function shall be evaluated
+   /// \param level        refinement level
+   /// \param cellID       the macro-cell where the (micro-)element is located on
+   /// \param elementIndex the logical index of the micro-element
+   /// \param cellType     the type of the local micro-element
+   /// \param value        the evaluation
+   void evaluateOnMicroElement( const Point3D&               coordinates,
+                                const uint_t                 level,
+                                const PrimitiveID&           cellID,
+                                const hyteg::indexing::Index elementIndex,
+                                const celldof::CellType      cellType,
+                                VectorType&                  value ) const;
 
    void assign( const std::vector< ValueType >&                                                       scalars,
                 const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >& functions,

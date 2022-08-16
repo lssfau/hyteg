@@ -131,6 +131,36 @@ bool N1E1VectorFunction< real_t >::evaluate( const Point3D& coordinates,
 }
 
 template < typename ValueType >
+void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
+                                                              uint_t                 level,
+                                                              const PrimitiveID&     cellID,
+                                                              hyteg::indexing::Index elementIndex,
+                                                              celldof::CellType      cellType,
+                                                              VectorType&            value ) const
+{
+   WALBERLA_UNUSED( coordinates );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( cellID );
+   WALBERLA_UNUSED( elementIndex );
+   WALBERLA_UNUSED( cellType );
+   WALBERLA_UNUSED( value );
+
+   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::evaluateOnMicroElement not implemented for requested template parameter" );
+}
+
+template <>
+void N1E1VectorFunction< real_t >::evaluateOnMicroElement( const Point3D&               coordinates,
+                                                           const uint_t                 level,
+                                                           const PrimitiveID&           cellID,
+                                                           const hyteg::indexing::Index elementIndex,
+                                                           const celldof::CellType      cellType,
+                                                           VectorType&                  value ) const
+{
+   const Cell& cell = *storage_->getCell( cellID );
+   value = n1e1::macrocell::evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dofs_->getCellDataID() );
+}
+
+template < typename ValueType >
 void N1E1VectorFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                       scalars,
     const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >& functions,

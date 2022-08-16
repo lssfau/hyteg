@@ -22,6 +22,7 @@
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 
 #include "vtk/UtilityFunctions.h"
 
@@ -94,21 +95,22 @@ void VTKN1E1Writer::writeVectorFunction( std::ostream&                          
 
    for ( const auto& it : storage->getCells() )
    {
-      const Cell& cell = *it.second;
+      const PrimitiveID cellId = it.first;
+      const Cell&       cell   = *it.second;
 
       for ( auto cellType : celldof::allCellTypes )
       {
          for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
          {
             const std::array< indexing::Index, 4 > vertexIndices =
-                celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                n1e1::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
             const auto vtkPoint = 0.25 * ( vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[0] ) +
                                            vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[1] ) +
                                            vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[2] ) +
                                            vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[3] ) );
 
             typename n1e1::N1E1VectorFunction< value_t >::VectorType value;
-            function.evaluate( vtkPoint, level, value );
+            function.evaluateOnMicroElement( vtkPoint, level, cellId, idxIt, cellType, value );
 
             streamWriter << value[0];
             streamWriter << value[1];
