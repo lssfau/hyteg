@@ -18,7 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hyteg/dataexport/VTKOutput.hpp>
 #include "core/debug/TestSubsystem.h"
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
@@ -81,11 +80,6 @@ void test( std::function< Vector( const Point3D& ) > f, const Result& result )
       x.interpolate( f, level );
       curlCurl.apply( x, b, level, DoFType::All );
       communication::syncFunctionBetweenPrimitives( b, level );
-
-   VTKOutput vtkOutput( ".", "test", storage );
-   vtkOutput.add( b );
-   vtkOutput.add( *b.getDoFs() );
-   vtkOutput.write( level );
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
