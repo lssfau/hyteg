@@ -91,7 +91,11 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microC
 
 } // namespace macrocell
 
-/// Return data indices for the edge dofs of a given micro-cell in a macro-cell
+/// Return data indices for the edge dofs of a given micro-cell in a macro-cell.
+/// This function is essentially the same as
+/// \sa hyteg::edgedof::macrocell::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering
+/// but the edges are ordered according to the vertex ordering specified by
+/// \sa hyteg::n1e1::macrocell::getMicroVerticesFromMicroCell.
 inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
                                                               const celldof::CellType& cellType,
                                                               const uint_t             level,

@@ -34,7 +34,7 @@ namespace n1e1 {
 
 using walberla::real_t;
 
-template < class N1E1Form >
+template < class N1E1FormType >
 class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N1E1VectorFunction< real_t > >
 {
  public:
@@ -43,7 +43,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                             size_t                                     minLevel,
                             size_t                                     maxLevel,
-                            const N1E1Form&                            form );
+                            const N1E1FormType&                        form );
 
    void apply( const N1E1VectorFunction< real_t >& src,
                const N1E1VectorFunction< real_t >& dst,
@@ -72,7 +72,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                   uint_t                                      level,
                   DoFType                                     flag ) const override;
 
-   N1E1Form getForm() const;
+   N1E1FormType getForm() const;
 
  private:
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -83,7 +83,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstEdgeIdx ) const;
 
-   N1E1Form form_;
+   N1E1FormType form_;
 
    /// \brief Returns a reference to the precomputed element matrix of the specified micro cell.
    /// Probably crashes if local element matrices have not been precomputed.
@@ -117,12 +117,12 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices3D_;
 };
 
-template < class N1E1Form >
+template < class N1E1FormType >
 void assembleLocalElementMatrix3D( const Cell&            cell,
                                    uint_t                 level,
                                    const indexing::Index& microCell,
                                    celldof::CellType      cType,
-                                   N1E1Form               form,
+                                   N1E1FormType           form,
                                    Matrix6r&              elMat )
 {
    // determine coordinates of vertices of micro-element

@@ -27,23 +27,23 @@
 namespace hyteg {
 namespace n1e1 {
 
-template < class N1E1Form >
-N1E1ElementwiseOperator< N1E1Form >::N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                              size_t                                     minLevel,
-                                                              size_t                                     maxLevel )
-: N1E1ElementwiseOperator< N1E1Form >( storage, minLevel, maxLevel, N1E1Form() )
+template < class N1E1FormType >
+N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                  size_t                                     minLevel,
+                                                                  size_t                                     maxLevel )
+: N1E1ElementwiseOperator< N1E1FormType >( storage, minLevel, maxLevel, N1E1FormType() )
 {}
 
-template < class N1E1Form >
-N1E1ElementwiseOperator< N1E1Form >::N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                              size_t                                     minLevel,
-                                                              size_t                                     maxLevel,
-                                                              const N1E1Form&                            form )
+template < class N1E1FormType >
+N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                  size_t                                     minLevel,
+                                                                  size_t                                     maxLevel,
+                                                                  const N1E1FormType&                        form )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
 , localElementMatricesPrecomputed_( false )
 {
-   if ( not storage_->hasGlobalCells() )
+   if ( !storage_->hasGlobalCells() )
    {
       WALBERLA_ABORT( "Not implemented for 2D." )
    }
@@ -77,12 +77,12 @@ void localMatrixVectorMultiply3D( uint_t                 level,
    }
 }
 
-template < class N1E1Form >
-void N1E1ElementwiseOperator< N1E1Form >::apply( const N1E1VectorFunction< real_t >& src,
-                                                 const N1E1VectorFunction< real_t >& dst,
-                                                 size_t                              level,
-                                                 DoFType                             flag,
-                                                 UpdateType                          updateType ) const
+template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< real_t >& src,
+                                                     const N1E1VectorFunction< real_t >& dst,
+                                                     size_t                              level,
+                                                     DoFType                             flag,
+                                                     UpdateType                          updateType ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -169,8 +169,8 @@ void N1E1ElementwiseOperator< N1E1Form >::apply( const N1E1VectorFunction< real_
    this->stopTiming( "apply" );
 }
 
-template < class N1E1Form >
-void N1E1ElementwiseOperator< N1E1Form >::computeAndStoreLocalElementMatrices()
+template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrices()
 {
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
@@ -203,19 +203,19 @@ void N1E1ElementwiseOperator< N1E1Form >::computeAndStoreLocalElementMatrices()
    localElementMatricesPrecomputed_ = true;
 }
 
-template < class N1E1Form >
-N1E1Form N1E1ElementwiseOperator< N1E1Form >::getForm() const
+template < class N1E1FormType >
+N1E1FormType N1E1ElementwiseOperator< N1E1FormType >::getForm() const
 {
    return form_;
 }
 
 // Assemble operator as sparse matrix
-template < class N1E1Form >
-void N1E1ElementwiseOperator< N1E1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                    const N1E1VectorFunction< idx_t >&          src,
-                                                    const N1E1VectorFunction< idx_t >&          dst,
-                                                    uint_t                                      level,
-                                                    DoFType                                     flag ) const
+template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const N1E1VectorFunction< idx_t >&          src,
+                                                        const N1E1VectorFunction< idx_t >&          dst,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
@@ -247,14 +247,14 @@ void N1E1ElementwiseOperator< N1E1Form >::toMatrix( const std::shared_ptr< Spars
    }
 }
 
-template < class N1E1Form >
-void N1E1ElementwiseOperator< N1E1Form >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                 const Cell&                                 cell,
-                                                                 const uint_t                                level,
-                                                                 const indexing::Index&                      microCell,
-                                                                 const celldof::CellType                     cType,
-                                                                 const idx_t* const                          srcEdgeIdx,
-                                                                 const idx_t* const                          dstEdgeIdx ) const
+template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                     const Cell&                                 cell,
+                                                                     const uint_t                                level,
+                                                                     const indexing::Index&                      microCell,
+                                                                     const celldof::CellType                     cType,
+                                                                     const idx_t* const                          srcEdgeIdx,
+                                                                     const idx_t* const dstEdgeIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = n1e1::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -265,8 +265,8 @@ void N1E1ElementwiseOperator< N1E1Form >::localMatrixAssembly3D( const std::shar
    }
 
    // assemble local element matrix
-   Matrix6r elMat;
-   N1E1Form form( form_ );
+   Matrix6r     elMat;
+   N1E1FormType form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
