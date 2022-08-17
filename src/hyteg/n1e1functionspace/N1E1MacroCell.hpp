@@ -150,7 +150,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 
    // evaluate function in reference tet
 
-   // basis functions N1E1 phi(x, y, z):
+   // basis functions N1E1 φ(x, y, z):
    // TODO use FEniCS ordering (for consistency)
    //   at [0.5 0.  0. ]: (-y-z+1, x     , x     )ᵀ
    //   at [0.  0.5 0. ]: (y     , -x-z+1, y     )ᵀ

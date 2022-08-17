@@ -18,6 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// The correct values for this test have been obtained by integrating over the
+// elements symbolically and without mapping to a reference element.
+// Instead, we form the FEM-basis for each affine element and also figure out
+// the appropriate integration bounds.
+// This way, even if we messed up e.g., the transformation to the reference
+// element on paper, we will notice anyway.
+//
+// We test on the reference tet on refinement level 1.
+// We use the reference tet so that we can figure out the integration bounds for
+// all micro-cells.
+// Since the colored micro-cells on level 1 are rotated, scaled and translated,
+// this test is exhaustive.
+//
+// The integration is implemented in curl-curl-test.py.
+
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 
 #include "core/debug/TestSubsystem.h"
