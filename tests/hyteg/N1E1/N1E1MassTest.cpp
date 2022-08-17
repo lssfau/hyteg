@@ -21,18 +21,15 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "Eigen/Dense"
-
 using walberla::real_t;
 using namespace hyteg;
 
-using Vector = Eigen::Matrix< real_t, 3, 1 >;
-
-void testLevel0( std::function< Vector( const Point3D& ) > func, const std::array< real_t, 6 > correct )
+void testLevel0( std::function< Eigen::Vector3r( const Point3D& ) > func, const std::array< real_t, 6 > correct )
 {
    const size_t level = 0;
 
@@ -69,10 +66,10 @@ void testLevel1()
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, level, level );
    n1e1::N1E1ElementwiseMassOperator  massOp( storage, level, level );
 
-   const Vector                                    a    = { 1, 2, 3 };
-   const Vector                                    b    = { 4, 5, 6 };
-   const std::function< Vector( const Point3D& ) > func = [&]( const Point3D& x ) {
-      return Vector{ a + b.cross( toEigen( x ) ) };
+   const Eigen::Vector3r                                    a    = { 1, 2, 3 };
+   const Eigen::Vector3r                                    b    = { 4, 5, 6 };
+   const std::function< Eigen::Vector3r( const Point3D& ) > func = [&]( const Point3D& x ) {
+      return Eigen::Vector3r{ a + b.cross( toEigen( x ) ) };
    };
 
    tmp.interpolate( func, level );
@@ -120,41 +117,41 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   testLevel0( []( const Point3D& ) { return Vector{ 0.0, 0.0, 0.0 }; }, { 0, 0, 0, 0, 0, 0 } );
+   testLevel0( []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; }, { 0, 0, 0, 0, 0, 0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Vector{ 1.0, 0.0, 0.0 };
+          return Eigen::Vector3r{ 1.0, 0.0, 0.0 };
        },
        { 0.0, -1.0 / 24.0, -1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 12.0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Vector{ 0.0, 1.0, 0.0 };
+          return Eigen::Vector3r{ 0.0, 1.0, 0.0 };
        },
        { -1.0 / 24.0, 0.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 12.0, 1.0 / 24.0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Vector{ 0.0, 0.0, 1.0 };
+          return Eigen::Vector3r{ 0.0, 0.0, 1.0 };
        },
        { 1.0 / 24.0, 1.0 / 24.0, 0.0, 1.0 / 12.0, 1.0 / 24.0, 1.0 / 24.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto y = p[1];
           const auto z = p[2];
-          return Vector{ 0.0, -z, y };
+          return Eigen::Vector3r{ 0.0, -z, y };
        },
        { 1.0 / 30.0, 1.0 / 120.0, -1.0 / 120.0, 0.0, 0.0, 0.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto x = p[0];
           const auto z = p[2];
-          return Vector{ z, 0.0, -x };
+          return Eigen::Vector3r{ z, 0.0, -x };
        },
        { -1.0 / 120.0, -1.0 / 30.0, -1.0 / 120.0, 0.0, 0.0, 0.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto x = p[0];
           const auto y = p[1];
-          return Vector{ -y, x, 0.0 };
+          return Eigen::Vector3r{ -y, x, 0.0 };
        },
        { -1.0 / 120.0, 1.0 / 120.0, 1.0 / 30.0, 0.0, 0.0, 0.0 } );
 

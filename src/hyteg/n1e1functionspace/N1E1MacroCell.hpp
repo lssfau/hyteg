@@ -24,6 +24,7 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
@@ -44,12 +45,12 @@ using walberla::uint_t;
 template < typename ValueType >
 using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
-inline Eigen::Vector3d microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
+inline Eigen::Vector3r microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
    const real_t          stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
-   const Eigen::Vector3d xDir          = toEigen( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
-   const Eigen::Vector3d yDir          = toEigen( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
-   const Eigen::Vector3d zDir          = toEigen( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Eigen::Vector3r xDir          = toEigen( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Eigen::Vector3r yDir          = toEigen( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Eigen::Vector3r zDir          = toEigen( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
 
    switch ( orientation )
    {
@@ -170,7 +171,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
    // transform to computational space (covariant Piola mapping)
 
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
-   Eigen::Matrix3d A;
+   Eigen::Matrix3r A;
    A.row( 0 ) = toEigen( microTet1 - microTet0 );
    A.row( 1 ) = toEigen( microTet2 - microTet0 );
    A.row( 2 ) = toEigen( microTet3 - microTet0 );

@@ -23,10 +23,9 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
-#include "Eigen/Dense"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -45,14 +44,14 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    // most general function in N1E1 space
-   const Eigen::Vector3d                                    a         = { 1, 2, 3 };
-   const Eigen::Vector3d                                    b         = { 4, 5, 6 };
-   const Eigen::Vector3d                                    c         = { 7, 8, 9 };
-   const std::function< Eigen::Vector3d( const Point3D& ) > testFunc1 = [&]( const Point3D& x ) {
-      return Eigen::Vector3d{ a + b.cross( toEigen( x ) ) };
+   const Eigen::Vector3r                                    a         = { 1, 2, 3 };
+   const Eigen::Vector3r                                    b         = { 4, 5, 6 };
+   const Eigen::Vector3r                                    c         = { 7, 8, 9 };
+   const std::function< Eigen::Vector3r( const Point3D& ) > testFunc1 = [&]( const Point3D& x ) {
+      return Eigen::Vector3r{ a + b.cross( toEigen( x ) ) };
    };
-   const std::function< Eigen::Vector3d( const Point3D& ) > testFunc2 = [&]( const Point3D& x ) {
-      return Eigen::Vector3d{ b + c.cross( toEigen( x ) ) };
+   const std::function< Eigen::Vector3r( const Point3D& ) > testFunc2 = [&]( const Point3D& x ) {
+      return Eigen::Vector3r{ b + c.cross( toEigen( x ) ) };
    };
 
    n1e1::N1E1VectorFunction< real_t > f1( "f1", storage, minLevel, maxLevel );
@@ -73,8 +72,8 @@ void test3D()
          coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
          coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
 
-         Eigen::Vector3d exact = testFunc1( coordinates ) + 2 * testFunc2( coordinates );
-         Eigen::Vector3d eval;
+         Eigen::Vector3r exact = testFunc1( coordinates ) + 2 * testFunc2( coordinates );
+         Eigen::Vector3r eval;
          auto            success = f3.evaluate( coordinates, level, eval );
          WALBERLA_CHECK( success );
          WALBERLA_CHECK_FLOAT_EQUAL( eval[0], exact[0], "Test3D: wrong X-coordinate at " << coordinates << "." );

@@ -23,6 +23,7 @@
 #include <hyteg/communication/Syncing.hpp>
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
 namespace n1e1 {
@@ -104,7 +105,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       // Therefore we first zero out everything that is flagged, and then, later,
       // the halos of the highest dim primitives.
 
-      dst.interpolate( Eigen::Vector3d{ 0, 0, 0 }, level, flag );
+      dst.interpolate( Eigen::Vector3r{ 0, 0, 0 }, level, flag );
    }
 
    // we only perform computations on cell primitives

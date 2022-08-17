@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
 
 using walberla::real_c;
@@ -46,14 +47,14 @@ class N1E1Form_mass : public N1E1Form
       // F maps from reference tet K̂ to affine tet K
       // K = F(K̂) = Bx̂ + b
       // B is the Jacobian of the transformation
-      Eigen::Matrix3d B;
+      Eigen::Matrix3r B;
       B.col( 0 ) = toEigen( coords[1] - coords[0] );
       B.col( 1 ) = toEigen( coords[2] - coords[0] );
       B.col( 2 ) = toEigen( coords[3] - coords[0] );
 
       const real_t absDetB = std::abs( B.determinant() );
 
-      const Eigen::Matrix3d b    = B.inverse();
+      const Eigen::Matrix3r b    = B.inverse();
       const real_t          b_11 = b( 0, 0 );
       const real_t          b_12 = b( 0, 1 );
       const real_t          b_13 = b( 0, 2 );

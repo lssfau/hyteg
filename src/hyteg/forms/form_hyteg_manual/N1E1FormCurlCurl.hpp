@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
 
 using walberla::real_c;
@@ -46,7 +47,7 @@ class N1E1Form_curl_curl : public N1E1Form
       // F maps from reference tet K̂ to affine tet K
       // K = F(K̂) = Bx̂ + b
       // B is the Jacobian of the transformation
-      Eigen::Matrix3d B;
+      Eigen::Matrix3r B;
       B.col( 0 ) = toEigen( coords[1] - coords[0] );
       B.col( 1 ) = toEigen( coords[2] - coords[0] );
       B.col( 2 ) = toEigen( coords[3] - coords[0] );
@@ -54,8 +55,8 @@ class N1E1Form_curl_curl : public N1E1Form
       const real_t absDetB = std::abs( B.determinant() );
 
       // for first order elements, the curl of the basis functions φ is constant
-      std::array< Eigen::Vector3d, 6 > curlPhi = {
-          Eigen::Vector3d{ 2, 0, 0 }, { 0, -2, 0 }, { 0, 0, 2 }, { -2, 2, 0 }, { 2, 0, -2 }, { 0, -2, 2 } };
+      std::array< Eigen::Vector3r, 6 > curlPhi = {
+          Eigen::Vector3r{ 2, 0, 0 }, { 0, -2, 0 }, { 0, 0, 2 }, { -2, 2, 0 }, { 2, 0, -2 }, { 0, -2, 2 } };
 
       for ( uint_t i = 0; i < 6; i++ )
       {

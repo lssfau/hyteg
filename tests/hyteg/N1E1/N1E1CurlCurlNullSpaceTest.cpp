@@ -23,16 +23,13 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "Eigen/Dense"
-
 using walberla::real_t;
 using namespace hyteg;
-
-using Vector = Eigen::Matrix< real_t, 3, 1 >;
 
 class Result
 {
@@ -58,7 +55,7 @@ class Result
    bool isZero_;
 };
 
-void test( std::function< Vector( const Point3D& ) > f, const Result& result )
+void test( std::function< Eigen::Vector3r( const Point3D& ) > f, const Result& result )
 {
    MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -88,7 +85,7 @@ void test( std::function< Vector( const Point3D& ) > f, const Result& result )
          coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
          coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
 
-         Eigen::Vector3d eval;
+         Eigen::Vector3r eval;
          auto            success = b.evaluate( coordinates, level, eval );
 
          WALBERLA_CHECK( success );
@@ -105,11 +102,11 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test( []( const Point3D& ) { return Vector{ 0.0, 0.0, 0.0 }; }, Result::zero() );
+   test( []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; }, Result::zero() );
    WALBERLA_LOG_INFO_ON_ROOT( "Passed (1)" )
-   test( []( const Point3D& p ) { return Vector{ p[0], p[1], p[2] }; }, Result::zero() );
+   test( []( const Point3D& p ) { return Eigen::Vector3r{ p[0], p[1], p[2] }; }, Result::zero() );
    WALBERLA_LOG_INFO_ON_ROOT( "Passed (2)" )
-   test( []( const Point3D& p ) { return Vector{ p[0] * p[0], p[0] * p[0], p[0] * p[0] }; }, Result::notZero() );
+   test( []( const Point3D& p ) { return Eigen::Vector3r{ p[0] * p[0], p[0] * p[0], p[0] * p[0] }; }, Result::notZero() );
    WALBERLA_LOG_INFO_ON_ROOT( "Passed (3)" )
 
    return EXIT_SUCCESS;
