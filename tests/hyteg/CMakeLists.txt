@@ -810,19 +810,7 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGGlobalRefinementGridConvTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGGlobalRefinementGridConvTest)
-
-    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementInterpolateEvaluateTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME DGAdaptiveRefinementInterpolateEvaluateTest)
-
-    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementGridConvTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME DGAdaptiveRefinementGridConvTest)
 endif ()
-
-waLBerla_compile_test(FILES dg/DGAdaptiveLaplaceApplyTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAdaptiveLaplaceApplyTest)
-
-waLBerla_compile_test(FILES dg/DGAdaptiveFormTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAdaptiveFormTest)
 
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
@@ -841,19 +829,6 @@ waLBerla_execute_test(NAME PrintInfoTest)
 ## adaptive refinement w/ hanging nodes
 waLBerla_compile_test(FILES adaptiverefinementhangingnodes/ARHangingNodesStorageTest.cpp)
 waLBerla_execute_test(NAME ARHangingNodesStorageTest)
-
-
-if (HYTEG_BUILD_WITH_PETSC)
-    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/P1AdaptiveRefinementEqualityTest.cpp)
-    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-        waLBerla_execute_test(NAME P1AdaptiveRefinementEqualityTest)
-    endif()
-
-    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/DGAdaptiveRefinementEqualityTest.cpp)
-    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-        waLBerla_execute_test(NAME DGAdaptiveRefinementEqualityTest)
-    endif()
-endif ()
 
 waLBerla_compile_test(FILES adaptiverefinementhangingnodes/MacroVolumeRefinementMicroIdxConversionTest.cpp)
 waLBerla_execute_test(NAME MacroVolumeRefinementMicroIdxConversionTest)
