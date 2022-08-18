@@ -207,23 +207,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
          std::map< uint_t, VType* > glMemory;
 
-         if ( dim == 3 )
-         {
-            // TODO: this needs to move down probably.
-
-            WALBERLA_ASSERT( storage->cellExistsLocally( pid ) );
-            const auto cell = storage->getCell( pid );
-
-            //
-            // TODO: this must be top level for AMR!!!!!!!!!!!!!!!!!!
-            //
-
-            for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
-            {
-               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
-            }
-         }
-
          const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
@@ -452,7 +435,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            }
                            else
                            {
-                              WALBERLA_ABORT( "AMR in DGOperator not implemented for 3D" );
+                              // TODO: This must be updated for 3D.
+                              const auto nMacroCellID = storage->getCell( pid )->getIndirectNeighborCellIDsOverFaces().at(
+                                  neighborInfo.macroBoundaryID( n ) );
+                              macroLevel         = storage->getRefinementLevel( pid );
+                              neighborMacroLevel = storage->getRefinementLevel( nMacroCellID );
+                              WALBERLA_CHECK_EQUAL( macroLevel, neighborMacroLevel );
                            }
                         }
 
@@ -631,7 +619,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                               //
                               // All necessary information can be pulled straight out of the neighbor element info.
 
-                              glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, n );
+                              glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, neighborInfo.macroBoundaryID( n ) );
 
                               std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
                               Eigen::Matrix< real_t, 3, 1 >                neighborElementOppositeVertexCoords;
@@ -675,7 +663,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                               if ( dim == 2 )
                               {
-                                 glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level - 1, n );
+                                 glMemory[n] =
+                                     src.volumeDoFFunction()->glMemory( pid, level - 1, neighborInfo.macroBoundaryID( n ) );
 
                                  PrimitiveID coarsePID;
                                  Index       tmpCoarseElementIdx;
@@ -766,7 +755,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                               if ( dim == 2 )
                               {
-                                 glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level + 1, n );
+                                 glMemory[n] =
+                                     src.volumeDoFFunction()->glMemory( pid, level + 1, neighborInfo.macroBoundaryID( n ) );
 
                                  std::vector< Index >    fineElementIndices;
                                  std::vector< FaceType > fineFaceTypes;
@@ -921,8 +911,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                              srcMemLayout );
                                  }
 
-                                 nSrcDofs( srcDofIdx ) =
-                                     glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
+                                 nSrcDofs( srcDofIdx ) = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
                               }
 
                               if ( mat == nullptr )
@@ -960,8 +949,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                                        level,
                                                                                                        dstMemLayout )];
                                        }
-                                       const auto globalColIdx =
-                                           glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
+                                       const auto globalColIdx = glMemory[n][nSrcDoFArrIndices[srcDofIdx]];
 
                                        mat->addValue( globalRowIdx, globalColIdx, localMat( dstDofIdx, srcDofIdx ) );
                                     }
