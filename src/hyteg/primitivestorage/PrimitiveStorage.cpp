@@ -2517,8 +2517,13 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
 
    if ( !hasGlobalCells() )
    {
-      walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
-      bs.setReceiverInfo( getNeighboringRanks(), true );
+      walberla::mpi::BufferSystem        bs( walberla::mpi::MPIManager::instance()->comm() );
+
+      // Need to convert ranks to MPIRank datatype explicitly.
+      const auto                         nranksUint = getNeighboringRanks();
+      std::set< walberla::mpi::MPIRank > nranks( nranksUint.begin(), nranksUint.end() );
+
+      bs.setReceiverInfo( nranks, true );
 
       for ( auto r : getNeighboringRanks() )
       {
