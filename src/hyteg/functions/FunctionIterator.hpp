@@ -118,14 +118,16 @@ inline Point3D FunctionIteratorDoF< FunctionType >::coordinates() const
       }
       if ( isOnMacroFace() )
       {
-         return edgedof::macroface::coordinateFromIndex( level_, *( function_.getStorage()->getFace( primitiveID_ ) ), index_, edgeDoFOrientation_ );
+         return edgedof::macroface::coordinateFromIndex(
+             level_, *( function_.getStorage()->getFace( primitiveID_ ) ), index_, edgeDoFOrientation_ );
       }
       if ( isOnMacroCell() )
       {
-         return edgedof::macrocell::coordinateFromIndex( level_, *( function_.getStorage()->getCell( primitiveID_ ) ), index_, edgeDoFOrientation_ );
+         return edgedof::macrocell::coordinateFromIndex(
+             level_, *( function_.getStorage()->getCell( primitiveID_ ) ), index_, edgeDoFOrientation_ );
       }
    }
-   WALBERLA_ABORT("not implemented")
+   WALBERLA_ABORT( "not implemented" )
 }
 
 template < typename FunctionType >
@@ -166,7 +168,7 @@ inline uint_t FunctionIteratorDoF< FunctionType >::arrayIndex() const
          return edgedof::macrocell::index( level(), index().x(), index().y(), index().z(), edgeDoFOrientation() );
       }
    }
-   WALBERLA_ABORT("not implemented")
+   WALBERLA_ABORT( "not implemented" )
 }
 
 template < typename FunctionType >
@@ -192,7 +194,7 @@ inline const typename FunctionType::valueType& FunctionIteratorDoF< FunctionType
           ->getCell( primitiveID() )
           ->getData( function_.getCellDataID() )
           ->getPointer( level() )[arrayIndex()];
-   WALBERLA_ABORT("not implemented")
+   WALBERLA_ABORT( "not implemented" )
 }
 
 template < typename FunctionType >
@@ -218,7 +220,7 @@ inline typename FunctionType::valueType& FunctionIteratorDoF< FunctionType >::va
           ->getCell( primitiveID() )
           ->getData( function_.getCellDataID() )
           ->getPointer( level() )[arrayIndex()];
-   WALBERLA_ABORT("not implemented")
+   WALBERLA_ABORT( "not implemented" )
 }
 
 template < typename FunctionType >
@@ -287,10 +289,10 @@ class FunctionIterator
    , step_( 0 )
    , totalNumberOfDoFs_( numberOfLocalDoFs< typename FunctionType::Tag >( *( function_.getStorage() ), level_ ) )
    , currentDoF_( function, level )
-   , macroVertexIterator_( function.getStorage()->getVertices().begin() )
-   , macroEdgeIterator_( function.getStorage()->getEdges().begin() )
-   , macroFaceIterator_( function.getStorage()->getFaces().begin() )
-   , macroCellIterator_( function.getStorage()->getCells().begin() )
+   , macroVertexMap_( function.getStorage()->getVertices() )
+   , macroEdgeMap_( function.getStorage()->getEdges() )
+   , macroFaceMap_( function.getStorage()->getFaces() )
+   , macroCellMap_( function.getStorage()->getCells() )
    , vertexDoFMacroEdgeIterator_( level, 1 )
    , vertexDoFMacroFaceIterator_( level, 1 )
    , vertexDoFMacroCellIterator_( level, 1 )
@@ -301,6 +303,11 @@ class FunctionIterator
    , edgeDoFMacroFaceOrientationIterator_( edgedof::faceLocalEdgeDoFOrientations.begin() )
    , edgeDoFMacroCellOrientationIterator_( edgedof::allEdgeDoFOrientations.begin() )
    {
+      macroVertexIterator_ = macroVertexMap_.begin();
+      macroEdgeIterator_   = macroEdgeMap_.begin();
+      macroFaceIterator_   = macroFaceMap_.begin();
+      macroCellIterator_   = macroCellMap_.begin();
+
       if ( end )
       {
          step_ = totalNumberOfDoFs_;
@@ -339,7 +346,6 @@ class FunctionIterator
    }
 
  private:
-
    FunctionIterator& increment_level_geq_2();
    FunctionIterator& increment_level_1();
    FunctionIterator& increment_level_0();
@@ -359,6 +365,11 @@ class FunctionIterator
    uint_t                              step_;
    uint_t                              totalNumberOfDoFs_;
    FunctionIteratorDoF< FunctionType > currentDoF_;
+
+   PrimitiveStorage::VertexMap macroVertexMap_;
+   PrimitiveStorage::EdgeMap   macroEdgeMap_;
+   PrimitiveStorage::FaceMap   macroFaceMap_;
+   PrimitiveStorage::CellMap   macroCellMap_;
 
    PrimitiveStorage::VertexMap::const_iterator macroVertexIterator_;
    PrimitiveStorage::EdgeMap::const_iterator   macroEdgeIterator_;
@@ -397,20 +408,19 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::opera
    return *this;
 }
 
-
 template < typename FunctionType >
 inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::increment_level_0()
 {
    if ( inVertexDoFFunction() )
    {
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          macroVertexIterator_++;
       }
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          edgeDoFMacroEdgeIterator_++;
          if ( edgeDoFMacroEdgeIterator_ == edgedof::macroedge::Iterator( level_ ).end() )
@@ -426,18 +436,16 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
    return *this;
 }
 
-
-
 template < typename FunctionType >
 inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::increment_level_1()
 {
    if ( inVertexDoFFunction() )
    {
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          macroVertexIterator_++;
       }
-      else if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      else if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          vertexDoFMacroEdgeIterator_++;
          if ( vertexDoFMacroEdgeIterator_ == vertexdof::macroedge::Iterator( level_, 1 ).end() )
@@ -449,7 +457,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          edgeDoFMacroEdgeIterator_++;
          if ( edgeDoFMacroEdgeIterator_ == edgedof::macroedge::Iterator( level_ ).end() )
@@ -458,7 +466,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
             edgeDoFMacroEdgeIterator_ = edgedof::macroedge::Iterator( level_ );
          }
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          edgeDoFMacroFaceIterator_++;
          skipEdgeDoFBoundaryCoordinates();
@@ -474,7 +482,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
          }
          skipEdgeDoFBoundaryCoordinates();
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          edgeDoFMacroCellXYZIterator_++;
          if ( edgeDoFMacroCellXYZIterator_ == edgedof::macrocell::IteratorXYZ( level_ ).end() )
@@ -495,11 +503,11 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
 {
    if ( inVertexDoFFunction() )
    {
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          macroVertexIterator_++;
       }
-      else if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      else if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          vertexDoFMacroEdgeIterator_++;
          if ( vertexDoFMacroEdgeIterator_ == vertexdof::macroedge::Iterator( level_, 1 ).end() )
@@ -508,7 +516,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
             vertexDoFMacroEdgeIterator_ = vertexdof::macroedge::Iterator( level_, 1 );
          }
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          vertexDoFMacroFaceIterator_++;
          if ( vertexDoFMacroFaceIterator_ == vertexdof::macroface::Iterator( level_, 1 ).end() )
@@ -517,7 +525,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
             vertexDoFMacroFaceIterator_ = vertexdof::macroface::Iterator( level_, 1 );
          }
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          vertexDoFMacroCellIterator_++;
          if ( vertexDoFMacroCellIterator_ == vertexdof::macrocell::Iterator( level_, 1 ).end() )
@@ -529,7 +537,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          edgeDoFMacroEdgeIterator_++;
          if ( edgeDoFMacroEdgeIterator_ == edgedof::macroedge::Iterator( level_ ).end() )
@@ -538,7 +546,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
             edgeDoFMacroEdgeIterator_ = edgedof::macroedge::Iterator( level_ );
          }
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          edgeDoFMacroFaceIterator_++;
          skipEdgeDoFBoundaryCoordinates();
@@ -554,7 +562,7 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
          }
          skipEdgeDoFBoundaryCoordinates();
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          if ( *edgeDoFMacroCellOrientationIterator_ != edgedof::EdgeDoFOrientation::XYZ )
          {
@@ -589,7 +597,6 @@ inline FunctionIterator< FunctionType >& FunctionIterator< FunctionType >::incre
    return *this;
 }
 
-
 template < typename FunctionType >
 inline void FunctionIterator< FunctionType >::setState()
 {
@@ -613,7 +620,7 @@ inline void FunctionIterator< FunctionType >::setState_level_0()
    if ( inVertexDoFFunction() )
    {
       currentDoF_.edgeDoFOrientation_ = edgedof::EdgeDoFOrientation::INVALID;
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          currentDoF_.index_       = Index( 0, 0, 0 );
          currentDoF_.primitiveID_ = macroVertexIterator_->first;
@@ -621,7 +628,7 @@ inline void FunctionIterator< FunctionType >::setState_level_0()
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroEdgeIterator_;
          currentDoF_.primitiveID_        = macroEdgeIterator_->first;
@@ -636,12 +643,12 @@ inline void FunctionIterator< FunctionType >::setState_level_1()
    if ( inVertexDoFFunction() )
    {
       currentDoF_.edgeDoFOrientation_ = edgedof::EdgeDoFOrientation::INVALID;
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          currentDoF_.index_       = Index( 0, 0, 0 );
          currentDoF_.primitiveID_ = macroVertexIterator_->first;
       }
-      else if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      else if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          currentDoF_.index_       = *vertexDoFMacroEdgeIterator_;
          currentDoF_.primitiveID_ = macroEdgeIterator_->first;
@@ -649,19 +656,19 @@ inline void FunctionIterator< FunctionType >::setState_level_1()
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroEdgeIterator_;
          currentDoF_.primitiveID_        = macroEdgeIterator_->first;
          currentDoF_.edgeDoFOrientation_ = edgedof::EdgeDoFOrientation::X;
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroFaceIterator_;
          currentDoF_.primitiveID_        = macroFaceIterator_->first;
          currentDoF_.edgeDoFOrientation_ = *edgeDoFMacroFaceOrientationIterator_;
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroCellXYZIterator_;
          currentDoF_.primitiveID_        = macroCellIterator_->first;
@@ -676,22 +683,22 @@ inline void FunctionIterator< FunctionType >::setState_level_geq_2()
    if ( inVertexDoFFunction() )
    {
       currentDoF_.edgeDoFOrientation_ = edgedof::EdgeDoFOrientation::INVALID;
-      if ( macroVertexIterator_ != function_.getStorage()->getVertices().end() )
+      if ( macroVertexIterator_ != macroVertexMap_.end() )
       {
          currentDoF_.index_       = Index( 0, 0, 0 );
          currentDoF_.primitiveID_ = macroVertexIterator_->first;
       }
-      else if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      else if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          currentDoF_.index_       = *vertexDoFMacroEdgeIterator_;
          currentDoF_.primitiveID_ = macroEdgeIterator_->first;
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          currentDoF_.index_       = *vertexDoFMacroFaceIterator_;
          currentDoF_.primitiveID_ = macroFaceIterator_->first;
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          currentDoF_.index_       = *vertexDoFMacroCellIterator_;
          currentDoF_.primitiveID_ = macroCellIterator_->first;
@@ -699,19 +706,19 @@ inline void FunctionIterator< FunctionType >::setState_level_geq_2()
    }
    else if ( inEdgeDoFFunction() )
    {
-      if ( macroEdgeIterator_ != function_.getStorage()->getEdges().end() )
+      if ( macroEdgeIterator_ != macroEdgeMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroEdgeIterator_;
          currentDoF_.primitiveID_        = macroEdgeIterator_->first;
          currentDoF_.edgeDoFOrientation_ = edgedof::EdgeDoFOrientation::X;
       }
-      else if ( macroFaceIterator_ != function_.getStorage()->getFaces().end() )
+      else if ( macroFaceIterator_ != macroFaceMap_.end() )
       {
          currentDoF_.index_              = *edgeDoFMacroFaceIterator_;
          currentDoF_.primitiveID_        = macroFaceIterator_->first;
          currentDoF_.edgeDoFOrientation_ = *edgeDoFMacroFaceOrientationIterator_;
       }
-      else if ( macroCellIterator_ != function_.getStorage()->getCells().end() )
+      else if ( macroCellIterator_ != macroCellMap_.end() )
       {
          currentDoF_.primitiveID_        = macroCellIterator_->first;
          currentDoF_.edgeDoFOrientation_ = *edgeDoFMacroCellOrientationIterator_;
