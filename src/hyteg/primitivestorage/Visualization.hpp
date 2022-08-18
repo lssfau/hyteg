@@ -200,6 +200,13 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
    }
    rankOut << "          </DataArray>\n";
 
+   rankOut << "          <DataArray type=\"UInt32\" Name=\"level\">\n";
+   for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+   {
+      rankOut << "            " << storage.getRefinementLevel( primitiveIDs[primitive] ) << "\n";
+   }
+   rankOut << "          </DataArray>\n";
+
 #if 0
    rankOut << "          <DataArray type=\"UInt32\" Name=\"primitiveID\">\n";
    for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
