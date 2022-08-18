@@ -818,12 +818,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME DGAdaptiveRefinementGridConvTest)
 endif ()
 
-waLBerla_compile_test(FILES dg/DGAdaptiveLaplaceApplyTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAdaptiveLaplaceApplyTest)
-
-waLBerla_compile_test(FILES dg/DGAdaptiveFormTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAdaptiveFormTest)
-
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SmoothableTest)
