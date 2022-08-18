@@ -37,6 +37,9 @@ namespace hyteg {
 /// Just testing the most basic features.
 void smokeTest()
 {
+   const bool writeVTK = false;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "+ smokeTest: checking _really_ basic functionality" );
    MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_184el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -45,7 +48,10 @@ void smokeTest()
 
    const uint_t numRefinements = 3;
 
-   writeDomainPartitioningVTK( *storage, "../../output/", "ARHangingNodesStorageTest_SmokeTest_Domain_Refinement_0" );
+   if ( writeVTK )
+   {
+      writeDomainPartitioningVTK( *storage, "../../output/", "ARHangingNodesStorageTest_SmokeTest_Domain_Refinement_0" );
+   }
 
    auto refinementLevelAtPoint = []( const Point3D& x ) -> uint_t {
       // refine near (0, 0)
@@ -92,14 +98,78 @@ void smokeTest()
 
       WALBERLA_CHECK_GREATER( numFaces[i], numFaces[i - 1] );
 
-      writeDomainPartitioningVTK(
-          *storage, "../../output/", "ARHangingNodesStorageTest_SmokeTest_Domain_Refinement_" + std::to_string( i ) );
+      if ( writeVTK )
+      {
+         writeDomainPartitioningVTK(
+             *storage, "../../output/", "ARHangingNodesStorageTest_SmokeTest_Domain_Refinement_" + std::to_string( i ) );
+      }
+   }
+}
+
+/// Quick 2:1 balance test.
+void balanceTest()
+{
+   const bool writeVTK = false;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "+ balanceTest: 2:1 balance test." );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   const uint_t numRefinements = 3;
+
+   if ( writeVTK )
+   {
+      writeDomainPartitioningVTK( *storage, "../../output/", "ARHangingNodesStorageTest_BalanceTest_Domain_Refinement_0" );
+   }
+
+   std::map< uint_t, uint_t > numFaces;
+
+   numFaces[0] = storage->getNumberOfGlobalFaces();
+
+   for ( uint_t i = 1; i <= numRefinements; i++ )
+   {
+      // Collect all volume primitives that shall be refined.
+      std::vector< PrimitiveID > refine, coarsen, refineResult, coarsenResult;
+
+      for ( const auto& faceID : storage->getFaceIDs() )
+      {
+         auto face = storage->getFace( faceID );
+
+         for ( const auto& c : face->getCoordinates() )
+         {
+            if ( c.norm() < 1e-8 )
+            {
+               refine.push_back( face->getID() );
+               break;
+            }
+         }
+      }
+
+      // Refine all primitives
+      storage->refinementAndCoarseningHanging( refine, coarsen, refineResult, coarsenResult );
+
+      numFaces[i] = storage->getNumberOfGlobalFaces();
+
+      WALBERLA_CHECK_GREATER( numFaces[i], numFaces[i - 1] );
+
+      if ( writeVTK )
+      {
+         writeDomainPartitioningVTK(
+             *storage, "../../output/", "ARHangingNodesStorageTest_BalanceTest_Domain_Refinement_" + std::to_string( i ) );
+      }
    }
 }
 
 /// Checks indirect (volume-)neighborhood after refinement.
 void indirectNeighborhoodTest()
 {
+   const bool writeVTK = false;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "+ indirectNeighborhoodTest: checking indirect neighborhood" );
+
    WALBERLA_CHECK_EQUAL(
        walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Test currently only written for serial runs." );
 
@@ -113,11 +183,15 @@ void indirectNeighborhoodTest()
 
    WALBERLA_CHECK_LESS( numRefinements, storage->getNumberOfGlobalFaces(), "Cannot run test on this mesh." );
 
-   writeDomainPartitioningVTK(
-       *storage, "../../output/", "ARHangingNodesStorageTest_IndNeighTest_Domain_Refinement_" + std::to_string( 0 ) );
+   if ( writeVTK )
+   {
+      writeDomainPartitioningVTK(
+          *storage, "../../output/", "ARHangingNodesStorageTest_IndNeighTest_Domain_Refinement_" + std::to_string( 0 ) );
+   }
 
    for ( uint_t i = 1; i <= numRefinements; i++ )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "    REFINEMENT " << i );
       // Refine a single macro-face on each currently available refinement level.
       const auto maxRefinementLevel = storage->getCurrentGlobalMaxRefinement();
       const auto faceIDs            = storage->getFaceIDs();
@@ -137,11 +211,16 @@ void indirectNeighborhoodTest()
          }
       }
 
+      WALBERLA_LOG_INFO_ON_ROOT( "    refining..." );
       // Refine all selected primitives.
       storage->refinementAndCoarseningHanging( refine, coarsen );
+      WALBERLA_LOG_INFO_ON_ROOT( "    done." );
 
-      writeDomainPartitioningVTK(
-          *storage, "../../output/", "ARHangingNodesStorageTest_IndNeighTest_Domain_Refinement_" + std::to_string( i ) );
+      if ( writeVTK )
+      {
+         writeDomainPartitioningVTK(
+             *storage, "../../output/", "ARHangingNodesStorageTest_IndNeighTest_Domain_Refinement_" + std::to_string( i ) );
+      }
 
       // Check neighborhood.
       for ( const auto& faceID : storage->getFaceIDs() )
@@ -159,22 +238,73 @@ void indirectNeighborhoodTest()
                nFaceNeighbors.push_back( nFaceNFaceID );
             }
 
-            WALBERLA_LOG_INFO_ON_ROOT( "Face (pid = " << faceID << ") neighbors: " );
-            for ( const auto& f : faceNeighbors )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( "  " << f );
-            }
-
-            WALBERLA_LOG_INFO_ON_ROOT( "nFace (pid = " << nFaceID << ") neighbors: " );
-            for ( const auto& f : nFaceNeighbors )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( "  " << f );
-            }
-
-            WALBERLA_LOG_INFO_ON_ROOT( "" );
-
             WALBERLA_CHECK( algorithms::contains( nFaceNeighbors, faceID ), "Face is not a neighbor of its neighbors." );
          }
+
+         faceNeighbors.clear();
+         for ( const auto& [tmp0, nFaces] : face->getIndirectTopLevelNeighborFaceIDsOverEdges() )
+         {
+            for ( const auto& nFaceID : nFaces )
+            {
+               faceNeighbors.push_back( nFaceID );
+               const auto nface = storage->getFace( nFaceID );
+
+               WALBERLA_CHECK( !nface->hasChildren() );
+
+               std::vector< PrimitiveID > nFaceNeighbors;
+               for ( const auto& [tmp1, nFacesNFaces] : nface->getIndirectTopLevelNeighborFaceIDsOverEdges() )
+               {
+                  for ( const auto& nFaceNFaceID : nFacesNFaces )
+                  {
+                     WALBERLA_CHECK( nFaceNFaceID != nFaceID );
+                     nFaceNeighbors.push_back( nFaceNFaceID );
+                  }
+               }
+
+               WALBERLA_CHECK( algorithms::contains( nFaceNeighbors, faceID ), "Face is not a neighbor of its neighbors." );
+            }
+         }
+      }
+   }
+}
+
+void numChildrenTest()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "+ numChildrenTest: checking number of child primitives" );
+
+   const uint_t numLocalRefinements = 4;
+   const bool   writeVTK            = false;
+
+   // Number of top level faces.
+   std::map< uint_t, uint_t > nFaces = { { 0, 1 }, { 1, 4 }, { 2, 7 }, { 3, 10 } };
+
+   for ( uint_t refinement = 0; refinement < numLocalRefinements; refinement++ )
+   {
+      MeshInfo              meshInfo = MeshInfo::meshFaceChain( 1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+      // Refine only a single macro of the storage.
+      for ( uint_t r = 0; r < refinement; r++ )
+      {
+         auto                       faceIDs         = storage->getFaceIDs();
+         std::vector< PrimitiveID > faceIDsToRefine = { { *faceIDs.begin() } };
+         storage->refinementAndCoarseningHanging( faceIDsToRefine, {} );
+      }
+
+      const auto numberOfGlobalFaces = storage->getNumberOfGlobalFaces();
+      WALBERLA_CHECK_EQUAL( nFaces[refinement], numberOfGlobalFaces );
+
+      for ( const auto& faceID : storage->getFaceIDs() )
+      {
+         auto face = storage->getFace( faceID );
+         WALBERLA_CHECK( !face->hasChildren() );
+      }
+
+      if ( writeVTK )
+      {
+         writeDomainPartitioningVTK( storage, "../../output", "numChildrenTest_Domain_" + std::to_string( refinement ) );
       }
    }
 }
@@ -190,5 +320,7 @@ int main( int argc, char* argv[] )
    using namespace hyteg;
 
    smokeTest();
+   balanceTest();
    indirectNeighborhoodTest();
+   numChildrenTest();
 }
