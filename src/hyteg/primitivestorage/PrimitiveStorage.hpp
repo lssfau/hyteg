@@ -773,10 +773,17 @@ void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&
 {
    dataID = generateDataID< DataType, Primitive >();
    PrimitiveMap primitives;
-   primitives.insert( getVertices().begin(), getVertices().end() );
-   primitives.insert( getEdges().begin(), getEdges().end() );
-   primitives.insert( getFaces().begin(), getFaces().end() );
-   primitives.insert( getCells().begin(), getCells().end() );
+
+   auto vertices = getVertices();
+   auto edges    = getEdges();
+   auto faces    = getFaces();
+   auto cells    = getCells();
+
+   primitives.insert( vertices.begin(), vertices.end() );
+   primitives.insert( edges.begin(), edges.end() );
+   primitives.insert( faces.begin(), faces.end() );
+   primitives.insert( cells.begin(), cells.end() );
+   
    addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 
