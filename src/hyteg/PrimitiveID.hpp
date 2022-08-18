@@ -103,7 +103,7 @@ class PrimitiveID
 
    /// Creates an invalid PrimitiveID.
    inline PrimitiveID()
-   : id_( uint64_c( 0 ) )
+   : id_( IDType( 0 ) )
    {}
 
    /// Creates 2**BITS_REFINEMENT new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement.
@@ -176,7 +176,7 @@ class PrimitiveID
    void fromBuffer( Buffer_T& buffer );
 
  private:
-   uint64_t id_;
+   IDType id_;
 };
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const

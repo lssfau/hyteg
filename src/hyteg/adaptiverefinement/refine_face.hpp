@@ -57,7 +57,7 @@ namespace adaptiveRefinement {
    @return sub-elements
    */
 inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Point3D >&     vertices,
-                                                                std::vector< uint_t >&      geometryMap,
+                                                                std::vector< PrimitiveID >& geometryMap,
                                                                 std::vector< uint_t >&      boundaryFlag,
                                                                 std::shared_ptr< Simplex2 > face )
 {
