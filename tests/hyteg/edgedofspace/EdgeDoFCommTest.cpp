@@ -106,7 +106,9 @@ void check1tet( bool bufferComm = false )
    Cell& cell     = *( storage->getCell( PrimitiveID::create( 14 ) ) );
    int*  cellData = cell.getData( x.getCellDataID() )->getPointer( level );
 
-   auto edgeIt    = storage->getEdges().begin();
+   auto edges = storage->getEdges();
+
+   auto edgeIt    = edges.begin();
    auto edge0     = ( *edgeIt ).second;
    int* edge0Data = edge0.get()->getData( x.getEdgeDataID() )->getPointer( level );
 
