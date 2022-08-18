@@ -90,7 +90,7 @@ class PrimitiveID
    typedef std::vector< PrimitiveID >::const_iterator const_iterator;
 
    /// Creates a unique coarse level PrimitiveID safely.
-   inline static PrimitiveID create( const IDType& coarseID )
+   inline static PrimitiveID create( const uint64_t& coarseID )
    {
       WALBERLA_CHECK_LESS( walberla::math::uintMSBPosition( coarseID ),
                            BITS_COARSE_LEVEL_ID + 1,
@@ -113,7 +113,7 @@ class PrimitiveID
       const auto                 numChildren = walberla::math::uintPow2( BITS_REFINEMENT );
       for ( uint_t i = 0; i < numChildren; i++ )
       {
-         auto childID = ( id_ << BITS_REFINEMENT ) | i;
+         auto        childID = ( id_ << BITS_REFINEMENT ) | i;
          PrimitiveID childPID;
          childPID.id_ = childID;
          children.push_back( childPID );
@@ -127,6 +127,13 @@ class PrimitiveID
    }
 
    inline bool hasAncestors() const { return numAncestors() > 0; }
+
+   inline PrimitiveID getParent() const
+   {
+      PrimitiveID pid;
+      pid.id_ = id_ >> BITS_REFINEMENT;
+      return pid;
+   }
 
    bool operator<( const PrimitiveID& rhs ) const
    {
