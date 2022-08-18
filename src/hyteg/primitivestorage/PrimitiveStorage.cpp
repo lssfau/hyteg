@@ -465,7 +465,7 @@ PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
 uint_t PrimitiveStorage::getCurrentLocalMaxRefinement() const
 {
    // We assume here that all primitive maps have the same refinements (which they should have!).
-   return vertices_.size();
+   return vertices_.size() - 1;
 }
 
 /// \brief Returns the currently maximum number that a primitive is refined globally (involves global reduction).
