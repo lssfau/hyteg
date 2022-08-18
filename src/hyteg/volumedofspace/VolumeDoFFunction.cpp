@@ -69,6 +69,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
 
             for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
             {
+               // TODO: adapt size here for mesh refinement
                const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
                functionGLMemory->addData( level, numGLScalars, ValueType( 0 ) );
             }
@@ -89,9 +90,17 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create three data IDs for all faces.
-      storage_->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroFaceGL0Data" );
-      storage_->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroFaceGL1Data" );
-      storage_->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroFaceGL2Data" );
+      PrimitiveDataID< FunctionMemory< ValueType >, Face > fgldid0;
+      PrimitiveDataID< FunctionMemory< ValueType >, Face > fgldid1;
+      PrimitiveDataID< FunctionMemory< ValueType >, Face > fgldid2;
+
+      storage_->addFaceData( fgldid0, dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
+      storage_->addFaceData( fgldid1, dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
+      storage_->addFaceData( fgldid2, dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
+
+      faceGhostLayerDataIDs_[0] = fgldid0;
+      faceGhostLayerDataIDs_[1] = fgldid1;
+      faceGhostLayerDataIDs_[2] = fgldid2;
 
       // Allocate the DoFs.
       for ( auto& it : storage_->getFaces() )
@@ -110,15 +119,53 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          }
 
          // Allocating ghost-layer memory only where necessary.
-         for ( const auto& [localEdgeID, npid] : face->getIndirectNeighborFaceIDsOverEdges() )
+         // The GL-level corresponds to the refinement level of the GL elements.
+         // It has nothing to do with the macro refinement. This means depending on the neighboring macro refinement in case
+         // of AMR applications, GL access must be performed using the respective level.
+         for ( const auto& [localEdgeID, npids] : face->getIndirectTopLevelNeighborFaceIDsOverEdges() )
          {
-            WALBERLA_UNUSED( npid );
+            // The neighboring macros are either
+            // a) on the same level (then there is only 1 macro)
+            // b) on a coarser level (then there is also only 1 macro)
+            // c) on a finer level (then there are multiple macros)
+            // Since we only allocate a single ghost layer for each side regardless of the number of neighboring macros,
+            // we can simply use any PID of the list and query the refinement level.
+            auto npid = npids[0];
 
             FunctionMemory< ValueType >* functionGLMemory = face->getData( faceGhostLayerDataIDs_[localEdgeID] );
 
-            for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+            // We potentially need to allocate more ghost-layers than minLevel and maxLevel indicate due to AMR refinement.
+            // If the neighboring primitive is refined we must allocate from minLevel + 1 to maxLevel + 1.
+            // If the neighboring primitive is coaser we must allocate from minLevel - 1 to maxLevel - 1.
+            const auto primitiveLevel   = storage_->getRefinementLevel( pid );
+            const auto glPrimitiveLevel = storage_->getRefinementLevel( npid );
+
+            if ( glPrimitiveLevel == primitiveLevel - 1 || glPrimitiveLevel == primitiveLevel + 1 )
             {
+               WALBERLA_CHECK_GREATER_EQUAL(
+                   minLevel_,
+                   1,
+                   "AMR requires a minimum (micro-)refinement level of 1. Please change the minLevel parameter during function allocation." );
+               WALBERLA_CHECK_GREATER_EQUAL(
+                   maxLevel_,
+                   1,
+                   "AMR requires a minimum (micro-)refinement level of 1. Please change the maxLevel parameter during function allocation." );
+            }
+            else
+            {
+               WALBERLA_CHECK_EQUAL( glPrimitiveLevel,
+                                     primitiveLevel,
+                                     "2:1 balance does not seem to hold. Cannot work with that in VolumeDoFFunction." );
+            }
+
+            const uint_t allocationLevelOffset = glPrimitiveLevel - primitiveLevel;
+
+            for ( uint_t level = minLevel_ + allocationLevelOffset; level <= maxLevel_ + allocationLevelOffset; level++ )
+            {
+               // Handling ghost-layer size for AMR
+
                const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microedges_per_edge( level );
+
                functionGLMemory->addData( level, numGLScalars, ValueType( 0 ) );
             }
          }
