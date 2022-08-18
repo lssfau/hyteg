@@ -2478,6 +2478,8 @@ void PrimitiveStorage::queryRefinementAndCoarseningHanging( const std::vector< P
    }
 
    // TODO: implement coarsening
+
+   WALBERLA_UNUSED( volumePIDsCoarsen );
 }
 
 void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
