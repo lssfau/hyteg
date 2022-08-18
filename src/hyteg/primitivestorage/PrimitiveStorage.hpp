@@ -159,7 +159,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    uint_t getCurrentGlobalMaxRefinement() const;
 
    /// \brief Returns the refinement level of the corresponding primitive.
-   uint_t getRefinementLevel( const PrimitiveID & pid ) const;
+   uint_t getRefinementLevel( const PrimitiveID& pid ) const;
 
    /// @name \ref Primitive access methods
    /// Various methods to obtain primitives or IDs.
@@ -295,6 +295,9 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns a vector of all locally existing cells without children.
    std::vector< PrimitiveID > getCellIDs() const;
+
+   /// Returns a vector of all locally existing volumes (2D: faces, 3D colls) without children.
+   std::vector< PrimitiveID > getVolumeIDs() const;
 
    /// Fills the passed vector with the IDs of the locally existing primitives without children.
    void getPrimitiveIDs( std::vector< PrimitiveID >& primitiveIDs ) const;
@@ -770,10 +773,10 @@ void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&
 {
    dataID = generateDataID< DataType, Primitive >();
    PrimitiveMap primitives;
-   primitives.insert( vertices_.begin(), vertices_.end() );
-   primitives.insert( edges_.begin(), edges_.end() );
-   primitives.insert( faces_.begin(), faces_.end() );
-   primitives.insert( cells_.begin(), cells_.end() );
+   primitives.insert( getVertices().begin(), getVertices().end() );
+   primitives.insert( getEdges().begin(), getEdges().end() );
+   primitives.insert( getFaces().begin(), getFaces().end() );
+   primitives.insert( getCells().begin(), getCells().end() );
    addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 

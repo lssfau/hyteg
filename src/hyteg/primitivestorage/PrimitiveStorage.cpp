@@ -1108,6 +1108,20 @@ std::vector< PrimitiveID > PrimitiveStorage::getCellIDs() const
    return ids;
 }
 
+std::vector< PrimitiveID > PrimitiveStorage::getVolumeIDs() const
+{
+   std::vector< PrimitiveID > ids;
+   if ( !hasGlobalCells() )
+   {
+      getFaceIDs( ids );
+   }
+   else
+   {
+      getCellIDs( ids );
+   }
+   return ids;
+}
+
 void PrimitiveStorage::getPrimitiveIDs( std::vector< PrimitiveID >& primitiveIDs ) const
 {
    primitiveIDs.clear();
@@ -2402,10 +2416,68 @@ void PrimitiveStorage::queryRefinementAndCoarseningHanging( const std::vector< P
    volumePIDsRefineResult.clear();
    volumePIDsCoarsenResult.clear();
 
-   // TODO: fix 2:1 balance
-   // TODO: implement coarsening
+   //////////////////
+   /// Refinement ///
+   //////////////////
 
-   volumePIDsRefineResult = volumePIDsRefine;
+   WALBERLA_CHECK_EQUAL(
+       walberla::mpi::MPIManager::instance()->numProcesses(), 1, "2:1 constraint not implemented for the parallel case." );
+
+   // Building a map with all target levels for all local primitives.
+   std::map< PrimitiveID, uint_t > targetLevels;
+
+   for ( const auto& pid : getVolumeIDs() )
+   {
+      targetLevels[pid] = getRefinementLevel( pid );
+   }
+
+   for ( const auto& pid : volumePIDsRefine )
+   {
+      WALBERLA_CHECK_GREATER( targetLevels.count( pid ), 0 );
+      targetLevels[pid]++;
+   }
+
+   bool constraintFulfilled = false;
+
+   while ( !constraintFulfilled )
+   {
+      constraintFulfilled = true;
+
+      if ( !hasGlobalCells() )
+      {
+         for ( const auto& [faceID, targetLevel] : targetLevels )
+         {
+            auto face = getFace( faceID );
+
+            for ( const auto& neighborFaceID : face->getIndirectTopLevelNeighborFaceIDsOverVertices() )
+            {
+               WALBERLA_CHECK( faceID != neighborFaceID );
+               auto levelNeighbor = targetLevels[neighborFaceID];
+
+               if ( levelNeighbor + 1 < targetLevel )
+               {
+                  targetLevels[neighborFaceID]++;
+                  constraintFulfilled = false;
+               }
+            }
+         }
+      }
+      else
+      {
+         WALBERLA_ABORT( "Not implemented in 3D." );
+      }
+   }
+
+   for ( const auto& [pid, targetLevel] : targetLevels )
+   {
+      if ( targetLevel > getRefinementLevel( pid ) )
+      {
+         WALBERLA_CHECK_EQUAL( targetLevel, getRefinementLevel( pid ) + 1 );
+         volumePIDsRefineResult.push_back( pid );
+      }
+   }
+
+   // TODO: implement coarsening
 }
 
 void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
@@ -2728,11 +2800,12 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          auto fineVertexVertex1 = getVertex( coarseVertex1->childVertices()[0] );
          auto fineVertexVertex2 = getVertex( coarseVertex2->childVertices()[0] );
 
-         // The fine face vertex IDs is all we need to specify individually, the remaining code is identical for all 4 faces.
+         // You better do not change this order - we need to point to specific child faces later!
          std::array< PrimitiveID, 4 > face_face_ids( { face_gray_0_idx, face_gray_1_idx, face_gray_2_idx, face_blue_idx } );
 
          std::array< std::array< PrimitiveID, 3 >, 4 > fine_face_vertices;
 
+         // You better do not change this order! This is as defined by Bey to ensure proper congruence after successive refinement.
          fine_face_vertices[0] = { { fineVertexVertex0->getID(), fineVertexEdge0->getID(), fineVertexEdge1->getID() } };
          fine_face_vertices[1] = { { fineVertexEdge0->getID(), fineVertexVertex1->getID(), fineVertexEdge2->getID() } };
          fine_face_vertices[2] = { { fineVertexEdge1->getID(), fineVertexEdge2->getID(), fineVertexVertex2->getID() } };
@@ -2769,37 +2842,37 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
 
             if ( e0v0 == v0 )
             {
-               WALBERLA_ASSERT( e0v1 == v1 );
+               WALBERLA_CHECK( e0v1 == v1 );
                edgeOrientation[0] = 1;
             }
             else
             {
-               WALBERLA_ASSERT( e0v0 == v1 );
-               WALBERLA_ASSERT( e0v1 == v0 );
+               WALBERLA_CHECK( e0v0 == v1 );
+               WALBERLA_CHECK( e0v1 == v0 );
                edgeOrientation[0] = -1;
             }
 
             if ( e1v0 == v0 )
             {
-               WALBERLA_ASSERT( e1v1 == v2 );
+               WALBERLA_CHECK( e1v1 == v2 );
                edgeOrientation[1] = 1;
             }
             else
             {
-               WALBERLA_ASSERT( e1v0 == v2 );
-               WALBERLA_ASSERT( e1v1 == v0 );
+               WALBERLA_CHECK( e1v0 == v2 );
+               WALBERLA_CHECK( e1v1 == v0 );
                edgeOrientation[1] = -1;
             }
 
             if ( e2v0 == v1 )
             {
-               WALBERLA_ASSERT( e2v1 == v2 );
+               WALBERLA_CHECK( e2v1 == v2 );
                edgeOrientation[2] = 1;
             }
             else
             {
-               WALBERLA_ASSERT( e2v0 == v2 );
-               WALBERLA_ASSERT( e2v1 == v1 );
+               WALBERLA_CHECK( e2v0 == v2 );
+               WALBERLA_CHECK( e2v1 == v1 );
                edgeOrientation[2] = -1;
             }
 
@@ -2845,6 +2918,9 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
       {
          // 3D
          WALBERLA_ABORT( "Refinement not implemented in 3D." );
+
+         // TODO: the micro-volumes on the refined macros MUST eventually match the micros on a once refined macro!!!!!!!
+         // TODO: also - consult the AMR ordering documentation!
       }
 
       // TODO: update neighborhood and neighbor processes!!! go via coarse level neighborhood since refinement is process local
@@ -2853,7 +2929,19 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
       // TODO: cleanup: remove empty refinement levels from maps
    }
 
-   // Updating indirect volume neighborhood.
+   // Clearing and rebuilding indirect volume neighborhood.
+   // We only clear the indirect top-level neighborhood since that one changes during refinement.
+   for ( const auto& [level, faceMap] : faces_ )
+   {
+      for ( auto& [faceID, face] : faceMap )
+      {
+         face->indirectTopLevelNeighborFaceIDsOverVertices_.clear();
+         face->indirectTopLevelNeighborFaceIDsOverEdges_.clear();
+      }
+   }
+
+   // Equal-level neighborhood.
+   // This need to be set for all new volume primitives.
    for ( const auto& coarseVolumeID : volumePIDsRefineIncludingNeighborhood )
    {
       auto coarseFace = getFace( coarseVolumeID );
@@ -2868,11 +2956,16 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
             {
                auto nFace = getFace( neighborFaceID );
 
-               if ( neighborFaceID != fineFaceID &&
-                    !algorithms::contains( fineFace->indirectNeighborFaceIDsOverVertices_, neighborFaceID ) )
+               if ( neighborFaceID != fineFaceID )
                {
-                  fineFace->indirectNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
-                  nFace->indirectNeighborFaceIDsOverVertices_.push_back( fineFaceID );
+                  if ( !algorithms::contains( fineFace->indirectNeighborFaceIDsOverVertices_, neighborFaceID ) )
+                  {
+                     fineFace->indirectNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+                     if ( !algorithms::contains( nFace->indirectNeighborFaceIDsOverVertices_, fineFaceID ) )
+                     {
+                        nFace->indirectNeighborFaceIDsOverVertices_.push_back( fineFaceID );
+                     }
+                  }
                }
             }
          }
@@ -2894,6 +2987,184 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
          }
       }
    }
+
+   // Top-level neighborhood.
+   // This is fully reset, and we now rebuild it for all top-level volumes.
+   for ( const auto& fineFaceID : getFaceIDs() )
+   {
+      auto fineFace = getFace( fineFaceID );
+
+      WALBERLA_CHECK( !fineFace->hasChildren(), "This face was just refined and therefore should not have any children." );
+
+      // Top-level neighbors over vertices.
+      for ( const auto& neighborVertexID : fineFace->neighborVertices() )
+      {
+         // Go over neighborhood of this vertex, its child and parent if available.
+         auto vertexMid = getVertex( neighborVertexID );
+
+         // Finer vertices
+         if ( vertexMid->hasChildren() )
+         {
+            auto vertexFineID = vertexMid->childVertices()[0];
+            WALBERLA_CHECK( vertexExistsLocally( vertexFineID ) || vertexExistsInNeighborhood( vertexFineID ) );
+            auto vertexFine = getVertex( vertexFineID );
+
+            for ( const auto& neighborFaceID : vertexFine->neighborFaces() )
+            {
+               WALBERLA_CHECK( neighborFaceID != fineFaceID );
+               auto nFace = getFace( neighborFaceID );
+               WALBERLA_CHECK( !nFace->hasChildren(), "This would violate 2:1 balance." );
+
+               if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverVertices_, neighborFaceID ) )
+               {
+                  fineFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+               }
+
+               if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverVertices_, fineFaceID ) )
+               {
+                  nFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( fineFaceID );
+               }
+            }
+         }
+
+         // Equal level
+         for ( const auto& neighborFaceID : vertexMid->neighborFaces() )
+         {
+            auto nFace = getFace( neighborFaceID );
+            if ( neighborFaceID != fineFaceID && !nFace->hasChildren() )
+            {
+               if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverVertices_, neighborFaceID ) )
+               {
+                  fineFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+               }
+
+               if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverVertices_, fineFaceID ) )
+               {
+                  nFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( fineFaceID );
+               }
+            }
+         }
+
+         // Coarser vertex
+         if ( vertexMid->hasParent() )
+         {
+            auto vertexCoarseID = vertexMid->parent();
+
+            // The parent of the neighbor vertex of the newly created fine face might not be a vertex.
+            if ( vertexExistsLocally( vertexCoarseID ) || vertexExistsInNeighborhood( vertexCoarseID ) )
+            {
+               auto vertexCoarse = getVertex( vertexCoarseID );
+
+               for ( const auto& neighborFaceID : vertexCoarse->neighborFaces() )
+               {
+                  WALBERLA_CHECK( neighborFaceID != fineFaceID );
+                  auto nFace = getFace( neighborFaceID );
+                  if ( !nFace->hasChildren() )
+                  {
+                     if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverVertices_, neighborFaceID ) )
+                     {
+                        fineFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( neighborFaceID );
+                     }
+
+                     if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverVertices_, fineFaceID ) )
+                     {
+                        nFace->indirectTopLevelNeighborFaceIDsOverVertices_.push_back( fineFaceID );
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      // Top-level neighbors over edges.
+
+      for ( const auto& neighborEdgeID : fineFace->neighborEdges() )
+      {
+         // Go over neighborhood of this edge, its child and parent if available.
+         auto edgeMid = getEdge( neighborEdgeID );
+
+         auto localEdgeID = fineFace->edge_index( neighborEdgeID );
+
+         // Finer edges
+         if ( edgeMid->hasChildren() )
+         {
+            for ( const auto& childEdgeID : edgeMid->childEdges() )
+            {
+               auto edgeFine = getEdge( childEdgeID );
+               for ( const auto& neighborFaceID : edgeFine->neighborFaces() )
+               {
+                  WALBERLA_CHECK( neighborFaceID != fineFaceID );
+                  auto nFace = getFace( neighborFaceID );
+                  WALBERLA_CHECK( !nFace->hasChildren(), "This would violate 2:1 balance." );
+
+                  if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID], neighborFaceID ) )
+                  {
+                     fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID].push_back( neighborFaceID );
+                  }
+
+                  auto nLocalEdgeID = nFace->edge_index( childEdgeID );
+                  if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID], fineFaceID ) )
+                  {
+                     nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID].push_back( fineFaceID );
+                  }
+               }
+            }
+         }
+
+         // Equal level
+         for ( const auto& neighborFaceID : edgeMid->neighborFaces() )
+         {
+            auto nFace = getFace( neighborFaceID );
+            if ( neighborFaceID != fineFaceID && !nFace->hasChildren() )
+            {
+               if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID], neighborFaceID ) )
+               {
+                  fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID].push_back( neighborFaceID );
+               }
+
+               auto nLocalEdgeID = nFace->edge_index( neighborEdgeID );
+               if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID], fineFaceID ) )
+               {
+                  nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID].push_back( fineFaceID );
+               }
+            }
+         }
+
+         // Coarser edge
+         if ( edgeMid->hasParent() )
+         {
+            auto edgeCoarseID = edgeMid->parent();
+
+            // The parent of the neighbor vertex of the newly created fine face might not be a vertex.
+            if ( edgeExistsLocally( edgeCoarseID ) || edgeExistsInNeighborhood( edgeCoarseID ) )
+            {
+               auto edgeCoarse = getEdge( edgeCoarseID );
+
+               for ( const auto& neighborFaceID : edgeCoarse->neighborFaces() )
+               {
+                  WALBERLA_CHECK( neighborFaceID != fineFaceID );
+                  auto nFace = getFace( neighborFaceID );
+                  if ( !nFace->hasChildren() )
+                  {
+                     if ( !algorithms::contains( fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID],
+                                                 neighborFaceID ) )
+                     {
+                        fineFace->indirectTopLevelNeighborFaceIDsOverEdges_[localEdgeID].push_back( neighborFaceID );
+                     }
+
+                     auto nLocalEdgeID = nFace->edge_index( edgeCoarseID );
+                     if ( !algorithms::contains( nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID], fineFaceID ) )
+                     {
+                        nFace->indirectTopLevelNeighborFaceIDsOverEdges_[nLocalEdgeID].push_back( fineFaceID );
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   wasModified();
 }
 
 } // namespace hyteg
