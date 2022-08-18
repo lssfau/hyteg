@@ -224,6 +224,12 @@ waLBerla_execute_test(NAME DGIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 
+waLBerla_compile_test(FILES Indexing/MicroCellFromMicroVerticesTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroCellFromMicroVerticesTest)
+
+waLBerla_compile_test(FILES Indexing/MicroVertexIdxMacroRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroVertexIdxMacroRefinementTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest>)
@@ -823,3 +829,6 @@ waLBerla_execute_test(NAME PrintInfoTest)
 ## adaptive refinement w/ hanging nodes
 waLBerla_compile_test(FILES adaptiverefinementhangingnodes/ARHangingNodesStorageTest.cpp)
 waLBerla_execute_test(NAME ARHangingNodesStorageTest)
+
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/MacroVolumeRefinementMicroIdxConversionTest.cpp)
+waLBerla_execute_test(NAME MacroVolumeRefinementMicroIdxConversionTest)
