@@ -157,9 +157,117 @@ void VolumeDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                  
    WALBERLA_ABORT( "Macro-face to macro-face packing not implemented!" );
 }
 
+static void
+    startAndIncrm2D( uint_t idx0, uint_t idx1, uint_t width, hyteg::indexing::Index& start, hyteg::indexing::Index& incrX )
+{
+   using hyteg::indexing::Index;
+   using hyteg::indexing::tup4;
+
+   const idx_t w( width );
+
+   switch ( tup4( idx0, idx1 ) )
+   {
+      // Full edge
+
+   case tup4( 0, 1 ):
+      start = Index( 0, 0, 0 );
+      incrX = Index( 1, 0, 0 );
+      break;
+   case tup4( 1, 0 ):
+      start = Index( w - 1, 0, 0 );
+      incrX = Index( -1, 0, 0 );
+      break;
+
+   case tup4( 0, 2 ):
+      start = Index( 0, 0, 0 );
+      incrX = Index( 0, 1, 0 );
+      break;
+   case tup4( 2, 0 ):
+      start = Index( 0, w - 1, 0 );
+      incrX = Index( 0, -1, 0 );
+      break;
+
+   case tup4( 1, 2 ):
+      start = Index( w - 1, 0, 0 );
+      incrX = Index( -1, 1, 0 );
+      break;
+   case tup4( 2, 1 ):
+      start = Index( 0, w - 1, 0 );
+      incrX = Index( 1, -1, 0 );
+      break;
+
+      // Half edge
+
+   case tup4( 0, 4 ):
+      start = Index( 0, 0, 0 );
+      incrX = Index( 1, 0, 0 );
+      break;
+   case tup4( 4, 0 ):
+      start = Index( w / 2 - 1, 0, 0 );
+      incrX = Index( -1, 0, 0 );
+      break;
+
+   case tup4( 0, 5 ):
+      start = Index( 0, 0, 0 );
+      incrX = Index( 0, 1, 0 );
+      break;
+   case tup4( 5, 0 ):
+      start = Index( 0, w / 2 - 1, 0 );
+      incrX = Index( 0, -1, 0 );
+      break;
+
+   case tup4( 1, 4 ):
+      start = Index( w - 1, 0, 0 );
+      incrX = Index( 0, -1, 0 );
+      break;
+   case tup4( 4, 1 ):
+      start = Index( w / 2, 0, 0 );
+      incrX = Index( 1, 0, 0 );
+      break;
+
+   case tup4( 1, 6 ):
+      start = Index( w - 1, 0, 0 );
+      incrX = Index( -1, 1, 0 );
+      break;
+   case tup4( 6, 1 ):
+      start = Index( w / 2, w / 2 - 1, 0 );
+      incrX = Index( 1, -1, 0 );
+      break;
+
+   case tup4( 2, 5 ):
+      start = Index( 0, w - 1, 0 );
+      incrX = Index( 0, -1, 0 );
+      break;
+   case tup4( 5, 2 ):
+      start = Index( 0, w / 2, 0 );
+      incrX = Index( 0, 1, 0 );
+      break;
+
+   case tup4( 2, 6 ):
+      start = Index( 0, w - 1, 0 );
+      incrX = Index( 1, -1, 0 );
+      break;
+   case tup4( 6, 2 ):
+      start = Index( w / 2 - 1, w / 2, 0 );
+      incrX = Index( -1, 1, 0 );
+      break;
+
+   default:
+      WALBERLA_ABORT( "Invalid local vertex pair " << idx0 << ", " << idx1 << "." );
+   }
+}
+
 template < typename ValueType >
 void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sender, Face* receiver ) const
 {
+   /// The idea is to first prepare two face boundary iterators: one that iterates on the sender side and one on the receiver
+   /// side. These iterators are prepared for all three cases of refinement. A helper function yields the starting (micro-face)
+   /// index and increment-"direction" depending on the rotation and portion of the boundary layer to send/receive.
+   /// After the iterators are set up we simply let them do their work. Details below.
+
+   using hyteg::indexing::Index;
+   using hyteg::indexing::tup4;
+
    this->storage_->getTimingTree()->start( "DG - Face to Face" );
 
    WALBERLA_CHECK_GREATER(
@@ -170,60 +278,258 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
    uint_t senderLocalEdgeID   = std::numeric_limits< uint_t >::max();
    uint_t receiverLocalEdgeID = std::numeric_limits< uint_t >::max();
 
-   for ( const auto& [edgeID, npid] : sender->getIndirectNeighborFaceIDsOverEdges() )
+   bool foundSender = false;
+   for ( const auto& [edgeID, neighborFaces] : sender->getIndirectTopLevelNeighborFaceIDsOverEdges() )
    {
-      if ( receiver->getID() == npid )
+      for ( const auto& npid : neighborFaces )
       {
-         senderLocalEdgeID = edgeID;
+         if ( receiver->getID() == npid )
+         {
+            senderLocalEdgeID = edgeID;
+            foundSender       = true;
+            break;
+         }
+      }
+
+      if ( foundSender )
+      {
          break;
       }
    }
 
    WALBERLA_ASSERT_LESS_EQUAL( senderLocalEdgeID, 2, "Couldn't find receiver face in neighborhood." );
 
-   for ( const auto& [edgeID, npid] : receiver->getIndirectNeighborFaceIDsOverEdges() )
+   bool foundReceiver = false;
+   for ( const auto& [edgeID, neighborFaces] : receiver->getIndirectTopLevelNeighborFaceIDsOverEdges() )
    {
-      if ( sender->getID() == npid )
+      for ( const auto& npid : neighborFaces )
       {
-         receiverLocalEdgeID = edgeID;
+         if ( sender->getID() == npid )
+         {
+            receiverLocalEdgeID = edgeID;
+            foundReceiver       = true;
+            break;
+         }
+      }
+
+      if ( foundReceiver )
+      {
          break;
       }
    }
 
    WALBERLA_ASSERT_LESS_EQUAL( receiverLocalEdgeID, 2, "Couldn't find sender face in neighborhood." );
 
-   // Do we need to invert the iteration direction?
-   // We simply check the orientation of the interface macro-edge from both sides.
-   // If the orientation does not change or if it changes twice, we do not need to switch up the iteration.
-
-   const auto senderEdgeOrienatation   = sender->getEdgeOrientation()[senderLocalEdgeID];
-   const auto receiverEdgeOrienatation = receiver->getEdgeOrientation()[receiverLocalEdgeID];
-   const auto finalSenderOrientation   = senderEdgeOrienatation * receiverEdgeOrienatation;
-
-   const auto numMicroVolumes = levelinfo::num_microedges_per_edge( level_ );
+   const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
+   uint_t     width, widthGl, levelGl, levelIdxRecv;
 
    const ValueType* faceData = sender->getData( faceInnerDataID_ )->getPointer( level_ );
-   ValueType*       glData   = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ );
+   uint_t           glDataSize;
+   ValueType*       glData;
 
-   const auto faceBoundaryDirection = hyteg::indexing::getFaceBoundaryDirection( senderLocalEdgeID, finalSenderOrientation );
-   const auto ndofs                 = numScalarsPerPrimitive_.at( sender->getID() );
-
-   uint_t glMicroVolumeIdx = 0;
-
-   for ( const auto& it : hyteg::indexing::FaceBoundaryIterator( numMicroVolumes, faceBoundaryDirection, 0 ) )
+   // We now collect the PrimitiveIDs of the vertices that span the interface on the sender side.
+   auto                  senderLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( senderLocalEdgeID );
+   std::vector< uint_t > senderLocalVertexIDs;
+   std::vector< PrimitiveID > vertexPIDs;
+   for ( auto slvid : senderLocalVertexIDsSet )
    {
+      senderLocalVertexIDs.push_back( slvid );
+      vertexPIDs.push_back( sender->neighborVertices().at( slvid ) );
+   }
+
+   // About to prepare the correct iterators depending on the neighboring primitive refinement level.
+   // Sending only data that is required btw.
+   Index                                                    startSend, incrmSend;
+   Index                                                    startRecv, incrmRecv;
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorSenderPtr;
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorReceiverPtr;
+
+   if ( storage_->getRefinementLevel( sender->getID() ) == storage_->getRefinementLevel( receiver->getID() ) )
+   {
+      // Same refinement level - no AMR handling required.
+
+      // We iterate in standard direction on the sender side.
+      // This means iteration from the smallest to second-smallest index in the inner loop, to the largest in the outer loop.
+
+      // On the receiver side we need to find the corresponding local vertex IDs.
+      // The iteration is performed with the face boundary iterator. On the receiver side, we need to write to the ghost-layer,
+      // which we can achieve via extended access by setting one of the logical cell indices to -1.
+      // That index depends on the local face ID on the receiver side.
+
+      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ );
+      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ );
+
+      levelGl      = level_;
+      width        = levelinfo::num_microedges_per_edge( level_ );
+      widthGl      = levelinfo::num_microedges_per_edge( levelGl );
+      levelIdxRecv = level_;
+      WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
+
+      startAndIncrm2D( senderLocalVertexIDs[0], senderLocalVertexIDs[1], width, startSend, incrmSend );
+
+      faceIteratorSenderPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
+
+      // Sorting the receiver local vertex IDs correctly by matching the vertex primitive IDs.
+      std::vector< uint_t > receiverLocalVertexIDs;
+      for ( auto vpid : vertexPIDs )
+      {
+         receiverLocalVertexIDs.push_back( receiver->vertex_index( vpid ) );
+      }
+
+      startAndIncrm2D( receiverLocalVertexIDs[0], receiverLocalVertexIDs[1], width, startRecv, incrmRecv );
+
+      faceIteratorReceiverPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
+   }
+   else if ( storage_->getRefinementLevel( sender->getID() ) == storage_->getRefinementLevel( receiver->getID() ) + 1 )
+   {
+      // AMR: fine-to-coarse.
+      // We need to send all data and then rotate and put it to the correct location on the receiver side.
+      // This will only fill one part of the ghost-layer on the receiver side (half in 2D, quarter in 3D).
+
+      // Find receiver local "pseudo" vertex IDs (in 2D there are 3 of those in total, we need to find the correct 2 of them,
+      // in 3D there are 6, we need to find 3), numbering of those pseudo IDs is
+      // [localVertex0 = 0, localVertex1 = 1, localVertex2 = 2, localVertex3 = 3,  localEdge0 = 4, localEdge1 = 5,
+      //  localEdge2 = 6, ..., localEdge5 = 9]
+
+      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ + 1 );
+      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ + 1 );
+
+      std::vector< uint_t > receiverLocalPseudoVertexIDs;
+      for ( auto vpid : vertexPIDs )
+      {
+         // On the receiver side the macro is coarser, so the PID of the fine neighbor are children of some locally neighboring
+         // PIDs.
+         const auto vpidParent = vpid.getParent();
+
+         // Parent PID is either vertex or edge - let's check that.
+         if ( algorithms::contains( receiver->neighborVertices(), vpidParent ) )
+         {
+            receiverLocalPseudoVertexIDs.push_back( receiver->vertex_index( vpidParent ) );
+         }
+         else
+         {
+            WALBERLA_ASSERT( algorithms::contains( receiver->neighborEdges(), vpidParent ),
+                             "If the parent is not a macro-vertex, it must be a macro-edge." );
+            receiverLocalPseudoVertexIDs.push_back( receiver->edge_index( vpidParent ) + 4 );
+         }
+      }
+
+      WALBERLA_ASSERT_EQUAL( receiverLocalPseudoVertexIDs.size(), 2, "An edge has two vertices, ..." );
+      WALBERLA_ASSERT( receiverLocalPseudoVertexIDs[0] < 4 || receiverLocalPseudoVertexIDs[1] < 4,
+                       "One of the pseudo vertex IDs must be on a vertex." );
+      WALBERLA_ASSERT( receiverLocalPseudoVertexIDs[0] >= 4 || receiverLocalPseudoVertexIDs[1] >= 4,
+                       "One of the pseudo vertex IDs must be on an edge." );
+
+      // NOTE: in 3D we need to invert the cell type if we are on a center sub-face, nothing to do in 2D
+
+      levelGl      = level_ + 1;
+      width        = levelinfo::num_microedges_per_edge( level_ );
+      widthGl      = levelinfo::num_microedges_per_edge( levelGl );
+      levelIdxRecv = levelGl;
+      WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
+
+      faceIteratorSenderPtr   = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
+      faceIteratorReceiverPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
+
+      startAndIncrm2D( senderLocalVertexIDs[0], senderLocalVertexIDs[1], width, startSend, incrmSend );
+      startAndIncrm2D( receiverLocalPseudoVertexIDs[0], receiverLocalPseudoVertexIDs[1], widthGl, startRecv, incrmRecv );
+   }
+   else if ( storage_->getRefinementLevel( sender->getID() ) + 1 == storage_->getRefinementLevel( receiver->getID() ) )
+   {
+      // AMR: coarse-to-fine
+      // We should only send parts of the data and then rotate and put it to the correct location on the receiver side.
+
+      // Okay for this one we flip the calculation of the local pseudo vertex IDs. We fix the receiver side first, and _then_
+      // permute the sender side pseudo vertices accordingly. That means that we already flip the DoFs around on the sender side.
+
+      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ - 1 );
+      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ - 1 );
+
+      // We collect the PrimitiveIDs of the vertices that span the interface on the receiver side.
+      auto receiverLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( receiverLocalEdgeID );
+      std::vector< uint_t >      receiverLocalVertexIDs;
+      std::vector< PrimitiveID > vertexPIDs;
+      for ( auto rlvid : receiverLocalVertexIDsSet )
+      {
+         receiverLocalVertexIDs.push_back( rlvid );
+         vertexPIDs.push_back( receiver->neighborVertices().at( rlvid ) );
+      }
+
+      std::vector< uint_t > senderLocalPseudoVertexIDs;
+      for ( auto vpid : vertexPIDs )
+      {
+         // On the sender side the macro is coarser, so the PID of the fine neighbor are children of some locally neighboring
+         // PIDs.
+         const auto vpidParent = vpid.getParent();
+
+         // Parent PID is either vertex or edge - let's check that.
+         if ( algorithms::contains( sender->neighborVertices(), vpidParent ) )
+         {
+            senderLocalPseudoVertexIDs.push_back( sender->vertex_index( vpidParent ) );
+         }
+         else
+         {
+            WALBERLA_ASSERT( algorithms::contains( sender->neighborEdges(), vpidParent ),
+                             "If the parent is not a macro-vertex, it must be a macro-edge." );
+            senderLocalPseudoVertexIDs.push_back( sender->edge_index( vpidParent ) + 4 );
+         }
+      }
+
+      WALBERLA_ASSERT_EQUAL( senderLocalPseudoVertexIDs.size(), 2, "An edge has two vertices, ..." );
+      WALBERLA_ASSERT( senderLocalPseudoVertexIDs[0] < 4 || senderLocalPseudoVertexIDs[1] < 4,
+                       "One of the pseudo vertex IDs must be on a vertex." );
+      WALBERLA_ASSERT( senderLocalPseudoVertexIDs[0] >= 4 || senderLocalPseudoVertexIDs[1] >= 4,
+                       "One of the pseudo vertex IDs must be on an edge." );
+
+      levelGl = level_ - 1;
+      width   = levelinfo::num_microedges_per_edge( level_ );
+      widthGl = levelinfo::num_microedges_per_edge( levelGl );
+      WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
+
+      faceIteratorSenderPtr   = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( widthGl, 0, 1 );
+      faceIteratorReceiverPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( widthGl, 0, 1 );
+
+      startAndIncrm2D( senderLocalPseudoVertexIDs[0], senderLocalPseudoVertexIDs[1], width, startSend, incrmSend );
+      startAndIncrm2D( receiverLocalVertexIDs[0], receiverLocalVertexIDs[1], widthGl, startRecv, incrmRecv );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Seems like the 2:1 balance is not fulfilled ..." );
+   }
+
+   // Actual copy loop.
+
+   auto faceIteratorSender   = *faceIteratorSenderPtr;
+   auto faceIteratorReceiver = *faceIteratorReceiverPtr;
+
+   while ( faceIteratorSender != faceIteratorSender.end() )
+   {
+      const auto senderIdx   = startSend + faceIteratorSender->x() * incrmSend;
+      const auto receiverIdx = startRecv + faceIteratorReceiver->x() * incrmRecv;
+
       for ( uint_t dof = 0; dof < ndofs; dof++ )
       {
-         const auto senderIdx =
-             volumedofspace::indexing::index( it.x(), it.y(), facedof::FaceType::GRAY, dof, ndofs, level_, memoryLayout_ );
-         const auto senderVal = faceData[senderIdx];
+         const auto senderArrayIdx = volumedofspace::indexing::index(
+             senderIdx.x(), senderIdx.y(), facedof::FaceType::GRAY, dof, ndofs, level_, memoryLayout_ );
 
-         const auto receiverIdx = indexGhostLayerDirectly( glMicroVolumeIdx, dof, ndofs, level_, memoryLayout_ );
+         const auto senderVal = faceData[senderArrayIdx];
 
-         glData[receiverIdx] = senderVal;
+         const auto receiverArrayIdx = indexing::indexNeighborInGhostLayer(
+             receiverLocalEdgeID, receiverIdx.x(), receiverIdx.y(), facedof::FaceType::GRAY, dof, ndofs, levelGl, memoryLayout_ );
+
+         WALBERLA_ASSERT_LESS( receiverArrayIdx,
+                               glDataSize,
+                               "Writing beyond allocated vector!\n"
+                                   << " levelGl:  " << levelGl << "\n"
+                                   << " log. idx: " << receiverIdx << "\n" );
+
+         glData[receiverArrayIdx] = senderVal;
       }
-      glMicroVolumeIdx++;
+
+      faceIteratorSender++;
+      faceIteratorReceiver++;
    }
+
    this->storage_->getTimingTree()->stop( "DG - Face to Face" );
 }
 
