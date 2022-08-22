@@ -543,6 +543,18 @@ class PrimitiveStorage : private walberla::NonCopyable
       refinementAndCoarseningHanging( volumePIDsRefine, volumePIDsCoarsen, refineResultThrowAway, coarsenResultThrowAway );
    }
 
+   void refinementHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
+                           std::vector< PrimitiveID >&       volumePIDsRefineResult )
+   {
+      std::vector< PrimitiveID > coarsenResultThrowAway;
+      refinementAndCoarseningHanging( volumePIDsRefine, {}, volumePIDsRefineResult, coarsenResultThrowAway );
+   }
+
+   void refinementHanging( const std::vector< PrimitiveID >& volumePIDsRefine )
+   {
+      refinementAndCoarseningHanging( volumePIDsRefine, {} );
+   }
+
  private:
    /// Adds the direct neighbors of the given primitives to the storage.
    /// Calling this function several times allows us to enlarge our geometric halos.
@@ -783,7 +795,7 @@ void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&
    primitives.insert( edges.begin(), edges.end() );
    primitives.insert( faces.begin(), faces.end() );
    primitives.insert( cells.begin(), cells.end() );
-   
+
    addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 
