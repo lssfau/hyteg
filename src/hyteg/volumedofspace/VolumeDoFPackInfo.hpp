@@ -363,8 +363,14 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
       width        = levelinfo::num_microedges_per_edge( level_ );
       widthGl      = levelinfo::num_microedges_per_edge( levelGl );
       levelIdxRecv = level_;
-      WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
-
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( width > 1 )
+         {
+            WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
+         }
+      }
+      
       startAndIncrm2D( senderLocalVertexIDs[0], senderLocalVertexIDs[1], width, startSend, incrmSend );
 
       faceIteratorSenderPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
