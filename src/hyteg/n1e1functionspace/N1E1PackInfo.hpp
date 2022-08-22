@@ -60,12 +60,10 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packVertexForEdge( sender, receiver, buffer );
    }
-
    inline void unpackEdgeFromVertex( Edge* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackEdgeFromVertex( receiver, sender, buffer );
    }
-
    inline void communicateLocalVertexToEdge( const Vertex* sender, Edge* receiver ) const override
    {
       dofPackInfo_.communicateLocalVertexToEdge( sender, receiver );
@@ -76,13 +74,11 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packEdgeForVertex( sender, receiver, buffer );
    }
-
    inline void
        unpackVertexFromEdge( Vertex* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackVertexFromEdge( receiver, sender, buffer );
    }
-
    inline void communicateLocalEdgeToVertex( const Edge* sender, Vertex* receiver ) const override
    {
       dofPackInfo_.communicateLocalEdgeToVertex( sender, receiver );
@@ -93,12 +89,10 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packEdgeForFace( sender, receiver, buffer );
    }
-
    inline void unpackFaceFromEdge( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackFaceFromEdge( receiver, sender, buffer );
    }
-
    inline void communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const override
    {
       dofPackInfo_.communicateLocalEdgeToFace( sender, receiver );
@@ -109,12 +103,10 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packFaceForEdge( sender, receiver, buffer );
    }
-
    inline void unpackEdgeFromFace( Edge* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackEdgeFromFace( receiver, sender, buffer );
    }
-
    inline void communicateLocalFaceToEdge( const Face* sender, Edge* receiver ) const override
    {
       dofPackInfo_.communicateLocalFaceToEdge( sender, receiver );
@@ -125,12 +117,7 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packFaceForCell( sender, receiver, buffer );
    }
-
-   inline void unpackCellFromFace( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
-   {
-      dofPackInfo_.unpackCellFromFace( receiver, sender, buffer );
-   }
-
+   void unpackCellFromFace( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
    void communicateLocalFaceToCell( const Face* sender, Cell* receiver ) const override;
 
    inline void
@@ -138,12 +125,10 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packCellForFace( sender, receiver, buffer );
    }
-
    inline void unpackFaceFromCell( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackFaceFromCell( receiver, sender, buffer );
    }
-
    inline void communicateLocalCellToFace( const Cell* sender, Face* receiver ) const override
    {
       dofPackInfo_.communicateLocalCellToFace( sender, receiver );
@@ -154,12 +139,10 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packVertexForCell( sender, receiver, buffer );
    }
-
    inline void unpackCellFromVertex( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
    {
       dofPackInfo_.unpackCellFromVertex( receiver, sender, buffer );
    }
-
    inline void communicateLocalVertexToCell( const Vertex* sender, Cell* receiver ) const override
    {
       dofPackInfo_.communicateLocalVertexToCell( sender, receiver );
@@ -170,12 +153,7 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packEdgeForCell( sender, receiver, buffer );
    }
-
-   inline void unpackCellFromEdge( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
-   {
-      dofPackInfo_.unpackCellFromEdge( receiver, sender, buffer );
-   }
-
+   void unpackCellFromEdge( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
    void communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const override;
 
  private:
