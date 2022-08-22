@@ -63,7 +63,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , xVec( "xVec", petscCommunicator_ )
    , bVec( "bVec", petscCommunicator_ )
    , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
-   , flag_( hyteg::Inner )
+   , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
    {
@@ -123,7 +123,7 @@ class PETScMinResSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
       KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCNONE );
+      //PCSetType( pc, PCNONE );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
