@@ -23,7 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
@@ -34,7 +34,7 @@ namespace hyteg {
 
 void testDivForm()
 {
-   hyteg::dg::DGDivFormP1EDG form;
+   hyteg::dg::eg::EGDivFormP1E form;
 
    // we test two triangles with coordinates (p0, p1, p2) and (p0, p2, p3):
    Eigen::Matrix< real_t, 3, 1 > p0{ 0, 0, 0 };
@@ -57,7 +57,7 @@ void testDivForm()
 
    // checking inner and outer facet integrals:
    {
-      hyteg::dg::DGDivtFormEDGP0 form;
+      hyteg::dg::eg::EGDivtFormEP0 form;
 
       elMat.resize( 1, 1 );
 
@@ -108,7 +108,7 @@ void testDivForm()
    }
 
    {
-      hyteg::dg::DGDivFormP0EDG form;
+      hyteg::dg::eg::EGDivFormP0E form;
 
       elMat.resize( 1, 1 );
 
@@ -128,7 +128,7 @@ void testDivForm()
    }
 
    {
-      hyteg::dg::DGDivFormP0EDG form;
+      hyteg::dg::eg::EGDivFormP0E form;
 
       elMat.resize( 1, 1 );
 
@@ -256,7 +256,7 @@ void testLaplaceForm()
 
    // check inner facet integral EDG-EDG
    {
-      hyteg::dg::DGVectorLaplaceFormEDGEDG form;
+      hyteg::dg::eg::EGVectorLaplaceFormEE form;
 
       elMat.resize( 1, 1 );
       form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
@@ -270,7 +270,7 @@ void testLaplaceForm()
 
    // check outer facet integral EDG-EDG
    {
-      hyteg::dg::DGVectorLaplaceFormEDGEDG form;
+      hyteg::dg::eg::EGVectorLaplaceFormEE form;
 
       elMat.resize( 1, 1 );
       form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
@@ -282,9 +282,9 @@ void testLaplaceForm()
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
    }
 
-   // checking inner facet integral
+   // facets: in notebook: P1E, here: EP1 inner
    {
-      hyteg::dg::DGVectorLaplaceFormEDGP1_0 form;
+      hyteg::dg::eg::EGVectorLaplaceFormEP1_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -320,9 +320,9 @@ void testLaplaceForm()
       WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 2 ), expected[1] );
    }
 
-   // checking outer facet integral
+   // facets: P1E outer
    {
-      hyteg::dg::DGVectorLaplaceFormEDGP1_0 form;
+      hyteg::dg::eg::EGVectorLaplaceFormEP1_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -386,7 +386,7 @@ void testEpsilonForm()
    // volume integrals: (epsilon, epsilon) term
    // edg, edg pairing
    {
-      hyteg::dg::EDGConstEpsilonFormEDGEDG form;
+      hyteg::dg::eg::EGConstEpsilonFormEE form;
 
       // (2 * \int_T \epsilon(\phi_{edg}) : \epsilon(\phi_{edg}) dx from sympy notebook
       real_t expected_t1 = 2 * 1.0; // 2*0.96080;
@@ -405,7 +405,7 @@ void testEpsilonForm()
 
    // p1, edg pairing
    {
-      hyteg::dg::EDGConstEpsilonFormP1EDG_0 form;
+      hyteg::dg::eg::EGConstEpsilonFormP1E_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -437,7 +437,7 @@ void testEpsilonForm()
 
    // edg, p1 pairing
    {
-      hyteg::dg::EDGConstEpsilonFormEDGP1_0 form;
+      hyteg::dg::eg::EGConstEpsilonFormEP1_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -471,7 +471,7 @@ void testEpsilonForm()
    {
       // edg, edg pairing
       {
-         hyteg::dg::EDGConstEpsilonFormEDGEDG form;
+         hyteg::dg::eg::EGConstEpsilonFormEE form;
          {
             elMat.resize( 1, 1 );
 
@@ -479,7 +479,7 @@ void testEpsilonForm()
             {
                real_t expected_consistency_symmetry = 0.339934634239519; // consistency, symmetry (penalty does not contain eps)
                real_t expected_penalty              = 0.24888888888888888;
-               real_t expected = -expected_consistency_symmetry + sigma*expected_penalty;
+               real_t expected = 2*( -expected_consistency_symmetry + sigma*expected_penalty);
                form.integrateFacetInner(2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
                WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
             }
@@ -488,7 +488,7 @@ void testEpsilonForm()
             {
                real_t expected_consistency_symmetry = 0.322937902527543;
                real_t expected_penalty              = 0.02333333333333332;
-               real_t expected = -expected_consistency_symmetry + sigma*expected_penalty;
+               real_t expected = 2*( -expected_consistency_symmetry + sigma*expected_penalty);
                form.integrateFacetCoupling(2,
                     { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
 
@@ -499,7 +499,7 @@ void testEpsilonForm()
 
       // edg, p1 pairing
       {
-         hyteg::dg::EDGConstEpsilonFormEDGP1_0 form;
+         hyteg::dg::eg::EGConstEpsilonFormEP1_0 form;
 
          // inner  side of facet integral
          {
@@ -509,9 +509,9 @@ void testEpsilonForm()
                 -0.413360515235255, 0.182204963952382, -0.278746400076406};
             std::vector< real_t > expected_penalty = { -0.16666666666666674, 0.0, -0.2 };
             std::vector< real_t > expected         = {
-                        -expected_consistency_symmetry[0] + sigma * expected_penalty[0],
-                        -expected_consistency_symmetry[1] + sigma * expected_penalty[1],
-                        -expected_consistency_symmetry[2] + sigma * expected_penalty[2],
+                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
+                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
+                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
             };
 
             form.integrateFacetInner2D(  { p0, p1, p2 },  { p0, p2 }, p1,  n1, basis, basis, 1, 0, elMat );
@@ -527,9 +527,9 @@ void testEpsilonForm()
              0.379971380049951, 0.332380531256419, -0.202449959947091};
             std::vector< real_t > expected_penalty = { 0.16666666666666666, 0.2, 0.0 };
             std::vector< real_t > expected         = {
-                        -expected_consistency_symmetry[0] + sigma * expected_penalty[0],
-                        -expected_consistency_symmetry[1] + sigma * expected_penalty[1],
-                        -expected_consistency_symmetry[2] + sigma * expected_penalty[2],
+                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
+                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
+                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
             };
 
             form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
@@ -542,7 +542,7 @@ void testEpsilonForm()
       
       // p1, edg pairing
       {
-         hyteg::dg::EDGConstEpsilonFormP1EDG_0 form;
+         hyteg::dg::eg::EGConstEpsilonFormP1E_0 form;
 
          // inner  side of facet integral
          {
@@ -552,9 +552,9 @@ void testEpsilonForm()
                 -0.413360515235255, 0.182204963952382, -0.278746400076406};
             std::vector< real_t > expected_penalty = { -0.16666666666666674, 0.0, -0.2 };
             std::vector< real_t > expected         = {
-                        -expected_consistency_symmetry[0] + sigma * expected_penalty[0],
-                        -expected_consistency_symmetry[1] + sigma * expected_penalty[1],
-                        -expected_consistency_symmetry[2] + sigma * expected_penalty[2],
+                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
+                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
+                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
             };
 
             form.integrateFacetInner2D(  { p0, p1, p2 },  { p0, p2 }, p1,  n1, basis, basis, 0, 1, elMat );
@@ -570,9 +570,9 @@ void testEpsilonForm()
              -0.426278031336357, 0.156029997115939, -0.239653917138861};
             std::vector< real_t > expected_penalty = { -0.16666666666666669, 0.0, -0.1333333333333333};
             std::vector< real_t > expected         = {
-                        -expected_consistency_symmetry[0] + sigma * expected_penalty[0],
-                        -expected_consistency_symmetry[1] + sigma * expected_penalty[1],
-                        -expected_consistency_symmetry[2] + sigma * expected_penalty[2],
+                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
+                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
+                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
             };
 
             form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 1, elMat );
@@ -592,8 +592,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   //hyteg::testDivForm();
-   //hyteg::testLaplaceForm();
+   hyteg::testDivForm();
+   hyteg::testLaplaceForm();
    hyteg::testEpsilonForm();
 
    return 0;
