@@ -45,7 +45,8 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
    if ( !primitiveStorage_->hasGlobalCells() )
    {
       auto allFaces = primitiveStorage_->getFaces();
-      allFaces.insert( primitiveStorage_->getNeighborFaces().begin(), primitiveStorage_->getNeighborFaces().end() );
+      auto neighborFaces = primitiveStorage_->getNeighborFaces();
+      allFaces.insert( neighborFaces.begin(), neighborFaces.end() );
 
       for ( const auto& faceIt : allFaces )
       {
@@ -67,7 +68,8 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
    else
    {
       auto allCells = primitiveStorage_->getCells();
-      allCells.insert( primitiveStorage_->getNeighborCells().begin(), primitiveStorage_->getNeighborCells().end() );
+      auto neighborCells = primitiveStorage_->getNeighborCells();
+      allCells.insert( neighborCells.begin(), neighborCells.end() );
 
       for ( const auto& cellIt : allCells )
       {
