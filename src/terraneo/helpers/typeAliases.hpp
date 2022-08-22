@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
 namespace terraneo {
