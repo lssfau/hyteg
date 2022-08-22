@@ -550,6 +550,7 @@ class EGDivFormP1E : public hyteg::dg::DGForm2D
    }
 };
 
+
 class EGDivFormP0E : public hyteg::dg::DGForm2D
 {
  protected:
