@@ -491,6 +491,7 @@ uint_t PrimitiveStorage::getNumberOfLocalVertices() const
          {
             num++;
          }
+         WALBERLA_UNUSED( pid );
       }
    }
    return num;
@@ -507,6 +508,7 @@ uint_t PrimitiveStorage::getNumberOfLocalEdges() const
          {
             num++;
          }
+         WALBERLA_UNUSED( pid );
       }
    }
    return num;
@@ -523,6 +525,7 @@ uint_t PrimitiveStorage::getNumberOfLocalFaces() const
          {
             num++;
          }
+         WALBERLA_UNUSED( pid );
       }
    }
    return num;
@@ -539,6 +542,7 @@ uint_t PrimitiveStorage::getNumberOfLocalCells() const
          {
             num++;
          }
+         WALBERLA_UNUSED( pid );
       }
    }
    return num;
@@ -552,6 +556,7 @@ bool PrimitiveStorage::vertexExistsLocally( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -564,6 +569,7 @@ bool PrimitiveStorage::edgeExistsLocally( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -576,6 +582,7 @@ bool PrimitiveStorage::faceExistsLocally( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -588,6 +595,7 @@ bool PrimitiveStorage::cellExistsLocally( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -600,6 +608,7 @@ bool PrimitiveStorage::vertexExistsInNeighborhood( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -612,6 +621,7 @@ bool PrimitiveStorage::edgeExistsInNeighborhood( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -624,6 +634,7 @@ bool PrimitiveStorage::faceExistsInNeighborhood( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -636,6 +647,7 @@ bool PrimitiveStorage::cellExistsInNeighborhood( const PrimitiveID& id ) const
       {
          return true;
       }
+      WALBERLA_UNUSED( level );
    }
    return false;
 }
@@ -723,6 +735,7 @@ PrimitiveStorage::VertexMap PrimitiveStorage::getVertices() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -739,6 +752,7 @@ PrimitiveStorage::EdgeMap PrimitiveStorage::getEdges() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -755,6 +769,7 @@ PrimitiveStorage::FaceMap PrimitiveStorage::getFaces() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -771,6 +786,7 @@ PrimitiveStorage::CellMap PrimitiveStorage::getCells() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -787,6 +803,7 @@ PrimitiveStorage::VertexMap PrimitiveStorage::getNeighborVertices() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -803,6 +820,7 @@ PrimitiveStorage::EdgeMap PrimitiveStorage::getNeighborEdges() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -819,6 +837,7 @@ PrimitiveStorage::FaceMap PrimitiveStorage::getNeighborFaces() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -835,6 +854,7 @@ PrimitiveStorage::CellMap PrimitiveStorage::getNeighborCells() const
             pmap[pid] = primitive;
          }
       }
+      WALBERLA_UNUSED( level );
    }
    return pmap;
 }
@@ -875,6 +895,7 @@ const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( vertexExistsInNeighborhood( id ) )
@@ -885,6 +906,7 @@ const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -901,6 +923,7 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( vertexExistsInNeighborhood( id ) )
@@ -911,6 +934,7 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -927,6 +951,7 @@ const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( edgeExistsInNeighborhood( id ) )
@@ -937,6 +962,7 @@ const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -953,6 +979,7 @@ Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( edgeExistsInNeighborhood( id ) )
@@ -963,6 +990,7 @@ Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -979,6 +1007,7 @@ const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( faceExistsInNeighborhood( id ) )
@@ -989,6 +1018,7 @@ const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -1005,6 +1035,7 @@ Face* PrimitiveStorage::getFace( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( faceExistsInNeighborhood( id ) )
@@ -1015,6 +1046,7 @@ Face* PrimitiveStorage::getFace( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -1031,6 +1063,7 @@ const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( cellExistsInNeighborhood( id ) )
@@ -1041,6 +1074,7 @@ const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
          {
             return primitives.at( id ).get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -1057,6 +1091,7 @@ Cell* PrimitiveStorage::getCell( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
    else if ( cellExistsInNeighborhood( id ) )
@@ -1067,6 +1102,7 @@ Cell* PrimitiveStorage::getCell( const PrimitiveID& id )
          {
             return primitives[id].get();
          }
+         WALBERLA_UNUSED( level );
       }
    }
 
@@ -1172,6 +1208,7 @@ void PrimitiveStorage::getVertexIDs( std::vector< PrimitiveID >& vertexIDs ) con
             vertexIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1187,6 +1224,7 @@ void PrimitiveStorage::getNeighboringVertexIDs( std::vector< PrimitiveID >& vert
             vertexIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1202,6 +1240,7 @@ void PrimitiveStorage::getEdgeIDs( std::vector< PrimitiveID >& edgeIDs ) const
             edgeIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1217,6 +1256,7 @@ void PrimitiveStorage::getNeighboringEdgeIDs( std::vector< PrimitiveID >& edgeID
             edgeIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1232,6 +1272,7 @@ void PrimitiveStorage::getFaceIDs( std::vector< PrimitiveID >& faceIDs ) const
             faceIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1247,6 +1288,7 @@ void PrimitiveStorage::getNeighboringFaceIDs( std::vector< PrimitiveID >& faceID
             faceIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1262,6 +1304,7 @@ void PrimitiveStorage::getCellIDs( std::vector< PrimitiveID >& cellIDs ) const
             cellIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1277,6 +1320,7 @@ void PrimitiveStorage::getNeighboringCellIDs( std::vector< PrimitiveID >& cellID
             cellIDs.push_back( pid );
          }
       }
+      WALBERLA_UNUSED( level );
    }
 }
 
@@ -1370,6 +1414,7 @@ uint_t PrimitiveStorage::getNeighborPrimitiveRank( const PrimitiveID& id ) const
       {
          return nranks.at( id );
       }
+      WALBERLA_UNUSED( nranks );
    }
    WALBERLA_CHECK( false, "Could not determine neighbor rank of neighbor primitive. This is bad." );
    return std::numeric_limits< uint_t >::max();
@@ -1859,6 +1904,7 @@ void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks
             neighboringRanks.insert( r );
          }
       }
+      WALBERLA_UNUSED( nranks );
    }
 }
 
@@ -2517,7 +2563,7 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
 
    if ( !hasGlobalCells() )
    {
-      walberla::mpi::BufferSystem        bs( walberla::mpi::MPIManager::instance()->comm() );
+      walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
 
       // Need to convert ranks to MPIRank datatype explicitly.
       const auto                         nranksUint = getNeighboringRanks();
@@ -2944,7 +2990,9 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
       {
          face->indirectTopLevelNeighborFaceIDsOverVertices_.clear();
          face->indirectTopLevelNeighborFaceIDsOverEdges_.clear();
+         WALBERLA_UNUSED( faceID );
       }
+      WALBERLA_UNUSED( level );
    }
 
    // Equal-level neighborhood.
