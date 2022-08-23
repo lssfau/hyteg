@@ -87,6 +87,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    {
       nullSpaceSet_ = true;
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
+      real_t norm = 0;
+      VecNormalize( nullspaceVec_.get(), &norm);
       MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
