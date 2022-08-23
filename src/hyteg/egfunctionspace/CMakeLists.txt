@@ -5,6 +5,7 @@ target_sources( hyteg
     EGBasis.hpp
     EGOperators.hpp
     EGConstEpsilonForm.hpp
+    EGEpsilonForm.hpp
     EGVectorLaplaceForm.hpp
     EGDivForm.hpp
     EGDivtForm.hpp

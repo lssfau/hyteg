@@ -30,8 +30,7 @@ namespace dg {
 namespace eg {
 
 
-class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm2D
-{
+class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm2D{
  protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
@@ -515,8 +514,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm2D
 };
 
 class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm2D
-{
- protected:
+{protected:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -999,6 +997,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm2D
    }
 };
 
+
 class EGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm2D
 {
  protected:
@@ -1459,6 +1458,7 @@ class EGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm2D
 
       // Does nothing.
    }
+
 };
 
 class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm2D
@@ -1922,6 +1922,7 @@ class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm2D
 
       // Does nothing.
    }
+
 };
 
 class EGVectorLaplaceFormEE
@@ -2347,6 +2348,7 @@ class EGVectorLaplaceFormEE
 
       // Does nothing.
    }
+
 };
 
 }

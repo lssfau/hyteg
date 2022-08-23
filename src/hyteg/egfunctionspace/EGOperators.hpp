@@ -215,10 +215,10 @@ class EGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunctio
    }
 
  private:
-   P1ConstantVectorLaplaceOperator                  cg_to_cg_coupling_;
-   P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator cg_to_eg_coupling_;
-   P0ToP1ConstantP1EDGVectorLaplaceCouplingOperator eg_to_cg_coupling_;
-   P0Operator< EGVectorLaplaceFormEE >              eg_to_eg_coupling_;
+   P1ConstantVectorLaplaceOperator     cg_to_cg_coupling_;
+   EGVectorLaplaceP1ToP0Coupling       cg_to_eg_coupling_;
+   EGVectorLaplaceP0ToP1Coupling       eg_to_cg_coupling_;
+   P0Operator< EGVectorLaplaceFormEE > eg_to_eg_coupling_;
 };
 
 class EGConstantEpsilonOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
@@ -263,10 +263,71 @@ class EGConstantEpsilonOperator final : public Operator< EGFunction< real_t >, E
    }
 
  private:
-   P1ConstantEpsilonOperator                  cg_to_cg_coupling_;
-   P1ToP0ConstantP1EDGEpsilonCouplingOperator cg_to_eg_coupling_;
-   P0ToP1ConstantP1EDGEpsilonCouplingOperator eg_to_cg_coupling_;
-   P0Operator< EGConstEpsilonFormEE >         eg_to_eg_coupling_;
+   P1ConstantEpsilonOperator          cg_to_cg_coupling_;
+   EGConstantEpsilonP1ToP0Coupling    cg_to_eg_coupling_;
+   EGConstantEpsilonP0ToP1Coupling    eg_to_cg_coupling_;
+   P0Operator< EGConstEpsilonFormEE > eg_to_eg_coupling_;
+};
+
+class EGEpsilonOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
+{
+ public:
+   EGEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                      uint_t                                     minLevel,
+                      uint_t                                     maxLevel,
+                      std::function< real_t( const Point3D& ) >  viscosity )
+   : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+   , cg_to_cg_coupling_( storage, minLevel, maxLevel, viscosity )
+   , eg_to_cg_coupling_( storage,
+                         minLevel,
+                         maxLevel,
+                         { std::make_shared< dg::eg::EGEpsilonFormP1E_0 >( viscosity ),
+                           std::make_shared< dg::eg::EGEpsilonFormP1E_1 >( viscosity ),
+                           std::make_shared< dg::DGFormAbort >() } )
+   , cg_to_eg_coupling_( storage,
+                         minLevel,
+                         maxLevel,
+                         { std::make_shared< dg::eg::EGEpsilonFormEP1_0 >( viscosity ),
+                           std::make_shared< dg::eg::EGEpsilonFormEP1_1 >( viscosity ),
+                           std::make_shared< dg::DGFormAbort >() } )
+   , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::eg::EGEpsilonFormEE >( viscosity ) )
+   {}
+
+   void apply( const EGFunction< real_t >& src,
+               const EGFunction< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType ) const override
+   {
+      eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+      cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+      eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EGFunction< idx_t >&                  src,
+                  const EGFunction< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      src.getDiscontinuousPart()->communicate( level );
+      dst.getDiscontinuousPart()->communicate( level );
+
+      cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+      eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+      eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+   P1ElementwiseAffineEpsilonOperator cg_to_cg_coupling_;
+   EGEpsilonP1ToP0Coupling            cg_to_eg_coupling_;
+   EGEpsilonP0ToP1Coupling            eg_to_cg_coupling_;
+   P0Operator< EGEpsilonFormEE >      eg_to_eg_coupling_;
 };
 } // namespace eg
 } // namespace dg
