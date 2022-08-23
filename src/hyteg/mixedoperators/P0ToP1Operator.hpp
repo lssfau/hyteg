@@ -29,6 +29,11 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
+#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGDivForm.hpp"
+#include "hyteg/egfunctionspace/EGMassForm.hpp"
+#include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -41,10 +46,6 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
-#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
-#include "hyteg/egfunctionspace/EGMassForm.hpp"
-#include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
-#include "hyteg/egfunctionspace/EGDivForm.hpp"
 namespace hyteg {
 
 using namespace dg;
@@ -58,10 +59,12 @@ template < typename Form >
 class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t > >
 {
  public:
-   P0ToP1Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   P0ToP1Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, std::shared_ptr< Form > form = std::make_shared< Form >() )
    : Operator< P0Function< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
-   , form_( std::make_shared< Form >() )
+   , form_( form )
    {}
+
+   typedef Form FormType;
 
    void apply( const P0Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -119,7 +122,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
 
-     // WALBERLA_CHECK( updateType == Replace );
+      // WALBERLA_CHECK( updateType == Replace );
 
       const auto storage = this->getStorage();
 
@@ -617,19 +620,21 @@ typedef P0ToP1Operator< dg::p0_to_p1_divt_0_affine_q0 > P0ToP1ConstantDivTxOpera
 typedef P0ToP1Operator< dg::p0_to_p1_divt_1_affine_q0 > P0ToP1ConstantDivTyOperator;
 typedef P0ToP1Operator< dg::p0_to_p1_divt_2_affine_q0 > P0ToP1ConstantDivTzOperator;
 
-typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_0 > P0ToP1ConstantP1EDGVectorLaplaceXCouplingOperator;
-typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_1 > P0ToP1ConstantP1EDGVectorLaplaceYCouplingOperator;
-typedef P0ToP1Operator< dg::DGFormAbort >                P0ToP1ConstantP1EDGVectorLaplaceZCouplingOperator;
+typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_0 > EGVectorLaplaceP0ToP1Coupling_X;
+typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_1 > EGVectorLaplaceP0ToP1Coupling_Y;
+typedef P0ToP1Operator< dg::DGFormAbort >                  EGVectorLaplaceP0ToP1Coupling_Z;
 
+typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_0 > EGConstantEpsilonP0ToP1Coupling_X;
+typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_1 > EGConstantEpsilonP0ToP1Coupling_Y;
+typedef P0ToP1Operator< dg::DGFormAbort >                 EGConstantEpsilonP0ToP1Coupling_Z;
 
-typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_0 >  P0ToP1ConstantP1EDGEpsilonXCouplingOperator;
-typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_1 >  P0ToP1ConstantP1EDGEpsilonYCouplingOperator;
-typedef P0ToP1Operator< dg::DGFormAbort >                 P0ToP1ConstantP1EDGEpsilonZCouplingOperator;
-
+typedef P0ToP1Operator< dg::eg::EGEpsilonFormP1E_0 > EGEpsilonP0ToP1Coupling_X;
+typedef P0ToP1Operator< dg::eg::EGEpsilonFormP1E_1 > EGEpsilonP0ToP1Coupling_Y;
+typedef P0ToP1Operator< dg::DGFormAbort >            EGEpsilonP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_0 > P0ToP1ConstantP1EDGVectorMassXCouplingOperator;
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_1 > P0ToP1ConstantP1EDGVectorMassYCouplingOperator;
-typedef P0ToP1Operator< dg::DGFormAbort >             P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
+typedef P0ToP1Operator< dg::DGFormAbort >               P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
 
 typedef P0ToP1Operator< dg::eg::EGDivFormP1E > P0ToP1ConstantP1EDGDivergenceCouplingOperator;
 

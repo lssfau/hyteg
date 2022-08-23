@@ -34,11 +34,23 @@ template < class operX_t, class operY_t, class operZ_t >
 class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, P0Function< real_t > >
 {
  public:
-   P1VectorToP0ScalarOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   typedef std::tuple< std::shared_ptr< typename operX_t::FormType >,
+                       std::shared_ptr< typename operY_t::FormType >,
+                       std::shared_ptr< typename operZ_t::FormType > >
+       FormTuple;
+
+   P1VectorToP0ScalarOperator(
+       const std::shared_ptr< PrimitiveStorage >& storage,
+       size_t                                     minLevel,
+       size_t                                     maxLevel,
+       // hand forms over to xyz operators: enable forms with variable coefficients
+       FormTuple forms = std::make_tuple( std::make_shared< typename operX_t::FormType >(),
+                                                        std::make_shared< typename operY_t::FormType >(),
+                                                        std::make_shared< typename operZ_t::FormType >() ) )
    : Operator( storage, minLevel, maxLevel )
-   , operX( storage, minLevel, maxLevel )
-   , operY( storage, minLevel, maxLevel )
-   , operZ( storage, minLevel, maxLevel )
+   , operX( storage, minLevel, maxLevel, std::get<0>(forms) )
+   , operY( storage, minLevel, maxLevel,  std::get<1>(forms)  )
+   , operZ( storage, minLevel, maxLevel,  std::get<2>(forms)  )
    {}
 
    void apply( const P1VectorFunction< real_t >& src,
@@ -76,15 +88,18 @@ class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, 
 typedef P1VectorToP0ScalarOperator< P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator >
     P1ToP0ConstantDivOperator;
 
-typedef P1VectorToP0ScalarOperator< P1ToP0ConstantP1EDGVectorLaplaceXCouplingOperator,
-                                    P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator,
-                                    P1ToP0ConstantP1EDGVectorLaplaceZCouplingOperator >
-    P1ToP0ConstantP1EDGVectorLaplaceCouplingOperator;
+typedef P1VectorToP0ScalarOperator< EGVectorLaplaceP1ToP0Coupling_X,
+                                    EGVectorLaplaceP1ToP0Coupling_Y,
+                                    EGVectorLaplaceP1ToP0Coupling_Z >
+    EGVectorLaplaceP1ToP0Coupling;
 
-typedef P1VectorToP0ScalarOperator< P1ToP0ConstantP1EDGEpsilonXCouplingOperator,
-                                  P1ToP0ConstantP1EDGEpsilonYCouplingOperator,
-                                  P1ToP0ConstantP1EDGEpsilonZCouplingOperator >  P1ToP0ConstantP1EDGEpsilonCouplingOperator;
+typedef P1VectorToP0ScalarOperator< EGConstantEpsilonP1ToP0Coupling_X,
+                                    EGConstantEpsilonP1ToP0Coupling_Y,
+                                    EGConstantEpsilonP1ToP0Coupling_Z >
+    EGConstantEpsilonP1ToP0Coupling;
 
+typedef P1VectorToP0ScalarOperator< EGEpsilonP1ToP0Coupling_X, EGEpsilonP1ToP0Coupling_Y, EGEpsilonP1ToP0Coupling_Z >
+    EGEpsilonP1ToP0Coupling;
 typedef P1VectorToP0ScalarOperator< P1ToP0ConstantP1EDGVectorMassXCouplingOperator,
                                     P1ToP0ConstantP1EDGVectorMassYCouplingOperator,
                                     P1ToP0ConstantP1EDGVectorMassZCouplingOperator >

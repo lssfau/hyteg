@@ -57,11 +57,14 @@ template < typename Form >
 class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t > >
 {
  public:
-   P1ToP0Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   P1ToP0Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, std::shared_ptr< Form > form = std::make_shared< Form >() )
    : Operator< P1Function< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
-   , form_( std::make_shared< Form >() )
+   , form_( form )
    {}
 
+
+   typedef Form FormType;
+   
    void apply( const P1Function< real_t >& src,
                const P0Function< real_t >& dst,
                size_t                      level,
@@ -765,14 +768,19 @@ typedef P1ToP0Operator< dg::p1_to_p0_div_0_affine_q0 > P1ToP0ConstantDivxOperato
 typedef P1ToP0Operator< dg::p1_to_p0_div_1_affine_q0 > P1ToP0ConstantDivyOperator;
 typedef P1ToP0Operator< dg::p1_to_p0_div_2_affine_q0 > P1ToP0ConstantDivzOperator;
 
-typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_0 > P1ToP0ConstantP1EDGVectorLaplaceXCouplingOperator;
-typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_1 > P1ToP0ConstantP1EDGVectorLaplaceYCouplingOperator;
-typedef P1ToP0Operator< dg::DGFormAbort >                P1ToP0ConstantP1EDGVectorLaplaceZCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_0 > EGVectorLaplaceP1ToP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_1 > EGVectorLaplaceP1ToP0Coupling_Y;
+typedef P1ToP0Operator< dg::DGFormAbort >                EGVectorLaplaceP1ToP0Coupling_Z;
 
 
-typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 >  P1ToP0ConstantP1EDGEpsilonXCouplingOperator;
-typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 >  P1ToP0ConstantP1EDGEpsilonYCouplingOperator;
-typedef P1ToP0Operator< dg::DGFormAbort >            P1ToP0ConstantP1EDGEpsilonZCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 >  EGConstantEpsilonP1ToP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 >  EGConstantEpsilonP1ToP0Coupling_Y;
+typedef P1ToP0Operator< dg::DGFormAbort >            EGConstantEpsilonP1ToP0Coupling_Z;
+
+
+typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_0 >  EGEpsilonP1ToP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_1 >  EGEpsilonP1ToP0Coupling_Y;
+typedef P1ToP0Operator< dg::DGFormAbort >            EGEpsilonP1ToP0Coupling_Z;
 
 
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
