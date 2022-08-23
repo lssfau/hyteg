@@ -4,6 +4,8 @@ endif()
 
 waLBerla_link_files_to_builddir( *.ipynb )
 
-waLBerla_add_executable( NAME 10_DGAMR
-        FILES 10_DGAMR.cpp
-        DEPENDS hyteg core sqlite)
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_add_executable( NAME 10_DGAMR
+            FILES 10_DGAMR.cpp
+            DEPENDS hyteg core sqlite)
+endif()
