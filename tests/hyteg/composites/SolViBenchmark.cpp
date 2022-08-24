@@ -282,8 +282,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    THNumerator.copyBoundaryConditionFromFunction( x );
    THNumerator.enumerate( level );
 
-   bool printOperands = true;
-   bool printResult   = true;
+   bool printOperands = false;
+   bool printResult   = false;
    if ( printOperands )
    {
       //auto bfbtop = std::make_shared< BFBT_P2P1 >( storage, level, level, viscosity, velocityBCs );
