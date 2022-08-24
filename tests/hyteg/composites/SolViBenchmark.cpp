@@ -314,6 +314,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    }
 
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
+<<<<<<< HEAD
     if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
    {
       P2ConstantMassOperator M_vel( storage, 0, level );
@@ -328,6 +329,111 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
          EGMassOperator M_vel( storage, level, level );
          M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
         }
+=======
+
+   
+   real_t discr_l2_err_u, discr_l2_err_v, residuum_l2, discr_l2_err_p;
+
+   // Solvers
+   PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
+   LU.assumeSymmetry(true);
+   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > StdBlkdiagPMINRES_PETSc(
+       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 3, 1, 0 );
+   //PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
+   //    storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-15, 1000, true );
+   auto OnlyPressurePMINRES =
+       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-8, 100, true );
+   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 0, level, 1e-15, 1e-15, 100, true );
+   auto velocityBCs = {x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition()};
+   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 100, true,  velocityBCs);
+
+
+  hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
+   THNumerator.copyBoundaryConditionFromFunction( x );
+   THNumerator.enumerate( level );
+
+   bool printOperands = false;
+   bool printResult   = false;
+   if ( printOperands )
+   {
+ 
+      P1LumpedMassOperator PMass(
+       storage,
+       level,
+       level
+      );
+      PETScSparseMatrix< hyteg::P1LumpedMassOperator > PMassMat;
+      hyteg::P1Function< idx_t > PNumerator( "PNum", storage, level, level );
+      PNumerator.enumerate(level);
+      PMassMat.createMatrixFromOperator( PMass, level, PNumerator, All );
+      PMassMat.print( "FOR_MATLAB_PMassMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      
+      P1BlendingLumpedDiagonalOperator PMassViscWeighted(
+       storage,
+       level,
+       level,
+       std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
+      PETScSparseMatrix< hyteg::P1BlendingLumpedDiagonalOperator > PMassViscWeightedMat;
+      PMassViscWeightedMat.createMatrixFromOperator( PMassViscWeighted, level, PNumerator, All );
+      PMassViscWeightedMat.print( "FOR_MATLAB_PMassViscWeightedMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   
+      PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
+      StokesMat.createMatrixFromOperator( OP, level, THNumerator, All );
+      
+      PETScVector bVec( b, THNumerator, level );
+      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+      bVec.createVectorFromFunction( b, THNumerator, level, All );
+      //StokesMat.applyDirichletBCSymmetrically(  THNumerator,  level );
+      StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
+      bVec.print( "FOR_MATLAB_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      StokesMat.print( "FOR_MATLAB_StokesMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   }
+
+
+
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
+   walberla::WcTimer timer;
+
+   switch ( solver )
+   {
+   case 0:
+      OnlyPressurePMINRES->solve( OP, x, b, level );
+      break;
+   case 1:
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: ViscWeightedPMINRES" );
+      ViscWeightedPMINRES->solve( OP, x, b, level );
+      break;
+   case 2:
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES" );
+      StdBlkdiagPMINRES->solve( OP, x, b, level );
+      break;
+   case 3:
+      StdBlkdiagPMINRES_PETSc.solve( OP, x, b, level );
+      break;
+   case 4:
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
+      BFBT_PMINRES->solve( OP, x, b, level );
+      break;
+   default:
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: LU" );
+      LU.solve( OP, x, b, level );
+   }
+   timer.end();
+
+ 
+
+   hyteg::vertexdof::projectMean( x.p(), level );
+   hyteg::vertexdof::projectMean( x_exact.p(), level );
+   if ( printResult )
+   {
+      PETScVector xVec( x, THNumerator, level );
+      xVec.print( "FOR_MATLAB_xVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      PETScVector xExactVec( x_exact, THNumerator, level );
+      xExactVec.print( "FOR_MATLAB_x_exact.m", false, PETSC_VIEWER_ASCII_MATLAB );
+>>>>>>> boehm/BFBT-preconditioner
    }
    discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( Merr.uvw()[0], level, hyteg::Inner )  );
    discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( Merr.uvw()[1], level, hyteg::Inner )  );
@@ -353,11 +459,13 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   // configure level
-   std::vector< uint_t > levels = { 3,4,5 };
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
+   // configure solver and level
+   uint_t                solver = 7;
+   std::vector< uint_t > levels = { 4,5,6,7 };
+
    // collect errors
    std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
    for ( auto lvl : levels )
@@ -390,7 +498,7 @@ int main( int argc, char* argv[] )
 
    // write to plot file
    std::ofstream err_file;
-   err_file.open( "err_file.txt" );
+   err_file.open( "../../../hyteg-plots/err_file.txt" );
    for ( auto err : errors_per_h )
    {
       err_file << std::get< 0 >( err ) << ", " << std::get< 1 >( err ) << ", " << std::get< 2 >( err ) << "\n";

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
@@ -52,8 +53,8 @@ class PETScCGSolver : public Solver< OperatorType >
    PETScCGSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
                   const uint_t&                                                         level,
                   const typename OperatorType::srcType::template FunctionType< idx_t >& numerator,
-                  const real_t                                                          relativeTolerance = 1e-30,
-                  const real_t                                                          absoluteTolerance = 1e-12,
+                  const real_t                                                          relativeTolerance = 1e-20,
+                  const real_t                                                          absoluteTolerance = 1e-20,
                   const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
@@ -69,7 +70,7 @@ class PETScCGSolver : public Solver< OperatorType >
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPCG );
-      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
+      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance,  1e-20, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
@@ -123,7 +124,7 @@ class PETScCGSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
       KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCNONE);
+      PCSetType( pc, PCJACOBI );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
@@ -153,3 +154,4 @@ class PETScCGSolver : public Solver< OperatorType >
 } // namespace hyteg
 
 #endif
+
