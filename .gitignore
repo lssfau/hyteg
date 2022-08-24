@@ -8,3 +8,11 @@
 cmake-build-*
 .vs/
 build/*
+*.cmake
+*.make
+*.bin
+*.log
+*.txt
+*.marks
+*Makefile
+CMakeFiles/*
