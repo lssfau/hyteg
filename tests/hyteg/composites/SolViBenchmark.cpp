@@ -1,20 +1,19 @@
 #include <complex>
 #include <fstream>
 #include <iostream>
+#include <type_traits>
+#include <typeinfo>
 
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
@@ -28,19 +27,22 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 #include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
@@ -49,12 +51,14 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
+using hyteg::dg::eg::EGMassOperator;
+using hyteg::dg::eg::EGP0EpsilonStokesOperator;
 namespace hyteg {
 
 // SolVi benchmark (Circular inclusion)
 /*  Described in section 5.3 of [1] with analytical solution from [2] (equations 26, 34).
 The viscosity contains a jump from visc_matrix to visc_inclusion in a circle located at the center of the domain. 
-Difficulty for FE methods: the mesh can not align with the viscosity jump.
+Difficulty for FE methods: the mesh can not align with the viscosity jump well.
 
 [1]: "On the choice of finite element for applications in geodynamics" 
 by Cedric Thieulot and Wolfgang Bangerth
@@ -63,14 +67,20 @@ by Cedric Thieulot and Wolfgang Bangerth
 by Daniel W. Schmid and Yuri Yu. Podladchikov
 */
 
+auto copyBdry = []( EGP0StokesFunction< real_t > fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
+
+
+template < typename StokesOperatorType >
 std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
-                                                     const uint_t& solver,
                                                      const uint_t& nxy,
                                                      const real_t  r_inclusion,
                                                      const real_t& visc_inclusion,
-                                                     const real_t& visc_matrix )
+                                                     const real_t& visc_matrix,
+                                                     bool                                       writeVTK = false  )
 {
    using namespace std::complex_literals;
+   using StokesFunctionType          = typename StokesOperatorType::srcType;
+   using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
 
    // storage and domain
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
@@ -79,16 +89,25 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-   writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
+   //writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
 
    // function setup
-   hyteg::P2P1TaylorHoodFunction< real_t >          x( "x", storage, 0, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          x_exact( "x_exact", storage, 0, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          btmp( "btmp", storage, 0, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          b( "b", storage, 0, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          err( "err", storage, 0, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          residuum( "res", storage, 0, level );
-  hyteg::P2P1TaylorHoodFunction< real_t >                      nullspace( "nullspace", storage, level, level );
+   StokesFunctionType x( "x", storage, 0, level );
+   StokesFunctionType x_exact( "x_exact", storage, 0, level );
+   StokesFunctionType btmp( "btmp", storage, 0, level );
+   StokesFunctionType b( "b", storage, 0, level );
+   StokesFunctionType err( "err", storage, 0, level );
+   StokesFunctionType Merr( "err", storage, 0, level );
+   StokesFunctionType nullspace( "nullspace", storage, level, level );
+   if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+   {
+      copyBdry( x );
+      copyBdry( b );
+      copyBdry( x_exact );
+      copyBdry( err );
+      copyBdry( Merr );
+      copyBdry( btmp );
+   }
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
 
@@ -105,7 +124,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
           else
              return visc_matrix;
        };
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator OP( storage, 0, level, viscosity );
+   StokesOperatorType Op( storage, 0, level, viscosity );
 
    // analytic solution for u,v,p
    const real_t                                             C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
@@ -228,17 +247,59 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
                         ( xx[0] * sin( 2.0 * atan( xx[1] / xx[0] ) ) + xx[1] * cos( 2.0 * atan( xx[1] / xx[0] ) ) ) /
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddy_p(xx);
        };
+
+   // "Integrate" rhs
    btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
-   P2ConstantMassOperator VelMassOp( storage, 0, level );
    b.uvw().interpolate( { analyticU, analyticV }, level, DirichletBoundary );
- //  b.p().interpolate( analyticP, level, DirichletBoundary );
-   VelMassOp.apply( btmp.uvw()[0], b.uvw()[0], level, All );
-   VelMassOp.apply( btmp.uvw()[1], b.uvw()[1], level, All );
+   if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
+   {
+      P2ConstantMassOperator M_vel( storage, 0, level );
+      M_vel.apply( btmp.uvw()[0], b.uvw()[0], level, All );
+      M_vel.apply( btmp.uvw()[1], b.uvw()[1], level, All );
+   }
+   else
+   {
+      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+      {
+         EGMassOperator M_vel( storage, level, level );
+         M_vel.apply( btmp.uvw(), b.uvw(), level, All, Replace );
+         //b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
+      /*   btmp.p().interpolate( { rhsP }, level );
+         auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+         dg::DGOperator M_p( storage, level, level, mass_form );
+         M_p.apply( *btmp.p().getDGFunction(), *b.p().getDGFunction(), level, All, Replace );
+
+         x.uvw().getConformingPart()->interpolate( 0, level, DirichletBoundary );*/
+      }
+      else
+      {
+         WALBERLA_ABORT( "SolVi Benchmark not implemented for other discretizations!" );
+      }
+   }
+
+   // Initial errors 
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
+   real_t discr_l2_err_u, discr_l2_err_v, discr_l2_err_p;
+   StokesFunctionNumeratorType Numerator( "Num", storage, level, level );
+   Numerator.enumerate( level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
+   auto solver = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-8,  100, true );
+
+   solver->solve( Op, x, b, level );
+   /*
+   EGP0StokesFunction< real_t >                   nullspace( "nullspace", storage, level, level );
+   nullspace.uvw().interpolate( 0, level, All );
+   nullspace.p().interpolate( 1, level, All );
+   solver.setNullSpace( nullspace );
+   solver.solve( A, x, b, level );
+ */
+
+   hyteg::vertexdof::projectMean( x.p(), level );
+   hyteg::vertexdof::projectMean( x_exact.p(), level );
    
-   
-   
+   if(writeVTK) {
    // Visualization
-   
    VTKOutput vtkOutput( "../../output", "SolViBenchmark", storage );
    vtkOutput.add( x.uvw() );
    vtkOutput.add( x.p() );
@@ -249,143 +310,35 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    vtkOutput.add( b.uvw() );
    vtkOutput.add( b.p() );
    vtkOutput.write( level, 0 );
-   
+   }
 
-   // DoFs
-   uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
-
-   // Initial errors and residual
-   OP.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
-   residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner );
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
-
-   
-   real_t discr_l2_err_u, discr_l2_err_v, residuum_l2, discr_l2_err_p;
-
-   // Solvers
-   PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
-   LU.assumeSymmetry(true);
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > StdBlkdiagPMINRES_PETSc(
-       storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 3, 1, 0 );
-   //PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
-   //    storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-8, 1e-9, 100, true );
-   auto OnlyPressurePMINRES =
-       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-8, 100, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 0, level, 1e-15, 1e-15, 100, true );
-   auto velocityBCs = {x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition()};
-   auto BFBT_PMINRES     = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-8, 100, true,  velocityBCs);
-
-
-  hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
-   THNumerator.copyBoundaryConditionFromFunction( x );
-   THNumerator.enumerate( level );
-
-   bool printOperands = false;
-   bool printResult   = false;
-   if ( printOperands )
+    if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
    {
-      auto bfbtop = std::make_shared< BFBT_P2P1 >( storage, level, level, viscosity, velocityBCs );
-      bfbtop->printComponentMatrices( level, storage );
-
-      P1LumpedMassOperator PMass(
-       storage,
-       level,
-       level
-      );
-      PETScSparseMatrix< hyteg::P1LumpedMassOperator > PMassMat;
-      hyteg::P1Function< idx_t > PNumerator( "PNum", storage, level, level );
-      PNumerator.enumerate(level);
-      PMassMat.createMatrixFromOperator( PMass, level, PNumerator, All );
-      PMassMat.print( "FOR_MATLAB_PMassMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      P2ConstantMassOperator M_vel( storage, 0, level );
+      M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, Inner, Replace );
       
-      P1BlendingLumpedDiagonalOperator PMassViscWeighted(
-       storage,
-       level,
-       level,
-       std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
-      PETScSparseMatrix< hyteg::P1BlendingLumpedDiagonalOperator > PMassViscWeightedMat;
-      PMassViscWeightedMat.createMatrixFromOperator( PMassViscWeighted, level, PNumerator, All );
-      PMassViscWeightedMat.print( "FOR_MATLAB_PMassViscWeightedMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   
-      PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
-      StokesMat.createMatrixFromOperator( OP, level, THNumerator, All );
-      
-      PETScVector bVec( b, THNumerator, level );
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      bVec.createVectorFromFunction( b, THNumerator, level, All );
-      //StokesMat.applyDirichletBCSymmetrically(  THNumerator,  level );
-      StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
-      bVec.print( "FOR_MATLAB_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      StokesMat.print( "FOR_MATLAB_StokesMat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-   }
-
-
-
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Starting solution" );
-   walberla::WcTimer timer;
-
-   switch ( solver )
+      M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, Inner, Replace );
+    }
+   else
    {
-   case 0:
-      OnlyPressurePMINRES->solve( OP, x, b, level );
-      break;
-   case 1:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: ViscWeightedPMINRES" );
-      ViscWeightedPMINRES->solve( OP, x, b, level );
-      break;
-   case 2:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES" );
-      StdBlkdiagPMINRES->solve( OP, x, b, level );
-      break;
-   case 3:
-      StdBlkdiagPMINRES_PETSc.solve( OP, x, b, level );
-      break;
-   case 4:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
-      BFBT_PMINRES->solve( OP, x, b, level );
-      break;
-   default:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: LU" );
-      LU.solve( OP, x, b, level );
+      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+      {
+         EGMassOperator M_vel( storage, level, level );
+         M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
+        }
    }
-   timer.end();
-
- 
-
-   hyteg::vertexdof::projectMean( x.p(), level );
-   hyteg::vertexdof::projectMean( x_exact.p(), level );
-   if ( printResult )
-   {
-      PETScVector xVec( x, THNumerator, level );
-      xVec.print( "FOR_MATLAB_xVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      PETScVector xExactVec( x_exact, THNumerator, level );
-      xExactVec.print( "FOR_MATLAB_x_exact.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   }
-  
-
-   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   OP.apply( x, btmp, level, hyteg::Inner );
-   residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner );
-   err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
-   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level, hyteg::Inner ) / (real_t) globalDoFs1 );
-   discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level, hyteg::Inner ) / (real_t) globalDoFs1 );
-   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, hyteg::Inner ) / (real_t) globalDoFs1 );
-   residuum_l2    = std::sqrt( residuum.dotGlobal( residuum, level, hyteg::Inner ) / (real_t) globalDoFs1 );
+   discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( Merr.uvw()[0], level, hyteg::Inner )  );
+   discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( Merr.uvw()[1], level, hyteg::Inner )  );
+   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "final errors and residual:" );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
-   WALBERLA_LOG_INFO_ON_ROOT( "residual = " << residuum_l2 );
 
-   vtkOutput.write( level, 1 );
 
    real_t h       = MeshQuality::getMaximalEdgeLength( storage, level );
-   real_t err_vel = std::sqrt( err.uvw().dotGlobal( err.uvw(), level, hyteg::Inner ) / (real_t) globalDoFs1 );
+   real_t err_vel = std::sqrt( err.uvw().dotGlobal( Merr.uvw(), level, hyteg::Inner )  );
    return std::make_tuple< real_t&, real_t&, real_t& >( h, err_vel, discr_l2_err_p );
 }
 
@@ -399,15 +352,16 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   // configure solver and level
-   uint_t                solver = atoi( argv[2] );
-   std::vector< uint_t > levels = { atoi(argv[3]) };
-
+   // configure level
+   std::vector< uint_t > levels = { 3,4,5 };
+   /* commandline arguments for petsc solver:
+   -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
+   */
    // collect errors
    std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
    for ( auto lvl : levels )
    {
-      auto error_per_h = SolViBenchmark( lvl, solver, 1, 0.2, 100.0, 1.0 );
+      auto error_per_h = SolViBenchmark< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator>( lvl, 1, 0.2, 100.0, 1.0 );
       errors_per_h.push_back( error_per_h );
    }
 
