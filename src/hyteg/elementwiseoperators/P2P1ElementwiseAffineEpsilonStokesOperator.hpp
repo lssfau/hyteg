@@ -22,15 +22,19 @@
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
+#include "hyteg/operators/ScalarToVectorOperator.hpp"
+#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-
 namespace hyteg {
 
 class P2P1ElementwiseAffineEpsilonStokesOperator
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
+   
+   typedef P2ElementwiseAffineEpsilonOperator       VelocityOperator_T;
+   
    typedef P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner BlockPreconditioner_T;
 
    P2P1ElementwiseAffineEpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -71,6 +75,11 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
       viscOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+   }
+
+   const P2ElementwiseAffineEpsilonOperator& getA() const
+   {
+      return viscOp;
    }
 
    P2ElementwiseAffineEpsilonOperator viscOp;

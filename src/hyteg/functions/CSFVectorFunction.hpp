@@ -227,14 +227,15 @@ class CSFVectorFunction
          compFunc_[k]->setBoundaryCondition( bc );
       }
    }
-
+  /// Set boundary conditions, for certain component functions
+   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx )
+   {    
+      compFunc_[componentIdx]->setBoundaryCondition( bc ); 
+   }
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-      for ( uint_t k = 0; k < compFunc_.size(); ++k )
-      {
-         compFunc_[k]->setBoundaryCondition( other[k].getBoundaryCondition() );
-      }
+     setBoundaryCondition( other.getBoundaryCondition() );
    }
    /// @}
 

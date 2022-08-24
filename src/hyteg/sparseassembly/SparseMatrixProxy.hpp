@@ -47,6 +47,12 @@ class SparseMatrixProxy
    ///        Can be used to assemble concatenated operators.
    virtual void
        createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > > & matrices ) = 0;
+
+  /// \brief Stores the sum of the passed matrices (as ordered in the vector) in this matrix.
+   ///        Can be used to assemble concatenated operators.
+  virtual void
+        createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )  = 0;
+
 };
 
 

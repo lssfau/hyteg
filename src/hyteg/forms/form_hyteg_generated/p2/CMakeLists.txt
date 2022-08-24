@@ -30,5 +30,13 @@ target_sources( hyteg
     p2_epsiloncc_affine_q2.hpp
     p2_epsiloncc_blending_q2.cpp
     p2_epsilonvar_affine_q2.cpp     
+    p2_sqrtk_mass_affine_q4.cpp    
+    p2_sqrtk_mass_affine_q4.hpp    
+    
+    p2_sqrtk_mass_affine_q6.cpp    
+    p2_sqrtk_mass_affine_q6.hpp   
+    
+    p2_invk_mass_affine_q6.cpp    
+    p2_invk_mass_affine_q6.hpp     
 )
 

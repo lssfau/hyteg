@@ -23,6 +23,7 @@ target_sources( hyteg
     P2Multigrid.hpp
     P2MacroEdge.hpp
     P2MacroVertex.hpp     
+    P2FunctionApplyOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( generatedKernels )

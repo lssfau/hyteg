@@ -1,41 +1,33 @@
-/*
- * Copyright (c) 2017-2020 Nils Kohl.
- *
- * This file is part of HyTeG
- * (see https://i10git.cs.fau.de/hyteg/hyteg).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 #pragma once
-
+#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2ToP2VectorProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2ToP2VectorRestriction.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 
 namespace hyteg {
 
@@ -60,7 +52,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
                                                                     const uint_t&                              level,
                                                                     const real_t& absoluteTargetResidual,
                                                                     const uint_t& maxIterations,
-                                                                    bool printInfo = false )
+                                                                    bool          printInfo = false )
 {
    auto pressurePreconditioner =
        std::make_shared< StokesPressureBlockPreconditioner< StokesOperatorType, P1LumpedInvMassOperator > >(
@@ -92,10 +84,13 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
                                const uint_t&                                    maxLevel,
                                std::function< real_t( const hyteg::Point3D& ) > viscosity,
                                const uint_t&                                    nPrecCycles,
-                               const real_t&                                    relativeResidual,
+                               const real_t&                                    absoluteTargetResidual,
+                               const real_t&                                    relativeVelBlockResidual,
                                const uint_t&                                    maxIterations,
                                bool                                             printInfo )
 {
+   auto CG = std::make_shared< PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >(
+       storage, maxLevel, relativeVelBlockResidual, 1e-12 );
    auto LU = std::make_shared< PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
@@ -110,7 +105,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
        storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
 
    auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >(
-       storage, maxLevel, maxLevel, maxIterations, relativeResidual, prec );
+       storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -133,13 +128,16 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
             const std::shared_ptr< PrimitiveStorage >&          storage,
             const uint_t&                                       maxLevel,
             std::function< real_t( const hyteg::Point3D& ) >    viscosity,
-            const real_t&                                       relativeTolerance,
+            const real_t&                                       absoluteTargetResidual,
             const uint_t&                                       maxIterations,
             bool                                                printInfo,
             const std::vector<BoundaryCondition>&                     VelocitySpaceBCs
 
 ) {
 
+  auto CG = std::make_shared< CGSolver< P2ElementwiseAffineEpsilonOperator > >(
+       storage, maxLevel, maxLevel, std::numeric_limits< uint_t >::max(), absoluteTargetResidual );
+  // CG->setPrintInfo( printInfo );
 
     auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
@@ -158,7 +156,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
        LU
     );
 
-   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
+   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -268,11 +266,11 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesGMGUzawaSolver( const std:
 template <>
 std::shared_ptr< Solver< P1P1StokesOperator > >
     stokesGMGUzawaSolver< P1P1StokesOperator >( const std::shared_ptr< PrimitiveStorage >& storage,
-                                              const uint_t&                              minLevel,
-                                              const uint_t&                              maxLevel,
-                                              const uint_t&                              preSmoothingSteps,
-                                              const uint_t&                              postSmoothingSteps,
-                                              const real_t&                              uzawaSmootherOmega )
+                                                const uint_t&                              minLevel,
+                                                const uint_t&                              maxLevel,
+                                                const uint_t&                              preSmoothingSteps,
+                                                const uint_t&                              postSmoothingSteps,
+                                                const real_t&                              uzawaSmootherOmega )
 {
    auto pressurePreconditioner =
        std::make_shared< StokesPressureBlockPreconditioner< P1P1StokesOperator, P1LumpedInvMassOperator > >(
@@ -289,15 +287,15 @@ std::shared_ptr< Solver< P1P1StokesOperator > >
        storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaSmootherOmega );
 
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< P1P1StokesOperator > >( storage,
-                                                                                      uzawaSmoother,
-                                                                                      pressurePreconditionedMinResSolver,
-                                                                                      stokesRestriction,
-                                                                                      stokesProlongation,
-                                                                                      minLevel,
-                                                                                      maxLevel,
-                                                                                      preSmoothingSteps,
-                                                                                      postSmoothingSteps,
-                                                                                      2 );
+                                                                                        uzawaSmoother,
+                                                                                        pressurePreconditionedMinResSolver,
+                                                                                        stokesRestriction,
+                                                                                        stokesProlongation,
+                                                                                        minLevel,
+                                                                                        maxLevel,
+                                                                                        preSmoothingSteps,
+                                                                                        postSmoothingSteps,
+                                                                                        2 );
    return gmgSolver;
 }
 
@@ -340,3 +338,4 @@ std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >
 
 } // namespace solvertemplates
 } // namespace hyteg
+>>>>>>> boehm/BFBT-preconditioner

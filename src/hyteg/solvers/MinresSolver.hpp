@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
@@ -58,6 +59,7 @@ public:
   , p_tmp( "minres_tmp", storage, minLevel, maxLevel )
   , r_( "minres_r", storage, minLevel, maxLevel )
   , timingTree_( storage->getTimingTree() )
+  , storage_(storage)
   {}
 
   void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) override
@@ -85,6 +87,16 @@ public:
 
     p_z.interpolate(0, level, flag_);
     preconditioner_->solve(A, p_z, p_v, level );
+    
+    /*
+     VTKOutput vtkOutput(
+          "../../output", "MINRES_tmp", storage_ );
+       vtkOutput.add( p_z );
+     
+    vtkOutput.write( level, 0 );
+*/
+     
+ 
 
     real_t gamma_old = 1.0;
     real_t gamma_new = std::sqrt(p_z.dotGlobal(p_v, level, flag_));
@@ -97,9 +109,9 @@ public:
 
     real_t c_old = 1.0;
     real_t c_new = 1.0;
-    
+
     if (printInfo_) {
-      WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: "<< std::scientific << std::abs(gamma_new));
+      WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: "<< std::scientific << std::setprecision (15) <<  std::abs(gamma_new));
     }
 
     if (gamma_new < absoluteTolerance_ )
@@ -110,6 +122,8 @@ public:
       timingTree_->stop( "MinRes Solver" );
       return;
     }
+
+   
 
     for(size_t i = 0; i < maxIter_; ++i) {
       p_z.assign({real_t(1) / gamma_new}, {p_z}, level, flag_);
@@ -155,7 +169,7 @@ public:
 
       if (printInfo_)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("[MinRes] iter: %6d | rel. residuum: %10.5e | residuum: %10.5e", i,std::abs(eta)/res_start, std::abs(eta)));
+        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("[MinRes] iter: %6d | residuum: %10.5e", i, std::abs(eta)));
       }
 
       if (std::abs(eta)/res_start < relativeTolerance_ || std::abs(eta) < absoluteTolerance_ )
@@ -173,7 +187,6 @@ public:
   void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
   void setAbsoluteTolerance( real_t absoluteTolerance ) { absoluteTolerance_ = absoluteTolerance; }
   void setRelativeTolerance( real_t relativeTolerance ) { relativeTolerance_ = relativeTolerance; }
-  void setDoFType(hyteg::DoFType f) { flag_ = f; }
 
 private:
 
@@ -201,6 +214,8 @@ private:
   FunctionType r_;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
+  
+   const std::shared_ptr< PrimitiveStorage >      storage_;
 };
 
 }
