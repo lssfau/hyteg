@@ -79,7 +79,8 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
-std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
+template<typename StokesOperatorType>
+std::shared_ptr< Solver< StokesOperatorType > >
     varViscStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >&       storage,
                                const uint_t&                                    maxLevel,
                                std::function< real_t( const hyteg::Point3D& ) > viscosity,
@@ -88,7 +89,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
                                const uint_t&                                    maxIterations,
                                bool                                             printInfo )
 {
-   auto LU = std::make_shared< PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
+   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
    auto pPrecOp = std::make_shared< P1BlendingLumpedInverseDiagonalOperator >(
@@ -97,11 +98,11 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
        maxLevel,
        std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
 
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
+   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperatorType,
                                                                     P1BlendingLumpedInverseDiagonalOperator> >(
        storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
 
-   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >(
+   auto solver = std::make_shared< MinResSolver< StokesOperatorType > >(
        storage, maxLevel, maxLevel, maxIterations, relativeResidual, prec );
    solver->setPrintInfo( printInfo );
    return solver;
@@ -332,4 +333,3 @@ std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >
 
 } // namespace solvertemplates
 } // namespace hyteg
->>>>>>> boehm/BFBT-preconditioner
