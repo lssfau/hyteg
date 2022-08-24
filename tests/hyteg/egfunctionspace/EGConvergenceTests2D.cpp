@@ -53,6 +53,7 @@ using hyteg::Point3D;
 using hyteg::dg::eg::EGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
+using hyteg::dg::eg::EGP0EpsilonStokesOperator;
 using hyteg::dg::eg::EGP0StokesOperator;
 
 namespace hyteg {
@@ -62,13 +63,14 @@ template < typename OperatorType >
 class EGStokesConvergenceTest
 {
  public:
-   EGStokesConvergenceTest( const std::string& testName,
-                            LambdaTuple        sol_tuple,
-                            LambdaTuple        rhs_tuple,
-                            const std::string& meshFile,
-                            const uint_t       minLevel,
-                            const uint_t       maxLevel,
-                            bool               writeVTK = false )
+   EGStokesConvergenceTest( const std::string&                         testName,
+                            LambdaTuple                                sol_tuple,
+                            LambdaTuple                                rhs_tuple,
+                            OperatorType&                              Op,
+                            const std::shared_ptr< PrimitiveStorage >& storage,
+                            const uint_t                               minLevel,
+                            const uint_t                               maxLevel,
+                            bool                                       writeVTK = false )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Running " << testName );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
@@ -78,7 +80,7 @@ class EGStokesConvergenceTest
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          lastError    = currentError;
-         currentError = RunStokesTestOnLevel( testName, level, sol_tuple, rhs_tuple, meshFile, writeVTK );
+         currentError = RunStokesTestOnLevel( testName, level, sol_tuple, rhs_tuple, Op, storage, writeVTK );
          currentRate  = lastError / currentError;
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
       }
@@ -88,26 +90,18 @@ class EGStokesConvergenceTest
       WALBERLA_LOG_INFO_ON_ROOT( "Test " << testName << " converged correctly." );
    }
 
-   real_t RunStokesTestOnLevel( const std::string& testName,
-                                const uint_t&      level,
-                                LambdaTuple        sol_tuple,
-                                LambdaTuple        rhs_tuple,
-                                const std::string& meshFile,
-                                bool               writeVTK = false )
+   real_t RunStokesTestOnLevel( const std::string&                         testName,
+                                const uint_t&                              level,
+                                LambdaTuple                                sol_tuple,
+                                LambdaTuple                                rhs_tuple,
+                                OperatorType&                              Op,
+                                const std::shared_ptr< PrimitiveStorage >& storage,
+                                bool                                       writeVTK = false )
    {
-      // storage setup
-      //TODO shift to constructor, use other meshes
-      WALBERLA_UNUSED( meshFile );
-      auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, 1, 1 );
-      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-      auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
       EGP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
       numerator.enumerate( level );
 
       // Operator setup
-      OperatorType   K( storage, level, level );
       EGMassOperator M( storage, level, level );
       auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
       dg::DGOperator M_pressure( storage, level, level, mass_form );
@@ -143,7 +137,7 @@ class EGStokesConvergenceTest
 
       // solve
       PETScMinResSolver< OperatorType > solver( storage, level, numerator );
-      solver.solve( K, u, rhs, level );
+      solver.solve( Op, u, rhs, level );
 
       // calculate the error in the L2 norm
       err.assign( { 1.0, -1.0 }, { u, sol }, level );
@@ -167,6 +161,7 @@ class EGStokesConvergenceTest
       return discrL2_velocity;
    }
 };
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -174,6 +169,21 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
+  
+   auto meshInfo = hyteg::MeshInfo::meshRectangle(
+       hyteg::Point2D( { -1, -1 } ), hyteg::Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISSCROSS, 1, 1 );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
+
+   EGP0StokesOperator             EGP0StokesOp( storage, 3, 5 );
+   EGP0ConstEpsilonStokesOperator EGP0ConstantEpsilonOp( storage, 3, 5 );
+   EGP0EpsilonStokesOperator      EGP0EpsilonOp( storage, 3, 5, []( const hyteg::Point3D& p ) { return 1; } );
+
+   /* commandline arguments for petsc solver:
+   -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
+   */
 
    hyteg::EGStokesConvergenceTest< EGP0StokesOperator >(
        "DefaultStokesHomogeneousDirichlet:asymmetric_u",
@@ -226,7 +236,8 @@ int main( int argc, char* argv[] )
               const real_t x5 = M_PI_2;
               return -x1 * x2 * x5 * std::cos( x3 ) - x1 * x4 - x4 * x5 * std::cos( x0 );
            } ),
-       "",
+       EGP0StokesOp,
+       storage,
        3,
        5 );
 
@@ -271,7 +282,8 @@ int main( int argc, char* argv[] )
               const real_t x2 = M_PI_2;
               return -x2 * std::sin( x0 ) * std::cos( x1 ) - x2 * std::sin( x1 ) * std::cos( x0 );
            } ),
-       "",
+       EGP0StokesOp,
+       storage,
        3,
        5 );
 
@@ -329,7 +341,8 @@ int main( int argc, char* argv[] )
               const real_t x5 = std::sin( x0 );
               return -x2 * x4 * std::cos( x0 ) - 2 * M_PI * x2 * x5 * std::cos( x3 ) - x4 * x5 * std::cos( x1 );
            } ),
-       "",
+       EGP0StokesOp,
+       storage,
        3,
        5 );
 
@@ -363,7 +376,8 @@ int main( int argc, char* argv[] )
                                                                        1;
                                                              },
                                                              []( const Point3D& p ) -> real_t { return 0; } ),
-                                                         "",
+                                                         EGP0StokesOp,
+                                                         storage,
                                                          3,
                                                          5 );
 
@@ -423,7 +437,8 @@ int main( int argc, char* argv[] )
               return -x1 * x2 * x5 * std::cos( x3 ) - x1 * x4 - x4 * x5 * std::cos( x0 );
               ;
            } ),
-       "",
+       EGP0ConstantEpsilonOp,
+       storage,
        3,
        5 );
 
@@ -462,23 +477,24 @@ int main( int argc, char* argv[] )
               const real_t x2 = M_PI_2;
               return -( x2 * std::sin( x0 ) * std::cos( x1 ) + x2 * std::sin( x1 ) * std::cos( x0 ) );
            } ),
-       "",
+       EGP0ConstantEpsilonOp,
+       storage,
        3,
        5 );
 
    hyteg::EGStokesConvergenceTest< EGP0ConstEpsilonStokesOperator >(
-       "ConstEpsilonInhomogeneousDirichlet:symmetric_u",
+       "ConstEpsilonInhomogeneousDirichlet",
        std::make_tuple(
            []( const Point3D& p ) -> real_t {
-                       const real_t x  = p[0];
-              const real_t y  = p[1];
-    
+              const real_t x = p[0];
+              const real_t y = p[1];
+
               return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
            },
            []( const Point3D& p ) -> real_t {
-                       const real_t x  = p[0];
-              const real_t y  = p[1];
-    
+              const real_t x = p[0];
+              const real_t y = p[1];
+
               return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
            },
            []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; } ),
@@ -504,9 +520,53 @@ int main( int argc, char* argv[] )
               return -x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) -
                      x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
            } ),
-       "",
+       EGP0ConstantEpsilonOp,
+       storage,
        3,
        5 );
-  
+
+   hyteg::EGStokesConvergenceTest< EGP0EpsilonStokesOperator >(
+       "EpsilonInhomogeneousDirichlet:ConstantViscosity",
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+
+              return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+
+              return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           },
+           []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; } ),
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = std::pow( M_PI, 2 );
+              return 0.5 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) +
+                     0.25 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) + 1;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = std::pow( M_PI, 2 );
+              return 0.25 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) +
+                     0.5 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) + 1;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = M_PI_2;
+              return -x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) -
+                     x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           } ),
+       EGP0EpsilonOp,
+       storage,
+       3,
+       5 );
+
    return 0;
 }
