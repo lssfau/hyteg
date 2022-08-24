@@ -65,6 +65,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
    }
 
+
+
    void addValues( const std::vector< uint_t >& rows,
                    const std::vector< uint_t >& cols,
                    const std::vector< real_t >& values ) override
@@ -147,6 +149,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                     petscVals.data(),
                     ADD_VALUES );
    }
+
+   
 
 #endif
 
@@ -299,7 +303,6 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       }
    }
 
- private:
    Mat mat_;
 };
 

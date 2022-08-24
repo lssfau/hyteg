@@ -30,7 +30,7 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
+//#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
@@ -102,13 +102,10 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
                                const uint_t&                                    maxLevel,
                                std::function< real_t( const hyteg::Point3D& ) > viscosity,
                                const uint_t&                                    nPrecCycles,
-                               const real_t&                                    absoluteTargetResidual,
-                               const real_t&                                    relativeVelBlockResidual,
+                               const real_t&                                    relativeResidual,
                                const uint_t&                                    maxIterations,
                                bool                                             printInfo )
 {
-   auto CG = std::make_shared< PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >(
-       storage, maxLevel, relativeVelBlockResidual, 1e-12 );
    auto LU = std::make_shared< PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
@@ -123,7 +120,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
        storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
 
    auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >(
-       storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
+       storage, maxLevel, maxLevel, maxIterations, relativeResidual, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -146,16 +143,13 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
             const std::shared_ptr< PrimitiveStorage >&          storage,
             const uint_t&                                       maxLevel,
             std::function< real_t( const hyteg::Point3D& ) >    viscosity,
-            const real_t&                                       absoluteTargetResidual,
+            const real_t&                                       relativeTolerance,
             const uint_t&                                       maxIterations,
             bool                                                printInfo,
             const std::vector<BoundaryCondition>&                     VelocitySpaceBCs
 
 ) {
 
-  auto CG = std::make_shared< CGSolver< P2ElementwiseAffineEpsilonOperator > >(
-       storage, maxLevel, maxLevel, std::numeric_limits< uint_t >::max(), absoluteTargetResidual );
-  // CG->setPrintInfo( printInfo );
 
     auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
@@ -174,7 +168,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
        LU
     );
 
-   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
+   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }

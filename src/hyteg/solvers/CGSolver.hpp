@@ -44,7 +44,7 @@ class CGSolver : public Solver< OperatorType >
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
        uint_t                                     maxIter        = std::numeric_limits< uint_t >::max(),
-       real_t                                     tolerance      = 1e-16,
+       real_t                                     tolerance      = 1e-13,
        std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
@@ -107,7 +107,7 @@ class CGSolver : public Solver< OperatorType >
 
          if ( printInfo_ )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( "[CG] residual: " << sqrsnew );
+            WALBERLA_LOG_INFO_ON_ROOT( "[CG] iter: " << i << ", residual: " << sqrsnew );
          }
 
          if ( sqrsnew < tolerance_ )
@@ -236,6 +236,7 @@ class CGSolver : public Solver< OperatorType >
    }
 
    void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
+   void setDoFType(hyteg::DoFType flag) { flag_ = flag;}
 
  private:
    void init( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, real_t& prsold ) const

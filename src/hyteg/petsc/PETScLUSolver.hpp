@@ -65,7 +65,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
-   , assumeSymmetry_( false )
+   , assumeSymmetry_( true )
    , solverType_( PETScDirectSolverType::MUMPS )
    {
       num.enumerate( level );

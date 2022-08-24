@@ -110,6 +110,8 @@ class PETScVector
    inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) vec, name ); }
 
    inline Vec& get() { return vec; }
+   
+   inline void set(Vec v) { vec = v; }
 
  protected:
    std::string name_;
