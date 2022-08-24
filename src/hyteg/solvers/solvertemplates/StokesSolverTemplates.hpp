@@ -22,8 +22,6 @@
 
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q4.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"

@@ -816,6 +816,13 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
+
+
+## SolVi benchmark 
+waLBerla_compile_test(FILES composites/SolViBenchmark.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME SolViBenchmark)
+
+
 endif()
 
 
