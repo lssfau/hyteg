@@ -136,11 +136,15 @@ class EGStokesConvergenceTest
       u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
       // solve
-      PETScMinResSolver< OperatorType > solver( storage, level, numerator );
+      //PETScMinResSolver< OperatorType > solver( storage, level, numerator );
+      PETScLUSolver< OperatorType > solver( storage, level, numerator );
+      EGP0StokesFunction< real_t >  nullSpace( "ns", storage, level, level );
+      nullSpace.uvw().interpolate( 0, level, All );
+      nullSpace.p().interpolate( 1, level, All );
+      solver.setNullSpace( nullSpace );
       solver.solve( Op, u, rhs, level );
-
       // calculate the error in the L2 norm
-      err.assign( { 1.0, -1.0 }, { u, sol }, level );
+      err.assign( { 1.0, -1.0 }, { u, sol }, level, Inner );
       M.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
       auto discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
 
@@ -169,7 +173,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
-  
+
    auto meshInfo = hyteg::MeshInfo::meshRectangle(
        hyteg::Point2D( { -1, -1 } ), hyteg::Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISSCROSS, 1, 1 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
@@ -181,12 +185,15 @@ int main( int argc, char* argv[] )
    EGP0ConstEpsilonStokesOperator EGP0ConstantEpsilonOp( storage, 3, 5 );
    EGP0EpsilonStokesOperator      EGP0EpsilonOp( storage, 3, 5, []( const hyteg::Point3D& p ) { return 1; } );
 
+
+
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
 
+
    hyteg::EGStokesConvergenceTest< EGP0StokesOperator >(
-       "DefaultStokesHomogeneousDirichlet:asymmetric_u",
+       "DefaultStokesHomogeneousDirichlet_asymmetric_u",
        std::make_tuple(
            []( const Point3D& p ) -> real_t {
               const real_t x = p[0];
@@ -239,7 +246,7 @@ int main( int argc, char* argv[] )
        EGP0StokesOp,
        storage,
        3,
-       5 );
+       5, true );
 
    hyteg::EGStokesConvergenceTest< EGP0StokesOperator >(
        "DefaultStokesHomogeneousDirichlet:pointsymmetric_u",
@@ -526,7 +533,53 @@ int main( int argc, char* argv[] )
        5 );
 
    hyteg::EGStokesConvergenceTest< EGP0EpsilonStokesOperator >(
-       "EpsilonInhomogeneousDirichlet:ConstantViscosity",
+       "EpsilonHomogeneousDirichlet:ConstantViscosity",
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+
+              return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+
+              return std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) + std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           },
+           []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; } ),
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = std::pow( M_PI, 2 );
+              return 0.5 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) +
+                     0.25 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) + 1;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = std::pow( M_PI, 2 );
+              return 0.25 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) +
+                     0.5 * x0 * std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) + 1;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = M_PI_2;
+              return -x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) -
+                     x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+           } ),
+       EGP0EpsilonOp,
+       storage,
+       3,
+       5 );
+
+  
+
+
+   hyteg::EGStokesConvergenceTest< EGP0EpsilonStokesOperator >(
+       "EpsilonInhomogeneousDirichlet:constantViscosity",
        std::make_tuple(
            []( const Point3D& p ) -> real_t {
               const real_t x = p[0];
