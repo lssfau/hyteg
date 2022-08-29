@@ -48,58 +48,72 @@ class PETScLUSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
+   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level,
+                      const typename OperatorType::srcType::template FunctionType< idx_t >& numerator )
    : storage_( storage )
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num( "numerator", storage, level, level )
-   , Amat( "Amat", petscCommunicator_ )
+   , num( numerator )
+   , Amat( "LU_A", petscCommunicator_ )
    , AmatUnsymmetric( "AmatUnsymmetric", petscCommunicator_ )
    , AmatTmp( "AmatTmp", petscCommunicator_ )
-   , xVec( "xVec", petscCommunicator_ )
-   , bVec( "bVec", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
+   , xVec( "LU_x", petscCommunicator_ )
+   , bVec( "LU_b", petscCommunicator_ )
+   , nullSpaceSet_( false )
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
-   , flag_( hyteg::Inner )
+   , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
    , assumeSymmetry_( true )
    , solverType_( PETScDirectSolverType::MUMPS )
+
    {
-      num.enumerate( level );
+      //num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPPREONLY );
       KSPSetFromOptions( ksp );
    }
 
-   ~PETScLUSolver() { KSPDestroy( &ksp ); }
+   ~PETScLUSolver()
+   {
+      KSPDestroy( &ksp );
+   }
 
-#if 0
-  void setNullSpace( FunctionType & inKernel, const uint_t & level )
-  {
+   void setNullSpace( FunctionType& nullspace )
+   {
+      /*
     inKernel.createVectorFromFunction( inKernel, *num, level, All );
     VecNormalize(inKernel.get(), NULL);
     MatNullSpace nullspace;
     MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &(inKernel.get()), &nullspace );
-    MatSetNullSpace( Amat.get(), nullspace );
-  }
-#endif
+    MatSetNullSpace( Amat.get(), nullspace );*/
 
-   void setDirectSolverType( PETScDirectSolverType solverType ) { solverType_ = solverType; }
-
-   void setConstantNullSpace()
-   {
-      MatNullSpace nullspace;
-      MatNullSpaceCreate( petscCommunicator_, PETSC_TRUE, 0, NULL, &nullspace );
-      MatSetNullSpace( Amat.get(), nullspace );
+      nullSpaceSet_ = true;
+      nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
+      real_t norm = 0;
+      VecNormalize( nullspaceVec_.get(), &norm );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
-   void setVerbose( bool verbose ) { verbose_ = verbose; }
+   void setDirectSolverType( PETScDirectSolverType solverType )
+   {
+      solverType_ = solverType;
+   }
+
+   void setVerbose( bool verbose )
+   {
+      verbose_ = verbose;
+   }
 
    /// \brief If set to true, the symmetry of the operator is exploited by the solver.
-   void assumeSymmetry( bool assumeSymmetry ) { assumeSymmetry_ = assumeSymmetry; }
+   void assumeSymmetry( bool assumeSymmetry )
+   {
+      assumeSymmetry_ = assumeSymmetry;
+   }
 
    /// \brief If set to true, no assembly and no factorization will happen during the solve() call.
    ///        For successful solution of the system, assembleAndFactorize() has to be called before
@@ -111,97 +125,21 @@ class PETScLUSolver : public Solver< OperatorType >
 
    /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
    ///        Default is false.
-   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
-
-   void setMUMPSIcntrl( uint_t key, int value ) { mumpsIcntrl_[key] = value; }
-   void setMUMPSCntrl( uint_t key, real_t value ) { mumpsCntrl_[key] = value; }
-
-   void assembleAndFactorize( const OperatorType& A )
+   void reassembleMatrix( bool reassembleMatrix )
    {
-      storage_->getTimingTree()->start( "Matrix assembly" );
-
-      bool matrixAssembledForTheFirstTime;
-      if ( reassembleMatrix_ )
-      {
-         AmatUnsymmetric.zeroEntries();
-         AmatUnsymmetric.createMatrixFromOperator( A, allocatedLevel_, num, All );
-         matrixAssembledForTheFirstTime = true;
-      }
-      else
-      {
-         matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
-      }
-
-      storage_->getTimingTree()->stop( "Matrix assembly" );
-
-      if ( matrixAssembledForTheFirstTime )
-      {
-         Amat.zeroEntries();
-         Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
-         AmatTmp.zeroEntries();
-         AmatTmp.createMatrixFromOperator( A, allocatedLevel_, num, All );
-
-         MatCopy( AmatUnsymmetric.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
-
-         if ( assumeSymmetry_ )
-         {
-            Amat.applyDirichletBCSymmetrically( num, allocatedLevel_ );
-         }
-         else
-         {
-            Amat.applyDirichletBC( num, allocatedLevel_ );
-         }
-
-         KSPSetOperators( ksp, Amat.get(), Amat.get() );
-         KSPGetPC( ksp, &pc );
-
-         if ( assumeSymmetry_ )
-         {
-            PCSetType( pc, PCCHOLESKY );
-         }
-         else
-         {
-            PCSetType( pc, PCLU );
-         }
-
-         MatSolverType petscSolverType;
-         switch ( solverType_ )
-         {
-         case PETScDirectSolverType::MUMPS:
-#ifdef PETSC_HAVE_MUMPS
-            petscSolverType = MATSOLVERMUMPS;
-            break;
-#else
-            WALBERLA_ABORT( "PETSc is not build with MUMPS support." )
-#endif
-         case PETScDirectSolverType::SUPER_LU:
-            petscSolverType = MATSOLVERSUPERLU_DIST;
-            break;
-         default:
-            WALBERLA_ABORT( "Invalid PETSc solver type." )
-         }
-         HYTEG_PCFactorSetMatSolverType( pc, petscSolverType );
-
-         if ( solverType_ == PETScDirectSolverType::MUMPS )
-         {
-            PCFactorSetUpMatSolverType( pc );
-            PCFactorGetMatrix( pc, &F );
-#ifdef PETSC_HAVE_MUMPS
-            for ( auto it : mumpsIcntrl_ )
-            {
-               MatMumpsSetIcntl( F, it.first, it.second );
-            }
-            for ( auto it : mumpsCntrl_ )
-            {
-               MatMumpsSetCntl( F, it.first, it.second );
-            }
-#endif
-         }
-         storage_->getTimingTree()->start( "Factorization" );
-         PCSetUp( pc );
-         storage_->getTimingTree()->stop( "Factorization" );
-      }
+      reassembleMatrix_ = reassembleMatrix;
    }
+
+   void setMUMPSIcntrl( uint_t key, int value )
+   {
+      mumpsIcntrl_[key] = value;
+   }
+   void setMUMPSCntrl( uint_t key, real_t value )
+   {
+      mumpsCntrl_[key] = value;
+   }
+
+   void assembleAndFactorize( const OperatorType& A ) {}
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -212,26 +150,121 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "PETSc LU Solver" );
       storage_->getTimingTree()->start( "Setup" );
 
+      num.copyBoundaryConditionFromFunction( x );
+      num.enumerate( level );
+      xVec.createVectorFromFunction( x, num, level );
+      bVec.createVectorFromFunction( b, num, level, All );
+
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
-         assembleAndFactorize( A );
+         //assembleAndFactorize( A );
+         storage_->getTimingTree()->start( "Matrix assembly" );
+
+         bool matrixAssembledForTheFirstTime;
+         if ( reassembleMatrix_ )
+         {
+            AmatUnsymmetric.zeroEntries();
+            AmatUnsymmetric.createMatrixFromOperator( A, allocatedLevel_, num, All );
+            matrixAssembledForTheFirstTime = true;
+         }
+         else
+         {
+            matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
+         }
+
+         storage_->getTimingTree()->stop( "Matrix assembly" );
+
+         if ( matrixAssembledForTheFirstTime )
+         {
+            Amat.zeroEntries();
+            Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
+            AmatTmp.zeroEntries();
+            AmatTmp.createMatrixFromOperator( A, allocatedLevel_, num, All );
+
+            MatCopy( AmatUnsymmetric.get(), Amat.get(), SAME_NONZERO_PATTERN );
+
+            if ( assumeSymmetry_ )
+            {
+               Amat.applyDirichletBCSymmetrically( x, num, bVec, allocatedLevel_ );
+            }
+            else
+            {
+               Amat.applyDirichletBC( num, allocatedLevel_ );
+            }
+            if ( nullSpaceSet_ )
+            {
+               MatSetNullSpace( Amat.get(), nullspace_ );
+               MatNullSpaceRemove(nullspace_,bVec.get());
+            }
+
+            KSPSetOperators( ksp, Amat.get(), Amat.get() );
+            KSPGetPC( ksp, &pc );
+
+            if ( assumeSymmetry_ )
+            {
+                PCSetType( pc, PCLU );
+               //PCSetType( pc, PCCHOLESKY );
+            }
+            else
+            {
+               PCSetType( pc, PCLU );
+            }
+
+            MatSolverType petscSolverType;
+            switch ( solverType_ )
+            {
+            case PETScDirectSolverType::MUMPS:
+#ifdef PETSC_HAVE_MUMPS
+               petscSolverType = MATSOLVERMUMPS;
+               break;
+#else
+               WALBERLA_ABORT( "PETSc is not build with MUMPS support." )
+#endif
+            case PETScDirectSolverType::SUPER_LU:
+               petscSolverType = MATSOLVERSUPERLU_DIST;
+               break;
+            default:
+               WALBERLA_ABORT( "Invalid PETSc solver type." )
+            }
+            HYTEG_PCFactorSetMatSolverType( pc, petscSolverType );
+
+            if ( solverType_ == PETScDirectSolverType::MUMPS )
+            {
+               PCFactorSetUpMatSolverType( pc );
+               PCFactorGetMatrix( pc, &F );
+#ifdef PETSC_HAVE_MUMPS
+               for ( auto it : mumpsIcntrl_ )
+               {
+                  MatMumpsSetIcntl( F, it.first, it.second );
+               }
+               for ( auto it : mumpsCntrl_ )
+               {
+                  MatMumpsSetCntl( F, it.first, it.second );
+               }
+#endif
+            }
+            storage_->getTimingTree()->start( "Factorization" );
+            PCSetUp( pc );
+            storage_->getTimingTree()->stop( "Factorization" );
+         }
       }
       timer.end();
       const double matrixAssemblyAndFactorizationTime = timer.last();
 
       storage_->getTimingTree()->start( "RHS vector setup" );
 
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      bVec.createVectorFromFunction( b, num, level, All );
+      //b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+      /*
       xVec.createVectorFromFunction( x, num, level, All );
+      bVec.createVectorFromFunction( b, num, level, All );
 
       if ( assumeSymmetry_ )
       {
          AmatTmp.zeroEntries();
          MatCopy( AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN );
          AmatTmp.applyDirichletBCSymmetrically( x, num, bVec, allocatedLevel_ );
-      }
+      }*/
 
       storage_->getTimingTree()->stop( "RHS vector setup" );
 
@@ -239,6 +272,10 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "Solver" );
       timer.start();
+
+ //     Amat.print( "LU_Amat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+  //    bVec.print( "LU_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
@@ -264,6 +301,7 @@ class PETScLUSolver : public Solver< OperatorType >
    PETScSparseMatrix< OperatorType >                                                             Amat;
    PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
    PETScSparseMatrix< OperatorType >                                                             AmatTmp;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
 #if 0
@@ -279,6 +317,8 @@ class PETScLUSolver : public Solver< OperatorType >
    bool                       reassembleMatrix_;
    bool                       assumeSymmetry_;
    PETScDirectSolverType      solverType_;
+   bool                       nullSpaceSet_;
+   MatNullSpace               nullspace_;
    std::map< uint_t, int >    mumpsIcntrl_;
    std::map< uint_t, real_t > mumpsCntrl_;
 };
