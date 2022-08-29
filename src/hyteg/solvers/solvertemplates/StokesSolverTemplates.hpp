@@ -89,7 +89,13 @@ std::shared_ptr< Solver< StokesOperatorType > >
                                const uint_t&                                    maxIterations,
                                bool                                             printInfo )
 {
-   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel );
+    
+   using StokesFunctionType          = typename StokesOperatorType::srcType;
+   using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
+      StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
+   Numerator.enumerate( maxLevel );
+
+   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel, Numerator );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
    auto pPrecOp = std::make_shared< P1BlendingLumpedInverseDiagonalOperator >(
@@ -121,8 +127,8 @@ std::shared_ptr< Solver< StokesOperatorType > >
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
-
-std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStokesMinResSolver( 
+template<typename StokesOperatorType>
+std::shared_ptr< Solver< StokesOperatorType > > BFBTStokesMinResSolver( 
             const std::shared_ptr< PrimitiveStorage >&          storage,
             const uint_t&                                       maxLevel,
             std::function< real_t( const hyteg::Point3D& ) >    viscosity,
@@ -132,9 +138,12 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
             const std::vector<BoundaryCondition>&                     VelocitySpaceBCs
 
 ) {
+   using StokesFunctionType          = typename StokesOperatorType::srcType;
+   using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
+      StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
+   Numerator.enumerate( maxLevel );
 
-
-    auto LU = std::make_shared<PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
+   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel, Numerator );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P2 mass matrix
    auto pPrecOp = std::make_shared< BFBT_P2P1 >(
@@ -144,14 +153,14 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
        viscosity,
        VelocitySpaceBCs
     );
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator, BFBT_P2P1 >>( 
+   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner<StokesOperatorType, BFBT_P2P1 >>( 
        storage, maxLevel, 
        maxLevel, 1, 
        pPrecOp,
        LU
     );
 
-   auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >( storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
+   auto solver = std::make_shared< MinResSolver< StokesOperatorType > >( storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -170,7 +179,10 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > > BFBTStok
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
-std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
+
+/*
+template<typename StokesOperatorType>
+std::shared_ptr< Solver< StokesOperatorType > >
     blkdiagPrecStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                    const uint_t&                              minLevel,
                                    const uint_t&                              maxLevel,
@@ -224,7 +236,7 @@ std::shared_ptr< Solver< P2P1ElementwiseAffineEpsilonStokesOperator > >
    //auto CG = std::make_shared<CGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, maxLevel);
    //CG->setPrintInfo(true);
 }
-
+*/
 /// \brief Returns a geometric multigrid solver for the constant-coefficient Stokes system.
 ///
 /// This solver performs a v-cycle and employs as smoother the inexact Uzawa method.
