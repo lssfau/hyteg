@@ -255,20 +255,20 @@ class EGEpsilonFormEP1_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_1;
       real_t tmp_1  = p_affine_1_1 + tmp_0;
@@ -454,20 +454,20 @@ class EGEpsilonFormEP1_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_1;
       real_t tmp_1  = p_affine_1_1 + tmp_0;
@@ -667,20 +667,20 @@ class EGEpsilonFormEP1_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_1;
       real_t tmp_1  = p_affine_1_1 + tmp_0;
@@ -1005,20 +1005,20 @@ class EGEpsilonFormP1E_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_1;
       real_t tmp_1  = p_affine_1_1 + tmp_0;
@@ -1204,20 +1204,20 @@ class EGEpsilonFormP1E_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_3_1;
       real_t tmp_1  = p_affine_4_1 + tmp_0;
@@ -1417,20 +1417,20 @@ class EGEpsilonFormP1E_0 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -1750,20 +1750,20 @@ class EGEpsilonFormEP1_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -1949,20 +1949,20 @@ class EGEpsilonFormEP1_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -2162,20 +2162,20 @@ class EGEpsilonFormEP1_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -2500,20 +2500,20 @@ class EGEpsilonFormP1E_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -2699,20 +2699,20 @@ class EGEpsilonFormP1E_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_3_0;
       real_t tmp_1  = p_affine_4_0 + tmp_0;
@@ -2912,20 +2912,20 @@ class EGEpsilonFormP1E_1 : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -3208,20 +3208,20 @@ class EGEpsilonFormEE : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;
@@ -3343,20 +3343,20 @@ class EGEpsilonFormEE : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0   = -p_affine_3_0;
       real_t tmp_1   = p_affine_4_0 + tmp_0;
@@ -3525,20 +3525,20 @@ class EGEpsilonFormEE : public hyteg::dg::DGForm2D
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id2 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id3 = 0;
       real_t Scalar_Variable_Coefficient_2D_mu_out0_id4 = 0;
-      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_0_0 + 0.046910077030668018 * p_affine_1_0,
-                                         0.95308992296933193 * p_affine_0_1 + 0.046910077030668018 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.95308992296933193 * p_affine_6_0 + 0.046910077030668018 * p_affine_7_0,
+                                         0.95308992296933193 * p_affine_6_1 + 0.046910077030668018 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id0 );
-      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_0_0 + 0.23076534494715845 * p_affine_1_0,
-                                         0.7692346550528415 * p_affine_0_1 + 0.23076534494715845 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.7692346550528415 * p_affine_6_0 + 0.23076534494715845 * p_affine_7_0,
+                                         0.7692346550528415 * p_affine_6_1 + 0.23076534494715845 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id1 );
-      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_0_0 + 0.5 * p_affine_1_0,
-                                         0.5 * p_affine_0_1 + 0.5 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.5 * p_affine_6_0 + 0.5 * p_affine_7_0,
+                                         0.5 * p_affine_6_1 + 0.5 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id2 );
-      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_0_0 + 0.7692346550528415 * p_affine_1_0,
-                                         0.2307653449471585 * p_affine_0_1 + 0.7692346550528415 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.2307653449471585 * p_affine_6_0 + 0.7692346550528415 * p_affine_7_0,
+                                         0.2307653449471585 * p_affine_6_1 + 0.7692346550528415 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id3 );
-      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_0_0 + 0.95308992296933193 * p_affine_1_0,
-                                         0.046910077030668074 * p_affine_0_1 + 0.95308992296933193 * p_affine_1_1,
+      Scalar_Variable_Coefficient_2D_mu( 0.046910077030668074 * p_affine_6_0 + 0.95308992296933193 * p_affine_7_0,
+                                         0.046910077030668074 * p_affine_6_1 + 0.95308992296933193 * p_affine_7_1,
                                          &Scalar_Variable_Coefficient_2D_mu_out0_id4 );
       real_t tmp_0  = -p_affine_0_0;
       real_t tmp_1  = p_affine_1_0 + tmp_0;

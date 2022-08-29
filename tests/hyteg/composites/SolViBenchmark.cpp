@@ -53,6 +53,8 @@ using walberla::uint_t;
 
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0EpsilonStokesOperator;
+
+using hyteg::P2P1ElementwiseAffineEpsilonStokesOperator;
 namespace hyteg {
 
 // SolVi benchmark (Circular inclusion)
@@ -69,13 +71,37 @@ by Daniel W. Schmid and Yuri Yu. Podladchikov
 
 auto copyBdry = []( EGP0StokesFunction< real_t > fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
 
+/*
+//TODO: extend for arbitrary number of branches
+template < typename StokesOperatorType, typename Discr1Op, typename Discr2Op, typename Discr1ToDo, typename Discr2ToDo >
+void DiscretizationSpecificCode( Discr1ToDo discr1todo, Discr2ToDo discr2todo )
+{
+   if constexpr ( std::is_same< StokesOperatorType, Discr1Op >::value )
+   {
+      discr1todo();
+   }
+   else
+   {
+      if constexpr ( std::is_same< StokesOperatorType, Discr2Op >::value )
+      {
+         discr2todo();
+      }
+      else
+      {
+         WALBERLA_ABORT( "SolVi Benchmark not implemented for other discretizations!" );
+      }
+   }
+}
+*/
+
 template < typename StokesOperatorType >
-std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
-                                                     const uint_t& nxy,
-                                                     const real_t  r_inclusion,
-                                                     const real_t& visc_inclusion,
-                                                     const real_t& visc_matrix,
-                                                     bool          writeVTK = false )
+std::tuple< real_t, real_t, real_t > SolViBenchmark( const std::string& name,
+                                                     const uint_t&      level,
+                                                     const uint_t&      nxy,
+                                                     const real_t       r_inclusion,
+                                                     const real_t&      visc_inclusion,
+                                                     const real_t&      visc_matrix,
+                                                     bool               writeVTK = false )
 {
    using namespace std::complex_literals;
    using StokesFunctionType          = typename StokesOperatorType::srcType;
@@ -87,24 +113,24 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    hyteg::loadbalancing::roundRobin( setupStorage );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
    //writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
 
    // function setup
-   StokesFunctionType x( "x", storage, 0, level );
-   StokesFunctionType x_exact( "x_exact", storage, 0, level );
-   StokesFunctionType btmp( "btmp", storage, 0, level );
-   StokesFunctionType b( "b", storage, 0, level );
-   StokesFunctionType err( "err", storage, 0, level );
-   StokesFunctionType Merr( "err", storage, 0, level );
-   StokesFunctionType nullspace( "nullspace", storage, level, level );
+   StokesFunctionType x( "x", storage, level, level );
+   StokesFunctionType x_exact( "x_exact", storage, level, level );
+   StokesFunctionType btmp( "btmp", storage, level, level );
+   StokesFunctionType b( "b", storage, level, level );
+   StokesFunctionType err( "err", storage, level, level );
+   StokesFunctionType Merr( "err", storage, level, level );
+   //StokesFunctionType nullspace( "nullspace", storage, level, level );
    if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
    {
       copyBdry( x );
-      copyBdry( b );
       copyBdry( x_exact );
       copyBdry( err );
       copyBdry( Merr );
+      copyBdry( b );
       copyBdry( btmp );
    }
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
@@ -123,7 +149,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
           else
              return visc_matrix;
        };
-   StokesOperatorType Op( storage, 0, level, viscosity );
+   StokesOperatorType Op( storage, level, level, viscosity );
 
    // analytic solution for u,v,p
    const real_t                                             C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
@@ -167,10 +193,8 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       auto uvp = analytic_uvp( xx );
       return uvp[2];
    };
-   x_exact.uvw().interpolate( { analyticU, analyticV }, level );
-   x_exact.p().interpolate( analyticP, level );
    //hyteg::vertexdof::projectMean( x_exact.p(), level );
-   nullspace.p().interpolate( ones, level, All );
+   //nullspace.p().interpolate( ones, level, All );
    //x.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
    // Right-hand-side: derivatives of u, v, p for x and y
@@ -246,30 +270,30 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddy_p(xx);
        };
 
-   // "Integrate" rhs
-   btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
-   b.uvw().interpolate( { analyticU, analyticV }, level, DirichletBoundary );
+   // interpolate solution, "Integrate" rhs
+   // btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
+   x_exact.uvw().interpolate( { analyticU, analyticV }, level, All );
+   x_exact.p().interpolate( analyticP, level, All );
+   btmp.uvw().interpolate( { rhsU, rhsV }, level, All );
+   //b.uvw().interpolate( { analyticU, analyticV }, level, DirichletBoundary );
+
    if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
    {
-      P2ConstantMassOperator M_vel( storage, 0, level );
+      P2ConstantMassOperator M_vel( storage, level, level );
       M_vel.apply( btmp.uvw()[0], b.uvw()[0], level, All );
       M_vel.apply( btmp.uvw()[1], b.uvw()[1], level, All );
 
       x.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
+      WALBERLA_LOG_INFO_ON_ROOT( "Integrating rhs P2P1" );
    }
    else
    {
       if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "Integrating rhs EG" );
          EGMassOperator M_vel( storage, level, level );
          M_vel.apply( btmp.uvw(), b.uvw(), level, All, Replace );
-         //b.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
-         /*   btmp.p().interpolate( { rhsP }, level );
-         auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-         dg::DGOperator M_p( storage, level, level, mass_form );
-         M_p.apply( *btmp.p().getDGFunction(), *b.p().getDGFunction(), level, All, Replace );
-*/
-         x.uvw().getConformingPart()->interpolate( 0, level, DirichletBoundary );
+         x.uvw().getConformingPart()->interpolate( { analyticU, analyticV }, level, DirichletBoundary );
       }
       else
       {
@@ -280,9 +304,28 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    StokesFunctionNumeratorType Numerator( "Num", storage, level, level );
    Numerator.enumerate( level );
 
-   auto Solver = solvertemplates::varViscStokesMinResSolver<StokesOperatorType>( storage, level, viscosity, 1, 1e-8, 100, true );
-   //PETScMinResSolver< StokesOperatorType > Solver( storage, level, Numerator );
-   Solver->solve( Op, x, b, level );
+   //auto Solver = solvertemplates::varViscStokesMinResSolver<StokesOperatorType>( storage, level, viscosity, 1, 1e-8, 100, true );
+   PETScLUSolver< StokesOperatorType >     LU( storage, level, Numerator );
+   PETScMinResSolver< StokesOperatorType > MINRES( storage, level, Numerator );
+   StokesFunctionType                      nullSpace( "ns", storage, level, level );
+   nullSpace.uvw().interpolate( 0, level, All );
+   nullSpace.p().interpolate( 1, level, All );
+   LU.setNullSpace( nullSpace );
+   MINRES.setNullSpace( nullSpace );
+   if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Starting Solution P2P1" );
+      LU.solve( Op, x, b, level );
+   }
+   else
+   {
+      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Starting Solution EG" );
+         LU.solve( Op, x, b, level );
+      }
+   }
+
    /*
    EGP0StokesFunction< real_t >                   nullspace( "nullspace", storage, level, level );
    nullspace.uvw().interpolate( 0, level, All );
@@ -297,7 +340,7 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
    if ( writeVTK )
    {
       // Visualization
-      VTKOutput vtkOutput( "../../output", "SolViBenchmark", storage );
+      VTKOutput vtkOutput( "../../output", name, storage );
       vtkOutput.add( x.uvw() );
       vtkOutput.add( x.p() );
       vtkOutput.add( x_exact.uvw() );
@@ -309,10 +352,10 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       vtkOutput.write( level, 0 );
    }
 
-   err.assign( { 1.0, -1.0 }, { x, x_exact }, level, hyteg::Inner );
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level, Inner );
    if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value )
    {
-      P2ConstantMassOperator M_vel( storage, 0, level );
+      P2ConstantMassOperator M_vel( storage, level, level );
       M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, Inner, Replace );
       M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, Inner, Replace );
    }
@@ -336,17 +379,17 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
       if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
       {
          //TODO add implementation for EGP0
-    //     globalDoFs1 = hyteg::numberOfGlobalDoFs< EGP0StokesFunctionTag >( *storage, level );
+         //     globalDoFs1 = hyteg::numberOfGlobalDoFs< EGP0StokesFunctionTag >( *storage, level );
       }
    }
 
-   real_t err_vel        = std::sqrt( err.uvw().dotGlobal( Merr.uvw(), level, hyteg::Inner ) );
+   real_t err_vel = std::sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
    real_t discr_l2_err_p;
-   discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, hyteg::Inner ) / real_c(globalDoFs1) );
-   
+   // discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level, hyteg::Inner ) / real_c( globalDoFs1 ) );
+
    WALBERLA_LOG_INFO_ON_ROOT( "final errors and residual:" );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error vel = " << err_vel );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
+   //WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
 
    real_t h = MeshQuality::getMaximalEdgeLength( storage, level );
    return std::make_tuple< real_t&, real_t&, real_t& >( h, err_vel, discr_l2_err_p );
@@ -357,13 +400,13 @@ std::tuple< real_t, real_t, real_t > SolViBenchmark( const uint_t& level,
 using namespace hyteg;
 
 template < typename StokesOperatorType >
-void RunSolVi( std::vector< uint_t >& levels )
+void RunSolVi( const std::string& name, std::vector< uint_t >& levels )
 {
    // collect errors
    std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
    for ( auto lvl : levels )
    {
-      auto error_per_h = SolViBenchmark< StokesOperatorType >( lvl, 1, 0.2, 100.0, 1.0 );
+      auto error_per_h = SolViBenchmark< StokesOperatorType >( name, lvl, 1, 0.2, 100.0, 1.0 );
       errors_per_h.push_back( error_per_h );
    }
 
@@ -391,7 +434,8 @@ void RunSolVi( std::vector< uint_t >& levels )
 
    // write to plot file
    std::ofstream err_file;
-   err_file.open( "../../../hyteg-plots/err_file.txt" );
+   auto          err_file_name = "../../../hyteg-plots/" + name;
+   err_file.open( err_file_name );
    for ( auto err : errors_per_h )
    {
       err_file << std::get< 0 >( err ) << ", " << std::get< 1 >( err ) << ", " << std::get< 2 >( err ) << "\n";
@@ -410,8 +454,9 @@ int main( int argc, char* argv[] )
    */
    // configure solver and level
    std::vector< uint_t > levels = { 4, 5, 6, 7 };
-   RunSolVi< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >( levels );
-   RunSolVi< hyteg::dg::eg::EGP0EpsilonStokesOperator >( levels );
+   //
+   RunSolVi< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >( "P2P1_SolVi", levels );
+   RunSolVi< hyteg::dg::eg::EGP0EpsilonStokesOperator >( "EGP0_SolVi", levels );
 
    return EXIT_SUCCESS;
 }
