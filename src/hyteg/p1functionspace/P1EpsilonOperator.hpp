@@ -121,13 +121,11 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
    P1ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                        size_t                                     minLevel,
                                        size_t                                     maxLevel
-                                   //    ,                                       std::function< real_t( const Point3D& ) >  viscosity
+                                       ,                                       std::function< real_t( const Point3D& ) >  viscosity
                                         )
    : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
    {
-      std::function< real_t( const Point3D& p ) > viscosity = []( const Point3D& p ) -> real_t {
-      return 1;
-   };
+    
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 > eps_0_0;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 > eps_0_1;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 > eps_0_2;

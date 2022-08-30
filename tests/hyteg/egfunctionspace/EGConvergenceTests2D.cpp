@@ -116,7 +116,9 @@ class EGStokesConvergenceTest
       StokesFunctionType sol( "sol", storage, level, level );
       StokesFunctionType err( "err", storage, level, level );
       StokesFunctionType Merr( "Merr", storage, level, level );
-      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
+                     std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
+                     std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
       {
          copyBdry( u );
          copyBdry( f );
@@ -145,7 +147,9 @@ class EGStokesConvergenceTest
       }
       else
       {
-         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
+                        std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
+                        std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
          {
             EGMassOperator M_vel( storage, level, level );
             M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
@@ -180,7 +184,9 @@ class EGStokesConvergenceTest
       }
       else
       {
-         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value )
+         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
+                        std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
+                        std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
          {
             EGMassOperator M_vel( storage, level, level );
             M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
@@ -238,12 +244,11 @@ int main( int argc, char* argv[] )
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_1(
        storage, 3, 5, []( const hyteg::Point3D& p ) { return 1; } );
    hyteg::P2P1TaylorHoodStokesOperator P2P1StokesOp( storage, 3, 5 );
-   
+
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
 
-   /*
    hyteg::EGStokesConvergenceTest< EGP0StokesOperator >(
        "DefaultStokesHomogeneousDirichlet_asymmetric_u",
        std::make_tuple(
@@ -823,12 +828,11 @@ int main( int argc, char* argv[] )
               const real_t x2 = M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 );
               return -x0 * x1 * std::cos( x2 ) - x0 * std::cos( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) - x1 * std::sin( x2 );
            } ),
-       P2P1ElementwiseEpsilonOp,
+       P2P1ElementwiseEpsilonOp_mu_smooth,
        storage,
        3,
        5,
        false );
-       */
 
    hyteg::EGStokesConvergenceTest< hyteg::P2P1TaylorHoodStokesOperator >(
        "P2P1StokesHomogeneousDirichlet_asymmetric_u",
@@ -983,6 +987,6 @@ int main( int argc, char* argv[] )
        storage,
        3,
        5,
-       true );
+       false );
    return 0;
 }

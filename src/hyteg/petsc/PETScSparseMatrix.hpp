@@ -76,9 +76,11 @@ class PETScSparseMatrix
       const uint_t globalRows = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
       const uint_t globalCols = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
 
-      allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
+       allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
 
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+
+
       op.toMatrix( proxy, numerator, numerator, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
@@ -101,6 +103,7 @@ class PETScSparseMatrix
 
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
       op.toMatrix( proxy, numeratorSrc, numeratorDst, level, flag );
+      
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -152,9 +155,6 @@ class PETScSparseMatrix
       std::vector< idx_t > bcIndices;
       hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
-      std::cout << "Indexset of BCs of " << name_ << ": " << std::endl;
-      for (std::vector<PetscInt>::const_iterator i = PetscIntBcIndices.begin(); i != PetscIntBcIndices.end(); ++i)
-         std::cout << *i << ' ';
        // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
