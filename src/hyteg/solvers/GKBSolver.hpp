@@ -22,7 +22,7 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
-#include "hyteg/operators/AugmentedLagrangianOperator.hpp"
+#include "hyteg/operators/combinedoperators/AugmentedLagrangianOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
