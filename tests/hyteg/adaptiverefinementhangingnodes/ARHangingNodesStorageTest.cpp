@@ -236,7 +236,9 @@ void indirectNeighborhoodTest()
             for ( const auto& [tmp1, nFaceNFaceID] : nface->getIndirectNeighborFaceIDsOverEdges() )
             {
                nFaceNeighbors.push_back( nFaceNFaceID );
+               WALBERLA_UNUSED( tmp1 );
             }
+            WALBERLA_UNUSED( tmp0 );
 
             WALBERLA_CHECK( algorithms::contains( nFaceNeighbors, faceID ), "Face is not a neighbor of its neighbors." );
          }
@@ -259,10 +261,12 @@ void indirectNeighborhoodTest()
                      WALBERLA_CHECK( nFaceNFaceID != nFaceID );
                      nFaceNeighbors.push_back( nFaceNFaceID );
                   }
+                  WALBERLA_UNUSED( tmp1 );
                }
 
                WALBERLA_CHECK( algorithms::contains( nFaceNeighbors, faceID ), "Face is not a neighbor of its neighbors." );
             }
+            WALBERLA_UNUSED( tmp0 );
          }
       }
    }
