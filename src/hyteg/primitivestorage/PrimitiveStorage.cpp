@@ -493,6 +493,7 @@ uint_t PrimitiveStorage::getNumberOfLocalVertices() const
          }
          WALBERLA_UNUSED( pid );
       }
+      WALBERLA_UNUSED( level );
    }
    return num;
 }
@@ -510,6 +511,7 @@ uint_t PrimitiveStorage::getNumberOfLocalEdges() const
          }
          WALBERLA_UNUSED( pid );
       }
+      WALBERLA_UNUSED( level );
    }
    return num;
 }
@@ -527,6 +529,7 @@ uint_t PrimitiveStorage::getNumberOfLocalFaces() const
          }
          WALBERLA_UNUSED( pid );
       }
+      WALBERLA_UNUSED( level );
    }
    return num;
 }
@@ -544,6 +547,7 @@ uint_t PrimitiveStorage::getNumberOfLocalCells() const
          }
          WALBERLA_UNUSED( pid );
       }
+      WALBERLA_UNUSED( level );
    }
    return num;
 }
@@ -1414,7 +1418,7 @@ uint_t PrimitiveStorage::getNeighborPrimitiveRank( const PrimitiveID& id ) const
       {
          return nranks.at( id );
       }
-      WALBERLA_UNUSED( nranks );
+      WALBERLA_UNUSED( level );
    }
    WALBERLA_CHECK( false, "Could not determine neighbor rank of neighbor primitive. This is bad." );
    return std::numeric_limits< uint_t >::max();
@@ -1904,7 +1908,7 @@ void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks
             neighboringRanks.insert( r );
          }
       }
-      WALBERLA_UNUSED( nranks );
+      WALBERLA_UNUSED( level );
    }
 }
 
