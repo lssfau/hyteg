@@ -1,0 +1,32 @@
+Parameters
+{
+  ntan 2;
+  minLevel 2;
+  maxLevel 3;
+  numVCycle 2;
+  maxKrylowDim 400;
+  restartLength 405;
+  arnoldiTOL 1e-16;
+  approxTOL 1e-14;
+  doubleOrthoTOL 0;
+
+  solver simplePrecMINRES;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount false;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK false;
+  VTKOutput false;
+}
+/// Layers for the spherical shell generator
+/// the keys can be arbitrary but need to different
+/// the values have to be sorted ascending
+Layers
+{
+  layer0 1.0;
+  layer1 2.0;
+  layer2 3.0;
+}

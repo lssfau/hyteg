@@ -65,6 +65,11 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
       WALBERLA_ABORT( "Trilinos sparse matrix construction from matrix product not implemented." );
    };
 
+   void createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
+   {
+      WALBERLA_ABORT("Not implemented yet!");
+   }
+
  private:
    RCP< Tpetra::CrsMatrix<> > mat_;
 };

@@ -36,7 +36,7 @@ waLBerla_add_executable( NAME Benchmark_05_PipeScaling
 if ( HYTEG_BUILD_WITH_PETSC )
     waLBerla_add_executable( NAME MantleConvection
             FILES MantleConvection.cpp
-            DEPENDS hyteg convection_particles sqlite)
+            DEPENDS hyteg convection_particles sqlite terraneo)
 endif()
 
 add_subdirectory(MantleConvectionRunScripts)

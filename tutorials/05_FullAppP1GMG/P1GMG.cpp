@@ -256,7 +256,7 @@ int main( int argc, char** argv )
 
    /// [Residual]
    laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, hyteg::Inner );
-   residual.assign( {1.0, -1.0}, {&rightHandSide, &laplaceTimesFunction}, maxLevel, hyteg::Inner );
+   residual.assign( {1.0, -1.0}, {rightHandSide, laplaceTimesFunction}, maxLevel, hyteg::Inner );
    real_t residualEuclideanNorm = std::sqrt( residual.dotGlobal( residual, maxLevel, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Euclidean norm of residual: " << residualEuclideanNorm )
    /// [Residual]

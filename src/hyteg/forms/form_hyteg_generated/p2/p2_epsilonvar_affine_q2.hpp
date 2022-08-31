@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,7 +23,7 @@
  * 
  * Software:
  *
- * - quadpy version: 0.16.6
+ * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -50,15 +50,15 @@ class p2_epsilonvar_0_0_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_0_0_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_0_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
-   : callback3D(_callback3D)
-   , callback2D(_callback2D)
+   p2_epsilonvar_0_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
-   std::function< real_t ( const Point3D & ) > callback2D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -121,9 +121,9 @@ class p2_epsilonvar_0_0_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -141,15 +141,15 @@ class p2_epsilonvar_0_1_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_0_1_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_0_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
-   : callback3D(_callback3D)
-   , callback2D(_callback2D)
+   p2_epsilonvar_0_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
-   std::function< real_t ( const Point3D & ) > callback2D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -212,9 +212,9 @@ class p2_epsilonvar_0_1_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -232,13 +232,13 @@ class p2_epsilonvar_0_2_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_0_2_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_0_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_epsilonvar_0_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -283,7 +283,7 @@ class p2_epsilonvar_0_2_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -301,15 +301,15 @@ class p2_epsilonvar_1_0_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_1_0_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_1_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
-   : callback3D(_callback3D)
-   , callback2D(_callback2D)
+   p2_epsilonvar_1_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
-   std::function< real_t ( const Point3D & ) > callback2D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -372,9 +372,9 @@ class p2_epsilonvar_1_0_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -392,15 +392,15 @@ class p2_epsilonvar_1_1_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_1_1_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_1_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
-   : callback3D(_callback3D)
-   , callback2D(_callback2D)
+   p2_epsilonvar_1_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
-   std::function< real_t ( const Point3D & ) > callback2D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -463,9 +463,9 @@ class p2_epsilonvar_1_1_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -483,13 +483,13 @@ class p2_epsilonvar_1_2_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_1_2_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_1_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_epsilonvar_1_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -534,7 +534,7 @@ class p2_epsilonvar_1_2_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -552,13 +552,13 @@ class p2_epsilonvar_2_0_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_2_0_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_2_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_epsilonvar_2_0_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -603,7 +603,7 @@ class p2_epsilonvar_2_0_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -621,13 +621,13 @@ class p2_epsilonvar_2_1_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_2_1_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_2_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_epsilonvar_2_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -672,7 +672,7 @@ class p2_epsilonvar_2_1_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -690,13 +690,13 @@ class p2_epsilonvar_2_2_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_2_2_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_2_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_epsilonvar_2_2_affine_q2( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -741,7 +741,7 @@ class p2_epsilonvar_2_2_affine_q2 : public P2FormHyTeG
 
  private:
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 

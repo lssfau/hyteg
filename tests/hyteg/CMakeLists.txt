@@ -505,7 +505,17 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME P2P2Stokes3DPetscSolveTest)
 endif ()
 
-waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core)
+if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES convergence/P2P1Stokes2DGKBConvergenceTest.cpp DEPENDS hyteg core )
+    waLBerla_execute_test(NAME P2P1Stokes2DGKBConvergenceTest)
+endif()
+
+if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES convergence/P2P1ChannelGKBConvergenceTest.cpp DEPENDS hyteg core )
+    waLBerla_execute_test(NAME P2P1ChannelGKBConvergenceTest)
+endif()
+
+waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 
 ############################################
@@ -698,6 +708,9 @@ waLBerla_execute_test(NAME FunctionPropertiesTest)
 waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 
+waLBerla_compile_test(FILES functions/FunctionExtendedExpressionInterpolationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionExtendedExpressionInterpolationTest)
+
 ## numeric tools ##
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SpectrumEstimationTest)
@@ -757,6 +770,8 @@ endif ()
 ## BoundaryUID stuff ##
 waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BoundaryUIDTest)
+waLBerla_compile_test(FILES boundaryUID/HollowBodyUIDTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HollowBodyUIDTest)
 
 ## BlockFunctions + BlockOperators ##
 waLBerla_compile_test(FILES BlockFunctions/FunctionWrapperTest.cpp DEPENDS hyteg core)
@@ -784,6 +799,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Petsc/PetscMatrixAssemblyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest>)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest2 COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> PROCESSES 2)
+
+    waLBerla_compile_test(FILES Petsc/PetscCreateFromLinCombTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
 endif ()
 
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
@@ -851,3 +869,8 @@ endif ()
 
 waLBerla_compile_test(FILES adaptiverefinementhangingnodes/MacroVolumeRefinementMicroIdxConversionTest.cpp)
 waLBerla_execute_test(NAME MacroVolumeRefinementMicroIdxConversionTest)
+
+waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
+waLBerla_execute_test(NAME EigenBasicTest)
+waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
+

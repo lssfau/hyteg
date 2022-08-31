@@ -189,7 +189,7 @@ static void testP2Restrict2() {
         65.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_DI_NE)],
         65.,
@@ -222,7 +222,7 @@ static void testP2Restrict2() {
         273.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_DI_NE)],
         273.,

@@ -1,0 +1,37 @@
+Problem
+{
+  /// spherical harmonics settings
+  degree 10;
+  order  0;
+
+  /// no-slip, free-slip or mixed
+  bcType no-slip;
+  // bcType mixed;
+
+  /// meshing parameters
+  nRad 3;
+  nTan 3;
+  coarseLevel 2;  // the coarsest level for GMG in HyTeG
+  bmInitLevel 2;  // first level on which to run benchmark
+  bmStopLevel 4;  // last level on which to run benchmark
+
+  /// FE space
+  feSpace P2P1TaylorHood;
+
+  /// Solver selection (Minres, PETScLU, PETScBPSS)
+  /// note: only Minres works for all cases
+  // solverType PETScLU;
+  solverType PETScBPSS;
+
+  /// postprocessing
+  compute_max_error true;
+  compute_L2_error true;
+
+  /// verbosity
+  reportPrimitives true;
+  reportDoFNum true;
+
+  /// export data for visualisation?
+  // VTKOutput true;
+  VTKOutput false;
+}

@@ -1,0 +1,12 @@
+{
+    "solver": "GMRES",
+    "tolerance": 1e-6,
+    "maxIterations": 200,
+    "preconditionerType": "Multigrid",
+    "preconditionerParams": {
+	"smoother": "Chebyshev",
+	"preSmooth": 3,
+	"postSmooth": 3,
+	"coarseGridSolver": "MUMPS"
+    }
+}
