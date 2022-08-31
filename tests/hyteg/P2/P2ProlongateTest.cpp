@@ -66,7 +66,7 @@ static void testP2Prolongate() {
         13.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_DI_NE)],
         13.,
@@ -122,7 +122,7 @@ static void testP2Prolongate() {
         13.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 2 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_DI_NE)],
         13.,
