@@ -121,8 +121,8 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ///
    void copyFrom( const VertexDoFFunction< ValueType >&          other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    /// \brief Evaluate finite element function at a specific coordinates.
    ///

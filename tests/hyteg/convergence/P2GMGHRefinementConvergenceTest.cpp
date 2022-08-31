@@ -120,27 +120,27 @@ int main( int argc, char* argv[] )
       for( uint_t i = minLevel; i <= maxLevel; ++i )
       {
          real_t* vToV =
-             storage->getFace( PrimitiveID( 6 ) )->getData( L.getVertexToVertexOpr().getFaceStencilID() )->getPointer( i );
+             storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getVertexToVertexOpr().getFaceStencilID() )->getPointer( i );
          for( uint_t j = 0; j < 7; ++j )
          {
             vToV[j] = weights.vertexToVertexStencil[j];
          }
 
          real_t* eToV =
-             storage->getFace( PrimitiveID( 6 ) )->getData( L.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( i );
+             storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( i );
          for( uint_t j = 0; j < 12; ++j )
          {
             eToV[j] = weights.edgeToVertexStencil[j];
          }
 
          real_t* vToE =
-             storage->getFace( PrimitiveID( 6 ) )->getData( L.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( i );
+             storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( i );
          for( uint_t j = 0; j < 12; ++j )
          {
             vToE[j] = weights.vertexToEdgeStencil[j];
          }
 
-         real_t* eToE = storage->getFace( PrimitiveID( 6 ) )->getData( L.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( i );
+         real_t* eToE = storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( i );
          for( uint_t j = 0; j < 15; ++j )
          {
             eToE[j] = weights.edgeToEdgeStencil[j];

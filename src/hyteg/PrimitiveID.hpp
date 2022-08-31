@@ -19,116 +19,205 @@
  */
 #pragma once
 
-#include <blockforest/Utility.h>
-#include <core/debug/Debug.h>
-#include <core/math/Uint.h>
-#include <core/mpi/SendBuffer.h>
-#include <core/mpi/RecvBuffer.h>
-#include <domain_decomposition/IBlockID.h>
+#include "core/debug/CheckFunctions.h"
+#include "core/debug/Debug.h"
+#include "core/math/Uint.h"
+#include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
+#include "blockforest/Utility.h"
+#include "domain_decomposition/IBlockID.h"
 
 namespace hyteg {
 
-// to be removed when moving to walberla namespace
-using walberla::uint8_c;
+using walberla::numeric_cast;
 using walberla::uint64_c;
+using walberla::uint8_c;
 using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::uintMSBPosition;
-using walberla::numeric_cast;
 using walberla::blockforest::uintToBitString;
 using walberla::math::UINT_BYTES;
+using walberla::math::uintMSBPosition;
 
-//**********************************************************************************************************************
-/*!
-*   \brief Implementation of the PrimitiveID (unique identifiers for primitives)
-*
-*   It serves as a (global) unique identifier of a primitive.
-*/
-//**********************************************************************************************************************
+/// \brief Implementation of the PrimitiveID (unique identifiers for primitives).
+///
+/// It serves as a (global) unique identifier of a primitive.
+///
+/// To be able to create new, unique PrimitiveIDs during refinement without requiring global communication in a distributed
+/// setting, the refinement is encoded in the bitstring. This is similar to what is done in walberla's BlockID and described e.g.
+/// in
+///
+///     Schornbaum, F. (2018). Block-structured adaptive mesh refinement for simulations on extreme-scale supercomputers
+///     (Doctoral dissertation, Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU)).
+///
+/// Example:
+///
+///   0000..000 1 00110011 000 010 000
+///   |         | |        |
+///   a         b c        d
+///
+/// a) leading zeros
+/// b) marker bit (always one)
+/// c) the ID of the coarsest primitive (here, 8 bits are reserved)
+/// d) one additional, fixed-length bitstring for each refinement level (here, 3 bits are reserved)
+///
+/// The size of the bitstring can be either determined at compile time (e.g. 64 bit unsigned) or the PrimitiveID's representation
+/// is implemented via a variable length bitstring. The latter case allows for infinite refinement.
+///
+/// The length of the ID for the coarsest Primitive is fixed at compile time.
+///
+/// The length of the short bitstrings for each refinement level is fixed at compile time. If set to 3, refinement of
+/// Primitives is limited to 8 child primitives (which is sufficient for tets).
+///
+/// The marker bit is required to signal the start of the ID. Without the marker bit, refinement may produce duplicate IDs.
+///
+/// For example: if we encode the ID in a 64-bit unsigned integer, subtract one marker bit, reserve 30 bits for the coarse level
+/// ID, we have 33 bits left for refinement. If each level requires 3 bits, this allows for 10 additional refinement levels.
+///
 class PrimitiveID
 {
-public:
+ private:
+   /// The internal data type used to store the PrimitiveID.
+   typedef uint64_t IDType;
 
-  typedef uint64_t IDType;
-  typedef std::vector< PrimitiveID >::const_iterator const_iterator;
+   /// The number of bits that are reserved for each refinement step.
+   static const uint_t BITS_REFINEMENT = 3;
 
-  inline PrimitiveID() : id_( uint64_c( 0 ) ) {}
-  inline PrimitiveID( const PrimitiveID& id ) : id_( id.id_ ) {}
-  inline PrimitiveID( const uint64_t id ) : id_( id ) {}
+   /// The number of bits that are available for primitives on the coarsest level.
+   static const uint_t BITS_COARSE_LEVEL_ID = 30;
 
-  bool operator< ( const PrimitiveID& rhs ) const
-    { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ <  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator> ( const PrimitiveID& rhs ) const
-    { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ >  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator==( const PrimitiveID& rhs ) const
-    { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ == static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator!=( const PrimitiveID& rhs ) const
-    { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ != static_cast< const PrimitiveID* >( &rhs )->id_; }
+ public:
+   typedef std::vector< PrimitiveID >::const_iterator const_iterator;
 
-  uint_t getUsedBits()  const { return uintMSBPosition( id_ ); }
-  uint_t getUsedBytes() const { const uint_t bits( getUsedBits() ); return ( bits >> uint_c(3) ) + ( ( bits & uint_c(7) ) ? uint_c(1) : uint_c(0) ); }
+   /// Creates a unique coarse level PrimitiveID safely.
+   inline static PrimitiveID create( const uint64_t& coarseID )
+   {
+      WALBERLA_CHECK_LESS( walberla::math::uintMSBPosition( coarseID ),
+                           BITS_COARSE_LEVEL_ID + 1,
+                           "Could not construct PrimitiveID with coarse ID " + std::to_string( coarseID ) + "." );
 
-  inline IDType getID() const;
+      PrimitiveID pid;
+      pid.id_ = ( 1 << BITS_COARSE_LEVEL_ID ) | coarseID;
+      return pid;
+   }
 
-  inline std::ostream& toStream( std::ostream& os ) const;
+   /// Creates an invalid PrimitiveID.
+   inline PrimitiveID()
+   : id_( IDType( 0 ) )
+   {}
 
-  template< typename Buffer_T > void   toBuffer( Buffer_T& buffer ) const;
-  template< typename Buffer_T > void fromBuffer( Buffer_T& buffer );
+   /// Creates 2**BITS_REFINEMENT new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement.
+   inline std::vector< PrimitiveID > createChildren() const
+   {
+      std::vector< PrimitiveID > children;
+      const auto                 numChildren = walberla::math::uintPow2( BITS_REFINEMENT );
+      for ( uint_t i = 0; i < numChildren; i++ )
+      {
+         auto        childID = ( id_ << BITS_REFINEMENT ) | i;
+         PrimitiveID childPID;
+         childPID.id_ = childID;
+         children.push_back( childPID );
+      }
+      return children;
+   }
 
-private:
+   inline uint_t numAncestors() const
+   {
+      return ( walberla::math::uintMSBPosition( id_ ) - BITS_COARSE_LEVEL_ID - 1 ) / BITS_REFINEMENT;
+   }
 
-  uint64_t id_;
+   inline bool hasAncestors() const { return numAncestors() > 0; }
 
+   inline PrimitiveID getParent() const
+   {
+      PrimitiveID pid;
+      pid.id_ = id_ >> BITS_REFINEMENT;
+      return pid;
+   }
+
+   bool operator<( const PrimitiveID& rhs ) const
+   {
+      WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs );
+      return id_ < static_cast< const PrimitiveID* >( &rhs )->id_;
+   }
+
+   bool operator>( const PrimitiveID& rhs ) const
+   {
+      WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs );
+      return id_ > static_cast< const PrimitiveID* >( &rhs )->id_;
+   }
+
+   bool operator==( const PrimitiveID& rhs ) const
+   {
+      WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs );
+      return id_ == static_cast< const PrimitiveID* >( &rhs )->id_;
+   }
+
+   bool operator!=( const PrimitiveID& rhs ) const
+   {
+      WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs );
+      return id_ != static_cast< const PrimitiveID* >( &rhs )->id_;
+   }
+
+   uint_t getUsedBits() const { return uintMSBPosition( id_ ); }
+
+   uint_t getUsedBytes() const
+   {
+      const uint_t bits( getUsedBits() );
+      return ( bits >> uint_c( 3 ) ) + ( ( bits & uint_c( 7 ) ) ? uint_c( 1 ) : uint_c( 0 ) );
+   }
+
+   inline std::ostream& toStream( std::ostream& os ) const;
+
+   template < typename Buffer_T >
+   void toBuffer( Buffer_T& buffer ) const;
+
+   template < typename Buffer_T >
+   void fromBuffer( Buffer_T& buffer );
+
+ private:
+   IDType id_;
 };
-
-
-inline PrimitiveID::IDType PrimitiveID::getID() const
-{
-  return numeric_cast< PrimitiveID::IDType > ( id_ );
-}
-
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
 {
-  os << id_;
-  return os;
+   os << id_;
+   return os;
 }
 
-inline std::ostream & operator<<( std::ostream & os, const PrimitiveID & id )
+inline std::ostream& operator<<( std::ostream& os, const PrimitiveID& id )
 {
-  id.toStream( os );
-  return os;
+   id.toStream( os );
+   return os;
 }
 
-template< typename Buffer_T >
-void PrimitiveID::toBuffer( Buffer_T& buffer ) const {
-
-  const uint8_t bytes = uint8_t( getUsedBytes() );
-  buffer << bytes;
-  for( uint8_t i = 0; i != bytes; ++i )
-    buffer << uint8_c( ( id_ >> ( uint_c(i) * uint_c(8) ) ) & uint_c(255) );
+template < typename Buffer_T >
+void PrimitiveID::toBuffer( Buffer_T& buffer ) const
+{
+   const uint8_t bytes = uint8_t( getUsedBytes() );
+   buffer << bytes;
+   for ( uint8_t i = 0; i != bytes; ++i )
+      buffer << uint8_c( ( id_ >> ( uint_c( i ) * uint_c( 8 ) ) ) & uint_c( 255 ) );
 }
 
+template < typename Buffer_T >
+void PrimitiveID::fromBuffer( Buffer_T& buffer )
+{
+   uint8_t bytes( 0 );
+   buffer >> bytes;
 
-template< typename Buffer_T >
-void PrimitiveID::fromBuffer( Buffer_T& buffer ) {
+   WALBERLA_ASSERT_LESS_EQUAL( bytes, UINT_BYTES );
 
-  uint8_t bytes(0);
-  buffer >> bytes;
-
-  WALBERLA_ASSERT_LESS_EQUAL( bytes, UINT_BYTES );
-
-  id_ = uint_c(0);
-  for( uint8_t i = 0; i != bytes; ++i ) {
-     uint8_t byte(0);
-     buffer >> byte;
-     id_ |= uint_c( byte ) << ( uint_c(i) * uint_c(8) );
-  }
+   id_ = uint_c( 0 );
+   for ( uint8_t i = 0; i != bytes; ++i )
+   {
+      uint8_t byte( 0 );
+      buffer >> byte;
+      id_ |= uint_c( byte ) << ( uint_c( i ) * uint_c( 8 ) );
+   }
 }
-
 
 } // namespace hyteg
-
 
 //======================================================================================================================
 //
@@ -139,25 +228,28 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer ) {
 namespace walberla {
 namespace mpi {
 
-template< typename T,  // Element type of SendBuffer
-          typename G > // Growth policy of SendBuffer
-inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hyteg::PrimitiveID & id )
+template < typename T,  // Element type of SendBuffer
+           typename G > // Growth policy of SendBuffer
+inline mpi::GenericSendBuffer< T, G >& operator<<( mpi::GenericSendBuffer< T, G >& buffer, const hyteg::PrimitiveID& id )
 {
    buffer.addDebugMarker( "bi" );
    id.toBuffer( buffer );
    return buffer;
 }
 
-template< typename T > // Element type  of RecvBuffer
-inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hyteg::PrimitiveID & id )
+template < typename T > // Element type  of RecvBuffer
+inline mpi::GenericRecvBuffer< T >& operator>>( mpi::GenericRecvBuffer< T >& buffer, hyteg::PrimitiveID& id )
 {
    buffer.readDebugMarker( "bi" );
    id.fromBuffer( buffer );
    return buffer;
 }
 
-template<>
-struct BufferSizeTrait< hyteg::PrimitiveID > { static const bool constantSize = false; };
+template <>
+struct BufferSizeTrait< hyteg::PrimitiveID >
+{
+   static const bool constantSize = false;
+};
 
 } // namespace mpi
 } // namespace walberla

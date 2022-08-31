@@ -262,6 +262,9 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 
    /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
    /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.
+   /// Note that there is only a single ghost-layer structure per side of the volume, even if the neighboring volume is
+   /// on a different (macro-)refinement level.
+   /// That means that the sizes of the ghost-layer memory might be different than the "length" of a macro-boundary on the inside.
    std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
    std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
 };

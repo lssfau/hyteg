@@ -266,7 +266,7 @@ inline uint_t indexNeighborInGhostLayer( uint_t                localEdgeID,
 /// \param xInner        logical x index of the (inner) micro-element whose neighbor we want to access
 /// \param yInner        logical y index of the (inner) micro-element whose neighbor we want to access
 /// \param zInner        logical z index of the (inner) micro-element whose neighbor we want to access
-/// \param faceTypeInner element type of the (inner) micro-element whose neighbor we want to access
+/// \param cellTypeInner element type of the (inner) micro-element whose neighbor we want to access
 /// \param dof           dof index
 /// \param ndofs         number of dofs in the ghost layer
 /// \param level         refinement level
@@ -282,7 +282,7 @@ inline uint_t indexNeighborInGhostLayer( uint_t                localFaceID,
                                          uint_t                level,
                                          VolumeDoFMemoryLayout memLayout )
 {
-   WALBERLA_ASSERT_UNEQUAL( cellTypeInner, celldof::CellType::WHITE_DOWN, "Cell type WHITE_DOWN has not boundary contact." );
+   WALBERLA_ASSERT_UNEQUAL( cellTypeInner, celldof::CellType::WHITE_DOWN, "Cell type WHITE_DOWN has no boundary contact." );
 
    switch ( localFaceID )
    {
@@ -331,6 +331,82 @@ inline uint_t indexNeighborInGhostLayer( uint_t                localFaceID,
 
 ///@}
 
+/// \brief Given a micro-element on a refined macro element, this function returns the "parent"-micro-element on the next coarser
+/// macro.
+inline void getCoarseMicroElementFromFineMicroElement( const hyteg::indexing::Index& fineElementIdx,
+                                                       const facedof::FaceType&      fineFaceType,
+                                                       hyteg::indexing::Index&       coarseElementIdx,
+                                                       facedof::FaceType&            coarseFaceType )
+{
+   const auto x = fineElementIdx.x();
+   const auto y = fineElementIdx.y();
+
+   if ( fineFaceType == facedof::FaceType::GRAY )
+   {
+      coarseElementIdx.x() = x / 2;
+      coarseElementIdx.y() = y / 2;
+
+      if ( x % 2 != 0 && y % 2 != 0 )
+      {
+         coarseFaceType = facedof::FaceType::BLUE;
+      }
+      else
+      {
+         coarseFaceType = fineFaceType;
+      }
+   }
+   else
+   {
+      if ( x % 2 == 0 && y % 2 == 0 )
+      {
+         coarseFaceType = facedof::FaceType::GRAY;
+      }
+      else
+      {
+         coarseFaceType = fineFaceType;
+      }
+   }
+}
+
+/// \brief Given a micro-element on a coarse macro element, this function returns the "child"-micro-elements on the next finer
+/// macro.
+inline void getFineMicroElementsFromCoarseMicroElement( const hyteg::indexing::Index&          coarseElementIdx,
+                                                        const facedof::FaceType&               coarseFaceType,
+                                                        std::vector< hyteg::indexing::Index >& fineElementIdx,
+                                                        std::vector< facedof::FaceType >&      fineFaceType )
+{
+   fineElementIdx.clear();
+   fineFaceType.clear();
+
+   fineElementIdx.resize( 4 );
+   fineFaceType.resize( 4 );
+
+   if ( coarseFaceType == facedof::FaceType::GRAY )
+   {
+      fineElementIdx[0] = 2 * coarseElementIdx;
+      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[3] = 2 * coarseElementIdx;
+
+      fineFaceType[0] = facedof::FaceType::GRAY;
+      fineFaceType[1] = facedof::FaceType::GRAY;
+      fineFaceType[2] = facedof::FaceType::GRAY;
+      fineFaceType[3] = facedof::FaceType::BLUE;
+   }
+   else
+   {
+      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+
+      fineFaceType[0] = facedof::FaceType::BLUE;
+      fineFaceType[1] = facedof::FaceType::BLUE;
+      fineFaceType[2] = facedof::FaceType::BLUE;
+      fineFaceType[3] = facedof::FaceType::GRAY;
+   }
+}
+
 /// \brief Simple class that computes and holds information about the neighborhood of a volume element.
 class ElementNeighborInfo
 {
@@ -350,11 +426,16 @@ class ElementNeighborInfo
                         const std::shared_ptr< PrimitiveStorage >& storage );
 
    ElementNeighborInfo( Index                                      elementIdx,
-                        CellType                                   faceType,
+                        CellType                                   cellType,
                         uint_t                                     level,
                         BoundaryCondition                          boundaryCondition,
                         PrimitiveID                                cellID,
                         const std::shared_ptr< PrimitiveStorage >& storage );
+
+   const Index& elementIdx() const { return elementIdx_; }
+
+   const FaceType& faceType() const { return faceType_; }
+   const CellType& cellType() const { return cellType_; }
 
    [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
 
@@ -365,9 +446,9 @@ class ElementNeighborInfo
       return neighborElementVertexCoords_[neighbor];
    }
 
-   void macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,
-                                                  std::vector< Point >& neighborElementVertexCoords,
-                                                  Point&                neighborOppositeVertexCoords ) const;
+   /// \brief Returns a new ElementNeighborInfo instance with updated neighborhood information for the case that the neighboring
+   ///        micro-element is located on a different (neighboring) macro-volume.
+   ElementNeighborInfo updateForMacroBoundary( uint_t neighbor ) const;
 
    [[nodiscard]] const std::vector< Point >& interfaceVertexCoords( uint_t neighbor ) const
    {
@@ -460,6 +541,405 @@ class ElementNeighborInfo
    /// Stores the DoFType (think boundary condition) for each element interface.
    std::vector< DoFType > neighborBoundaryType_;
 };
+
+// TODO: move some of these functions to some other file(s) ...
+
+/// \brief Given a micro-vertex idx on a macro (micro ref. level l+1), this function returns the corresponding micro-vertex idx
+///        on a refined macro (micro ref. level l).
+///
+/// Since a micro-vertex may lie on multiple finer macros, the corresponding finer macro must be specified.
+/// The indices of the local macro-vertices are assumed to be chosen as in Bey (1995): Tetrahedral Grid Refinement.
+///
+/// Note that this function also works in 2D - all z-coordinates must simply be set to zero. Note that GRAY faces correspond
+/// to WHITE_UP cells and BLUE faces to BLUE_UP cells.
+///
+/// This function does not check whether the returned index is inside the fine macro.
+///
+/// \param idxCoarse     micro-vertex idx on the coarse tet with refinement level = levelFine + 1
+/// \param levelFine     refinement level of the fine macro
+/// \param macroCellType cell type of the fine macro (a macro cell is refined into eight tets, four of which are of type WHITE_UP,
+///                      the others are BLUE_UP, BLUE_DOWN, GREEN_UP, GREEN_DOWN
+/// \param macroCellIdx  the macro cell of choice if cell type is WHITE_UP - since there are four (numbered in xyz-ordering)
+/// \return the index local to the refined macro cell
+inline hyteg::indexing::Index getMicroVertexIdxOnRefinedMacro( const hyteg::indexing::Index& idxCoarse,
+                                                               const uint_t&                 levelFine,
+                                                               const celldof::CellType&      macroCellType,
+                                                               const uint_t&                 macroCellIdx )
+{
+   // The given level is the refinement level of the fine macros.
+   // We assume that the refinement level on the coarse macro is level + 1 to match the grid structure.
+   //
+   // To find the corresponding micro idx on the given refined macro we exploit the fixed ordering of the local vertices of the
+   // refined macros according to Bey.
+   //
+   // The procedure is as follows: first we determine the micro-vertex idx b on the coarse macro that corresponds to the local
+   // (0, 0, 0) micro-vertex idx on the respective fine macro.
+   //
+   // We calculate the distance d = x - b (where x is the given idx on the coarse macro) that corresponds to the offset
+   // from the fine-macro local (0, 0, 0) idx in the coordinate system of the coarse macro.
+   //
+   // It remains to translate this to the fine-macro coordinate system. Let f1, f2, f3 in Z^3 be the three x, y, z idx increments
+   // in the coarse-macro coordinate system. Then we want to find the fine-macro local idx y in Z^3 so that:
+   //
+   //     y1 * f1 + y2 * f2 + y3 * f3 = d
+   //
+   // Eventually we need to invert the 3x3 system (f1 f2 f3). We can precompute these systems analytically, and thus only need to
+   // apply the inverse. For the WHITE_UP cells with the Bey vertex-ordering, these matrices are just identities btw.
+
+   using hyteg::celldof::CellType;
+   using hyteg::indexing::Index;
+
+   const auto widthFine = idx_t( levelinfo::num_microvertices_per_edge( levelFine ) );
+
+   // Base idx, the three rows of the inverse of (f1 f2 f3), and the result.
+   Index b, fRow1, fRow2, fRow3, idxFine;
+
+   switch ( macroCellType )
+   {
+   case CellType::WHITE_UP:
+      switch ( macroCellIdx )
+      {
+      case 0:
+         b = Index( 0, 0, 0 );
+         break;
+      case 1:
+         b = Index( widthFine - 1, 0, 0 );
+         break;
+      case 2:
+         b = Index( 0, widthFine - 1, 0 );
+         break;
+      case 3:
+         b = Index( 0, 0, widthFine - 1 );
+         break;
+      default:
+         WALBERLA_ABORT( "Invalid macro cell idx." );
+      }
+      fRow1 = Index( 1, 0, 0 );
+      fRow2 = Index( 0, 1, 0 );
+      fRow3 = Index( 0, 0, 1 );
+      break;
+   case CellType::BLUE_UP:
+      b = Index( widthFine - 1, 0, 0 );
+      // (f1 f2 f3) = ( -1  0  0 )
+      //              (  1  1  0 )
+      //              (  0  0  1 )
+      fRow1 = Index( -1, 0, 0 );
+      fRow2 = Index( 1, 1, 0 );
+      fRow3 = Index( 0, 0, 1 );
+      // (yep the matrix is involutory :) )
+      break;
+   case CellType::BLUE_DOWN:
+      b = Index( 0, widthFine - 1, 0 );
+      // (f1 f2 f3) = (  0  1  0 )
+      //              ( -1 -1  0 )
+      //              (  1  1  1 )
+      fRow1 = Index( -1, -1, 0 );
+      fRow2 = Index( 1, 0, 0 );
+      fRow3 = Index( 0, 1, 1 );
+      break;
+   case CellType::GREEN_UP:
+      b = Index( widthFine - 1, 0, 0 );
+      // (f1 f2 f3) = ( -1 -1  0 )
+      //              (  1  0  0 )
+      //              (  0  1  1 )
+      fRow1 = Index( 0, 1, 0 );
+      fRow2 = Index( -1, -1, 0 );
+      fRow3 = Index( 1, 1, 1 );
+      break;
+   case CellType::GREEN_DOWN:
+      b = Index( 0, widthFine - 1, 0 );
+      // (f1 f2 f3) = (  1  1  0 )
+      //              (  0 -1  0 )
+      //              (  0  1  1 )
+      fRow1 = Index( 1, 1, 0 );
+      fRow2 = Index( 0, -1, 0 );
+      fRow3 = Index( 0, 1, 1 );
+      // (yep the matrix is involutory, too :) )
+      break;
+   }
+
+   auto d = idxCoarse - b;
+
+   idxFine[0] = fRow1.dot( d );
+   idxFine[1] = fRow2.dot( d );
+   idxFine[2] = fRow3.dot( d );
+
+   return idxFine;
+}
+
+/// \brief Given a micro-vertex idx on a macro (micro ref. level l), this function returns the corresponding micro-vertex idx
+///        on the next coarser macro (micro ref. level l + 1).
+///
+/// The indices of the local macro-vertices are assumed to be chosen as in Bey (1995): Tetrahedral Grid Refinement.
+///
+/// Note that this function also works in 2D - all z-coordinates must simply be set to zero. Note that GRAY faces correspond
+/// to WHITE_UP cells and BLUE faces to BLUE_UP cells.
+///
+/// This function does not check whether the returned index is inside the coarse macro.
+///
+/// \param idxFine       micro-vertex idx on the fine tet with refinement level = levelFine
+/// \param levelFine     refinement level of the fine macro
+/// \param macroCellType cell type of the fine macro (a macro cell is refined into eight tets, four of which are of type WHITE_UP,
+///                      the others are BLUE_UP, BLUE_DOWN, GREEN_UP, GREEN_DOWN
+/// \param macroCellIdx  the macro cell of choice if cell type is WHITE_UP - since there are four (numbered in xyz-ordering)
+/// \return the index local to the refined macro cell
+inline hyteg::indexing::Index getMicroVertexIdxOnCoarserMacro( const hyteg::indexing::Index& idxFine,
+                                                               const uint_t&                 levelFine,
+                                                               const celldof::CellType&      macroCellType,
+                                                               const uint_t&                 macroCellIdx )
+{
+   // The given level is the refinement level of the fine macros.
+   // We assume that the refinement level on the coarse macro is level + 1 to match the grid structure.
+   //
+   // To find the corresponding micro idx on the coarser macro we exploit the fixed ordering of the local vertices of the
+   // refined macros according to Bey.
+   //
+   // The procedure is as follows: we first translate to coarse-macro local coordinates. But still the offset to the idx
+   // that has coords (0, 0, 0) in the fine-macro space remains. So we need to add that offset to the translated index.
+   //
+   // This basically reverses getMicroVertexIdxOnRefinedMacro() so have a look at that implementation, too.
+
+   using hyteg::celldof::CellType;
+   using hyteg::indexing::Index;
+
+   const auto widthFine = idx_t( levelinfo::num_microvertices_per_edge( levelFine ) );
+
+   // Base idx, the three rows of (f1 f2 f3), and the result.
+   Index b, fRow1, fRow2, fRow3, idxCoarse;
+
+   switch ( macroCellType )
+   {
+   case CellType::WHITE_UP:
+      switch ( macroCellIdx )
+      {
+      case 0:
+         b = Index( 0, 0, 0 );
+         break;
+      case 1:
+         b = Index( widthFine - 1, 0, 0 );
+         break;
+      case 2:
+         b = Index( 0, widthFine - 1, 0 );
+         break;
+      case 3:
+         b = Index( 0, 0, widthFine - 1 );
+         break;
+      default:
+         WALBERLA_ABORT( "Invalid macro cell idx." );
+      }
+      fRow1 = Index( 1, 0, 0 );
+      fRow2 = Index( 0, 1, 0 );
+      fRow3 = Index( 0, 0, 1 );
+      break;
+   case CellType::BLUE_UP:
+      b     = Index( widthFine - 1, 0, 0 );
+      fRow1 = Index( -1, 0, 0 );
+      fRow2 = Index( 1, 1, 0 );
+      fRow3 = Index( 0, 0, 1 );
+      break;
+   case CellType::BLUE_DOWN:
+      b     = Index( 0, widthFine - 1, 0 );
+      fRow1 = Index( 0, 1, 0 );
+      fRow2 = Index( -1, -1, 0 );
+      fRow3 = Index( 1, 1, 1 );
+      break;
+   case CellType::GREEN_UP:
+      b     = Index( widthFine - 1, 0, 0 );
+      fRow1 = Index( -1, -1, 0 );
+      fRow2 = Index( 1, 0, 0 );
+      fRow3 = Index( 0, 1, 1 );
+      break;
+   case CellType::GREEN_DOWN:
+      b     = Index( 0, widthFine - 1, 0 );
+      fRow1 = Index( 1, 1, 0 );
+      fRow2 = Index( 0, -1, 0 );
+      fRow3 = Index( 0, 1, 1 );
+      break;
+   }
+
+   idxCoarse[0] = fRow1.dot( idxFine );
+   idxCoarse[1] = fRow2.dot( idxFine );
+   idxCoarse[2] = fRow3.dot( idxFine );
+
+   idxCoarse += b;
+
+   return idxCoarse;
+}
+
+/// \brief Given a micro-volume index on level l+1, this function returns the corresponding local micro-index on the
+/// corresponding refined macro.
+///
+/// The prerequisite is that the passed macro-volume has already been refined once.
+///
+/// It is relevant, that the micro-volumes of a refined macro-volume have the same shape regardless of whether
+///  - the macro-volume was refined or
+///  - the micro-refinement level was increased.
+///
+/// Now, this function receives a refinement level, and a micro-volume idx on level l+1.
+/// It first computes the (refined) macro-volume that contains that index.
+/// Then it computes the micro-volume idx _local_ to the refined macro-volume.
+///
+/// \param face            [in] coarse macro-primitive
+/// \param level           [in] refinement level of the refined macro-primitives
+/// \param idx             [in] micro-volume index on the coarse macro-primitive with (level + 1)
+/// \param faceType        [in] micro-volume type
+/// \param refinedMacroPID [out] PrimitiveID of the fine macro
+/// \param outIdx          [out] micro-volume index (on the passed level) local to the fine macro
+/// \param outFaceType     [out] micro-volume type local to the fine macro
+inline void getVolumeIdxOnRefinedMacro( const Face&                   face,
+                                        uint_t                        level,
+                                        const hyteg::indexing::Index& idx,
+                                        const facedof::FaceType&      faceType,
+                                        PrimitiveID&                  refinedMacroPID,
+                                        hyteg::indexing::Index&       outIdx,
+                                        facedof::FaceType&            outFaceType )
+{
+   // Two steps: first we need to determine the fine macro that we end up in.
+   // Then we need to translate to fine-macro local coordinates.
+   //
+   // The first step is performed "manually". For the second we simply translate all the micro-vertex coords of the cell and
+   // then retrieve the corresponding micro-volume from those. This is a bit easier. The functions for that exist already.
+
+   using hyteg::indexing::Index;
+
+   WALBERLA_ASSERT( face.hasChildren(), "The passed macro-face must have children. Otherwise this function has no job." );
+
+   uint_t widthFineMacro = levelinfo::num_microedges_per_edge( level );
+
+   // a) Finding the correct macro.
+
+   celldof::CellType macroType = celldof::CellType::WHITE_UP;
+   uint_t            macroIdx  = 42;
+
+   if ( faceType == facedof::FaceType::GRAY )
+   {
+      if ( idx.x() + idx.y() < widthFineMacro )
+      {
+         macroIdx = 0;
+      }
+      else if ( idx.x() >= widthFineMacro )
+      {
+         macroIdx = 1;
+      }
+      else if ( idx.y() >= widthFineMacro )
+      {
+         macroIdx = 2;
+      }
+      else
+      {
+         macroType = celldof::CellType::BLUE_UP;
+      }
+   }
+   else
+   {
+      if ( idx.x() + idx.y() < widthFineMacro - 1 )
+      {
+         macroIdx = 0;
+      }
+      else if ( idx.x() >= widthFineMacro )
+      {
+         macroIdx = 1;
+      }
+      else if ( idx.y() >= widthFineMacro )
+      {
+         macroIdx = 2;
+      }
+      else
+      {
+         macroType = celldof::CellType::BLUE_UP;
+      }
+   }
+
+   if ( macroType == celldof::CellType::WHITE_UP )
+   {
+      refinedMacroPID = face.childFaces().at( macroIdx );
+   }
+   else
+   {
+      refinedMacroPID = face.childFaces().at( 3 );
+   }
+
+   // b) Finding the correct micro.
+
+   auto                   microVerticesCoarse = facedof::macroface::getMicroVerticesFromMicroFace( idx, faceType );
+   std::array< Index, 3 > microVerticesFine;
+   for ( uint_t i = 0; i < 3; i++ )
+   {
+      microVerticesFine[i] = getMicroVertexIdxOnRefinedMacro( microVerticesCoarse[i], level, macroType, macroIdx );
+   }
+   auto microFace = facedof::macroface::getMicroFaceFromMicroVertices( microVerticesFine );
+
+   outIdx      = microFace.first;
+   outFaceType = microFace.second;
+}
+
+/// \brief Given a micro-volume index on level l, this function returns the corresponding local micro-index on the
+/// corresponding coarser macro on level l+1.
+///
+/// The prerequisite is that the passed macro-volume has a parent volume.
+///
+/// It is relevant, that the micro-volumes of a refined macro-volume have the same shape regardless of whether
+///  - the macro-volume was refined or
+///  - the micro-refinement level was increased.
+///
+/// Now, this function receives a refinement level l, and a micro-volume idx on level l.
+/// It first computes the coarse macro-volume that contains that index (there is only one candidate).
+/// Then it computes the micro-volume idx _local_ to the coarse macro-volume on level l + 1.
+///
+/// \param face            [in] fine macro-primitive
+/// \param level           [in] refinement level of the refined macro-primitives
+/// \param idx             [in] micro-volume index on the fine macro-primitive with level level
+/// \param faceType        [in] micro-volume type
+/// \param coarseMacroPID  [out] PrimitiveID of the coarse macro
+/// \param outIdx          [out] micro-volume index (on level + 1) local to the coarse macro
+/// \param outFaceType     [out] micro-volume type local to the coarse macro
+inline void getVolumeIdxOnCoarseMacro( const PrimitiveStorage&       storage,
+                                       const Face&                   face,
+                                       uint_t                        level,
+                                       const hyteg::indexing::Index& idx,
+                                       const facedof::FaceType&      faceType,
+                                       PrimitiveID&                  coarseMacroPID,
+                                       hyteg::indexing::Index&       outIdx,
+                                       facedof::FaceType&            outFaceType )
+{
+   // There is only one possible coarse macro. But we have to find out which type of macro we are on as seen from the coarse
+   // macro. Then we have to translate the micro coordinates.
+
+   using hyteg::indexing::Index;
+
+   WALBERLA_ASSERT( face.hasParent(), "The passed macro-face must have a parent. Otherwise this function has no job." );
+
+   coarseMacroPID = face.parent();
+
+   const auto& coarseFace = *storage.getFace( coarseMacroPID );
+
+   uint_t            fineMacroId;
+   celldof::CellType macroType = celldof::CellType::WHITE_UP;
+   for ( uint_t i = 0; i < 4; i++ )
+   {
+      if ( coarseFace.childFaces().at( i ) == face.getID() )
+      {
+         fineMacroId = i;
+         break;
+      }
+   }
+
+   if ( fineMacroId == 3 )
+   {
+      macroType = celldof::CellType::BLUE_UP;
+   }
+
+   auto                   microVerticesFine = facedof::macroface::getMicroVerticesFromMicroFace( idx, faceType );
+   std::array< Index, 3 > microVerticesCoarse;
+   for ( uint_t i = 0; i < 3; i++ )
+   {
+      microVerticesCoarse[i] = getMicroVertexIdxOnCoarserMacro( microVerticesFine[i], level, macroType, fineMacroId );
+   }
+   auto microFace = facedof::macroface::getMicroFaceFromMicroVertices( microVerticesCoarse );
+
+   outIdx      = microFace.first;
+   outFaceType = microFace.second;
+}
 
 } // namespace indexing
 } // namespace volumedofspace

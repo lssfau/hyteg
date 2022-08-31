@@ -163,15 +163,41 @@ class Face : public Primitive
 
    /// Returns all macro-face IDs of macro-faces that share at least one macro-edge with this face.
    /// Neighbor faces are mapped from local edge IDs.
+   /// Only neighbor faces on the same refinement level are stored.
    const std::map< uint_t, PrimitiveID >& getIndirectNeighborFaceIDsOverEdges() const
    {
       return indirectNeighborFaceIDsOverEdges_;
    }
 
    /// Returns all macro-face IDs of macro-faces that share at least one macro-vertex with this face.
+   /// Only neighbor faces on the same refinement level are stored.
    const std::vector< PrimitiveID >& getIndirectNeighborFaceIDsOverVertices() const
    {
       return indirectNeighborFaceIDsOverVertices_;
+   }
+
+   /// Returns a list of indirect neighbor faces that share the same neighbor vertex.
+   /// Only neighbors that are on the top level (i.e. have no child primitives) are returned here.
+   /// This method is only really useful in settings where adaptive refinement is applied.
+   /// Otherwise the standard indirect neighborhood getters can (and probably should) be used.
+   const std::vector< PrimitiveID >& getIndirectTopLevelNeighborFaceIDsOverVertices() const
+   {
+      WALBERLA_CHECK(
+          !hasChildren(),
+          "Getting top-level indirect neighbor faces information is not relevant for primitives that are not top-level themselves." );
+      return indirectTopLevelNeighborFaceIDsOverVertices_;
+   }
+
+   /// Returns a list of indirect neighbor faces that share the same or a part of the same neighbor edge.
+   /// Only neighbors that are on the top level (i.e. have no child primitives) are returned here.
+   /// This method is only really useful in settings where adaptive refinement is applied.
+   /// Otherwise the standard indirect neighborhood getters can (and probably should) be used.
+   const std::map< uint_t, std::vector< PrimitiveID > >& getIndirectTopLevelNeighborFaceIDsOverEdges() const
+   {
+      WALBERLA_CHECK(
+          !hasChildren(),
+          "Getting top-level indirect neighbor faces information is not relevant for primitives that are not top-level themselves." );
+      return indirectTopLevelNeighborFaceIDsOverEdges_;
    }
 
  protected:
@@ -195,6 +221,9 @@ class Face : public Primitive
    void                            addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
    std::vector< PrimitiveID >      indirectNeighborFaceIDsOverVertices_;
    std::map< uint_t, PrimitiveID > indirectNeighborFaceIDsOverEdges_;
+
+   std::map< uint_t, std::vector< PrimitiveID > > indirectTopLevelNeighborFaceIDsOverEdges_;
+   std::vector< PrimitiveID >                     indirectTopLevelNeighborFaceIDsOverVertices_;
 };
 
 } // namespace hyteg

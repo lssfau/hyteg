@@ -39,7 +39,7 @@ uint_t Face::vertex_index(const PrimitiveID& vertex) const
 
   for (size_t i = 0; i < 3; ++i)
   {
-    if (vertex == neighborVertices_[i].getID())
+    if (vertex == neighborVertices_[i])
     {
       return i;
     }
@@ -55,7 +55,7 @@ uint_t Face::edge_index(const PrimitiveID& edge) const
 
   for (size_t i = 0; i < 3; ++i)
   {
-    if (edge.getID() == neighborEdges_[i].getID())
+    if (edge == neighborEdges_[i])
     {
       return i;
     }
@@ -71,7 +71,7 @@ uint_t Face::cell_index( const PrimitiveID & cell ) const
 
   for (size_t i = 0; i < 2; ++i)
   {
-    if ( cell.getID() == neighborCells_[i].getID() )
+    if ( cell == neighborCells_[i] )
     {
       return i;
     }
@@ -159,10 +159,10 @@ PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const Primiti
 
 std::ostream& operator<<(std::ostream &os, const hyteg::Face &face)
 {
-  return os << "Face { id = " << face.getID().getID() << "; "
-            << "neighborEdges_[0] = " << face.neighborEdges_[0].getID() << "; "
-            << "neighborEdges_[1] = " << face.neighborEdges_[1].getID() << "; "
-            << "neighborEdges_[2] = " << face.neighborEdges_[2].getID() << "; "
+  return os << "Face { id = " << face.getID() << "; "
+            << "neighborEdges_[0] = " << face.neighborEdges_[0] << "; "
+            << "neighborEdges_[1] = " << face.neighborEdges_[1] << "; "
+            << "neighborEdges_[2] = " << face.neighborEdges_[2] << "; "
             << "}";
 }
 

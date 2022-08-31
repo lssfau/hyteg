@@ -38,7 +38,7 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 
 waLBerla_compile_test(FILES convergence/P2GMGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMGConvergenceTest)
-waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2)
 
 waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
@@ -224,6 +224,12 @@ waLBerla_execute_test(NAME DGIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 
+waLBerla_compile_test(FILES Indexing/MicroCellFromMicroVerticesTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroCellFromMicroVerticesTest)
+
+waLBerla_compile_test(FILES Indexing/MicroVertexIdxMacroRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroVertexIdxMacroRefinementTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest>)
@@ -347,12 +353,12 @@ waLBerla_execute_test(NAME P1DataHandlingTest)
 waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1EvaluateTest)
 
-if( HYTEG_BUILD_WITH_PETSC )
-  waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest> )
-  waLBerla_execute_test(NAME P1PetscApplyTest2 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 2)
-  waLBerla_execute_test(NAME P1PetscApplyTest8 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 8)
-endif()
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest>)
+    waLBerla_execute_test(NAME P1PetscApplyTest2 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 2)
+    waLBerla_execute_test(NAME P1PetscApplyTest8 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 8)
+endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P1/P1PetscSolveTest.cpp DEPENDS hyteg core)
@@ -420,9 +426,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P2PetscSolveTest1 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 1)
     waLBerla_execute_test(NAME P2PetscSolveTest2 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 2)
-if(NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM )
-    waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
-endif()
+    if (NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM)
+        waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
+    endif ()
 endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
@@ -819,7 +825,16 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
-endif()
+
+    waLBerla_compile_test(FILES dg/DGGlobalRefinementGridConvTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGGlobalRefinementGridConvTest)
+
+    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementInterpolateEvaluateTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGAdaptiveRefinementInterpolateEvaluateTest)
+
+    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementGridConvTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGAdaptiveRefinementGridConvTest)
+endif ()
 
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
@@ -835,6 +850,27 @@ waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 waLBerla_compile_test(FILES PrintInfoTest.cpp)
 waLBerla_execute_test(NAME PrintInfoTest)
 
+## adaptive refinement w/ hanging nodes
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/ARHangingNodesStorageTest.cpp)
+waLBerla_execute_test(NAME ARHangingNodesStorageTest)
+
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/P1AdaptiveRefinementEqualityTest.cpp)
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        waLBerla_execute_test(NAME P1AdaptiveRefinementEqualityTest)
+    endif()
+
+    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/DGAdaptiveRefinementEqualityTest.cpp)
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        waLBerla_execute_test(NAME DGAdaptiveRefinementEqualityTest)
+    endif()
+endif ()
+
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/MacroVolumeRefinementMicroIdxConversionTest.cpp)
+waLBerla_execute_test(NAME MacroVolumeRefinementMicroIdxConversionTest)
+
 waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
 waLBerla_execute_test(NAME EigenBasicTest)
 waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
+

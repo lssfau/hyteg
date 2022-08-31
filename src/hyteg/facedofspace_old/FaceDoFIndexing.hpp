@@ -98,6 +98,44 @@ inline std::array< Index, 3 > getMicroVerticesFromMicroFace( const Index& microF
    return std::array< Index, 3 >();
 }
 
+/// \brief Given three micro vertex indices, this function returns the corresponding face idx and face type.
+///
+/// Note that the vertices are sorted internally, so that the order in which they are input does not matter.
+///
+/// \param vertices micro vertex indices of the micro face of interest
+/// \return pair of micro face index and type
+inline std::pair< Index, FaceType > getMicroFaceFromMicroVertices( const std::array< Index, 3 >& vertices )
+{
+   auto v = vertices;
+   std::sort( v.begin(), v.end() );
+
+   auto v0 = v[0];
+   for ( uint_t i = 0; i < 3; i++ )
+   {
+      v[i] -= v0;
+   }
+
+   std::pair< Index, FaceType > ret;
+
+   std::array< Index, 3 > gray = { { Index( 0, 0, 0 ), Index( 1, 0, 0 ), Index( 0, 1, 0 ) } };
+   std::array< Index, 3 > blue = { { Index( 0, 0, 0 ), Index( -1, 1, 0 ), Index( 0, 1, 0 ) } };
+
+   if ( v == gray )
+   {
+      ret = { v0, FaceType::GRAY };
+   }
+   else if ( v == blue )
+   {
+      ret = { v0 - Index( 1, 0, 0 ), FaceType::BLUE };
+   }
+   else
+   {
+      WALBERLA_ABORT( "This is not a valid micro face: \n" << v[0] << "\n" << v[1] << "\n" << v[2] );
+   }
+
+   return ret;
+}
+
 class Iterator : public indexing::FaceIterator
 {
  public:
@@ -323,11 +361,11 @@ class indexIterator // inheritance of std::iterator is deprecated
    inline bool             operator==( const indexIterator& other ) const;
    inline bool             operator!=( const indexIterator& other ) const;
 
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = walberla::uint_t ;
-    using difference_type   = ptrdiff_t;
-    using pointer           = walberla::uint_t*;
-    using reference         = walberla::uint_t&;
+   using iterator_category = std::forward_iterator_tag;
+   using value_type        = walberla::uint_t;
+   using difference_type   = ptrdiff_t;
+   using pointer           = walberla::uint_t*;
+   using reference         = walberla::uint_t&;
 
  private:
    int    idx_;

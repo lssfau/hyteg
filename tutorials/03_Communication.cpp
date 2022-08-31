@@ -20,6 +20,7 @@
 #include "hyteg/primitives/Primitive.hpp"
 #include "hyteg/communication/PackInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/communication/BufferedCommunication.hpp"
 #include "core/Environment.h"
@@ -132,8 +133,8 @@ namespace hyteg {
 /// [TestData]
 struct TestData
 {
-  uint_t ownID;
-  std::vector< uint_t > neighborIDs;
+  PrimitiveID ownID;
+  std::vector< PrimitiveID > neighborIDs;
 };
 
 struct TestDataHandling : OnlyInitializeDataHandling< TestData, Primitive >
@@ -141,7 +142,7 @@ struct TestDataHandling : OnlyInitializeDataHandling< TestData, Primitive >
   virtual std::shared_ptr< TestData > initialize( const Primitive * const primitive ) const
   {
     auto data = std::make_shared< TestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };
@@ -170,7 +171,7 @@ public:
     WALBERLA_LOG_INFO( "Unpacking data on edge..." );
 
     TestData * data = receiver->getData( dataID_ );
-    uint_t vertexData;
+    PrimitiveID vertexData;
     buffer >> vertexData;
 
     // Adding the received ID to the neighbors..

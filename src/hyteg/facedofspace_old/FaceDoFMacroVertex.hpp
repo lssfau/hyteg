@@ -63,7 +63,7 @@ inline void interpolate( const uint_t&                                          
 
    for ( auto faceIt : vertex.neighborFaces() )
    {
-      Face*  face           = storage->getFace( faceIt.getID() );
+      Face*  face           = storage->getFace( faceIt );
       uint_t vertexIdOnFace = face->vertex_index( vertex.getID() );
       dir1 =
           ( face->getCoordinates()[( vertexIdOnFace + 1 ) % 3] - vertex.getCoordinates() ) / ( walberla::real_c( rowsize - 1 ) );

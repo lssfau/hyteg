@@ -34,14 +34,14 @@ namespace hyteg {
 
 struct VertexTestData
 {
-  PrimitiveID::IDType ownID;
-  std::vector< PrimitiveID::IDType > edgeIDs;
+  PrimitiveID ownID;
+  std::vector< PrimitiveID > edgeIDs;
 };
 
 struct EdgeTestData
 {
-  PrimitiveID::IDType ownID;
-  std::vector< PrimitiveID::IDType > vertexIDs;
+  PrimitiveID ownID;
+  std::vector< PrimitiveID > vertexIDs;
 };
 
 struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vertex >
@@ -49,7 +49,7 @@ struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vert
   virtual std::shared_ptr< VertexTestData > initialize( const Vertex * const primitive ) const
   {
     auto data = std::make_shared< VertexTestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };
@@ -59,7 +59,7 @@ struct EdgeTestDataHandling : OnlyInitializeDataHandling< EdgeTestData, Edge >
   virtual std::shared_ptr< EdgeTestData > initialize( const Edge * const primitive ) const
   {
     auto data = std::make_shared< EdgeTestData >();
-    data->ownID = primitive->getID().getID();
+    data->ownID = primitive->getID();
     return data;
   }
 };
@@ -87,7 +87,7 @@ public:
     WALBERLA_UNUSED( sender );
 
     EdgeTestData * data = receiver->getData( edgeDataID_ );
-    uint_t vertexData;
+    PrimitiveID vertexData;
     buffer >> vertexData;
     // WALBERLA_LOG_INFO( "Unpacking | Edge: " << receiver->getID().getID() << ", Data: " << vertexData );
     data->vertexIDs.push_back( vertexData );
@@ -114,7 +114,7 @@ public:
     WALBERLA_UNUSED( sender );
 
     VertexTestData * data = receiver->getData( vertexDataID_ );
-    uint_t edgeData;
+    PrimitiveID edgeData;
     buffer >> edgeData;
     data->edgeIDs.push_back( edgeData );
   }
@@ -207,7 +207,7 @@ static void testBufferedCommunication()
   {
     auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
-    WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID().getID() );
+    WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID() );
   }
 
   for ( const auto & it : storage->getEdges() )
@@ -241,7 +241,7 @@ static void testBufferedCommunication()
 
     for ( const auto & lowerDimNeighborID : edge->getLowerDimNeighbors() )
     {
-      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighborID.getID() || data->vertexIDs[1] == lowerDimNeighborID.getID(), "Failing on Edge: " << lowerDimNeighborID.getID() );
+      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighborID || data->vertexIDs[1] == lowerDimNeighborID, "Failing on Edge: " << lowerDimNeighborID );
     }
 
     // WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
@@ -254,12 +254,12 @@ static void testBufferedCommunication()
     auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_GREATER( data->edgeIDs.size(), 0 );
-    std::set< PrimitiveID::IDType > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
+    std::set< PrimitiveID > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
     WALBERLA_CHECK_EQUAL( data->edgeIDs.size(), edgeIdsSet.size() );
 
     for ( const auto & higherDimNeighborID : vertex->getHigherDimNeighbors() )
     {
-      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( uint_c( higherDimNeighborID.getID() ) ), 1 );
+      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( higherDimNeighborID ), 1 );
     }
   }
 

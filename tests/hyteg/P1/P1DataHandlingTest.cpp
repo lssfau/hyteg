@@ -70,7 +70,7 @@ static void testP1DataHandling()
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      WALBERLA_LOG_INFO( "Vertex: " << vertexID.getID() << " | data size (level " << level << ") : " << mem->getSize( level ) );
+      WALBERLA_LOG_INFO( "Vertex: " << vertexID << " | data size (level " << level << ") : " << mem->getSize( level ) );
     }
   }
 
@@ -83,7 +83,7 @@ static void testP1DataHandling()
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      WALBERLA_LOG_INFO( "Edge:   " << edgeID.getID() << " | data size (level " << level << ") : " << mem->getSize( level ) );
+      WALBERLA_LOG_INFO( "Edge:   " << edgeID << " | data size (level " << level << ") : " << mem->getSize( level ) );
     }
   }
 
@@ -96,7 +96,7 @@ static void testP1DataHandling()
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      WALBERLA_LOG_INFO( "Face:   " << faceID.getID() << " | data size (level " << level << ") : " << mem->getSize( level ) );
+      WALBERLA_LOG_INFO( "Face:   " << faceID << " | data size (level " << level << ") : " << mem->getSize( level ) );
     }
   }
 

@@ -39,6 +39,12 @@ const std::map< uint_t, std::set< uint_t > > cellLocalEdgeIDsToCellLocalNeighbor
   { 5, std::set< uint_t >( { 2, 3 } ) }
 };
 
+const std::map< uint_t, std::set< uint_t > > faceLocalEdgeIDsToSpanningVertexIDs = {
+    { 0, std::set< uint_t >( { 0, 1 } ) },
+    { 1, std::set< uint_t >( { 0, 2 } ) },
+    { 2, std::set< uint_t >( { 1, 2 } ) },
+};
+
 const std::map< uint_t, std::set< uint_t > > cellLocalFaceIDsToSpanningVertexIDs = {
   { 0, std::set< uint_t >( { 0, 1, 2 } ) },
   { 1, std::set< uint_t >( { 0, 1, 3 } ) },

@@ -40,19 +40,17 @@ template < uint_t J >
 class SimplexData
 {
  public:
-   SimplexData( uint_t geometryMap = 0, uint_t boundaryFlag = 0, uint_t id = 0 )
-   : _vertices( {} )
+   SimplexData( PrimitiveID                 geometryMap  = PrimitiveID(),
+                uint_t                      boundaryFlag = 0,
+                PrimitiveID                 id           = PrimitiveID(),
+                std::array< uint_t, J + 1 > vtxIncices   = {} )
+   : _vertices( vtxIncices )
    , _geometryMap( geometryMap )
    , _boundaryFlag( boundaryFlag )
-   , _id( PrimitiveID( id ) )
+   , _id( id )
    , _targetRank( 0 )
    , _locality( NONE )
-   {
-      if constexpr ( J == 0 )
-      {
-         _vertices[0] = id;
-      }
-   }
+   {}
 
    template < class J_Simplex >
    SimplexData( const Simplex< J, J_Simplex >* simplex )
@@ -65,7 +63,7 @@ class SimplexData
    {}
 
    inline const std::array< uint_t, J + 1 >& get_vertices() const { return _vertices; }
-   inline const uint_t&                      getGeometryMap() const { return _geometryMap; }
+   inline const PrimitiveID&                 getGeometryMap() const { return _geometryMap; }
    inline const uint_t&                      getBoundaryFlag() const { return _boundaryFlag; }
    inline const PrimitiveID&                 getPrimitiveID() const { return _id; }
    inline const uint_t&                      getTargetRank() const { return _targetRank; }
@@ -114,7 +112,7 @@ class SimplexData
 
  private:
    std::array< uint_t, J + 1 > _vertices;
-   uint_t                      _geometryMap;
+   PrimitiveID                 _geometryMap;
    uint_t                      _boundaryFlag;
    PrimitiveID                 _id;
    uint_t                      _targetRank;
@@ -137,13 +135,13 @@ void loadbalancing( std::vector< VertexData >& vtxs,
                     const uint_t&              n_processes );
 
 /* apply neighborhood aware loadbalancing directly on our datastructures */
-void loadbalancing( std::vector< VertexData >&         vtxs,
-                    std::vector< EdgeData >&           edges,
-                    std::vector< FaceData >&           faces,
-                    std::vector< CellData >&           cells,
-                    const std::vector< Neighborhood >& nbrHood,
-                    const uint_t&                      n_processes,
-                    const uint_t&                      rank );
+// void loadbalancing( std::vector< VertexData >&         vtxs,
+//                     std::vector< EdgeData >&           edges,
+//                     std::vector< FaceData >&           faces,
+//                     std::vector< CellData >&           cells,
+//                     const std::vector< Neighborhood >& nbrHood,
+//                     const uint_t&                      n_processes,
+//                     const uint_t&                      rank );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

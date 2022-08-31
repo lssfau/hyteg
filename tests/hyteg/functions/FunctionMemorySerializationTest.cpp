@@ -76,12 +76,12 @@ static void testFunctionMemorySerialization()
 
   WALBERLA_LOG_INFO( "Number of local primitives (before migration): " << storage->getNumberOfLocalPrimitives() );
 
-  std::map< hyteg::PrimitiveID::IDType, uint_t > primitivesToMigrate;
+  std::map< hyteg::PrimitiveID, uint_t > primitivesToMigrate;
   std::vector< PrimitiveID > localPrimitiveIDs;
   storage->getPrimitiveIDs( localPrimitiveIDs );
   for ( const auto & id : localPrimitiveIDs )
   {
-    primitivesToMigrate[ id.getID() ] = (rank + numProcesses / 2) % numProcesses;
+    primitivesToMigrate[ id ] = (rank + numProcesses / 2) % numProcesses;
   }
 
   const auto numReceivingPrimitives = getNumReceivingPrimitives( primitivesToMigrate );

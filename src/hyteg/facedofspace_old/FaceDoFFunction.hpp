@@ -140,8 +140,8 @@ class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
 
    void copyFrom( const FaceDoFFunction_old< ValueType >&        other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = std::move( bc ); }
 

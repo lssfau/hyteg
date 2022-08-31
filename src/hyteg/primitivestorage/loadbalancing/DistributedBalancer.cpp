@@ -106,8 +106,8 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    // Creating a mapping from PrimitiveIDs of local primitives to a consecutive chunk of parmetis indices.
    // The chunks correspond to [ vtxdist[rank], vtxdist[rank+1] ).
 
-   std::map< PrimitiveID::IDType, int64_t >
-                                    localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
+   std::map< PrimitiveID, int64_t >
+       localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
    std::map< int64_t, PrimitiveID > globalParmetisIDToLocalPrimitiveIDMap; // reverse of the above map
 
    std::vector< PrimitiveID > localPrimitiveIDs;
@@ -116,7 +116,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    int64_t parmetisIDCounter = vtxdist[rank];
    for ( const auto& id : localPrimitiveIDs )
    {
-      localPrimitiveIDToGlobalParmetisIDMap[id.getID()] = parmetisIDCounter;
+      localPrimitiveIDToGlobalParmetisIDMap[id] = parmetisIDCounter;
       parmetisIDCounter++;
    }
 
@@ -133,7 +133,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    storage.getNeighboringRanks( neighboringRanks );
 
    // Mapping neighboring process ranks to their ID mapping
-   std::map< uint_t, std::map< PrimitiveID::IDType, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
+   std::map< uint_t, std::map< PrimitiveID, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
 
    walberla::mpi::BufferSystem bufferSystem( communicator );
    bufferSystem.setReceiverInfo( neighboringRanks, true );
@@ -185,13 +185,13 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
          if ( storage.primitiveExistsInNeighborhood( neighborID ) )
          {
             neighborRank       = storage.getNeighborPrimitiveRank( neighborID );
-            neighborParmetisID = neighboringPrimitiveIDToGlobalParmetisIDMaps[neighborRank][neighborID.getID()];
+            neighborParmetisID = neighboringPrimitiveIDToGlobalParmetisIDMaps[neighborRank][neighborID];
          }
          else
          {
             WALBERLA_ASSERT( storage.primitiveExistsLocally( neighborID ) );
             neighborRank       = rank;
-            neighborParmetisID = localPrimitiveIDToGlobalParmetisIDMap[neighborID.getID()];
+            neighborParmetisID = localPrimitiveIDToGlobalParmetisIDMap[neighborID];
          }
 
          adjncy.push_back( neighborParmetisID );
@@ -278,7 +278,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
       const int64_t     parmetisID  = vtxdist[rank] + int64_c( partIdx );
       const PrimitiveID primitiveID = globalParmetisIDToLocalPrimitiveIDMap[parmetisID];
 
-      migrationMap[primitiveID.getID()] = uint_c( part[partIdx] );
+      migrationMap[primitiveID] = uint_c( part[partIdx] );
    }
 
    const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );
@@ -305,16 +305,25 @@ MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxR
    WALBERLA_CHECK( maxRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ),
                    "Cannot distribute to more than available processes." );
 
+   std::map< PrimitiveID, uint_t > globalPrimitiveDistribution = storage.getGlobalPrimitiveRanks();
+
    const uint_t numReceivingProcesses = maxRank - minRank + 1;
    const uint_t rank                  = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
 
-   for ( const auto& primitiveID : storage.getPrimitiveIDs() )
+   WALBERLA_UNUSED( numReceivingProcesses );
+
+   uint_t cnt = 0;
+   for ( const auto& [primitiveID, currentRank] : globalPrimitiveDistribution )
    {
-      const uint_t targetRank           = minRank + uint_c( primitiveID.getID() % numReceivingProcesses );
-      migrationMap[primitiveID.getID()] = targetRank;
+      if ( currentRank == rank )
+      {
+         const uint_t targetRank   = minRank + uint_c( cnt % numReceivingProcesses );
+         migrationMap[primitiveID] = targetRank;
+      }
+      cnt++;
    }
 
    const uint_t numPrimitives = storage.getNumberOfGlobalPrimitives();
@@ -331,6 +340,7 @@ MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxR
    MigrationInfo migrationInfo( migrationMap, uint_c( numReceivingPrimitives ) );
 
    storage.migratePrimitives( migrationInfo );
+
    return migrationInfo;
 }
 
@@ -348,6 +358,8 @@ MigrationInfo roundRobinInterval( PrimitiveStorage& storage, uint_t interval, ui
                               "Cannot fit " << numProcesses << " processes with interval " << interval << " into total of "
                                             << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) << " processes." );
 
+   std::map< PrimitiveID, uint_t > globalPrimitiveDistribution = storage.getGlobalPrimitiveRanks();
+
    const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
    MigrationMap_T migrationMap;
@@ -355,10 +367,15 @@ MigrationInfo roundRobinInterval( PrimitiveStorage& storage, uint_t interval, ui
 
    const uint_t modulo = interval * numProcesses;
 
-   for ( const auto& primitiveID : storage.getPrimitiveIDs() )
+   uint_t cnt = 0;
+   for ( const auto& [primitiveID, currentRank] : globalPrimitiveDistribution )
    {
-      const uint_t targetRank           = ( uint_c( primitiveID.getID() ) * interval ) % modulo;
-      migrationMap[primitiveID.getID()] = targetRank;
+      if ( currentRank == rank )
+      {
+         const uint_t targetRank   = ( cnt * interval ) % modulo;
+         migrationMap[primitiveID] = targetRank;
+      }
+      cnt++;
    }
 
    const uint_t numPrimitives = storage.getNumberOfGlobalPrimitives();
@@ -402,9 +419,9 @@ MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo
 
    while ( !bs.allPackagesReceived() )
    {
-      auto                package = bs.getNextPackage();
-      auto&               buffer  = package.buffer();
-      PrimitiveID::IDType pID;
+      auto        package = bs.getNextPackage();
+      auto&       buffer  = package.buffer();
+      PrimitiveID pID;
       buffer >> pID;
       migrationMap[pID] = uint_c( package.senderRank() );
    }
@@ -620,23 +637,23 @@ void diffusiveSmooth( PrimitiveStorage& storage, uint_t outerIterations, uint_t 
 
          if ( storage.getNeighboringRanks().count( uint_c( rankWithMaxLoad ) ) == 1 )
          {
-            migrationMap[pid.getID()] = uint_c( rankWithMaxLoad );
+            migrationMap[pid] = uint_c( rankWithMaxLoad );
             numPrimitivesToBeSent[uint_c( rankWithMaxLoad )]++;
          }
       }
 
       for ( const auto& it : storage.getPrimitiveIDs() )
       {
-         if ( migrationMap.count( it.getID() ) == 0 )
+         if ( migrationMap.count( it ) == 0 )
          {
-            migrationMap[it.getID()] = uint_c( ownRank );
+            migrationMap[it] = uint_c( ownRank );
             numPrimitivesToBeSent[uint_c( ownRank )]++;
          }
       }
 
       walberla::mpi::BufferSystem bs( comm );
-      std::set< MPIRank > nranks;
-      for ( const auto & it : storage.getNeighboringRanks() )
+      std::set< MPIRank >         nranks;
+      for ( const auto& it : storage.getNeighboringRanks() )
       {
          nranks.insert( static_cast< MPIRank >( it ) );
       }
