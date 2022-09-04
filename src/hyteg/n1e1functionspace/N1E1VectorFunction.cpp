@@ -38,7 +38,7 @@ N1E1VectorFunction< ValueType >::N1E1VectorFunction( const std::string&         
                                                      const std::shared_ptr< PrimitiveStorage >& storage,
                                                      const uint_t&                              minLevel,
                                                      const uint_t&                              maxLevel )
-: N1E1VectorFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() ) // TODO BC?
+: N1E1VectorFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
 template < typename ValueType >
@@ -49,7 +49,7 @@ N1E1VectorFunction< ValueType >::N1E1VectorFunction( const std::string&         
                                                      const BoundaryCondition&                   boundaryCondition )
 : VectorFunction< N1E1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , storage_( storage )
-, dofs_( std::make_shared< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel, boundaryCondition ) ) // TODO BC?
+, dofs_( std::make_shared< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel, boundaryCondition ) )
 , boundaryCondition_( boundaryCondition )
 {
    for ( uint_t level = minLevel; level <= maxLevel; ++level )

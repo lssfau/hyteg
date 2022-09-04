@@ -234,13 +234,13 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    inline void              setBoundaryCondition( BoundaryCondition bc )
    {
       boundaryCondition_ = bc;
-      // TODO set on dofs_
+      dofs_->setBoundaryCondition( boundaryCondition_ );
    }
 
    template < typename OtherFunctionValueType >
    inline void copyBoundaryConditionFromFunction( const N1E1VectorFunction< OtherFunctionValueType >& other )
    {
-      dofs_->copyBoundaryConditionFromFunction( *other.getDoFs() );
+      setBoundaryCondition( other.getBoundaryCondition() );
    }
 
    template < typename SenderType, typename ReceiverType >
