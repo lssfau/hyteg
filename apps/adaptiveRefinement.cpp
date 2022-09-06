@@ -33,10 +33,10 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
-#include "hyteg/petsc/PETScCGSolver.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
@@ -371,7 +371,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     accurate_error,
                                        bool                                     l2_error_each_iteration = true )
 {
-   auto l_err = ( accurate_error )? l_max + 1 : l_max;
+   auto l_err = ( accurate_error ) ? l_max + 1 : l_max;
 
    double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -473,12 +473,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          if ( !u_old->evaluate( x, l_interpolate, ux, 1e-10 ) )
          {
             // WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
-            ++ n_failed;
+            ++n_failed;
          }
          return ux;
       };
       u->interpolate( u_init, l_max, Inner );
-      WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
+      if ( n_failed > 0 )
+      {
+         WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
+      }
    }
    else
    {
@@ -500,16 +503,16 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
    // coarse grid (agglomerated)
-   auto cgIter    = std::max( uint_t( 5 ), n_dof_coarse );
+   auto cgIter = std::max( uint_t( 5 ), n_dof_coarse );
    // auto cgsAgglomerated = std::make_shared< AgglomerationWrapper< A_t > >( storage, l_min );
    // auto npAgglomeration = std::min( uint_t( walberla::mpi::MPIManager::instance()->numProcesses() ), n_dof_coarse / 100 + 1 );
    // cgsAgglomerated->setStrategyContinuousProcesses( 0, npAgglomeration - 1 );
    // auto cgStorage = cgsAgglomerated->getAgglomerationStorage();
    // auto cgs       = std::make_shared< CGSolver< A_t > >( cgStorage, l_min, l_min, cgIter, cg_tol );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   auto cgs       = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
+   auto cgs = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
 #else
-   auto cgs       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
+   auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
    // cgsAgglomerated->setSolver( cgs );
    // multigrid
@@ -697,11 +700,35 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
    {
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
-         local_errors = solve< Laplace >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement, accurate_error );
+         local_errors = solve< Laplace >( mesh,
+                                          problem,
+                                          u0,
+                                          u_old,
+                                          l_max,
+                                          l_min,
+                                          l_max,
+                                          max_iter,
+                                          tol,
+                                          cg_tol,
+                                          vtkname,
+                                          writePartitioning,
+                                          refinement,
+                                          accurate_error );
       else
-         local_errors = solve< DivkGrad >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement, accurate_error );
+         local_errors = solve< DivkGrad >( mesh,
+                                           problem,
+                                           u0,
+                                           u_old,
+                                           l_max,
+                                           l_min,
+                                           l_max,
+                                           max_iter,
+                                           tol,
+                                           cg_tol,
+                                           vtkname,
+                                           writePartitioning,
+                                           refinement,
+                                           accurate_error );
 
       if ( refinement >= n_ref )
       {
@@ -801,7 +828,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
       {
-         std::cout << "\nTimingtree final iteration:\n" << *(u_old->getStorage()->getTimingTree()) << "\n";
+         std::cout << "\nTimingtree final iteration:\n" << *( u_old->getStorage()->getTimingTree() ) << "\n";
       }
    }
 }
