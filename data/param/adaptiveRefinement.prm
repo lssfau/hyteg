@@ -44,4 +44,5 @@ Parameters
   // misc
   // vtkName auto;
   // writeDomainPartitioning 0;
+  compute_error_on_higher_lvl 0;
 }

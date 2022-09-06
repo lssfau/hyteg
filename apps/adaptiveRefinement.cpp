@@ -33,6 +33,8 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -158,7 +160,8 @@ struct ModelProblem
               P1Function< real_t >&               f,
               P1Function< real_t >&               u_h,
               P1Function< real_t >&               b,
-              uint_t                              lvl ) const
+              uint_t                              lvl,
+              bool                                additional_lvl ) const
    {
       using walberla::math::one_div_root_two;
       using walberla::math::pi;
@@ -244,13 +247,19 @@ struct ModelProblem
 
       // interpolate analytic solution
       u.interpolate( _u, lvl );
-      u.interpolate( _u, lvl + 1 );
+      if ( additional_lvl )
+      {
+         u.interpolate( _u, lvl + 1 );
+      }
 
       // initialize u_h
       u_h.setToZero( lvl );
-      u_h.setToZero( lvl + 1 );
       u_h.interpolate( _u, lvl, DirichletBoundary );
-      u_h.interpolate( _u, lvl + 1, DirichletBoundary );
+      if ( additional_lvl )
+      {
+         u_h.setToZero( lvl + 1 );
+         u_h.interpolate( _u, lvl + 1, DirichletBoundary );
+      }
    }
 
    void apply_error_filter( const P1Function< real_t >& e, P1Function< real_t >& e_f, uint_t lvl ) const
@@ -359,8 +368,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        std::string                              vtkname,
                                        bool                                     writePartitioning,
                                        uint_t                                   refinement_step,
+                                       bool                                     accurate_error,
                                        bool                                     l2_error_each_iteration = true )
 {
+   auto l_err = ( accurate_error )? l_max + 1 : l_max;
+
    double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
@@ -392,14 +404,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
 
    // FE functions
-   auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_max + 1 );
+   auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_err );
    P1Function< real_t > f( "f", storage, l_max, l_max );
    P1Function< real_t > b( "b(f)", storage, l_min, l_max );
    P1Function< real_t > r( "r", storage, l_max, l_max );
-   P1Function< real_t > u_anal( "u_anal", storage, l_max, l_max + 1 );
-   P1Function< real_t > err( "e_h", storage, l_max, l_max + 1 );
-   P1Function< real_t > tmp( "tmp", storage, l_min, l_max + 1 );
-   P1Function< real_t > err_f( "e_h_filtered", storage, l_max + 1, l_max + 1 );
+   P1Function< real_t > u_anal( "u_anal", storage, l_max, l_err );
+   P1Function< real_t > err( "e_h", storage, l_max, l_err );
+   P1Function< real_t > tmp( "tmp", storage, l_min, l_err );
+   P1Function< real_t > err_f( "e_h_filtered", storage, l_max, l_err );
 
    // global DoF
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
@@ -415,9 +427,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // computation of residual and L2 error
    t0 = walberla::timing::getWcTime();
    err.setToZero( l_max );
-   err.setToZero( l_max + 1 );
+   err.setToZero( l_err );
    tmp.setToZero( l_max );
-   tmp.setToZero( l_max + 1 );
+   tmp.setToZero( l_err );
    double t_residual = 0, t_error = 0;
    auto   compute_residual = [&]() -> real_t {
       auto my_t0 = walberla::timing::getWcTime();
@@ -431,18 +443,21 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    };
    auto compute_L2error = [&]() -> real_t {
       auto my_t0 = walberla::timing::getWcTime();
-      P->prolongate( *u, l_max, Inner | NeumannBoundary );
-      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_max + 1, Inner | NeumannBoundary );
-      problem.apply_error_filter( err, err_f, l_max + 1 );
-      M->apply( err_f, tmp, l_max + 1, Inner | NeumannBoundary, Replace );
-      auto norm_e = std::sqrt( err_f.dotGlobal( tmp, l_max + 1, Inner | NeumannBoundary ) );
+      if ( accurate_error )
+      {
+         P->prolongate( *u, l_max, Inner | NeumannBoundary );
+      }
+      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_err, Inner | NeumannBoundary );
+      problem.apply_error_filter( err, err_f, l_err );
+      M->apply( err_f, tmp, l_err, Inner | NeumannBoundary, Replace );
+      auto norm_e = std::sqrt( err_f.dotGlobal( tmp, l_err, Inner | NeumannBoundary ) );
       auto my_t1  = walberla::timing::getWcTime();
       t_error += my_t1 - my_t0;
       return norm_e;
    };
 
    // initialize analytic solution, rhs and boundary values
-   problem.init( storage, u_anal, f, *u, b, l_max );
+   problem.init( storage, u_anal, f, *u, b, l_max, accurate_error );
 
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
@@ -451,16 +466,19 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    if ( u0 == 1 && u_old != nullptr )
    {
+      uint_t n_failed = 0;
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       auto u_init = [&]( const Point3D& x ) -> real_t {
          real_t ux = 0.0;
          if ( !u_old->evaluate( x, l_interpolate, ux, 1e-10 ) )
          {
-            WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
+            // WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
+            ++ n_failed;
          }
          return ux;
       };
       u->interpolate( u_init, l_max, Inner );
+      WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
    }
    else
    {
@@ -488,8 +506,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // cgsAgglomerated->setStrategyContinuousProcesses( 0, npAgglomeration - 1 );
    // auto cgStorage = cgsAgglomerated->getAgglomerationStorage();
    // auto cgs       = std::make_shared< CGSolver< A_t > >( cgStorage, l_min, l_min, cgIter, cg_tol );
-   // cgsAgglomerated->setSolver( cgs );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   auto cgs       = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
+#else
    auto cgs       = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
+#endif
+   // cgsAgglomerated->setSolver( cgs );
    // multigrid
    // GeometricMultigridSolver< A_t > gmg( storage, smoother, cgsAgglomerated, R, P, l_min, l_max, 3, 3 );
    GeometricMultigridSolver< A_t > gmg( storage, smoother, cgs, R, P, l_min, l_max, 3, 3 );
@@ -546,7 +568,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       for ( auto& [id, cell] : storage->getCells() )
       {
          real_t err_2_cell = vertexdof::macrocell::dot< real_t >(
-             l_max + 1, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
+             l_err, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
@@ -566,7 +588,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       for ( auto& [id, face] : storage->getFaces() )
       {
          real_t err_2_face = vertexdof::macroface::dot< real_t >(
-             l_max + 1, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
+             l_err, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
@@ -599,7 +621,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       k.interpolate( problem.coeff(), l_max );
 
       // error
-      R->restrict( err, l_max + 1, Inner | NeumannBoundary );
+      if ( accurate_error )
+      {
+         R->restrict( err, l_err, Inner | NeumannBoundary );
+      }
 
       // squared error
       P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
@@ -658,6 +683,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 uint_t                       max_iter_final,
                                 real_t                       tol_final,
                                 real_t                       cg_tol,
+                                bool                         accurate_error,
                                 std::string                  vtkname,
                                 bool                         writePartitioning )
 {
@@ -672,10 +698,10 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       adaptiveRefinement::ErrorVector local_errors;
       if ( problem.constant_coefficient() )
          local_errors = solve< Laplace >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement, accurate_error );
       else
          local_errors = solve< DivkGrad >(
-             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement );
+             mesh, problem, u0, u_old, l_max, l_min, l_max, max_iter, tol, cg_tol, vtkname, writePartitioning, refinement, accurate_error );
 
       if ( refinement >= n_ref )
       {
@@ -752,7 +778,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            cg_tol,
                            vtkname,
                            writePartitioning,
-                           refinement );
+                           refinement,
+                           accurate_error );
       }
       else
       {
@@ -768,7 +795,13 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             cg_tol,
                             vtkname,
                             writePartitioning,
-                            refinement );
+                            refinement,
+                            accurate_error );
+      }
+
+      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      {
+         std::cout << "\nTimingtree final iteration:\n" << *(u_old->getStorage()->getTimingTree()) << "\n";
       }
    }
 }
@@ -822,6 +855,12 @@ int main( int argc, char* argv[] )
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
 
+   const bool accurate_error = parameters.getParameter< bool >( "compute_error_on_higher_lvl", false );
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   PETScManager petscManager( &argc, &argv );
+#endif
+
    // setup model problem
    ModelProblem problem( mp, dim );
    WALBERLA_LOG_INFO_ON_ROOT( "Model Problem: " << problem.name() );
@@ -849,6 +888,7 @@ int main( int argc, char* argv[] )
                               max_iter_final,
                               tol_final,
                               cg_tol,
+                              accurate_error,
                               vtkname,
                               writePartitioning );
 
