@@ -296,6 +296,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
              x15 * ( x12 * x4 + x12 * x5 ) - x15 * ( 2.0 * M_PI * x11 * x5 - 0.5 * x14 * x7 );
    };
 
+/*
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_1_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -363,6 +364,109 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        std::make_tuple( u_x, u_y, pressure ),
        std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
        P2P1ElementwiseEpsilonOp_mu_alpha_50_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+       
+   alpha = 70;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_70_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha70_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_70_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+     alpha = 150;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_150_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha150_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_150_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+
+        alpha = 300;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_300_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha300_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_300_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+           alpha = 500;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_500_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha500_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_500_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+       
+
+                  alpha = 1000;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_1000_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha1000_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_1000_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+
+                  alpha = 2000;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_2000_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha2000_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_2000_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+       */
+
+       
+                  alpha = 5000;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_5000_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha5000_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_5000_smooth,
+       storage,
+       minLevel,
+       maxLevel );
+
+
+                  alpha = 10000;
+   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth(
+       storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
+       "P2P1EpsilonOp_mu_alpha10000_smooth",
+       std::make_tuple( u_x, u_y, pressure ),
+       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
+       P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth,
        storage,
        minLevel,
        maxLevel );
@@ -1260,7 +1364,7 @@ int main( int argc, char* argv[] )
    auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
 
    uint_t minLevel = 3;
-   uint_t maxLevel = 8;
+   uint_t maxLevel = 7;
 
    IncreasingSteepnessTest( minLevel, maxLevel, storage );
 
