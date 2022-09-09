@@ -437,9 +437,6 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
 
-template <>
-bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates, uint_t level, real_t& value, real_t searchToleranceRadius ) const;
-
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
 extern template class VertexDoFFunction< idx_t >;

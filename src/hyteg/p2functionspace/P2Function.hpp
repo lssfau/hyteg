@@ -267,8 +267,6 @@ class P2Function final : public Function< P2Function< ValueType > >
 };
 
 template <>
-bool P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level, real_t& value, real_t searchToleranceRadius ) const;
-template <>
 void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
 extern template class P2Function< double >;
