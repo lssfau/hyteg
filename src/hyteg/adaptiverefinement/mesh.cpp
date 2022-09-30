@@ -301,7 +301,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
    std::vector< Neighborhood > nbrHood;
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
-   inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+   // todo inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
    update_targetRank( vtxs, edges, faces, cells );
 
    // create storage
@@ -332,7 +332,8 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    }
    else if ( lb == GREEDY )
    {
-      loadbalancing_greedy( nbrHood );
+      WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
+      // todo loadbalancing_greedy( nbrHood );
    }
    else
    {
@@ -348,7 +349,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    extract_data( vtxs, edges, faces, cells, nbrHood );
 
    // assign interface primitives
-   inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+   // todo inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
    update_targetRank( vtxs, edges, faces, cells );
 
    // gather migration data
@@ -385,7 +386,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 
       if ( rank == currentRnk )
       {
-         migrationMap[vtxs[i].getPrimitiveID().getID()] = targetRnk;
+         migrationMap[vtxs[i].getPrimitiveID()] = targetRnk;
       }
       if ( rank == targetRnk )
       {
@@ -400,7 +401,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 
       if ( rank == currentRnk )
       {
-         migrationMap[edges[i].getPrimitiveID().getID()] = targetRnk;
+         migrationMap[edges[i].getPrimitiveID()] = targetRnk;
       }
       if ( rank == targetRnk )
       {
@@ -414,7 +415,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 
       if ( rank == currentRnk )
       {
-         migrationMap[faces[i].getPrimitiveID().getID()] = targetRnk;
+         migrationMap[faces[i].getPrimitiveID()] = targetRnk;
       }
       if ( rank == targetRnk )
       {
@@ -428,7 +429,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 
       if ( rank == currentRnk )
       {
-         migrationMap[cells[i].getPrimitiveID().getID()] = targetRnk;
+         migrationMap[cells[i].getPrimitiveID()] = targetRnk;
       }
       if ( rank == targetRnk )
       {
@@ -507,8 +508,9 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::vector< Neighborhood 
    uint_t                                    idx = 0;
    for ( auto& el : _T )
    {
-      id_to_el[el->getPrimitiveID().getID()] = el.get();
-      nbrs[el->getPrimitiveID().getID()]     = nbrHood[idx][K_Simplex::TYPE];
+      // todo
+      // id_to_el[el->getPrimitiveID().getID()] = el.get();
+      // nbrs[el->getPrimitiveID().getID()]     = nbrHood[idx][K_Simplex::TYPE];
 
       ++idx;
    }
@@ -597,10 +599,10 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::vector< Neighborhood 
             // add nbrs to queue
             for ( auto el : next )
             {
-               for ( auto nbrID : nbrs[el->getPrimitiveID().getID()] )
-               {
-                  add_to_Q( id_to_el[nbrID] );
-               }
+               // for ( auto nbrID : nbrs[el->getPrimitiveID()] )
+               // {
+               //    add_to_Q( id_to_el[nbrID] );
+               // }
             }
          }
       }
