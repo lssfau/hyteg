@@ -1366,11 +1366,11 @@ int main( int argc, char* argv[] )
    uint_t minLevel = 3;
    uint_t maxLevel = 7;
 
-   IncreasingSteepnessTest( minLevel, maxLevel, storage );
+   //IncreasingSteepnessTest( minLevel, maxLevel, storage );
 
    //SmoothViscosityTest(  minLevel, maxLevel, storage );
    
-   //ConstAndBasicTest( minLevel, maxLevel, storage );
+   ConstAndBasicTest( minLevel, maxLevel, storage );
    
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
