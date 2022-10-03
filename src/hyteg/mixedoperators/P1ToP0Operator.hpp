@@ -26,6 +26,11 @@
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/P1_to_P0_div_form.hpp"
+#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
+#include "hyteg/egfunctionspace/EGDivForm.hpp"
+#include "hyteg/egfunctionspace/EGDivtForm.hpp"
+#include "hyteg/egfunctionspace/EGMassForm.hpp"
+#include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -38,12 +43,6 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
-
-#include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
-#include "hyteg/egfunctionspace/EGMassForm.hpp"
-#include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
-#include "hyteg/egfunctionspace/EGDivForm.hpp"
-#include "hyteg/egfunctionspace/EGDivtForm.hpp"
 namespace hyteg {
 
 using namespace dg;
@@ -57,14 +56,16 @@ template < typename Form >
 class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t > >
 {
  public:
-   P1ToP0Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, std::shared_ptr< Form > form = std::make_shared< Form >() )
+   P1ToP0Operator( const std::shared_ptr< PrimitiveStorage >& storage,
+                   uint_t                                     minLevel,
+                   uint_t                                     maxLevel,
+                   std::shared_ptr< Form >                    form = std::make_shared< Form >() )
    : Operator< P1Function< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
    , form_( form )
    {}
 
-
    typedef Form FormType;
-   
+
    void apply( const P1Function< real_t >& src,
                const P0Function< real_t >& dst,
                size_t                      level,
@@ -770,22 +771,19 @@ typedef P1ToP0Operator< dg::p1_to_p0_div_2_affine_q0 > P1ToP0ConstantDivzOperato
 
 typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_0 > EGVectorLaplaceP1ToP0Coupling_X;
 typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_1 > EGVectorLaplaceP1ToP0Coupling_Y;
-typedef P1ToP0Operator< dg::DGFormAbort >                EGVectorLaplaceP1ToP0Coupling_Z;
+typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_2 > EGVectorLaplaceP1ToP0Coupling_Z;
 
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 > EGConstantEpsilonP1ToP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 > EGConstantEpsilonP1ToP0Coupling_Y;
+typedef P1ToP0Operator< dg::DGFormAbort >                 EGConstantEpsilonP1ToP0Coupling_Z;
 
-typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 >  EGConstantEpsilonP1ToP0Coupling_X;
-typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 >  EGConstantEpsilonP1ToP0Coupling_Y;
-typedef P1ToP0Operator< dg::DGFormAbort >            EGConstantEpsilonP1ToP0Coupling_Z;
-
-
-typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_0 >  EGEpsilonP1ToP0Coupling_X;
-typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_1 >  EGEpsilonP1ToP0Coupling_Y;
+typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_0 > EGEpsilonP1ToP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_1 > EGEpsilonP1ToP0Coupling_Y;
 typedef P1ToP0Operator< dg::DGFormAbort >            EGEpsilonP1ToP0Coupling_Z;
-
 
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
-typedef P1ToP0Operator< dg::DGFormAbort >             P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_2 > P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
 
 typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 

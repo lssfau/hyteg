@@ -23,6 +23,9 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
+
 namespace hyteg {
 
 using namespace dg;
@@ -82,7 +85,23 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto cellID = it.first;
+            const auto cell   = *it.second;
+
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      constant;
+               }
+            }
+         }
       }
       else
       {

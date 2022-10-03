@@ -30,8 +30,8 @@
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
-#include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
+#include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
 #include "hyteg/functions/Function.hpp"
@@ -59,7 +59,10 @@ template < typename Form >
 class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t > >
 {
  public:
-   P0ToP1Operator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, std::shared_ptr< Form > form = std::make_shared< Form >() )
+   P0ToP1Operator( const std::shared_ptr< PrimitiveStorage >& storage,
+                   uint_t                                     minLevel,
+                   uint_t                                     maxLevel,
+                   std::shared_ptr< Form >                    form = std::make_shared< Form >() )
    : Operator< P0Function< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
    , form_( form )
    {}
@@ -151,7 +154,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
          const auto numSrcDofs = 1;
          const auto numDstDofs = dim + 1;
-         ;
+         
 
          const auto srcDofMemory = src.getDGFunction()->volumeDoFFunction()->dofMemory( pid, level );
          auto       dstDofMemory = p1Data< VType >( dst, storage, pid, level );
@@ -515,8 +518,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           dstPolyDegree,
                                                           localMat );
 
-                           WALBERLA_CHECK( !storage->hasGlobalCells(),
-                                           "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
+                          // WALBERLA_CHECK( !storage->hasGlobalCells(),
+                          //                 "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
 
                            // Now we need the DoFs from the neighboring element.
                            // P0 has only one DoF
@@ -622,7 +625,7 @@ typedef P0ToP1Operator< dg::p0_to_p1_divt_2_affine_q0 > P0ToP1ConstantDivTzOpera
 
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_0 > EGVectorLaplaceP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_1 > EGVectorLaplaceP0ToP1Coupling_Y;
-typedef P0ToP1Operator< dg::DGFormAbort >                  EGVectorLaplaceP0ToP1Coupling_Z;
+typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_2 > EGVectorLaplaceP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_0 > EGConstantEpsilonP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_1 > EGConstantEpsilonP0ToP1Coupling_Y;
@@ -634,7 +637,7 @@ typedef P0ToP1Operator< dg::DGFormAbort >            EGEpsilonP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_0 > P0ToP1ConstantP1EDGVectorMassXCouplingOperator;
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_1 > P0ToP1ConstantP1EDGVectorMassYCouplingOperator;
-typedef P0ToP1Operator< dg::DGFormAbort >               P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
+typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_2 > P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
 
 typedef P0ToP1Operator< dg::eg::EGDivFormP1E > P0ToP1ConstantP1EDGDivergenceCouplingOperator;
 

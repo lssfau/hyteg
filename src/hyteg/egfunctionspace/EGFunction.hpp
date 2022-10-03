@@ -21,12 +21,12 @@
 #pragma once
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/egfunctionspace/EGBasis.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-namespace hyteg{
+namespace hyteg {
 
 template < typename ValueType >
 class EGFunction final : public Function< EGFunction< ValueType > >
@@ -38,10 +38,10 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    using FunctionType = EGFunction< VType >;
 
    EGFunction( const std::string&                         name,
-                  const std::shared_ptr< PrimitiveStorage >& storage,
-                  uint_t                                     minLevel,
-                  uint_t                                     maxLevel,
-                  BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
+               const std::shared_ptr< PrimitiveStorage >& storage,
+               uint_t                                     minLevel,
+               uint_t                                     maxLevel,
+               BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
    std::shared_ptr< P1VectorFunction< ValueType > > getConformingPart() const { return u_conforming_; }
 
@@ -67,18 +67,18 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       u_discontinuous_->add( scalar, level, flag );
    };
 
-   void add( const std::vector< ValueType >                                                   scalars,
+   void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
-             uint_t                                                                           level,
-             DoFType                                                                          flag = All ) const
+             uint_t                                                                        level,
+             DoFType                                                                       flag = All ) const
    {
       u_conforming_->add( scalars, filter_conforming( functions ), level, flag );
       u_discontinuous_->add( scalars, filter_discontinuous( functions ), level, flag );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
-                         uint_t                                                                           level,
-                         DoFType                                                                          flag = All ) const
+                         uint_t                                                                        level,
+                         DoFType                                                                       flag = All ) const
    {
       u_conforming_->multElementwise( filter_conforming( functions ), level, flag );
       u_discontinuous_->multElementwise( filter_discontinuous( functions ), level, flag );
@@ -110,7 +110,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       u_discontinuous_->swap( *other.getDiscontinuousPart(), level, flag );
    };
 
-   void copyFrom( const EGFunction< ValueType >&              other,
+   void copyFrom( const EGFunction< ValueType >&                 other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
@@ -128,10 +128,10 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void assign( const std::vector< ValueType >&                                                  scalars,
+   void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const EGFunction< ValueType > > >& functions,
-                uint_t                                                                           level,
-                DoFType                                                                          flag = All ) const
+                uint_t                                                                        level,
+                DoFType                                                                       flag = All ) const
    {
       u_conforming_->assign( scalars, filter_conforming( functions ), level, flag );
       u_discontinuous_->assign( scalars, filter_discontinuous( functions ), level, flag );
@@ -169,7 +169,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
    /// conversion to/from linear algebra representation
    /// @{
-   void toVector( const EGFunction< idx_t >&         numerator,
+   void toVector( const EGFunction< idx_t >&            numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
                   DoFType                               flag ) const
@@ -178,7 +178,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       u_discontinuous_->toVector( *numerator.getDiscontinuousPart(), vec, level, flag );
    }
 
-   void fromVector( const EGFunction< idx_t >&         numerator,
+   void fromVector( const EGFunction< idx_t >&            numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const
@@ -407,17 +407,22 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    std::shared_ptr< P0Function< ValueType > >       u_discontinuous_;
 
    dg::DGBasisLinearLagrange_Example basis_conforming_;
-   EGBasis                   basis_discontinuous_;
+   EGBasis                           basis_discontinuous_;
 };
 
 template < typename ValueType >
-EGFunction< ValueType >::EGFunction( const std::string&                         name,
-                                           const std::shared_ptr< hyteg::PrimitiveStorage >& storage,
-                                           uint_t                                     minLevel,
-                                           uint_t                                     maxLevel,
-                                           BoundaryCondition                          bc )
+EGFunction< ValueType >::EGFunction( const std::string&                                name,
+                                     const std::shared_ptr< hyteg::PrimitiveStorage >& storage,
+                                     uint_t                                            minLevel,
+                                     uint_t                                            maxLevel,
+                                     BoundaryCondition                                 bc )
 : Function< EGFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name + "_conforming", storage, minLevel, maxLevel, bc, true ) }
+, u_conforming_{ std::make_shared< P1VectorFunction< ValueType > >( name + "_conforming",
+                                                                    storage,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    bc,
+                                                                    true ) }
 , u_discontinuous_{ std::make_shared< P0Function< ValueType > >( name + "_discontinuous", storage, minLevel, maxLevel, bc ) }
 , basis_conforming_()
 , basis_discontinuous_()
