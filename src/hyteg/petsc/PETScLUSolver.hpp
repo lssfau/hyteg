@@ -305,7 +305,7 @@ class PETScLUSolver : public Solver< OperatorType >
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
 #if 0
-  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
+   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
 #endif
 
    KSP                        ksp;

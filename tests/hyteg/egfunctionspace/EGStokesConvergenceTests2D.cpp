@@ -31,6 +31,7 @@
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.cpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -94,7 +95,7 @@ class StokesConvergenceOrderTest
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
       }
 
-      const real_t expectedRate = 4.;
+      //const real_t expectedRate = 4.;
       //WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
       //WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
       //WALBERLA_LOG_INFO_ON_ROOT( "Test " << testName << " converged correctly." );
@@ -129,8 +130,8 @@ class StokesConvergenceOrderTest
       StokesFunctionType f( "f", storage, level, level );
       StokesFunctionType rhs( "rhs", storage, level, level );
       StokesFunctionType sol( "sol", storage, level, level );
-      StokesFunctionType err( "err", storage, level, level );
-      StokesFunctionType Merr( "Merr", storage, level, level );
+      StokesFunctionType err( "err", storage, level, level + 1 );
+      StokesFunctionType Merr( "Merr", storage, level, level + 1 );
       if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
                      std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
                      std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
@@ -208,7 +209,32 @@ class StokesConvergenceOrderTest
             M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
          }
       }
-      auto discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+
+      const bool prolongateErrorToFiner = true;
+      real_t     discrL2_velocity       = 0.0;
+      if constexpr ( !prolongateErrorToFiner )
+      {
+         discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+      }
+      else if constexpr ( prolongateErrorToFiner &&
+                          ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
+                            std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value ) )
+      {
+         P2toP2QuadraticProlongation P2P2ProlongationOp;
+         for ( uint_t k = 0; k < err.uvw().getDimension(); k++ )
+         {
+            P2P2ProlongationOp.prolongate( err.uvw()[k], level, Inner );
+         }
+         //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
+         //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
+         //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
+         discrL2_velocity =
+             sqrt( err.uvw().dotGlobal( err.uvw(), level + 1, Inner ) / real_c( numberOfGlobalDoFs( err, level + 1 ) ) );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Unexpected combination of discretization and prolongateErrorToFiner" );
+      }
 
       if ( writeVTK )
       {
@@ -221,6 +247,7 @@ class StokesConvergenceOrderTest
       }
 
       real_t h = MeshQuality::getMaximalEdgeLength( storage, level );
+
       return std::make_tuple< real_t&, real_t&, real_t >( h, discrL2_velocity, 0.0 );
    }
 };
@@ -296,7 +323,6 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
              x15 * ( x12 * x4 + x12 * x5 ) - x15 * ( 2.0 * M_PI * x11 * x5 - 0.5 * x14 * x7 );
    };
 
-/*
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_1_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -320,6 +346,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
+/*
    alpha = 10;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_10_smooth(
        storage, minLevel, maxLevel, viscosity );
@@ -368,7 +395,6 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
-       
    alpha = 70;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_70_smooth(
        storage, minLevel, maxLevel, viscosity );
@@ -381,7 +407,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
-     alpha = 150;
+   alpha = 150;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_150_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -392,9 +418,8 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        storage,
        minLevel,
        maxLevel );
-
-
-        alpha = 300;
+/*
+   alpha = 300;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_300_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -406,7 +431,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
-           alpha = 500;
+   alpha = 500;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_500_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -417,9 +442,8 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        storage,
        minLevel,
        maxLevel );
-       
 
-                  alpha = 1000;
+   alpha = 1000;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_1000_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -431,8 +455,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
-
-                  alpha = 2000;
+   alpha = 2000;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_2000_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -443,10 +466,8 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        storage,
        minLevel,
        maxLevel );
-       */
 
-       
-                  alpha = 5000;
+   alpha = 5000;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_5000_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -458,8 +479,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        minLevel,
        maxLevel );
 
-
-                  alpha = 10000;
+   alpha = 10000;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth(
        storage, minLevel, maxLevel, viscosity );
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
@@ -469,7 +489,7 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel );*/
 }
 
 void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
@@ -482,13 +502,14 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
              1;
    } );
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_smooth(
-       storage, 3, 5, []( const hyteg::Point3D& p ) {
+       storage, minLevel, maxLevel, []( const hyteg::Point3D& p ) {
           const real_t x = p[0];
           const real_t y = p[1];
           return std::exp( x ) * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) *
                      std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) +
                  1;
        } );
+   /*
    hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
        "EGP0EpsilonOp_muSmooth_divFreeVelocity",
        std::make_tuple(
@@ -533,7 +554,10 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
        EGP0EpsilonOp_mu_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false,
+       false );
+       */
 
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
        "P2P1EpsilonOp_muSmooth_divFreeVelocity",
@@ -579,7 +603,8 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
        P2P1ElementwiseEpsilonOp_mu_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 }
 
 void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
@@ -1366,12 +1391,12 @@ int main( int argc, char* argv[] )
    uint_t minLevel = 3;
    uint_t maxLevel = 7;
 
-   //IncreasingSteepnessTest( minLevel, maxLevel, storage );
+   IncreasingSteepnessTest( minLevel, maxLevel, storage );
 
-   //SmoothViscosityTest(  minLevel, maxLevel, storage );
-   
-   ConstAndBasicTest( minLevel, maxLevel, storage );
-   
+   //SmoothViscosityTest( minLevel, maxLevel, storage );
+
+   //ConstAndBasicTest( minLevel, maxLevel, storage );
+
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */

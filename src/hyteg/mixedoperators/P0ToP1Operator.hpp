@@ -518,8 +518,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           dstPolyDegree,
                                                           localMat );
 
-                          // WALBERLA_CHECK( !storage->hasGlobalCells(),
-                          //                 "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
+                           WALBERLA_CHECK( !storage->hasGlobalCells(),
+                                           "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
 
                            // Now we need the DoFs from the neighboring element.
                            // P0 has only one DoF
