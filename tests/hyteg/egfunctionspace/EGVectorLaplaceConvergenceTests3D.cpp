@@ -19,6 +19,7 @@
 */
 
 #include "core/DataTypes.h"
+#include "core/math/Constants.h"
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
@@ -148,13 +149,35 @@ int main( int argc, char** argv )
    using hyteg::Point3D;
    using walberla::real_t;
 
+   using walberla::math::pi;
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cubed domain, hom. BC, rhs != 0 ###" );
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, hom. BC, rhs != 0 ###" );
 
+      std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
+      };
+      std::function< real_t( const Point3D& ) > one_tet_rhs = []( const Point3D& x ) {
+         return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
+      };
+      hyteg::run( "1tet_Dirichlet0",
+                  3,
+                  7,
+                  MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                  std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
+                  std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ) );
+   }
+   /*
       hyteg::run( "Cube_Dirichlet0",
       3,7,
                   MeshInfo::meshCuboid( Point3D( { -1, -1, -1 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 ),
@@ -209,7 +232,6 @@ int main( int argc, char** argv )
                                 std::sin( M_PI * ( ( 1.0 / 2.0 ) * z + 1.0 / 2.0 ) );
                       } ) );
    }
-   /*
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, rhs != 0 ###" );
 
