@@ -135,7 +135,7 @@ class K_Mesh
 
    /* apply greedy loadbalancing to volume elements
    */
-   void loadbalancing_greedy( const std::vector< Neighborhood >& nbrHood );
+   void loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood );
 
    /* remove green edges from _T and replace them with their parents
    */
@@ -177,23 +177,23 @@ class K_Mesh
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::vector< VertexData >&   vtxData,
-                      std::vector< EdgeData >&     edgeData,
-                      std::vector< FaceData >&     faceData,
-                      std::vector< CellData >&     cellData,
-                      std::vector< Neighborhood >& nbrHood ) const;
+   void extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
+                      std::map< PrimitiveID, EdgeData >&     edgeData,
+                      std::map< PrimitiveID, FaceData >&     faceData,
+                      std::map< PrimitiveID, CellData >&     cellData,
+                      std::map< PrimitiveID, Neighborhood >& nbrHood ) const;
 
    /* update target rank for all primitives */
-   void update_targetRank( const std::vector< VertexData >& vtxData,
-                           const std::vector< EdgeData >&   edgeData,
-                           const std::vector< FaceData >&   faceData,
-                           const std::vector< CellData >&   cellData );
+   void update_targetRank( const std::map< PrimitiveID, VertexData >& vtxData,
+                           const std::map< PrimitiveID, EdgeData >&   edgeData,
+                           const std::map< PrimitiveID, FaceData >&   faceData,
+                           const std::map< PrimitiveID, CellData >&   cellData );
 
    /* create PrimitiveStorage from SimplexData */
-   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,
-                                                             std::vector< EdgeData >&   edges,
-                                                             std::vector< FaceData >&   faces,
-                                                             std::vector< CellData >&   cells );
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
+                                                             std::map< PrimitiveID, EdgeData >&   edges,
+                                                             std::map< PrimitiveID, FaceData >&   faces,
+                                                             std::map< PrimitiveID, CellData >&   cells );
 
 <<<<<<< HEAD
    uint_t                                                  _n_vertices;

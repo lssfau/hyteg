@@ -492,7 +492,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // apply loadbalancing
    t0                 = walberla::timing::getWcTime();
-   auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
+   auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
    storage->migratePrimitives( migrationInfo );
    t1                   = walberla::timing::getWcTime();
    auto t_loadbalancing = t1 - t0;
