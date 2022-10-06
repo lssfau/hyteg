@@ -45,10 +45,10 @@ std::shared_ptr< Simplex3 > SimplexFactory::make_cell( uint_t a, uint_t b, uint_
    std::array< uint_t, 4 > V{ _vertices[a], _vertices[b], _vertices[c], _vertices[d] };
 
    std::array< std::shared_ptr< Simplex1 >, 6 > E{
-       _edges[{ a, b }], _edges[{ b, c }], _edges[{ c, a }], _edges[{ a, d }], _edges[{ b, d }], _edges[{ c, d }] };
+       _edges[{ a, b }], _edges[{ a, c }], _edges[{ a, d }], _edges[{ b, c }], _edges[{ b, d }], _edges[{ c, d }] };
 
    std::array< std::shared_ptr< Simplex2 >, 4 > F{
-       _faces[{ a, b, c }], _faces[{ a, b, d }], _faces[{ b, c, d }], _faces[{ a, c, d }] };
+       _faces[{ a, b, c }], _faces[{ a, b, d }], _faces[{ a, c, d }], _faces[{ b, c, d }] };
 
    return std::make_shared< Simplex3 >( V, E, F, _parent, _geometryMap, _boundaryFlag, _targetRank );
 }

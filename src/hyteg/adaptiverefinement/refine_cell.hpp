@@ -57,7 +57,20 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    }
 
    // === collect vertex indices ===
-   std::vector< uint_t > ref_vertices( 10 );
+   std::vector< uint_t > ref_vertices( 10 ); // [0 1 2 3 01 02 03 12 13 23]
+   // map edge-vertices to ref-idx of midpoint, e.g., 02->5
+   auto refIdx = []( uint_t i, uint_t j ) {
+      if ( i * j == 0 )
+         return 3 + i + j;
+      else
+         return 4 + i + j;
+   };
+   const auto _01 = refIdx( 0, 1 );
+   const auto _02 = refIdx( 0, 2 );
+   const auto _03 = refIdx( 0, 3 );
+   const auto _12 = refIdx( 1, 2 );
+   const auto _13 = refIdx( 1, 3 );
+   const auto _23 = refIdx( 2, 3 );
 
    // old vertices
    for ( uint_t i = 0; i < 4; ++i )
@@ -65,158 +78,104 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       ref_vertices[i] = cell->get_vertices()[i];
    }
    // new vertices
-   for ( uint_t i = 0; i < 6; ++i )
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      int64_t mp = cell->get_edges()[i]->get_midpoint_idx();
-      WALBERLA_ASSERT( mp >= 0 );
-      ref_vertices[i + 4] = uint_t( mp );
+      for ( uint_t j = i + 1; j < 4; ++j )
+      {
+         auto mp = cell->get_Edge( ref_vertices[i], ref_vertices[j] )->get_midpoint_idx();
+         WALBERLA_ASSERT( mp >= 0 );
+         ref_vertices[refIdx( i, j )] = uint_t( mp );
+      }
    }
 
    SimplexFactory fac( cell, ref_vertices );
 
    // === collect edges ===
-   // ref_edges[{i,j}] is the edge connecting ref_vertices[i] and ref_vertices[j]
 
    // edge-children
-   for ( uint_t i = 0; i < 3; ++i )
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      auto child_edges_bottom = cell->get_edges()[i]->get_children_sorted( { ref_vertices[i], ref_vertices[( i + 1 ) % 3] } );
-      auto child_edges_top    = cell->get_edges()[i + 3]->get_children_sorted( { ref_vertices[i], ref_vertices[3] } );
-      fac.add_edge( i, i + 4, child_edges_bottom[0] );
-      fac.add_edge( ( i + 1 ) % 3, i + 4, child_edges_bottom[1] );
-      fac.add_edge( i, i + 7, child_edges_top[0] );
-      fac.add_edge( 3, i + 7, child_edges_top[1] );
+      for ( uint_t j = i + 1; j < 4; ++j )
+      {
+         auto ij         = refIdx( i, j );
+         auto parentEdge = cell->get_Edge( ref_vertices[i], ref_vertices[j] );                      // [i,j]
+         auto children   = parentEdge->get_children_sorted( { ref_vertices[i], ref_vertices[j] } ); // {[i,ij], [ij,j]}
+         fac.add_edge( i, ij, children[0] );
+         fac.add_edge( j, ij, children[1] );
+      }
    }
 
    // edges on face interior
-   auto innerface   = cell->get_faces()[0]->get_children()[3];
-   auto child_edges = innerface->get_edges_sorted( { ref_vertices[4], ref_vertices[5], ref_vertices[6] } );
-   fac.add_edge( 4, 5, child_edges[0] );
-   fac.add_edge( 5, 6, child_edges[1] );
-   fac.add_edge( 4, 6, child_edges[2] );
-
-   innerface   = cell->get_faces()[1]->get_children()[3];
-   child_edges = innerface->get_edges_sorted( { ref_vertices[4], ref_vertices[7], ref_vertices[8] } );
-   fac.add_edge( 4, 7, child_edges[0] );
-   fac.add_edge( 7, 8, child_edges[1] );
-   fac.add_edge( 4, 8, child_edges[2] );
-
-   innerface   = cell->get_faces()[2]->get_children()[3];
-   child_edges = innerface->get_edges_sorted( { ref_vertices[5], ref_vertices[8], ref_vertices[9] } );
-   fac.add_edge( 5, 8, child_edges[0] );
-   fac.add_edge( 8, 9, child_edges[1] );
-   fac.add_edge( 5, 9, child_edges[2] );
-
-   innerface   = cell->get_faces()[3]->get_children()[3];
-   child_edges = innerface->get_edges_sorted( { ref_vertices[6], ref_vertices[7], ref_vertices[9] } );
-   fac.add_edge( 6, 7, child_edges[0] );
-   fac.add_edge( 7, 9, child_edges[1] );
-   fac.add_edge( 6, 9, child_edges[2] );
-
-   // === new edge in cell interior ===
-   // find shortest possible edge (either {4,9}, {5,7} or {6,8})
-   auto distPt  = [&]( const Point3D& x, const Point3D& y ) { return ( x - y ).norm(); };
-   auto edgeLen = [&]( const Idx< 2 >& edge ) {
-      return distPt( vertices[ref_vertices[edge[0]]], vertices[ref_vertices[edge[1]]] );
-   };
-   std::set< Idx< 2 > > possible_edges{ { 4u, 9u }, { 5u, 7u }, { 6u, 8u } };
-   Idx< 2 >             new_edge     = *possible_edges.begin();
-   real_t               new_edge_len = edgeLen( new_edge );
-
-   for ( auto& edge : possible_edges )
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      auto len = edgeLen( edge );
-      if ( len <= new_edge_len )
+      for ( uint_t j = i + 1; j < 4; ++j )
       {
-         new_edge     = edge;
-         new_edge_len = len;
+         for ( uint_t k = j + 1; k < 4; ++k )
+         {
+            auto ij         = refIdx( i, j );
+            auto jk         = refIdx( j, k );
+            auto ki         = refIdx( k, i );
+            auto parentFace = cell->get_Face( ref_vertices[i], ref_vertices[j], ref_vertices[k] ); // [i,j,k]
+            auto innerChild = parentFace->get_children()[3];                                       // [ij, jk, ki]
+            fac.add_edge( ij, jk, innerChild->get_Edge( ref_vertices[ij], ref_vertices[jk] ) );
+            fac.add_edge( jk, ki, innerChild->get_Edge( ref_vertices[jk], ref_vertices[ki] ) );
+            fac.add_edge( ki, ij, innerChild->get_Edge( ref_vertices[ki], ref_vertices[ij] ) );
+         }
       }
    }
 
-   auto vtx_a = new_edge[0];
-   auto vtx_b = new_edge[1];
-
-   fac.make_edge( vtx_a, vtx_b );
-
-   // remaining vertices, i.e. {4,5,6,7,8,9}\{vtx_a,vtx_b}
-   std::set< uint_t > vertices_wo_ab{ 4, 5, 6, 7, 8, 9 };
-   vertices_wo_ab.erase( vtx_a );
-   vertices_wo_ab.erase( vtx_b );
+   // === new edge in cell interior ===
+   // following Bey
+   fac.make_edge( _02, _13 );
 
    // === collect faces ===
 
-   // face[0]:
-   auto child_faces = cell->get_faces()[0]->get_children_sorted( { ref_vertices[0], ref_vertices[1], ref_vertices[2] } );
-   fac.add_face( 0, 4, 6, child_faces[0] );
-   fac.add_face( 1, 4, 5, child_faces[1] );
-   fac.add_face( 2, 5, 6, child_faces[2] );
-   fac.add_face( 4, 5, 6, child_faces[3] );
-
-   // face[1]:
-   child_faces = cell->get_faces()[1]->get_children_sorted( { ref_vertices[0], ref_vertices[1], ref_vertices[3] } );
-   fac.add_face( 0, 4, 7, child_faces[0] );
-   fac.add_face( 1, 4, 8, child_faces[1] );
-   fac.add_face( 3, 7, 8, child_faces[2] );
-   fac.add_face( 4, 7, 8, child_faces[3] );
-
-   // face[2]:
-   child_faces = cell->get_faces()[2]->get_children_sorted( { ref_vertices[1], ref_vertices[2], ref_vertices[3] } );
-   fac.add_face( 1, 5, 8, child_faces[0] );
-   fac.add_face( 2, 5, 9, child_faces[1] );
-   fac.add_face( 3, 8, 9, child_faces[2] );
-   fac.add_face( 5, 8, 9, child_faces[3] );
-
-   // face[3]:
-   child_faces = cell->get_faces()[3]->get_children_sorted( { ref_vertices[2], ref_vertices[0], ref_vertices[3] } );
-   fac.add_face( 2, 6, 9, child_faces[0] );
-   fac.add_face( 0, 6, 7, child_faces[1] );
-   fac.add_face( 3, 7, 9, child_faces[2] );
-   fac.add_face( 6, 7, 9, child_faces[3] );
-
-   // new inner faces
-   fac.make_face( 4, 5, 8 );
-   fac.make_face( 5, 6, 9 );
-   fac.make_face( 4, 6, 7 );
-   fac.make_face( 7, 8, 9 );
-
-   for ( auto& vtx : vertices_wo_ab )
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      fac.make_face( vtx, vtx_a, vtx_b );
-   }
-
-   // === split cell ===
-
-   // new outer cells
-   cell->add_child( fac.make_cell( 0, 4, 6, 7 ) );
-   cell->add_child( fac.make_cell( 4, 1, 5, 8 ) );
-   cell->add_child( fac.make_cell( 6, 5, 2, 9 ) );
-   cell->add_child( fac.make_cell( 7, 8, 9, 3 ) );
-
-   /* find correct vertices for new inner cells, i.e. vtx_a,vtx_b and
-      two other vertices from {4,5,6,7,8,9}\{vtx_a,vtx_b} that do form
-      an existing edge. This is ensured by excluding vertices forming
-      one of the edges in {{4, 9}, {5, 7}, {6, 8}}.
-   */
-   std::vector< uint_t > test_vertices;
-   std::copy( vertices_wo_ab.begin(), vertices_wo_ab.end(), std::back_inserter( test_vertices ) );
-
-   for ( uint_t c = 0; c < 4; ++c )
-   {
-      uint_t vtx_c = test_vertices[c];
-      for ( uint_t d = c + 1; d < 4; ++d )
+      for ( uint_t j = i + 1; j < 4; ++j )
       {
-         uint_t vtx_d = test_vertices[d];
-
-         Idx< 2 > edge_cd{ vtx_c, vtx_d };
-
-         if ( possible_edges.count( edge_cd ) )
+         for ( uint_t k = j + 1; k < 4; ++k )
          {
-            continue;
+            auto ij         = refIdx( i, j );
+            auto jk         = refIdx( j, k );
+            auto ki         = refIdx( k, i );
+            auto parentFace = cell->get_Face( ref_vertices[i], ref_vertices[j], ref_vertices[k] ); // [i,j,k]
+            auto childFaces = parentFace->get_children_sorted( { ref_vertices[i], ref_vertices[j], ref_vertices[k] } );
+            fac.add_face( i, ij, ki, childFaces[0] );
+            fac.add_face( j, ij, jk, childFaces[1] );
+            fac.add_face( k, ki, jk, childFaces[2] );
+            fac.add_face( ij, jk, ki, childFaces[3] );
          }
-
-         cell->add_child( fac.make_cell( vtx_a, vtx_b, vtx_c, vtx_d ) );
       }
    }
+
+   // === new inner faces ===
+
+   // inner faces "cutting off" the parent cells vertices
+   fac.make_face( _01, _02, _03 );
+   fac.make_face( _01, _12, _13 );
+   fac.make_face( _02, _12, _23 );
+   fac.make_face( _03, _13, _23 );
+
+   // inner faces connecting the new inner edge with the remaining edge midpoints
+   for ( auto& vtx : { _01, _03, _12, _23 } )
+   {
+      fac.make_face( vtx, _02, _13 );
+   }
+
+   // === new cells ===
+
+   // following Bey:
+
+   cell->add_child( fac.make_cell( 0, _01, _02, _03 ) );
+   cell->add_child( fac.make_cell( _01, 1, _12, _13 ) );
+   cell->add_child( fac.make_cell( _02, _12, 2, _23 ) );
+   cell->add_child( fac.make_cell( _03, _13, _23, 3 ) );
+
+   cell->add_child( fac.make_cell( _01, _02, _03, _13 ) );
+   cell->add_child( fac.make_cell( _01, _02, _12, _13 ) );
+   cell->add_child( fac.make_cell( _02, _03, _13, _23 ) );
+   cell->add_child( fac.make_cell( _02, _12, _13, _23 ) );
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
 }
