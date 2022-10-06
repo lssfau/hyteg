@@ -853,3 +853,6 @@ waLBerla_execute_test(NAME N1E1FormCurlCurlTest)
 
 waLBerla_compile_test(FILES N1E1/N1E1CurlCurlConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1CurlCurlConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1CurlCurlConvergenceTest> LABELS longrun PROCESSES 4)
+
+waLBerla_compile_test(FILES N1E1/N1E1ProlongationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1ProlongationTest)
