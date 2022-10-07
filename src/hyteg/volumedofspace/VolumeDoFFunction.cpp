@@ -330,6 +330,68 @@ void VolumeDoFFunction< ValueType >::assign(
    }
 }
 
+/// \brief Adds a scalar to this VolumeDoFFunction.
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
+{
+ //  std::cout << "scalar is " << scalar << std::endl;
+   if ( storage_->hasGlobalCells() )
+   {
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            auto       mem     = dofMemory( cellId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx =
+                         indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                     mem[idx] += scalar;
+                  }
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( auto it : storage_->getFaces() )
+      {
+         for ( const auto& faceIt : this->getStorage()->getFaces() )
+         {
+            const auto faceId = faceIt.first;
+            const auto face   = *faceIt.second;
+
+            auto       mem     = dofMemory( faceId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                     mem[idx] += scalar;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
 /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
 /// process.
 template < typename ValueType >
@@ -414,6 +476,80 @@ ValueType VolumeDoFFunction< ValueType >::dotGlobal( const VolumeDoFFunction< Va
 {
    const auto dLocal = dotLocal( rhs, level );
    return walberla::mpi::allReduce( dLocal, walberla::mpi::SUM );
+}
+
+/// \brief Evaluates the sum of all local DoFs. No communication is involved and the results may be different on each
+/// process.
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
+{
+   ValueType sum = 0;
+
+   if ( storage_->hasGlobalCells() )
+   {
+      for ( auto it : storage_->getCells() )
+      {
+         for ( const auto& cellIt : this->getStorage()->getCells() )
+         {
+            const auto cellId = cellIt.first;
+            const auto cell   = *cellIt.second;
+
+            const auto mem     = dofMemory( cellId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx =
+                         indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                     sum += mem[idx];
+                  }
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( auto it : storage_->getFaces() )
+      {
+         for ( const auto& faceIt : this->getStorage()->getFaces() )
+         {
+            const auto faceId = faceIt.first;
+            const auto face   = *faceIt.second;
+
+            const auto mem     = dofMemory( faceId, level );
+            const auto layout  = memoryLayout_;
+            const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                     sum += mem[idx];
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return sum;
+}
+
+/// \brief Evaluates the (global) sum. Involves communication and has to be called collectively.
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::sumGlobal( uint_t level ) const
+{
+   const ValueType sLocal = sumLocal( level );
+   return walberla::mpi::allReduce( sLocal, walberla::mpi::SUM );
 }
 
 /// explicit instantiation

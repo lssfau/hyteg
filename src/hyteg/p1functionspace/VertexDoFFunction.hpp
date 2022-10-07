@@ -487,6 +487,8 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
    const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >(
        *pressure.getStorage(), level, pressure.getStorage()->getSplitCommunicatorByPrimitiveDistribution() );
    const real_t sum = pressure.sumGlobal( level, All );
+   
+   //std::cout << "vertexdof project mean:" << numGlobalVertices << std::endl<< sum << std::endl;
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
 

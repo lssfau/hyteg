@@ -97,10 +97,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
    {
-      WALBERLA_UNUSED( scalar );
-      WALBERLA_UNUSED( level );
-      WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
+      volumeDoFFunction_->add( scalar, level, flag );
    };
 
    void add( const std::vector< ValueType >                                                scalars,
@@ -121,7 +118,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All )
    {
-      WALBERLA_UNUSED(flag);
+      WALBERLA_UNUSED( flag );
       std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > > vFunctions;
       for ( const auto& f : functions )
       {
@@ -135,7 +132,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// process.
    ValueType dotLocal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
-      WALBERLA_UNUSED(flag);
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotLocal( *rhs.volumeDoFFunction_, level );
    }
@@ -143,11 +139,17 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
    ValueType dotGlobal( const DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const
    {
-      WALBERLA_UNUSED(flag);
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotGlobal( *rhs.volumeDoFFunction_, level );
    }
 
+   /// \brief Evaluates the sum on all DoFs
+   ValueType sumGlobal( uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_UNUSED( flag );
+      return volumeDoFFunction_->sumGlobal( level );
+   }
+   
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
    /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
