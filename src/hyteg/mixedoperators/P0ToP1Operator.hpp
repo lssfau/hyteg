@@ -154,7 +154,6 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
          const auto numSrcDofs = 1;
          const auto numDstDofs = dim + 1;
-         
 
          const auto srcDofMemory = src.getDGFunction()->volumeDoFFunction()->dofMemory( pid, level );
          auto       dstDofMemory = p1Data< VType >( dst, storage, pid, level );
@@ -518,19 +517,29 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                                           dstPolyDegree,
                                                           localMat );
 
-                           WALBERLA_CHECK( !storage->hasGlobalCells(),
-                                           "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
+                           // WALBERLA_CHECK( !storage->hasGlobalCells(),
+                           //                 "There seems to be stuff missing below for 3D - the wrong index is chosen..." );
 
                            // Now we need the DoFs from the neighboring element.
                            // P0 has only one DoF
+
                            const auto nSrcDof =
-                               srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
-                                                                             neighborInfo.neighborElementIndices( n ).y(),
-                                                                             neighborInfo.neighborFaceType( n ),
-                                                                             0,
-                                                                             1,
-                                                                             level,
-                                                                             srcMemLayout )];
+                               dim == 2 ?
+                                   srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                 neighborInfo.neighborElementIndices( n ).y(),
+                                                                                 neighborInfo.neighborFaceType( n ),
+                                                                                 0,
+                                                                                 1,
+                                                                                 level,
+                                                                                 srcMemLayout )] :
+                                   srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                 neighborInfo.neighborElementIndices( n ).y(),
+                                                                                 neighborInfo.neighborElementIndices( n ).z(),
+                                                                                 neighborInfo.neighborCellType( n ),
+                                                                                 0,
+                                                                                 1,
+                                                                                 level,
+                                                                                 srcMemLayout )];
 
                            if ( mat == nullptr )
                            {

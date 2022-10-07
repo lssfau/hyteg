@@ -124,6 +124,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
       communication::syncFunctionBetweenPrimitives( src, level );
 
+      /*
       if ( !storage_->hasGlobalCells() )
       {
          src.template communicate< Face, Face >( level );
@@ -132,6 +133,8 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
       {
          WALBERLA_ABORT( "Not implemented." );
       }
+      */
+      
 
       const auto storage = this->getStorage();
 
