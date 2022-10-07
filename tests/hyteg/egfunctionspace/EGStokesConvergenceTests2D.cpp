@@ -62,7 +62,20 @@ using hyteg::dg::eg::EGP0StokesOperator;
 
 namespace hyteg {
 auto copyBdry = []( EGP0StokesFunction< real_t > fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
+template < typename StokesOperatorType >
+constexpr bool isEGP0Discr()
+{
+   return std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
+          std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
+          std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value;
+}
 
+template < typename StokesOperatorType >
+constexpr bool isP2P1Discr()
+{
+   return std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
+          std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value;
+}
 template < typename StokesOperatorType >
 class StokesConvergenceOrderTest
 {
@@ -81,18 +94,26 @@ class StokesConvergenceOrderTest
    {
       std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
       WALBERLA_LOG_INFO_ON_ROOT( "Running " << testName );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s", "level", "error", "rate" ) );
-      real_t lastError    = std::nan( "" );
-      real_t currentError = std::nan( "" );
-      real_t currentRate  = std::nan( "" );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%6s|%15s|%15s|%15s|%15s", "level", "error_v", "error_p", "rate_v", "rate_p" ) );
+      real_t lastError_v    = std::nan( "" );
+      real_t lastError_p    = std::nan( "" );
+      real_t currentError_v = std::nan( "" );
+      real_t currentError_p = std::nan( "" );
+      real_t currentRate_v  = std::nan( "" );
+      real_t currentRate_p  = std::nan( "" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         lastError        = currentError;
+         lastError_v      = currentError_v;
+         lastError_p      = currentError_p;
          auto error_per_h = RunStokesTestOnLevel( testName, level, sol_tuple, rhs_tuple, Op, storage, writeVTK );
-         currentError     = std::get< 1 >( error_per_h );
+         currentError_v   = std::get< 1 >( error_per_h );
+         currentError_p   = std::get< 2 >( error_per_h );
          errors_per_h.push_back( error_per_h );
-         currentRate = lastError / currentError;
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e", level, currentError, currentRate ) );
+         currentRate_v = lastError_v / currentError_v;
+         currentRate_p = lastError_p / currentError_p;
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+             "%6d|%15.2e|%15.2e|%15.2e|%15.2e", level, currentError_v, currentError_p, currentRate_v, currentRate_p ) );
       }
 
       //const real_t expectedRate = 4.;
@@ -132,9 +153,7 @@ class StokesConvergenceOrderTest
       StokesFunctionType sol( "sol", storage, level, level );
       StokesFunctionType err( "err", storage, level, level + 1 );
       StokesFunctionType Merr( "Merr", storage, level, level + 1 );
-      if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
-                     std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
-                     std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
+      if constexpr ( isEGP0Discr< StokesOperatorType >() )
       {
          copyBdry( u );
          copyBdry( f );
@@ -150,30 +169,27 @@ class StokesConvergenceOrderTest
       f.uvw().interpolate( { f_x_expr, f_y_expr }, level, All );
       f.p().interpolate( g_expr, level, All );
 
-      if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
-                     std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value )
+      if constexpr ( isP2P1Discr< StokesOperatorType >() )
       {
          P2ConstantMassOperator M_vel( storage, level, level );
          M_vel.apply( f.uvw()[0], rhs.uvw()[0], level, All );
          M_vel.apply( f.uvw()[1], rhs.uvw()[1], level, All );
          u.uvw().interpolate( { u_x_expr, u_y_expr }, level, hyteg::DirichletBoundary );
 
-         P1ConstantMassOperator M_pressure( storage, level, level );
-         M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
+         //   P1ConstantMassOperator M_pressure( storage, level, level );
+         //   M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
       }
       else
       {
-         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
-                        std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
-                        std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
+         if constexpr ( isEGP0Discr< StokesOperatorType >() )
          {
             EGMassOperator M_vel( storage, level, level );
             M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
             u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
-            auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-            dg::DGOperator M_pressure( storage, level, level, mass_form );
-            M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
+            //     auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+            //     dg::DGOperator M_pressure( storage, level, level, mass_form );
+            //     M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
          }
          else
          {
@@ -191,7 +207,19 @@ class StokesConvergenceOrderTest
       solver.solve( Op, u, rhs, level );
 
       // calculate the error in the L2 norm
+      if constexpr ( isEGP0Discr< StokesOperatorType >() )
+      {
+         hyteg::dg::projectMean( u.p(), level );
+         hyteg::dg::projectMean( sol.p(), level );
+      }
+      else if constexpr ( isP2P1Discr< StokesOperatorType >() )
+      {
+         hyteg::vertexdof::projectMean( u.p(), level );
+         hyteg::vertexdof::projectMean( sol.p(), level );
+      }
+
       err.assign( { 1.0, -1.0 }, { u, sol }, level, Inner );
+      /* error calculation with M
       if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
                      std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value )
       {
@@ -208,17 +236,32 @@ class StokesConvergenceOrderTest
             EGMassOperator M_vel( storage, level, level );
             M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
          }
-      }
+      }*/
 
-      const bool prolongateErrorToFiner = true;
-      real_t     discrL2_velocity       = 0.0;
-      if constexpr ( !prolongateErrorToFiner )
+      if constexpr ( isEGP0Discr< StokesOperatorType >() )
       {
-         discrL2_velocity = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+         EGMassOperator M_vel( storage, level, level );
+         M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
+
+         auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+         dg::DGOperator M_pressure( storage, level, level, mass_form );
+         M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
       }
-      else if constexpr ( prolongateErrorToFiner &&
-                          ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
-                            std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value ) )
+      else if constexpr ( isP2P1Discr< StokesOperatorType >() ) {}
+
+      real_t discrL2_velocity_err = 0.0;
+      real_t discrL2_pressure_err = 0.0;
+      if constexpr ( isEGP0Discr< StokesOperatorType >() )
+      {
+         EGMassOperator M_vel( storage, level, level );
+         M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
+
+         auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+         dg::DGOperator M_pressure( storage, level, level, mass_form );
+         M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
+         discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+      }
+      else if constexpr ( isP2P1Discr< StokesOperatorType >() )
       {
          P2toP2QuadraticProlongation P2P2ProlongationOp;
          for ( uint_t k = 0; k < err.uvw().getDimension(); k++ )
@@ -228,14 +271,13 @@ class StokesConvergenceOrderTest
          //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
          //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
          //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
-         discrL2_velocity =
-             sqrt( err.uvw().dotGlobal( err.uvw(), level + 1, Inner ) / real_c( numberOfGlobalDoFs( err, level + 1 ) ) );
-      }
-      else
-      {
-         WALBERLA_ABORT( "Unexpected combination of discretization and prolongateErrorToFiner" );
+         discrL2_velocity_err =
+             sqrt( err.uvw().dotGlobal( err.uvw(), level + 1, Inner ) / real_c( numberOfGlobalDoFs( u.uvw(), level ) ) );
+         P1ConstantMassOperator M_pressure( storage, level, level );
+         M_pressure.apply( err.p(), Merr.p(), level, All, Replace );
       }
 
+      discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
       if ( writeVTK )
       {
          VTKOutput vtk( "../../output", testName, storage );
@@ -247,8 +289,7 @@ class StokesConvergenceOrderTest
       }
 
       real_t h = MeshQuality::getMaximalEdgeLength( storage, level );
-
-      return std::make_tuple< real_t&, real_t&, real_t >( h, discrL2_velocity, 0.0 );
+      return std::make_tuple< real_t&, real_t&, real_t& >( h, discrL2_velocity_err, discrL2_pressure_err );
    }
 };
 
@@ -332,21 +373,20 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        P2P1ElementwiseEpsilonOp_mu_alpha_1_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
-   alpha = 5;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_5_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha5_smooth",
+   EGP0EpsilonStokesOperator EGP0EpsilonOp_mu_alpha_1_smooth( storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+       "EGP0EpsilonOp_mu_alpha1_smooth",
        std::make_tuple( u_x, u_y, pressure ),
        std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_5_smooth,
+       EGP0EpsilonOp_mu_alpha_1_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
-/*
    alpha = 10;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_10_smooth(
        storage, minLevel, maxLevel, viscosity );
@@ -357,31 +397,19 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        P2P1ElementwiseEpsilonOp_mu_alpha_10_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
-   alpha = 20;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_20_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha20_smooth",
+   EGP0EpsilonStokesOperator EGP0EpsilonOp_mu_alpha_10_smooth( storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+       "EGP0EpsilonOp_mu_alpha10_smooth",
        std::make_tuple( u_x, u_y, pressure ),
        std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_20_smooth,
+       EGP0EpsilonOp_mu_alpha_10_smooth,
        storage,
        minLevel,
-       maxLevel );
-
-   alpha = 35;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_35_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha35_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_35_smooth,
-       storage,
-       minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
    alpha = 50;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_50_smooth(
@@ -393,55 +421,19 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        P2P1ElementwiseEpsilonOp_mu_alpha_50_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
-   alpha = 70;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_70_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha70_smooth",
+   EGP0EpsilonStokesOperator EGP0EpsilonOp_mu_alpha_50_smooth( storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+       "EGP0EpsilonOp_mu_alpha50_smooth",
        std::make_tuple( u_x, u_y, pressure ),
        std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_70_smooth,
+       EGP0EpsilonOp_mu_alpha_50_smooth,
        storage,
        minLevel,
-       maxLevel );
-
-   alpha = 150;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_150_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha150_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_150_smooth,
-       storage,
-       minLevel,
-       maxLevel );
-/*
-   alpha = 300;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_300_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha300_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_300_smooth,
-       storage,
-       minLevel,
-       maxLevel );
-
-   alpha = 500;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_500_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha500_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_500_smooth,
-       storage,
-       minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
    alpha = 1000;
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_1000_smooth(
@@ -453,43 +445,19 @@ void IncreasingSteepnessTest( const uint_t minLevel, const uint_t maxLevel, cons
        P2P1ElementwiseEpsilonOp_mu_alpha_1000_smooth,
        storage,
        minLevel,
-       maxLevel );
+       maxLevel,
+       false );
 
-   alpha = 2000;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_2000_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha2000_smooth",
+   EGP0EpsilonStokesOperator EGP0EpsilonOp_mu_alpha_1000_smooth( storage, minLevel, maxLevel, viscosity );
+   hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+       "EGP0EpsilonOp_mu_alpha1000_smooth",
        std::make_tuple( u_x, u_y, pressure ),
        std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_2000_smooth,
+       EGP0EpsilonOp_mu_alpha_1000_smooth,
        storage,
        minLevel,
-       maxLevel );
-
-   alpha = 5000;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_5000_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha5000_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_5000_smooth,
-       storage,
-       minLevel,
-       maxLevel );
-
-   alpha = 10000;
-   hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth(
-       storage, minLevel, maxLevel, viscosity );
-   hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
-       "P2P1EpsilonOp_mu_alpha10000_smooth",
-       std::make_tuple( u_x, u_y, pressure ),
-       std::make_tuple( f_x, f_y, []( const Point3D& p ) -> real_t { return 0; } ),
-       P2P1ElementwiseEpsilonOp_mu_alpha_10000_smooth,
-       storage,
-       minLevel,
-       maxLevel );*/
+       maxLevel,
+       false );
 }
 
 void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
@@ -509,7 +477,7 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
                      std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) +
                  1;
        } );
-   /*
+
    hyteg::StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
        "EGP0EpsilonOp_muSmooth_divFreeVelocity",
        std::make_tuple(
@@ -555,9 +523,7 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
        storage,
        minLevel,
        maxLevel,
-       false,
-       false );
-       */
+       true );
 
    hyteg::StokesConvergenceOrderTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >(
        "P2P1EpsilonOp_muSmooth_divFreeVelocity",
@@ -604,7 +570,7 @@ void SmoothViscosityTest( const uint_t minLevel, const uint_t maxLevel, const st
        storage,
        minLevel,
        maxLevel,
-       false );
+       true );
 }
 
 void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
