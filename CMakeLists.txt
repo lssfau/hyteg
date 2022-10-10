@@ -3,7 +3,10 @@ cmake_minimum_required (VERSION 3.14)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
-cmake_policy(SET CMP0135 NEW)
+
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0") 
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
