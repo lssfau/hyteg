@@ -45,14 +45,13 @@ void N1E1toN1E1Prolongation::prolongateAdditively( const N1E1VectorFunction< rea
 
       if ( testFlag( function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         const auto srcData = edge.getData( function.getDoFs()->getEdgeDataID() )->getPointer( sourceLevel );
-         auto       dstData = edge.getData( function.getDoFs()->getEdgeDataID() )->getPointer( destinationLevel );
+         auto data = edge.getData( function.getDoFs()->getEdgeDataID() );
 
          if ( updateType == Replace )
          {
-            setToZeroMacroEdge( dstData, sourceLevel + 1 );
+            data->setToZero( destinationLevel );
          }
-         prolongateMacroEdge( srcData, dstData, sourceLevel );
+         prolongateMacroEdge( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
 
@@ -62,14 +61,13 @@ void N1E1toN1E1Prolongation::prolongateAdditively( const N1E1VectorFunction< rea
 
       if ( testFlag( function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         const auto srcData = face.getData( function.getDoFs()->getFaceDataID() )->getPointer( sourceLevel );
-         auto       dstData = face.getData( function.getDoFs()->getFaceDataID() )->getPointer( destinationLevel );
+         auto data = face.getData( function.getDoFs()->getFaceDataID() );
 
          if ( updateType == Replace )
          {
-            setToZeroMacroFace( dstData, sourceLevel + 1 );
+            data->setToZero( destinationLevel );
          }
-         prolongateMacroFace( srcData, dstData, sourceLevel );
+         prolongateMacroFace( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
 
@@ -79,14 +77,13 @@ void N1E1toN1E1Prolongation::prolongateAdditively( const N1E1VectorFunction< rea
 
       if ( testFlag( function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         const auto srcData = cell.getData( function.getDoFs()->getCellDataID() )->getPointer( sourceLevel );
-         auto       dstData = cell.getData( function.getDoFs()->getCellDataID() )->getPointer( destinationLevel );
+         auto data = cell.getData( function.getDoFs()->getCellDataID() );
 
          if ( updateType == Replace )
          {
-            setToZeroMacroCell( dstData, sourceLevel + 1 );
+            data->setToZero( destinationLevel );
          }
-         prolongateMacroCell( srcData, dstData, sourceLevel );
+         prolongateMacroCell( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
 }
@@ -443,42 +440,6 @@ void N1E1toN1E1Prolongation::prolongateMacroCell( const real_t* src, real_t* dst
          dst[xyzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
       }
       // clang-format on
-   }
-}
-
-void N1E1toN1E1Prolongation::setToZeroMacroEdge( real_t* dst, const uint_t& dstLevel ) const
-{
-   for ( auto it : edgedof::macroedge::Iterator( dstLevel ) )
-   {
-      dst[edgedof::macroedge::index( dstLevel, it.col() )] = 0.0;
-   }
-}
-
-void N1E1toN1E1Prolongation::setToZeroMacroFace( real_t* dst, const uint_t& dstLevel ) const
-{
-   for ( auto it : edgedof::macroface::Iterator( dstLevel ) )
-   {
-      dst[edgedof::macroface::horizontalIndex( dstLevel, it.col(), it.row() )] = 0.0;
-      dst[edgedof::macroface::verticalIndex( dstLevel, it.col(), it.row() )]   = 0.0;
-      dst[edgedof::macroface::diagonalIndex( dstLevel, it.col(), it.row() )]   = 0.0;
-   }
-}
-
-void N1E1toN1E1Prolongation::setToZeroMacroCell( real_t* dst, const uint_t& dstLvl ) const
-{
-   for ( auto it : edgedof::macrocell::Iterator( dstLvl ) )
-   {
-      dst[edgedof::macrocell::xIndex( dstLvl, it.x(), it.y(), it.z() )]  = 0.0;
-      dst[edgedof::macrocell::xyIndex( dstLvl, it.x(), it.y(), it.z() )] = 0.0;
-      dst[edgedof::macrocell::xzIndex( dstLvl, it.x(), it.y(), it.z() )] = 0.0;
-      dst[edgedof::macrocell::yIndex( dstLvl, it.x(), it.y(), it.z() )]  = 0.0;
-      dst[edgedof::macrocell::yzIndex( dstLvl, it.x(), it.y(), it.z() )] = 0.0;
-      dst[edgedof::macrocell::zIndex( dstLvl, it.x(), it.y(), it.z() )]  = 0.0;
-   }
-
-   for ( auto it : edgedof::macrocell::IteratorXYZ( dstLvl ) )
-   {
-      dst[edgedof::macrocell::xyzIndex( dstLvl, it.x(), it.y(), it.z() )] = 0.0;
    }
 }
 

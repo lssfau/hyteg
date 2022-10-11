@@ -46,10 +46,6 @@ class N1E1toN1E1Prolongation : public ProlongationOperator< N1E1VectorFunction< 
                               const DoFType&                      flag,
                               const UpdateType&                   updateType ) const;
 
-   void setToZeroMacroEdge( real_t* dst, const uint_t& destLevel ) const;
-   void setToZeroMacroFace( real_t* dst, const uint_t& destLevel ) const;
-   void setToZeroMacroCell( real_t* dst, const uint_t& destLevel ) const;
-
    void prolongateMacroEdge( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
    void prolongateMacroFace( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
    void prolongateMacroCell( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
