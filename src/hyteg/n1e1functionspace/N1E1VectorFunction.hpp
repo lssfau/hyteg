@@ -237,6 +237,8 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
       dofs_->setBoundaryCondition( boundaryCondition_ );
    }
 
+   // TODO communicate real_t only
+   // for idx_t we want to use normal edgedof comm
    template < typename OtherFunctionValueType >
    inline void copyBoundaryConditionFromFunction( const N1E1VectorFunction< OtherFunctionValueType >& other )
    {

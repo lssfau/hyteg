@@ -81,7 +81,8 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
                                const idx_t* const                          srcEdgeIdx,
-                               const idx_t* const                          dstEdgeIdx ) const;
+                               const idx_t* const                          dstEdgeIdx,
+                               const real_t* const                         signs ) const;
 
    N1E1FormType form_;
 

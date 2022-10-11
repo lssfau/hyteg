@@ -20,8 +20,7 @@
 
 #include "N1E1ElementwiseOperator.hpp"
 
-#include <hyteg/communication/Syncing.hpp>
-
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
@@ -225,24 +224,31 @@ void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< S
       WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in N1E1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
    }
 
+   // TODO this is possible without allocating a new function
+   N1E1VectorFunction< real_t > signs{ "signs", storage_, level, level };
+   signs.getDoFs()->interpolate( 1, level );
+   communication::syncFunctionBetweenPrimitives( signs, level );
+
    // we only perform computations on cell primitives
    for ( auto& macroIter : storage_->getCells() )
    {
       Cell& cell = *macroIter.second;
 
       // get hold of the actual numerical data in the two indexing functions
-      PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcEdgeDoFIdx = src.getDoFs()->getCellDataID();
-      PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstEdgeDoFIdx = dst.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< idx_t >, Cell >  srcEdgeDoFId = src.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< idx_t >, Cell >  dstEdgeDoFId = dst.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< real_t >, Cell > signsId      = signs.getDoFs()->getCellDataID();
 
-      idx_t* srcEdgeIndices = cell.getData( srcEdgeDoFIdx )->getPointer( level );
-      idx_t* dstEdgeIndices = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+      idx_t*  srcEdgeIndices = cell.getData( srcEdgeDoFId )->getPointer( level );
+      idx_t*  dstEdgeIndices = cell.getData( dstEdgeDoFId )->getPointer( level );
+      real_t* signsData      = cell.getData( signsId )->getPointer( level );
 
       // loop over micro-cells
       for ( const auto& cType : celldof::allCellTypes )
       {
          for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
          {
-            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices );
+            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices, signsData );
          }
       }
    }
@@ -255,7 +261,8 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
                                                                      const indexing::Index&                      microCell,
                                                                      const celldof::CellType                     cType,
                                                                      const idx_t* const                          srcEdgeIdx,
-                                                                     const idx_t* const dstEdgeIdx ) const
+                                                                     const idx_t* const                          dstEdgeIdx,
+                                                                     const real_t* const                         signs ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = n1e1::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -282,6 +289,16 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    {
       rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k]] );
       colIdx[k] = uint_c( srcEdgeIdx[edgeDoFIndices[k]] );
+   }
+
+   for ( size_t i = 0; i < 6; ++i )
+   {
+      for ( size_t j = i + 1; j < 6; ++j )
+      {
+         const real_t sign = signs[edgeDoFIndices[i]] * signs[edgeDoFIndices[j]];
+         elMat( i, j ) *= sign;
+         elMat( j, i ) *= sign;
+      }
    }
 
    std::vector< real_t > blockMatData( elMat.Size );

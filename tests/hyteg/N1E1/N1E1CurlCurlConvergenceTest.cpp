@@ -25,8 +25,10 @@
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -70,7 +72,13 @@ real_t test( uint_t                                             level,
    sol.interpolate( solFunc, level );
 
    // Solve system.
-   auto solverA = MinResSolver< n1e1::N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, 1e-12 );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
+   auto solverA = PETScCGSolver< n1e1::N1E1ElementwiseLinearCombinationOperator >( storage, level );
+#else
+   WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
+   auto solverA = CGSolver< n1e1::N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, 1e-12 );
+#endif
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
@@ -126,6 +134,10 @@ int main( int argc, char** argv )
 
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   hyteg::PETScManager petscManager( &argc, &argv );
+#endif
 
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, polynomial ###" );
