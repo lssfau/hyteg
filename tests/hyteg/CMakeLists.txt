@@ -861,3 +861,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES N1E1/N1E1RestrictionTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME N1E1RestrictionTest)
 endif ()
+
+waLBerla_compile_test(FILES N1E1/P1toN1E1GradientTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1toN1E1GradientTest)

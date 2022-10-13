@@ -29,5 +29,7 @@ target_sources( hyteg
     N1E1toN1E1Prolongation.cpp
     N1E1toN1E1Restriction.hpp
     N1E1toN1E1Restriction.cpp
+    P1toN1E1Gradient.hpp
+    P1toN1E1Gradient.cpp
 )
 add_subdirectory( generatedKernels )
