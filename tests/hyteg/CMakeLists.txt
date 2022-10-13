@@ -856,3 +856,8 @@ waLBerla_execute_test(NAME N1E1CurlCurlConvergenceTestLongrun COMMAND $<TARGET_F
 
 waLBerla_compile_test(FILES N1E1/N1E1ProlongationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1ProlongationTest)
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1RestrictionTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1RestrictionTest)
+endif ()

@@ -27,5 +27,7 @@ target_sources( hyteg
     RestrictionOperator.hpp
     N1E1toN1E1Prolongation.hpp
     N1E1toN1E1Prolongation.cpp
+    N1E1toN1E1Restriction.hpp
+    N1E1toN1E1Restriction.cpp
 )
 add_subdirectory( generatedKernels )

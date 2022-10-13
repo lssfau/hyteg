@@ -108,24 +108,88 @@ void N1E1AdditivePackInfo< ValueType >::communicateLocalEdgeToFace( const Edge*,
 ///@{
 
 template < typename ValueType >
-void N1E1AdditivePackInfo< ValueType >::packFaceForEdge( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const
+void N1E1AdditivePackInfo< ValueType >::packFaceForEdge( const Face*                sender,
+                                                         const PrimitiveID&         receiver,
+                                                         walberla::mpi::SendBuffer& buffer ) const
 {
-   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-   WALBERLA_ABORT( "Not implemented." );
+   using hyteg::edgedof::macroface::BoundaryIterator;
+   const ValueType* const                faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
+   const uint_t                          edgeIndexOnFace = sender->edge_index( receiver );
+   const int                             edgeOrientation = sender->getEdgeOrientation()[edgeIndexOnFace];
+   const indexing::FaceBoundaryDirection faceBorderDir   = indexing::getFaceBoundaryDirection( edgeIndexOnFace, edgeOrientation );
+   const ValueType                       sign            = numeric_cast< ValueType >( edgeOrientation );
+
+   edgedof::EdgeDoFOrientation orientation;
+   switch ( edgeIndexOnFace )
+   {
+   case 0:
+      orientation = edgedof::EdgeDoFOrientation::X;
+      break;
+   case 2:
+      orientation = edgedof::EdgeDoFOrientation::XY;
+      break;
+   case 1:
+      orientation = edgedof::EdgeDoFOrientation::Y;
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid orienation" );
+   }
+
+   for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
+   {
+      buffer << sign * faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];
+   }
 }
 
 template < typename ValueType >
-void N1E1AdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const
+void N1E1AdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge* receiver,
+                                                            const PrimitiveID&,
+                                                            walberla::mpi::RecvBuffer& buffer ) const
 {
-   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-   WALBERLA_ABORT( "Not implemented." );
+   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level_, 0 ) )
+   {
+      ValueType tmp;
+      buffer >> tmp;
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
+   }
 }
 
 template < typename ValueType >
-void N1E1AdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Face*, Edge* ) const
+void N1E1AdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sender, Edge* receiver ) const
 {
-   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-   WALBERLA_ABORT( "Not implemented." );
+   using hyteg::edgedof::macroface::BoundaryIterator;
+   ValueType*                            edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+   const ValueType* const                faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
+   const uint_t                          edgeIndexOnFace = sender->edge_index( receiver->getID() );
+   const int                             edgeOrientation = sender->getEdgeOrientation()[edgeIndexOnFace];
+   const indexing::FaceBoundaryDirection faceBorderDir   = indexing::getFaceBoundaryDirection( edgeIndexOnFace, edgeOrientation );
+   const ValueType                       sign            = numeric_cast< ValueType >( edgeOrientation );
+
+   edgedof::EdgeDoFOrientation orientation;
+   switch ( edgeIndexOnFace )
+   {
+   case 0:
+      orientation = edgedof::EdgeDoFOrientation::X;
+      break;
+   case 2:
+      orientation = edgedof::EdgeDoFOrientation::XY;
+      break;
+   case 1:
+      orientation = edgedof::EdgeDoFOrientation::Y;
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid orienation" );
+   }
+
+   edgedof::macroedge::Iterator edgeIterator( level_, 0 );
+   for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
+   {
+      edgeData[edgedof::macroedge::index( level_, edgeIterator->x() )] +=
+          sign * faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];
+      edgeIterator++;
+   }
 }
 
 ///@}
