@@ -60,6 +60,10 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
+
+  
+   uint_t getDimension() const { return dgFunction_->getDimension(); };
+
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
