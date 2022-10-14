@@ -1,0 +1,154 @@
+/*
+* Copyright (c) 2017-2022 Nils Kohl.
+*
+* This file is part of HyTeG
+* (see https://i10git.cs.fau.de/hyteg/hyteg).
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "core/DataTypes.h"
+#include "core/math/Random.h"
+#include "core/mpi/MPIManager.h"
+
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
+#include "hyteg/composites/P1DGEP0StokesOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
+#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
+#include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.cpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+using walberla::real_t;
+
+namespace hyteg {
+
+void EGApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
+{
+   using namespace dg::eg;
+
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   EGFunction< real_t > src( "src", storage, level, level );
+   EGFunction< real_t > tmp( "tmp", storage, level, level );
+   EGFunction< real_t > hytegDst( "hytegDst", storage, level, level );
+   EGFunction< real_t > petscDst( "petscDst", storage, level, level );
+   EGFunction< real_t > err( "error", storage, level, level );
+   EGFunction< idx_t >  numerator( "numerator", storage, level, level );
+   numerator.enumerate( level );
+   
+   EGLaplaceOperator              L( storage, level, level );
+
+   EGMassOperator                                   M( storage, level, level );
+
+   
+   // PETSc apply
+   PETScVector< real_t, EGFunction >                   srcPetscVec;
+   PETScVector< real_t, EGFunction >                   dstPetscVec;
+   PETScSparseMatrix< EGLaplaceOperator >              L_Matrix;
+   PETScSparseMatrix< EGMassOperator > M_Matrix;
+
+   srcPetscVec.createVectorFromFunction( src, numerator, level );
+   dstPetscVec.createVectorFromFunction( petscDst, numerator, level );
+   L_Matrix.createMatrixFromOperator( L, level, numerator );
+   M_Matrix.createMatrixFromOperator( M, level, numerator );
+
+   L_Matrix.print( "EGApplyTest_L.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   M_Matrix.print( "EGApplyTest_M.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+   std::function< real_t( const hyteg::Point3D& ) > ones        = []( const hyteg::Point3D& x ) { return 1; };
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
+      return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
+   };
+   src.interpolate( 1, level, All );
+
+   VTKOutput vtk( "../../output", "EGApplyTest", storage );
+   vtk.add( hytegDst );
+   vtk.add( *hytegDst.getConformingPart() );
+   vtk.add( *hytegDst.getDiscontinuousPart() );
+   vtk.add( petscDst );
+   vtk.add( *petscDst.getConformingPart() );
+   vtk.add( *petscDst.getDiscontinuousPart() );
+   vtk.add( err );
+   vtk.add( *err.getConformingPart() );
+   vtk.add( *err.getDiscontinuousPart() );
+
+   L.apply( src, hytegDst, level, All, Replace );
+
+
+   // WALBERLA_CHECK( petscMatrix.isSymmetric() );
+
+   MatMult( L_Matrix.get(), srcPetscVec.get(), dstPetscVec.get() );
+
+   dstPetscVec.createFunctionFromVector( petscDst, numerator, level );
+
+   // compare
+   err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level );
+   vtk.write( level, 0 );
+
+   //  auto maxMag = err.getMaxMagnitude( level );
+
+   //  WALBERLA_LOG_INFO_ON_ROOT( "Error max mag = " << maxMag );
+
+   // VTK
+   //   VTKOutput vtkOutput( "../../output", "DGPetscApplyTest", storage );
+   //   vtkOutput.add( src );
+   //   vtkOutput.add( hytegDst );
+   //   vtkOutput.add( petscDst );
+   //   vtkOutput.add( err );
+   //   vtkOutput.write( level, 0 );
+
+   //  WALBERLA_CHECK_LESS( maxMag, eps );
+}
+
+} // namespace hyteg
+
+int main( int argc, char* argv[] )
+{
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
+   hyteg::PETScManager petscManager( &argc, &argv );
+
+   //hyteg::EGApplyTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
+
+   hyteg::EGApplyTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
+   //hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 4.0e-15 );
+
+   /*
+   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
+   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" ), 6.0e-14 );
+   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
+   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );
+   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" ), 1.0e-15 );
+*/
+   return EXIT_SUCCESS;
+}
