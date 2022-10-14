@@ -216,6 +216,8 @@ class EGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunctio
 
  private:
    P1ConstantVectorLaplaceOperator     cg_to_cg_coupling_;
+  
+ //  P1ElementwiseVectorLaplaceOperator     cg_to_cg_coupling_;
    EGVectorLaplaceP1ToP0Coupling       cg_to_eg_coupling_;
    EGVectorLaplaceP0ToP1Coupling       eg_to_cg_coupling_;
    P0Operator< EGVectorLaplaceFormEE > eg_to_eg_coupling_;

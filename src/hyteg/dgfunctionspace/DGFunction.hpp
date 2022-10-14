@@ -95,10 +95,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    };
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
-   {
-      volumeDoFFunction_->add( scalar, level, flag );
-   };
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { volumeDoFFunction_->add( scalar, level, flag ); };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
@@ -149,7 +146,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->sumGlobal( level );
    }
-   
+
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
    /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
@@ -299,6 +296,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const;
 
+   uint_t getDimension() const { return storage_->hasGlobalCells() ? 3 : 2; };
    /// \brief Updates ghost-layers.
    void communicate( uint_t level ) const { volumeDoFFunction_->communicate( level ); }
 

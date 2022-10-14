@@ -60,7 +60,8 @@ class CSFVectorFunction
    std::shared_ptr< PrimitiveStorage > getStorage() const { return compFunc_[0]->getStorage(); }
 
    /// \note Dimension of VectorFunction is decoupled from storage now
-   uint_t getDimension() const { return compFunc_.size(); }
+   uint_t getDimension() const {
+         return compFunc_.size(); }
    /// @}
 
    /// @name Component access
