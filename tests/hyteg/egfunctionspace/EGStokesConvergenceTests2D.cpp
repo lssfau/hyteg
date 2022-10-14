@@ -176,8 +176,8 @@ class StokesConvergenceOrderTest
          M_vel.apply( f.uvw()[1], rhs.uvw()[1], level, All );
          u.uvw().interpolate( { u_x_expr, u_y_expr }, level, hyteg::DirichletBoundary );
 
-         //   P1ConstantMassOperator M_pressure( storage, level, level );
-         //   M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
+         P1ConstantMassOperator M_pressure( storage, level, level );
+         M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
       }
       else
       {
@@ -187,9 +187,9 @@ class StokesConvergenceOrderTest
             M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
             u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
 
-            //     auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-            //     dg::DGOperator M_pressure( storage, level, level, mass_form );
-            //     M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
+            auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
+            dg::DGOperator M_pressure( storage, level, level, mass_form );
+            M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
          }
          else
          {
@@ -201,16 +201,16 @@ class StokesConvergenceOrderTest
       //PETScMinResSolver< StokesOperatorType > solver( storage, level, numerator );
       PETScLUSolver< StokesOperatorType > solver( storage, level, numerator );
       StokesFunctionType                  nullSpace( "ns", storage, level, level );
-      nullSpace.uvw().interpolate( 0, level, All );
-      nullSpace.p().interpolate( 1, level, All );
-      solver.setNullSpace( nullSpace );
+        nullSpace.uvw().interpolate( 0, level, All );
+        nullSpace.p().interpolate( 1, level, All );
+        solver.setNullSpace( nullSpace );
       solver.solve( Op, u, rhs, level );
 
       // calculate the error in the L2 norm
       if constexpr ( isEGP0Discr< StokesOperatorType >() )
       {
-         hyteg::dg::projectMean( u.p(), level );
-         hyteg::dg::projectMean( sol.p(), level );
+         // hyteg::dg::projectMean( u.p(), level );
+         // hyteg::dg::projectMean( sol.p(), level );
       }
       else if constexpr ( isP2P1Discr< StokesOperatorType >() )
       {
@@ -219,35 +219,7 @@ class StokesConvergenceOrderTest
       }
 
       err.assign( { 1.0, -1.0 }, { u, sol }, level, Inner );
-      /* error calculation with M
-      if constexpr ( std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
-                     std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value )
-      {
-         P2ConstantMassOperator M_vel( storage, level, level );
-         M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, Inner, Replace );
-         M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, Inner, Replace );
-      }
-      else
-      {
-         if constexpr ( std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
-                        std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
-                        std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value )
-         {
-            EGMassOperator M_vel( storage, level, level );
-            M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
-         }
-      }*/
 
-      if constexpr ( isEGP0Discr< StokesOperatorType >() )
-      {
-         EGMassOperator M_vel( storage, level, level );
-         M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
-
-         auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-         dg::DGOperator M_pressure( storage, level, level, mass_form );
-         M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
-      }
-      else if constexpr ( isP2P1Discr< StokesOperatorType >() ) {}
 
       real_t discrL2_velocity_err = 0.0;
       real_t discrL2_pressure_err = 0.0;
@@ -259,10 +231,16 @@ class StokesConvergenceOrderTest
          auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
          dg::DGOperator M_pressure( storage, level, level, mass_form );
          M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
-         discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
       }
       else if constexpr ( isP2P1Discr< StokesOperatorType >() )
       {
+         P2ConstantMassOperator M_vel( storage, level, level );
+         M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, Inner, Replace );
+         M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, Inner, Replace );
+         P1ConstantMassOperator M_pressure( storage, level, level );
+         M_pressure.apply( err.p(), Merr.p(), level, All, Replace );
+
+         /*
          P2toP2QuadraticProlongation P2P2ProlongationOp;
          for ( uint_t k = 0; k < err.uvw().getDimension(); k++ )
          {
@@ -275,7 +253,9 @@ class StokesConvergenceOrderTest
              sqrt( err.uvw().dotGlobal( err.uvw(), level + 1, Inner ) / real_c( numberOfGlobalDoFs( u.uvw(), level ) ) );
          P1ConstantMassOperator M_pressure( storage, level, level );
          M_pressure.apply( err.p(), Merr.p(), level, All, Replace );
+         */
       }
+      discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
 
       discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
       if ( writeVTK )
@@ -1357,11 +1337,11 @@ int main( int argc, char* argv[] )
    uint_t minLevel = 3;
    uint_t maxLevel = 7;
 
-   IncreasingSteepnessTest( minLevel, maxLevel, storage );
+   //IncreasingSteepnessTest( minLevel, maxLevel, storage );
 
    //SmoothViscosityTest( minLevel, maxLevel, storage );
 
-   //ConstAndBasicTest( minLevel, maxLevel, storage );
+   ConstAndBasicTest( minLevel, maxLevel, storage );
 
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
