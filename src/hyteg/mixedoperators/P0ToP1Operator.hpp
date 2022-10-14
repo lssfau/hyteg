@@ -250,7 +250,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                        localMat );
 
                // P0 has only one DoF
-               const auto srcDoF = srcDofMemory[volumedofspace::indexing::index(
+               auto srcDoF = srcDofMemory[volumedofspace::indexing::index(
                    elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, srcMemLayout )];
 
                // Getting the vertex DoF indices for the current micro volume.
@@ -264,6 +264,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                {
                   auto vertexDoFIndicesArray = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
+                  srcDoF = srcDofMemory[volumedofspace::indexing::index(
+                       elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
                }
 
                if ( mat == nullptr )
@@ -286,7 +288,13 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                      }
                      else
                      {
-                        WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
+                        const auto globalRowIdx = dstDofMemory[vertexdof::macrocell::index( level,
+                                                                                            vertexDoFIndices[dstDofIdx].x(),
+                                                                                            vertexDoFIndices[dstDofIdx].y(),
+                                                                                            vertexDoFIndices[dstDofIdx].z() )];
+                        const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                            elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
+                        mat->addValue( globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), 0 ) );
                      }
                   }
                }
@@ -342,7 +350,14 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
+                                 const auto globalRowIdx =
+                                     dstDofMemory[vertexdof::macrocell::index( level,
+                                                                               vertexDoFIndices[dstDofIdx].x(),
+                                                                               vertexDoFIndices[dstDofIdx].y(),
+                                                                               vertexDoFIndices[dstDofIdx].z() )];
+                                 const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                                     elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
+                                 mat->addValue( globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), 0 ) );
                               }
                            }
                         }
@@ -398,7 +413,14 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
+                                 const auto globalRowIdx =
+                                     dstDofMemory[vertexdof::macrocell::index( level,
+                                                                               vertexDoFIndices[dstDofIdx].x(),
+                                                                               vertexDoFIndices[dstDofIdx].y(),
+                                                                               vertexDoFIndices[dstDofIdx].z() )];
+                                 const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                                     elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
+                                 mat->addValue( globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), 0 ) );
                               }
                            }
                         }
@@ -489,7 +511,10 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                  }
                                  else
                                  {
-                                    WALBERLA_ABORT( "Not implemented" );
+                                    globalRowIdx = dstDofMemory[vertexdof::macrocell::index( level,
+                                                                                             vertexDoFIndices[dstDofIdx].x(),
+                                                                                             vertexDoFIndices[dstDofIdx].y(),
+                                                                                             vertexDoFIndices[dstDofIdx].z() )];
                                  }
                                  const auto globalColIdx = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndex];
 
@@ -590,7 +615,21 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                  }
                                  else
                                  {
-                                    WALBERLA_ABORT( "P0 to P1 assembly not implemented in 3D." );
+                                    const auto globalRowIdx =
+                                        dstDofMemory[vertexdof::macrocell::index( level,
+                                                                                  vertexDoFIndices[dstDofIdx].x(),
+                                                                                  vertexDoFIndices[dstDofIdx].y(),
+                                                                                  vertexDoFIndices[dstDofIdx].z() )];
+                                    const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                                        neighborInfo.neighborElementIndices( n ).x(),
+                                        neighborInfo.neighborElementIndices( n ).y(),
+                                        neighborInfo.neighborElementIndices( n ).z(),
+                                        neighborInfo.neighborCellType( n ),
+                                        0,
+                                        1,
+                                        level,
+                                        srcMemLayout )];
+                                    mat->addValue( globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), 0 ) );
                                  }
                               }
                            }
@@ -635,6 +674,7 @@ typedef P0ToP1Operator< dg::p0_to_p1_divt_2_affine_q0 > P0ToP1ConstantDivTzOpera
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_0 > EGVectorLaplaceP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_1 > EGVectorLaplaceP0ToP1Coupling_Y;
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_2 > EGVectorLaplaceP0ToP1Coupling_Z;
+//typedef P0ToP1Operator<  dg::DGFormAbort > EGVectorLaplaceP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_0 > EGConstantEpsilonP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_1 > EGConstantEpsilonP0ToP1Coupling_Y;
@@ -647,6 +687,7 @@ typedef P0ToP1Operator< dg::DGFormAbort >            EGEpsilonP0ToP1Coupling_Z;
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_0 > P0ToP1ConstantP1EDGVectorMassXCouplingOperator;
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_1 > P0ToP1ConstantP1EDGVectorMassYCouplingOperator;
 typedef P0ToP1Operator< dg::eg::EGVectorMassFormP1E_2 > P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
+//typedef P0ToP1Operator< dg::DGFormAbort> P0ToP1ConstantP1EDGVectorMassZCouplingOperator;
 
 typedef P0ToP1Operator< dg::eg::EGDivFormP1E > P0ToP1ConstantP1EDGDivergenceCouplingOperator;
 

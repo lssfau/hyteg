@@ -22,6 +22,19 @@
 
 #include <hyteg/communication/Syncing.hpp>
 
+
+#include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/functions/Function.hpp"
+#include "hyteg/indexing/Common.hpp"
+#include "hyteg/indexing/MacroCellIndexing.hpp"
+#include "hyteg/indexing/MacroEdgeIndexing.hpp"
+#include "hyteg/indexing/MacroFaceIndexing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
@@ -124,16 +137,16 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
       communication::syncFunctionBetweenPrimitives( src, level );
 
-      /*
+      //TODO for more than 1 tet add this
+      
       if ( !storage_->hasGlobalCells() )
       {
          src.template communicate< Face, Face >( level );
       }
       else
       {
-         WALBERLA_ABORT( "Not implemented." );
+         src.template communicate< Cell, Cell >( level );
       }
-      */
       
 
       const auto storage = this->getStorage();
@@ -308,7 +321,13 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                      }
                      else
                      {
-                        WALBERLA_ABORT( "Not implemented." );
+                        const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                            elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, dstMemLayout )];
+                        const auto globalColIdx = srcDofMemory[vertexdof::macrocell::index( level,
+                                                                                            vertexDoFIndices[srcDofIdx].x(),
+                                                                                            vertexDoFIndices[srcDofIdx].y(),
+                                                                                            vertexDoFIndices[srcDofIdx].z() )];
+                        mat->addValue( globalRowIdx, globalColIdx, localMat( 0, Eigen::Index( srcDofIdx ) ) );
                      }
                   }
                }
@@ -364,7 +383,14 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "Not implemented." );
+                                 const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                                     elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, dstMemLayout )];
+                                 const auto globalColIdx =
+                                     srcDofMemory[vertexdof::macrocell::index( level,
+                                                                               vertexDoFIndices[srcDofIdx].x(),
+                                                                               vertexDoFIndices[srcDofIdx].y(),
+                                                                               vertexDoFIndices[srcDofIdx].z() )];
+                                 mat->addValue( globalRowIdx, globalColIdx, localMat( 0, Eigen::Index( srcDofIdx ) ) );
                               }
                            }
                         }
@@ -420,7 +446,14 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                               }
                               else
                               {
-                                 WALBERLA_ABORT( "Not implemented." );
+                                 const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                                     elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, dstMemLayout )];
+                                 const auto globalColIdx =
+                                     srcDofMemory[vertexdof::macrocell::index( level,
+                                                                               vertexDoFIndices[srcDofIdx].x(),
+                                                                               vertexDoFIndices[srcDofIdx].y(),
+                                                                               vertexDoFIndices[srcDofIdx].z() )];
+                                 mat->addValue( globalRowIdx, globalColIdx, localMat( 0, Eigen::Index( srcDofIdx ) ) );
                               }
                            }
                         }
@@ -692,7 +725,14 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                  }
                                  else
                                  {
-                                    WALBERLA_ABORT( "Not implemented." );
+                                    const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
+                                        elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, dstMemLayout )];
+                                    const auto globalColIdx =
+                                        srcDofMemory[vertexdof::macrocell::index( level,
+                                                                                  nVertexDoFIndices[srcDofIdx].x(),
+                                                                                  nVertexDoFIndices[srcDofIdx].y(),
+                                                                                  nVertexDoFIndices[srcDofIdx].z() )];
+                                    mat->addValue( globalRowIdx, globalColIdx, localMat( 0, Eigen::Index( srcDofIdx ) ) );
                                  }
                               }
                            }
@@ -775,6 +815,7 @@ typedef P1ToP0Operator< dg::p1_to_p0_div_2_affine_q0 > P1ToP0ConstantDivzOperato
 typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_0 > EGVectorLaplaceP1ToP0Coupling_X;
 typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_1 > EGVectorLaplaceP1ToP0Coupling_Y;
 typedef P1ToP0Operator< dg::eg::EGVectorLaplaceFormEP1_2 > EGVectorLaplaceP1ToP0Coupling_Z;
+//typedef P1ToP0Operator< dg::DGFormAbort  > EGVectorLaplaceP1ToP0Coupling_Z;
 
 typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_0 > EGConstantEpsilonP1ToP0Coupling_X;
 typedef P1ToP0Operator< dg::eg::EGConstEpsilonFormEP1_1 > EGConstantEpsilonP1ToP0Coupling_Y;
@@ -787,6 +828,7 @@ typedef P1ToP0Operator< dg::DGFormAbort >            EGEpsilonP1ToP0Coupling_Z;
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
 typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_2 > P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
+//typedef P1ToP0Operator< dg::DGFormAbort  > P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
 
 typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 
