@@ -60,13 +60,14 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
-
-  
    uint_t getDimension() const { return dgFunction_->getDimension(); };
 
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
+   {
+      dgFunction_->add( scalar, level, flag );
+   };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -78,7 +79,6 @@ class P0Function : public Function< P0Function< ValueType > >
       std::vector< std::reference_wrapper< const P0Function< ValueType > > > new_functions( functions );
       new_functions.push_back( *this );
       assign( new_scalars, new_functions, level, flag );
-      // WALBERLA_ABORT( "Not implemented." );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -287,12 +287,9 @@ inline void projectMean( P0Function< real_t >& func, const uint_t& level )
    {
       return;
    }
-   // const uint_t numGlobalVertices = numberOfGlobalDoFs< P0FunctionTag >(
-   //     *func.getStorage(), level, func.getStorage()->getSplitCommunicatorByPrimitiveDistribution() );
    const uint_t numGlobalVertices = func.getNumberOfGlobalDoFs( level );
-   const real_t sum               = func.sumGlobal( level, All );
-   //  std::cout << "vertexdof project mean:" << numGlobalVertices << std::endl << sum << std::endl;
-   func.add( -sum / ( 4 * real_c( numGlobalVertices ) ), level, All );
+   const real_t sum               = func.sumGlobal( level, Inner );
+   func.add( -sum / ( real_c( numGlobalVertices ) ), level, Inner );
 }
 } // namespace dg
 
