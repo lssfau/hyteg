@@ -89,15 +89,15 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
    {
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         Point2D coordinates2D( {coordinates[0], coordinates[1]} );
+         Point2D coordinates2D( { coordinates[0], coordinates[1] } );
 
          for ( auto& it : this->getStorage()->getFaces() )
          {
             Face& face = *it.second;
 
-            Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-            Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-            Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
             if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
             {
@@ -113,9 +113,9 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
             {
                Face& face = *it.second;
 
-               Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-               Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-               Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+               Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+               Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+               Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
                if ( circleTriangleIntersection(
                         coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
@@ -177,10 +177,49 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
 template < typename ValueType >
 void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
 {
-   WALBERLA_UNUSED( coordinates );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( gradient );
-   WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( gradient );
+      WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
+   }
+   else
+   {
+      // Check if 2D or 3D function
+      if ( !this->getStorage()->hasGlobalCells() )
+      {
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( sphereTriangleIntersection(
+                     coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+               P2::macroface::evaluateGradient(
+                   level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
+               return;
+            }
+         }
+      }
+      else
+      {
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( isPointInTetrahedron( coordinates,
+                                       cell.getCoordinates()[0],
+                                       cell.getCoordinates()[1],
+                                       cell.getCoordinates()[2],
+                                       cell.getCoordinates()[3] ) )
+            {
+               WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
+            }
+         }
+      }
+      WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+   }
 }
 
 template < typename ValueType >
@@ -648,48 +687,6 @@ void P2Function< ValueType >::setLocalCommunicationMode(
 {
    vertexDoFFunction_.setLocalCommunicationMode( localCommMode );
    edgeDoFFunction_.setLocalCommunicationMode( localCommMode );
-}
-
-// =================
-//  Specialisations
-// =================
-template <>
-void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
-{
-   // Check if 2D or 3D function
-   if ( !this->getStorage()->hasGlobalCells() )
-   {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( sphereTriangleIntersection(
-                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-         {
-            P2::macroface::evaluateGradient(
-                level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
-            return;
-         }
-      }
-   }
-   else
-   {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( isPointInTetrahedron( coordinates,
-                                    cell.getCoordinates()[0],
-                                    cell.getCoordinates()[1],
-                                    cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3] ) )
-         {
-            WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
-         }
-      }
-   }
-
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
 // ========================

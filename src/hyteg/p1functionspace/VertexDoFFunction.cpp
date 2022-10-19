@@ -507,15 +507,15 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
    {
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         Point2D coordinates2D( {coordinates[0], coordinates[1]} );
+         Point2D coordinates2D( { coordinates[0], coordinates[1] } );
 
          for ( auto& it : this->getStorage()->getFaces() )
          {
             Face& face = *it.second;
 
-            Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-            Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-            Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
             if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
             {
@@ -530,9 +530,9 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
             {
                Face& face = *it.second;
 
-               Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
-               Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
-               Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+               Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+               Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
+               Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
 
                if ( circleTriangleIntersection(
                         coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
@@ -592,39 +592,48 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
 {
-   // Check if 2D or 3D function
-   if ( !this->getStorage()->hasGlobalCells() )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( sphereTriangleIntersection(
-                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-         {
-            vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
-            return;
-         }
-      }
+      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( gradient );
+      WALBERLA_ABORT( "P1Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
    }
    else
    {
-      for ( auto& it : this->getStorage()->getCells() )
+      // Check if 2D or 3D function
+      if ( !this->getStorage()->hasGlobalCells() )
       {
-         Cell& cell = *it.second;
-
-         if ( isPointInTetrahedron( coordinates,
-                                    cell.getCoordinates()[0],
-                                    cell.getCoordinates()[1],
-                                    cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3] ) )
+         for ( auto& it : this->getStorage()->getFaces() )
          {
-            WALBERLA_ABORT( "Not implemented." )
+            Face& face = *it.second;
+
+            if ( sphereTriangleIntersection(
+                     coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+               vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
+               return;
+            }
          }
       }
-   }
+      else
+      {
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
 
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
+            if ( isPointInTetrahedron( coordinates,
+                                       cell.getCoordinates()[0],
+                                       cell.getCoordinates()[1],
+                                       cell.getCoordinates()[2],
+                                       cell.getCoordinates()[3] ) )
+            {
+               WALBERLA_ABORT( "Not implemented." )
+            }
+         }
+      }
+      WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
+   }
 }
 
 template < typename ValueType >
@@ -1395,10 +1404,145 @@ void VertexDoFFunction< ValueType >::multElementwise(
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
-   WALBERLA_UNUSED( workOnHalos );
-   WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_UNUSED( workOnHalos );
+      WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+   }
+   else
+   {
+      this->startTiming( "Invert elementwise" );
+
+      if ( workOnHalos )
+      {
+         for ( const auto& it : this->getStorage()->getVertices() )
+         {
+            Vertex& vertex = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+                  // data[0]      = real_c( 1.0 ) / data[0];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getEdges() )
+         {
+            Edge& edge = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+               uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = face.getData( faceDataID_ )->getPointer( level );
+               uint_t  size = face.getData( faceDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+               uint_t  size = cell.getData( cellDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+      }
+
+      // do not work on halos
+      else
+      {
+         for ( const auto& it : this->getStorage()->getVertices() )
+         {
+            Vertex& vertex = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               data[0]      = real_c( 1.0 ) / data[0];
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getEdges() )
+         {
+            Edge& edge = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
+               {
+                  const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
+                  data[idx]        = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = face.getData( faceDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
+               {
+                  const uint_t idx =
+                      vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
+                  data[idx] = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
+               {
+                  const uint_t idx =
+                      vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
+                  data[idx] = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+      }
+
+      this->stopTiming( "Invert elementwise" );
+   }
 }
 
 template < typename ValueType >
@@ -2082,148 +2226,6 @@ void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t 
          }
       }
    }
-}
-
-// =================
-//  specialisations
-// =================
-template <>
-void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-
-   this->startTiming( "Invert elementwise" );
-
-   if ( workOnHalos )
-   {
-      for ( const auto& it : this->getStorage()->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-            uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-               // data[0]      = real_c( 1.0 ) / data[0];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-            uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = face.getData( faceDataID_ )->getPointer( level );
-            uint_t  size = face.getData( faceDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-            uint_t  size = cell.getData( cellDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-   }
-
-   // do not work on halos
-   else
-   {
-      for ( const auto& it : this->getStorage()->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-            data[0]      = real_c( 1.0 ) / data[0];
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
-            {
-               const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
-               data[idx]        = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = face.getData( faceDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
-            {
-               const uint_t idx =
-                   vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
-               data[idx] = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
-            {
-               const uint_t idx =
-                   vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
-               data[idx] = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-   }
-
-   this->stopTiming( "Invert elementwise" );
 }
 
 // ========================
