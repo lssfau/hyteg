@@ -22,19 +22,6 @@
 
 #include <hyteg/communication/Syncing.hpp>
 
-
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/functions/Function.hpp"
-#include "hyteg/indexing/Common.hpp"
-#include "hyteg/indexing/MacroCellIndexing.hpp"
-#include "hyteg/indexing/MacroEdgeIndexing.hpp"
-#include "hyteg/indexing/MacroFaceIndexing.hpp"
-#include "hyteg/memory/FunctionMemory.hpp"
-#include "hyteg/operators/Operator.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
@@ -138,7 +125,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
       communication::syncFunctionBetweenPrimitives( src, level );
 
       //TODO for more than 1 tet add this
-      
+
       if ( !storage_->hasGlobalCells() )
       {
          src.template communicate< Face, Face >( level );
@@ -147,7 +134,6 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
       {
          src.template communicate< Cell, Cell >( level );
       }
-      
 
       const auto storage = this->getStorage();
 
@@ -585,8 +571,83 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                            }
                            else
                            {
+                              
                               // 3D
-                              WALBERLA_ABORT( "Not implemented for 3D." );
+                              const auto cell         = storage->getCell( pid );
+                              const auto facePID      = cell->neighborFaces().at( neighborInfo.macroBoundaryID( n ) );
+                              const auto neighborCell = storage->getCell(
+                                  cell->getIndirectNeighborCellIDsOverFaces().at( neighborInfo.macroBoundaryID( n ) ) );
+                              const auto localFaceIDNeighborCell = neighborCell->getLocalFaceID( facePID );
+                              WALBERLA_ASSERT( localFaceIDNeighborCell < std::numeric_limits< uint_t >::max() );
+       
+                              for ( uint_t i = 0; i < neighborElementVertexIndices.size(); i++ )
+                              {
+                                 const auto nElementVertexIdx = neighborElementVertexIndices[i];
+
+                                 // Check vertex DoF on interface or ghost-layer.
+                                 switch ( localFaceIDNeighborCell )
+                                 {
+                                 case 0:
+                                    onGhostLayer[i] = nElementVertexIdx.z() != 0;
+                                    break;
+                                 case 1:
+                                    onGhostLayer[i] = nElementVertexIdx.y() != 0;
+                                    break;
+                                 case 2:
+                                    onGhostLayer[i] = nElementVertexIdx.x() != 0;
+                                    break;
+                                 case 3:
+                                    onGhostLayer[i] = nElementVertexIdx.x() + nElementVertexIdx.y() + nElementVertexIdx.z() !=
+                                                      levelinfo::num_microvertices_per_cell( level ) - 1;
+                                    break;
+                                 }
+
+                                 if ( !onGhostLayer[i] )
+                                 {
+                                    // If the DoF is not on the ghost-layer (i.e. it is on the interface) we need to obtain the
+                                    // logical index on the local macro volume. This is done via index "basis trafo".
+
+                                    std::array< uint_t, 4 > srcBasis;
+                                    for ( uint_t ii = 0; ii < 4; ii++ )
+                                    {
+                                       if ( algorithms::contains( cell->neighborVertices(),
+                                                                  neighborCell->neighborVertices().at( ii ) ) )
+                                       {
+                                          srcBasis[ii] = cell->getLocalVertexID( neighborCell->neighborVertices().at( ii ) );
+                                       }
+                                       else
+                                       {
+                                          srcBasis[ii] = cell->getLocalVertexID( cell->getOppositeVertexID(
+                                              cell->neighborEdges().at( neighborInfo.macroBoundaryID( n ) ) ) );
+                                       }
+                                    }
+                                  //  srcBasis[3] = 3;
+
+                                    // Basis trafo to local macro.
+                                    const auto localIndex =
+                                        indexing::basisConversion( nElementVertexIdx,
+                                                                   srcBasis,
+                                                                   { 0, 1, 2, 3 },
+                                                                   levelinfo::num_microvertices_per_cell( level ) );
+                                    nSrcDoFArrIndices[i] = vertexdof::macrocell::index( level, localIndex.x(), localIndex.y(),localIndex.z() );
+                                    nSrcDofs[i]          = srcDofMemory[nSrcDoFArrIndices[i]];
+                                 }
+                                 else
+                                 {
+                                    // Take DoF from GL memory.
+                                    nSrcDoFArrIndices[i] = volumedofspace::indexing::indexNeighborInGhostLayer(
+                                        neighborInfo.macroBoundaryID( n ),
+                                        elementIdx.x(),
+                                        elementIdx.y(),
+                                        elementIdx.z(),
+                                        cellType,
+                                        0,
+                                        1,
+                                        level,
+                                        volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+                                    nSrcDofs[i] = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[i]];
+                                 }
+                              }
                            }
 
                            // --- END vertex DoF GL handling at macro-macro boundary ---------------------------------------------
