@@ -502,6 +502,7 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
       WALBERLA_UNUSED( value );
       WALBERLA_UNUSED( searchToleranceRadius );
       WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
+      return false;
    }
    else
    {
@@ -584,9 +585,10 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
             }
          }
       }
-
-      return false;
    }
+
+   // we place it here to make certain compilers happy; do you hear that intel?
+   return false;
 }
 
 template < typename ValueType >

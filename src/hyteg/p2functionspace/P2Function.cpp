@@ -169,9 +169,11 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
             }
          }
       }
-
-      return false;
    }
+
+   // we place it here to make certain compilers happy; do you hear that intel?
+   return false;
+
 }
 
 template < typename ValueType >
