@@ -133,38 +133,29 @@ void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint
    }
    else
    {
+      // negative value would exclude this alternative feature in finding primitive ID
+      real_t searchToleranceRadius = real_c( 1e-12 );
+
       // Check if 2D or 3D function
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         for ( auto& it : this->getStorage()->getFaces() )
+         auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+         if ( found )
          {
-            Face& face = *it.second;
-
-            if ( sphereTriangleIntersection(
-                     coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-            {
-               P2::macroface::evaluateGradient(
-                   level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
-               return;
-            }
+            P2::macroface::evaluateGradient( level,
+                                             *( this->getStorage()->getFace( faceID ) ),
+                                             coordinates,
+                                             vertexDoFFunction_.getFaceDataID(),
+                                             edgeDoFFunction_.getFaceDataID(),
+                                             gradient );
+            return;
          }
       }
       else
       {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if ( isPointInTetrahedron( coordinates,
-                                       cell.getCoordinates()[0],
-                                       cell.getCoordinates()[1],
-                                       cell.getCoordinates()[2],
-                                       cell.getCoordinates()[3] ) )
-            {
-               WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
-            }
-         }
+         WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
       }
+
       WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
    }
 }

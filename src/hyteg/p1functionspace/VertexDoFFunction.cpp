@@ -543,37 +543,25 @@ void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinate
    }
    else
    {
+      // negative value would exclude this alternative feature in finding primitive ID
+      real_t searchToleranceRadius = real_c( 1e-12 );
+
       // Check if 2D or 3D function
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         for ( auto& it : this->getStorage()->getFaces() )
+         auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+         if ( found )
          {
-            Face& face = *it.second;
-
-            if ( sphereTriangleIntersection(
-                     coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-            {
-               vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
-               return;
-            }
+            vertexdof::macroface::evaluateGradient< ValueType >(
+                level, *( this->getStorage()->getFace( faceID ) ), coordinates, faceDataID_, gradient );
+            return;
          }
       }
       else
       {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if ( isPointInTetrahedron( coordinates,
-                                       cell.getCoordinates()[0],
-                                       cell.getCoordinates()[1],
-                                       cell.getCoordinates()[2],
-                                       cell.getCoordinates()[3] ) )
-            {
-               WALBERLA_ABORT( "Not implemented." )
-            }
-         }
+         WALBERLA_ABORT( "Not implemented." )
       }
+
       WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
    }
 }
