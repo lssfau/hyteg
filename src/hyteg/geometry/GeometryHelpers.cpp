@@ -37,30 +37,12 @@ std::tuple< bool, PrimitiveID > findFaceIDForPointIn2D( std::shared_ptr< Primiti
    bool        found = false;
    PrimitiveID faceID;
 
-   Point2D coordinates2D( { computationalCoords[0], computationalCoords[1] } );
-
    for ( const auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
 
-      Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-      Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-      Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-      found = isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 );
-
-      // #define GEOMETRY_HELPERS_BE_VERBOSE
-#ifdef GEOMETRY_HELPERS_BE_VERBOSE
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> FaceID = " << face.getID() );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Point found = " << ( found ? "TRUE" : "FALSE" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Computational Coordinates = " << computationalCoords );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Face Vertices:" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates0 );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates1 );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates2 );
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-#endif
+      found =
+          isPointInTriangle( computationalCoords, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
 
       // leave on first hit
       if ( found )
@@ -77,12 +59,8 @@ std::tuple< bool, PrimitiveID > findFaceIDForPointIn2D( std::shared_ptr< Primiti
       {
          Face& face = *it.second;
 
-         Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-         Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-         Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
          found = circleTriangleIntersection(
-             coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 );
+             computationalCoords, searchToleranceRadius, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
 
          if ( found )
          {
