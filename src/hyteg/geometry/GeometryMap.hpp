@@ -82,6 +82,26 @@ class GeometryMap
    /// \param x Reference input coordinates
    real_t evalDetDF( const Point3D& x );
 
+   /// Verify that the given point from the physical domain is connected to the given
+   /// point on the computational domain.
+   ///
+   /// We require a blending map to be a homeomorphism globally. However, we allow that global blending
+   /// maps are constructed in a piecewise fashion from maps that differ locally between primitives.
+   /// These need to be homeomorphisms locally on the respective primitives, but not globally. This
+   /// can cause problems when we try to map a point back from the physical to the computational domain,
+   /// but do not know to which primitive the point will belong on the computational domain.
+   ///
+   /// This method is supposed to test, whether mapping a point from the computational domain to the
+   /// physical domain gives the desired coordinates. As this is no issue for global homeomorphism,
+   /// we implement an optimistic version in this base class and allow children to override it with
+   /// their own implementation where the details of the mapping are known.
+   ///
+   /// For details and an example see issue 184.
+   virtual bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const
+   {
+      return true;
+   }
+
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );
 

@@ -31,9 +31,10 @@
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
-#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/GeometryHelpers.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -147,8 +148,9 @@ std::vector< Point3D > genSamplePointsForCell( const Cell& cell, uint_t numSampl
 
 void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
 {
-   if ( storage->hasGlobalCells() ) {
-     WALBERLA_ABORT( "Use testWith3DMesh() for meshes with cells!" );
+   if ( storage->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Use testWith3DMesh() for meshes with cells!" );
    }
 
    // loop over all macro-faces
@@ -157,7 +159,8 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
       Face& face = *it.second;
 
       // generate sample points on face in computational domain
-      uint_t                 numSamples      = 200;
+      // uint_t                 numSamples      = 200;
+      uint_t                 numSamples      = 20;
       std::vector< Point3D > ptsOnCompDomain = genSamplePointsForFace( face, numSamples );
       std::vector< Point3D > ptsOnPhysDomain;
       ptsOnPhysDomain.reserve( numSamples );
@@ -171,7 +174,7 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      // real_t tolerance = real_c( 1e-10 );
+      real_t tolerance = real_c( 1e-10 );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -179,23 +182,23 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
          WALBERLA_CHECK( found1 );
          WALBERLA_CHECK_EQUAL( faceID1, face.getID() );
 
-#if 0
-        // now try to map points back to computational domain without specifing face info
-        auto [found2, faceID2, backMapped] = mapFromPhysicalToComputationalDomain2D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
-        WALBERLA_CHECK( found2 );
-        WALBERLA_CHECK_EQUAL( faceID2, face.getID() );
-        real_t reconstructionError{ (backMapped - ptsOnCompDomain[idx]).norm() };
-        WALBERLA_LOG_INFO_ON_ROOT( " idx = " << idx << ", error = " << reconstructionError );
-        WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
-#endif
+         // now try to map points back to computational domain without specifing face info
+         auto [found2, faceID2, backMapped] =
+             mapFromPhysicalToComputationalDomain2D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
+         WALBERLA_CHECK( found2 );
+         real_t reconstructionError{ ( backMapped - ptsOnCompDomain[idx] ).norm() };
+         WALBERLA_LOG_INFO_ON_ROOT( "faceID = " << face.getID() << ", idx = " << idx << ", error = " << reconstructionError );
+         WALBERLA_CHECK_EQUAL( faceID2, face.getID() );
+         WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
       }
    }
 }
 
 void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
 {
-   if ( !storage->hasGlobalCells() ) {
-     WALBERLA_ABORT( "Use testWith2DMesh() for meshes without cells!" );
+   if ( !storage->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Use testWith2DMesh() for meshes without cells!" );
    }
 
    // loop over all macro-cells
@@ -256,7 +259,7 @@ void runTests2D()
    // ----------------------
    //  Flow Around Cylinder
    // ----------------------
-   MeshInfo meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/flow_around_cylinder.msh" );
+   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/flow_around_cylinder.msh" );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage = std::make_shared< PrimitiveStorage >( setupStorage2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Running 2D test with Flow-Around-Cylinder mesh" );
@@ -280,7 +283,7 @@ void runTests3D()
    // --------------------
    //  Cube with 24 Cells
    // --------------------
-   MeshInfo meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage = std::make_shared< PrimitiveStorage >( setupStorage2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Running 3D test with cube_24el mesh" );
