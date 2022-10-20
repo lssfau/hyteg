@@ -14,6 +14,8 @@ target_sources( hyteg
     Intersection.hpp
     IcosahedralShellMap.hpp
     GeometryMap.hpp
+    GeometryHelpers.hpp
+    GeometryHelpers.cpp
     Polygons.hpp     
 )
 

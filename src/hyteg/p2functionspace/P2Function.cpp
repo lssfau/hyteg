@@ -24,6 +24,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/geometry/GeometryHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -89,91 +90,35 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
    {
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
-         for ( auto& it : this->getStorage()->getFaces() )
+         auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+         if ( found )
          {
-            Face& face = *it.second;
-
-            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-            if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
-            {
-               value = P2::macroface::evaluate(
-                   level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-               return true;
-            }
-         }
-
-         if ( searchToleranceRadius > 0 )
-         {
-            for ( auto& it : this->getStorage()->getFaces() )
-            {
-               Face& face = *it.second;
-
-               Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-               Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-               Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-               if ( circleTriangleIntersection(
-                        coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
-               {
-                  value = P2::macroface::evaluate(
-                      level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-                  return true;
-               }
-            }
+            value = P2::macroface::evaluate( level,
+                                             *( this->getStorage()->getFace( faceID ) ),
+                                             coordinates,
+                                             vertexDoFFunction_.getFaceDataID(),
+                                             edgeDoFFunction_.getFaceDataID() );
+            return true;
          }
       }
+
       else
       {
-         for ( auto& it : this->getStorage()->getCells() )
+         auto [found, cellID] = findCellIDForPointIn3D( this->getStorage(), coordinates, searchToleranceRadius );
+         if ( found )
          {
-            Cell& cell = *it.second;
-
-            if ( isPointInTetrahedron( coordinates,
-                                       cell.getCoordinates()[0],
-                                       cell.getCoordinates()[1],
-                                       cell.getCoordinates()[2],
-                                       cell.getCoordinates()[3],
-                                       cell.getFaceInwardNormal( 0 ),
-                                       cell.getFaceInwardNormal( 1 ),
-                                       cell.getFaceInwardNormal( 2 ),
-                                       cell.getFaceInwardNormal( 3 ) ) )
-            {
-               value = P2::macrocell::evaluate(
-                   level, cell, coordinates, vertexDoFFunction_.getCellDataID(), edgeDoFFunction_.getCellDataID() );
-               return true;
-            }
-         }
-
-         if ( searchToleranceRadius > 0 )
-         {
-            for ( auto& it : this->getStorage()->getCells() )
-            {
-               Cell& cell = *it.second;
-
-               if ( sphereTetrahedronIntersection( coordinates,
-                                                   searchToleranceRadius,
-                                                   cell.getCoordinates()[0],
-                                                   cell.getCoordinates()[1],
-                                                   cell.getCoordinates()[2],
-                                                   cell.getCoordinates()[3] ) )
-               {
-                  value = P2::macrocell::evaluate(
-                      level, cell, coordinates, vertexDoFFunction_.getCellDataID(), edgeDoFFunction_.getCellDataID() );
-                  return true;
-               }
-            }
+            value = P2::macrocell::evaluate( level,
+                                             *( this->getStorage()->getCell( cellID ) ),
+                                             coordinates,
+                                             vertexDoFFunction_.getCellDataID(),
+                                             edgeDoFFunction_.getCellDataID() );
+            return true;
          }
       }
    }
 
    // we place it here to make certain compilers happy; do you hear that intel?
    return false;
-
 }
 
 template < typename ValueType >
