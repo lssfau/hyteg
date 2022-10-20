@@ -82,7 +82,7 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
 /// Check whether in a planar geometry a point belongs to a triangle
 /// \note If using Point3D as PointType the z-component will be ignored
 template < typename PointType >
-inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType& v1, const Point2D& v2, const Point2D& v3 )
+inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType& v1, const PointType& v2, const PointType& v3 )
 {
    if constexpr ( !std::is_same< PointType, Point2D >::value && !std::is_same< PointType, Point3D >::value )
    {
@@ -115,9 +115,9 @@ inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType
 template < typename PointType >
 inline bool circleTriangleIntersection( const PointType& centre,
                                         const real_t&    radius,
-                                        const Point2D&   v1,
-                                        const Point2D&   v2,
-                                        const Point2D&   v3 )
+                                        const PointType&   v1,
+                                        const PointType&   v2,
+                                        const PointType&   v3 )
 {
    if constexpr ( !std::is_same< PointType, Point2D >::value && !std::is_same< PointType, Point3D >::value )
    {
