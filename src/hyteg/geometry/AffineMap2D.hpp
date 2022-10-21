@@ -137,10 +137,7 @@ class AffineMap2D : public GeometryMap
       DFinvx *= real_c( 1 ) / jacDet_;
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
-   {
-      return true;
-   }
+   bool verifyPointPairing( const Point3D&, const Point3D& ) const override final { return true; }
 
  private:
    /// matrix using in affine mapping

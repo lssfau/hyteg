@@ -99,10 +99,7 @@ class AffineMap3D : public GeometryMap
       return jacDet_;
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
-   {
-      return true;
-   };
+   bool verifyPointPairing( const Point3D&, const Point3D& ) const override final { return true; };
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {

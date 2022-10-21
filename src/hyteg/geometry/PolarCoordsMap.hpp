@@ -77,7 +77,7 @@ class PolarCoordsMap : public GeometryMap
       DFinvx( 1, 1 ) = std::cos( x[1] ) / x[0];
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
+   bool verifyPointPairing( const Point3D&, const Point3D& ) const override final
    {
       return true;
    }
