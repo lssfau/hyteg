@@ -19,21 +19,10 @@
  */
 #pragma once
 
-
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_cell_to_face.hpp"
-#include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_face_to_cell.hpp"
-#include "hyteg/primitives/all.hpp"
-#include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
-
-#include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -982,8 +971,6 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromCell( Cell*                  
 template < typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const
 {
-
-
    // Which local faces do we iterate on?
 
    uint_t senderLocalFaceID   = std::numeric_limits< uint_t >::max();
@@ -1038,112 +1025,47 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
 
    // We need one iterator for each cell type at the boundary.
    // This first one always iterates of the WHITE_UP type, the second cell type depends on the local macro-face ID.
-   auto cellIteratorSenderCellType0 = hyteg::indexing::CellBoundaryIterator(
-       levelinfo::num_microedges_per_edge( level_ ), senderLocalVertexIDs[0], senderLocalVertexIDs[1], senderLocalVertexIDs[2] );
-   auto cellIteratorSenderCellType1 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ) - 1,
+   auto cellIteratorSenderCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
                                                                              senderLocalVertexIDs[0],
                                                                              senderLocalVertexIDs[1],
-                                                                             senderLocalVertexIDs[2] );
+                                                                             senderLocalVertexIDs[2],
+                                                                             1 );
 
-   auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
-                                                                               receiverLocalVertexIDs[0],
-                                                                               receiverLocalVertexIDs[1],
-                                                                               receiverLocalVertexIDs[2] );
-   auto cellIteratorReceiverCellType1 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ) - 1,
-                                                                               receiverLocalVertexIDs[0],
-                                                                               receiverLocalVertexIDs[1],
-                                                                               receiverLocalVertexIDs[2] );
-
-   // What remains is to find out the cell type for the second iterator.
-   celldof::CellType otherCellType = celldof::CellType::WHITE_DOWN; // makes it crash by default, WHITE_DOWN is never at boundary
-   switch ( senderLocalFaceID )
-   {
-   case 0:
-      otherCellType = celldof::CellType::BLUE_UP;
-      break;
-   case 1:
-      otherCellType = celldof::CellType::GREEN_UP;
-      break;
-   case 2:
-      otherCellType = celldof::CellType::BLUE_DOWN;
-      break;
-   case 3:
-      otherCellType = celldof::CellType::GREEN_DOWN;
-      break;
-   default:
-      WALBERLA_ABORT( "Invalid local face ID." );
-   }
 
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
 
-   const auto ndofs = levelinfo::num_microvertices_per_cell( level_ );
-
    // Iterating over WHITE_UP cells ...
+
+   uint_t glMicroVolumeIdx_x = 0;
+   uint_t glMicroVolumeIdx_y = 0;
    while ( cellIteratorSenderCellType0 != cellIteratorSenderCellType0.end() )
    {
-      for ( uint_t dof = 0; dof < ndofs; dof++ )
-      {
-         const auto senderIdx = volumedofspace::indexing::index( cellIteratorSenderCellType0->x(),
-                                                                 cellIteratorSenderCellType0->y(),
-                                                                 cellIteratorSenderCellType0->z(),
-                                                                 celldof::CellType::WHITE_UP,
-                                                                 dof,
-                                                                 ndofs,
-                                                                 level_,
-                                                                 volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-         const auto senderVal = cellData[senderIdx];
+      const auto senderIdx = vertexdof::macrocell::index(
+          level_, cellIteratorSenderCellType0->x(), cellIteratorSenderCellType0->y(), cellIteratorSenderCellType0->z()
 
-         const auto receiverIdx = volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
-                                                                       cellIteratorReceiverCellType0->x(),
-                                                                       cellIteratorReceiverCellType0->y(),
-                                                                       cellIteratorReceiverCellType0->z(),
+      );
+      const auto senderVal = cellData[senderIdx];
+
+      const auto receiverIdx =
+          volumedofspace::indexing::indexGhostLayerDirectly( glMicroVolumeIdx_x,
+                                                                       glMicroVolumeIdx_y,
                                                                        celldof::CellType::WHITE_UP,
-                                                                       dof,
-                                                                       ndofs,
+                                                                       0,
+                                                                       1,
                                                                        level_,
                                                                        volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
 
-         glData[receiverIdx] = senderVal;
+      glData[receiverIdx] = senderVal;
+
+      glMicroVolumeIdx_x++;
+      if ( glMicroVolumeIdx_x + glMicroVolumeIdx_y >= levelinfo::num_microvertices_per_edge( level_ ) - 1 )
+      {
+         glMicroVolumeIdx_x = 0;
+         glMicroVolumeIdx_y++;
       }
       cellIteratorSenderCellType0++;
-      cellIteratorReceiverCellType0++;
    }
-
-   // ... and the other type.
-   while ( cellIteratorSenderCellType1 != cellIteratorSenderCellType1.end() )
-   {
-      for ( uint_t dof = 0; dof < ndofs; dof++ )
-      {
-         const auto senderIdx = volumedofspace::indexing::index( cellIteratorSenderCellType1->x(),
-                                                                 cellIteratorSenderCellType1->y(),
-                                                                 cellIteratorSenderCellType1->z(),
-                                                                 otherCellType,
-                                                                 dof,
-                                                                 ndofs,
-                                                                 level_,
-                                                                 volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-         const auto senderVal = cellData[senderIdx];
-
-         // Cheat!!!
-         // The cell type is in general not identical on the receiver side! But we don't care as the ghost-layer indexing
-         // either accepts WHITE_UP for the first type of cells, or any other cell type for the second type of cells.
-         const auto receiverIdx = volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
-                                                                       cellIteratorReceiverCellType1->x(),
-                                                                       cellIteratorReceiverCellType1->y(),
-                                                                       cellIteratorReceiverCellType1->z(),
-                                                                       otherCellType,
-                                                                       dof,
-                                                                       ndofs,
-                                                                       level_,
-                                                                       volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-
-         glData[receiverIdx] = senderVal;
-      }
-      cellIteratorSenderCellType1++;
-      cellIteratorReceiverCellType1++;
-   }
-
 }
 
 } //namespace hyteg
