@@ -66,7 +66,7 @@ class AffineMap3D : public GeometryMap
       recvBuffer >> vec_[2];
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + mat_( 0, 2 ) * xold[2] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + mat_( 1, 2 ) * xold[2] + vec_[1];
@@ -92,14 +92,19 @@ class AffineMap3D : public GeometryMap
       xComp *= real_c( 1 ) / jacDet_;
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const override final
    {
       WALBERLA_UNUSED( x );
       DFx = mat_;
       return jacDet_;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
+   {
+      return true;
+   };
+
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::AFFINE_3D;
       for ( uint_t i = 0; i < 3; i++ )
@@ -143,14 +148,14 @@ class AffineMap3D : public GeometryMap
    *    methods for 2D (class only provides a pseudo-implementation to satisfy requirements of base class)
    */
    ///@{
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "AffineMap3D::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );

@@ -22,6 +22,8 @@
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
 
+using walberla::real_c;
+
 namespace hyteg {
 
 /// Class describing a geometrical mapping from reference to physical space
@@ -97,10 +99,7 @@ class GeometryMap
    /// their own implementation where the details of the mapping are known.
    ///
    /// For details and an example see issue 184.
-   virtual bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const
-   {
-      return true;
-   }
+   virtual bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const = 0;
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );
@@ -110,6 +109,9 @@ class GeometryMap
 
  protected:
    virtual void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const = 0;
+
+   /// Default threshold for allowed distance in verifyPointPairing()
+   real_t defaultThresholdForPointComparison = real_c( 1e-12 );
 };
 
 } // namespace hyteg

@@ -155,7 +155,7 @@ class AnnulusMap : public GeometryMap
    {
       Point3D mapped;
       this->evalF( computationalCoordinates, mapped );
-      return (mapped-physicalCoordinates).norm() < real_c( 1e-12 );
+      return ( mapped - physicalCoordinates ).norm() < defaultThresholdForPointComparison;
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
