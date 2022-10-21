@@ -24,6 +24,7 @@ target_sources( hyteg
     P1VectorFunctionLinearRestriction.hpp
     P1toP1InjectionRestriction.cpp
     P1toP1LinearRestriction.hpp
-    RestrictionOperator.hpp     
+    RestrictionOperator.hpp
+    DGProlongation.hpp
 )
 add_subdirectory( generatedKernels )

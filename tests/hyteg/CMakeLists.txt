@@ -834,6 +834,9 @@ if (HYTEG_BUILD_WITH_PETSC)
 
     waLBerla_compile_test(FILES dg/DGAdaptiveRefinementGridConvTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGAdaptiveRefinementGridConvTest)
+
+    waLBerla_compile_test(FILES dg/DGProlongationTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGProlongationTest)
 endif ()
 
 ## Basic Smoothing and Solving
