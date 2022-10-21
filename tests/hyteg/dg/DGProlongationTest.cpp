@@ -41,10 +41,12 @@ using walberla::uint_t;
 using namespace hyteg;
 using namespace dg;
 
-void testLinear2D( const std::string& meshFile )
+void testP1Prolongation2D( const std::string& meshFile )
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
+
+   const uint_t degree = 1;
 
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -54,11 +56,11 @@ void testLinear2D( const std::string& meshFile )
    auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
    auto massForm = std::make_shared< DGMassForm_Example >();
 
-   DGFunction< real_t > test_function( "test_function", storage, minLevel, maxLevel, dgBasis, 1 );
-   DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, dgBasis, 1 );
-   DGFunction< real_t > solution_function( "solution_function", storage, maxLevel, maxLevel, dgBasis, 1 );
+   DGFunction< real_t > test_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );
+   DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, dgBasis, degree );
+   DGFunction< real_t > solution_function( "solution_function", storage, maxLevel, maxLevel, dgBasis, degree );
 
-   DGFunction< idx_t > numerator( "numerator", storage, minLevel, maxLevel, dgBasis, 1 );
+   DGFunction< idx_t > numerator( "numerator", storage, minLevel, maxLevel, dgBasis, degree );
    numerator.enumerate( minLevel );
    numerator.enumerate( maxLevel );
    DGOperator M( storage, minLevel, maxLevel, massForm );
@@ -82,7 +84,52 @@ void testLinear2D( const std::string& meshFile )
    tmp.assign( { +1., -1. }, { test_function, solution_function }, maxLevel, All );
    const real_t error = tmp.dotGlobal( tmp, maxLevel, All );
 
-   WALBERLA_ASSERT_FLOAT_EQUAL( error, 0. );
+   WALBERLA_CHECK_FLOAT_EQUAL( error, 0. );
+
+   // VTKOutput vtk( "../../output/", "DGProlongationTest", storage );
+   // vtk.add( test_function );
+   // vtk.write( minLevel );
+   // vtk.write( maxLevel );
+}
+
+void testP0Prolongation2D()
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = minLevel + 1;
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto massForm = std::make_shared< DGMassForm_Example >();
+
+   auto bc = BoundaryCondition::createAllInnerBC();
+
+   P0Function< real_t > test_function( "test_function", storage, minLevel, maxLevel, bc );
+   P0Function< real_t > solution_function( "solution_function", storage, maxLevel, maxLevel, bc );
+   P0Function< real_t > tmp( "tmp", storage, maxLevel, maxLevel, bc );
+
+   auto fun = []( const Point3D& p ) {
+      const real_t value1 = p[0] < 0.5 ? 0.5 : 0.2;
+      const real_t value2 = p[1] < 0.5 ? -1. : -2.;
+      return value1 + value2;
+   };
+
+   DGOperator M( storage, minLevel, maxLevel, massForm );
+
+   test_function.interpolate(fun , minLevel );
+   solution_function.interpolate(fun , maxLevel );
+
+   DGConstantProlongation prolongation;
+
+   prolongation.prolongate( *test_function.getDGFunction(), minLevel, All );
+
+   tmp.assign( { +1., -1. }, { test_function, solution_function }, maxLevel, All );
+   const real_t error = tmp.dotGlobal( tmp, maxLevel, All );
+
+   WALBERLA_CHECK_FLOAT_EQUAL( error, 0. );
 
    // VTKOutput vtk( "../../output/", "DGProlongationTest", storage );
    // vtk.add( test_function );
@@ -96,8 +143,10 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   testLinear2D( "../../data/meshes/tri_1el.msh" );
-   testLinear2D( "../../data/meshes/circle.msh" );
+   testP1Prolongation2D( "../../data/meshes/tri_1el.msh" );
+   testP1Prolongation2D( "../../data/meshes/circle.msh" );
+
+   testP0Prolongation2D();
 
    return 0;
 }

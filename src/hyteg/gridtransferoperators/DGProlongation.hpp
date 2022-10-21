@@ -85,6 +85,20 @@ class ProlongationFormLinear : public ProlongationForm
    }
 };
 
+class ProlongationFormConstant: public ProlongationForm
+{
+ public:
+   using Point3 = Eigen::Matrix< real_t, 3, 1 >;
+
+   void integrate2D( const std::vector< Point3 >&                             dst,
+                     const std::vector< Point3 >&                             src,
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
+   {
+      localMat.resize( 1, 1 );
+      localMat( 0, 0 ) = 1;
+   }
+};
+
 class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
 {
  public:
@@ -239,6 +253,14 @@ class DGLinearProlongation : public DGProlongation
  public:
    DGLinearProlongation()
    : DGProlongation( std::make_shared< ProlongationFormLinear >() )
+   {}
+};
+
+class DGConstantProlongation : public DGProlongation
+{
+ public:
+   DGConstantProlongation()
+       : DGProlongation( std::make_shared< ProlongationFormConstant >() )
    {}
 };
 
