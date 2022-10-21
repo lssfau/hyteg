@@ -33,17 +33,23 @@ class ProlongationForm
  public:
    using Point = Eigen::Matrix< real_t, 3, 1 >;
 
-   virtual void integrate2D( const std::vector< Point >&                              dst,
-                             const std::vector< Point >&                              src,
+   /// \brief Evaluates the coupling of DoF between a coarse triangle and (and embedded) fine triangle.
+   ///
+   /// \param fineTriangle   Vertices of the fine triangle, ordered w.r.t. the DoF.
+   /// \param coarseTriangle Vertices of the coarse triangle, ordered w.r.t. the DoF.
+   /// \param localMat       Coupling between fine triangle DoF (rows) and coarse triangle DoF (cols).
+   virtual void integrate2D( const std::vector< Point >&                              fineTriangle,
+                             const std::vector< Point >&                              coarseTriangle,
                              Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
    {
-      WALBERLA_UNUSED( dst );
-      WALBERLA_UNUSED( src );
+      WALBERLA_UNUSED( fineTriangle );
+      WALBERLA_UNUSED( coarseTriangle );
       WALBERLA_UNUSED( localMat );
       WALBERLA_LOG_INFO_ON_ROOT( "not implemented" )
    }
 };
 
+/// \brief Prolongation form for piecewise linear DG functions.
 class ProlongationFormDG1 : public ProlongationForm
 {
  public:
@@ -52,6 +58,7 @@ class ProlongationFormDG1 : public ProlongationForm
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
 };
 
+/// \brief Prolongation form for piecewise constant DG functions.
 class ProlongationFormDG0 : public ProlongationForm
 {
  public:
@@ -75,14 +82,20 @@ class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
    : form_( form )
    {}
 
+   /// \brief Prolongates the given function on the coarse level to a finer level.
+   ///
+   /// \param function   Function which we prolongate to a finer level.
+   /// \param srcLevel   The coarse level.
+   /// \param flag       Is ignored, but needed to be consistent with the other prolongation operators.
    void prolongate( const dg::DGFunction< real_t >& function,
-                    const walberla::uint_t&         coarseLevel,
+                    const walberla::uint_t&         srcLevel,
                     const DoFType&                  flag ) const override;
 
  protected:
    std::shared_ptr< ProlongationForm > form_;
 };
 
+/// \brief Prolongation for piecewise linear DG functions.
 class DG1Prolongation : public DGProlongation
 {
  public:
@@ -91,6 +104,7 @@ class DG1Prolongation : public DGProlongation
    {}
 };
 
+/// \brief Prolongation for piecewise constant DG functions.
 class DG0Prolongation : public DGProlongation
 {
  public:

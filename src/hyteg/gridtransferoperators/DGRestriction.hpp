@@ -33,17 +33,23 @@ class RestrictionForm
  public:
    using Point = Eigen::Matrix< real_t, 3, 1 >;
 
-   virtual void integrate2D( const std::vector< Point >&                              dst,
-                             const std::vector< Point >&                              src,
+   /// \brief Evaluates the coupling of DoF between a coarse triangle and (and embedded) fine triangle.
+   ///
+   /// \param coarseTriangle Vertices of the coarse triangle, ordered w.r.t. the DoF.
+   /// \param fineTriangle   Vertices of the fine triangle, ordered w.r.t. the DoF.
+   /// \param localMat       Coupling between coarse triangle DoF (rows) and fine triangle DoF (cols).
+   virtual void integrate2D( const std::vector< Point >&                              coarseTriangle,
+                             const std::vector< Point >&                              fineTriangle,
                              Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
    {
-      WALBERLA_UNUSED( dst );
-      WALBERLA_UNUSED( src );
+      WALBERLA_UNUSED( coarseTriangle );
+      WALBERLA_UNUSED( fineTriangle );
       WALBERLA_UNUSED( localMat );
       WALBERLA_LOG_INFO_ON_ROOT( "not implemented" )
    }
 };
 
+/// \brief Restriction form for piecewise linear DG functions.
 class RestrictionFormDG1 : public RestrictionForm
 {
  public:
@@ -52,6 +58,7 @@ class RestrictionFormDG1 : public RestrictionForm
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
 };
 
+/// \brief Restriction form for piecewise constant DG functions.
 class RestrictionFormDG0 : public RestrictionForm
 {
  public:
@@ -73,14 +80,20 @@ class DGRestriction : public RestrictionOperator< dg::DGFunction< real_t > >
    : form_( form )
    {}
 
+   /// \brief Restrictics the given function on the fine level to the coarser level.
+   ///
+   /// \param function   Function which we restrict to the coarse level.
+   /// \param srcLevel   The fine level.
+   /// \param flag       Is ignored, but needed to be consistent with the other restriction operators.
    void restrict( const dg::DGFunction< real_t >& function,
-                  const walberla::uint_t&         fineLevel,
+                  const walberla::uint_t&         srcLevel,
                   const DoFType&                  flag ) const override;
 
  protected:
    std::shared_ptr< RestrictionForm > form_;
 };
 
+/// \brief Restriction for piecewise linear DG functions.
 class DG1Restriction : public DGRestriction
 {
  public:
@@ -89,6 +102,7 @@ class DG1Restriction : public DGRestriction
    {}
 };
 
+/// \brief Restriction for piecewise constant DG functions.
 class DG0Restriction : public DGRestriction
 {
  public:
