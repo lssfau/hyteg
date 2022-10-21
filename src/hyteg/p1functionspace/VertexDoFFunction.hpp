@@ -149,15 +149,15 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// -> Does not need to be called collectively.
    /// -> Different values are returned on each process.
    ///
-   /// \param coordinates where the function shall be evaluated
+   /// \param physicalCoords coordinates in physical domain where the function is to be evaluated
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
-   void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+   void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,

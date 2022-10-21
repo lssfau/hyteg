@@ -24,7 +24,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/geometry/GeometryHelpers.hpp"
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -73,14 +73,14 @@ P2Function< ValueType >::P2Function( const std::string&                         
 }
 
 template < typename ValueType >
-bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
+bool P2Function< ValueType >::evaluate( const Point3D& physicalCoords,
                                         uint_t         level,
                                         ValueType&     value,
                                         real_t         searchToleranceRadius ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( physicalCoords );
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( value );
       WALBERLA_UNUSED( searchToleranceRadius );
@@ -90,12 +90,13 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
    {
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+         auto [found, faceID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
          if ( found )
          {
             value = P2::macroface::evaluate( level,
                                              *( this->getStorage()->getFace( faceID ) ),
-                                             coordinates,
+                                             computationalCoords,
                                              vertexDoFFunction_.getFaceDataID(),
                                              edgeDoFFunction_.getFaceDataID() );
             return true;
@@ -104,29 +105,30 @@ bool P2Function< ValueType >::evaluate( const Point3D& coordinates,
 
       else
       {
-         auto [found, cellID] = findCellIDForPointIn3D( this->getStorage(), coordinates, searchToleranceRadius );
+         auto [found, cellID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
          if ( found )
          {
             value = P2::macrocell::evaluate( level,
                                              *( this->getStorage()->getCell( cellID ) ),
-                                             coordinates,
+                                             computationalCoords,
                                              vertexDoFFunction_.getCellDataID(),
                                              edgeDoFFunction_.getCellDataID() );
             return true;
          }
       }
-   }
 
-   // we place it here to make certain compilers happy; do you hear that intel?
-   return false;
+      // no match found
+      return false;
+   }
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
+void P2Function< ValueType >::evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( physicalCoords );
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( gradient );
       WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
@@ -139,24 +141,38 @@ void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint
       // Check if 2D or 3D function
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+         auto [found, faceID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
          if ( found )
          {
+            Face face = *( this->getStorage()->getFace( faceID ) );
+
+            // evaluate gradient on computational domain
             P2::macroface::evaluateGradient( level,
-                                             *( this->getStorage()->getFace( faceID ) ),
-                                             coordinates,
+                                             face,
+                                             computationalCoords,
                                              vertexDoFFunction_.getFaceDataID(),
                                              edgeDoFFunction_.getFaceDataID(),
                                              gradient );
+
+            // transform gradient to physical coordinates
+            Matrix2r DFinv;
+            face.getGeometryMap()->evalDFinv( physicalCoords, DFinv );
+            real_t aux0 = gradient[0];
+            real_t aux1 = gradient[1];
+            gradient[0] = DFinv( 0, 0 ) * aux0 + DFinv( 0, 1 ) * aux1;
+            gradient[1] = DFinv( 1, 0 ) * aux0 + DFinv( 1, 1 ) * aux1;
+
             return;
          }
       }
       else
       {
-         WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
+         WALBERLA_ABORT( "P2Function< real_t >::evaluateGradient not implemented for 3D case" );
       }
 
-      WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+      WALBERLA_ABORT( "There is no local macro element including a point at the given mapped back coordinates for "
+                      << physicalCoords );
    }
 }
 

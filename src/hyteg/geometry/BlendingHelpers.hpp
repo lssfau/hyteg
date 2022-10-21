@@ -37,9 +37,23 @@ using walberla::real_t;
 /// were before blending, i.e. on the computational domain. Use this function in those cases were
 /// you have no information to which macro-face the point belongs on the computational domain.
 /// Figuring this out is then part of the task.
-std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
-                                                                                 Point3D& physicalCoords,
-                                                                                 real_t   searchToleranceRadius )
+///
+/// We apply two approaches to solve the problem:
+///
+///   1. For all face primitives of the local subdomain:
+///      If a point-triangle inclusion test succeeds and the verifyPointPairing() method
+///      of the corresponding face returns true, then we return true, the ID of the face
+///      and the coordinates obtained from the inverse blending map of that face.
+///
+///   2. If approach #1 fail and searchToleranceRadius is positive, we perform for all face
+///      primitives of the local subdomain a circle-triangle intersection test. If this
+///      is successful and the verifyPointPairing() method of the corresponding face returns
+///      true, then we return true, the ID of the face and the coordinates obtained from the
+///      inverse blending map of that face.
+inline std::tuple< bool, PrimitiveID, Point3D >
+    mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
+                                            const Point3D&                      physicalCoords,
+                                            real_t                              searchToleranceRadius )
 {
    bool        found = false;
    PrimitiveID faceID;
@@ -55,7 +69,7 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
       bool faceIsCandidate =
           isPointInTriangle( computationalCoords, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
 
-      // #define BE_VERBOSE
+//#define BE_VERBOSE
 #ifdef BE_VERBOSE
       WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
       WALBERLA_LOG_INFO_ON_ROOT( " -> FaceID = " << faceID );
@@ -63,9 +77,9 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
       WALBERLA_LOG_INFO_ON_ROOT( " -> Physical Coordinates = " << physicalCoords );
       WALBERLA_LOG_INFO_ON_ROOT( " -> Computational Coordinates = " << computationalCoords );
       WALBERLA_LOG_INFO_ON_ROOT( " -> Face Vertices:" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates0 );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates1 );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << faceCoodinates2 );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[0] );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[1] );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[2] );
       WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
 #endif
 
@@ -78,6 +92,31 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
       }
    }
 
+   // No face found? Try different approach
+   if ( !found && searchToleranceRadius > real_c( 0 ) )
+   {
+      for ( const auto& it : storage->getFaces() )
+      {
+         Face& face = *it.second;
+
+         // map coordinates from physical to computational domain
+         face.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+
+         bool faceIsCandidate = circleTriangleIntersection( computationalCoords,
+                                                            searchToleranceRadius,
+                                                            face.getCoordinates()[0],
+                                                            face.getCoordinates()[1],
+                                                            face.getCoordinates()[2] );
+
+         if ( faceIsCandidate && face.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+         {
+            found  = true;
+            faceID = face.getID();
+            break;
+         }
+      }
+   }
+
    return { found, faceID, computationalCoords };
 }
 
@@ -87,9 +126,23 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
 /// were before blending, i.e. on the computational domain. Use this function in those cases were
 /// you have no information to which macro-cell the point belongs on the computational domain.
 /// Figuring this out is then part of the task.
-std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
-                                                                                 Point3D& physicalCoords,
-                                                                                 real_t   searchToleranceRadius )
+///
+/// We apply two approaches to solve the problem:
+///
+///   1. For all cell primitives of the local subdomain:
+///      If a point-tetrahedron inclusion test succeeds and the verifyPointPairing() method
+///      of the corresponding cell returns true, then we return true, the ID of the cell
+///      and the coordinates obtained from the inverse blending map of that cell.
+///
+///   2. If approach #1 fail and searchToleranceRadius is positive, we perform for all cell
+///      primitives of the local subdomain a sphere-tetrahedron intersection test. If this
+///      is successful and the verifyPointPairing() method of the corresponding cell returns
+///      true, then we return true, the ID of the cell and the coordinates obtained from the
+///      inverse blending map of that cell.
+inline std::tuple< bool, PrimitiveID, Point3D >
+    mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
+                                            const Point3D&                      physicalCoords,
+                                            real_t                              searchToleranceRadius )
 {
    bool        found = false;
    PrimitiveID cellID;
@@ -118,6 +171,33 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain3D(
          found  = true;
          cellID = cell.getID();
          break;
+      }
+   }
+
+   // No cell found? Try different approach
+   if ( !found && searchToleranceRadius > real_c( 0 ) )
+   {
+      for ( auto& it : storage->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         // map coordinates from physical to computational domain
+         cell.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+
+         bool cellIsCandidate = sphereTetrahedronIntersection( computationalCoords,
+                                                               searchToleranceRadius,
+                                                               cell.getCoordinates()[0],
+                                                               cell.getCoordinates()[1],
+                                                               cell.getCoordinates()[2],
+                                                               cell.getCoordinates()[3] );
+
+         // if cell is candidate, check that this is actually the correct cell
+         if ( cellIsCandidate && cell.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+         {
+            found  = true;
+            cellID = cell.getID();
+            break;
+         }
       }
    }
 

@@ -26,7 +26,7 @@
 #include "core/mpi/MPIWrapper.h"
 #include "core/mpi/Reduce.h"
 
-#include "hyteg/geometry/GeometryHelpers.hpp"
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
@@ -80,21 +80,22 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
 }
 
 template < typename ValueType >
-bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
+bool DGFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                         uint_t         level,
                                         ValueType&     value,
                                         real_t         searchToleranceRadius ) const
 {
    if ( !this->storage_->hasGlobalCells() )
    {
-      auto [found, faceID] = findFaceIDForPointIn2D( this->getStorage(), coordinates, searchToleranceRadius );
+      auto [found, faceID, computationalCoords] =
+          mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
       if ( found )
       {
          const auto        polyDegree = polyDegreesPerPrimitive_.at( faceID );
          const auto        ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
          indexing::Index   elementIndex;
          facedof::FaceType faceType;
-         Point2D           coordinates2D( { coordinates[0], coordinates[1] } );
+         Point2D           coordinates2D( { computationalCoords[0], computationalCoords[1] } );
          Point2D           localCoordinates;
 
          Face& face = *( this->getStorage()->getFace( faceID ) );
@@ -120,21 +121,22 @@ bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
    {
       // 3D
 
-      auto [found, cellID] = findCellIDForPointIn3D( this->getStorage(), coordinates, searchToleranceRadius );
+      auto [found, cellID, computationalCoords] =
+          mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
 
       if ( found )
       {
          Cell& cell = *( this->getStorage()->getCell( cellID ) );
 
          const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
-         const auto ndofs = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
+         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
 
-         indexing::Index elementIndex;
+         indexing::Index   elementIndex;
          celldof::CellType cellType;
-         Point3D localCoordinates;
+         Point3D           localCoordinates;
 
          volumedofspace::getLocalElementFromCoordinates< ValueType >(
-             level, cell, coordinates, elementIndex, cellType, localCoordinates );
+             level, cell, computationalCoords, elementIndex, cellType, localCoordinates );
 
          Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
 
