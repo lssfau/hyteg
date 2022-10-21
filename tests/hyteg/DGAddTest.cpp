@@ -30,6 +30,7 @@
 using namespace hyteg;
 
 using walberla::real_t;
+using namespace dg;
 
 int main( int argc, char** argv )
 {
@@ -39,7 +40,7 @@ int main( int argc, char** argv )
 
    MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
@@ -47,6 +48,8 @@ int main( int argc, char** argv )
    hyteg::FaceDoFFunction_old< real_t > x( "x", storage, minLevel, maxLevel );
    hyteg::FaceDoFFunction_old< real_t > y( "y", storage, minLevel, maxLevel );
    hyteg::FaceDoFFunction_old< real_t > z( "z", storage, minLevel, maxLevel );
+
+   P0Function< real_t > dgVec( "dgVec", storage, minLevel, maxLevel );
 
    x.interpolate( 0., maxLevel, All );
 
@@ -67,11 +70,11 @@ int main( int argc, char** argv )
 
    // check adding a scalar
    {
-      x.interpolate(1, maxLevel, All);
-      y.interpolate(2, maxLevel, All);
-      z.interpolate(3, maxLevel, All);
+      x.interpolate( 1, maxLevel, All );
+      y.interpolate( 2, maxLevel, All );
+      z.interpolate( 3, maxLevel, All );
 
-      x.add( {-1., 3.}, {y, z}, maxLevel, All );
+      x.add( { -1., 3. }, { y, z }, maxLevel, All );
 
       // the min/max value functions
       x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
@@ -81,5 +84,25 @@ int main( int argc, char** argv )
       WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 8. );
    }
 
+   // check adding a scalar
+   {
+      VTKOutput vtk( "../../output", "DGAddTest", storage );
+      vtk.add( dgVec );
+      vtk.write( maxLevel, 0 );
+      dgVec.interpolate( 1, maxLevel, All );
+
+      vtk.write( maxLevel, 1 );
+      dgVec.add( -1., maxLevel, All );
+
+      vtk.write( maxLevel, 2 );
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+   }
+
+   // check sumGlobal
+   {
+      dgVec.interpolate( 1, maxLevel, All );
+      const auto sGlobal = dgVec.sumGlobal( maxLevel, All );
+      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal,real_c(dgVec.getNumberOfGlobalDoFs(maxLevel)));
+   }
    return 0;
 }
