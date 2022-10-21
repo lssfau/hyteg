@@ -44,7 +44,7 @@ class ProlongationForm
    }
 };
 
-class ProlongationFormLinear : public ProlongationForm
+class ProlongationFormDG1 : public ProlongationForm
 {
  public:
    using Point3 = Eigen::Matrix< real_t, 3, 1 >;
@@ -85,7 +85,7 @@ class ProlongationFormLinear : public ProlongationForm
    }
 };
 
-class ProlongationFormConstant: public ProlongationForm
+class ProlongationFormDG0 : public ProlongationForm
 {
  public:
    using Point3 = Eigen::Matrix< real_t, 3, 1 >;
@@ -248,19 +248,19 @@ class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
    std::shared_ptr< ProlongationForm > form_;
 };
 
-class DGLinearProlongation : public DGProlongation
+class DG1Prolongation : public DGProlongation
 {
  public:
-   DGLinearProlongation()
-   : DGProlongation( std::make_shared< ProlongationFormLinear >() )
+   DG1Prolongation()
+   : DGProlongation( std::make_shared< ProlongationFormDG1 >() )
    {}
 };
 
-class DGConstantProlongation : public DGProlongation
+class DG0Prolongation : public DGProlongation
 {
  public:
-   DGConstantProlongation()
-       : DGProlongation( std::make_shared< ProlongationFormConstant >() )
+   DG0Prolongation()
+       : DGProlongation( std::make_shared< ProlongationFormDG0 >() )
    {}
 };
 

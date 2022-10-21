@@ -41,7 +41,7 @@ using walberla::uint_t;
 using namespace hyteg;
 using namespace dg;
 
-void testP1Prolongation2D( const std::string& meshFile )
+void testDG1Prolongation2D( const std::string& meshFile )
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
@@ -77,7 +77,7 @@ void testP1Prolongation2D( const std::string& meshFile )
       solverM.solve( M, solution_function, tmp, maxLevel );
    }
 
-   DGLinearProlongation prolongation;
+   DG1Prolongation prolongation;
 
    prolongation.prolongate( test_function, minLevel, All );
 
@@ -92,7 +92,7 @@ void testP1Prolongation2D( const std::string& meshFile )
    // vtk.write( maxLevel );
 }
 
-void testP0Prolongation2D()
+void testDG0Prolongation2D()
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
@@ -122,7 +122,7 @@ void testP0Prolongation2D()
    test_function.interpolate(fun , minLevel );
    solution_function.interpolate(fun , maxLevel );
 
-   DGConstantProlongation prolongation;
+   DG0Prolongation prolongation;
 
    prolongation.prolongate( *test_function.getDGFunction(), minLevel, All );
 
@@ -143,10 +143,10 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   testP1Prolongation2D( "../../data/meshes/tri_1el.msh" );
-   testP1Prolongation2D( "../../data/meshes/circle.msh" );
+   testDG1Prolongation2D( "../../data/meshes/tri_1el.msh" );
+   testDG1Prolongation2D( "../../data/meshes/circle.msh" );
 
-   testP0Prolongation2D();
+   testDG0Prolongation2D();
 
    return 0;
 }
