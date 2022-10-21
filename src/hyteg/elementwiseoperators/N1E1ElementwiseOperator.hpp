@@ -27,6 +27,7 @@
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
@@ -35,7 +36,8 @@ namespace n1e1 {
 using walberla::real_t;
 
 template < class N1E1FormType >
-class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N1E1VectorFunction< real_t > >
+class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N1E1VectorFunction< real_t > >,
+                                public OperatorWithInverseDiagonal< N1E1VectorFunction< real_t > >
 {
  public:
    N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -43,7 +45,8 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                             size_t                                     minLevel,
                             size_t                                     maxLevel,
-                            const N1E1FormType&                        form );
+                            const N1E1FormType&                        form,
+                            const bool                                 needsInverseDiagEntries = true );
 
    void apply( const N1E1VectorFunction< real_t >& src,
                const N1E1VectorFunction< real_t >& dst,
@@ -56,6 +59,9 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
    /// If the local element matrices need to be recomputed again, simply call this method again.
    void computeAndStoreLocalElementMatrices();
+
+   void                                            computeInverseDiagonalOperatorValues() override;
+   std::shared_ptr< N1E1VectorFunction< real_t > > getInverseDiagonalValues() const override;
 
    /// Assemble operator as sparse matrix.
    ///
@@ -75,6 +81,12 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    N1E1FormType getForm() const;
 
  private:
+   void computeLocalInverseDiagonal( const Cell&             cell,
+                                     const uint_t            level,
+                                     const indexing::Index&  microCell,
+                                     const celldof::CellType cType,
+                                     real_t* const           diagData );
+
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
@@ -83,8 +95,6 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstEdgeIdx,
                                const real_t* const                         signs ) const;
-
-   N1E1FormType form_;
 
    /// \brief Returns a reference to the precomputed element matrix of the specified micro cell.
    /// Probably crashes if local element matrices have not been precomputed.
@@ -111,11 +121,14 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
       return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
    }
 
-   bool localElementMatricesPrecomputed_;
+   N1E1FormType form_;
+
+   std::shared_ptr< N1E1VectorFunction< real_t > > inverseDiagonalValues_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat6x6
    std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices3D_;
+   bool                                                                         localElementMatricesPrecomputed_;
 };
 
 template < class N1E1FormType >

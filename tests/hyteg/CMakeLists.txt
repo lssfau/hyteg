@@ -869,3 +869,11 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES N1E1/N1E1toP1LiftingTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME N1E1toP1LiftingTest)
 endif ()
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1InverseDiagonalTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1InverseDiagonalTest)
+endif ()
+
+waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HybridSmootherTest)
