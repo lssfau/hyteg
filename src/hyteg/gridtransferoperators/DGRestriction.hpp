@@ -24,9 +24,6 @@
 
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
-#include "hyteg/indexing/MacroCellIndexing.hpp"
-#include "hyteg/indexing/MacroEdgeIndexing.hpp"
-#include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {
@@ -40,6 +37,9 @@ class RestrictionForm
                              const std::vector< Point >&                              src,
                              Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
    {
+      WALBERLA_UNUSED( dst );
+      WALBERLA_UNUSED( src );
+      WALBERLA_UNUSED( localMat );
       WALBERLA_LOG_INFO_ON_ROOT( "not implemented" )
    }
 };
@@ -47,53 +47,20 @@ class RestrictionForm
 class RestrictionFormDG1 : public RestrictionForm
 {
  public:
-   using Point3 = Eigen::Matrix< real_t, 3, 1 >;
-   using Point2 = Eigen::Matrix< real_t, 2, 1 >;
-
-   void integrate2D( const std::vector< Point3 >&                             dst,
-                     const std::vector< Point3 >&                             src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
-   {
-      const Point2 b  = src[0].block( 0, 0, 2, 1 );
-      const Point2 a1 = ( src[1] - src[0] ).block( 0, 0, 2, 1 );
-      const Point2 a2 = ( src[2] - src[0] ).block( 0, 0, 2, 1 );
-
-      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > A( 2, 2 );
-      A.col( 0 ) = a1;
-      A.col( 1 ) = a2;
-
-      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > Ainv = A.inverse();
-
-      Point2 p0 = Ainv * ( dst[0].block( 0, 0, 2, 1 ) - b );
-      Point2 p1 = Ainv * ( dst[1].block( 0, 0, 2, 1 ) - b );
-      Point2 p2 = Ainv * ( dst[2].block( 0, 0, 2, 1 ) - b );
-
-      auto phi0 = []( auto x ) { return 1 - x[0] - x[1]; };
-      auto phi1 = []( auto x ) { return x[0]; };
-      auto phi2 = []( auto x ) { return x[1]; };
-
-      localMat.resize( 3, 3 );
-      localMat( 0, 0 ) = phi0( p0 );
-      localMat( 0, 1 ) = phi0( p1 );
-      localMat( 0, 2 ) = phi0( p2 );
-      localMat( 1, 0 ) = phi1( p0 );
-      localMat( 1, 1 ) = phi1( p1 );
-      localMat( 1, 2 ) = phi1( p2 );
-      localMat( 2, 0 ) = phi2( p0 );
-      localMat( 2, 1 ) = phi2( p1 );
-      localMat( 2, 2 ) = phi2( p2 );
-   }
+   void integrate2D( const std::vector< Point >&                              dst,
+                     const std::vector< Point >&                              src,
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
 };
 
 class RestrictionFormDG0 : public RestrictionForm
 {
  public:
-   using Point3 = Eigen::Matrix< real_t, 3, 1 >;
-
-   void integrate2D( const std::vector< Point3 >&                             dst,
-                     const std::vector< Point3 >&                             src,
+   void integrate2D( const std::vector< Point >&                              dst,
+                     const std::vector< Point >&                              src,
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
    {
+      WALBERLA_UNUSED( dst );
+      WALBERLA_UNUSED( src );
       localMat.resize( 1, 1 );
       localMat( 0, 0 ) = 1;
    }
@@ -108,147 +75,7 @@ class DGRestriction : public RestrictionOperator< dg::DGFunction< real_t > >
 
    void restrict( const dg::DGFunction< real_t >& function,
                   const walberla::uint_t&         fineLevel,
-                  const DoFType&                  flag ) const override
-   {
-      WALBERLA_UNUSED( flag );
-
-      using volumedofspace::indexing::ElementNeighborInfo;
-
-      const uint_t coarseLevel = fineLevel - 1;
-
-      const uint_t dim     = 2;
-      const auto   storage = function.getStorage();
-
-      if ( storage->hasGlobalCells() )
-         WALBERLA_ABORT( "Prolongation currently only supports 2D." )
-
-      std::vector< PrimitiveID > pids = storage->getFaceIDs();
-
-      const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
-
-      for ( const auto& pid : pids )
-      {
-         const auto polyDegree = function.polynomialDegree( pid );
-         const auto numDofs    = function.basis()->numDoFsPerElement( dim, polyDegree );
-
-         const auto coarseDofMemory = function.volumeDoFFunction()->dofMemory( pid, coarseLevel );
-         const auto fineDofMemory   = function.volumeDoFFunction()->dofMemory( pid, fineLevel );
-
-         const auto memLayout = function.volumeDoFFunction()->memoryLayout();
-
-         for ( uint_t coarseMicroVolType = 0; coarseMicroVolType < numMicroVolTypes; coarseMicroVolType++ )
-         {
-            auto coarseFaceType = facedof::allFaceTypes[coarseMicroVolType];
-            auto coarseCellType = celldof::allCellTypes[coarseMicroVolType];
-
-            auto itFace = facedof::macroface::Iterator( coarseLevel, coarseFaceType ).begin();
-            auto itCell = celldof::macrocell::Iterator( coarseLevel, coarseCellType ).begin();
-
-            while ( ( dim == 2 && itFace != itFace.end() ) || ( dim == 3 && itCell != itCell.end() ) )
-            {
-               indexing::Index coarseElementIdx;
-
-               if ( dim == 2 )
-               {
-                  coarseElementIdx = *itFace;
-                  itFace++;
-               }
-               else
-               {
-                  coarseElementIdx = *itCell;
-                  itCell++;
-               }
-
-               ElementNeighborInfo coarseNeighborInfo;
-               if ( dim == 2 )
-               {
-                  coarseNeighborInfo = ElementNeighborInfo(
-                      coarseElementIdx, coarseFaceType, coarseLevel, function.getBoundaryCondition(), pid, storage );
-               }
-               else
-               {
-                  WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-               }
-
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > coarseDofs;
-               coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
-               coarseDofs.setZero();
-
-               std::vector< hyteg::indexing::Index > fineElementIndices;
-               std::vector< facedof::FaceType >      fineFaceTypes;
-
-               volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
-                   coarseElementIdx, coarseFaceType, fineElementIndices, fineFaceTypes );
-
-               for ( uint_t fineIdx = 0; fineIdx < fineElementIndices.size(); fineIdx += 1 )
-               {
-                  auto fineElementIdx = fineElementIndices[fineIdx];
-                  auto fineFaceType   = fineFaceTypes[fineIdx];
-
-                  volumedofspace::indexing::ElementNeighborInfo fineNeighborInfo;
-                  if ( dim == 2 )
-                  {
-                     fineNeighborInfo = ElementNeighborInfo(
-                         fineElementIdx, fineFaceType, fineLevel, function.getBoundaryCondition(), pid, storage );
-                  }
-                  else
-                  {
-                     WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-                  }
-
-                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                  localMat.resize( numDofs, numDofs );
-
-                  // assemble local matrix
-                  if ( dim == 2 )
-                  {
-                     form_->integrate2D(
-                         fineNeighborInfo.elementVertexCoords(), coarseNeighborInfo.elementVertexCoords(), localMat );
-                  }
-                  else
-                  {
-                     WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-                  }
-
-                  Eigen::Matrix< real_t, Eigen::Dynamic, 1 > fineDofs;
-                  fineDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
-                  for ( uint_t fineDofIdx = 0; fineDofIdx < numDofs; fineDofIdx++ )
-                  {
-                     if ( dim == 2 )
-                     {
-                        fineDofs( fineDofIdx ) = fineDofMemory[volumedofspace::indexing::index(
-                            fineElementIdx.x(), fineElementIdx.y(), fineFaceType, fineDofIdx, numDofs, fineLevel, memLayout )];
-                     }
-                     else
-                     {
-                        WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-                     }
-                  }
-
-                  coarseDofs += localMat * fineDofs;
-               }
-
-               for ( uint_t coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
-               {
-                  if ( dim == 2 )
-                  {
-                     coarseDofMemory[volumedofspace::indexing::index( coarseElementIdx.x(),
-                                                                      coarseElementIdx.y(),
-                                                                      coarseFaceType,
-                                                                      coarseDofIdx,
-                                                                      numDofs,
-                                                                      coarseLevel,
-                                                                      memLayout )] = coarseDofs( coarseDofIdx );
-                  }
-                  else
-                  {
-                     WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-                  }
-               }
-            }
-         }
-      }
-   };
+                  const DoFType&                  flag ) const override;
 
  protected:
    std::shared_ptr< RestrictionForm > form_;
