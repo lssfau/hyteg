@@ -26,5 +26,6 @@ target_sources( hyteg
     P1toP1LinearRestriction.hpp
     RestrictionOperator.hpp
     DGProlongation.hpp
+    DGRestriction.hpp
 )
 add_subdirectory( generatedKernels )

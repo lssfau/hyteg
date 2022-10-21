@@ -30,6 +30,7 @@
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/gridtransferoperators/DGRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -102,9 +103,6 @@ void testDG0Prolongation2D()
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto massForm = std::make_shared< DGMassForm_Example >();
-
    auto bc = BoundaryCondition::createAllInnerBC();
 
    P0Function< real_t > test_function( "test_function", storage, minLevel, maxLevel, bc );
@@ -117,10 +115,8 @@ void testDG0Prolongation2D()
       return value1 + value2;
    };
 
-   DGOperator M( storage, minLevel, maxLevel, massForm );
-
-   test_function.interpolate(fun , minLevel );
-   solution_function.interpolate(fun , maxLevel );
+   test_function.interpolate( fun, minLevel );
+   solution_function.interpolate( fun, maxLevel );
 
    DG0Prolongation prolongation;
 
@@ -137,6 +133,92 @@ void testDG0Prolongation2D()
    // vtk.write( maxLevel );
 }
 
+void compareProlongationWithRestrictionDG1( const std::string& meshFile )
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = minLevel + 1;
+
+   const uint_t degree = 1;
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto massForm = std::make_shared< DGMassForm_Example >();
+
+   DGFunction< real_t > fine_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );
+   DGFunction< real_t > coarse_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );
+   DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, dgBasis, degree );
+
+   DGFunction< idx_t > numerator( "numerator", storage, minLevel, maxLevel, dgBasis, degree );
+   numerator.enumerate( minLevel );
+   numerator.enumerate( maxLevel );
+   DGOperator M( storage, minLevel, maxLevel, massForm );
+   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1]; }, minLevel );
+   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 1.2 * p[0] - p[1]; }, maxLevel );
+   // interpolate test_function on lower level
+   {
+      PETScCGSolver< DGOperator > solverM( storage, minLevel, numerator );
+      solverM.solve( M, coarse_function, tmp, minLevel );
+   }
+   // interpolate solution function on upper level
+   {
+      PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
+      solverM.solve( M, fine_function, tmp, maxLevel );
+   }
+
+   DG1Restriction  restriction;
+   DG1Prolongation prolongation;
+
+   // value_restrict = coarse_function * ( restriction * fine_function )
+   restriction.restrict( fine_function, maxLevel, All );
+   const real_t value_restrict = coarse_function.dotGlobal( fine_function, minLevel, All );
+
+   // value_prolongate = fine_function * ( prolongation * coarse_function )
+   prolongation.prolongate( coarse_function, minLevel, All );
+   const real_t value_prolongate = fine_function.dotGlobal( coarse_function, maxLevel, All );
+
+   const real_t error = value_restrict - value_prolongate;
+
+   WALBERLA_CHECK_FLOAT_EQUAL( error, 0. );
+}
+
+void compareProlongationWithRestrictionDG0( const std::string& meshFile )
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = minLevel + 1;
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   auto bc = BoundaryCondition::createAllInnerBC();
+
+   P0Function< real_t > fine_function( "test_function", storage, minLevel, maxLevel, bc );
+   P0Function< real_t > coarse_function( "test_function", storage, minLevel, maxLevel, bc );
+
+   coarse_function.interpolate( []( const Point3D& p ) { return 0.5 * p[0] + p[1]; }, minLevel );
+   fine_function.interpolate( []( const Point3D& p ) { return 1.2 * p[0] - p[1]; }, maxLevel );
+
+   DG0Restriction  restriction;
+   DG0Prolongation prolongation;
+
+   // value_restrict = coarse_function * ( restriction * fine_function )
+   restriction.restrict( *fine_function.getDGFunction(), maxLevel, All );
+   const real_t value_restrict = coarse_function.dotGlobal( fine_function, minLevel, All );
+
+   // value_prolongate = fine_function * ( prolongation * coarse_function )
+   prolongation.prolongate( *coarse_function.getDGFunction(), minLevel, All );
+   const real_t value_prolongate = fine_function.dotGlobal( coarse_function, maxLevel, All );
+
+   const real_t error = value_restrict - value_prolongate;
+
+   WALBERLA_CHECK_FLOAT_EQUAL( error, 0. );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -147,6 +229,12 @@ int main( int argc, char* argv[] )
    testDG1Prolongation2D( "../../data/meshes/circle.msh" );
 
    testDG0Prolongation2D();
+
+   compareProlongationWithRestrictionDG1( "../../data/meshes/tri_1el.msh" );
+   compareProlongationWithRestrictionDG1( "../../data/meshes/circle.msh" );
+
+   compareProlongationWithRestrictionDG0( "../../data/meshes/tri_1el.msh" );
+   compareProlongationWithRestrictionDG0( "../../data/meshes/circle.msh" );
 
    return 0;
 }

@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
+#include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
@@ -31,7 +31,7 @@
 
 namespace hyteg {
 
-class ProlongationForm
+class RestrictionForm
 {
  public:
    using Point = Eigen::Matrix< real_t, 3, 1 >;
@@ -44,7 +44,7 @@ class ProlongationForm
    }
 };
 
-class ProlongationFormDG1 : public ProlongationForm
+class RestrictionFormDG1 : public RestrictionForm
 {
  public:
    using Point3 = Eigen::Matrix< real_t, 3, 1 >;
@@ -74,18 +74,18 @@ class ProlongationFormDG1 : public ProlongationForm
 
       localMat.resize( 3, 3 );
       localMat( 0, 0 ) = phi0( p0 );
-      localMat( 0, 1 ) = phi1( p0 );
-      localMat( 0, 2 ) = phi2( p0 );
-      localMat( 1, 0 ) = phi0( p1 );
+      localMat( 0, 1 ) = phi0( p1 );
+      localMat( 0, 2 ) = phi0( p2 );
+      localMat( 1, 0 ) = phi1( p0 );
       localMat( 1, 1 ) = phi1( p1 );
-      localMat( 1, 2 ) = phi2( p1 );
-      localMat( 2, 0 ) = phi0( p2 );
-      localMat( 2, 1 ) = phi1( p2 );
+      localMat( 1, 2 ) = phi1( p2 );
+      localMat( 2, 0 ) = phi2( p0 );
+      localMat( 2, 1 ) = phi2( p1 );
       localMat( 2, 2 ) = phi2( p2 );
    }
 };
 
-class ProlongationFormDG0 : public ProlongationForm
+class RestrictionFormDG0 : public RestrictionForm
 {
  public:
    using Point3 = Eigen::Matrix< real_t, 3, 1 >;
@@ -99,22 +99,22 @@ class ProlongationFormDG0 : public ProlongationForm
    }
 };
 
-class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
+class DGRestriction : public RestrictionOperator< dg::DGFunction< real_t > >
 {
  public:
-   explicit DGProlongation( std::shared_ptr< ProlongationForm > form )
+   explicit DGRestriction( std::shared_ptr< RestrictionForm > form )
    : form_( form )
    {}
 
-   void prolongate( const dg::DGFunction< real_t >& function,
-                    const walberla::uint_t&         coarseLevel,
-                    const DoFType&                  flag ) const override
+   void restrict( const dg::DGFunction< real_t >& function,
+                  const walberla::uint_t&         fineLevel,
+                  const DoFType&                  flag ) const override
    {
       WALBERLA_UNUSED( flag );
 
       using volumedofspace::indexing::ElementNeighborInfo;
 
-      const uint_t fineLevel = coarseLevel + 1;
+      const uint_t coarseLevel = fineLevel - 1;
 
       const uint_t dim     = 2;
       const auto   storage = function.getStorage();
@@ -172,24 +172,7 @@ class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
 
                Eigen::Matrix< real_t, Eigen::Dynamic, 1 > coarseDofs;
                coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
-
-               for ( uint_t coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
-               {
-                  if ( dim == 2 )
-                  {
-                     coarseDofs( coarseDofIdx ) = coarseDofMemory[volumedofspace::indexing::index( coarseElementIdx.x(),
-                                                                                                   coarseElementIdx.y(),
-                                                                                                   coarseFaceType,
-                                                                                                   coarseDofIdx,
-                                                                                                   numDofs,
-                                                                                                   coarseLevel,
-                                                                                                   memLayout )];
-                  }
-                  else
-                  {
-                     WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
-                  }
-               }
+               coarseDofs.setZero();
 
                std::vector< hyteg::indexing::Index > fineElementIndices;
                std::vector< facedof::FaceType >      fineFaceTypes;
@@ -229,21 +212,37 @@ class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
 
                   Eigen::Matrix< real_t, Eigen::Dynamic, 1 > fineDofs;
                   fineDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
-
-                  fineDofs = localMat * coarseDofs;
-
                   for ( uint_t fineDofIdx = 0; fineDofIdx < numDofs; fineDofIdx++ )
                   {
                      if ( dim == 2 )
                      {
-                        fineDofMemory[volumedofspace::indexing::index(
-                            fineElementIdx.x(), fineElementIdx.y(), fineFaceType, fineDofIdx, numDofs, fineLevel, memLayout )] =
-                            fineDofs( fineDofIdx );
+                        fineDofs( fineDofIdx ) = fineDofMemory[volumedofspace::indexing::index(
+                            fineElementIdx.x(), fineElementIdx.y(), fineFaceType, fineDofIdx, numDofs, fineLevel, memLayout )];
                      }
                      else
                      {
                         WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
                      }
+                  }
+
+                  coarseDofs += localMat * fineDofs;
+               }
+
+               for ( uint_t coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
+               {
+                  if ( dim == 2 )
+                  {
+                     coarseDofMemory[volumedofspace::indexing::index( coarseElementIdx.x(),
+                                                                      coarseElementIdx.y(),
+                                                                      coarseFaceType,
+                                                                      coarseDofIdx,
+                                                                      numDofs,
+                                                                      coarseLevel,
+                                                                      memLayout )] = coarseDofs( coarseDofIdx );
+                  }
+                  else
+                  {
+                     WALBERLA_LOG_INFO_ON_ROOT( "not implemented" );
                   }
                }
             }
@@ -252,22 +251,22 @@ class DGProlongation : public ProlongationOperator< dg::DGFunction< real_t > >
    };
 
  protected:
-   std::shared_ptr< ProlongationForm > form_;
+   std::shared_ptr< RestrictionForm > form_;
 };
 
-class DG1Prolongation : public DGProlongation
+class DG1Restriction : public DGRestriction
 {
  public:
-   DG1Prolongation()
-   : DGProlongation( std::make_shared< ProlongationFormDG1 >() )
+   DG1Restriction()
+   : DGRestriction( std::make_shared< RestrictionFormDG1 >() )
    {}
 };
 
-class DG0Prolongation : public DGProlongation
+class DG0Restriction : public DGRestriction
 {
  public:
-   DG0Prolongation()
-   : DGProlongation( std::make_shared< ProlongationFormDG0 >() )
+   DG0Restriction()
+   : DGRestriction( std::make_shared< RestrictionFormDG0 >() )
    {}
 };
 
