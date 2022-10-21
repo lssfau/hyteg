@@ -25,6 +25,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toN1E1Gradient.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -64,6 +65,12 @@ void test( const uint_t lvl, const MeshInfo meshInfo, const bool print = false )
    // list of non-zeros for efficient insertion in sparse matrices
    std::vector< Eigen::Triplet< double > > tripletList;
 
+   // fill vectors with junk, in particular ghost layers!
+   fP1.interpolate( 3.14, lvl );
+   fN1E1.interpolate( 3.14, lvl );
+   communication::syncFunctionBetweenPrimitives( fP1, lvl );
+   communication::syncFunctionBetweenPrimitives( fN1E1, lvl );
+
    // assemble gradient matrix
    for ( uint_t j = 0; j < nP1; ++j )
    {
@@ -94,6 +101,12 @@ void test( const uint_t lvl, const MeshInfo meshInfo, const bool print = false )
    tripletList.clear();
    fN1E1.setToZero( lvl );
    uVectorN1E1.createVectorFromFunction( fN1E1, numeratorN1E1, lvl );
+
+   // fill vectors with junk, in particular ghost layers!
+   fP1.interpolate( 3.14, lvl );
+   fN1E1.interpolate( 3.14, lvl );
+   communication::syncFunctionBetweenPrimitives( fP1, lvl );
+   communication::syncFunctionBetweenPrimitives( fN1E1, lvl );
 
    // assemble lifting matrix
    for ( uint_t j = 0; j < nN1E1; ++j )

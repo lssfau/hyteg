@@ -23,6 +23,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -64,6 +65,12 @@ void test( const uint_t fineLevel, const MeshInfo meshInfo, const bool print = f
    // list of non-zeros for efficient insertion in sparse matrices
    std::vector< Eigen::Triplet< double > > tripletList;
 
+   // fill vectors with junk, in particular ghost layers!
+   f.interpolate( 3.14, coarseLevel );
+   f.interpolate( 3.14, fineLevel );
+   communication::syncFunctionBetweenPrimitives( f, coarseLevel );
+   communication::syncFunctionBetweenPrimitives( f, fineLevel );
+
    // assemble prolongation matrix
    for ( uint_t j = 0; j < nCoarse; ++j )
    {
@@ -94,6 +101,12 @@ void test( const uint_t fineLevel, const MeshInfo meshInfo, const bool print = f
    tripletList.clear();
    f.setToZero( fineLevel );
    uVectorF.createVectorFromFunction( f, numerator, fineLevel );
+
+   // fill vectors with junk, in particular ghost layers!
+   f.interpolate( 3.14, coarseLevel );
+   f.interpolate( 3.14, fineLevel );
+   communication::syncFunctionBetweenPrimitives( f, coarseLevel );
+   communication::syncFunctionBetweenPrimitives( f, fineLevel );
 
    // assemble restriction matrix
    for ( uint_t j = 0; j < nFine; ++j )

@@ -180,23 +180,41 @@ void liftMacroCell( const real_t* src, real_t* dst, const uint_t lvl )
       const idx_t z = it.z();
 
       // clang-format off
-      dst[index( lvl, x + 1, y    , z     )] += src[ xIndex( lvl, x, y, z )];
-      dst[index( lvl, x    , y    , z     )] -= src[ xIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerXEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x + 1, y    , z     )] += src[ xIndex( lvl, x, y, z )];
+         dst[index( lvl, x    , y    , z     )] -= src[ xIndex( lvl, x, y, z )];
+      }
 
-      dst[index( lvl, x    , y + 1, z     )] += src[ yIndex( lvl, x, y, z )];
-      dst[index( lvl, x    , y    , z     )] -= src[ yIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerYEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x    , y + 1, z     )] += src[ yIndex( lvl, x, y, z )];
+         dst[index( lvl, x    , y    , z     )] -= src[ yIndex( lvl, x, y, z )];
+      }
 
-      dst[index( lvl, x    , y    , z + 1 )] += src[ zIndex( lvl, x, y, z )];
-      dst[index( lvl, x    , y    , z     )] -= src[ zIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerZEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x    , y    , z + 1 )] += src[ zIndex( lvl, x, y, z )];
+         dst[index( lvl, x    , y    , z     )] -= src[ zIndex( lvl, x, y, z )];
+      }
 
-      dst[index( lvl, x    , y + 1, z     )] += src[xyIndex( lvl, x, y, z )];
-      dst[index( lvl, x + 1, y    , z     )] -= src[xyIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerXYEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x    , y + 1, z     )] += src[xyIndex( lvl, x, y, z )];
+         dst[index( lvl, x + 1, y    , z     )] -= src[xyIndex( lvl, x, y, z )];
+      }
 
-      dst[index( lvl, x    , y    , z + 1 )] += src[xzIndex( lvl, x, y, z )];
-      dst[index( lvl, x + 1, y    , z     )] -= src[xzIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerXZEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x    , y    , z + 1 )] += src[xzIndex( lvl, x, y, z )];
+         dst[index( lvl, x + 1, y    , z     )] -= src[xzIndex( lvl, x, y, z )];
+      }
 
-      dst[index( lvl, x    , y    , z + 1 )] += src[yzIndex( lvl, x, y, z )];
-      dst[index( lvl, x    , y + 1, z     )] -= src[yzIndex( lvl, x, y, z )];
+      if ( edgedof::macrocell::isInnerYZEdgeDoF( lvl, it ) )
+      {
+         dst[index( lvl, x    , y    , z + 1 )] += src[yzIndex( lvl, x, y, z )];
+         dst[index( lvl, x    , y + 1, z     )] -= src[yzIndex( lvl, x, y, z )];
+      }
       // clang-format on
    }
 
