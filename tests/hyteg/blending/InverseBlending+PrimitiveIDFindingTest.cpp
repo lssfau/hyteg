@@ -187,7 +187,7 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
              mapFromPhysicalToComputationalDomain2D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
          WALBERLA_CHECK( found2 );
          real_t reconstructionError{ ( backMapped - ptsOnCompDomain[idx] ).norm() };
-         WALBERLA_LOG_INFO_ON_ROOT( "faceID = " << face.getID() << ", idx = " << idx << ", error = " << reconstructionError );
+         // WALBERLA_LOG_INFO_ON_ROOT( "faceID = " << std::scientific << face.getID() << ", idx = " << idx << ", error = " << reconstructionError );
          WALBERLA_CHECK_EQUAL( faceID2, face.getID() );
          WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
       }
@@ -221,7 +221,7 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      // real_t tolerance = real_c( 1e-10 );
+      real_t tolerance = real_c( 1e-10 );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -229,15 +229,13 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
          WALBERLA_CHECK( found1 );
          WALBERLA_CHECK_EQUAL( cellID1, cell.getID() );
 
-#if 0
-        // now try to map points back to computational domain without specifing face info
-        auto [found2, cellID2, backMapped] = mapFromPhysicalToComputationalDomain3D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
-        WALBERLA_CHECK( found2 );
-        WALBERLA_CHECK_EQUAL( cellID2, cell.getID() );
-        real_t reconstructionError{ (backMapped - ptsOnCompDomain[idx]).norm() };
-        WALBERLA_LOG_INFO_ON_ROOT( " idx = " << idx << ", error = " << reconstructionError );
-        WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
-#endif
+         // now try to map points back to computational domain without specifing face info
+         auto [found2, cellID2, backMapped] = mapFromPhysicalToComputationalDomain3D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
+         WALBERLA_CHECK( found2 );
+         real_t reconstructionError{ (backMapped - ptsOnCompDomain[idx]).norm() };
+         // WALBERLA_LOG_INFO_ON_ROOT( " idx = " << idx << std::scientific << ", error = " << reconstructionError );
+         WALBERLA_CHECK_EQUAL( cellID2, cell.getID() );
+         WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
       }
    }
 }

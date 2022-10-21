@@ -69,7 +69,7 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
       WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
 #endif
 
-      // leave on first hit
+      // if face is candidate, check that this is actually the correct face
       if ( faceIsCandidate && face.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
       {
          found  = true;
@@ -79,6 +79,49 @@ std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain2D(
    }
 
    return { found, faceID, computationalCoords };
+}
+
+/// Map point from 3D physical to 3D computational domain
+///
+/// Given the coordinates of a point in the physical domain try to figure out what its coordinates
+/// were before blending, i.e. on the computational domain. Use this function in those cases were
+/// you have no information to which macro-cell the point belongs on the computational domain.
+/// Figuring this out is then part of the task.
+std::tuple< bool, PrimitiveID, Point3D > mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
+                                                                                 Point3D& physicalCoords,
+                                                                                 real_t   searchToleranceRadius )
+{
+   bool        found = false;
+   PrimitiveID cellID;
+   Point3D     computationalCoords;
+
+   for ( const auto& it : storage->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      // map coordinates from physical to computational domain
+      cell.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+
+      bool cellIsCandidate = isPointInTetrahedron( computationalCoords,
+                                                   cell.getCoordinates()[0],
+                                                   cell.getCoordinates()[1],
+                                                   cell.getCoordinates()[2],
+                                                   cell.getCoordinates()[3],
+                                                   cell.getFaceInwardNormal( 0 ),
+                                                   cell.getFaceInwardNormal( 1 ),
+                                                   cell.getFaceInwardNormal( 2 ),
+                                                   cell.getFaceInwardNormal( 3 ) );
+
+      // if cell is candidate, check that this is actually the correct cell
+      if ( cellIsCandidate && cell.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+      {
+         found  = true;
+         cellID = cell.getID();
+         break;
+      }
+   }
+
+   return { found, cellID, computationalCoords };
 }
 
 } // namespace hyteg
