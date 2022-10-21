@@ -33,6 +33,8 @@ class RestrictionForm
  public:
    using Point = Eigen::Matrix< real_t, 3, 1 >;
 
+   virtual ~RestrictionForm() = default;
+
    /// \brief Evaluates the coupling of DoF between a coarse triangle and (and embedded) fine triangle.
    ///
    /// \param coarseTriangle Vertices of the coarse triangle, ordered w.r.t. the DoF.

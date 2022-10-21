@@ -33,6 +33,8 @@ class ProlongationForm
  public:
    using Point = Eigen::Matrix< real_t, 3, 1 >;
 
+   virtual ~ProlongationForm() = default;
+
    /// \brief Evaluates the coupling of DoF between a coarse triangle and (and embedded) fine triangle.
    ///
    /// \param fineTriangle   Vertices of the fine triangle, ordered w.r.t. the DoF.

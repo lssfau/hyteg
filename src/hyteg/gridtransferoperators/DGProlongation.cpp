@@ -70,8 +70,8 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
 
    const uint_t fineLevel = coarseLevel + 1;
 
-   const uint_t dim     = 2;
    const auto   storage = function.getStorage();
+   const uint_t dim     = storage->hasGlobalCells() ? 3 : 2;
 
    if ( storage->hasGlobalCells() )
       WALBERLA_ABORT( "Prolongation currently only supports 2D." )
@@ -83,7 +83,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
    for ( const auto& pid : pids )
    {
       const auto polyDegree = function.polynomialDegree( pid );
-      const auto numDofs    = function.basis()->numDoFsPerElement( dim, polyDegree );
+      const int  numDofs = static_cast< int >( function.basis()->numDoFsPerElement( dim, static_cast< uint_t >( polyDegree ) ) );
 
       const auto coarseDofMemory = function.volumeDoFFunction()->dofMemory( pid, coarseLevel );
       const auto fineDofMemory   = function.volumeDoFFunction()->dofMemory( pid, fineLevel );
@@ -127,15 +127,15 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
             Eigen::Matrix< real_t, Eigen::Dynamic, 1 > coarseDofs;
             coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
 
-            for ( uint_t coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
+            for ( int coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
             {
                if ( dim == 2 )
                {
                   coarseDofs( coarseDofIdx ) = coarseDofMemory[volumedofspace::indexing::index( coarseElementIdx.x(),
                                                                                                 coarseElementIdx.y(),
                                                                                                 coarseFaceType,
-                                                                                                coarseDofIdx,
-                                                                                                numDofs,
+                                                                                                uint_c( coarseDofIdx ),
+                                                                                                uint_c( numDofs ),
                                                                                                 coarseLevel,
                                                                                                 memLayout )];
                }
@@ -186,13 +186,17 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
 
                fineDofs = localMat * coarseDofs;
 
-               for ( uint_t fineDofIdx = 0; fineDofIdx < numDofs; fineDofIdx++ )
+               for ( int fineDofIdx = 0; fineDofIdx < numDofs; fineDofIdx++ )
                {
                   if ( dim == 2 )
                   {
-                     fineDofMemory[volumedofspace::indexing::index(
-                         fineElementIdx.x(), fineElementIdx.y(), fineFaceType, fineDofIdx, numDofs, fineLevel, memLayout )] =
-                         fineDofs( fineDofIdx );
+                     fineDofMemory[volumedofspace::indexing::index( fineElementIdx.x(),
+                                                                    fineElementIdx.y(),
+                                                                    fineFaceType,
+                                                                    uint_c( fineDofIdx ),
+                                                                    uint_c( numDofs ),
+                                                                    fineLevel,
+                                                                    memLayout )] = fineDofs( fineDofIdx );
                   }
                   else
                   {
