@@ -334,7 +334,7 @@ void VolumeDoFFunction< ValueType >::assign(
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
 {
-   //  std::cout << "scalar is " << scalar << std::endl;
+   WALBERLA_UNUSED(flag);
    if ( storage_->hasGlobalCells() )
    {
       WALBERLA_ABORT( "Not implemented" );
