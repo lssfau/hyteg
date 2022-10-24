@@ -37,7 +37,8 @@ namespace dg{
 namespace eg{    
 class EGConstEpsilonFormEP1_0 : public hyteg::dg::DGForm2D
 {
- protected:
+   
+   public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -557,7 +558,8 @@ class EGConstEpsilonFormEP1_0 : public hyteg::dg::DGForm2D
 
 class EGConstEpsilonFormP1E_0 : public hyteg::dg::DGForm2D
 {
- protected:
+   
+   public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -1068,7 +1070,8 @@ class EGConstEpsilonFormP1E_0 : public hyteg::dg::DGForm2D
 
 class EGConstEpsilonFormEP1_1 : public hyteg::dg::DGForm2D
 {
- protected:
+   
+   public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -1588,7 +1591,8 @@ class EGConstEpsilonFormEP1_1 : public hyteg::dg::DGForm2D
 
 class EGConstEpsilonFormP1E_1 : public hyteg::dg::DGForm2D
 {
- protected:
+   
+   public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -2099,7 +2103,7 @@ class EGConstEpsilonFormP1E_1 : public hyteg::dg::DGForm2D
 
 class EGConstEpsilonFormEE : public hyteg::dg::DGForm2D
 {
- protected:
+   public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,

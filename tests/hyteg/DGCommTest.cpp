@@ -196,24 +196,29 @@ void checkComm( const std::string& meshfile, const uint_t maxLevel, bool bufferC
    WALBERLA_CHECK_EQUAL( totalExpectedChecks, numberOfChecks )
 }
 
-void printCellGhostlayer( const std::string& message, VertexDoFFunction< real_t >& func, std::shared_ptr< PrimitiveStorage >& storage, const uint_t level )
+void printCellGhostlayer( const std::string&                   message,
+                          VertexDoFFunction< real_t >&         func,
+                          std::shared_ptr< PrimitiveStorage >& storage,
+                          const uint_t                         level )
 {
-   WALBERLA_LOG_INFO_ON_ROOT(message);
+   WALBERLA_LOG_INFO_ON_ROOT( message );
    for ( const auto& pid : storage->getCellIDs() )
    {
       const auto cell = storage->getCell( pid );
-    //  WALBERLA_LOG_INFO_ON_ROOT( "Iterating cell " << pid );
+      //  WALBERLA_LOG_INFO_ON_ROOT( "Iterating cell " << pid );
       for ( const auto& [n, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
       {
-        // WALBERLA_LOG_INFO_ON_ROOT( "Iterating neighbor cell " << n );
-         const auto GLVector =  cell->getData( func.getCellGLDataID( n ) )->getVector(level);
-         for(const auto& v : GLVector) {
+         // WALBERLA_LOG_INFO_ON_ROOT( "Iterating neighbor cell " << n );
+         const auto GLVector = cell->getData( func.getCellGLDataID( n ) )->getVector( level );
+         for ( const auto& v : GLVector )
+         {
             std::cout << v << " ";
          }
          std::cout << std::endl;
       }
    }
 }
+
 void checkVertexDoFCellComm( const std::string& meshfile, const uint_t level )
 {
    //MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
@@ -222,13 +227,11 @@ void checkVertexDoFCellComm( const std::string& meshfile, const uint_t level )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    VertexDoFFunction< real_t > testFunc( "testFunc", storage, level, level, BoundaryCondition::create0123BC(), 1 );
-   printCellGhostlayer( "Init:",testFunc, storage, level );
-   testFunc.interpolate(1, level, All);
+   printCellGhostlayer( "Init:", testFunc, storage, level );
+   testFunc.interpolate( 1, level, All );
    printCellGhostlayer( "After interpolate:", testFunc, storage, level );
-  
-   testFunc.template communicate< Cell, Cell >( level );
-   
-   printCellGhostlayer("After communicate:", testFunc, storage, level );
+   testFunc.template communicate< Cell, Cell >( Cell );
+   printCellGhostlayer( "After communicate:", testFunc, storage, level );
 }
 
 int main( int argc, char** argv )

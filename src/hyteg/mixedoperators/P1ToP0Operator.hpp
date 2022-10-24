@@ -124,8 +124,6 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
       communication::syncFunctionBetweenPrimitives( src, level );
 
-      //TODO for more than 1 tet add this
-
       if ( !storage_->hasGlobalCells() )
       {
          src.template communicate< Face, Face >( level );

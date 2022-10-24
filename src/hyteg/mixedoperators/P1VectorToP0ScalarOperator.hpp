@@ -62,8 +62,9 @@ class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, 
       std::array< UpdateType, 3 > ut = { updateType, Add, Add };
       operX.apply( src[0], dst, level, flag, ut[0] );
       operY.apply( src[1], dst, level, flag, ut[1] );
-      if ( src.getDimension() == 3 )
+      if ( src.getDimension() == 3 ) {
          operZ.apply( src[2], dst, level, flag, ut[2] );
+      }
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -74,8 +75,10 @@ class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, 
    {
       operX.toMatrix( mat, src[0], dst, level, flag );
       operY.toMatrix( mat, src[1], dst, level, flag );
-      if ( src.getDimension() == 3 )
+      if ( src.getDimension() == 3 ) {
+       
          operZ.toMatrix( mat, src[2], dst, level, flag );
+      }
    }
 
  private:

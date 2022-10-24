@@ -545,6 +545,8 @@ waLBerla_execute_test(NAME DGCommTest)
 waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGEnumerateTest)
 
+
+
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveIDTest)
 
@@ -809,23 +811,28 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGSymmetryTest)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGVectorLaplaceConvergenceTests3D.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGVectorLaplaceConvergenceTests3D)
+    waLBerla_compile_test(FILES egfunctionspace/EGVectorLaplaceConvergenceTests.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGVectorLaplaceConvergenceTests)
 
     waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTests2D.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGStokesConvergenceTests2D)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGFormTest)
+    waLBerla_compile_test(FILES egfunctionspace/EGFormTest2D.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGFormTest2D)
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 
+    waLBerla_compile_test(FILES egfunctionspace/EGApplyTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGApplyTest)
 
 ## SolVi benchmark 
 waLBerla_compile_test(FILES composites/SolViBenchmark.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME SolViBenchmark)
 
+
+waLBerla_compile_test(FILES composites/MultiSinker2DBenchmark.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME MultiSinker2DBenchmark)
 
 endif()
 

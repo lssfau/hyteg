@@ -45,7 +45,7 @@ class CGSolver : public Solver< OperatorType >
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
        uint_t                                     maxIter        = std::numeric_limits< uint_t >::max(),
-       real_t                                     tolerance      = 1e-13,
+       real_t                                     tolerance      = 1e-12,
        std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
@@ -53,7 +53,7 @@ class CGSolver : public Solver< OperatorType >
    , r_( "r", storage, minLevel, maxLevel )
    , preconditioner_( preconditioner )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
-   , printInfo_( false )
+   , printInfo_( true )
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
    , maxIter_( maxIter )

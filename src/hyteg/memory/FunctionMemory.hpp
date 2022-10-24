@@ -188,11 +188,10 @@ class FunctionMemory
          recvBuffer >> dataVector;
       }
    }
-
- private:
    inline const std::vector< ValueType >& getVector( const uint_t& level ) const { return *( data_.at( level ) ); }
    inline std::vector< ValueType >&       getVector( const uint_t& level ) { return *( data_[level] ); }
 
+ private:
    /// Maps a level to the respective allocated data
    std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
 

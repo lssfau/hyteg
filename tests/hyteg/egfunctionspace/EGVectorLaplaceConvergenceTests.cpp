@@ -88,14 +88,12 @@ real_t VectorLaplace( const std::string& name,
    auto [f_x_expr, f_y_expr, f_z_expr] = rhs_tuple;
    if ( storage->hasGlobalCells() )
    {
-      std::cout << "3D path " << std::endl;
       sol.interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, All );
       f.interpolate( { f_x_expr, f_y_expr, f_z_expr }, level, All );
       u.getConformingPart()->interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
    }
    else
    {
-      std::cout << "2D path " << std::endl;
       sol.interpolate( { u_x_expr, u_y_expr }, level, All );
       f.interpolate( { f_x_expr, f_y_expr }, level, All );
       u.getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
@@ -208,7 +206,7 @@ int main( int argc, char** argv )
          std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
             return 4 * pi * pi * ( -2 * sin( 4 * pi * ( x[0] + x[1] ) ) + sin( 4 * pi * x[0] ) + sin( 4 * pi * x[1] ) );
          };
-         hyteg::runTestcase( "1face_Dirichlet0",
+         hyteg::runTestcase( "1tri_Dirichlet0",
                              minLevel,
                              maxLevel,
                              MeshInfo::meshFaceChain( 1 ),
@@ -231,10 +229,9 @@ int main( int argc, char** argv )
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
       }
-
       break;
    case 2:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single tetrahedron, hom. BC, rhs != 0 ###" );
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, hom. BC, rhs != 0 ###" );
       {
          std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
             return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
@@ -259,10 +256,9 @@ int main( int argc, char** argv )
                              std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
                              std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ) );
       }
-
       break;
    case 3:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one macro, inhom. BC, rhs != 0 ###" );
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, inhom. BC, rhs != 0 ###" );
       {
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
             return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
@@ -272,17 +268,35 @@ int main( int argc, char** argv )
             return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
          };
 
-         hyteg::runTestcase( "cube_Inhomogeneous",
+         hyteg::runTestcase( "1tet",
+                             minLevel,
+                             maxLevel,
+                             MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                             std::make_tuple( solFunc, solFunc, solFunc ),
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+      }   
+      break;
+   case 4:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, inhom. BC, rhs != 0 (second) ###" );
+      {
+          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+            return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
+         };
+
+         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+            return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
+         };
+
+         hyteg::runTestcase( "1tet_second",
                              minLevel,
                              maxLevel,
                              MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
       }
-
       break;
-   case 4:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple tets, hom. BC, rhs != 0 ###" );
+   case 5:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, hom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
@@ -301,26 +315,9 @@ int main( int argc, char** argv )
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
       }
-
-      break;
-   case 5:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs = 0 ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-         hyteg::runTestcase( "cube_Inhomogeneous_rhs0",
-                             minLevel,
-                             maxLevel,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
-      }
-
       break;
    case 6:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test nonzero on interfaces, on multiple tets, hom. BC, rhs != 0 ###" );
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test nonzero on interfaces, on cube, hom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
@@ -339,10 +336,24 @@ int main( int argc, char** argv )
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
       }
-
       break;
    case 7:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, inhom. BC, rhs = 0 ###" );
+      {
+         MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+
+         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+         hyteg::runTestcase( "cube_rhs0",
+                             minLevel,
+                             maxLevel,
+                             meshInfo,
+                             std::make_tuple( solFunc, solFunc, solFunc ),
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+      }
+      break;
+   case 8:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, inhom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
@@ -354,15 +365,37 @@ int main( int argc, char** argv )
             return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
          };
 
-         hyteg::runTestcase( "cube_Inhomogeneous",
+         hyteg::runTestcase( "cube",
                              minLevel,
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
       }
-
       break;
+   case 9:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on pyramid of 2 elements, inhom. BC, rhs != 0 ###" );
+      {
+        MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+
+         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+            return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+         };
+
+         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+            return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+         };
+
+         hyteg::runTestcase( "pyramid_2el",
+                             minLevel,
+                             maxLevel,
+                             meshInfo,
+                             std::make_tuple( solFunc, solFunc, solFunc ),
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+      }
+      break;
+      default:
+      WALBERLA_ABORT("No testcase chosen");  
    }
 
    return EXIT_SUCCESS;

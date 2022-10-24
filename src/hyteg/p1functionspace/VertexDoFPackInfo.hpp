@@ -1024,13 +1024,13 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
    }
 
    // We need one iterator for each cell type at the boundary.
-   auto cellIteratorSenderCellType0   = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
+   auto cellIteratorSenderCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
                                                                              senderLocalVertexIDs[0],
                                                                              senderLocalVertexIDs[1],
                                                                              senderLocalVertexIDs[2],
                                                                              1 );
-   
-     auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
+
+   auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
                                                                                receiverLocalVertexIDs[0],
                                                                                receiverLocalVertexIDs[1],
                                                                                receiverLocalVertexIDs[2] );
@@ -1051,7 +1051,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
       const auto senderIdx = vertexdof::macrocell::index(
           level_, cellIteratorSenderCellType0->x(), cellIteratorSenderCellType0->y(), cellIteratorSenderCellType0->z() );
       const auto senderVal = cellData[senderIdx];
-      
+
       const auto receiverIdx =
           volumedofspace::indexing::indexGhostLayerDirectly( cellIteratorReceiverCellType0->x(),
                                                              cellIteratorReceiverCellType0->y(),
@@ -1060,7 +1060,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
                                                              1,
                                                              level_,
                                                              volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-/*
+      /*
       const auto receiverIdx =
           volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
                                                                          cellIteratorReceiverCellType0->x(),

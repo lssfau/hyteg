@@ -69,7 +69,9 @@ void MultiSinker2D( const uint_t& level,
    real_t visc_max = std::pow(DR,0.5);
 
    // storage and domain
-   auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
+   //auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
+   
+   auto meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0  } ), Point3D( { 1, 1, 1 } ), nxy, nxy, nxy );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    hyteg::loadbalancing::roundRobin( setupStorage );
@@ -83,18 +85,21 @@ void MultiSinker2D( const uint_t& level,
    hyteg::P2P1TaylorHoodFunction< real_t >          btmp( "btmp", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t >          b( "b", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t >          residuum( "res", storage, level, level );
+
+   P2Function< real_t > Visc_func( "visc_func", storage, level, level );
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
 
    // generate sinker centers randomly (without them exiting the domain)
-   std::uniform_real_distribution< real_t > unif( -1 + omega, 1 - omega );
+   std::uniform_real_distribution< real_t > unif( 0.0, 1.0 );
    std::default_random_engine               re;
-   re.seed( 1312412415 );
+   re.seed( 25151 );
    //re.seed( 213512512 );
 
    std::vector< Point3D > centers;
    for ( uint_t c = 0; c < nSinkers; c++ )
    {
-      centers.push_back( Point3D( { unif( re ), unif( re ) } ) );
+     // centers.push_back( Point3D( { unif( re ), unif( re ) } ) );
+       centers.push_back( Point3D( { unif( re ), unif( re ), unif( re ) } ) );
    }
 
    // characteristic function for sinkers
@@ -115,19 +120,26 @@ void MultiSinker2D( const uint_t& level,
 
    // right hand side: "force sinkers downward": negative v velocity at sinker locations
    std::function< real_t( const hyteg::Point3D& ) > rhsV = [Xi]( const hyteg::Point3D& xx ) { return 10 * ( Xi( xx ) - 1 ); };
-   b.uvw().interpolate( { zero, rhsV }, level );
+   //b.uvw().interpolate( { zero, rhsV }, level );
 
    // operator setup
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator A( storage, level, level, viscosity );
 
    // Visualization
-   VTKOutput vtkOutput( "../../output", "MultiSinker2DBenchmark", storage );
+   
+   Visc_func.interpolate( viscosity, level, All );
+   VTKOutput vtkOutput( "../../output", "MultiSinker3DBenchmark", storage );
    vtkOutput.add( x.uvw() );
    vtkOutput.add( x.p() );
    vtkOutput.add( b.uvw() );
    vtkOutput.add( b.p() );
+   
+      vtkOutput.add( Visc_func );
    vtkOutput.write( level, 0 );
+   
+   WALBERLA_LOG_INFO_ON_ROOT( "Written vtk" );
 
+/*
    // DoFs
    uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
    uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -258,6 +270,7 @@ void MultiSinker2D( const uint_t& level,
    WALBERLA_LOG_INFO_ON_ROOT( "final residual = " << residuum_l2_1 );
 
    vtkOutput.write( level, 1 );
+   */
 }
 
 } // namespace hyteg
@@ -280,7 +293,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D(4, atoi( argv[2] ), 1, atoi( argv[3] ), atoi( argv[4] ), 200, 0.1 );
+   MultiSinker2D(6, atoi( argv[2] ), 1, atoi( argv[3] ), atoi( argv[4] ), 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
