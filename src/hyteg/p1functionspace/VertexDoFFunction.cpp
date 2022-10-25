@@ -244,8 +244,7 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const 
    {
       for ( uint_t glID = 0; glID < 4; glID++ )
       {
-         cell.getData( getCellGLDataID( glID ) )->addData( level, levelinfo::num_microfaces_per_face( level ), 0 );
-      }
+   cell.getData( getCellGLDataID( glID ) )->addData( level, facedof::macroface::numMicroFacesPerMacroFace( level, facedof::FaceType::GRAY ), 0 );  }
    }
 }
 

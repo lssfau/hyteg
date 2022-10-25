@@ -1035,13 +1035,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
                                                                                receiverLocalVertexIDs[1],
                                                                                receiverLocalVertexIDs[2] );
 
-   /*
-   auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
-                                                                               receiverLocalVertexIDs[0],
-                                                                               receiverLocalVertexIDs[1],
-                                                                               receiverLocalVertexIDs[2],
-                                                                               1 );
-*/
+
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
 
@@ -1051,16 +1045,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
       const auto senderIdx = vertexdof::macrocell::index(
           level_, cellIteratorSenderCellType0->x(), cellIteratorSenderCellType0->y(), cellIteratorSenderCellType0->z() );
       const auto senderVal = cellData[senderIdx];
-
-      const auto receiverIdx =
-          volumedofspace::indexing::indexGhostLayerDirectly( cellIteratorReceiverCellType0->x(),
-                                                             cellIteratorReceiverCellType0->y(),
-                                                             celldof::CellType::WHITE_UP,
-                                                             0,
-                                                             1,
-                                                             level_,
-                                                             volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-      /*
+   
       const auto receiverIdx =
           volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
                                                                          cellIteratorReceiverCellType0->x(),
@@ -1070,7 +1055,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
                                                                          0,
                                                                          1,
                                                                          level_,
-                                                                         volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );*/
+                                                                         volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
       glData[receiverIdx] = senderVal;
 
       cellIteratorSenderCellType0++;
