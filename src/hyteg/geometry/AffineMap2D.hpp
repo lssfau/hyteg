@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -66,6 +66,16 @@ class AffineMap2D : public GeometryMap
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + vec_[1];
       xnew[2] = real_c( 0 );
+   }
+
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   {
+      real_t tmp0 = real_c( 1 ) / jacDet_;
+      real_t tmp1 = tmp0 * ( -vec_[0] + xPhys[0] );
+      real_t tmp2 = tmp0 * ( -vec_[1] + xPhys[1] );
+
+      xComp[0] = -mat_( 0, 1 ) * tmp2 + mat_( 1, 1 ) * tmp1;
+      xComp[1] = mat_( 0, 0 ) * tmp2 - mat_( 1, 0 ) * tmp1;
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const

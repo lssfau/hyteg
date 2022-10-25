@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
+
+using walberla::real_c;
 
 /// The class implements a generic affine mapping in 3D
 ///
@@ -69,6 +71,25 @@ class AffineMap3D : public GeometryMap
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + mat_( 0, 2 ) * xold[2] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + mat_( 1, 2 ) * xold[2] + vec_[1];
       xnew[2] = mat_( 2, 0 ) * xold[0] + mat_( 2, 1 ) * xold[1] + mat_( 2, 2 ) * xold[2] + vec_[2];
+   }
+
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   {
+      real_t tmp0 = -vec_[0] + xPhys[0];
+      real_t tmp1 = -vec_[1] + xPhys[1];
+      real_t tmp2 = -vec_[2] + xPhys[2];
+
+      xComp[0] = tmp0 * ( mat_( 1, 1 ) * mat_( 2, 2 ) - mat_( 2, 1 ) * mat_( 1, 2 ) ) +
+                 tmp1 * ( -mat_( 0, 1 ) * mat_( 2, 2 ) + mat_( 2, 1 ) * mat_( 0, 2 ) ) +
+                 tmp2 * ( mat_( 0, 1 ) * mat_( 1, 2 ) - mat_( 1, 1 ) * mat_( 0, 2 ) );
+      xComp[1] = tmp0 * ( -mat_( 1, 0 ) * mat_( 2, 2 ) + mat_( 2, 0 ) * mat_( 1, 2 ) ) +
+                 tmp1 * ( mat_( 0, 0 ) * mat_( 2, 2 ) - mat_( 2, 0 ) * mat_( 0, 2 ) ) +
+                 tmp2 * ( -mat_( 0, 0 ) * mat_( 1, 2 ) + mat_( 1, 0 ) * mat_( 0, 2 ) );
+      xComp[2] = tmp0 * ( mat_( 1, 0 ) * mat_( 2, 1 ) - mat_( 2, 0 ) * mat_( 1, 1 ) ) +
+                 tmp1 * ( -mat_( 0, 0 ) * mat_( 2, 1 ) + mat_( 2, 0 ) * mat_( 0, 1 ) ) +
+                 tmp2 * ( mat_( 0, 0 ) * mat_( 1, 1 ) - mat_( 1, 0 ) * mat_( 0, 1 ) );
+
+      xComp *= real_c( 1 ) / jacDet_;
    }
 
    real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
