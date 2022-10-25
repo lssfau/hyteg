@@ -45,6 +45,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 namespace hyteg {
 
@@ -265,7 +266,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                   auto vertexDoFIndicesArray = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
                   srcDoF = srcDofMemory[volumedofspace::indexing::index(
-                       elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
+                      elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
                }
 
                if ( mat == nullptr )
@@ -645,23 +646,55 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                   {
                      if ( dim == 2 )
                      {
-                        dstDofMemory[vertexdof::macroface::index(
-                            level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] = dstDofs( dstDofIdx );
+                        if ( updateType == Replace )
+                        {
+                           dstDofMemory[vertexdof::macroface::index(
+                               level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] = dstDofs( dstDofIdx );
+                        }
+                        else if ( updateType == Add )
+                        {
+                           dstDofMemory[vertexdof::macroface::index(
+                               level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] += dstDofs( dstDofIdx );
+                        }
+                        else
+                        {
+                           WALBERLA_ABORT( "Invalid update type." );
+                        }
                      }
                      else
                      {
-                        dstDofMemory[vertexdof::macrocell::index( level,
-                                                                  vertexDoFIndices[dstDofIdx].x(),
-                                                                  vertexDoFIndices[dstDofIdx].y(),
-                                                                  vertexDoFIndices[dstDofIdx].z() )] = dstDofs( dstDofIdx );
+                        if ( updateType == Replace )
+                        {
+                           dstDofMemory[vertexdof::macrocell::index( level,
+                                                                     vertexDoFIndices[dstDofIdx].x(),
+                                                                     vertexDoFIndices[dstDofIdx].y(),
+                                                                     vertexDoFIndices[dstDofIdx].z() )] = dstDofs( dstDofIdx );
+                        }
+                        else if ( updateType == Add )
+                        {
+                           dstDofMemory[vertexdof::macrocell::index( level,
+                                                                     vertexDoFIndices[dstDofIdx].x(),
+                                                                     vertexDoFIndices[dstDofIdx].y(),
+                                                                     vertexDoFIndices[dstDofIdx].z() )] += dstDofs( dstDofIdx );
+                        }
+                        else
+                        {
+                           WALBERLA_ABORT( "Invalid update type." );
+                        }
                      }
+                  }
+                  if ( dim == 2 )
+                  {
+                     dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                     dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                  } else {
+                     WALBERLA_ABORT("Not implemented in 3D");
                   }
                }
             }
          }
       }
 
-      WALBERLA_UNUSED( flag );
    }
 
    std::shared_ptr< Form > form_;
