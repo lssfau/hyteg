@@ -63,6 +63,7 @@ real_t VectorLaplace( const std::string& name,
                       const uint_t&      level,
                       LambdaTuple        sol_tuple,
                       LambdaTuple        rhs_tuple,
+                      int                solverType,
                       bool               writeVTK = false )
 {
    // MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
@@ -110,10 +111,21 @@ real_t VectorLaplace( const std::string& name,
    u.interpolate( randfunc, level, Inner );
    */
 
-   PETScCGSolver< EGLaplaceOperator > solver( storage, level, numerator );
+   switch ( solverType )
+   {
+   case 0: {
+      PETScCGSolver< EGLaplaceOperator > solver( storage, level, numerator );
+      solver.solve( L, u, rhs, level );
+      break;
+   }
+   case 1:{
+      CGSolver< EGLaplaceOperator > solver( storage, level, level );
+      solver.solve( L, u, rhs, level );
+      break;}
+   default:
+      WALBERLA_ABORT("No solver chosen.");
+   }
 
-   //CGSolver< EGLaplaceOperator > solver( storage, level, level );
-   solver.solve( L, u, rhs, level );
    // u.getDiscontinuousPart()->interpolate( 0, level, DirichletBoundary );
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
 
@@ -152,17 +164,18 @@ void runTestcase( const std::string& name,
                   const uint_t&      maxLevel,
                   MeshInfo           meshInfo,
                   LambdaTuple        sol_tuple,
-                  LambdaTuple        rhs_tuple )
+                  LambdaTuple        rhs_tuple,
+                  int                solverType )
 {
    auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
    auto convRateEps = l2ConvRate * 0.1;
-   auto err         = VectorLaplace( name, meshInfo, minLevel, sol_tuple, rhs_tuple );
+   auto err         = VectorLaplace( name, meshInfo, minLevel, sol_tuple, rhs_tuple, solverType );
    WALBERLA_LOG_INFO_ON_ROOT( "degree " << 1 << ", expected L2 rate: " << l2ConvRate
                                         << ", threshold: " << l2ConvRate + convRateEps );
    WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
    for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
    {
-      auto errFiner     = VectorLaplace( name, meshInfo, l, sol_tuple, rhs_tuple, true );
+      auto errFiner     = VectorLaplace( name, meshInfo, l, sol_tuple, rhs_tuple, solverType, true );
       auto computedRate = errFiner / err;
 
       WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
@@ -194,6 +207,7 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
    int                 minLevel = atoi( argv[3] );
    int                 maxLevel = atoi( argv[4] );
+   int                 solverType   = atoi( argv[5] );
    switch ( atoi( argv[2] ) )
    {
    case 0:
@@ -211,14 +225,13 @@ int main( int argc, char** argv )
                              maxLevel,
                              MeshInfo::meshFaceChain( 1 ),
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
    case 1:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs = 0 ###" );
       {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
-
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
          std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
@@ -227,10 +240,28 @@ int main( int argc, char** argv )
                              maxLevel,
                              MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
    case 2:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple triangles, inhom. BC, rhs = 0 ###" );
+      {
+         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+
+         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+         hyteg::runTestcase( "quad_4el",
+                             minLevel,
+                             maxLevel,
+                             meshInfo,
+                             std::make_tuple( solFunc, solFunc, solFunc ),
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
+      }
+      break;
+   case 3:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, hom. BC, rhs != 0 ###" );
       {
          std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
@@ -254,10 +285,11 @@ int main( int argc, char** argv )
                              maxLevel,
                              MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
                              std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
-                             std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ) );
+                             std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ),
+                             solverType );
       }
       break;
-   case 3:
+   case 4:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, inhom. BC, rhs != 0 ###" );
       {
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
@@ -273,13 +305,14 @@ int main( int argc, char** argv )
                              maxLevel,
                              MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
-      }   
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
+      }
       break;
-   case 4:
+   case 5:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, inhom. BC, rhs != 0 (second) ###" );
       {
-          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
             return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
          };
 
@@ -292,10 +325,11 @@ int main( int argc, char** argv )
                              maxLevel,
                              MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-   case 5:
+   case 6:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, hom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
@@ -313,10 +347,11 @@ int main( int argc, char** argv )
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-   case 6:
+   case 7:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test nonzero on interfaces, on cube, hom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
@@ -334,10 +369,11 @@ int main( int argc, char** argv )
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-   case 7:
+   case 8:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, inhom. BC, rhs = 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
@@ -349,11 +385,12 @@ int main( int argc, char** argv )
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-   case 8:
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, inhom. BC, rhs != 0 ###" );
+   case 9:
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, inhom. BC, rhs != 0 second ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
@@ -370,13 +407,14 @@ int main( int argc, char** argv )
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-   case 9:
+   case 10:
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on pyramid of 2 elements, inhom. BC, rhs != 0 ###" );
       {
-        MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
 
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
             return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
@@ -391,11 +429,12 @@ int main( int argc, char** argv )
                              maxLevel,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ) );
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType );
       }
       break;
-      default:
-      WALBERLA_ABORT("No testcase chosen");  
+   default:
+      WALBERLA_ABORT( "No testcase chosen" );
    }
 
    return EXIT_SUCCESS;
