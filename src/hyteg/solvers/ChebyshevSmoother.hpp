@@ -21,8 +21,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/functions/CSFVectorFunction.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
@@ -64,12 +64,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
 
       WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
       WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
-
-      // CSFVectorFunctions currently do not support getMaxMagnitude()
-      if constexpr ( !std::is_base_of< CSFVectorFunction< FunctionType >, FunctionType >::value )
-      {
-         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
-      }
+      WALBERLA_ASSERT( inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag_ ) > 0, "diagonal not set" );
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
@@ -206,11 +201,8 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
    {
       auto A_with_inv_diag       = dynamic_cast< const OperatorWithInverseDiagonal< SrcFunctionType >* >( &wrappedOperator_ );
       auto inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
-      // CSFVectorFunctions currently do not support getMaxMagnitude()
-      if constexpr ( !std::is_base_of< CSFVectorFunction< SrcFunctionType >, SrcFunctionType >::value )
-      {
-         WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
-      }
+      WALBERLA_ASSERT( inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag ) > 0, "diagonal not set" );
+
       wrappedOperator_.apply( src, dst, level, flag, updateType );
       dst.multElementwise( { *inverseDiagonalValues, dst }, level, flag );
    }
