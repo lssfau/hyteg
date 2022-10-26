@@ -43,9 +43,9 @@
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 namespace hyteg {
 
@@ -148,6 +148,16 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
       src.communicate( level );
 
+      if ( updateType == Replace && mat == nullptr )
+      {
+         // We need to zero the destination array (including halos).
+         // However, we must not zero out anything that is not flagged with the specified BCs.
+         // Therefore we first zero out everything that flagged, and then, later,
+         // the halos of the highest dim primitives.
+
+         dst.interpolate( real_c( 0 ), level, flag );
+      }
+
       for ( const auto& pid : pids )
       {
          const auto srcPolyDegree = 0;
@@ -179,6 +189,33 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
             for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
             {
                glMemory[n] = src.getDGFunction()->volumeDoFFunction()->glMemory( pid, level, n );
+            }
+         }
+
+         // zero out halos for matrix-free application
+         if ( mat == nullptr )
+         {
+            if ( dim == 2 )
+            {
+               for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+               {
+                  if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
+                  {
+                     auto arrayIdx          = vertexdof::macroface::index( level, idx.x(), idx.y() );
+                     dstDofMemory[arrayIdx] = real_c( 0 );
+                  }
+               }
+            }
+            else
+            {
+               for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+               {
+                  if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
+                  {
+                     auto arrayIdx          = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+                     dstDofMemory[arrayIdx] = real_c( 0 );
+                  }
+               }
             }
          }
 
@@ -685,16 +722,24 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                   }
                   if ( dim == 2 )
                   {
-                     dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                     dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                  } else {
-                     WALBERLA_ABORT("Not implemented in 3D");
+                     dst.template communicateAdditively< Face, Edge >(
+                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                     dst.template communicateAdditively< Face, Vertex >(
+                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                  }
+                   else
+                  {
+                     dst.template communicateAdditively< Cell, Face >(
+                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                     dst.template communicateAdditively< Cell, Edge >(
+                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
+                     dst.template communicateAdditively< Cell, Vertex >(
+                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
                   }
                }
             }
          }
       }
-
    }
 
    std::shared_ptr< Form > form_;
