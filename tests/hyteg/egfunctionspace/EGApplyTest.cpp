@@ -22,6 +22,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "core/math/Constants.h"
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -54,6 +55,7 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
 {
    using namespace dg::eg;
 
+   using walberla::math::pi;
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -77,7 +79,7 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
 
    std::function< real_t( const hyteg::Point3D& ) > ones        = []( const hyteg::Point3D& x ) { return 1; };
    std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
-      return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
+      return std::sin(3* pi * x[0] ) *  std::sin(3* pi * x[1] );
    };
    src.interpolate( srcFunction, level, All );
 
@@ -102,7 +104,7 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
 
    if ( writeVTK )
    {
-      VTKOutput vtk( "../../output", "EGApplyTest", storage );
+      VTKOutput vtk( "../../output", testName, storage );
       vtk.add( hytegDst );
       vtk.add( *hytegDst.getConformingPart() );
       vtk.add( *hytegDst.getDiscontinuousPart() );
@@ -119,29 +121,34 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
 
    WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||_max = " << maxMag );
 
-   //  WALBERLA_CHECK_LESS( maxMag, eps );
+   WALBERLA_CHECK_LESS( maxMag, eps );
 }
 
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
+   
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
+   
+ //  hyteg::EGApplyTest( "tet_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, true );
+   hyteg::EGApplyTest( "tet_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, true);
+   
+  // hyteg::EGApplyTest( "tri_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, true );
+   hyteg::EGApplyTest( "tri_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, true );
 
-   hyteg::EGApplyTest( "tet_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
-   hyteg::EGApplyTest( "tri_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
-   hyteg::EGApplyTest( "tet_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
-   hyteg::EGApplyTest( "tri_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
+  // hyteg::EGApplyTest( "tri_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ),  1.0e-15, true );
+   hyteg::EGApplyTest( "tri_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), 1.0e-15, true );
 
-   hyteg::EGApplyTest( "quad_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
-   hyteg::EGApplyTest( "quad_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
-   /*
-   hyteg::EGApplyTest( "pyramid_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
-   hyteg::EGApplyTest( "pyramid_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
-   hyteg::EGApplyTest( "pyramid_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 5.0e-16 );
-   hyteg::EGApplyTest( "pyramid_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 5.0e-16 );
+  // hyteg::EGApplyTest( "quad_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, true );
+   hyteg::EGApplyTest( "quad_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, true );
+  /* 
+   hyteg::EGApplyTest( "pyramid_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 1.0e-15 );
+   hyteg::EGApplyTest( "pyramid_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 1.0e-15 );
+   hyteg::EGApplyTest( "pyramid_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );
+   hyteg::EGApplyTest( "pyramid_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );
 */
    return EXIT_SUCCESS;
 }
