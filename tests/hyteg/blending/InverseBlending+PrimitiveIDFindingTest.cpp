@@ -174,7 +174,7 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      real_t tolerance = real_c( 1e-10 );
+      real_t tolerance = real_c( 1e-15 );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -188,8 +188,8 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
          WALBERLA_CHECK( found2 );
          real_t reconstructionError{ ( backMapped - ptsOnCompDomain[idx] ).norm() };
          // WALBERLA_LOG_INFO_ON_ROOT( "faceID = " << std::scientific << face.getID() << ", idx = " << idx << ", error = " << reconstructionError );
-         WALBERLA_CHECK_EQUAL( faceID2, face.getID() );
          WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
+         WALBERLA_CHECK_EQUAL( faceID2, face.getID() );
       }
    }
 }
@@ -221,7 +221,7 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      real_t tolerance = real_c( 1e-10 );
+      real_t tolerance = real_c( 1e-15 );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -236,6 +236,12 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
          // WALBERLA_LOG_INFO_ON_ROOT( " idx = " << idx << std::scientific << ", error = " << reconstructionError );
          WALBERLA_CHECK_EQUAL( cellID2, cell.getID() );
          WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );
+         // real_t reconstructionErrorComponent0{ std::abs( backMapped[0] - ptsOnCompDomain[idx][0] ) };
+         // real_t reconstructionErrorComponent1{ std::abs( backMapped[1] - ptsOnCompDomain[idx][1] ) };
+         // real_t reconstructionErrorComponent2{ std::abs( backMapped[2] - ptsOnCompDomain[idx][2] ) };
+         // WALBERLA_CHECK_LESS_EQUAL( reconstructionErrorComponent0, tolerance );
+         // WALBERLA_CHECK_LESS_EQUAL( reconstructionErrorComponent1, tolerance );
+         // WALBERLA_CHECK_LESS_EQUAL( reconstructionErrorComponent2, tolerance );
       }
    }
 }
