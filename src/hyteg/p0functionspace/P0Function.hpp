@@ -64,10 +64,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
-   {
-      dgFunction_->add( scalar, level, flag );
-   };
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -265,7 +262,10 @@ class P0Function : public Function< P0Function< ValueType > >
    {
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
-
+   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const
+   {
+      return dgFunction_->getMaxMagnitude( level, mpiReduce );
+   }
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
    {
