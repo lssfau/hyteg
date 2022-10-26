@@ -68,7 +68,7 @@ class AffineMap2D : public GeometryMap
       xnew[2] = real_c( 0 );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final
    {
       real_t tmp0 = real_c( 1 ) / jacDet_;
       real_t tmp1 = tmp0 * ( -vec_[0] + xPhys[0] );

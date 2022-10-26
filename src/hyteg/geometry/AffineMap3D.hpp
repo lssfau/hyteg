@@ -73,7 +73,7 @@ class AffineMap3D : public GeometryMap
       xnew[2] = mat_( 2, 0 ) * xold[0] + mat_( 2, 1 ) * xold[1] + mat_( 2, 2 ) * xold[2] + vec_[2];
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final
    {
       real_t tmp0 = -vec_[0] + xPhys[0];
       real_t tmp1 = -vec_[1] + xPhys[1];
