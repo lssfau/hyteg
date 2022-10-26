@@ -720,24 +720,22 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                         }
                      }
                   }
-                  if ( dim == 2 )
-                  {
-                     dst.template communicateAdditively< Face, Edge >(
-                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                     dst.template communicateAdditively< Face, Vertex >(
-                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                  }
-                   else
-                  {
-                     dst.template communicateAdditively< Cell, Face >(
-                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                     dst.template communicateAdditively< Cell, Edge >(
-                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                     dst.template communicateAdditively< Cell, Vertex >(
-                         level, DoFType::All ^ flag, *storage_, updateType == Replace );
-                  }
                }
             }
+         }
+      }
+      if ( mat == nullptr )
+      {
+         if ( dim == 2 )
+         {
+            dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+            dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+         }
+         else
+         {
+            dst.template communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+            dst.template communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+            dst.template communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
          }
       }
    }
