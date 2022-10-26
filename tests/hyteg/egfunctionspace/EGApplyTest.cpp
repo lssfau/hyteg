@@ -50,7 +50,7 @@ using walberla::real_t;
 
 namespace hyteg {
 
-void EGApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
+void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& meshInfo, real_t eps, bool writeVTK = false )
 {
    using namespace dg::eg;
 
@@ -65,45 +65,31 @@ void EGApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
    EGFunction< real_t > err( "error", storage, level, level );
    EGFunction< idx_t >  numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
-   
-   EGLaplaceOperator              L( storage, level, level );
 
-   EGMassOperator                                   M( storage, level, level );
+   EGLaplaceOperator L( storage, level, level );
+   EGMassOperator    M( storage, level, level );
 
-   
    // PETSc apply
-   PETScVector< real_t, EGFunction >                   srcPetscVec;
-   PETScVector< real_t, EGFunction >                   dstPetscVec;
-   PETScSparseMatrix< EGLaplaceOperator >              L_Matrix;
-   PETScSparseMatrix< EGMassOperator > M_Matrix;
+   PETScVector< real_t, EGFunction >      srcPetscVec;
+   PETScVector< real_t, EGFunction >      dstPetscVec;
+   PETScSparseMatrix< EGLaplaceOperator > L_Matrix;
+   PETScSparseMatrix< EGMassOperator >    M_Matrix;
+
+   std::function< real_t( const hyteg::Point3D& ) > ones        = []( const hyteg::Point3D& x ) { return 1; };
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
+      return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
+   };
+   src.interpolate( srcFunction, level, All );
 
    srcPetscVec.createVectorFromFunction( src, numerator, level );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level );
    L_Matrix.createMatrixFromOperator( L, level, numerator );
    M_Matrix.createMatrixFromOperator( M, level, numerator );
 
-   L_Matrix.print( "EGApplyTest_L.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   M_Matrix.print( "EGApplyTest_M.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-   std::function< real_t( const hyteg::Point3D& ) > ones        = []( const hyteg::Point3D& x ) { return 1; };
-   std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
-      return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
-   };
-   src.interpolate( 1, level, All );
-
-   VTKOutput vtk( "../../output", "EGApplyTest", storage );
-   vtk.add( hytegDst );
-   vtk.add( *hytegDst.getConformingPart() );
-   vtk.add( *hytegDst.getDiscontinuousPart() );
-   vtk.add( petscDst );
-   vtk.add( *petscDst.getConformingPart() );
-   vtk.add( *petscDst.getDiscontinuousPart() );
-   vtk.add( err );
-   vtk.add( *err.getConformingPart() );
-   vtk.add( *err.getDiscontinuousPart() );
+   // L_Matrix.print( "EGApplyTest_L.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   //  M_Matrix.print( "EGApplyTest_M.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
    L.apply( src, hytegDst, level, All, Replace );
-
 
    // WALBERLA_CHECK( petscMatrix.isSymmetric() );
 
@@ -113,19 +99,25 @@ void EGApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
 
    // compare
    err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level );
-   vtk.write( level, 0 );
 
-   //  auto maxMag = err.getMaxMagnitude( level );
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../output", "EGApplyTest", storage );
+      vtk.add( hytegDst );
+      vtk.add( *hytegDst.getConformingPart() );
+      vtk.add( *hytegDst.getDiscontinuousPart() );
+      vtk.add( petscDst );
+      vtk.add( *petscDst.getConformingPart() );
+      vtk.add( *petscDst.getDiscontinuousPart() );
+      vtk.add( err );
+      vtk.add( *err.getConformingPart() );
+      vtk.add( *err.getDiscontinuousPart() );
+      vtk.write( level, 0 );
+   }
 
-   //  WALBERLA_LOG_INFO_ON_ROOT( "Error max mag = " << maxMag );
+   auto maxMag = err.getMaxMagnitude( level );
 
-   // VTK
-   //   VTKOutput vtkOutput( "../../output", "DGPetscApplyTest", storage );
-   //   vtkOutput.add( src );
-   //   vtkOutput.add( hytegDst );
-   //   vtkOutput.add( petscDst );
-   //   vtkOutput.add( err );
-   //   vtkOutput.write( level, 0 );
+   WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||_max = " << maxMag );
 
    //  WALBERLA_CHECK_LESS( maxMag, eps );
 }
@@ -138,17 +130,18 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   //hyteg::EGApplyTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
+   hyteg::EGApplyTest( "tet_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
+   hyteg::EGApplyTest( "tri_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
+   hyteg::EGApplyTest( "tet_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
+   hyteg::EGApplyTest( "tri_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
 
-   hyteg::EGApplyTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-16 );
-   //hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 4.0e-15 );
-
+   hyteg::EGApplyTest( "quad_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
+   hyteg::EGApplyTest( "quad_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
    /*
-   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
-   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" ), 6.0e-14 );
-   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
-   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );
-   hyteg::EGApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" ), 1.0e-15 );
+   hyteg::EGApplyTest( "pyramid_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
+   hyteg::EGApplyTest( "pyramid_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 5.0e-16 );
+   hyteg::EGApplyTest( "pyramid_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 5.0e-16 );
+   hyteg::EGApplyTest( "pyramid_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 5.0e-16 );
 */
    return EXIT_SUCCESS;
 }
