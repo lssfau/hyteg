@@ -19,10 +19,10 @@
 */
 
 #include "core/DataTypes.h"
+#include "core/math/Constants.h"
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "core/math/Constants.h"
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -47,15 +47,20 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-using walberla::real_t;
 
+using walberla::real_t;
+typedef std::function< real_t( const hyteg::PointND< real_t, 3 >& p ) > ScalarLambda;
 namespace hyteg {
 
-void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& meshInfo, real_t eps, bool writeVTK = false )
+void EGApplyTest( ScalarLambda       srcLambda,
+                  const std::string& testName,
+                  uint_t             level,
+                  const MeshInfo&    meshInfo,
+                  real_t             eps,
+                  bool               writeVTK = false )
 {
    using namespace dg::eg;
 
-   using walberla::math::pi;
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -77,10 +82,7 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
    PETScSparseMatrix< EGLaplaceOperator > L_Matrix;
    PETScSparseMatrix< EGMassOperator >    M_Matrix;
 
-   std::function< real_t( const hyteg::Point3D& ) > ones        = []( const hyteg::Point3D& x ) { return 1; };
-   std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
-      return std::sin(3* pi * x[0] ) *  std::sin(3* pi * x[1] );
-   };
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = srcLambda;
    src.interpolate( srcFunction, level, All );
 
    srcPetscVec.createVectorFromFunction( src, numerator, level );
@@ -100,7 +102,7 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level );
 
    // compare
-   err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level );
+   err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level, Inner );
 
    if ( writeVTK )
    {
@@ -128,23 +130,43 @@ void EGApplyTest( const std::string& testName, uint_t level, const MeshInfo& mes
 
 int main( int argc, char* argv[] )
 {
-   
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
-   
- //  hyteg::EGApplyTest( "tet_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, true );
-   hyteg::EGApplyTest( "tet_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, true);
-   
-  // hyteg::EGApplyTest( "tri_1el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, true );
-   hyteg::EGApplyTest( "tri_1el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, true );
 
-  // hyteg::EGApplyTest( "tri_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ),  1.0e-15, true );
-   hyteg::EGApplyTest( "tri_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), 1.0e-15, true );
+   using walberla::math::pi;
+   const bool   writeVTK   = true;
+   ScalarLambda srcLambda1 = []( const hyteg::Point3D& x ) { return std::sin( 3 * pi * x[0] ) * std::sin( 3 * pi * x[1] ); };
+   hyteg::EGApplyTest(
+       srcLambda1, "tet_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda1, "tri_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda1, "tri_2el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda1, "quad_4el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, writeVTK );
 
-  // hyteg::EGApplyTest( "quad_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, true );
-   hyteg::EGApplyTest( "quad_4el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, true );
-  /* 
+   ScalarLambda srcLambda2 = []( const hyteg::Point3D& x ) { return 1; };
+   hyteg::EGApplyTest(
+       srcLambda2, "tet_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda2, "tri_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda2, "tri_2el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda2, "quad_4el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, writeVTK );
+
+   ScalarLambda srcLambda3 = []( const hyteg::Point3D& x ) { return x[0] * x[0] * x[0] * std::sin( 3 * pi * x[1] ); };
+   hyteg::EGApplyTest(
+       srcLambda3, "tet_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda3, "tri_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda3, "tri_2el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), 1.0e-15, writeVTK );
+   hyteg::EGApplyTest(
+       srcLambda3, "quad_4el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 1.0e-15, writeVTK );
+
+   /* 
    hyteg::EGApplyTest( "pyramid_2el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 1.0e-15 );
    hyteg::EGApplyTest( "pyramid_2el_4", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 1.0e-15 );
    hyteg::EGApplyTest( "pyramid_4el_2", 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );
