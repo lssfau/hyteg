@@ -32,10 +32,10 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
-#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -83,6 +83,11 @@ class VTKOutput
 
    template < typename value_t >
    inline void add( const P0Function< value_t >& function )
+   {
+      dgFunctions_.push_back( *function.getDGFunction() );
+   }
+   template < typename value_t >
+   inline void add( const DG1Function< value_t >& function )
    {
       dgFunctions_.push_back( *function.getDGFunction() );
    }
