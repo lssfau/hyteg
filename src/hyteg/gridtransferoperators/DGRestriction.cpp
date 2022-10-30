@@ -30,7 +30,8 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
 {
    using Point2 = Eigen::Matrix< real_t, 2, 1 >;
 
-   const Point2 b = src[0].block( 0, 0, 2, 1 );
+   const Point2 b;
+   b << src[0](0), src[0](1);
 
    const Point s10 = src[1] - src[0];
    const Point s20 = src[2] - src[0];
