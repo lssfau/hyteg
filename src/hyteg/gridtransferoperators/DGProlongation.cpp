@@ -46,11 +46,10 @@ void ProlongationFormDG1::integrate2D( const std::vector< Point >&              
    a1 << s10(0), s10(1);
    a2 << s20(0), s20(1);
 
-   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > A( 2, 2 );
-   A.col( 0 ) = a1;
-   A.col( 1 ) = a2;
+   Eigen::Matrix< real_t, 2, 2 > A( 2, 2 );
+   A << a1(0), a2(0), a1(1), a2(1);
 
-   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > Ainv = A.inverse();
+   Eigen::Matrix< real_t, 2, 2 > Ainv {A.inverse()};
 
    Point2 d0;
    Point2 d1;
@@ -63,9 +62,9 @@ void ProlongationFormDG1::integrate2D( const std::vector< Point >&              
    d1 -= b;
    d2 -= b;
 
-   const Point2 p0 = Ainv * d0;
-   const Point2 p1 = Ainv * d1;
-   const Point2 p2 = Ainv * d2;
+   const Point2 p0 {Ainv * d0};
+   const Point2 p1 {Ainv * d1};
+   const Point2 p2 {Ainv * d2};
 
    localMat.resize( 3, 3 );
    localMat( 0, 0 ) = phi0( p0 );
