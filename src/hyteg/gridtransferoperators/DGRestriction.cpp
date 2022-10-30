@@ -24,6 +24,12 @@
 
 namespace hyteg {
 
+inline real_t phi0 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return 1 - x( 0 ) - x( 1 ); }
+
+inline real_t phi1 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return x( 0 ); }
+
+inline real_t phi2 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return x( 1 ); }
+
 void RestrictionFormDG1::integrate2D( const std::vector< Point >&                              dst,
                                       const std::vector< Point >&                              src,
                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
@@ -61,10 +67,6 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
    const Point2 p0 = Ainv * d0;
    const Point2 p1 = Ainv * d1;
    const Point2 p2 = Ainv * d2;
-
-   auto phi0 = []( Point2 x ) -> real_t { return 1 - x( 0 ) - x( 1 ); };
-   auto phi1 = []( Point2 x ) -> real_t { return x( 0 ); };
-   auto phi2 = []( Point2 x ) -> real_t { return x( 1 ); };
 
    localMat.resize( 3, 3 );
    localMat( 0, 0 ) = phi0( p0 );
