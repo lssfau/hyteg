@@ -41,6 +41,8 @@ enum class FaceType : uint_t
    BLUE
 };
 
+const std::map< FaceType, std::string > FaceTypeToStr = { { FaceType::GRAY, "GRAY" }, { FaceType::BLUE, "BLUE" } };
+
 const std::array< FaceType, 2 > allFaceTypes = { FaceType::GRAY, FaceType::BLUE };
 
 namespace macroface {
