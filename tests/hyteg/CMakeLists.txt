@@ -236,6 +236,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3)
 endif ()
 
+waLBerla_compile_test(FILES Indexing/VolumeDoFIndexingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VolumeDoFIndexingTest)
+
 #if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 #  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
 #    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS hyteg core)

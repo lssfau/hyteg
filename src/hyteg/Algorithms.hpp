@@ -24,7 +24,9 @@
 #include "core/debug/Debug.h"
 
 #include <algorithm>
+#include <numeric>
 #include <set>
+#include <vector>
 
 namespace hyteg {
 namespace algorithms {
@@ -60,6 +62,38 @@ inline std::array< uint_t, OutputArraySize > getMissingIntegersAscending( const 
     }
   }
   return outputArray;
+}
+
+/// Creates a permutation vector that is being sorted as if the passed vector would have been sorted instead.
+///
+/// Thanks to https://stackoverflow.com/a/17074810.
+///
+template < typename T, typename Compare >
+std::vector< std::size_t > sortPermutation( const std::vector< T >& vec, Compare compare )
+{
+   std::vector< std::size_t > p( vec.size() );
+   std::iota( p.begin(), p.end(), 0 );
+   std::sort( p.begin(), p.end(), [&]( std::size_t i, std::size_t j ) { return compare( vec[i], vec[j] ); } );
+   return p;
+}
+
+/// Sorts the given vector according to the passed permutation.
+///
+/// Use this combined with sortPermutation() to sort two or more vectors the same way:
+///
+/// // pseudocode
+/// auto permutation = sortPermutation( vec1, compare );
+/// vec1Sorted = applyPermutation( vec1, permutation ):
+/// vec2Sorted = applyPermutation( vec2, permutation ):
+///
+/// Thanks to https://stackoverflow.com/a/17074810.
+///
+template < typename T >
+std::vector< T > applyPermutation( const std::vector< T >& vec, const std::vector< std::size_t >& p )
+{
+   std::vector< T > sorted_vec( vec.size() );
+   std::transform( p.begin(), p.end(), sorted_vec.begin(), [&]( std::size_t i ) { return vec[i]; } );
+   return sorted_vec;
 }
 
 }
