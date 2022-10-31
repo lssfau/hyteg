@@ -45,8 +45,6 @@ using indexing::Index;
 
 void testMicroRefinement2D()
 {
-   const uint_t levelCoarse = 3;
-
    std::vector< Index > indexCoarse = { Index( 0, 0, 0 ), Index( 0, 0, 0 ) };
 
    std::vector< FaceType > typeCoarse = { FaceType::GRAY, FaceType::BLUE };
@@ -76,23 +74,33 @@ void testMicroRefinement2D()
       volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
           indexCoarse[i], typeCoarse[i], indexFineResult, typeFineResult );
 
-      auto indexFineCheck = indicesFine[i];
-      auto typeFineCheck  = typesFine[i];
+      // zip all those guys to make them sortable
+      std::vector< std::pair< Index, FaceType > > fineResult( 4 );
+      std::vector< std::pair< Index, FaceType > > fineCheck( 4 );
+      for ( size_t ii = 0; ii < 4; ii++ )
+      {
+         fineResult[ii].first  = indexFineResult[ii];
+         fineResult[ii].second = typeFineResult[ii];
 
-      auto permutationCheck  = algorithms::sortPermutation( indexFineCheck, std::less< Index >() );
-      auto permutationResult = algorithms::sortPermutation( indexFineResult, std::less< Index >() );
+         fineCheck[ii].first  = indicesFine[i][ii];
+         fineCheck[ii].second = typesFine[i][ii];
+      }
 
-      indexFineCheck = algorithms::applyPermutation( indexFineCheck, permutationCheck );
-      typeFineCheck  = algorithms::applyPermutation( typeFineCheck, permutationCheck );
+      std::sort( fineResult.begin(), fineResult.end() );
+      std::sort( fineCheck.begin(), fineCheck.end() );
 
-      indexFineResult = algorithms::applyPermutation( indexFineResult, permutationResult );
-      typeFineResult  = algorithms::applyPermutation( typeFineResult, permutationResult );
+      WALBERLA_LOG_INFO_ON_ROOT( "Result:" )
+      for ( auto it : fineResult )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( it.first << ", " << facedof::FaceTypeToStr.at( it.second ) );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "Check:" )
+      for ( auto it : fineCheck )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( it.first << ", " << facedof::FaceTypeToStr.at( it.second ) );
+      }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "checking coarse index: " << indexCoarse[i]
-                                                           << ", type: " << facedof::FaceTypeToStr.at( typeCoarse[i] ) );
-
-      WALBERLA_CHECK_EQUAL( indexFineCheck, indexFineResult );
-      WALBERLA_CHECK_EQUAL( typeFineCheck, typeFineResult );
+      WALBERLA_CHECK_EQUAL( fineResult, fineCheck );
    }
 }
 
@@ -100,7 +108,67 @@ void testMicroRefinement2D()
 // 3D //
 ////////
 
-void testMicroRefinement3D() {}
+void testMicroRefinement3D()
+{
+   std::vector< Index > indexCoarse = { Index( 0, 0, 0 ) };
+
+   std::vector< CellType > typeCoarse = { CellType::BLUE_UP };
+
+   std::vector< std::vector< Index > > indicesFine = { { Index( 1, 0, 0 ),
+                                                         Index( 0, 1, 0 ),
+                                                         Index( 1, 1, 0 ),
+                                                         Index( 1, 0, 1 ),
+                                                         Index( 1, 0, 0 ),
+                                                         Index( 1, 1, 0 ),
+                                                         Index( 1, 0, 0 ),
+                                                         Index( 1, 1, 0 ) } };
+
+   std::vector< std::vector< CellType > > typesFine = { { celldof::CellType::BLUE_UP,
+                                                          celldof::CellType::BLUE_UP,
+                                                          celldof::CellType::BLUE_UP,
+                                                          celldof::CellType::BLUE_UP,
+                                                          celldof::CellType::GREEN_DOWN,
+                                                          celldof::CellType::GREEN_UP,
+                                                          celldof::CellType::WHITE_DOWN,
+                                                          celldof::CellType::WHITE_UP } };
+
+   for ( uint_t i = 0; i < indexCoarse.size(); i++ )
+   {
+      std::vector< Index >    indexFineResult;
+      std::vector< CellType > typeFineResult;
+
+      volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
+          indexCoarse[i], typeCoarse[i], indexFineResult, typeFineResult );
+
+      // zip all those guys to make them sortable
+      std::vector< std::pair< Index, CellType > > fineResult( 8 );
+      std::vector< std::pair< Index, CellType > > fineCheck( 8 );
+      for ( size_t ii = 0; ii < 8; ii++ )
+      {
+         fineResult[ii].first  = indexFineResult[ii];
+         fineResult[ii].second = typeFineResult[ii];
+
+         fineCheck[ii].first  = indicesFine[i][ii];
+         fineCheck[ii].second = typesFine[i][ii];
+      }
+
+      std::sort( fineResult.begin(), fineResult.end() );
+      std::sort( fineCheck.begin(), fineCheck.end() );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Result:" )
+      for ( auto it : fineResult )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( it.first << ", " << celldof::CellTypeToStr.at( it.second ) );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "Check:" )
+      for ( auto it : fineCheck )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( it.first << ", " << celldof::CellTypeToStr.at( it.second ) );
+      }
+
+      WALBERLA_CHECK_EQUAL( fineResult, fineCheck );
+   }
+}
 
 } // namespace hyteg
 
@@ -109,4 +177,5 @@ int main( int argc, char* argv[] )
    walberla::mpi::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::testMicroRefinement2D();
+   hyteg::testMicroRefinement3D();
 }
