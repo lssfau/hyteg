@@ -24,11 +24,20 @@
 
 namespace hyteg {
 
-inline real_t phi0 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return 1 - x( 0 ) - x( 1 ); }
+inline real_t phi0( const Eigen::Matrix< real_t, 2, 1 >& x )
+{
+   return 1 - x( 0 ) - x( 1 );
+}
 
-inline real_t phi1 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return x( 0 ); }
+inline real_t phi1( const Eigen::Matrix< real_t, 2, 1 >& x )
+{
+   return x( 0 );
+}
 
-inline real_t phi2 ( const Eigen::Matrix< real_t, 2, 1 >& x ) { return x( 1 ); }
+inline real_t phi2( const Eigen::Matrix< real_t, 2, 1 >& x )
+{
+   return x( 1 );
+}
 
 inline real_t phi0( const Eigen::Matrix< real_t, 3, 1 >& x )
 {
@@ -57,7 +66,7 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
    using Point2 = Eigen::Matrix< real_t, 2, 1 >;
 
    Point2 b;
-   b << src[0](0), src[0](1);
+   b << src[0]( 0 ), src[0]( 1 );
 
    const Point s10 = src[1] - src[0];
    const Point s20 = src[2] - src[0];
@@ -68,9 +77,9 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
    a2 << s20( 0 ), s20( 1 );
 
    Eigen::Matrix< real_t, 2, 2 > A( 2, 2 );
-   A << a1(0), a2(0), a1(1), a2(1);
+   A << a1( 0 ), a2( 0 ), a1( 1 ), a2( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > Ainv {A.inverse()};
+   Eigen::Matrix< real_t, 2, 2 > Ainv{ A.inverse() };
 
    Point2 d0;
    Point2 d1;
@@ -83,9 +92,9 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
    d1 -= b;
    d2 -= b;
 
-   const Point2 p0 {Ainv * d0};
-   const Point2 p1 {Ainv * d1};
-   const Point2 p2 {Ainv * d2};
+   const Point2 p0{ Ainv * d0 };
+   const Point2 p1{ Ainv * d1 };
+   const Point2 p2{ Ainv * d2 };
 
    localMat.resize( 3, 3 );
    localMat( 0, 0 ) = phi0( p0 );
@@ -241,8 +250,8 @@ void DGRestriction::restrict( const dg::DGFunction< real_t >& function,
             {
                auto fineElementIdx = fineElementIndices[fineIdx];
 
-               facedof::FaceType fineFaceType;
-               celldof::CellType fineCellType;
+               facedof::FaceType fineFaceType{ facedof::FaceType::GRAY };
+               celldof::CellType fineCellType{ celldof::CellType::BLUE_DOWN };
                if ( dim == 2 )
                {
                   fineFaceType = fineFaceTypes[fineIdx];

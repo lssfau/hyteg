@@ -66,34 +66,34 @@ void ProlongationFormDG1::integrate2D( const std::vector< Point >&              
    using Point2 = Eigen::Matrix< real_t, 2, 1 >;
 
    Point2 b;
-   b << src[0](0), src[0](1);
-   const Point  s10 = src[1] - src[0];
-   const Point  s20 = src[2] - src[0];
+   b << src[0]( 0 ), src[0]( 1 );
+   const Point s10 = src[1] - src[0];
+   const Point s20 = src[2] - src[0];
 
    Point2 a1;
    Point2 a2;
-   a1 << s10(0), s10(1);
-   a2 << s20(0), s20(1);
+   a1 << s10( 0 ), s10( 1 );
+   a2 << s20( 0 ), s20( 1 );
 
    Eigen::Matrix< real_t, 2, 2 > A( 2, 2 );
-   A << a1(0), a2(0), a1(1), a2(1);
+   A << a1( 0 ), a2( 0 ), a1( 1 ), a2( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > Ainv {A.inverse()};
+   Eigen::Matrix< real_t, 2, 2 > Ainv{ A.inverse() };
 
    Point2 d0;
    Point2 d1;
    Point2 d2;
-   d0 << dst[0](0), dst[0](1);
-   d1 << dst[1](0), dst[1](1);
-   d2 << dst[2](0), dst[2](1);
+   d0 << dst[0]( 0 ), dst[0]( 1 );
+   d1 << dst[1]( 0 ), dst[1]( 1 );
+   d2 << dst[2]( 0 ), dst[2]( 1 );
 
    d0 -= b;
    d1 -= b;
    d2 -= b;
 
-   const Point2 p0 {Ainv * d0};
-   const Point2 p1 {Ainv * d1};
-   const Point2 p2 {Ainv * d2};
+   const Point2 p0{ Ainv * d0 };
+   const Point2 p1{ Ainv * d1 };
+   const Point2 p2{ Ainv * d2 };
 
    localMat.resize( 3, 3 );
    localMat( 0, 0 ) = phi0( p0 );
@@ -273,8 +273,8 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
             {
                auto fineElementIdx = fineElementIndices[fineIdx];
 
-               facedof::FaceType fineFaceType;
-               celldof::CellType fineCellType;
+               facedof::FaceType fineFaceType{ facedof::FaceType::GRAY };
+               celldof::CellType fineCellType{ celldof::CellType::BLUE_DOWN };
                if ( dim == 2 )
                {
                   fineFaceType = fineFaceTypes[fineIdx];

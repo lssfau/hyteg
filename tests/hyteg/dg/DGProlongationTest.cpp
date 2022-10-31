@@ -239,7 +239,6 @@ int main( int argc, char* argv[] )
    compareProlongationWithRestrictionDG1( "../../data/meshes/tri_1el.msh" );
    compareProlongationWithRestrictionDG1( "../../data/meshes/circle.msh" );
 
-
    compareProlongationWithRestrictionDG0( "../../data/meshes/tri_1el.msh" );
    compareProlongationWithRestrictionDG0( "../../data/meshes/circle.msh" );
 
