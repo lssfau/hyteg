@@ -47,8 +47,23 @@ class RestrictionForm
       WALBERLA_UNUSED( coarseTriangle );
       WALBERLA_UNUSED( fineTriangle );
       WALBERLA_UNUSED( localMat );
-      WALBERLA_LOG_INFO_ON_ROOT( "not implemented" )
+      WALBERLA_ABORT( "not implemented" )
    }
+
+    /// \brief Evaluates the coupling of DoF between a coarse tetrahedron and (and embedded) fine tetrahedron.
+    ///
+    /// \param coarseTriangle Vertices of the coarse tetrahedron, ordered w.r.t. the DoF.
+    /// \param fineTriangle   Vertices of the fine tetrahedron, ordered w.r.t. the DoF.
+    /// \param localMat       Coupling between coarse tetrahedron DoF (rows) and fine tetrahedron DoF (cols).
+    virtual void integrate3D( const std::vector< Point >&                              coarseTriangle,
+                              const std::vector< Point >&                              fineTriangle,
+                              Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+    {
+        WALBERLA_UNUSED( coarseTriangle );
+        WALBERLA_UNUSED( fineTriangle );
+        WALBERLA_UNUSED( localMat );
+        WALBERLA_ABORT( "not implemented" )
+    }
 };
 
 /// \brief Restriction form for piecewise linear DG functions.
@@ -58,6 +73,10 @@ class RestrictionFormDG1 : public RestrictionForm
    void integrate2D( const std::vector< Point >&                              dst,
                      const std::vector< Point >&                              src,
                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
+
+    void integrate3D( const std::vector< Point >&                              dst,
+                      const std::vector< Point >&                              src,
+                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
 };
 
 /// \brief Restriction form for piecewise constant DG functions.
@@ -73,6 +92,16 @@ class RestrictionFormDG0 : public RestrictionForm
       localMat.resize( 1, 1 );
       localMat( 0, 0 ) = 1;
    }
+
+    void integrate3D( const std::vector< Point >&                              dst,
+                      const std::vector< Point >&                              src,
+                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
+    {
+        WALBERLA_UNUSED( dst );
+        WALBERLA_UNUSED( src );
+        localMat.resize( 1, 1 );
+        localMat( 0, 0 ) = 1;
+    }
 };
 
 class DGRestriction : public RestrictionOperator< dg::DGFunction< real_t > >

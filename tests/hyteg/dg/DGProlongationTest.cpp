@@ -42,7 +42,7 @@ using walberla::uint_t;
 using namespace hyteg;
 using namespace dg;
 
-void testDG1Prolongation2D( const std::string& meshFile )
+void testDG1Prolongation( const std::string& meshFile )
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
@@ -65,8 +65,8 @@ void testDG1Prolongation2D( const std::string& meshFile )
    numerator.enumerate( minLevel );
    numerator.enumerate( maxLevel );
    DGOperator M( storage, minLevel, maxLevel, massForm );
-   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1]; }, minLevel );
-   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1]; }, maxLevel );
+   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1] - 0.25 * p[2]; }, minLevel );
+   tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1] - 0.25 * p[2]; }, maxLevel );
    // interpolate test_function on lower level
    {
       PETScCGSolver< DGOperator > solverM( storage, minLevel, numerator );
@@ -93,7 +93,7 @@ void testDG1Prolongation2D( const std::string& meshFile )
    // vtk.write( maxLevel );
 }
 
-void testDG0Prolongation2D()
+void testDG0Prolongation()
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
@@ -225,16 +225,31 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   testDG1Prolongation2D( "../../data/meshes/tri_1el.msh" );
-   testDG1Prolongation2D( "../../data/meshes/circle.msh" );
+   testDG1Prolongation( "../../data/meshes/tri_1el.msh" );
+   testDG1Prolongation( "../../data/meshes/circle.msh" );
 
-   testDG0Prolongation2D();
+   testDG1Prolongation( "../../data/meshes/3D/tet_1el.msh" );
+   testDG1Prolongation( "../../data/meshes/3D/cube_6el.msh" );
 
+   testDG0Prolongation();
+
+   testDG1Prolongation( "../../data/meshes/circle.msh" );
+
+   // 2d comparisons
    compareProlongationWithRestrictionDG1( "../../data/meshes/tri_1el.msh" );
    compareProlongationWithRestrictionDG1( "../../data/meshes/circle.msh" );
 
+
    compareProlongationWithRestrictionDG0( "../../data/meshes/tri_1el.msh" );
    compareProlongationWithRestrictionDG0( "../../data/meshes/circle.msh" );
+
+   // 3d comparisons
+   compareProlongationWithRestrictionDG1( "../../data/meshes/3D/tet_1el.msh" );
+   compareProlongationWithRestrictionDG1( "../../data/meshes/3D/cube_6el.msh" );
+
+   // uncommented, when DG0 interpolation in 3D is implemented
+   // compareProlongationWithRestrictionDG0( "../../data/meshes/3D/tet_1el.msh" );
+   // compareProlongationWithRestrictionDG0( "../../data/meshes/3D/cube_6el.msh" );
 
    return 0;
 }
