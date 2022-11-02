@@ -241,45 +241,41 @@ void VolumeDoFFunction< ValueType >::assign(
 
    if ( storage_->hasGlobalCells() )
    {
-      for ( auto it : storage_->getCells() )
+      for ( const auto& cellIt : this->getStorage()->getCells() )
       {
-         for ( const auto& cellIt : this->getStorage()->getCells() )
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         std::vector< ValueType* >                      srcPtrs( functions.size() );
+         std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+         for ( uint_t i = 0; i < functions.size(); i++ )
          {
-            const auto cellId = cellIt.first;
-            const auto cell   = *cellIt.second;
+            const auto f  = functions.at( i );
+            srcPtrs[i]    = f.get().dofMemory( cellId, level );
+            srcLayouts[i] = f.get().memoryLayout();
+         }
 
-            std::vector< ValueType* >                      srcPtrs( functions.size() );
-            std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
-            for ( uint_t i = 0; i < functions.size(); i++ )
+         auto dstMem    = dofMemory( cellId, level );
+         auto dstLayout = memoryLayout_;
+         auto numDofs   = this->numScalarsPerPrimitive_.at( cellId );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
             {
-               const auto f  = functions.at( i );
-               srcPtrs[i]    = f.get().dofMemory( cellId, level );
-               srcLayouts[i] = f.get().memoryLayout();
-            }
-
-            auto dstMem    = dofMemory( cellId, level );
-            auto dstLayout = memoryLayout_;
-            auto numDofs   = this->numScalarsPerPrimitive_.at( cellId );
-
-            for ( auto cellType : celldof::allCellTypes )
-            {
-               for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
                {
-                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  ValueType sum = 0;
+                  for ( uint_t i = 0; i < functions.size(); i++ )
                   {
-                     ValueType sum = 0;
-                     for ( uint_t i = 0; i < functions.size(); i++ )
-                     {
-                        const auto s = scalars.at( i );
+                     const auto s = scalars.at( i );
 
-                        sum +=
-                            s *
-                            srcPtrs[i][indexing::index(
-                                elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, srcLayouts[i] )];
-                     }
-                     dstMem[indexing::index(
-                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, dstLayout )] = sum;
+                     sum +=
+                         s * srcPtrs[i][indexing::index(
+                                 elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, srcLayouts[i] )];
                   }
+                  dstMem[indexing::index(
+                      elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, dstLayout )] = sum;
                }
             }
          }
@@ -287,42 +283,39 @@ void VolumeDoFFunction< ValueType >::assign(
    }
    else
    {
-      for ( auto it : storage_->getFaces() )
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
       {
-         for ( const auto& faceIt : this->getStorage()->getFaces() )
+         const auto faceId = faceIt.first;
+         const auto face   = *faceIt.second;
+
+         std::vector< ValueType* >                      srcPtrs( functions.size() );
+         std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+         for ( uint_t i = 0; i < functions.size(); i++ )
          {
-            const auto faceId = faceIt.first;
-            const auto face   = *faceIt.second;
+            const auto f  = functions.at( i );
+            srcPtrs[i]    = f.get().dofMemory( faceId, level );
+            srcLayouts[i] = f.get().memoryLayout();
+         }
 
-            std::vector< ValueType* >                      srcPtrs( functions.size() );
-            std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
-            for ( uint_t i = 0; i < functions.size(); i++ )
+         auto dstMem    = dofMemory( faceId, level );
+         auto dstLayout = memoryLayout_;
+         auto numDofs   = this->numScalarsPerPrimitive_.at( faceId );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-               const auto f  = functions.at( i );
-               srcPtrs[i]    = f.get().dofMemory( faceId, level );
-               srcLayouts[i] = f.get().memoryLayout();
-            }
-
-            auto dstMem    = dofMemory( faceId, level );
-            auto dstLayout = memoryLayout_;
-            auto numDofs   = this->numScalarsPerPrimitive_.at( faceId );
-
-            for ( auto faceType : facedof::allFaceTypes )
-            {
-               for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
                {
-                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  ValueType sum = 0;
+                  for ( uint_t i = 0; i < functions.size(); i++ )
                   {
-                     ValueType sum = 0;
-                     for ( uint_t i = 0; i < functions.size(); i++ )
-                     {
-                        const auto s = scalars.at( i );
+                     const auto s = scalars.at( i );
 
-                        sum += s * srcPtrs[i][indexing::index(
-                                       elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, srcLayouts[i] )];
-                     }
-                     dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, dstLayout )] = sum;
+                     sum += s * srcPtrs[i][indexing::index(
+                                    elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, srcLayouts[i] )];
                   }
+                  dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, dstLayout )] = sum;
                }
             }
          }
@@ -334,32 +327,10 @@ void VolumeDoFFunction< ValueType >::assign(
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
 {
-   WALBERLA_UNUSED(flag);
+   WALBERLA_UNUSED( flag );
    if ( storage_->hasGlobalCells() )
    {
       WALBERLA_ABORT( "Not implemented" );
-      for ( const auto& cellIt : this->getStorage()->getCells() )
-      {
-         const auto cellId = cellIt.first;
-         const auto cell   = *cellIt.second;
-
-         auto       mem     = dofMemory( cellId, level );
-         const auto layout  = memoryLayout_;
-         const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
-
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               for ( uint_t dof = 0; dof < numDofs; dof++ )
-               {
-                  const auto idx =
-                      indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
-                  mem[idx] += scalar;
-               }
-            }
-         }
-      }
    }
    else
    {
@@ -378,6 +349,62 @@ void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, 
             {
                const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, layout );
                mem[idx] += scalar;
+            }
+         }
+      }
+   }
+}
+
+/// \brief Adds a linear combination of multiple VolumeDoFFunctions to this.
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::add(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+    uint_t                                                                               level )
+{
+   WALBERLA_CHECK_EQUAL( scalars.size(),
+                         functions.size(),
+                         "VolumeDoFFunction< ValueType >::add(): must pass same number of scalars and functions." )
+
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Not implemented" );
+   }
+   else
+   {
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
+      {
+         const auto faceId = faceIt.first;
+         const auto face   = *faceIt.second;
+
+         std::vector< ValueType* >                      srcPtrs( functions.size() );
+         std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+         for ( uint_t i = 0; i < functions.size(); i++ )
+         {
+            const auto f  = functions.at( i );
+            srcPtrs[i]    = f.get().dofMemory( faceId, level );
+            srcLayouts[i] = f.get().memoryLayout();
+         }
+
+         auto dstMem    = dofMemory( faceId, level );
+         auto dstLayout = memoryLayout_;
+         auto numDofs   = this->numScalarsPerPrimitive_.at( faceId );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+            {
+             
+                  ValueType sum = 0;
+                  for ( uint_t i = 0; i < functions.size(); i++ )
+                  {
+                     const auto s = scalars.at( i );
+
+                     sum += s * srcPtrs[i][indexing::index(
+                                    elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, srcLayouts[i] )];
+                  }
+                  dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, dstLayout )] += sum;
+               
             }
          }
       }
@@ -471,8 +498,10 @@ ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
 {
    ValueType sum = ValueType( 0 );
 
-   if ( storage_->hasGlobalCells() ) {WALBERLA_ABORT( "Not implemented" );
-      }
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Not implemented" );
+   }
    else
    {
       for ( const auto& faceIt : this->getStorage()->getFaces() )
