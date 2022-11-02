@@ -8,15 +8,14 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
-//#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
-#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+//#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -123,6 +122,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
+/*
 template < typename StokesOperatorType >
 std::shared_ptr< Solver< StokesOperatorType > >
     BFBTStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >&       storage,
@@ -152,7 +152,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
    solver->setPrintInfo( printInfo );
    return solver;
 }
-
+*/
 /// \brief Returns a block preconditioned MINRES solver for the Stokes system with varying viscosity.
 ///
 /// The pressure is pre-multiplied with the inverse of the lumped mass matrix.
