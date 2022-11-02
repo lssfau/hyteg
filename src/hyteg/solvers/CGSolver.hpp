@@ -45,7 +45,7 @@ class CGSolver : public Solver< OperatorType >
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
        uint_t                                     maxIter        = std::numeric_limits< uint_t >::max(),
-       real_t                                     tolerance      = 1e-12,
+       real_t                                     tolerance      = 1e-16,
        std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
@@ -53,7 +53,7 @@ class CGSolver : public Solver< OperatorType >
    , r_( "r", storage, minLevel, maxLevel )
    , preconditioner_( preconditioner )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
-   , printInfo_( true )
+   , printInfo_( false )
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
    , maxIter_( maxIter )
@@ -74,7 +74,6 @@ class CGSolver : public Solver< OperatorType >
       //    return;
 
       timingTree_->start( "CG Solver" );
-
       p_.copyBoundaryConditionFromFunction( x );
       z_.copyBoundaryConditionFromFunction( x );
       ap_.copyBoundaryConditionFromFunction( x );
@@ -101,8 +100,8 @@ class CGSolver : public Solver< OperatorType >
          pAp = p_.dotGlobal( ap_, level, flag_ );
 
          alpha = prsold / pAp;
-         x.add( {alpha}, {p_}, level, flag_ );
-         r_.add( {-alpha}, {ap_}, level, flag_ );
+         x.add( { alpha }, { p_ }, level, flag_ );
+         r_.add( { -alpha }, { ap_ }, level, flag_ );
          rsnew   = r_.dotGlobal( r_, level, flag_ );
          sqrsnew = std::sqrt( rsnew );
 
@@ -124,7 +123,7 @@ class CGSolver : public Solver< OperatorType >
          prsnew = r_.dotGlobal( z_, level, flag_ );
          beta   = prsnew / prsold;
 
-         p_.assign( {1.0, beta}, {z_, p_}, level, flag_ );
+         p_.assign( { 1.0, beta }, { z_, p_ }, level, flag_ );
          prsold = prsnew;
 
          if ( i > 0 && i % restartFrequency_ == 0 )
@@ -195,8 +194,8 @@ class CGSolver : public Solver< OperatorType >
 
       // init CG
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
-      p_.assign( {1.0}, {r_}, level, flag_ );
+      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
+      p_.assign( { 1.0 }, { r_ }, level, flag_ );
       prsold = r_.dotGlobal( r_, level, flag_ );
 
       // required for diagonal entries, set values
@@ -215,14 +214,14 @@ class CGSolver : public Solver< OperatorType >
          alpha = prsold / pAp;
          mainDiag.push_back( 1.0 / alpha + beta / alpha_old );
 
-         x.add( {alpha}, {p_}, level, flag_ );
-         r_.add( {-alpha}, {ap_}, level, flag_ );
+         x.add( { alpha }, { p_ }, level, flag_ );
+         r_.add( { -alpha }, { ap_ }, level, flag_ );
 
          prsnew = r_.dotGlobal( r_, level, flag_ );
          beta   = prsnew / prsold;
          subDiag.push_back( std::sqrt( beta ) / alpha );
 
-         p_.assign( {1.0, beta}, {r_, p_}, level, flag_ );
+         p_.assign( { 1.0, beta }, { r_, p_ }, level, flag_ );
          prsold = prsnew;
 
          alpha_old = alpha;
@@ -237,15 +236,15 @@ class CGSolver : public Solver< OperatorType >
    }
 
    void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
-   void setDoFType(hyteg::DoFType flag) { flag_ = flag;}
+   void setDoFType( hyteg::DoFType flag ) { flag_ = flag; }
 
  private:
    void init( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, real_t& prsold ) const
    {
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
+      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
       preconditioner_->solve( A, z_, r_, level );
-      p_.assign( {1.0}, {z_}, level, flag_ );
+      p_.assign( { 1.0 }, { z_ }, level, flag_ );
       prsold = r_.dotGlobal( z_, level, flag_ );
    }
 
