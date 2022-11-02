@@ -86,15 +86,42 @@ int main( int argc, char** argv )
 
    // check adding a scalar
    {
-      VTKOutput vtk( "../../output", "DGAddTest", storage );
-      vtk.add( dgVec );
-      vtk.write( maxLevel, 0 );
+      
       dgVec.interpolate( 1, maxLevel, All );
 
-      vtk.write( maxLevel, 1 );
       dgVec.add( -1., maxLevel, All );
 
-      vtk.write( maxLevel, 2 );
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+   }
+   // check adding a scalar and function
+   {
+      VTKOutput vtk( "../../output", "DGAddTest_function", storage );
+      vtk.add( dgVec );
+
+      dgVec.interpolate( 1, maxLevel, All );
+      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
+      vtk.add( dgVec2 );
+
+      dgVec2.interpolate( 1, maxLevel, All );
+      vtk.write( maxLevel, 0 );
+
+      dgVec.add( { -1. }, { dgVec2 }, maxLevel, All );
+      vtk.write( maxLevel, 1 );  
+
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+   }
+   // check adding a series of scalars and functions
+   {
+      dgVec.interpolate( 1, maxLevel, All );
+      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
+      P0Function< real_t > dgVec3( "dgVec3", storage, minLevel, maxLevel );
+      P0Function< real_t > dgVec4( "dgVec3", storage, minLevel, maxLevel );
+
+      dgVec2.interpolate( 1, maxLevel, All );
+      dgVec3.interpolate( 2, maxLevel, All );
+      dgVec4.interpolate( 1, maxLevel, All );
+      dgVec.add( { -1., 0.5, -1 }, { dgVec2, dgVec3, dgVec4 }, maxLevel, All );
+
       WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
    }
 
@@ -102,7 +129,19 @@ int main( int argc, char** argv )
    {
       dgVec.interpolate( 1, maxLevel, All );
       const auto sGlobal = dgVec.sumGlobal( maxLevel, All );
-      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal,real_c(dgVec.getNumberOfGlobalDoFs(maxLevel)));
+      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( dgVec.getNumberOfGlobalDoFs( maxLevel ) ) );
    }
+
+   // check dotGlobal
+   {
+      dgVec.interpolate( 1, maxLevel, All );
+
+      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
+      dgVec2.interpolate( 2, maxLevel, All );
+
+      const auto sGlobal = dgVec.dotGlobal( dgVec2, maxLevel, All );
+      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( 2 * dgVec.getNumberOfGlobalDoFs( maxLevel ) ) );
+   }
+
    return 0;
 }
