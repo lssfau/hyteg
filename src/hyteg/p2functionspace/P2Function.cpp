@@ -85,6 +85,7 @@ bool P2Function< ValueType >::evaluate( const Point3D& physicalCoords,
       WALBERLA_UNUSED( value );
       WALBERLA_UNUSED( searchToleranceRadius );
       WALBERLA_ABORT( "P2Function< ValueType >::evaluate not implemented for requested template parameter" );
+      return false;
    }
    else
    {

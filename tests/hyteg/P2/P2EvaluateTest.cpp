@@ -277,7 +277,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-2 );
+      tolerance = real_c( 1e-13 );
    }
 
    // 2D affine map
@@ -307,30 +307,39 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-12 );
+      tolerance = real_c( 1e-13 );
    }
 
    const size_t minLevel = 2;
    const size_t maxLevel = 4;
 
-   auto poly2 = []( const Point3D& x ) {
-      // return real_c( 1 ) + real_c( 5 ) * x[0] + real_c( 3 ) * x[1] - real_c( 2 ) * x[0] * x[0] + real_c( 0.5 ) * x[0] * x[1] + real_c( 7 ) * x[1] * x[1];
-      return real_c( 1 ) + real_c( 0.5 ) * x[0] - real_c( 2 ) * x[1];
-      // return real_c( 1 );
+   auto testFunc = [mapType]( const Point3D& x ) {
+      // use 2nd order polynomial for affine map
+      if ( mapType != 0 )
+      {
+         return real_c( 1 ) + real_c( 5 ) * x[0] + real_c( 3 ) * x[1] - real_c( 2 ) * x[0] * x[0] + real_c( 0.5 ) * x[0] * x[1] +
+                real_c( 7 ) * x[1] * x[1];
+      }
+
+      // for annulus map
+      else
+      {
+         return ( x[0] * x[0] + x[1] * x[1] );
+      }
    };
 
    P2Function< real_t > func( "func", storage, minLevel, maxLevel );
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      func.interpolate( poly2, level );
+      func.interpolate( testFunc, level );
       real_t testValue = real_c( 0 );
       real_t ctrlValue = real_c( 0 );
       communication::syncFunctionBetweenPrimitives( func, level );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
-         ctrlValue          = poly2( samples[idx] );
-         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( 1e-12 ) );
+         ctrlValue          = testFunc( samples[idx] );
+         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( 1e-15 ) );
          real_t error       = std::abs( testValue - ctrlValue );
          WALBERLA_LOG_INFO_ON_ROOT( "sampling Point: " << std::scientific << std::showpos << samples[idx] << ", coordsFound = "
                                                        << ( coordsFound ? "TRUE" : "FALSE" ) << ", ctrl = " << ctrlValue
