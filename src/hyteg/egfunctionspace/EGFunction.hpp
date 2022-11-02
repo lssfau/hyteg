@@ -352,9 +352,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
 
       Point2D midpoint( { 0., 0. } );
-      for ( int i = 0; i < 3; i++ )
-         for ( int d = 0; d < 2; d++ )
-            midpoint[d] += affineElementVertices[i][d] / 3.;
+      for ( uint_t i = 0; i < 3; i++ )
+         for ( uint_t d = 0; d < 2; d++ )
+            midpoint[d] += affineElementVertices[i][static_cast< long >( d )] / 3.;
 
       // evaluate P1 function
       std::array< uint_t, ndofsP1 > vertexDoFIndices;
