@@ -578,7 +578,7 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
 
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_1(
        storage, minLevel, maxLevel, []( const hyteg::Point3D& p ) { return 1; } );
-   hyteg::P2P1TaylorHoodStokesOperator P2P1StokesOp( storage, 3, 5 );
+   hyteg::P2P1TaylorHoodStokesOperator P2P1StokesOp( storage, minLevel, maxLevel );
    EGP0EpsilonStokesOperator           EGP0EpsilonOp_mu_smooth( storage, minLevel, maxLevel, []( const hyteg::Point3D& p ) {
       const real_t x = p[0];
       const real_t y = p[1];
@@ -587,7 +587,7 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
              1;
    } );
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_smooth(
-       storage, 3, 5, []( const hyteg::Point3D& p ) {
+       storage, minLevel, maxLevel, []( const hyteg::Point3D& p ) {
           const real_t x = p[0];
           const real_t y = p[1];
           return std::exp( x ) * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) *
@@ -648,8 +648,8 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
            } ),
        EGP0StokesOp,
        storage,
-       3,
-       5,
+       minLevel,
+       maxLevel,
        true );
 
    hyteg::StokesConvergenceOrderTest< EGP0StokesOperator >(
@@ -695,8 +695,8 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
            } ),
        EGP0StokesOp,
        storage,
-       3,
-       5 );
+       minLevel,
+       maxLevel );
 
    hyteg::StokesConvergenceOrderTest< EGP0StokesOperator >(
        "DefaultStokesHomogeneousDirichlet:asymmetric_p",
@@ -754,8 +754,8 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
            } ),
        EGP0StokesOp,
        storage,
-       3,
-       5 );
+       minLevel,
+       maxLevel );
 
    hyteg::StokesConvergenceOrderTest< EGP0StokesOperator >(
        "EGP0StokesInhomogeneousDirichlet:asymmetric_u",
@@ -789,9 +789,10 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
            []( const Point3D& p ) -> real_t { return 0; } ),
        EGP0StokesOp,
        storage,
-       3,
-       5 );
+       minLevel,
+       maxLevel );
 
+   /*
    hyteg::StokesConvergenceOrderTest< EGP0ConstEpsilonStokesOperator >(
        "ConstEpsilonHomogeneousDirichlet:asymmetric_u",
        std::make_tuple(
@@ -1334,6 +1335,7 @@ void ConstAndBasicTest( const uint_t minLevel, const uint_t maxLevel, const std:
        3,
        5,
        false );
+       */
 }
 
 } // namespace hyteg
@@ -1345,20 +1347,20 @@ int main( int argc, char* argv[] )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    auto meshInfo = hyteg::MeshInfo::meshRectangle(
-       hyteg::Point2D( { -1, -1 } ), hyteg::Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISSCROSS, 1, 1 );
+       hyteg::Point2D( { -1, -1 } ), hyteg::Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISSCROSS, 2, 2 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
 
-   uint_t minLevel = 5;
+   uint_t minLevel = 3;
    uint_t maxLevel = 7;
 
-   IncreasingSteepnessTest( minLevel, maxLevel, storage );
+   //IncreasingSteepnessTest( minLevel, maxLevel, storage );
 
    //SmoothViscosityTest( minLevel, maxLevel, storage );
 
-   //ConstAndBasicTest( minLevel, maxLevel, storage );
+   ConstAndBasicTest( minLevel, maxLevel, storage );
 
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space

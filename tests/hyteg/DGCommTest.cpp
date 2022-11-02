@@ -230,7 +230,7 @@ void checkVertexDoFCellComm( const std::string& meshfile, const uint_t level )
    printCellGhostlayer( "Init:", testFunc, storage, level );
    testFunc.interpolate( 1, level, All );
    printCellGhostlayer( "After interpolate:", testFunc, storage, level );
-   testFunc.template communicate< Cell, Cell >( Cell );
+   testFunc.template communicate< Cell, Cell >( level );
    printCellGhostlayer( "After communicate:", testFunc, storage, level );
 }
 
@@ -239,7 +239,7 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    //  walberla::debug::enterTestMode();
-   checkVertexDoFCellComm( "../../data/meshes/3D/pyramid_2el.msh", 2 );
+   checkVertexDoFCellComm( "../../data/meshes/3D/pyramid_2el.msh", 3 );
    /*
    checkComm( "../../data/meshes/quad_4el.msh", 4, true );
 
