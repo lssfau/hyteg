@@ -95,6 +95,11 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \brief Adds a scalar to this VolumeDoFFunction.
    void add( const ValueType scalar, uint_t level, DoFType flag = All );
 
+   /// \brief Adds a series of scalars and functions to this VolumeDoFFunction.
+   void add( const std::vector< ValueType >&                                                      scalars,
+             const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+              uint_t                                                                               level);
+
    /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
    /// process.
    ValueType dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;

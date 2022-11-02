@@ -76,6 +76,14 @@ class P0Function : public Function< P0Function< ValueType > >
       std::vector< std::reference_wrapper< const P0Function< ValueType > > > new_functions( functions );
       new_functions.push_back( *this );
       assign( new_scalars, new_functions, level, flag );
+      /*
+      std::vector< std::reference_wrapper< const DGFunction< ValueType > > > dgFunctions;
+      for ( auto f : functions )
+      {
+         dgFunctions.push_back( *f.get().getDGFunction() );
+      }
+      dgFunction_->add( scalars, dgFunctions, level, flag );
+      */
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -88,7 +96,7 @@ class P0Function : public Function< P0Function< ValueType > >
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
    {
       WALBERLA_UNUSED( dofType );
-      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      //WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid" );
       if ( this->storage_->hasGlobalCells() )
       {
          for ( auto& it : this->getStorage()->getCells() )
@@ -136,10 +144,41 @@ class P0Function : public Function< P0Function< ValueType > >
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
    {
       WALBERLA_UNUSED( dofType );
-      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+
+      //WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto cellID = it.first;
+            const auto cell   = *it.second;
+
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  const std::array< indexing::Index, 4 > vertexIndices =
+                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                  std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+                  for ( uint_t i = 0; i < 4; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                     elementVertices[i]( 2 )  = elementVertex[2];
+                  }
+                  const Eigen::Matrix< real_t, 3, 1 > centroid =
+                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / 4.;
+
+                  const auto val = expr( Point3D( { centroid( 0 ), centroid( 1 ), centroid( 2 ) } ) );
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      ValueType( val );
+               }
+            }
+         }
       }
       else
       {
@@ -216,17 +255,17 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          dgFunctions.push_back( *f.get().getDGFunction() );
       }
-      dgFunction_->assign( scalars, dgFunctions, level );
+      dgFunction_->assign( scalars, dgFunctions, level, flag );
    }
 
    ValueType dotGlobal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
-      return dgFunction_->dotLocal( *rhs.getDGFunction(), level );
+      return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
    }
 
    ValueType dotLocal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
-      return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
+      return dgFunction_->dotLocal( *rhs.getDGFunction(), level );
    }
 
    ValueType sumGlobal( uint_t level, const DoFType& flag = All ) const { return dgFunction_->sumGlobal( level ); }

@@ -203,7 +203,8 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    /// \brief Returns the max absolute DoF.
    ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const
    {
-      return std::max( u_discontinuous_->getMaxMagnitude( level, mpiReduce ), u_conforming_->getMaxComponentMagnitude( level, All, mpiReduce ) );
+      return std::max( u_discontinuous_->getMaxMagnitude( level, mpiReduce ),
+                       u_conforming_->getMaxComponentMagnitude( level, All, mpiReduce ) );
    }
 
    void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f0,

@@ -21,11 +21,11 @@
 #pragma once
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
-
 namespace hyteg {
 namespace dg {
 
@@ -102,11 +102,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
              uint_t                                                                        level,
              DoFType                                                                       flag = All ) const
    {
-      WALBERLA_UNUSED( scalars );
-      WALBERLA_UNUSED( functions );
-      WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
+      std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > > vFunctions;
+      for ( const auto& f : functions )
+      {
+         vFunctions.push_back( *( f.get().volumeDoFFunction_ ) );
+      }
+      volumeDoFFunction_->add( scalars, vFunctions, level );
    };
 
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
