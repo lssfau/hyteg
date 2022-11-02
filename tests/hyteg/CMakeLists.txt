@@ -817,8 +817,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTests2D.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGStokesConvergenceTests2D)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGFormTest2D.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGFormTest2D)
+    waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGFormTest)
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
