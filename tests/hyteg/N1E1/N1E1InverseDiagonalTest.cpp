@@ -57,7 +57,15 @@ void test( uint_t level, MeshInfo meshInfo )
    {
       PetscScalar diagVal;
       MatGetValue( matrix.get(), numeric_cast< PetscInt >( k ), numeric_cast< PetscInt >( k ), &diagVal );
-      WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( inverseDiagonal.getValue( k ), 1.0 / diagVal, 1.0e-12, "k = " << k )
+
+      real_t invDiagVal = 0.0;
+#if ( defined( PETSC_USE_COMPLEX ) && !defined( PETSC_SKIP_COMPLEX ) )
+      invDiagVal = 1.0 / diagVal.real();
+#else
+      invDiagVal = 1.0 / diagVal;
+#endif
+
+      WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( inverseDiagonal.getValue( k ), invDiagVal, 1.0e-12, "k = " << k )
    }
 }
 
