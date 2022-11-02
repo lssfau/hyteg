@@ -145,7 +145,7 @@ void P2Function< ValueType >::evaluateGradient( const Point3D& physicalCoords, u
              mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
          if ( found )
          {
-            Face face = *( this->getStorage()->getFace( faceID ) );
+            Face& face = *( this->getStorage()->getFace( faceID ) );
 
             // evaluate gradient on computational domain
             P2::macroface::evaluateGradient( level,

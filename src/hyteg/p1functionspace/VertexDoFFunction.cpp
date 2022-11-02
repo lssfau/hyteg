@@ -557,7 +557,7 @@ void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& physicalCo
              mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
          if ( found )
          {
-            Face face = *( this->getStorage()->getFace( faceID ) );
+            Face& face = *( this->getStorage()->getFace( faceID ) );
 
             // evaluate gradient on computational domain
             vertexdof::macroface::evaluateGradient< ValueType >( level, face, computationalCoords, faceDataID_, gradient );
