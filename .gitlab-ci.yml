@@ -1196,6 +1196,7 @@ docu_build:
     - public
   except:
     - master
+  when: manual
   tags:
    - docker
 
