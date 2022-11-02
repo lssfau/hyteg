@@ -23,7 +23,6 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/EmptySolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 
 namespace hyteg {
 
@@ -34,19 +33,16 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    typedef typename OperatorType::srcType FunctionType;
 
    StokesBlockDiagonalPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >& storage,
-       uint_t                                     minLevel,
-       uint_t                                     maxLevel,
-       uint_t                                     velocityPreconditionSteps,
-       std::shared_ptr< pressureBlockPreconditionerType >                  pressureBlockPreconditioner,
+       const std::shared_ptr< PrimitiveStorage >&                                    storage,
+       uint_t                                                                        minLevel,
+       uint_t                                                                        maxLevel,
+       uint_t                                                                        velocityPreconditionSteps,
        std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner =
            std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
-   // const std::shared_ptr< RowSumForm >& massForm =
-   //     std::make_shared< RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ))
    : velocityPreconditionSteps_( velocityPreconditionSteps )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )
-   , pressureBlockPreconditioner_( pressureBlockPreconditioner )
+   , pressureBlockPreconditioner_( std::make_shared< pressureBlockPreconditionerType >( storage, minLevel, maxLevel ) )
    {}
 
    // y = M^{-1} * x
@@ -54,7 +50,11 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    {
       for ( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
       {
-         velocityBlockPreconditioner_->solve( A.getA(), x.uvw(), b.uvw(), level );
+         for ( uint_t k = 0; k < x.uvw().getDimension(); k++ )
+         {
+            velocityBlockPreconditioner_->solve( A.getA(), x.uvw()[k], b.uvw()[k], level );
+         }
+
          pressureBlockPreconditioner_->apply( b.p(), x.p(), level, flag_, Replace );
       }
    }

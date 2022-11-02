@@ -10,6 +10,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/p2functionspace/P2FunctionApplyOperator.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
@@ -44,13 +45,13 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
    : Operator< PressureFunctionType, PressureFunctionType >( storage, maxLevel, maxLevel )
    , A( storage, maxLevel, maxLevel, viscosity ) // A should be a discretization of the velocity block with non constant viscosity
    , Z( storage, maxLevel, viscosity, VelocitySpaceBCs )
-   , ZSolver( std::make_shared< PETScCGSolver< BFBTSubOperator > >( storage, maxLevel) )
+   , ZSolver( std::make_shared< PETScCGSolver< BFBTSubOperator > >( storage, maxLevel ) )
    , storage_( storage )
    , pTmp( "pTmp", storage, maxLevel, maxLevel )
    , vTmp( "vTmp", storage, maxLevel, maxLevel )
    , vTmp2( "vTmp2", storage, maxLevel, maxLevel )
    {
-    //  ZSolver->setPrintInfo( true );
+      //  ZSolver->setPrintInfo( true );
       //ZSolver->setDoFType( All );
 
       // get BCs for artificial velocity space used in BFBT
@@ -79,7 +80,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
       //S_{w-BFBT}^{-1} = Z^{-1}*(BM(w)^{-1}AM(w)^{-1}B^t)*Z^{-1}
       // this works but its the wrong type of boundary condition
       pTmp.copyBoundaryConditionFromFunction( src );
-    vTmp.interpolate( 0, level, hyteg::Inner );
+      vTmp.interpolate( 0, level, hyteg::Inner );
       pTmp.interpolate( 0, level, hyteg::Inner );
       vTmp2.interpolate( 0, level, hyteg::Inner );
       /*
@@ -184,8 +185,8 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
             srcVec.print( "FOR_MATLAB_DEBUG_Z_srcVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
          }
 
-        //tmp3.assign( { 1 }, { src }, level,All);
-         BT.apply( src, tmp, level,hyteg::All); // tmp = B^T*src
+         //tmp3.assign( { 1 }, { src }, level,All);
+         BT.apply( src, tmp, level, hyteg::All ); // tmp = B^T*src
          tmp.interpolate( 0, level, hyteg::DirichletBoundary );
 
          tmp2.multElementwise( { *invDiagA, tmp }, level, hyteg::All );
@@ -208,7 +209,7 @@ class BFBTOperator : public Operator< typename DivOpType::dstType, typename DivO
             WALBERLA_ABORT( "BYE" )
          }
 
-         dst.assign( { 1 }, { tmp3 }, level,  hyteg::All );
+         dst.assign( { 1 }, { tmp3 }, level, hyteg::All );
       }
 
       auto getNumerators() const

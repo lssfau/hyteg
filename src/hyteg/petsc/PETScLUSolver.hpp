@@ -48,19 +48,16 @@ class PETScLUSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level,
-                      const typename OperatorType::srcType::template FunctionType< idx_t >& numerator )
+   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
    : storage_( storage )
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num( numerator )
-   , Amat( "LU_A", petscCommunicator_ )
+   , num( "numerator", storage, level, level )
+   , Amat( "Amat", petscCommunicator_ )
    , AmatUnsymmetric( "AmatUnsymmetric", petscCommunicator_ )
    , AmatTmp( "AmatTmp", petscCommunicator_ )
-   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
-   , xVec( "LU_x", petscCommunicator_ )
-   , bVec( "LU_b", petscCommunicator_ )
-   , nullSpaceSet_( false )
+   , xVec( "xVec", petscCommunicator_ )
+   , bVec( "bVec", petscCommunicator_ )
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
@@ -70,9 +67,8 @@ class PETScLUSolver : public Solver< OperatorType >
    , reassembleMatrix_( false )
    , assumeSymmetry_( true )
    , solverType_( PETScDirectSolverType::MUMPS )
-
    {
-      //num.enumerate( level );
+      num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPPREONLY );
       KSPSetFromOptions( ksp );
@@ -195,7 +191,7 @@ class PETScLUSolver : public Solver< OperatorType >
             if ( nullSpaceSet_ )
             {
                MatSetNullSpace( Amat.get(), nullspace_ );
-               MatNullSpaceRemove(nullspace_,bVec.get());
+               MatNullSpaceRemove( nullspace_, bVec.get() );
             }
 
             KSPSetOperators( ksp, Amat.get(), Amat.get() );
@@ -203,7 +199,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
             if ( assumeSymmetry_ )
             {
-                PCSetType( pc, PCLU );
+               PCSetType( pc, PCLU );
                //PCSetType( pc, PCCHOLESKY );
             }
             else
@@ -273,8 +269,8 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "Solver" );
       timer.start();
 
- //     Amat.print( "LU_Amat.m", false, PETSC_VIEWER_ASCII_MATLAB );
-  //    bVec.print( "LU_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      //     Amat.print( "LU_Amat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      //    bVec.print( "LU_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();

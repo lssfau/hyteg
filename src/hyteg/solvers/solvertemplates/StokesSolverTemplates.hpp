@@ -1,24 +1,22 @@
 
 
 #pragma once
-#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_sqrtk_mass_affine_q6.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-
-#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 //#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q6.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
-#include "hyteg/gridtransferoperators/P2ToP2VectorProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2ToP2VectorRestriction.hpp"
+#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -27,7 +25,6 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
-#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 
 namespace hyteg {
 
@@ -79,7 +76,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
-template<typename StokesOperatorType>
+template < typename StokesOperatorType >
 std::shared_ptr< Solver< StokesOperatorType > >
     varViscStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >&       storage,
                                const uint_t&                                    maxLevel,
@@ -89,10 +86,9 @@ std::shared_ptr< Solver< StokesOperatorType > >
                                const uint_t&                                    maxIterations,
                                bool                                             printInfo )
 {
-    
    using StokesFunctionType          = typename StokesOperatorType::srcType;
    using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
-      StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
+   StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
    Numerator.enumerate( maxLevel );
 
    auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel, Numerator );
@@ -104,9 +100,9 @@ std::shared_ptr< Solver< StokesOperatorType > >
        maxLevel,
        std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
 
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperatorType,
-                                                                    P1BlendingLumpedInverseDiagonalOperator> >(
-       storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
+   auto prec =
+       std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperatorType, P1BlendingLumpedInverseDiagonalOperator > >(
+           storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
 
    auto solver = std::make_shared< MinResSolver< StokesOperatorType > >(
        storage, maxLevel, maxLevel, maxIterations, relativeResidual, prec );
@@ -127,44 +123,35 @@ std::shared_ptr< Solver< StokesOperatorType > >
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
-template<typename StokesOperatorType>
-std::shared_ptr< Solver< StokesOperatorType > > BFBTStokesMinResSolver( 
-            const std::shared_ptr< PrimitiveStorage >&          storage,
-            const uint_t&                                       maxLevel,
-            std::function< real_t( const hyteg::Point3D& ) >    viscosity,
-            const real_t&                                       relativeTolerance,
-            const uint_t&                                       maxIterations,
-            bool                                                printInfo,
-            const std::vector<BoundaryCondition>&                     VelocitySpaceBCs
+template < typename StokesOperatorType >
+std::shared_ptr< Solver< StokesOperatorType > >
+    BFBTStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >&       storage,
+                            const uint_t&                                    maxLevel,
+                            std::function< real_t( const hyteg::Point3D& ) > viscosity,
+                            const real_t&                                    relativeTolerance,
+                            const uint_t&                                    maxIterations,
+                            bool                                             printInfo,
+                            const std::vector< BoundaryCondition >&          VelocitySpaceBCs
 
-) {
+    )
+{
    using StokesFunctionType          = typename StokesOperatorType::srcType;
    using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
-      StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
+   StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
    Numerator.enumerate( maxLevel );
 
    auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel, Numerator );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P2 mass matrix
-   auto pPrecOp = std::make_shared< BFBT_P2P1 >(
-       storage,
-       maxLevel,
-       maxLevel,
-       viscosity,
-       VelocitySpaceBCs
-    );
-   auto prec = std::make_shared< StokesBlockDiagonalPreconditioner<StokesOperatorType, BFBT_P2P1 >>( 
-       storage, maxLevel, 
-       maxLevel, 1, 
-       pPrecOp,
-       LU
-    );
+   auto pPrecOp = std::make_shared< BFBT_P2P1 >( storage, maxLevel, maxLevel, viscosity, VelocitySpaceBCs );
+   auto prec    = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperatorType, BFBT_P2P1 > >(
+       storage, maxLevel, maxLevel, 1, pPrecOp, LU );
 
-   auto solver = std::make_shared< MinResSolver< StokesOperatorType > >( storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
+   auto solver = std::make_shared< MinResSolver< StokesOperatorType > >(
+       storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
-
 
 /// \brief Returns a block preconditioned MINRES solver for the Stokes system with varying viscosity.
 ///
