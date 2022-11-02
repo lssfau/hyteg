@@ -683,47 +683,22 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                   {
                      if ( dim == 2 )
                      {
-                        if ( updateType == Replace )
-                        {
-                           dstDofMemory[vertexdof::macroface::index(
-                               level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] = dstDofs( dstDofIdx );
-                        }
-                        else if ( updateType == Add )
-                        {
-                           dstDofMemory[vertexdof::macroface::index(
-                               level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] += dstDofs( dstDofIdx );
-                        }
-                        else
-                        {
-                           WALBERLA_ABORT( "Invalid update type." );
-                        }
+                        dstDofMemory[vertexdof::macroface::index(
+                            level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )] += dstDofs( dstDofIdx );
                      }
                      else
                      {
-                        if ( updateType == Replace )
-                        {
-                           dstDofMemory[vertexdof::macrocell::index( level,
-                                                                     vertexDoFIndices[dstDofIdx].x(),
-                                                                     vertexDoFIndices[dstDofIdx].y(),
-                                                                     vertexDoFIndices[dstDofIdx].z() )] = dstDofs( dstDofIdx );
-                        }
-                        else if ( updateType == Add )
-                        {
-                           dstDofMemory[vertexdof::macrocell::index( level,
-                                                                     vertexDoFIndices[dstDofIdx].x(),
-                                                                     vertexDoFIndices[dstDofIdx].y(),
-                                                                     vertexDoFIndices[dstDofIdx].z() )] += dstDofs( dstDofIdx );
-                        }
-                        else
-                        {
-                           WALBERLA_ABORT( "Invalid update type." );
-                        }
+                        dstDofMemory[vertexdof::macrocell::index( level,
+                                                                  vertexDoFIndices[dstDofIdx].x(),
+                                                                  vertexDoFIndices[dstDofIdx].y(),
+                                                                  vertexDoFIndices[dstDofIdx].z() )] += dstDofs( dstDofIdx );
                      }
                   }
                }
             }
          }
       }
+
       if ( mat == nullptr )
       {
          if ( dim == 2 )
