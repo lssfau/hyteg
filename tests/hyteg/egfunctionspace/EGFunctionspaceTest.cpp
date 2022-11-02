@@ -21,10 +21,10 @@
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
 namespace hyteg {
 
 using walberla::real_t;
@@ -38,16 +38,23 @@ void testEvaluateLinearFunctional()
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   uint_t minLevel = 2;
-   uint_t maxLevel = 3;
-
-   EGFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   EGFunction< real_t > rhs( "rhs", storage, minLevel, maxLevel );
+   uint_t               maxLevel = 3;
+   EGFunction< real_t > rhs_EG( "rhs", storage, maxLevel, maxLevel );
+   EGFunction< real_t > f( "f", storage, maxLevel, maxLevel );
 
    auto f0 = []( Point3D p ) { return p[0] + 2 * p[1]; };
    auto f1 = []( Point3D p ) { return 0.5 * p[0] + p[1]; };
 
-   rhs.evaluateLinearFunctional( f0, f1, maxLevel );
+   f.getConformingPart()->interpolate( { f0, f1 }, maxLevel, All );
+   rhs_EG.evaluateLinearFunctional( f0, f1, maxLevel );
+   VTKOutput vtk( "../../output", "testEvaluateLinearFunctional", storage );
+   vtk.add( rhs_EG );
+   vtk.add( *rhs_EG.getConformingPart() );
+   vtk.add( *rhs_EG.getDiscontinuousPart() );
+   vtk.add( f );
+   vtk.add( *f.getConformingPart() );
+   vtk.add( *f.getDiscontinuousPart() );
+   vtk.write( maxLevel );
 }
 
 } // namespace hyteg
@@ -75,9 +82,12 @@ int main( int argc, char** argv )
       f.getDiscontinuousPart()->interpolate( 1, level, All );
       f2.interpolate( 2, level, All );
       f2.getDiscontinuousPart()->interpolate( 2, level, All );
-      const auto dGlobal = f.dotGlobal( f2, level, All );
+      auto dGlobal = f.dotGlobal( f2, level, All );
 
       WALBERLA_CHECK_FLOAT_EQUAL( dGlobal, real_c( 2 * f.getNumberOfGlobalDoFs( level ) ) );
+      dGlobal = f.dotGlobal( f, level, All );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( dGlobal, real_c( f.getNumberOfGlobalDoFs( level ) ) );
    }
    // test assign(functions)
    {
@@ -91,12 +101,27 @@ int main( int argc, char** argv )
       f2.getConformingPart()->interpolate( 2, level, All );
       f2.getDiscontinuousPart()->interpolate( 2, level, All );
 
-
       f.assign( { -1., 0.5 }, { f1, f2 }, level, All );
 
       WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
    }
+   {
+      EGFunction< real_t > f( "f", storage, level, level );
+      EGFunction< real_t > f1( "f1", storage, level, level );
+      VTKOutput            vtk( "../../output", "testEGAssign", storage );
+      vtk.add( f );
+      vtk.add( *f.getConformingPart() );
+      vtk.add( *f.getDiscontinuousPart() );
 
+      vtk.add( f1 );
+      vtk.add( *f1.getConformingPart() );
+      vtk.add( *f1.getDiscontinuousPart() );
+      //f1.getConformingPart()->interpolate( 1, level, All );
+      f1.getDiscontinuousPart()->interpolate( 1, level, All );
+
+      f.assign( { 1. }, { f1 }, level, Inner );
+      vtk.write( level );
+   }
    // test add(constant)
    {
       EGFunction< real_t > f( "f", storage, level, level );
@@ -104,6 +129,12 @@ int main( int argc, char** argv )
       f.getConformingPart()->interpolate( 1, level, All );
       f.getDiscontinuousPart()->interpolate( 1, level, All );
       f.add( -1., level, All );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
+
+      f.getConformingPart()->interpolate( 1, level, Inner );
+      f.getDiscontinuousPart()->interpolate( 1, level, Inner );
+      f.add( -1., level, Inner );
 
       WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
    }
@@ -114,11 +145,17 @@ int main( int argc, char** argv )
 
       f.getConformingPart()->interpolate( 1, level, All );
       f.getDiscontinuousPart()->interpolate( 1, level, All );
-
       f1.getConformingPart()->interpolate( 1, level, All );
       f1.getDiscontinuousPart()->interpolate( 1, level, All );
-
       f.add( { -1. }, { f1 }, level, All );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
+
+      f.getConformingPart()->interpolate( 1, level, Inner );
+      f.getDiscontinuousPart()->interpolate( 1, level, Inner );
+      f1.getConformingPart()->interpolate( 1, level, Inner );
+      f1.getDiscontinuousPart()->interpolate( 1, level, Inner );
+      f.add( { -1. }, { f1 }, level, Inner );
 
       WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
    }
