@@ -92,10 +92,6 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                 const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level );
 
-   void add( const std::vector< ValueType >&                                                      scalars,
-             const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-             uint_t                                                                               level );
-
    /// \brief Adds a scalar to this VolumeDoFFunction.
    void add( const ValueType scalar, uint_t level, DoFType flag = All );
 

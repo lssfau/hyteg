@@ -339,16 +339,19 @@ void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, 
          const auto faceId = faceIt.first;
          const auto face   = *faceIt.second;
 
-         auto       mem    = dofMemory( faceId, level );
-         const auto layout = memoryLayout_;
-         //    const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+         auto       mem     = dofMemory( faceId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
 
          for ( auto faceType : facedof::allFaceTypes )
          {
             for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-               const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, layout );
-               mem[idx] += scalar;
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                  mem[idx] += scalar;
+               }
             }
          }
       }
@@ -394,17 +397,18 @@ void VolumeDoFFunction< ValueType >::add(
          {
             for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-             
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
                   ValueType sum = 0;
                   for ( uint_t i = 0; i < functions.size(); i++ )
                   {
                      const auto s = scalars.at( i );
 
                      sum += s * srcPtrs[i][indexing::index(
-                                    elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, srcLayouts[i] )];
+                                    elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, srcLayouts[i] )];
                   }
-                  dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, dstLayout )] += sum;
-               
+                  dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, dstLayout )] += sum;
+               }
             }
          }
       }
