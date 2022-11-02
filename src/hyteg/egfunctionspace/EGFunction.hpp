@@ -352,8 +352,8 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
 
       Point2D midpoint( { 0., 0. } );
-      for ( uint_t i = 0; i < 3; i++ )
-         for ( uint_t d = 0; d < 2; d++ )
+      for ( int_t i = 0; i < 3; i++ )
+         for ( int_t d = 0; d < 2; d++ )
             midpoint[d] += affineElementVertices[i][d] / 3.;
 
       // evaluate P1 function
