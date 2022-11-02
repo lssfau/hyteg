@@ -75,6 +75,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
 /// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
+/*
 template < typename StokesOperatorType >
 std::shared_ptr< Solver< StokesOperatorType > >
     varViscStokesMinResSolver( const std::shared_ptr< PrimitiveStorage >&       storage,
@@ -108,7 +109,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
    solver->setPrintInfo( printInfo );
    return solver;
 }
-
+*/
 /// \brief Returns a block preconditioned MINRES (weighted BFBT preconditioning for p) solver for the Stokes system with varying viscosity.
 ///
 /// The pressure is pre-multiplied with the inverse of the wBFBT operator, a better approximation to the Schur complement than the viscosity weighted mass matrix.
