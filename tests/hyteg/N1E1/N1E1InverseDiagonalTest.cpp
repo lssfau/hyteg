@@ -55,7 +55,7 @@ void test( uint_t level, MeshInfo meshInfo )
    const uint_t n = numberOfGlobalDoFs( numerator, level );
    for ( uint_t k = 0; k < n; ++k )
    {
-      real_t diagVal;
+      PetscScalar diagVal;
       MatGetValue( matrix.get(), numeric_cast< PetscInt >( k ), numeric_cast< PetscInt >( k ), &diagVal );
       WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( inverseDiagonal.getValue( k ), 1.0 / diagVal, 1.0e-12, "k = " << k )
    }
