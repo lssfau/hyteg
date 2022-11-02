@@ -90,7 +90,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
    StokesFunctionNumeratorType Numerator( "Num", storage, maxLevel, maxLevel );
    Numerator.enumerate( maxLevel );
 
-   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel, Numerator );
+   auto LU = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage, maxLevel );
 
    // construct pressure preconditioning operator: inverse, lumped, viscosity weighted, P1 mass matrix
    auto pPrecOp = std::make_shared< P1BlendingLumpedInverseDiagonalOperator >(
