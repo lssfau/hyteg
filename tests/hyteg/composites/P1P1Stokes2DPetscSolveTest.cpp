@@ -30,6 +30,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"

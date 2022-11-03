@@ -4,6 +4,10 @@ PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
 
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0") 
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
@@ -13,6 +17,7 @@ option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for CGAL
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
+set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")

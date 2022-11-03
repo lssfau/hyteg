@@ -183,7 +183,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Edge" );
 
-   std::vector< PrimitiveID::IDType > edgeIDs;
+   std::vector< PrimitiveID > edgeIDs;
    for ( auto& it : storage_->getEdges() )
    {
       edgeIDs.push_back( it.first );
@@ -247,7 +247,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Face" );
 
-   std::vector< PrimitiveID::IDType > faceIDs;
+   std::vector< PrimitiveID > faceIDs;
    for ( auto& it : storage_->getFaces() )
    {
       faceIDs.push_back( it.first );
@@ -850,7 +850,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Cell" );
 
-   std::vector< PrimitiveID::IDType > cellIDs;
+   std::vector< PrimitiveID > cellIDs;
    for ( auto& it : storage_->getCells() )
    {
       cellIDs.push_back( it.first );

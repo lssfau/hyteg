@@ -73,27 +73,27 @@ static void testPrimitiveRelativeOrdering()
   WALBERLA_CHECK_EQUAL( face2->getNumNeighborCells(), 1 );
   WALBERLA_CHECK_EQUAL( face3->getNumNeighborCells(), 1 );
 
-  WALBERLA_CHECK_EQUAL( face0->neighborCells().at( 0 ).getID(), cell->getID().getID() );
-  WALBERLA_CHECK_EQUAL( face1->neighborCells().at( 0 ).getID(), cell->getID().getID() );
-  WALBERLA_CHECK_EQUAL( face2->neighborCells().at( 0 ).getID(), cell->getID().getID() );
-  WALBERLA_CHECK_EQUAL( face3->neighborCells().at( 0 ).getID(), cell->getID().getID() );
+  WALBERLA_CHECK_EQUAL( face0->neighborCells().at( 0 ), cell->getID() );
+  WALBERLA_CHECK_EQUAL( face1->neighborCells().at( 0 ), cell->getID() );
+  WALBERLA_CHECK_EQUAL( face2->neighborCells().at( 0 ), cell->getID() );
+  WALBERLA_CHECK_EQUAL( face3->neighborCells().at( 0 ), cell->getID() );
 
   //////////////////////////////////////////////////////////////////////////////////
   // Checking that the cells neighbor faces are built from the correct vertices
   //
 
-  std::set< PrimitiveID::IDType > cellLocalVertices;
-  std::set< PrimitiveID::IDType > faceLocalVertices;
+  std::set< PrimitiveID > cellLocalVertices;
+  std::set< PrimitiveID > faceLocalVertices;
 
   // Cell-local face 0
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
 
-  faceLocalVertices.insert( face0->neighborVertices().at( 0 ).getID() );
-  faceLocalVertices.insert( face0->neighborVertices().at( 1 ).getID() );
-  faceLocalVertices.insert( face0->neighborVertices().at( 2 ).getID() );
+  faceLocalVertices.insert( face0->neighborVertices().at( 0 ) );
+  faceLocalVertices.insert( face0->neighborVertices().at( 1 ) );
+  faceLocalVertices.insert( face0->neighborVertices().at( 2 ) );
 
   WALBERLA_CHECK( cellLocalVertices == faceLocalVertices, "Cell-local vertex IDs at face[0] are wrong!" );
 
@@ -102,13 +102,13 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local face 1
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  faceLocalVertices.insert( face1->neighborVertices().at( 0 ).getID() );
-  faceLocalVertices.insert( face1->neighborVertices().at( 1 ).getID() );
-  faceLocalVertices.insert( face1->neighborVertices().at( 2 ).getID() );
+  faceLocalVertices.insert( face1->neighborVertices().at( 0 ) );
+  faceLocalVertices.insert( face1->neighborVertices().at( 1 ) );
+  faceLocalVertices.insert( face1->neighborVertices().at( 2 ) );
 
   WALBERLA_CHECK( cellLocalVertices == faceLocalVertices, "Cell-local vertex IDs at face[1] are wrong!" );
 
@@ -117,13 +117,13 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local face 2
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  faceLocalVertices.insert( face2->neighborVertices().at( 0 ).getID() );
-  faceLocalVertices.insert( face2->neighborVertices().at( 1 ).getID() );
-  faceLocalVertices.insert( face2->neighborVertices().at( 2 ).getID() );
+  faceLocalVertices.insert( face2->neighborVertices().at( 0 ) );
+  faceLocalVertices.insert( face2->neighborVertices().at( 1 ) );
+  faceLocalVertices.insert( face2->neighborVertices().at( 2 ) );
 
   WALBERLA_CHECK( cellLocalVertices == faceLocalVertices, "Cell-local vertex IDs at face[2] are wrong!" );
 
@@ -132,13 +132,13 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local face 3
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  faceLocalVertices.insert( face3->neighborVertices().at( 0 ).getID() );
-  faceLocalVertices.insert( face3->neighborVertices().at( 1 ).getID() );
-  faceLocalVertices.insert( face3->neighborVertices().at( 2 ).getID() );
+  faceLocalVertices.insert( face3->neighborVertices().at( 0 ) );
+  faceLocalVertices.insert( face3->neighborVertices().at( 1 ) );
+  faceLocalVertices.insert( face3->neighborVertices().at( 2 ) );
 
   WALBERLA_CHECK( cellLocalVertices == faceLocalVertices, "Cell-local vertex IDs at face[3] are wrong!" );
 
@@ -149,15 +149,15 @@ static void testPrimitiveRelativeOrdering()
   // Checking that the cells neighbor edges are built from the correct vertices
   //
 
-  std::set< PrimitiveID::IDType > edgeLocalVertices;
+  std::set< PrimitiveID > edgeLocalVertices;
 
   // Cell-local edge 0
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
 
-  edgeLocalVertices.insert( edge0->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge0->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge0->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge0->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[0] are wrong!" );
 
@@ -166,11 +166,11 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 1
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
 
-  edgeLocalVertices.insert( edge1->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge1->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge1->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge1->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[1] are wrong!" );
 
@@ -179,11 +179,11 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 2
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
 
-  edgeLocalVertices.insert( edge2->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge2->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge2->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge2->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[2] are wrong!" );
 
@@ -192,11 +192,11 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 3
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  edgeLocalVertices.insert( edge3->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge3->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge3->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge3->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[3] are wrong!" );
 
@@ -205,11 +205,11 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 4
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  edgeLocalVertices.insert( edge4->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge4->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge4->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge4->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[4] are wrong!" );
 
@@ -218,11 +218,11 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 5
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 2 ) );
+  cellLocalVertices.insert( cell->neighborVertices().at( 3 ) );
 
-  edgeLocalVertices.insert( edge5->neighborVertices().at( 0 ).getID() );
-  edgeLocalVertices.insert( edge5->neighborVertices().at( 1 ).getID() );
+  edgeLocalVertices.insert( edge5->neighborVertices().at( 0 ) );
+  edgeLocalVertices.insert( edge5->neighborVertices().at( 1 ) );
 
   WALBERLA_CHECK( cellLocalVertices == edgeLocalVertices, "Cell-local vertex IDs at edge[5] are wrong!" );
 

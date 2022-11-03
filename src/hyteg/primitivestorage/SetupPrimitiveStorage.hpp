@@ -43,11 +43,11 @@ using walberla::real_t;
 class SetupPrimitiveStorage
 {
  public:
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Primitive > > PrimitiveMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Vertex > >    VertexMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
@@ -66,24 +66,24 @@ class SetupPrimitiveStorage
    {
       return vertexExists( id ) || edgeExists( id ) || faceExists( id ) || cellExists( id );
    }
-   bool vertexExists( const PrimitiveID& id ) const { return vertices_.count( id.getID() ) > 0; }
-   bool edgeExists( const PrimitiveID& id ) const { return edges_.count( id.getID() ) > 0; }
-   bool faceExists( const PrimitiveID& id ) const { return faces_.count( id.getID() ) > 0; }
-   bool cellExists( const PrimitiveID& id ) const { return cells_.count( id.getID() ) > 0; }
+   bool vertexExists( const PrimitiveID& id ) const { return vertices_.count( id ) > 0; }
+   bool edgeExists( const PrimitiveID& id ) const { return edges_.count( id ) > 0; }
+   bool faceExists( const PrimitiveID& id ) const { return faces_.count( id ) > 0; }
+   bool cellExists( const PrimitiveID& id ) const { return cells_.count( id ) > 0; }
 
    Primitive*       getPrimitive( const PrimitiveID& id );
    const Primitive* getPrimitive( const PrimitiveID& id ) const;
-   Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr; }
+   Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
    const Vertex*    getVertex( const PrimitiveID& id ) const
    {
-      return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr;
+      return vertexExists( id ) ? vertices_.at( id ).get() : nullptr;
    }
-   Edge*       getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id.getID() ).get() : nullptr; }
-   const Edge* getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id.getID() ).get() : nullptr; }
-   Face*       getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id.getID() ).get() : nullptr; }
-   const Face* getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id.getID() ).get() : nullptr; }
-   Cell*       getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id.getID() ).get() : nullptr; }
-   const Cell* getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id.getID() ).get() : nullptr; }
+   Edge*       getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   const Edge* getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   Face*       getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   const Face* getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   Cell*       getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Cell* getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
 
    void getSetupPrimitives( PrimitiveMap& setupPrimitiveMap ) const;
 
@@ -110,9 +110,9 @@ class SetupPrimitiveStorage
 
    void setTargetRank( const PrimitiveID& primitiveID, const uint_t& targetRank )
    {
-      primitiveIDToTargetRankMap_[primitiveID.getID()] = targetRank;
+      primitiveIDToTargetRankMap_[primitiveID] = targetRank;
    }
-   uint_t getTargetRank( const PrimitiveID& primitiveID ) const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
+   uint_t getTargetRank( const PrimitiveID& primitiveID ) const { return primitiveIDToTargetRankMap_.at( primitiveID ); }
 
    uint_t getNumCellsOnRank( uint_t rank ) const;
    uint_t getNumFacesOnRank( uint_t rank ) const;
@@ -164,7 +164,7 @@ class SetupPrimitiveStorage
    uint_t getNumCellsOnBoundary() const;
 
  private:
-   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
+   typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
 
    PrimitiveID generatePrimitiveID() const;
 
@@ -184,7 +184,7 @@ class SetupPrimitiveStorage
    FaceMap   faces_;
    CellMap   cells_;
 
-   std::map< PrimitiveID::IDType, uint_t > primitiveIDToTargetRankMap_;
+   std::map< PrimitiveID, uint_t > primitiveIDToTargetRankMap_;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const SetupPrimitiveStorage& storage )

@@ -25,6 +25,10 @@ target_sources( hyteg
     P1toP1InjectionRestriction.cpp
     P1toP1LinearRestriction.hpp
     RestrictionOperator.hpp
+    DGProlongation.hpp
+    DGProlongation.cpp
+    DGRestriction.hpp
+    DGRestriction.cpp
     N1E1toN1E1Prolongation.hpp
     N1E1toN1E1Prolongation.cpp
     N1E1toN1E1Restriction.hpp

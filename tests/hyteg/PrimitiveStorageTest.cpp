@@ -144,7 +144,7 @@ static void testPrimitiveStorage()
     WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( vertexID ) );
     WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( vertexID ) );
     Vertex * vertex = storage->getPrimitiveGenerically< Vertex >( vertexID );
-    WALBERLA_LOG_INFO( "" << vertex->getID().getID() );
+    WALBERLA_LOG_INFO( "" << vertex->getID() );
   }
 
   for ( const PrimitiveID & edgeID : edgeIDs )
@@ -154,7 +154,7 @@ static void testPrimitiveStorage()
     WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Edge >( edgeID ) );
     WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( edgeID ) );
     Edge * edge = storage->getPrimitiveGenerically< Edge >( edgeID );
-    WALBERLA_LOG_INFO( "" << edge->getID().getID() );
+    WALBERLA_LOG_INFO( "" << edge->getID() );
   }
 
   for ( const PrimitiveID & faceID : faceIDs )
@@ -164,7 +164,7 @@ static void testPrimitiveStorage()
     WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( faceID ) );
     WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Face >( faceID ) );
     Face * face = storage->getPrimitiveGenerically< Face >( faceID );
-    WALBERLA_LOG_INFO( "" << face->getID().getID() );
+    WALBERLA_LOG_INFO( "" << face->getID() );
   }
 
   writePrimitiveStorageDistributionCSV( storage, distributionFile );

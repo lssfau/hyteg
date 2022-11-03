@@ -196,6 +196,24 @@ inline FaceBoundaryDirection getFaceBoundaryDirection( uint_t localEdgeId, int o
    return FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT;
 }
 
+inline FaceBoundaryDirection getFaceBoundaryDirectionFromLocalVertexPair( uint_t v0, uint_t v1 )
+{
+   if ( v0 == 0 && v1 == 1 )
+      return FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT;
+   if ( v0 == 1 && v1 == 0 )
+      return FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT;
+   if ( v0 == 0 && v1 == 2 )
+      return FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP;
+   if ( v0 == 2 && v1 == 0 )
+      return FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM;
+   if ( v0 == 1 && v1 == 2 )
+      return FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP;
+   if ( v0 == 2 && v1 == 1 )
+      return FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM;
+
+   WALBERLA_ABORT( "Invalid vertex pair." );
+}
+
 /// Iterator over the boundaries of a face.
 /// Decoupled from the indexing function, it returns the logical coordinates
 /// which can then be inserted into the respective indexing function.
@@ -218,6 +236,31 @@ class FaceBoundaryIterator
    using reference         = value_type const&;
    using pointer           = value_type const*;
    using difference_type   = ptrdiff_t;
+
+   FaceBoundaryIterator( const uint_t& width,
+                         const uint_t& vertex0,
+                         const uint_t& vertex1,
+                         const uint_t& offsetToCenter     = 0,
+                         const uint_t& offsetFromVertices = 0,
+                         const bool&   end                = false )
+   : FaceBoundaryIterator( width,
+                           getFaceBoundaryDirectionFromLocalVertexPair( vertex0, vertex1 ),
+                           offsetToCenter,
+                           offsetFromVertices,
+                           end )
+   {}
+
+   FaceBoundaryIterator( const uint_t&                  width,
+                         const std::array< uint_t, 2 >& vertices,
+                         const uint_t&                  offsetToCenter     = 0,
+                         const uint_t&                  offsetFromVertices = 0,
+                         const bool&                    end                = false )
+   : FaceBoundaryIterator( width,
+                           getFaceBoundaryDirectionFromLocalVertexPair( vertices[0], vertices[1] ),
+                           offsetToCenter,
+                           offsetFromVertices,
+                           end )
+   {}
 
    FaceBoundaryIterator( const uint_t&                width,
                          const FaceBoundaryDirection& direction,

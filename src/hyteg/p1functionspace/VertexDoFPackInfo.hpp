@@ -132,7 +132,7 @@ void VertexDoFPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const 
   } else if(receiver->vertex_index(sender) == 1) {
     pos = levelinfo::num_microvertices_per_edge(level_) - 1;
   } else {
-    WALBERLA_LOG_WARNING("Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver)
+    WALBERLA_LOG_WARNING("Vertex with ID: " << sender << " is not in Edge: " << receiver)
   }
   buffer >> edgeData[vertexdof::macroedge::indexFromVertex( level_, pos, stencilDirection::VERTEX_C ) ];
 }
@@ -168,7 +168,7 @@ void VertexDoFPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const
   } else if(vertexIdOnEdge == 1){
     buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, levelinfo::num_microvertices_per_edge(level_)-2 ,stencilDirection::VERTEX_C ) ];
   } else {
-    WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender);
+    WALBERLA_LOG_WARNING("Vertex with ID: " << receiver << " is not in Edge: " << sender);
   }
 }
 

@@ -102,10 +102,10 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    {
       WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices3D_[cell.getID().getID()][level][idx];
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      return localElementMatrices3D_[cell.getID()][level][idx];
    }
 
    /// \brief Returns a const reference to the precomputed element matrix of the specified micro cell.
@@ -115,10 +115,10 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    {
       WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
    }
 
    N1E1FormType form_;
@@ -127,8 +127,8 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat6x6
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices3D_;
-   bool                                                                         localElementMatricesPrecomputed_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices3D_;
+   bool                                                                 localElementMatricesPrecomputed_;
 };
 
 template < class N1E1FormType >

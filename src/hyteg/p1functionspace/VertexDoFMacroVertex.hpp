@@ -274,7 +274,7 @@ inline void integrateDG( Vertex&                                                
 
    for ( const auto& faceIt : vertex.neighborFaces() )
    {
-      Face* face = storage->getFace( faceIt.getID() );
+      Face* face = storage->getFace( faceIt );
 
       real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
 

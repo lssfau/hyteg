@@ -231,10 +231,7 @@ class CSFVectorFunction
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-      for ( uint_t k = 0; k < compFunc_.size(); ++k )
-      {
-         compFunc_[k]->setBoundaryCondition( other[k].getBoundaryCondition() );
-      }
+     setBoundaryCondition( other.getBoundaryCondition() );
    }
    /// @}
 
@@ -310,8 +307,8 @@ class CSFVectorFunction
    ///
    void copyFrom( const VectorFunctionType&                      other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {

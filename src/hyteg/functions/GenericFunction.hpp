@@ -121,8 +121,8 @@ class GenericFunction
 
    virtual void copyFrom( const GenericFunction< value_t >&              other,
                           const uint_t&                                  level,
-                          const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                          const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const = 0;
+                          const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                          const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const = 0;
 
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const OtherType& other )

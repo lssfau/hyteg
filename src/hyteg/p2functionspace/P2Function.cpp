@@ -169,8 +169,8 @@ void P2Function< ValueType >::copyFrom( const P2Function< ValueType >& other, co
 template < typename ValueType >
 void P2Function< ValueType >::copyFrom( const P2Function< ValueType >&                 other,
                                         const uint_t&                                  level,
-                                        const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                                        const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                                        const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                                        const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
    vertexDoFFunction_.copyFrom( other.getVertexDoFFunction(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    edgeDoFFunction_.copyFrom( other.getEdgeDoFFunction(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );

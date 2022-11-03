@@ -1196,6 +1196,7 @@ docu_build:
     - public
   except:
     - master
+  when: manual
   tags:
    - docker
 
@@ -1221,7 +1222,7 @@ docu_build:
 #
 #
 coverage:
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
    script:
       - pip3 install gcovr
       - export NUM_CORES=$(nproc --all)
@@ -1249,7 +1250,9 @@ coverage:
       paths:
          - coverage/
       reports:
-        cobertura: coverage/coverage.xml
+        coverage_report:
+          coverage_format: cobertura
+          path: coverage/coverage.xml
    tags:
       - docker
    variables:

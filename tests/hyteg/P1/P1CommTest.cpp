@@ -61,7 +61,7 @@ int main (int argc, char ** argv )
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     for(uint_t i = 0; i < nbrEdges.size(); ++i){
-      Edge* edge = storage->getEdge(nbrEdges[0].getID());
+      Edge* edge = storage->getEdge(nbrEdges[0]);
       real_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
       idx_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face.getID());
@@ -133,7 +133,7 @@ int main (int argc, char ** argv )
     edge.getNeighborVertices(nbrVertices);
     for(uint_t i = 0; i < nbrVertices.size(); ++i)
     {
-      Vertex* vertex = storage->getVertex(nbrVertices[i].getID());
+      Vertex* vertex = storage->getVertex(nbrVertices[i]);
       real_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);

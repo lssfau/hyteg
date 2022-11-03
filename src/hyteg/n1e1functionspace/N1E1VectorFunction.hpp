@@ -82,10 +82,10 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   inline void copyFrom( const N1E1VectorFunction< ValueType >&         other,
-                         const uint_t&                                  level,
-                         const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                         const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank )
+   inline void copyFrom( const N1E1VectorFunction< ValueType >& other,
+                         const uint_t&                          level,
+                         const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                         const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank )
    {
       dofs_->copyFrom( *other.getDoFs(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    }

@@ -34,6 +34,6 @@ Parameters
 
   // misc
   vtkName new_anal_2D_ada;
-  loadbalancing 1;
+  loadbalancing 0;
   writeDomainPartitioning 1;
 }
