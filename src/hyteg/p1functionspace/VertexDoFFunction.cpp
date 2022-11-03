@@ -118,6 +118,15 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
 }
 
 template < typename ValueType >
+VertexDoFFunction< ValueType >::~VertexDoFFunction()
+{
+   this->storage_->deleteVertexData( vertexDataID_ );
+   this->storage_->deleteEdgeData( edgeDataID_ );
+   this->storage_->deleteFaceData( faceDataID_ );
+   this->storage_->deleteCellData( cellDataID_ );
+}
+
+template < typename ValueType >
 bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const
 {
    WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
@@ -1005,7 +1014,7 @@ void VertexDoFFunction< ValueType >::assign(
       srcCellIDs.push_back( function.cellDataID_ );
    }
    this->getStorage()->getTimingTree()->start( "Vertex" );
-   
+
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
    #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
@@ -1019,10 +1028,10 @@ void VertexDoFFunction< ValueType >::assign(
          vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
-   
+
    this->getStorage()->getTimingTree()->stop( "Vertex" );
    this->getStorage()->getTimingTree()->start( "Edge" );
-   
+
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
    #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
@@ -1036,7 +1045,7 @@ void VertexDoFFunction< ValueType >::assign(
          vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
-   
+
    this->getStorage()->getTimingTree()->stop( "Edge" );
    this->getStorage()->getTimingTree()->start( "Face" );
 
@@ -1389,7 +1398,7 @@ void VertexDoFFunction< ValueType >::multElementwise(
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
-      
+
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );

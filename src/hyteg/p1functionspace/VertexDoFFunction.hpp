@@ -76,6 +76,8 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+   ~VertexDoFFunction();
+
    bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
    bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
    bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
