@@ -29,6 +29,7 @@
 
 namespace hyteg {
 
+using walberla::uint_c;
 using walberla::real_c;
 using walberla::real_t;
 
@@ -575,6 +576,15 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
 
 MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, real_t rmin, real_t rmax, shellMeshType meshType )
 {
+   if ( nrad < uint_c( 2 ) )
+   {
+      WALBERLA_ABORT( "ERROR: meshSphericalShell() requires nrad >= 2, but it is " << nrad );
+   }
+
+   if( !(rmin < rmax ) || rmin <= real_c(0) ) {
+      WALBERLA_ABORT( "ERROR: meshSphericalShell() requires 0 < rmin < rmax, but got rmin = " << rmin << ", rmax = " << rmax );
+   }
+
    std::vector< real_t > layers( nrad, 0.0 );
    for ( uint_t layer = 0; layer < nrad; layer++ )
    {
@@ -586,6 +596,27 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, real_t rmin, re
 MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >& layers, shellMeshType meshType )
 {
    uint_t nrad = layers.size();
+
+   if ( nrad < uint_c( 2 ) )
+   {
+      WALBERLA_ABORT( "ERROR: meshSphericalShell() requires at least two layers!" );
+   }
+
+   bool isAscending = true;
+
+   for ( uint_t idx = 0; idx < nrad - 1; ++idx )
+   {
+      if ( layers[idx] >= layers[idx + 1] )
+      {
+         isAscending = false;
+         break;
+      }
+   }
+
+   if ( !isAscending || !( layers[0] > real_c( 0 ) ) )
+   {
+      WALBERLA_ABORT( "ERROR: meshSphericalShell() requires an ascending array of positive layer values!" );
+   }
 
    /// Flavour for generation of the spherical mesh
    ///
