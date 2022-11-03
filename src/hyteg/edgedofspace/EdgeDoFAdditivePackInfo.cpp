@@ -298,7 +298,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromCell( Face*            
 template < typename ValueType >
 void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace( const Cell* sender, Face* receiver ) const
 {
-   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 3D." );
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Face only meaningful in 3D." );
 
    ValueType*       faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
