@@ -2245,7 +2245,7 @@ void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag,
 //  explicit instantiation
 // ========================
 template class VertexDoFFunction< double >;
-// template class VertexDoFFunction< float >;
+template class VertexDoFFunction< float >;
 template class VertexDoFFunction< int32_t >;
 template class VertexDoFFunction< int64_t >;
 
