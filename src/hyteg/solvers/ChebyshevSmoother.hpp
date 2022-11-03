@@ -62,9 +62,15 @@ class ChebyshevSmoother : public Solver< OperatorType >
       tmp1_.copyBoundaryConditionFromFunction( x );
       tmp2_.copyBoundaryConditionFromFunction( x );
 
-      WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
-      WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
-      WALBERLA_ASSERT( inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag_ ) > 0, "diagonal not set" );
+      WALBERLA_DEBUG_SECTION()
+      {
+         WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
+         WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
+
+         const real_t localNormSqr = inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag_ );
+         WALBERLA_UNUSED( localNormSqr );
+         WALBERLA_ASSERT_GREATER( localNormSqr, 0.0, "diagonal not set" );
+      }
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
@@ -201,7 +207,15 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
    {
       auto A_with_inv_diag       = dynamic_cast< const OperatorWithInverseDiagonal< SrcFunctionType >* >( &wrappedOperator_ );
       auto inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
-      WALBERLA_ASSERT( inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag ) > 0, "diagonal not set" );
+
+      WALBERLA_DEBUG_SECTION()
+      {
+         WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
+
+         const real_t localNormSqr = inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag );
+         WALBERLA_UNUSED( localNormSqr );
+         WALBERLA_ASSERT_GREATER( localNormSqr, 0.0, "diagonal not set" );
+      }
 
       wrappedOperator_.apply( src, dst, level, flag, updateType );
       dst.multElementwise( { *inverseDiagonalValues, dst }, level, flag );
