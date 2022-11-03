@@ -65,13 +65,13 @@ void MultiSinker2D( const uint_t& level,
                     const real_t& delta,
                     const real_t& omega )
 {
-   real_t visc_min = std::pow(DR,-0.5);
-   real_t visc_max = std::pow(DR,0.5);
+   real_t visc_min = std::pow( DR, -0.5 );
+   real_t visc_max = std::pow( DR, 0.5 );
 
    // storage and domain
    //auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
-   
-   auto meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0  } ), Point3D( { 1, 1, 1 } ), nxy, nxy, nxy );
+
+   auto                  meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), nxy, nxy, nxy );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    hyteg::loadbalancing::roundRobin( setupStorage );
@@ -81,12 +81,12 @@ void MultiSinker2D( const uint_t& level,
    WALBERLA_LOG_INFO_ON_ROOT( "#Sinkers: " << nSinkers << ", visc_max: " << visc_max );
 
    // function setup
-   hyteg::P2P1TaylorHoodFunction< real_t >          x( "x", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          btmp( "btmp", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          b( "b", storage, level, level );
-   hyteg::P2P1TaylorHoodFunction< real_t >          residuum( "res", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > x( "x", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > btmp( "btmp", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > b( "b", storage, level, level );
+   hyteg::P2P1TaylorHoodFunction< real_t > residuum( "res", storage, level, level );
 
-   P2Function< real_t > Visc_func( "visc_func", storage, level, level );
+   P2Function< real_t >                             Visc_func( "visc_func", storage, level, level );
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
 
    // generate sinker centers randomly (without them exiting the domain)
@@ -98,12 +98,12 @@ void MultiSinker2D( const uint_t& level,
    std::vector< Point3D > centers;
    for ( uint_t c = 0; c < nSinkers; c++ )
    {
-     // centers.push_back( Point3D( { unif( re ), unif( re ) } ) );
-       centers.push_back( Point3D( { unif( re ), unif( re ), unif( re ) } ) );
+      // centers.push_back( Point3D( { unif( re ), unif( re ) } ) );
+      centers.push_back( Point3D( { unif( re ), unif( re ), unif( re ) } ) );
    }
 
    // characteristic function for sinkers
-   std::function< real_t( const hyteg::Point3D& ) > Xi = [centers, visc_max, visc_min, delta, omega]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > Xi = [centers, delta, omega]( const hyteg::Point3D& xx ) {
       real_t val = 1;
       for ( auto& c : centers )
       {
@@ -126,20 +126,17 @@ void MultiSinker2D( const uint_t& level,
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator A( storage, level, level, viscosity );
 
    // Visualization
-   
+
    Visc_func.interpolate( viscosity, level, All );
    VTKOutput vtkOutput( "../../output", "MultiSinker3DBenchmark", storage );
    vtkOutput.add( x.uvw() );
    vtkOutput.add( x.p() );
    vtkOutput.add( b.uvw() );
    vtkOutput.add( b.p() );
-   
-      vtkOutput.add( Visc_func );
-   vtkOutput.write( level, 0 );
-   
-   WALBERLA_LOG_INFO_ON_ROOT( "Written vtk" );
 
-/*
+   vtkOutput.add( Visc_func );
+   vtkOutput.write( level, 0 );
+
    // DoFs
    uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
    uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -147,7 +144,7 @@ void MultiSinker2D( const uint_t& level,
 
    // Initial errors and residual
    x.interpolate( zero, level, hyteg::DirichletBoundary );
-   x.interpolate([&unif, &re]( const hyteg::Point3D& xx ) { return unif(re); },level,hyteg::Inner);
+   x.interpolate( [&unif, &re]( const hyteg::Point3D& xx ) { return unif( re ); }, level, hyteg::Inner );
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner | hyteg::NeumannBoundary );
    real_t residuum_l2_1 =
@@ -162,8 +159,7 @@ void MultiSinker2D( const uint_t& level,
    PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
        storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
 
-   auto ViscWeightedPMINRES =
-       solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 10000, true );
+   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 10000, true );
    auto OnlyPressurePMINRES =
        solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
    auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-6, 1e-6, 10000, true );
@@ -172,48 +168,42 @@ void MultiSinker2D( const uint_t& level,
    auto BFBT_PMINRES = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-6, 100, true, velocityBCs );
 
    hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
- //  THNumerator.copyBoundaryConditionFromFunction( x );
    THNumerator.enumerate( level );
 
    bool printOperands = false;
    bool printResult   = false;
    if ( printOperands )
    {
-      P1LumpedMassOperator PMass(
-       storage,
-       level,
-       level
-      );
+      P1LumpedMassOperator                             PMass( storage, level, level );
       PETScSparseMatrix< hyteg::P1LumpedMassOperator > PMassMat;
-      hyteg::P1Function< idx_t > PNumerator( "PNum", storage, level, level );
-      PNumerator.enumerate(level);
+      hyteg::P1Function< idx_t >                       PNumerator( "PNum", storage, level, level );
+      PNumerator.enumerate( level );
       PMassMat.createMatrixFromOperator( PMass, level, PNumerator, All );
       PMassMat.print( "FOR_MATLAB_PMassMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      
+
       P1BlendingLumpedDiagonalOperator PMassViscWeighted(
-       storage,
-       level,
-       level,
-       std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
+          storage,
+          level,
+          level,
+          std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
       PETScSparseMatrix< hyteg::P1BlendingLumpedDiagonalOperator > PMassViscWeightedMat;
       PMassViscWeightedMat.createMatrixFromOperator( PMassViscWeighted, level, PNumerator, All );
       PMassViscWeightedMat.print( "FOR_MATLAB_PMassViscWeightedMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   
+
       PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
       StokesMat.createMatrixFromOperator( A, level, THNumerator, All );
-      
+
       b.assign( { 1.0 }, { x }, level, DirichletBoundary );
       PETScVector bVec( b, THNumerator, level );
       bVec.createVectorFromFunction( b, THNumerator, level, All );
       StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
       //StokesMat.applyDirichletBC( THNumerator, level );
-      
+
       bVec.print( "FOR_MATLAB_bVec_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
       StokesMat.print( "FOR_MATLAB_StokesMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
-   WALBERLA_ABORT( "bye" );
+      WALBERLA_ABORT( "bye" );
    }
-
 
    walberla::WcTimer timer;
    switch ( solver )
@@ -262,7 +252,7 @@ void MultiSinker2D( const uint_t& level,
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    x.interpolate( zero, level, hyteg::DirichletBoundary );
- 
+
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level );
    residuum_l2_1 =
@@ -270,7 +260,6 @@ void MultiSinker2D( const uint_t& level,
    WALBERLA_LOG_INFO_ON_ROOT( "final residual = " << residuum_l2_1 );
 
    vtkOutput.write( level, 1 );
-   */
 }
 
 } // namespace hyteg
@@ -293,7 +282,7 @@ int main( int argc, char* argv[] )
   const real_t & omega)
   */
 
-   MultiSinker2D(6, atoi( argv[2] ), 1, atoi( argv[3] ), atoi( argv[4] ), 200, 0.1 );
+   MultiSinker2D( 6, 4, 1, 4, 1000, 200, 0.1 );
 
    return EXIT_SUCCESS;
 }

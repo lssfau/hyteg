@@ -197,7 +197,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    //x.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
    // Right-hand-side: derivatives of u, v, p for x and y
-   std::function< real_t( const hyteg::Point3D& ) > ddx_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ddx_u = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[0] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( 12.0 * std::pow( xx[0], 4.0 ) - 120.0 * std::pow( xx[0] * xx[1], 2.0 ) + 60.0 * std::pow( xx[1], 4.0 ) ) -
@@ -205,7 +205,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                20.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 4.0 ) - 36.0 * std::pow( xx[1], 6.0 ) ) /
              ( std::pow( xx[0] * xx[0] + xx[1] * xx[1], 5.0 ) );
    };
-   std::function< real_t( const hyteg::Point3D& ) > ddy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ddy_u = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[0] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( -12.0 * std::pow( xx[0], 4.0 ) + 120.0 * std::pow( xx[0] * xx[1], 2.0 ) - 60.0 * std::pow( xx[1], 4.0 ) ) +
@@ -213,7 +213,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                60.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 4.0 ) + 12.0 * std::pow( xx[1], 6.0 ) ) /
              ( std::pow( xx[0] * xx[0] + xx[1] * xx[1], 5.0 ) );
    };
-   std::function< real_t( const hyteg::Point3D& ) > ddx_v = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ddx_v = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[1] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( 60.0 * std::pow( xx[0], 4.0 ) - 120.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 2.0 ) +
@@ -222,7 +222,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                60.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 4.0 ) - 12.0 * std::pow( xx[1], 6.0 ) ) /
              ( std::pow( xx[0] * xx[0] + xx[1] * xx[1], 5.0 ) );
    };
-   std::function< real_t( const hyteg::Point3D& ) > ddy_v = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ddy_v = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[1] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( -60.0 * std::pow( xx[0], 4.0 ) + 120.0 * std::pow( xx[0] * xx[1], 2.0 ) - 12.0 * std::pow( xx[1], 4.0 ) ) +
@@ -230,7 +230,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                52.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 4.0 ) + 4.0 * std::pow( xx[1], 6.0 ) ) /
              ( std::pow( xx[0] * xx[0] + xx[1] * xx[1], 5.0 ) );
    };
-   std::function< real_t( const hyteg::Point3D& ) > dydx_v = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > dydx_v = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[0] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( -12.0 * std::pow( xx[0], 4.0 ) + 120.0 * std::pow( xx[0] * xx[1], 2.0 ) - 60.0 * std::pow( xx[1], 4.0 ) ) +
@@ -238,7 +238,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                20.0 * std::pow( xx[0], 2.0 ) * std::pow( xx[1], 4.0 ) + 36.0 * std::pow( xx[1], 6.0 ) ) /
              ( std::pow( xx[0] * xx[0] + xx[1] * xx[1], 5.0 ) );
    };
-   std::function< real_t( const hyteg::Point3D& ) > dxdy_u = [r_inclusion, A, visc_matrix]( const hyteg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > dxdy_u = [r_inclusion, A]( const hyteg::Point3D& xx ) {
       return A * std::pow( r_inclusion, 2.0 ) * xx[1] *
              ( std::pow( r_inclusion, 2.0 ) *
                    ( 60.0 * std::pow( xx[0], 4.0 ) - 120.0 * std::pow( xx[0] * xx[1], 2.0 ) + 12.0 * std::pow( xx[1], 4.0 ) ) -
@@ -249,7 +249,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
 
    // right hand side: setup by epsilon operator on u,v and gradient of p
    std::function< real_t( const hyteg::Point3D& ) > rhsU =
-       [r_inclusion, A, rad, ddx_u, ddy_u, dydx_v, visc_matrix]( const hyteg::Point3D& xx ) {
+       [r_inclusion, A, rad, ddx_u, ddy_u, dydx_v]( const hyteg::Point3D& xx ) {
           if ( rad( xx ) < r_inclusion )
              return 0.0;
           else
@@ -259,7 +259,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddx_p(xx);
        };
    std::function< real_t( const hyteg::Point3D& ) > rhsV =
-       [r_inclusion, A, rad, ddx_v, ddy_v, dxdy_u, visc_matrix]( const hyteg::Point3D& xx ) {
+       [r_inclusion, A, rad, ddx_v, ddy_v, dxdy_u]( const hyteg::Point3D& xx ) {
           if ( rad( xx ) < r_inclusion )
              return 0.0;
           else
@@ -302,7 +302,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    Numerator.enumerate( level );
 
    //auto Solver = solvertemplates::varViscStokesMinResSolver<StokesOperatorType>( storage, level, viscosity, 1, 1e-8, 100, true );
-   PETScLUSolver< StokesOperatorType >     LU( storage, level, Numerator );
+   PETScLUSolver< StokesOperatorType >     LU( storage, level );
    PETScMinResSolver< StokesOperatorType > MINRES( storage, level, Numerator );
    StokesFunctionType                      nullSpace( "ns", storage, level, level );
    nullSpace.uvw().interpolate( 0, level, All );
@@ -372,7 +372,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    }
    discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
    discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
-   real_t h = MeshQuality::getMaximalEdgeLength( storage, level );
+   real_t h             = MeshQuality::getMaximalEdgeLength( storage, level );
    return std::make_tuple< real_t&, real_t&, real_t& >( h, discrL2_velocity_err, discrL2_pressure_err );
 }
 
