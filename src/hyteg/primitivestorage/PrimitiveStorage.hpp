@@ -389,7 +389,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Should not be called for other primitives.
    uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const;
 
-   /// @name Primitive data methods
+   /// @name Primitive data methods (add)
    /// Use these methods to add data to all primitives of a certain type using a respective \ref PrimitiveDataHandling implementation.
    /// \param dataID (out) the method creates a data ID and writes it to this parameter, the data can be obtained through a \ref Primitive using this ID
    /// \param dataHandling a pointer to the \ref PrimitiveDataHandling that shall be used to treat the data item
@@ -426,6 +426,26 @@ class PrimitiveStorage : private walberla::NonCopyable
    {
       return generateDataID< DataType, PrimitiveType >();
    }
+   ///@}
+
+   /// @name Primitive data methods (delete)
+   /// Use these methods to delete data of a certain type from all primitives.
+   /// \param dataID ID of the data to be deleted
+   ///@{
+   template < typename DataType >
+   inline void deletePrimitiveData( PrimitiveDataID< DataType, Primitive >& dataID );
+
+   template < typename DataType >
+   inline void deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID );
+
+   template < typename DataType >
+   inline void deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID );
+
+   template < typename DataType >
+   inline void deleteFaceData( PrimitiveDataID< DataType, Face >& dataID );
+
+   template < typename DataType >
+   inline void deleteCellData( PrimitiveDataID< DataType, Cell >& dataID );
    ///@}
 
    /// Migrates the passed local primitives to the respective target process.
@@ -647,6 +667,12 @@ class PrimitiveStorage : private walberla::NonCopyable
                                  const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
                                  const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
+   template < typename DataType,
+              typename PrimitiveType,
+              typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
+   inline void deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                    const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
+
    /// The first indirection specifies the hierarchy level.
    std::map< uint_t, VertexMap > vertices_;
    std::map< uint_t, EdgeMap >   edges_;
@@ -718,6 +744,46 @@ class PrimitiveStorage : private walberla::NonCopyable
       cellDataDeserializationFunctions_[dataID] = deserializationFunction;
    }
 
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive >& dataID )
+   {
+      primitiveDataInitializationFunctions_.erase( dataID );
+      primitiveDataSerializationFunctions_.erase( dataID );
+      primitiveDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Vertex >& dataID )
+   {
+      vertexDataInitializationFunctions_.erase( dataID );
+      vertexDataSerializationFunctions_.erase( dataID );
+      vertexDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Edge >& dataID )
+   {
+      edgeDataInitializationFunctions_.erase( dataID );
+      edgeDataSerializationFunctions_.erase( dataID );
+      edgeDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Face >& dataID )
+   {
+      faceDataInitializationFunctions_.erase( dataID );
+      faceDataSerializationFunctions_.erase( dataID );
+      faceDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell >& dataID )
+   {
+      cellDataInitializationFunctions_.erase( dataID );
+      cellDataSerializationFunctions_.erase( dataID );
+      cellDataDeserializationFunctions_.erase( dataID );
+   }
+
    // Maps from data ID to respective callback functions
 
    std::map< uint_t, std::function< void( const std::shared_ptr< Primitive >& ) > > primitiveDataInitializationFunctions_;
@@ -777,6 +843,8 @@ class PrimitiveStorage : private walberla::NonCopyable
 ////////////////////////////////////////////////
 #include "PrimitiveStorage.tpp"
 ////////////////////////////////////////////////
+
+// Adding Primitive data
 
 template < typename DataType, typename DataHandlingType >
 void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&    dataID,
@@ -838,9 +906,11 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
 template < typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
-#ifndef NDEBUG
-   checkConsistency();
-#endif
+   WALBERLA_DEBUG_SECTION()
+   {
+      checkConsistency();
+   }
+
    return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }
 
@@ -851,12 +921,13 @@ inline void
                                         const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
                                         const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
 {
-#ifndef NDEBUG
-   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
+   WALBERLA_DEBUG_SECTION()
    {
-      WALBERLA_ASSERT_GREATER( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+      for ( auto it = primitives.begin(); it != primitives.end(); it++ )
+      {
+         WALBERLA_ASSERT_GREATER( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+      }
    }
-#endif
 
    // Set up initialization, serialization and deserialization callbacks
    auto initCallback = [this, dataID, dataHandling]( const std::shared_ptr< PrimitiveType >& primitive ) -> void {
@@ -881,6 +952,66 @@ inline void
    for ( const auto& primitive : primitives )
    {
       initCallback( primitive.second );
+   }
+
+   wasModified();
+}
+
+// Deleting Primitive data
+
+template < typename DataType >
+void PrimitiveStorage::deletePrimitiveData( PrimitiveDataID< DataType, hyteg::Primitive >& dataID )
+{
+   dataID = generateDataID< DataType, Primitive >();
+   PrimitiveMap primitives;
+
+   auto vertices = getVertices();
+   auto edges    = getEdges();
+   auto faces    = getFaces();
+   auto cells    = getCells();
+
+   primitives.insert( vertices.begin(), vertices.end() );
+   primitives.insert( edges.begin(), edges.end() );
+   primitives.insert( faces.begin(), faces.end() );
+   primitives.insert( cells.begin(), cells.end() );
+
+   deletePrimitiveData( primitives, dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID )
+{
+   deletePrimitiveData( getVertices(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID )
+{
+   deletePrimitiveData( getEdges(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteFaceData( PrimitiveDataID< DataType, Face >& dataID )
+{
+   deletePrimitiveData( getFaces(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteCellData( PrimitiveDataID< DataType, Cell >& dataID )
+{
+   deletePrimitiveData( getCells(), dataID );
+}
+
+template < typename DataType, typename PrimitiveType, typename >
+void PrimitiveStorage::deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                            const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
+{
+   deleteDataHandlingCallbacks( dataID );
+
+   // initialize memory for all primitives in map
+   for ( const auto& primitive : primitives )
+   {
+      primitive.second->deleteData( dataID );
    }
 
    wasModified();
