@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -533,6 +533,9 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
       // no match found
       return false;
    }
+
+   // will not be reached, but some compilers complain otherwise
+   return false;
 }
 
 template < typename ValueType >
