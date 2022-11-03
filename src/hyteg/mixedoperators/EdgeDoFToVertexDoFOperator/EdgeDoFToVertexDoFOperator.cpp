@@ -333,7 +333,6 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
 
          real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-         uint_t neighborId = 0;
          for ( auto& faceId : vertex.neighborFaces() )
          {
             Face* face = storage_->getFace( faceId );
@@ -364,8 +363,6 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
 
             walberla::uint_t face_idx = vertex.getNumNeighborEdges() + vertex.face_index( face->getID() );
             vStencil[face_idx] += matrixRow[0];
-
-            ++neighborId;
          }
       }
    }
