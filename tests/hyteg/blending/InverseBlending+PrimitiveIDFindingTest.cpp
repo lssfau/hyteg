@@ -221,7 +221,7 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      real_t tolerance = real_c( 1e-15 );
+      real_t tolerance = real_c( 5e-15 );
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
