@@ -34,8 +34,6 @@ namespace hyteg {
 
 void testDivForm()
 {
-   hyteg::dg::eg::EGDivFormP1E form;
-
    // we test two triangles with coordinates (p0, p1, p2) and (p0, p2, p3):
    Eigen::Matrix< real_t, 3, 1 > p0{ 0, 0, 0 };
    Eigen::Matrix< real_t, 3, 1 > p1{ 1, 0, 0 };
@@ -249,8 +247,8 @@ void testLaplaceForm()
       elMat.resize( 3, 3 );
       form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 1, 1, elMat );
 
-      for ( uint_t i = 0; i < 3; i += 1 )
-         for ( uint_t j = 0; j < 3; j += 1 )
+      for ( int i = 0; i < 3; i += 1 )
+         for ( int j = 0; j < 3; j += 1 )
             WALBERLA_CHECK_FLOAT_EQUAL( expected( i, j ), elMat( i, j ) )
    }
 
@@ -421,17 +419,15 @@ void testEpsilonForm()
       WALBERLA_CHECK_FLOAT_EQUAL( expected_t1( 1, 0 ), elMat( 1, 0 ) )
       WALBERLA_CHECK_FLOAT_EQUAL( expected_t1( 2, 0 ), elMat( 2, 0 ) )
 
-      
       // triangle 2
       Eigen::Matrix< real_t, 3, 1 > expected_t2;
       // clang-format off
       expected_t2 <<
           2*0.250, 2*0.250, -2*0.50;
       // clang-format on
-  
 
       form.integrateVolume2D( { p0, p2, p3 }, basis, basis, 0, 1, elMat );
-      for ( uint_t i = 0; i < 3; i += 1 )
+      for ( int i = 0; i < 3; i += 1 )
          WALBERLA_CHECK_FLOAT_EQUAL( expected_t2( i, 0 ), elMat( i, 0 ) )
    }
 
@@ -453,20 +449,18 @@ void testEpsilonForm()
       WALBERLA_CHECK_FLOAT_EQUAL( expected_t1( 1, 0 ), elMat( 1, 0 ) )
       WALBERLA_CHECK_FLOAT_EQUAL( expected_t1( 2, 0 ), elMat( 2, 0 ) )
 
-      
       // triangle 2
       Eigen::Matrix< real_t, 3, 1 > expected_t2;
       // clang-format off
       expected_t2 <<
           2*0.250, 2*0.250, -2*0.50;
       // clang-format on
-  
 
       form.integrateVolume2D( { p0, p2, p3 }, basis, basis, 1, 0, elMat );
-      for ( uint_t i = 0; i < 3; i += 1 )
+      for ( int i = 0; i < 3; i += 1 )
          WALBERLA_CHECK_FLOAT_EQUAL( expected_t2( i, 0 ), elMat( i, 0 ) )
    }
-   
+
    // edge integrals: consistency and symmetry term
    {
       // edg, edg pairing
@@ -479,8 +473,8 @@ void testEpsilonForm()
             {
                real_t expected_consistency_symmetry = 0.339934634239519; // consistency, symmetry (penalty does not contain eps)
                real_t expected_penalty              = 0.24888888888888888;
-               real_t expected = 2*( -expected_consistency_symmetry + sigma*expected_penalty);
-               form.integrateFacetInner(2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
+               real_t expected                      = 2 * ( -expected_consistency_symmetry + sigma * expected_penalty );
+               form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
                WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
             }
 
@@ -488,9 +482,9 @@ void testEpsilonForm()
             {
                real_t expected_consistency_symmetry = 0.322937902527543;
                real_t expected_penalty              = 0.02333333333333332;
-               real_t expected = 2*( -expected_consistency_symmetry + sigma*expected_penalty);
-               form.integrateFacetCoupling(2,
-                    { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
+               real_t expected                      = 2 * ( -expected_consistency_symmetry + sigma * expected_penalty );
+               form.integrateFacetCoupling(
+                   2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
 
                WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected );
             }
@@ -505,16 +499,15 @@ void testEpsilonForm()
          {
             elMat.resize( 3, 1 );
 
-            std::vector< real_t > expected_consistency_symmetry = {
-                -0.413360515235255, 0.182204963952382, -0.278746400076406};
-            std::vector< real_t > expected_penalty = { -0.16666666666666674, 0.0, -0.2 };
-            std::vector< real_t > expected         = {
-                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
-                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
-                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
+            std::vector< real_t > expected_consistency_symmetry = { -0.413360515235255, 0.182204963952382, -0.278746400076406 };
+            std::vector< real_t > expected_penalty              = { -0.16666666666666674, 0.0, -0.2 };
+            std::vector< real_t > expected                      = {
+                                     2 * ( -expected_consistency_symmetry[0] + sigma * expected_penalty[0] ),
+                                     2 * ( -expected_consistency_symmetry[1] + sigma * expected_penalty[1] ),
+                                     2 * ( -expected_consistency_symmetry[2] + sigma * expected_penalty[2] ),
             };
 
-            form.integrateFacetInner2D(  { p0, p1, p2 },  { p0, p2 }, p1,  n1, basis, basis, 1, 0, elMat );
+            form.integrateFacetInner2D( { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 1, 0, elMat );
 
             WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
             WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
@@ -523,13 +516,12 @@ void testEpsilonForm()
 
          // outer/coupling side of facet integral
          {
-            std::vector< real_t > expected_consistency_symmetry = {
-             0.379971380049951, 0.332380531256419, -0.202449959947091};
-            std::vector< real_t > expected_penalty = { 0.16666666666666666, 0.2, 0.0 };
-            std::vector< real_t > expected         = {
-                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
-                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
-                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
+            std::vector< real_t > expected_consistency_symmetry = { 0.379971380049951, 0.332380531256419, -0.202449959947091 };
+            std::vector< real_t > expected_penalty              = { 0.16666666666666666, 0.2, 0.0 };
+            std::vector< real_t > expected                      = {
+                                     2 * ( -expected_consistency_symmetry[0] + sigma * expected_penalty[0] ),
+                                     2 * ( -expected_consistency_symmetry[1] + sigma * expected_penalty[1] ),
+                                     2 * ( -expected_consistency_symmetry[2] + sigma * expected_penalty[2] ),
             };
 
             form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 1, 0, elMat );
@@ -539,7 +531,6 @@ void testEpsilonForm()
          }
       }
 
-      
       // p1, edg pairing
       {
          hyteg::dg::eg::EGConstEpsilonFormP1E_0 form;
@@ -548,16 +539,15 @@ void testEpsilonForm()
          {
             elMat.resize( 3, 1 );
 
-            std::vector< real_t > expected_consistency_symmetry = {
-                -0.413360515235255, 0.182204963952382, -0.278746400076406};
-            std::vector< real_t > expected_penalty = { -0.16666666666666674, 0.0, -0.2 };
-            std::vector< real_t > expected         = {
-                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
-                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
-                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
+            std::vector< real_t > expected_consistency_symmetry = { -0.413360515235255, 0.182204963952382, -0.278746400076406 };
+            std::vector< real_t > expected_penalty              = { -0.16666666666666674, 0.0, -0.2 };
+            std::vector< real_t > expected                      = {
+                                     2 * ( -expected_consistency_symmetry[0] + sigma * expected_penalty[0] ),
+                                     2 * ( -expected_consistency_symmetry[1] + sigma * expected_penalty[1] ),
+                                     2 * ( -expected_consistency_symmetry[2] + sigma * expected_penalty[2] ),
             };
 
-            form.integrateFacetInner2D(  { p0, p1, p2 },  { p0, p2 }, p1,  n1, basis, basis, 0, 1, elMat );
+            form.integrateFacetInner2D( { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 1, elMat );
 
             WALBERLA_CHECK_FLOAT_EQUAL( elMat( 0, 0 ), expected[0] );
             WALBERLA_CHECK_FLOAT_EQUAL( elMat( 1, 0 ), expected[1] );
@@ -566,13 +556,12 @@ void testEpsilonForm()
 
          // outer/coupling side of facet integral
          {
-            std::vector< real_t > expected_consistency_symmetry = {
-             -0.426278031336357, 0.156029997115939, -0.239653917138861};
-            std::vector< real_t > expected_penalty = { -0.16666666666666669, 0.0, -0.1333333333333333};
-            std::vector< real_t > expected         = {
-                        2*(-expected_consistency_symmetry[0] + sigma * expected_penalty[0]),
-                        2*(-expected_consistency_symmetry[1] + sigma * expected_penalty[1]),
-                        2*(-expected_consistency_symmetry[2] + sigma * expected_penalty[2]),
+            std::vector< real_t > expected_consistency_symmetry = { -0.426278031336357, 0.156029997115939, -0.239653917138861 };
+            std::vector< real_t > expected_penalty              = { -0.16666666666666669, 0.0, -0.1333333333333333 };
+            std::vector< real_t > expected                      = {
+                                     2 * ( -expected_consistency_symmetry[0] + sigma * expected_penalty[0] ),
+                                     2 * ( -expected_consistency_symmetry[1] + sigma * expected_penalty[1] ),
+                                     2 * ( -expected_consistency_symmetry[2] + sigma * expected_penalty[2] ),
             };
 
             form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p2, p0 }, p1, p3, n1, basis, basis, 0, 1, elMat );
@@ -582,7 +571,6 @@ void testEpsilonForm()
          }
       }
    }
-
 }
 } // namespace hyteg
 
