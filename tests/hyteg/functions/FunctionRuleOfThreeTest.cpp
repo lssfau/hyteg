@@ -81,7 +81,7 @@ void testPrimitiveData()
 /// Having the Primitives own the actual allocated memory allows for "straightforward" data migration in parallel (think load balancing).
 /// Without any information about functions and operators, the PrimitiveStorage can migrate the data to other processes.
 /// On the downside, copying or deleting functions means that the memory that is attached to the Primitives must be handled accordingly.
-void testDestructor()
+void testRuleOfThree()
 {
    uint_t level = 2;
 
@@ -91,9 +91,9 @@ void testDestructor()
 
    auto primitiveIDs = storage->getPrimitiveIDs();
 
-   ////////
-   // P1 //
-   ////////
+   ///////////////
+   // VertexDoF //
+   ///////////////
 
    for ( auto id : primitiveIDs )
    {
@@ -102,12 +102,20 @@ void testDestructor()
    }
 
    {
-      P1Function< real_t > f_P1( "f_P1", storage, level, level );
+      vertexdof::VertexDoFFunction< real_t > f_vertex( "f_P1", storage, level, level );
+
+      auto f_vertex_copy( f_vertex );
+      auto f_vertex_copy_2 = f_vertex;
+      f_vertex             = f_vertex_copy_2;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... "
+                                 << f_vertex.getFunctionName() << ", " << f_vertex_copy.getFunctionName() << ", "
+                                 << f_vertex_copy_2.getFunctionName() );
 
       for ( auto id : primitiveIDs )
       {
          auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
-         WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating P1Function." );
+         WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating VertexDoFFunction." );
       }
    }
 
@@ -116,6 +124,62 @@ void testDestructor()
       auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
       WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
    }
+
+#if 0
+   /////////////
+   // EdgeDoF //
+   /////////////
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated before creating functions." );
+   }
+
+   {
+      EdgeDoFFunction< real_t > f_edge( "f_edge", storage, level, level );
+
+      for ( auto id : primitiveIDs )
+      {
+         auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+         WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating EdgeDoFFunction." );
+      }
+   }
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
+   }
+
+   ///////////////
+   // VolumeDoF //
+   ///////////////
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated before creating functions." );
+   }
+
+   {
+      volumedofspace::VolumeDoFFunction< real_t > f_volume(
+          "f_volume", storage, level, level, 2, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+
+      for ( auto id : primitiveIDs )
+      {
+         auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+         WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating VolumeDoFFunction." );
+      }
+   }
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
+   }
+
+#endif
 }
 
 int main( int argc, char* argv[] )
@@ -130,7 +194,7 @@ int main( int argc, char* argv[] )
    testSharedPtrDeleter();
    testPrimitiveData();
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------------------------" )
-   testDestructor();
+   testRuleOfThree();
 
    return 0;
 }
