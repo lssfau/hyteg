@@ -228,13 +228,6 @@ class IcosahedralShellMap : public GeometryMap
              DFx( 2, 0 ) * DFx( 0, 1 ) * DFx( 1, 2 ) - DFx( 2, 0 ) * DFx( 1, 1 ) * DFx( 0, 2 );
    };
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override
-   {
-      Point3D mapped;
-      this->evalF( computationalCoordinates, mapped );
-      return (mapped-physicalCoordinates).norm() < defaultThresholdForPointComparison;
-   }
-
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_

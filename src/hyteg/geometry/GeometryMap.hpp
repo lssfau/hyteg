@@ -94,12 +94,14 @@ class GeometryMap
    /// but do not know to which primitive the point will belong on the computational domain.
    ///
    /// This method is supposed to test, whether mapping a point from the computational domain to the
-   /// physical domain gives the desired coordinates. As this is no issue for global homeomorphism,
-   /// we implement an optimistic version in this base class and allow children to override it with
-   /// their own implementation where the details of the mapping are known.
+   /// physical domain gives the desired coordinates. The base class implements this by mapping the
+   /// point from the computation to the physical domain and checking the distance of the two points
+   /// via the given threshold. The method is virtual so that children can override it, if need be.
    ///
-   /// For details and an example see issue 184.
-   virtual bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const = 0;
+   /// For details and motivation see issue 184.
+   virtual bool verifyPointPairing( const Point3D& computationalCoordinates,
+                                    const Point3D& physicalCoordinates,
+                                    real_t         threshold = real_c( 1e-12 ) ) const;
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );
@@ -109,9 +111,6 @@ class GeometryMap
 
  protected:
    virtual void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const = 0;
-
-   /// Default threshold for allowed distance in verifyPointPairing()
-   real_t defaultThresholdForPointComparison = real_c( 1e-12 );
 };
 
 } // namespace hyteg

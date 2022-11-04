@@ -77,11 +77,6 @@ class PolarCoordsMap : public GeometryMap
       DFinvx( 1, 1 ) = std::cos( x[1] ) / x[0];
    }
 
-   bool verifyPointPairing( const Point3D&, const Point3D& ) const override final
-   {
-      return true;
-   }
-
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::POLAR_COORDS; }
 };
 

@@ -169,13 +169,6 @@ class CircularMap : public GeometryMap
       DFxInv *= invDet;
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
-   {
-      Point3D mapped;
-      this->evalF( computationalCoordinates, mapped );
-      return ( mapped - physicalCoordinates ).norm() < defaultThresholdForPointComparison;
-   }
-
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::CIRCULAR;

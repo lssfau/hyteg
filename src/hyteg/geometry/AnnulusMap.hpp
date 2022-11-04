@@ -151,13 +151,6 @@ class AnnulusMap : public GeometryMap
       DFinvx *= invDet;
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override
-   {
-      Point3D mapped;
-      this->evalF( computationalCoordinates, mapped );
-      return ( mapped - physicalCoordinates ).norm() < defaultThresholdForPointComparison;
-   }
-
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ANNULUS << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;

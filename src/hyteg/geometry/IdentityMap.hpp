@@ -65,11 +65,6 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = 1.0;
    }
 
-   bool verifyPointPairing( const Point3D& computationalCoordinates, const Point3D& physicalCoordinates ) const override final
-   {
-      return true;
-   };
-
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }
 };
 
