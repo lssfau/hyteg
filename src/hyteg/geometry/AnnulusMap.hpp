@@ -81,7 +81,7 @@ class AnnulusMap : public GeometryMap
       recvBuffer >> radRayVertex_;
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override
    {
       // determine barycentric coordinate w.r.t. vertex refVertex_
       real_t areaT = ( refVertex_[0] - rayVertex_[0] ) * ( thrVertex_[1] - rayVertex_[1] ) -
@@ -99,7 +99,7 @@ class AnnulusMap : public GeometryMap
       ANNULUS_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override
    {
       real_t tmp0 = radRayVertex_ - radRefVertex_;
       real_t tmp1 = rayVertex_[1] - thrVertex_[1];
@@ -115,7 +115,7 @@ class AnnulusMap : public GeometryMap
    }
 
    // note: we could save computations by fusing evalF with evalDF!
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override
    {
       real_t dist  = radRefVertex_ - radRayVertex_;
       real_t areaT = ( refVertex_[0] - rayVertex_[0] ) * ( thrVertex_[1] - rayVertex_[1] ) -
@@ -142,7 +142,7 @@ class AnnulusMap : public GeometryMap
       DFx( 1, 1 ) = x[0] * tmp5 - tmp2 * tmp4;
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override
    {
       Matrix2r tmp;
       evalDF( x, tmp );
@@ -151,7 +151,7 @@ class AnnulusMap : public GeometryMap
       DFinvx *= invDet;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ANNULUS << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
    }

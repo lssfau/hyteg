@@ -67,4 +67,13 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    }
 }
 
+bool GeometryMap::verifyPointPairing( const Point3D& computationalCoordinates,
+                                      const Point3D& physicalCoordinates,
+                                      real_t         threshold ) const
+{
+   Point3D mapped;
+   this->evalF( computationalCoordinates, mapped );
+   return ( mapped - physicalCoordinates ).norm() < threshold;
+}
+
 } // namespace hyteg

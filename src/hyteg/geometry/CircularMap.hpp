@@ -35,15 +35,15 @@ class CircularMap : public GeometryMap
    : center_( center )
    , radius_( radius )
    {
-     // Get edge on boundary
-     // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
-     std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
-     neighborEdgesOnBoundary.erase(
-      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
-                     [ &storage ]( const PrimitiveID & id ){ return !storage.onBoundary( id ); } )
-      ,neighborEdgesOnBoundary.end());
+      // Get edge on boundary
+      // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
+      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
+      neighborEdgesOnBoundary.erase( std::remove_if( neighborEdgesOnBoundary.begin(),
+                                                     neighborEdgesOnBoundary.end(),
+                                                     [&storage]( const PrimitiveID& id ) { return !storage.onBoundary( id ); } ),
+                                     neighborEdgesOnBoundary.end() );
 
-     WALBERLA_ASSERT_GREATER( neighborEdgesOnBoundary.size(), 0 );
+      WALBERLA_ASSERT_GREATER( neighborEdgesOnBoundary.size(), 0 );
 
       const Edge&   edge   = *storage.getEdge( neighborEdgesOnBoundary[0] );
       const Vertex& vertex = *storage.getVertex( face.get_vertex_opposite_to_edge( edge.getID() ) );
@@ -61,10 +61,11 @@ class CircularMap : public GeometryMap
       real_t s3 = std::atan2( ( x3 - center )[1], ( x3 - center )[0] );
       s3bar_    = s3 - s1_;
 
-      if( s3bar_ < -0.5 * walberla::math::pi )
+      if ( s3bar_ < -0.5 * walberla::math::pi )
       {
          s3bar_ += 2.0 * walberla::math::pi;
-      } else if( s3bar_ > 0.5 * walberla::math::pi )
+      }
+      else if ( s3bar_ > 0.5 * walberla::math::pi )
       {
          s3bar_ -= 2.0 * walberla::math::pi;
       }
@@ -84,7 +85,7 @@ class CircularMap : public GeometryMap
       recvBuffer >> invDet_;
    }
 
-   void evalF( const Point3D& x, Point3D& Fx ) const
+   void evalF( const Point3D& x, Point3D& Fx ) const override final
    {
       real_t tmp0  = -x1_[0];
       real_t tmp1  = 1.0 / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
@@ -100,7 +101,8 @@ class CircularMap : public GeometryMap
       real_t tmp11 = tmp10 * x3bar_[0];
       real_t tmp12 = s1_ + s3bar_ * tmp10;
       real_t tmp13 = -tmp8 + tmp9 + 1;
-      if (std::fabs(tmp13) < 1e-14) {
+      if ( std::fabs( tmp13 ) < 1e-14 )
+      {
          Fx = x;
          return;
       }
@@ -110,7 +112,7 @@ class CircularMap : public GeometryMap
       Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
    {
       real_t tmp0  = x2bar_[0] * x3bar_[1];
       real_t tmp1  = x3bar_[0] * x2bar_[1];
@@ -127,11 +129,12 @@ class CircularMap : public GeometryMap
       real_t tmp12 = tmp2 * x2bar_[0];
       real_t tmp13 = tmp11 * tmp12;
       real_t tmp14 = -tmp13 + tmp9 + 1;
-      if (std::fabs(tmp14) < 1e-14) {
-         DFx( 0, 0 )  = 1.0;
-         DFx( 0, 1 )  = 0.0;
-         DFx( 1, 0 )  = 0.0;
-         DFx( 1, 1 )  = 1.0;
+      if ( std::fabs( tmp14 ) < 1e-14 )
+      {
+         DFx( 0, 0 ) = 1.0;
+         DFx( 0, 1 ) = 0.0;
+         DFx( 1, 0 ) = 0.0;
+         DFx( 1, 1 ) = 1.0;
          return;
       }
       real_t tmp15 = 1.0 / tmp14;
@@ -157,7 +160,7 @@ class CircularMap : public GeometryMap
       DFx( 1, 1 )  = tmp25 * ( tmp19 * tmp29 - tmp3 ) + tmp28 * tmp31 + tmp30 * tmp31 + tmp4;
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFxInv ) const
+   void evalDFinv( const Point3D& x, Matrix2r& DFxInv ) const override final
    {
       Matrix2r tmp;
       evalDF( x, tmp );
@@ -166,7 +169,7 @@ class CircularMap : public GeometryMap
       DFxInv *= invDet;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::CIRCULAR;
       sendBuffer << x1_;

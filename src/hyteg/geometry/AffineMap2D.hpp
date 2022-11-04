@@ -61,14 +61,14 @@ class AffineMap2D : public GeometryMap
       recvBuffer >> vec_[1];
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + vec_[1];
       xnew[2] = real_c( 0 );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final
    {
       real_t tmp0 = real_c( 1 ) / jacDet_;
       real_t tmp1 = tmp0 * ( -vec_[0] + xPhys[0] );
@@ -78,7 +78,7 @@ class AffineMap2D : public GeometryMap
       xComp[1] = mat_( 0, 0 ) * tmp2 - mat_( 1, 0 ) * tmp1;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::AFFINE_2D;
       for ( uint_t i = 0; i < 2; i++ )
@@ -118,7 +118,7 @@ class AffineMap2D : public GeometryMap
       }
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
    {
       WALBERLA_UNUSED( x );
       DFx( 0, 0 ) = mat_( 0, 0 );
@@ -127,14 +127,14 @@ class AffineMap2D : public GeometryMap
       DFx( 1, 1 ) = mat_( 1, 1 );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
    {
       WALBERLA_UNUSED( x );
       DFinvx( 0, 0 ) = +mat_( 1, 1 );
       DFinvx( 0, 1 ) = -mat_( 0, 1 );
       DFinvx( 1, 0 ) = -mat_( 1, 0 );
       DFinvx( 1, 1 ) = +mat_( 0, 0 );
-      DFinvx *= real_c(1) / jacDet_;
+      DFinvx *= real_c( 1 ) / jacDet_;
    }
 
  private:

@@ -149,7 +149,7 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( walberla::mpi::RecvBuffer& recvBuffer ) { WALBERLA_ABORT( "Deserialization not implemented for TokamakMap" ); }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
       // generated with data/codegen/geometry/TokamakMap.py
 
@@ -182,7 +182,7 @@ class TokamakMap : public GeometryMap
       xnew[2]    = -r2_ * tmp12 * tmp15;
    }
 
-   real_t evalDF( const Point3D& xold, Matrix3r& DF ) const final
+   real_t evalDF( const Point3D& xold, Matrix3r& DF ) const override final
    {
       // generated with data/codegen/geometry/TokamakMap.py
 
@@ -282,7 +282,7 @@ class TokamakMap : public GeometryMap
       return DF.det();
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       WALBERLA_ABORT( "Serialization not implemented for TokamakMap" );
    }
@@ -393,14 +393,14 @@ class TokamakMap : public GeometryMap
    *    methods for 2D (class only provides a pseudo-implementation to satisfy requirements of base class)
    */
    ///@{
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "TokamakMap::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );
