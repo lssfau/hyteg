@@ -121,7 +121,6 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
-
       communication::syncFunctionBetweenPrimitives( src, level );
 
       if ( !storage_->hasGlobalCells() )
@@ -488,6 +487,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                            // local to the dst macro. One of those is _not_ located on the macro-macro-boundary. This is the
                            // micro-vertex that must be taken from the ghost-layer.
 
+                           //std::cout << "start macromacro boundary handling" << std::endl;
                            Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
                            std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
@@ -583,7 +583,6 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                  // Check vertex DoF on interface or ghost-layer.
                                  switch ( localFaceIDNeighborCell )
                                  {
-                                    
                                  case 0:
                                     onGhostLayer[i] = nElementVertexIdx.z() != 0;
                                     break;
@@ -602,7 +601,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                  {
                                     // If the DoF is not on the ghost-layer (i.e. it is on the interface) we need to obtain the
                                     // logical index on the local macro volume. This is done via index "basis trafo".
-                           
+
                                     std::array< uint_t, 4 > srcBasis;
                                     for ( uint_t ii = 0; ii < 4; ii++ )
                                     {
@@ -624,10 +623,12 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                                                    srcBasis,
                                                                    { 0, 1, 2, 3 },
                                                                    levelinfo::num_microvertices_per_edge( level ) );
+                                    // does vertices contain local index?
+                                    //algorithms::contains(neighborInfo.
                                     nSrcDoFArrIndices[i] =
                                         vertexdof::macrocell::index( level, localIndex.x(), localIndex.y(), localIndex.z() );
                                     nSrcDofs[i] = srcDofMemory[nSrcDoFArrIndices[i]];
-                                  }
+                                 }
                                  else
                                  {
                                     // Take DoF from GL memory.
@@ -636,16 +637,18 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                         elementIdx.x(),
                                         elementIdx.y(),
                                         elementIdx.z(),
-                                        cellType,
+                                        hyteg::celldof::CellType::WHITE_UP,
                                         0,
                                         1,
                                         level,
                                         volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-                                    nSrcDofs[i] = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[i]];                          
+
+                                    nSrcDofs[i] = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[i]];
                                  }
                               }
                            }
 
+                           //std::cout << "end macromacro boundary handling" << std::endl;
                            // --- END vertex DoF GL handling at macro-macro boundary ---------------------------------------------
 
                            if ( mat == nullptr )
@@ -655,6 +658,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                            }
                            else
                            {
+                              //std::cout << "start assembly macromacro boundary " << std::endl;
                               // Sparse assembly.
                               for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                               {
@@ -672,15 +676,24 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
                                  if ( !onGhostLayer[srcDofIdx] )
                                  {
+                                    /*              std::cout << "srcDoFIdx " << srcDofIdx
+                                              << ": !onGhostLayer: globalColIdx = " << srcDofMemory[nSrcDoFArrIndices[srcDofIdx]]
+                                              << std::endl;
+                        */
                                     globalColIdx = srcDofMemory[nSrcDoFArrIndices[srcDofIdx]];
                                  }
                                  else
                                  {
+                                    /*      std::cout << "srcDoFIdx " << srcDofIdx << ": else: globalColIdx = "
+                                              << glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]]
+                                              << std::endl;
+*/
                                     globalColIdx = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
                                  }
 
                                  mat->addValue( globalRowIdx, globalColIdx, localMat( 0, srcDofIdx ) );
                               }
+                              //std::cout << "end assembly macromacro boundary " << std::endl;
                            }
                         }
                         else
