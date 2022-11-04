@@ -21,15 +21,35 @@
 #pragma once
 
 #include "core/DataTypes.h"
-#include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-
+#include "core/mpi/SendBuffer.h"
 
 namespace hyteg {
 
-using walberla::mpi::SendBuffer;
-using walberla::mpi::RecvBuffer;
 using walberla::uint_t;
+using walberla::mpi::RecvBuffer;
+using walberla::mpi::SendBuffer;
+
+namespace internal {
+
+/// Simple class that counts references.
+class ReferenceCounter
+{
+ public:
+   ReferenceCounter()
+   : refs_( 0 )
+   {}
+
+   void increaseRefs() { refs_++; }
+
+   void decreaseRefs() { refs_--; }
+
+   uint_t refs() const { return refs_; }
+
+ private:
+   uint_t refs_;
+};
+} // namespace internal
 
 /// \brief Identifier for data attached to \ref Primitive instances
 /// \author Nils Kohl (nils.kohl@fau.de)
@@ -44,37 +64,65 @@ using walberla::uint_t;
 ///
 /// PrimitiveDataIDs are generated when data is added to primitives via a storage instance
 /// like \ref PrimitiveStorage.
-template< typename DataType, typename PrimitiveType >
+///
+/// PrimitiveDataID point to a reference counter. Copying a PrimitiveDataID increases this counter.
+/// This allows to safely delete corresponding data when the reference counter drops to zero.
+///
+template < typename DataType, typename PrimitiveType >
 class PrimitiveDataID
 {
-public:
+ public:
+   friend class PrimitiveStorage;
 
-  friend class PrimitiveStorage;
+   PrimitiveDataID()
+   : id_( std::numeric_limits< uint_t >::max() )
+   , refCounter_( new internal::ReferenceCounter() )
+   {
+      refCounter_->increaseRefs();
+   }
 
-  PrimitiveDataID()                            : id_( std::numeric_limits< uint_t >::max() ) {}
-  explicit PrimitiveDataID( const walberla::uint_t id ) : id_( id ) {}
+   explicit PrimitiveDataID( const walberla::uint_t id )
+   : id_( id )
+   , refCounter_( new internal::ReferenceCounter() )
+   {
+      refCounter_->increaseRefs();
+   }
 
-  /// Copy-constructor
-  PrimitiveDataID( const PrimitiveDataID& id ) : id_( id.id_ ) {}
+   /// Copy-constructor
+   PrimitiveDataID( const PrimitiveDataID& id )
+   : id_( id.id_ )
+   , refCounter_( id.refCounter_ )
+   {
+      refCounter_->increaseRefs();
+   }
 
-  void pack( SendBuffer & buffer ) const { buffer << id_; }
-  void unpack( RecvBuffer & buffer )     { buffer >> id_; }
+   /// Copy-assignment
+   PrimitiveDataID& operator=( const PrimitiveDataID& id )
+   {
+      id_         = id.id_;
+      refCounter_ = id.refCounter_;
+      refCounter_->increaseRefs();
+      return *this;
+   }
 
-  /// Copy-assignment
-  PrimitiveDataID& operator=( const PrimitiveDataID& id ) { id_ = id.id_; return *this; }
+   ~PrimitiveDataID() { refCounter_->decreaseRefs(); }
 
-  bool operator==( const PrimitiveDataID& id ) const { return id_ == id.id_; }
-  bool operator!=( const PrimitiveDataID& id ) const { return id_ != id.id_; }
-  bool operator< ( const PrimitiveDataID& id ) const { return id_ <  id.id_; }
+   bool operator==( const PrimitiveDataID& id ) const { return id_ == id.id_; }
+   bool operator!=( const PrimitiveDataID& id ) const { return id_ != id.id_; }
+   bool operator<( const PrimitiveDataID& id ) const { return id_ < id.id_; }
 
-  /// Cast-operator
-  operator uint_t() const { return id_; }
+   /// Cast-operator
+   operator uint_t() const { return id_; }
 
-private:
+   /// Returns the number of copies of this ID that are still alive (including this).
+   /// If this method returns 1, and this ID is going to be deleted, no other PrimitiveDataID with this ID exists.
+   /// The corresponding data can then be deleted, too.
+   uint_t numRefs() const { return refCounter_->refs(); }
 
-  uint_t id_;
+ private:
+   uint_t                                        id_;
+   std::shared_ptr< internal::ReferenceCounter > refCounter_;
 
 }; // class DataID
 
-}
-
+} // namespace hyteg
