@@ -206,15 +206,15 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
-   int                 minLevel   = 2;
-   int                 maxLevel3D = 5;
-   int                 maxLevel2D = 5;
+   uint_t              minLevel   = 2;
+   uint_t              maxLevel3D = 5;
+   uint_t              maxLevel2D = 5;
    const bool          writeVTK   = false;
 
    for ( uint_t solverType = 0; solverType < 2; solverType++ )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### " << ( solverType == 0 ? "PETScCG: " : "HytegCG: " ) << " ###" );
-      /*
+
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs != 0 ###" );
       {
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sin( x[1] ); };
@@ -325,7 +325,6 @@ int main( int argc, char** argv )
                              writeVTK );
       }
 
-
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
       {
          std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
@@ -371,7 +370,7 @@ int main( int argc, char** argv )
                              solverType,
                              writeVTK );
       }
-      /*
+
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, third ###" );
       {
          std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
@@ -391,10 +390,7 @@ int main( int argc, char** argv )
                              solverType,
                              writeVTK );
       }
-      
-      */
 
-      /*
       WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, first ###" );
       {
          MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
@@ -513,7 +509,6 @@ int main( int argc, char** argv )
                              solverType,
                              writeVTK );
       }
-      */
 
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, first ###" );
       {
