@@ -393,6 +393,8 @@ int main( int argc, char** argv )
       }
       
       */
+
+      /*
       WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, first ###" );
       {
          MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
@@ -511,8 +513,26 @@ int main( int argc, char** argv )
                              solverType,
                              writeVTK );
       }
-      /*
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, hom. BC, rhs != 0 ###" );
+      */
+
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, first ###" );
+      {
+         MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+
+         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+         hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
+                             minLevel,
+                             maxLevel3D,
+                             meshInfo,
+                             std::make_tuple( solFunc, solFunc, solFunc ),
+                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                             solverType,
+                             writeVTK );
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, second ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
@@ -524,16 +544,16 @@ int main( int argc, char** argv )
             return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
          };
 
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_cube_Dirichlet0",
+         hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
                              minLevel,
-                             maxLevel,
+                             maxLevel3D,
                              meshInfo,
                              std::make_tuple( solFunc, solFunc, solFunc ),
                              std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
                              solverType,
                              writeVTK );
       }
-
+      /*
       WALBERLA_LOG_INFO_ON_ROOT( "### Test nonzero on interfaces, on cube, hom. BC, rhs != 0 ###" );
       {
          MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );

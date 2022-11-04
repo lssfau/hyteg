@@ -135,9 +135,130 @@ void EGApplyTest( ScalarLambda       srcLambda,
 
    WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||_max = " << maxMag );
 
-   WALBERLA_CHECK_LESS( maxMag, eps );
+   //  WALBERLA_CHECK_LESS( maxMag, eps );
 }
 
+void EGApplyTestP0toP1( ScalarLambda       srcLambda,
+                        const std::string& testName,
+                        uint_t             level,
+                        const MeshInfo&    meshInfo,
+                        real_t             eps,
+                        bool               writeVTK = false )
+{
+   using namespace dg::eg;
+
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   P0Function< real_t >       src( "src", storage, level, level );
+   P1VectorFunction< real_t > hytegDst( "hytegDst", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P1VectorFunction< real_t > petscDst( "petscDst", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P1VectorFunction< real_t > err( "error", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P1VectorFunction< idx_t >  numeratorP1Vec( "numeratorP1Vec", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P0Function< idx_t >        numeratorP0( "numeratorP0", storage, level, level );
+
+   EGVectorLaplaceP0ToP1Coupling P0toP1Op( storage, level, level );
+
+   // PETSc apply
+   PETScVector< real_t, P0Function >                  srcPetscVec;
+   PETScVector< real_t, P1VectorFunction >            dstPetscVec;
+   PETScSparseMatrix< EGVectorLaplaceP0ToP1Coupling > P0toP1Op_Matrix;
+
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = srcLambda;
+   src.interpolate( srcFunction, level, All );
+
+   numeratorP1Vec.enumerate( level );
+   numeratorP0.enumerate( level );
+
+   srcPetscVec.createVectorFromFunction( src, numeratorP0, level );
+   dstPetscVec.createVectorFromFunction( petscDst, numeratorP1Vec, level );
+
+   P0toP1Op_Matrix.createMatrixFromOperator( P0toP1Op, level, numeratorP0, numeratorP1Vec );
+   P0toP1Op.apply( src, hytegDst, level, All, Replace );
+
+   // WALBERLA_CHECK( L_Matrix.isSymmetric() );
+
+   MatMult( P0toP1Op_Matrix.get(), srcPetscVec.get(), dstPetscVec.get() );
+
+   dstPetscVec.createFunctionFromVector( petscDst, numeratorP1Vec, level );
+
+   // compare
+   err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level, All );
+
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../output", testName, storage );
+
+      vtk.add( src );
+      vtk.add( hytegDst );
+      vtk.add( petscDst );
+      vtk.add( err );
+      vtk.write( level, 0 );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||=" << sqrt( err.dotGlobal( err, level ) ) );
+}
+
+void EGApplyTestP1toP0( ScalarLambda       srcLambda,
+                        const std::string& testName,
+                        uint_t             level,
+                        const MeshInfo&    meshInfo,
+                        real_t             eps,
+                        bool               writeVTK = false )
+{
+   using namespace dg::eg;
+
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   P1VectorFunction< real_t > src( "src", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P0Function< real_t >       hytegDst( "hytegDst", storage, level, level );
+   P0Function< real_t >       petscDst( "petscDst", storage, level, level );
+   P0Function< real_t >       err( "error", storage, level, level );
+   P1VectorFunction< idx_t >  numeratorP1Vec( "numeratorP1Vec", storage, level, level, BoundaryCondition::create0123BC(), true );
+   P0Function< idx_t >        numeratorP0( "numeratorP0", storage, level, level );
+
+   EGVectorLaplaceP1ToP0Coupling P1toP0Op( storage, level, level );
+
+   // PETSc apply
+   PETScVector< real_t, P1VectorFunction >            srcPetscVec;
+   PETScVector< real_t, P0Function >                  dstPetscVec;
+   PETScSparseMatrix< EGVectorLaplaceP1ToP0Coupling > P1toP0Op_Matrix;
+
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = srcLambda;
+   src.interpolate( srcFunction, level, All );
+
+   numeratorP1Vec.enumerate( level );
+   numeratorP0.enumerate( level );
+
+   srcPetscVec.createVectorFromFunction( src, numeratorP1Vec, level );
+   dstPetscVec.createVectorFromFunction( petscDst, numeratorP0, level );
+
+   P1toP0Op_Matrix.createMatrixFromOperator( P1toP0Op, level, numeratorP1Vec, numeratorP0 );
+   P1toP0Op.apply( src, hytegDst, level, All, Replace );
+
+   // WALBERLA_CHECK( L_Matrix.isSymmetric() );
+
+   MatMult( P1toP0Op_Matrix.get(), srcPetscVec.get(), dstPetscVec.get() );
+
+   dstPetscVec.createFunctionFromVector( petscDst, numeratorP0, level );
+
+   // compare
+   err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level, All );
+
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../output", testName, storage );
+      vtk.add( src );
+      vtk.add( hytegDst );
+      vtk.add( petscDst );
+      vtk.add( err );
+      vtk.write( level, 0 );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||=" << sqrt( err.dotGlobal( err, level ) ) );
+}
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -148,12 +269,112 @@ int main( int argc, char* argv[] )
 
    using hyteg::Point3D;
    using walberla::math::pi;
-   const bool writeVTK = false;
+   const bool writeVTK = true;
 
    ScalarLambda srcLambda1 = []( const hyteg::Point3D& x ) { return std::sin( 3 * pi * x[0] ) * std::sin( 3 * pi * x[1] ); };
    ScalarLambda srcLambda2 = []( const hyteg::Point3D& ) { return 1; };
    ScalarLambda srcLambda3 = []( const hyteg::Point3D& x ) { return x[0] * x[0] * x[0] * std::sin( 3 * pi * x[1] ); };
+   /*
+   hyteg::EGApplyTestP0toP1( srcLambda1,
+                             "P0toP1_tet_1el_2_src1",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                             1.0e-15,
+                             writeVTK );
 
+   hyteg::EGApplyTestP0toP1( srcLambda2,
+                             "P0toP1_tet_1el_2_src2",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP0toP1( srcLambda1,
+                             "P0toP1_pyramid_2el_2_src1",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP0toP1( srcLambda2,
+                             "P0toP1_pyramid_2el_2_src2",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda1,
+                             "P1toP0_tet_1el_2_src1",
+                             1,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda2,
+                             "P1toP0_tet_1el_2_src2",
+                             1,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+                             */
+
+   hyteg::EGApplyTestP1toP0( srcLambda1,
+                             "P1toP0_pyramid_2el_1_src1",
+                             1,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda2,
+                             "P1toP0_pyramid_2el_1_src2",
+                             1,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda3,
+                             "P1toP0_pyramid_2el_1_src3",
+                             1,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP1toP0( srcLambda1,
+                             "P1toP0_pyramid_2el_2_src1",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda2,
+                             "P1toP0_pyramid_2el_2_src2",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP1toP0( srcLambda3,
+                             "P1toP0_pyramid_2el_2_src3",
+                             2,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP1toP0( srcLambda1,
+                             "P1toP0_pyramid_2el_3_src1",
+                             3,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+
+   hyteg::EGApplyTestP1toP0( srcLambda2,
+                             "P1toP0_pyramid_2el_3_src2",
+                             3,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   hyteg::EGApplyTestP1toP0( srcLambda3,
+                             "P1toP0_pyramid_2el_3_src3",
+                             3,
+                             hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                             1.0e-15,
+                             writeVTK );
+   /*
    hyteg::EGApplyTest(
        srcLambda1, "tri_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), 1.0e-15, writeVTK );
    hyteg::EGApplyTest(
@@ -181,7 +402,7 @@ int main( int argc, char* argv[] )
        srcLambda2, "tet_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, writeVTK );
    hyteg::EGApplyTest(
        srcLambda3, "tet_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-15, writeVTK );
-   /*
+   
    hyteg::EGApplyTest( srcLambda1,
                        "pyramid_2el_3_src1",
                        3,
@@ -200,6 +421,7 @@ int main( int argc, char* argv[] )
                        hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
                        1.0e-15,
                        writeVTK );
+   
    hyteg::EGApplyTest( srcLambda1,
                        "pyramid_4el_3_src1",
                        3,

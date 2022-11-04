@@ -17,9 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <hyteg/communication/Syncing.hpp>
+
 #include "core/debug/all.h"
 #include "core/mpi/all.h"
 
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -196,10 +199,10 @@ void checkComm( const std::string& meshfile, const uint_t maxLevel, bool bufferC
    WALBERLA_CHECK_EQUAL( totalExpectedChecks, numberOfChecks )
 }
 
-void printCellGhostlayer( const std::string&                   message,
-                          VertexDoFFunction< real_t >&         func,
-                          std::shared_ptr< PrimitiveStorage >& storage,
-                          const uint_t                         level )
+void printCellGhostlayer3D( const std::string&                   message,
+                            VertexDoFFunction< real_t >&         func,
+                            std::shared_ptr< PrimitiveStorage >& storage,
+                            const uint_t                         level )
 {
    WALBERLA_LOG_INFO_ON_ROOT( message );
    for ( const auto& pid : storage->getCellIDs() )
@@ -208,7 +211,7 @@ void printCellGhostlayer( const std::string&                   message,
       //  WALBERLA_LOG_INFO_ON_ROOT( "Iterating cell " << pid );
       for ( const auto& [n, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
       {
-         // WALBERLA_LOG_INFO_ON_ROOT( "Iterating neighbor cell " << n );
+         WALBERLA_LOG_INFO_ON_ROOT( "Iterating neighbor cell " << n );
          const auto GLVector = cell->getData( func.getCellGLDataID( n ) )->getVector( level );
          for ( const auto& v : GLVector )
          {
@@ -218,8 +221,30 @@ void printCellGhostlayer( const std::string&                   message,
       }
    }
 }
+void printCellGhostlayer2D( const std::string&                   message,
+                            VertexDoFFunction< real_t >&         func,
+                            std::shared_ptr< PrimitiveStorage >& storage,
+                            const uint_t                         level )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( message );
+   for ( const auto& pid : storage->getFaceIDs() )
+   {
+      const auto face = storage->getFace( pid );
+      //  WALBERLA_LOG_INFO_ON_ROOT( "Iterating cell " << pid );
+      for ( const auto& [n, npid] : face->getIndirectNeighborFaceIDsOverEdges() )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Iterating neighbor face " << n );
+         const auto GLVector = face->getData( func.getFaceGLDataID( n ) )->getVector( level );
+         for ( const auto& v : GLVector )
+         {
+            std::cout << v << " ";
+         }
+         std::cout << std::endl;
+      }
+   }
+}
 
-void checkVertexDoFCellComm( const std::string& meshfile, const uint_t level )
+void checkVertexDoFCellComm3D( const std::string& meshfile, const uint_t level )
 {
    //MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
    MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshfile );
@@ -227,19 +252,45 @@ void checkVertexDoFCellComm( const std::string& meshfile, const uint_t level )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    VertexDoFFunction< real_t > testFunc( "testFunc", storage, level, level, BoundaryCondition::create0123BC(), 1 );
-   printCellGhostlayer( "Init:", testFunc, storage, level );
    testFunc.interpolate( 1, level, All );
-   printCellGhostlayer( "After interpolate:", testFunc, storage, level );
-   testFunc.template communicate< Cell, Cell >( level );
-   printCellGhostlayer( "After communicate:", testFunc, storage, level );
-}
+   communication::syncFunctionBetweenPrimitives( testFunc, level );
 
+   testFunc.template communicate< Cell, Cell >( level );
+   printCellGhostlayer3D( "After communicate:", testFunc, storage, level );
+   VTKOutput vtk( "../../output", "DGCommTest_3D", storage );
+   vtk.add( testFunc );
+
+   vtk.write( level );
+}
+void checkVertexDoFCellComm2D( const std::string& meshfile, const uint_t level )
+{
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshfile );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   VertexDoFFunction< real_t > testFunc( "testFunc", storage, level, level, BoundaryCondition::create0123BC(), 1 );
+   testFunc.interpolate( 1, level, All );
+   communication::syncFunctionBetweenPrimitives( testFunc, level );
+   testFunc.template communicate< Face, Face >( level );
+   printCellGhostlayer2D( "After communicate:", testFunc, storage, level );
+   VTKOutput vtk( "../../output", "DGCommTest_2D", storage );
+   vtk.add( testFunc );
+
+   vtk.write( level );
+}
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    //  walberla::debug::enterTestMode();
-   checkVertexDoFCellComm( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+   checkVertexDoFCellComm2D( "../../data/meshes/tri_2el.msh", 1 );
+   checkVertexDoFCellComm2D( "../../data/meshes/tri_2el.msh", 2 );
+
+   checkVertexDoFCellComm2D( "../../data/meshes/tri_2el.msh", 3 );
+
+   //checkVertexDoFCellComm3D( "../../data/meshes/3D/pyramid_2el.msh", 1 );
+   checkVertexDoFCellComm3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+
    /*
    checkComm( "../../data/meshes/quad_4el.msh", 4, true );
 
