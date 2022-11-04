@@ -153,100 +153,12 @@ void MultiSinker2D( const uint_t& level,
    WALBERLA_LOG_INFO_ON_ROOT( "initial residual = " << residuum_l2_1 );
 
    // Solve
-   PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator >                        LU( storage, level );
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > StdBlkdiagPMINRES_PETSC(
-       storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 0 );
-   PETScBlockPreconditionedStokesSolver< P2P1ElementwiseAffineEpsilonStokesOperator > GKB(
-       storage, level, 1e-6, std::numeric_limits< PetscInt >::max(), 5, 1, 2 );
-
-   auto ViscWeightedPMINRES = solvertemplates::varViscStokesMinResSolver( storage, level, viscosity, 1, 1e-6, 10000, true );
-   auto OnlyPressurePMINRES =
-       solvertemplates::stokesMinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, level, 1e-14, 10000, true );
-   auto StdBlkdiagPMINRES = solvertemplates::blkdiagPrecStokesMinResSolver( storage, 2, level, 1e-6, 1e-6, 10000, true );
-
-   auto velocityBCs  = { x.uvw()[0].getBoundaryCondition(), x.uvw()[1].getBoundaryCondition() };
-   auto BFBT_PMINRES = solvertemplates::BFBTStokesMinResSolver( storage, level, viscosity, 1e-6, 100, true, velocityBCs );
-
-   hyteg::P2P1TaylorHoodFunction< idx_t > THNumerator( "THNum", storage, level, level );
-   THNumerator.enumerate( level );
-
-   bool printOperands = false;
-   bool printResult   = false;
-   if ( printOperands )
-   {
-      P1LumpedMassOperator                             PMass( storage, level, level );
-      PETScSparseMatrix< hyteg::P1LumpedMassOperator > PMassMat;
-      hyteg::P1Function< idx_t >                       PNumerator( "PNum", storage, level, level );
-      PNumerator.enumerate( level );
-      PMassMat.createMatrixFromOperator( PMass, level, PNumerator, All );
-      PMassMat.print( "FOR_MATLAB_PMassMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-      P1BlendingLumpedDiagonalOperator PMassViscWeighted(
-          storage,
-          level,
-          level,
-          std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( viscosity, viscosity ) ) );
-      PETScSparseMatrix< hyteg::P1BlendingLumpedDiagonalOperator > PMassViscWeightedMat;
-      PMassViscWeightedMat.createMatrixFromOperator( PMassViscWeighted, level, PNumerator, All );
-      PMassViscWeightedMat.print( "FOR_MATLAB_PMassViscWeightedMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-      PETScSparseMatrix< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator > StokesMat;
-      StokesMat.createMatrixFromOperator( A, level, THNumerator, All );
-
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      PETScVector bVec( b, THNumerator, level );
-      bVec.createVectorFromFunction( b, THNumerator, level, All );
-      StokesMat.applyDirichletBCSymmetrically( x, THNumerator, bVec, level );
-      //StokesMat.applyDirichletBC( THNumerator, level );
-
-      bVec.print( "FOR_MATLAB_bVec_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-      StokesMat.print( "FOR_MATLAB_StokesMat_Sinker.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-      WALBERLA_ABORT( "bye" );
-   }
+   PETScLUSolver< P2P1ElementwiseAffineEpsilonStokesOperator > LU( storage, level );
 
    walberla::WcTimer timer;
-   switch ( solver )
-   {
-   case 0:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES_PETSC" );
-      StdBlkdiagPMINRES_PETSC.solve( A, x, b, level );
-      break;
-   case 1:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: GKB" );
-      GKB.solve( A, x, b, level );
-      break;
-   case 2:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: LU" );
-      LU.solve( A, x, b, level );
-      break;
-   case 3:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: ViscWeightedPMINRES" );
-      ViscWeightedPMINRES->solve( A, x, b, level );
-      break;
-   case 4:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: StdBlkdiagPMINRES" );
-      StdBlkdiagPMINRES->solve( A, x, b, level );
-      break;
-   case 5:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: BFBT_PMINRES" );
-      BFBT_PMINRES->solve( A, x, b, level );
-      break;
-   case 6:
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: OnlyPressurePMINRES" );
-      OnlyPressurePMINRES->solve( A, x, b, level );
-      break;
+   LU.solve( A, x, b, level );
 
-   default:
-      WALBERLA_ABORT( "No solver chosen! aborting..." );
-   }
    timer.end();
-
-   if ( printResult )
-   {
-      PETScVector xVec( x, THNumerator, level );
-      xVec.print( "FOR_MATLAB_xVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
-   }
 
    hyteg::vertexdof::projectMean( x.p(), level );
 
@@ -271,16 +183,6 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
-   /*
-  const uint_t & level, 
-  const uint_t & solver, 
-  const uint_t & nxy,
-  const uint_t & nSinkers, 
-  const uint_t & visc_min, 
-  const uint_t & visc_max, 
-  const real_t & delta, 
-  const real_t & omega)
-  */
 
    MultiSinker2D( 6, 4, 1, 4, 1000, 200, 0.1 );
 

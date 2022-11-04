@@ -302,24 +302,12 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    Numerator.enumerate( level );
 
    //auto Solver = solvertemplates::varViscStokesMinResSolver<StokesOperatorType>( storage, level, viscosity, 1, 1e-8, 100, true );
-   PETScLUSolver< StokesOperatorType >     LU( storage, level );
-   PETScMinResSolver< StokesOperatorType > MINRES( storage, level, Numerator );
-   StokesFunctionType                      nullSpace( "ns", storage, level, level );
+   PETScLUSolver< StokesOperatorType > LU( storage, level );
+   StokesFunctionType                  nullSpace( "ns", storage, level, level );
    nullSpace.uvw().interpolate( 0, level, All );
    nullSpace.p().interpolate( 1, level, All );
    LU.setNullSpace( nullSpace );
-   MINRES.setNullSpace( nullSpace );
-   if constexpr ( isP2P1Discr< StokesOperatorType >() )
-   {
-      LU.solve( Op, x, b, level );
-   }
-   else
-   {
-      if constexpr ( isEGP0Discr< StokesOperatorType >() )
-      {
-         LU.solve( Op, x, b, level );
-      }
-   }
+   LU.solve( Op, x, b, level );
 
    // calculate the error in the L2 norm
    if constexpr ( isEGP0Discr< StokesOperatorType >() )
