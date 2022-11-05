@@ -58,9 +58,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , AmatTmp( "AmatTmp", petscCommunicator_ )
    , xVec( "xVec", petscCommunicator_ )
    , bVec( "bVec", petscCommunicator_ )
-#if 0
-  , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-#endif
+   , inKernel( "inKernel", petscCommunicator_ )
    , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
@@ -74,26 +72,18 @@ class PETScLUSolver : public Solver< OperatorType >
       KSPSetFromOptions( ksp );
    }
 
-   ~PETScLUSolver()
+   ~PETScLUSolver() { KSPDestroy( &ksp ); }
+
+   void setNullSpace( FunctionType& inKernelFunction, const uint_t& level )
    {
-      KSPDestroy( &ksp );
+      inKernel.createVectorFromFunction( inKernelFunction, num, level, All );
+      VecNormalize( inKernel.get(), NULL );
+      MatNullSpace nullspace;
+      MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &( inKernel.get() ), &nullspace );
+      MatSetNullSpace( Amat.get(), nullspace );
    }
 
-#if 0
-  void setNullSpace( FunctionType & inKernel, const uint_t & level )
-  {
-    inKernel.createVectorFromFunction( inKernel, *num, level, All );
-    VecNormalize(inKernel.get(), NULL);
-    MatNullSpace nullspace;
-    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &(inKernel.get()), &nullspace );
-    MatSetNullSpace( Amat.get(), nullspace );
-  }
-#endif
-
-   void setDirectSolverType( PETScDirectSolverType solverType )
-   {
-      solverType_ = solverType;
-   }
+   void setDirectSolverType( PETScDirectSolverType solverType ) { solverType_ = solverType; }
 
    void setConstantNullSpace()
    {
@@ -102,16 +92,10 @@ class PETScLUSolver : public Solver< OperatorType >
       MatSetNullSpace( Amat.get(), nullspace );
    }
 
-   void setVerbose( bool verbose )
-   {
-      verbose_ = verbose;
-   }
+   void setVerbose( bool verbose ) { verbose_ = verbose; }
 
    /// \brief If set to true, the symmetry of the operator is exploited by the solver.
-   void assumeSymmetry( bool assumeSymmetry )
-   {
-      assumeSymmetry_ = assumeSymmetry;
-   }
+   void assumeSymmetry( bool assumeSymmetry ) { assumeSymmetry_ = assumeSymmetry; }
 
    /// \brief If set to true, no assembly and no factorization will happen during the solve() call.
    ///        For successful solution of the system, assembleAndFactorize() has to be called before
@@ -123,19 +107,10 @@ class PETScLUSolver : public Solver< OperatorType >
 
    /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
    ///        Default is false.
-   void reassembleMatrix( bool reassembleMatrix )
-   {
-      reassembleMatrix_ = reassembleMatrix;
-   }
+   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
-   void setMUMPSIcntrl( uint_t key, int value )
-   {
-      mumpsIcntrl_[key] = value;
-   }
-   void setMUMPSCntrl( uint_t key, real_t value )
-   {
-      mumpsCntrl_[key] = value;
-   }
+   void setMUMPSIcntrl( uint_t key, int value ) { mumpsIcntrl_[key] = value; }
+   void setMUMPSCntrl( uint_t key, real_t value ) { mumpsCntrl_[key] = value; }
 
    void assembleAndFactorize( const OperatorType& A )
    {
@@ -287,9 +262,7 @@ class PETScLUSolver : public Solver< OperatorType >
    PETScSparseMatrix< OperatorType >                                                             AmatTmp;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
-#if 0
-  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
-#endif
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > inKernel;
 
    KSP                        ksp;
    PC                         pc;

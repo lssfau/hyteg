@@ -46,7 +46,6 @@
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
-
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
@@ -306,7 +305,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    StokesFunctionType                  nullSpace( "ns", storage, level, level );
    nullSpace.uvw().interpolate( 0, level, All );
    nullSpace.p().interpolate( 1, level, All );
-   LU.setNullSpace( nullSpace );
+   LU.setNullSpace( nullSpace, level );
    LU.solve( Op, x, b, level );
 
    // calculate the error in the L2 norm

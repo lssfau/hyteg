@@ -206,7 +206,7 @@ class StokesConvergenceOrderTest
       StokesFunctionType                  nullSpace( "ns", storage, level, level );
       nullSpace.uvw().interpolate( 0, level, All );
       nullSpace.p().interpolate( 1, level, All );
-      solver.setNullSpace( nullSpace );
+      solver.setNullSpace( nullSpace, level );
       solver.solve( Op, u, rhs, level );
 
       // calculate the error in the L2 norm
