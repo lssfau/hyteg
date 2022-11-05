@@ -39,30 +39,6 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-static void testLaplace( const std::string& meshFile, const uint_t& level )
-{
-   using namespace dg::eg;
-
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   EGFunction< idx_t > numerator( "numerator", storage, level, level );
-   EGLaplaceOperator   L( storage, level, level );
-
-   numerator.enumerate( level );
-
-   PETScSparseMatrix< EGLaplaceOperator > Lpetsc;
-   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
-
-   Lpetsc.print( "../P1DGE_Laplace.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
-                   "P1DGE vector Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
-   WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
-}
-
 static void testMass( const std::string& meshFile, const uint_t& level )
 {
    using namespace dg::eg;
@@ -87,66 +63,6 @@ static void testMass( const std::string& meshFile, const uint_t& level )
    WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Mass symmetric for: level = " << level << ", mesh: " << meshFile );
 }
 
-static void testStokes( const std::string& meshFile, const uint_t& level )
-{
-   using namespace dg::eg;
-
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   EGP0StokesFunction< idx_t > numerator( "numerator", storage, level, level );
-   EGP0StokesOperator          L( storage, level, level );
-
-   {
-      WALBERLA_LOG_WARNING( "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
-                            "This is just a temporary workaround for testing things! " );
-      numerator.p().setBoundaryCondition( numerator.uvw().getBoundaryCondition() );
-   }
-
-   numerator.enumerate( level );
-
-   PETScSparseMatrix< EGP0StokesOperator > Lpetsc;
-   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
-
-   Lpetsc.print( "../P1DGE_Stokes.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
-                   "P1DGEP1 Stokes _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
-   WALBERLA_LOG_INFO_ON_ROOT( "P1DGEP1 Stokes symmetric for: level = " << level << ", mesh: " << meshFile );
-}
-
-static void testEpsilon( const std::string& meshFile, const uint_t& level )
-{
-   using namespace dg::eg;
-
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   EGP0StokesFunction< idx_t >    numerator( "numerator", storage, level, level );
-   EGP0ConstEpsilonStokesOperator L( storage, level, level );
-
-   {
-      WALBERLA_LOG_WARNING( "P1DGESymmetryTest checks symmetry by copying the velocity boundary conditions to the pressure. "
-                            "This is just a temporary workaround for testing things! " );
-      numerator.p().setBoundaryCondition( numerator.uvw().getBoundaryCondition() );
-   }
-
-   numerator.enumerate( level );
-
-   PETScSparseMatrix< EGP0ConstEpsilonStokesOperator > Lpetsc;
-   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
-
-   Lpetsc.print( "../EGP0ConstEpsilonStokesOperator.m", false, PETSC_VIEWER_ASCII_MATLAB );
-
-   WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
-                   "EGP0ConstEpsilonStokesOperator _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
-   WALBERLA_LOG_INFO_ON_ROOT( "EGP0ConstEpsilonStokesOperator symmetric for: level = " << level << ", mesh: " << meshFile );
-}
-
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -158,15 +74,6 @@ int main( int argc, char* argv[] )
    for ( uint_t level = 2; level <= 3; level++ )
    {
       hyteg::testMass( "../../data/meshes/tri_1el.msh", level );
-      /* EGVectorLaplace not symmetric due to boundary handling!
-       hyteg::testLaplace( "../../data/meshes/tri_1el.msh", level );   
-      hyteg::testStokes( "../../data/meshes/tri_1el.msh", level );
-      hyteg::testEpsilon( "../../data/meshes/tri_1el.msh", level );
-      hyteg::testEpsilon( "../../data/meshes/annulus_coarse.msh", level );
-      hyteg::testEpsilon( "../../data/meshes/bfs_126el.msh", level );
-      hyteg::testEpsilon( "../../data/meshes/annulus_coarse.msh", level );
-      hyteg::testEpsilon( "../../data/meshes/bfs_126el.msh", level );
-*/
    }
 
    return 0;
