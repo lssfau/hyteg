@@ -66,8 +66,6 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
    }
 
-
-
    void addValues( const std::vector< uint_t >& rows,
                    const std::vector< uint_t >& cols,
                    const std::vector< real_t >& values ) override
@@ -151,40 +149,11 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                     ADD_VALUES );
    }
 
-   
-
 #endif
 
    void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       Mat            tmp;
-      PetscErrorCode err;
-      Mat            mats[matrices.size()];
-
-      for ( uint i = 0; i < matrices.size(); ++i )
-         mats[i] = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( i ) )->mat_;
-
-      err = MatCreateComposite( PETSC_COMM_WORLD, matrices.size(), mats, &tmp );
-      WALBERLA_CHECK( !err );
-      err = MatCompositeSetType( tmp, MAT_COMPOSITE_MULTIPLICATIVE );
-      WALBERLA_CHECK( !err );
-      err = MatCompositeSetMergeType( tmp, MAT_COMPOSITE_MERGE_LEFT );
-      WALBERLA_CHECK( !err );
-      err = MatCompositeMerge( tmp );
-      WALBERLA_CHECK( !err );
-      err = MatAssemblyBegin( tmp, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK( !err );
-      err = MatAssemblyEnd( tmp, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK( !err );
-      err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK( !err );
-      err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK( !err );
-      err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
-      WALBERLA_CHECK( !err );
-
-      /*
-
       PetscErrorCode err;
 
       err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
@@ -237,7 +206,6 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
          WALBERLA_CHECK( !err );
       }
-      */
    }
 
    void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
