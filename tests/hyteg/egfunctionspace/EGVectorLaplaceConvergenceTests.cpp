@@ -43,8 +43,12 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
+using hyteg::MeshInfo;
+using hyteg::Point2D;
+using hyteg::Point3D;
 using walberla::real_t;
 using walberla::uint_t;
+using walberla::math::pi;
 
 using hyteg::dg::eg::EGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
@@ -181,373 +185,40 @@ void runTestcase( const std::string& name,
       computedRate  = errFiner / err;
 
       WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
-      WALBERLA_LOG_INFO_ON_ROOT( "Convergence L2 rate level " << l << " vs level " << l - 1 << "; computed: " << computedRate
-                                                              << ", estimated + eps: " << l2ConvRate + convRateEps );
+      WALBERLA_LOG_INFO_ON_ROOT( "Convergence L2 rate level " << l << " vs level " << l - 1 << "; computed: " << computedRate );
 
       err = errFiner;
    }
-   /* WALBERLA_CHECK_LESS_EQUAL( computedRate,
+   WALBERLA_CHECK_LESS_EQUAL( computedRate,
                               l2ConvRate + convRateEps,
                               "Convergence L2 rate level " << l << " vs level " << l - 1
                                                            << " not sufficiently small (computed: " << computedRate
-                                                           << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );*/
+                                                           << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
 }
+
+void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel );
+void testEGVectorLaplace3D( uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel );
+
 } // namespace hyteg
 
 int main( int argc, char** argv )
 {
-   using hyteg::MeshInfo;
-   using hyteg::Point2D;
-   using hyteg::Point3D;
-   using walberla::real_t;
-
-   using walberla::math::pi;
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
    uint_t              minLevel   = 2;
    uint_t              maxLevel3D = 5;
-   uint_t              maxLevel2D = 5;
+   uint_t              maxLevel2D = 6;
    const bool          writeVTK   = false;
 
    for ( uint_t solverType = 0; solverType < 2; solverType++ )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### " << ( solverType == 0 ? "PETScCG: " : "HytegCG: " ) << " ###" );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs != 0 ###" );
-      {
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sin( x[1] ); };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) { return 2 * sin( x[0] ) * sin( x[1] ); };
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
-                             minLevel,
-                             maxLevel2D,
-                             MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
+      hyteg::testEGVectorLaplace2D( solverType, writeVTK, minLevel, maxLevel2D );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, hom. BC, rhs != 0 ###" );
-      {
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * ( x[0] + x[1] - 1 ) );
-         };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 4 * pi * pi * ( -2 * sin( 4 * pi * ( x[0] + x[1] ) ) + sin( 4 * pi * x[0] ) + sin( 4 * pi * x[1] ) );
-         };
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el_Dirichlet0",
-                             minLevel,
-                             maxLevel2D,
-                             MeshInfo::meshFaceChain( 1 ),
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs = 0 ###" );
-      {
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
-                             minLevel,
-                             maxLevel2D,
-                             MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on 2 triangles, inhom. BC, rhs = 0 ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( pi * x[0] ) * sin( pi * x[1] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] );
-         };
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_2el",
-                             minLevel,
-                             maxLevel2D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on quad 2D, inhom. BC, rhs = 0 ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( pi * x[0] ) * sin( pi * x[1] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] );
-         };
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_quad_4el",
-                             minLevel,
-                             maxLevel2D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on square, multiple macros, inhom. BC, rhs != 0 ###" );
-      {
-         MeshInfo meshInfo =
-             hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 );
-
-         std::function< real_t( const hyteg::Point3D& ) > solFunc = []( const hyteg::Point3D& x ) {
-            return std::exp( -x[0] - ( x[1] * x[1] ) );
-         };
-         std::function< real_t( const hyteg::Point3D& ) > rhsFunc = []( const hyteg::Point3D& x ) {
-            return -( 4 * x[1] * x[1] - 1 ) * std::exp( -x[0] - ( x[1] * x[1] ) );
-         };
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_square",
-                             minLevel,
-                             maxLevel2D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
-      {
-         std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
-            return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                   sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
-         };
-         std::function< real_t( const Point3D& ) > one_tet_rhs = []( const Point3D& x ) {
-            return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                          sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                      8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
-                          cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                      8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                          cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                      8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                          cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet_Dirichlet0",
-                             minLevel,
-                             maxLevel3D + 1,
-                             MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                             std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
-                             std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ),
-                             solverType,
-                             writeVTK );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, second ###" );
-      {
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet",
-                             minLevel,
-                             maxLevel3D + 1,
-                             MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, third ###" );
-      {
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet_second",
-                             minLevel,
-                             maxLevel3D,
-                             MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, first ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, second ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, third ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, first ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, second ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, third ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, first ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, second ###" );
-      {
-         MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-         std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-            return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
-         };
-
-         std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-            return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
-         };
-
-         hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
-                             minLevel,
-                             maxLevel3D,
-                             meshInfo,
-                             std::make_tuple( solFunc, solFunc, solFunc ),
-                             std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                             solverType,
-                             writeVTK );
-      }
+      hyteg::testEGVectorLaplace3D( solverType, writeVTK, minLevel, maxLevel3D );
       /*
       WALBERLA_LOG_INFO_ON_ROOT( "### Test nonzero on interfaces, on cube, hom. BC, rhs != 0 ###" );
       {
@@ -612,3 +283,340 @@ int main( int argc, char** argv )
    }
    return EXIT_SUCCESS;
 }
+
+namespace hyteg {
+void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs != 0 ###" );
+   {
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sin( x[1] ); };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) { return 2 * sin( x[0] ) * sin( x[1] ); };
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, hom. BC, rhs != 0 ###" );
+   {
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * ( x[0] + x[1] - 1 ) );
+      };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 4 * pi * pi * ( -2 * sin( 4 * pi * ( x[0] + x[1] ) ) + sin( 4 * pi * x[0] ) + sin( 4 * pi * x[1] ) );
+      };
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el_Dirichlet0",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::meshFaceChain( 1 ),
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single triangle, inhom. BC, rhs = 0 ###" );
+   {
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on 2 triangles, inhom. BC, rhs = 0 ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ); };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] );
+      };
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_2el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on quad 2D, inhom. BC, rhs = 0 ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ); };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] );
+      };
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_quad_4el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on square, multiple macros, inhom. BC, rhs != 0 ###" );
+   {
+      MeshInfo meshInfo =
+          hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 );
+
+      std::function< real_t( const hyteg::Point3D& ) > solFunc = []( const hyteg::Point3D& x ) {
+         return std::exp( -x[0] - ( x[1] * x[1] ) );
+      };
+      std::function< real_t( const hyteg::Point3D& ) > rhsFunc = []( const hyteg::Point3D& x ) {
+         return -( 4 * x[1] * x[1] - 1 ) * std::exp( -x[0] - ( x[1] * x[1] ) );
+      };
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_square",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+}
+
+void testEGVectorLaplace3D( uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
+   {
+      std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
+      };
+      std::function< real_t( const Point3D& ) > one_tet_rhs = []( const Point3D& x ) {
+         return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
+                   8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
+                       cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet_Dirichlet0",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                          std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
+                          std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ),
+                          solverType,
+                          writeVTK );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, second ###" );
+   {
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, third ###" );
+   {
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet_second",
+                          minLevel,
+                          maxLevel,
+                          MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, first ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, second ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_2el, third ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_2el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, first ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, second ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test pyramid_4el, third ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_pyramid_4el",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, first ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube, second ###" );
+   {
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+
+      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
+         return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
+      };
+
+      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
+         return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
+      };
+
+      hyteg::runTestcase( "EGVectorLaplaceConvergence_cube",
+                          minLevel,
+                          maxLevel,
+                          meshInfo,
+                          std::make_tuple( solFunc, solFunc, solFunc ),
+                          std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
+                          solverType,
+                          writeVTK );
+   }
+}
+} // namespace hyteg
