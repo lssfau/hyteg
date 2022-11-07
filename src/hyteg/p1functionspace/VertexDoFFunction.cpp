@@ -81,6 +81,7 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    BoundaryCondition                          boundaryCondition )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
+, referenceCounter_( new internal::ReferenceCounter() )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
    auto faceVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
@@ -117,6 +118,73 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
+
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >::~VertexDoFFunction()
+{
+   referenceCounter_->decreaseRefs();
+   if ( referenceCounter_->refs() <= 0 )
+   {
+      // There are no copies of this handle left. We can delete the allocated DoFs.
+      deleteFunctionMemory();
+   }
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >::VertexDoFFunction( const VertexDoFFunction< ValueType >& other )
+: Function< VertexDoFFunction< ValueType > >( other )
+, vertexDataID_( other.vertexDataID_ )
+, edgeDataID_( other.edgeDataID_ )
+, faceDataID_( other.faceDataID_ )
+, cellDataID_( other.cellDataID_ )
+, boundaryCondition_( other.boundaryCondition_ )
+, referenceCounter_( other.referenceCounter_ )
+{
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >& VertexDoFFunction< ValueType >::operator=( const VertexDoFFunction< ValueType >& other )
+{
+   if ( this == &other )
+   {
+      return *this;
+   }
+   else if ( other.referenceCounter_ == referenceCounter_ )
+   {
+      WALBERLA_CHECK_EQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_EQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_EQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_EQUAL( cellDataID_, other.cellDataID_ )
+      WALBERLA_CHECK_EQUAL( boundaryCondition_, other.boundaryCondition_ )
+   }
+   else
+   {
+      WALBERLA_CHECK_UNEQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_UNEQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_UNEQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_UNEQUAL( cellDataID_, other.cellDataID_ )
+
+      referenceCounter_->decreaseRefs();
+
+      if ( referenceCounter_->refs() == 0 )
+      {
+         // There are no copies of this handle left. We can delete the allocated DoFs.
+         deleteFunctionMemory();
+      }
+
+      vertexDataID_      = other.vertexDataID_;
+      edgeDataID_        = other.edgeDataID_;
+      faceDataID_        = other.faceDataID_;
+      cellDataID_        = other.cellDataID_;
+      boundaryCondition_ = other.boundaryCondition_;
+      referenceCounter_  = other.referenceCounter_;
+      referenceCounter_->increaseRefs();
+   }
+   return *this;
 }
 
 template < typename ValueType >
@@ -836,17 +904,26 @@ void macroFaceAssign< double >( const uint_t&                                   
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -854,11 +931,15 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+
       WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -868,6 +949,7 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+
       WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
    }
    else
@@ -1114,17 +1196,26 @@ void macroFaceAdd< double >( const uint_t&                                      
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1132,11 +1223,17 @@ void macroFaceAdd< double >( const uint_t&                                      
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1146,7 +1243,10 @@ void macroFaceAdd< double >( const uint_t&                                      
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
@@ -2182,7 +2282,7 @@ void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t 
 //  explicit instantiation
 // ========================
 template class VertexDoFFunction< double >;
-// template class VertexDoFFunction< float >;
+template class VertexDoFFunction< float >;
 template class VertexDoFFunction< int32_t >;
 template class VertexDoFFunction< int64_t >;
 

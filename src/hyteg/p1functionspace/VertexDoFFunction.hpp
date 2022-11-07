@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/ReferenceCounter.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -55,7 +56,7 @@ class Cell;
 namespace vertexdof {
 
 template < typename ValueType >
-class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
+class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -76,20 +77,28 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
-   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+   ~VertexDoFFunction();
 
-   void allocateMemory( const uint_t & level, const Vertex & vertex );
-   void allocateMemory( const uint_t & level, const Edge & edge );
-   void allocateMemory( const uint_t & level, const Face & face );
-   void allocateMemory( const uint_t & level, const Cell & cell );
+   /// Copy constructor
+   VertexDoFFunction( const VertexDoFFunction< ValueType >& other );
 
-   void deleteMemory( const uint_t & level, const Vertex & vertex );
-   void deleteMemory( const uint_t & level, const Edge & edge );
-   void deleteMemory( const uint_t & level, const Face & face );
-   void deleteMemory( const uint_t & level, const Cell & cell );
+   /// Copy assignment
+   VertexDoFFunction& operator=( const VertexDoFFunction< ValueType >& other );
+
+   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
+
+   void allocateMemory( const uint_t& level, const Vertex& vertex );
+   void allocateMemory( const uint_t& level, const Edge& edge );
+   void allocateMemory( const uint_t& level, const Face& face );
+   void allocateMemory( const uint_t& level, const Cell& cell );
+
+   void deleteMemory( const uint_t& level, const Vertex& vertex );
+   void deleteMemory( const uint_t& level, const Edge& edge );
+   void deleteMemory( const uint_t& level, const Face& face );
+   void deleteMemory( const uint_t& level, const Cell& cell );
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
@@ -119,8 +128,8 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const VertexDoFFunction< ValueType >&          other,
-                  const uint_t&                                  level,
+   void copyFrom( const VertexDoFFunction< ValueType >&  other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
@@ -248,7 +257,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
-   void setBoundaryCondition( BoundaryCondition bc );
+   void              setBoundaryCondition( BoundaryCondition bc );
 
    template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const VertexDoFFunction< OtherFunctionValueType >& other )
@@ -287,7 +296,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// asynchronous tasks. endAdditiveCommunication has to be called manually!
    /// See communicateAdditively( const uint_t& ) const for more details
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -308,7 +317,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    inline void startAdditiveCommunication( const uint_t&           level,
                                            const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                            const PrimitiveStorage& primitiveStorage,
-                                           const bool & zeroOutDestination = true ) const
+                                           const bool&             zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -363,7 +372,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// \param zeroOutDestination if true, sets all values on the destination function to zero
    ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
@@ -383,7 +392,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    inline void communicateAdditively( const uint_t&           level,
                                       const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                       const PrimitiveStorage& primitiveStorage,
-                                      const bool & zeroOutDestination = true ) const
+                                      const bool&             zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >(
           level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
@@ -414,6 +423,14 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
+   inline void deleteFunctionMemory()
+   {
+      this->storage_->deleteVertexData( vertexDataID_ );
+      this->storage_->deleteEdgeData( edgeDataID_ );
+      this->storage_->deleteFaceData( faceDataID_ );
+      this->storage_->deleteCellData( cellDataID_ );
+   }
+
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -423,6 +440,13 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
+
+   /// All functions that actually allocate data and are not composites are handles to the allocated memory.
+   /// This means the copy-ctor and copy-assignment only create a handle that is associated with the same memory.
+   /// Deep copies must be created explicitly.
+   /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
+   /// Once it drops to zero, we can deallocate the memory from the storage.
+   std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
 };
 
 inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )

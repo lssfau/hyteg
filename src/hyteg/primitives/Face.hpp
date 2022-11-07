@@ -209,6 +209,15 @@ class Face : public Primitive
       genericAddData( index, dataHandling, this );
    }
 
+   /// Deletes the data that belongs to the passed \ref PrimitiveDataID.
+   /// Not public in order to guarantee that data is only deleted through the governing structure.
+   /// \param index the \ref PrimitiveDataID of the data that shall be deleted
+   template < typename DataType >
+   void deleteData( const PrimitiveDataID< DataType, Face >& index )
+   {
+      return genericDeleteData< DataType >( index );
+   }
+
    virtual void serializeSubclass( walberla::mpi::SendBuffer& sendBuffer ) const;
    virtual void deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer );
 
