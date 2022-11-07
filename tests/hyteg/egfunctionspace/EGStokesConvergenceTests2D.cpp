@@ -44,6 +44,7 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -95,7 +96,8 @@ class StokesConvergenceOrderTest
                                const std::shared_ptr< PrimitiveStorage >& storage,
                                const uint_t                               minLevel,
                                const uint_t                               maxLevel,
-                               bool                                       writeVTK = false )
+                               const uint_t&                              solverType = 0,
+                               bool                                       writeVTK   = false )
    {
       std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
       WALBERLA_LOG_INFO_ON_ROOT( "Running " << testName );
@@ -111,7 +113,7 @@ class StokesConvergenceOrderTest
       {
          lastError_v      = currentError_v;
          lastError_p      = currentError_p;
-         auto error_per_h = RunStokesTestOnLevel( testName, level, sol_tuple, rhs_tuple, Op, storage, writeVTK );
+         auto error_per_h = RunStokesTestOnLevel( testName, level, sol_tuple, rhs_tuple, Op, storage, solverType, writeVTK );
          currentError_v   = std::get< 1 >( error_per_h );
          currentError_p   = std::get< 2 >( error_per_h );
          errors_per_h.push_back( error_per_h );
@@ -143,7 +145,8 @@ class StokesConvergenceOrderTest
                                                               LambdaTuple                                rhs_tuple,
                                                               StokesOperatorType&                        Op,
                                                               const std::shared_ptr< PrimitiveStorage >& storage,
-                                                              bool                                       writeVTK = false )
+                                                              const uint_t&                              solverType,
+                                                              bool                                       writeVTK )
    {
       StokesFunctionNumeratorType numerator( "numerator", storage, level, level );
       numerator.enumerate( level );
@@ -203,13 +206,24 @@ class StokesConvergenceOrderTest
       }
 
       // solve
-      //PETScMinResSolver< StokesOperatorType > solver( storage, level, numerator );
-      PETScMinResSolver< StokesOperatorType > solver( storage, level );
-      StokesFunctionType                      nullSpace( "ns", storage, level, level );
-      nullSpace.uvw().interpolate( 0, level, All );
-      nullSpace.p().interpolate( 1, level, All );
-      solver.setNullSpace( nullSpace );
-      solver.solve( Op, u, rhs, level );
+      switch ( solverType )
+      {
+      case 1: {
+         MinResSolver< StokesOperatorType > solver( storage, level, level );
+         solver.setPrintInfo( true );
+         solver.solve( Op, u, rhs, level );
+         break;
+      }
+      default: {
+         PETScMinResSolver< StokesOperatorType > solver( storage, level );
+         StokesFunctionType                      nullSpace( "ns", storage, level, level );
+         nullSpace.uvw().interpolate( 0, level, All );
+         nullSpace.p().interpolate( 1, level, All );
+         solver.setNullSpace( nullSpace );
+         solver.solve( Op, u, rhs, level );
+         break;
+      }
+      }
 
       // calculate the error in the L2 norm
       if constexpr ( isEGP0Discr< StokesOperatorType >() )
@@ -287,7 +301,7 @@ class StokesConvergenceOrderTest
 
 void ConstAndBasicTest2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage );
 void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage );
-
+void HytegSolverCheck2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage );
 } // namespace eg
 } // namespace dg
 } // namespace hyteg
@@ -313,8 +327,8 @@ int main( int argc, char* argv[] )
       uint_t minLevel = 3;
       uint_t maxLevel = 5;
 
-      //IncreasingSteepnessTest( minLevel, maxLevel, storage );
-
+      //hyteg::dg::eg::IncreasingSteepnessTest( minLevel, maxLevel, storage );
+      //hyteg::dg::eg::HytegSolverCheck2D( 2, 4, storage );
       hyteg::dg::eg::ConstAndBasicTest2D( minLevel, maxLevel, storage );
       hyteg::dg::eg::SmoothViscosityTest2D( minLevel, maxLevel, storage );
    }
@@ -325,8 +339,106 @@ int main( int argc, char* argv[] )
 namespace hyteg {
 namespace dg {
 namespace eg {
+void HytegSolverCheck2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "### Using Hyteg MINRES ###" )
+   EGP0StokesOperator EGP0StokesOp( storage, minLevel, maxLevel );
+
+   EGP0EpsilonStokesOperator EGP0EpsilonOp_mu_smooth( storage, minLevel, maxLevel, []( const hyteg::Point3D& p ) {
+      const real_t x = p[0];
+      const real_t y = p[1];
+      return std::exp( x ) * std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) ) *
+                 std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) ) +
+             1;
+   } );
+
+   StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+       "EGP0EpsilonOp_divFree_smoothVisc",
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+              return y + 2 * std::sin( M_PI * ( x + y ) ) + 4;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+              return -x - 2 * std::sin( M_PI * ( x + y ) ) + 3;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x = p[0];
+              const real_t y = p[1];
+              return 2 * x - y + 1;
+           } ),
+       std::make_tuple(
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = M_PI * ( x + y );
+              const real_t x1 = M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 );
+              const real_t x2 = std::exp( x ) * std::sin( M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 ) );
+              const real_t x3 = x2 * std::sin( x1 );
+              return 4.0 * std::pow( M_PI, 2 ) * ( x3 + 1 ) * std::sin( x0 ) -
+                     4.0 * M_PI * ( ( 1.0 / 2.0 ) * M_PI * x2 * std::cos( x1 ) + x3 ) * std::cos( x0 ) + 2;
+           },
+           []( const Point3D& p ) -> real_t {
+              const real_t x  = p[0];
+              const real_t y  = p[1];
+              const real_t x0 = std::exp( x );
+              const real_t x1 = std::pow( M_PI, 2 );
+              const real_t x2 = M_PI * ( x + y );
+              const real_t x3 = std::sin( M_PI * ( ( 1.0 / 2.0 ) * x + 1.0 / 2.0 ) );
+              const real_t x4 = M_PI * ( ( 1.0 / 2.0 ) * y + 1.0 / 2.0 );
+              return 2.0 * x0 * x1 * x3 * std::cos( x2 ) * std::cos( x4 ) -
+                     4.0 * x1 * ( x0 * x3 * std::sin( x4 ) + 1 ) * std::sin( x2 ) - 1;
+           },
+           []( const Point3D& ) -> real_t { return 0; } ),
+       EGP0EpsilonOp_mu_smooth,
+       storage,
+       minLevel,
+       maxLevel,
+       1 );
+
+   StokesConvergenceOrderTest< EGP0StokesOperator >( "EGP0StokesOp_inhom_asym",
+                                                     std::make_tuple(
+                                                         []( const Point3D& p ) -> real_t {
+                                                            const real_t x = p[0];
+                                                            const real_t y = p[1];
+                                                            return y + 2 * std::sin( M_PI * ( x + y ) ) + 4;
+                                                         },
+                                                         []( const Point3D& p ) -> real_t {
+                                                            const real_t x = p[0];
+                                                            const real_t y = p[1];
+                                                            return -x - 2 * std::sin( M_PI * ( x + y ) ) + 3;
+                                                         },
+                                                         []( const Point3D& p ) -> real_t {
+                                                            const real_t x = p[0];
+                                                            const real_t y = p[1];
+                                                            return 2 * x - y + 1;
+                                                         } ),
+                                                     std::make_tuple(
+                                                         []( const Point3D& p ) -> real_t {
+                                                            const real_t x = p[0];
+                                                            const real_t y = p[1];
+                                                            return 4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) + 2;
+                                                         },
+                                                         []( const Point3D& p ) -> real_t {
+                                                            const real_t x = p[0];
+                                                            const real_t y = p[1];
+                                                            return -4 * std::pow( M_PI, 2 ) * std::sin( M_PI * ( x + y ) ) - 1;
+                                                         },
+                                                         []( const Point3D& ) -> real_t { return 0; } ),
+                                                     EGP0StokesOp,
+                                                     storage,
+                                                     minLevel,
+                                                     maxLevel,
+                                                     1 );
+}
+
 void ConstAndBasicTest2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "### ConstAndBasicTest ###" )
+
    EGP0StokesOperator             EGP0StokesOp( storage, minLevel, maxLevel );
    EGP0ConstEpsilonStokesOperator EGP0ConstantEpsilonOp( storage, minLevel, maxLevel );
    EGP0EpsilonStokesOperator      EGP0EpsilonOp_mu_1( storage, minLevel, maxLevel, []( const hyteg::Point3D& ) { return 1; } );
@@ -385,8 +497,7 @@ void ConstAndBasicTest2D( const uint_t minLevel, const uint_t maxLevel, const st
        EGP0StokesOp,
        storage,
        minLevel,
-       maxLevel,
-       true );
+       maxLevel );
 
    StokesConvergenceOrderTest< EGP0StokesOperator >(
        "EGP0StokesOp_hom_pointsym",
@@ -664,8 +775,8 @@ void ConstAndBasicTest2D( const uint_t minLevel, const uint_t maxLevel, const st
            } ),
        EGP0ConstantEpsilonOp,
        storage,
-       3,
-       5 );
+       minLevel,
+       maxLevel );
 
    StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
        "EGP0EpsilonOp_inhom_constvisc",
@@ -705,8 +816,8 @@ void ConstAndBasicTest2D( const uint_t minLevel, const uint_t maxLevel, const st
            } ),
        EGP0EpsilonOp_mu_1,
        storage,
-       3,
-       5 );
+       minLevel,
+       maxLevel );
 
    /*
    hyteg::P2P1ElementwiseAffineEpsilonStokesOperator P2P1ElementwiseEpsilonOp_mu_1(
@@ -1186,8 +1297,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
        EGP0EpsilonOp_mu_smooth,
        storage,
        minLevel,
-       maxLevel,
-       true );
+       maxLevel );
 
    StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
        "EGP0EpsilonOp_asym_smoothVisc",
@@ -1266,8 +1376,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
        EGP0EpsilonOp_mu_smooth,
        storage,
        minLevel,
-       maxLevel,
-       false );
+       maxLevel );
 }
 } // namespace eg
 } // namespace dg
