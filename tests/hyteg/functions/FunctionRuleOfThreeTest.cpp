@@ -24,6 +24,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -198,6 +199,40 @@ void testRuleOfThree()
             auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
             WALBERLA_CHECK_EQUAL( numDataEntries, 0, "Data should be allocated after creating VolumeDoFFunction." );
          }
+      }
+   }
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
+   }
+
+   //////////////////
+   /// Composites ///
+   //////////////////
+
+   for ( auto id : primitiveIDs )
+   {
+      auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+      WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated before creating functions." );
+   }
+
+   {
+      auto                     basis = std::make_shared< dg::DGBasisLinearLagrange_Example >();
+      dg::DGFunction< real_t > f_dg( "f_dg", storage, level, level, basis, 1 );
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f_dg.getFunctionName() );
+
+      P2Function< real_t > f_p2( "f_p2", storage, level, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f_p2.getFunctionName() );
+
+      P2P1TaylorHoodFunction< real_t > f_p2p1( "f_p2p1", storage, level, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f_p2p1.getFunctionName() );
+
+      for ( auto id : primitiveIDs )
+      {
+         auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+         WALBERLA_CHECK_GREATER( numDataEntries, 0, "Data should be allocated after creating VolumeDoFFunction." );
       }
    }
 
