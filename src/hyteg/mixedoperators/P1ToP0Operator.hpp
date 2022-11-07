@@ -631,13 +631,54 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                  }
                                  else
                                  {
-                                    // Take DoF from GL memory.
-                                    nSrcDoFArrIndices[i] = volumedofspace::indexing::indexNeighborInGhostLayer(
-                                        neighborInfo.macroBoundaryID( n ),
-                                        elementIdx.x(),
-                                        elementIdx.y(),
-                                        elementIdx.z(),
-                                        hyteg::celldof::CellType::WHITE_UP,
+                                    // Unfortunately this case is not as easy as in 2D.
+                                    // In 2D, each GRAY micro-face has a 1:1 correspondence with a neighboring micro-vertex on
+                                    // the GL.
+                                    // In 3D this is not true. Each WHITE_UP cell does, but the other cell type (e.g. BLUE_UP on
+                                    // macro-face ID 0) also corresponds to one of the same vertices of a WHITE_UP cell.
+
+                                    // So what do we do?
+                                    // The solution below is a tiny bit hack since it uses direct access to the ghost-layer
+                                    // (which means that changing the indexing function will break stuff).
+                                    // The idea is to convert the micro-vertex index of the neighbor macro directly to the
+                                    // position in the ghost-layer. We exploit that we know the direction in which the GL is
+                                    // iterated over.
+
+                                    auto                    localFaceID = neighborInfo.macroBoundaryID( n );
+                                    std::array< uint_t, 4 > localCellLocalVertexIDs;
+                                    switch ( localFaceID )
+                                    {
+                                    case 0:
+                                       localCellLocalVertexIDs = { 0, 1, 2, 3 };
+                                       break;
+                                    case 1:
+                                       localCellLocalVertexIDs = { 0, 1, 3, 2 };
+                                       break;
+                                    case 2:
+                                       localCellLocalVertexIDs = { 0, 2, 3, 1 };
+                                       break;
+                                    case 3:
+                                       localCellLocalVertexIDs = { 1, 2, 3, 0 };
+                                       break;
+                                    }
+
+                                    std::array< uint_t, 4 > srcBasis = { 0, 1, 2, 3 };
+                                    std::array< uint_t, 4 > dstBasis;
+                                    for ( uint_t ii = 0; ii < 4; ii++ )
+                                    {
+                                       dstBasis[ii] = neighborCell->getLocalVertexID(
+                                           cell->neighborVertices().at( localCellLocalVertexIDs[ii] ) );
+                                    }
+
+                                    const auto pseudoLocalIndex = indexing::basisConversion(
+                                        nElementVertexIdx, srcBasis, dstBasis, levelinfo::num_microvertices_per_edge( level ) );
+
+                                    WALBERLA_ASSERT_EQUAL( pseudoLocalIndex.z(), 1 );
+
+                                    nSrcDoFArrIndices[i] = volumedofspace::indexing::indexGhostLayerDirectly(
+                                        pseudoLocalIndex.x(),
+                                        pseudoLocalIndex.y(),
+                                        celldof::CellType::WHITE_UP,
                                         0,
                                         1,
                                         level,
