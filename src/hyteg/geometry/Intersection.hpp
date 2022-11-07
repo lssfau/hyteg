@@ -79,132 +79,160 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    }
 }
 
-inline bool isPointInTriangle( const Point2D& pointOfInterest, const Point2D& v1, const Point2D& v2, const Point2D& v3 )
+/// Check whether in a planar geometry a point belongs to a triangle
+/// \note If using Point3D as PointType the z-component will be ignored
+template < typename PointType >
+inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType& v1, const PointType& v2, const PointType& v3 )
 {
-   const auto v1x     = v1[0];
-   const auto v1y     = v1[1];
-   const auto v2x     = v2[0];
-   const auto v2y     = v2[1];
-   const auto v3x     = v3[0];
-   const auto v3y     = v3[1];
-   const auto centrex = pointOfInterest[0];
-   const auto centrey = pointOfInterest[1];
+   if constexpr ( !std::is_same< PointType, Point2D >::value && !std::is_same< PointType, Point3D >::value )
+   {
+      WALBERLA_UNUSED( pointOfInterest );
+      WALBERLA_UNUSED( v1 );
+      WALBERLA_UNUSED( v2 );
+      WALBERLA_UNUSED( v3 );
+      return false;
+   }
+   else
+   {
+      const auto v1x     = v1[0];
+      const auto v1y     = v1[1];
+      const auto v2x     = v2[0];
+      const auto v2y     = v2[1];
+      const auto v3x     = v3[0];
+      const auto v3y     = v3[1];
+      const auto centrex = pointOfInterest[0];
+      const auto centrey = pointOfInterest[1];
 
-   const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
-   const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
-   const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
-   return ( s > 0 && t > 0 && 1 - s - t > 0 );
+      const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
+      const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
+      const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
+      return ( s > 0 && t > 0 && 1 - s - t > 0 );
+   }
 }
 
 /// \brief Returns true if the passed circle and triangle intersect.
-inline bool circleTriangleIntersection( const Point2D& centre,
-                                        const real_t&  radius,
-                                        const Point2D& v1,
-                                        const Point2D& v2,
-                                        const Point2D& v3 )
+/// \note If using Point3D as PointType the z-component will be ignored
+template < typename PointType >
+inline bool circleTriangleIntersection( const PointType& centre,
+                                        const real_t&    radius,
+                                        const PointType&   v1,
+                                        const PointType&   v2,
+                                        const PointType&   v3 )
 {
-   const auto v1x     = v1[0];
-   const auto v1y     = v1[1];
-   const auto v2x     = v2[0];
-   const auto v2y     = v2[1];
-   const auto v3x     = v3[0];
-   const auto v3y     = v3[1];
-   const auto centrex = centre[0];
-   const auto centrey = centre[1];
-
-   //
-   // TEST 1: Vertex within circle
-   //
-   auto c1x = v1x - centrex;
-   auto c1y = v1y - centrey;
-
-   if ( std::sqrt( c1x * c1x + c1y * c1y ) <= radius )
-      return true;
-
-   auto c2x = v2x - centrex;
-   auto c2y = v2y - centrey;
-
-   if ( std::sqrt( c2x * c2x + c2y * c2y ) <= radius )
-      return true;
-
-   auto c3x = v3x - centrex;
-   auto c3y = v3y - centrey;
-
-   if ( std::sqrt( c3x * c3x + c3y * c3y ) <= radius )
-      return true;
-
-   //
-   // TEST 2: Circle centre within triangle
-   //
-   if ( isPointInTriangle( centre, v1, v2, v3 ) )
-      return true;
-
-   //
-   // TEST 3: Circle intersects edge
-   //
-   // Get the dot product...
-   //
-   c1x      = centrex - v1x;
-   c1y      = centrey - v1y;
-   auto e1x = v2x - v1x;
-   auto e1y = v2y - v1y;
-
-   auto k = c1x * e1x + c1y * e1y;
-
-   if ( k > 0 )
+   if constexpr ( !std::is_same< PointType, Point2D >::value && !std::is_same< PointType, Point3D >::value )
    {
-      auto len = std::sqrt( e1x * e1x + e1y * e1y );
-      k        = k / len;
-
-      if ( k < len )
-      {
-         if ( std::sqrt( c1x * c1x + c1y * c1y - k * k ) <= radius )
-            return true;
-      }
+      WALBERLA_UNUSED( centre );
+      WALBERLA_UNUSED( radius );
+      WALBERLA_UNUSED( v1 );
+      WALBERLA_UNUSED( v2 );
+      WALBERLA_UNUSED( v3 );
+      return false;
    }
-
-   // Second edge
-   c2x      = centrex - v2x;
-   c2y      = centrey - v2y;
-   auto e2x = v3x - v2x;
-   auto e2y = v3y - v2y;
-
-   k = c2x * e2x + c2y * e2y;
-
-   if ( k > 0 )
+   else
    {
-      auto len = std::sqrt( e2x * e2x + e2y * e2y );
-      k        = k / len;
+      const auto v1x     = v1[0];
+      const auto v1y     = v1[1];
+      const auto v2x     = v2[0];
+      const auto v2y     = v2[1];
+      const auto v3x     = v3[0];
+      const auto v3y     = v3[1];
+      const auto centrex = centre[0];
+      const auto centrey = centre[1];
 
-      if ( k < len )
+      //
+      // TEST 1: Vertex within circle
+      //
+      auto c1x = v1x - centrex;
+      auto c1y = v1y - centrey;
+
+      if ( std::sqrt( c1x * c1x + c1y * c1y ) <= radius )
+         return true;
+
+      auto c2x = v2x - centrex;
+      auto c2y = v2y - centrey;
+
+      if ( std::sqrt( c2x * c2x + c2y * c2y ) <= radius )
+         return true;
+
+      auto c3x = v3x - centrex;
+      auto c3y = v3y - centrey;
+
+      if ( std::sqrt( c3x * c3x + c3y * c3y ) <= radius )
+         return true;
+
+      //
+      // TEST 2: Circle centre within triangle
+      //
+      if ( isPointInTriangle( centre, v1, v2, v3 ) )
+         return true;
+
+      //
+      // TEST 3: Circle intersects edge
+      //
+      // Get the dot product...
+      //
+      c1x      = centrex - v1x;
+      c1y      = centrey - v1y;
+      auto e1x = v2x - v1x;
+      auto e1y = v2y - v1y;
+
+      auto k = c1x * e1x + c1y * e1y;
+
+      if ( k > 0 )
       {
-         if ( std::sqrt( c2x * c2x + c2y * c2y - k * k ) <= radius )
-            return true;
+         auto len = std::sqrt( e1x * e1x + e1y * e1y );
+         k        = k / len;
+
+         if ( k < len )
+         {
+            if ( std::sqrt( c1x * c1x + c1y * c1y - k * k ) <= radius )
+               return true;
+         }
       }
-   }
 
-   // Third edge
-   c3x      = centrex - v3x;
-   c3y      = centrey - v3y;
-   auto e3x = v1x - v3x;
-   auto e3y = v1y - v3y;
+      // Second edge
+      c2x      = centrex - v2x;
+      c2y      = centrey - v2y;
+      auto e2x = v3x - v2x;
+      auto e2y = v3y - v2y;
 
-   k = c3x * e3x + c3y * e3y;
+      k = c2x * e2x + c2y * e2y;
 
-   if ( k > 0 )
-   {
-      auto len = std::sqrt( e3x * e3x + e3y * e3y );
-      k        = k / len;
-
-      if ( k < len )
+      if ( k > 0 )
       {
-         if ( std::sqrt( c3x * c3x + c3y * c3y - k * k ) <= radius )
-            return true;
-      }
-   }
+         auto len = std::sqrt( e2x * e2x + e2y * e2y );
+         k        = k / len;
 
-   // We're done, no intersection
-   return false;
+         if ( k < len )
+         {
+            if ( std::sqrt( c2x * c2x + c2y * c2y - k * k ) <= radius )
+               return true;
+         }
+      }
+
+      // Third edge
+      c3x      = centrex - v3x;
+      c3y      = centrey - v3y;
+      auto e3x = v1x - v3x;
+      auto e3y = v1y - v3y;
+
+      k = c3x * e3x + c3y * e3y;
+
+      if ( k > 0 )
+      {
+         auto len = std::sqrt( e3x * e3x + e3y * e3y );
+         k        = k / len;
+
+         if ( k < len )
+         {
+            if ( std::sqrt( c3x * c3x + c3y * c3y - k * k ) <= radius )
+               return true;
+         }
+      }
+
+      // We're done, no intersection
+      return false;
+   }
 }
 
 inline bool sphereTriangleIntersection( const Point3D& centre,
@@ -254,11 +282,11 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto v2PlaneBasis     = basisTrafo * v2OldBasis;
    auto v3PlaneBasis     = basisTrafo * v3OldBasis;
 
-   return circleTriangleIntersection( Point2D( {centrePlaneBasis[0], centrePlaneBasis[1]} ),
+   return circleTriangleIntersection( Point2D( { centrePlaneBasis[0], centrePlaneBasis[1] } ),
                                       intersectionRadius,
-                                      Point2D( {v1PlaneBasis[0], v1PlaneBasis[1]} ),
-                                      Point2D( {v2PlaneBasis[0], v2PlaneBasis[1]} ),
-                                      Point2D( {v3PlaneBasis[0], v3PlaneBasis[1]} ) );
+                                      Point2D( { v1PlaneBasis[0], v1PlaneBasis[1] } ),
+                                      Point2D( { v2PlaneBasis[0], v2PlaneBasis[1] } ),
+                                      Point2D( { v3PlaneBasis[0], v3PlaneBasis[1] } ) );
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.
@@ -278,8 +306,7 @@ inline bool isPointInTetrahedron( const Point3D& pointOfInterest,
    const auto distFace2 = distanceToPlane( pointOfInterest, tetVertex2, faceInwardNormalOpposingVertex1 );
    const auto distFace3 = distanceToPlane( pointOfInterest, tetVertex3, faceInwardNormalOpposingVertex0 );
 
-   return distFace0 >= 0 && distFace1 >= 0 && distFace2 >= 0 &&
-          distFace3 >= 0;
+   return distFace0 >= 0 && distFace1 >= 0 && distFace2 >= 0 && distFace3 >= 0;
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.
@@ -363,7 +390,6 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
       return true;
 
    return false;
-
 }
 
 } // namespace hyteg

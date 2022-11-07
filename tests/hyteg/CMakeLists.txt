@@ -674,16 +674,21 @@ waLBerla_execute_test(NAME FunctionRuleOfThreeTest1 COMMAND $<TARGET_FILE:Functi
 waLBerla_execute_test(NAME FunctionRuleOfThreeTest2 COMMAND $<TARGET_FILE:FunctionRuleOfThreeTest> PROCESSES 2)
 waLBerla_execute_test(NAME FunctionRuleOfThreeTest8 COMMAND $<TARGET_FILE:FunctionRuleOfThreeTest> PROCESSES 8)
 
+## Blending ##
+waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest>)
+endif ()
+
+
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest>)
 
 waLBerla_compile_test(FILES blending/IcosahedralShellMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest>)
 
-waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest>)
-endif ()
+waLBerla_compile_test(FILES blending/InverseBlending+PrimitiveIDFindingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME InverseBlending+PrimitiveIDFindingTest)
 
 waLBerla_compile_test(FILES blending/P2P1StokesElementwiseAnnulusBlendingTest.cpp DEPENDS hyteg core)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -692,11 +697,11 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     endif ()
 endif ()
 
-waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME TokamakMapTest)
-
 waLBerla_compile_test(FILES blending/PolygonDistanceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PolygonDistanceTest)
+
+waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TokamakMapTest)
 
 ## Elementwise Operators ##
 if (HYTEG_BUILD_WITH_PETSC)

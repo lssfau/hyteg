@@ -8,12 +8,13 @@ target_sources( hyteg
     PolarCoordsMap.hpp
     CircularMap.hpp
     AffineMap2D.hpp
-    TokamakMapOld.hpp
     AnnulusMap.hpp
     IdentityMap.hpp
     Intersection.hpp
     IcosahedralShellMap.hpp
     GeometryMap.hpp
+    GeometryHelpers.hpp
+    GeometryHelpers.cpp
     Polygons.hpp     
 )
 
