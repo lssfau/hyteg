@@ -26,7 +26,7 @@ namespace volumedofspace {
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::allocateMemory()
 {
-   if ( storage_->hasGlobalCells() )
+   if ( this->storage_->hasGlobalCells() )
    {
       // 3D
 
@@ -34,19 +34,19 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
 
       // Create a data ID for all cells.
-      storage_->addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
+      this->storage_->addCellData( cellInnerDataID_, dofDataHandling, "VolumeDoFMacroCellData" );
 
       // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
 
       // Create three data IDs for all faces.
-      storage_->addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
-      storage_->addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
-      storage_->addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
-      storage_->addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
+      this->storage_->addCellData( cellGhostLayerDataIDs_[0], dofDataHandling, "VolumeDoFMacroCellGL0Data" );
+      this->storage_->addCellData( cellGhostLayerDataIDs_[1], dofDataHandling, "VolumeDoFMacroCellGL1Data" );
+      this->storage_->addCellData( cellGhostLayerDataIDs_[2], dofDataHandling, "VolumeDoFMacroCellGL2Data" );
+      this->storage_->addCellData( cellGhostLayerDataIDs_[3], dofDataHandling, "VolumeDoFMacroCellGL3Data" );
 
       // Allocate the DoFs.
-      for ( auto& it : storage_->getCells() )
+      for ( auto& it : this->storage_->getCells() )
       {
          const auto pid  = it.first;
          const auto cell = it.second;
@@ -54,7 +54,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          // Fetching the FunctionMemory instance from each macro-face.
          FunctionMemory< ValueType >* functionMemory = cell->getData( cellInnerDataID_ );
 
-         for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+         for ( uint_t level = this->minLevel_; level <= this->maxLevel_; level++ )
          {
             // Allocating the specified number of scalars on each micro-element for the entire macro-primitive.
             const auto numMacroLocalScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microcells_per_cell( level );
@@ -67,7 +67,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
             WALBERLA_UNUSED( npid );
             FunctionMemory< ValueType >* functionGLMemory = cell->getData( cellGhostLayerDataIDs_[localFaceID] );
 
-            for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+            for ( uint_t level = this->minLevel_; level <= this->maxLevel_; level++ )
             {
                // TODO: adapt size here for mesh refinement
                const auto numGLScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
@@ -84,7 +84,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       const auto dofDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
 
       // Create a data ID for all faces.
-      storage_->addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
+      this->storage_->addFaceData( faceInnerDataID_, dofDataHandling, "VolumeDoFMacroFaceData" );
 
       // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
       const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
@@ -94,16 +94,16 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
       PrimitiveDataID< FunctionMemory< ValueType >, Face > fgldid1;
       PrimitiveDataID< FunctionMemory< ValueType >, Face > fgldid2;
 
-      storage_->addFaceData( fgldid0, dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
-      storage_->addFaceData( fgldid1, dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
-      storage_->addFaceData( fgldid2, dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
+      this->storage_->addFaceData( fgldid0, dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
+      this->storage_->addFaceData( fgldid1, dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
+      this->storage_->addFaceData( fgldid2, dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
 
       faceGhostLayerDataIDs_[0] = fgldid0;
       faceGhostLayerDataIDs_[1] = fgldid1;
       faceGhostLayerDataIDs_[2] = fgldid2;
 
       // Allocate the DoFs.
-      for ( auto& it : storage_->getFaces() )
+      for ( auto& it : this->storage_->getFaces() )
       {
          const auto pid  = it.first;
          const auto face = it.second;
@@ -111,7 +111,7 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
          // Fetching the FunctionMemory instance from each macro-face.
          FunctionMemory< ValueType >* functionMemory = face->getData( faceInnerDataID_ );
 
-         for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+         for ( uint_t level = this->minLevel_; level <= this->maxLevel_; level++ )
          {
             // Allocating the specified number of scalars on each micro-element for the entire macro-primitive.
             const auto numMacroLocalScalars = numScalarsPerPrimitive_.at( pid ) * levelinfo::num_microfaces_per_face( level );
@@ -137,17 +137,17 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
             // We potentially need to allocate more ghost-layers than minLevel and maxLevel indicate due to AMR refinement.
             // If the neighboring primitive is refined we must allocate from minLevel + 1 to maxLevel + 1.
             // If the neighboring primitive is coaser we must allocate from minLevel - 1 to maxLevel - 1.
-            const auto primitiveLevel   = storage_->getRefinementLevel( pid );
-            const auto glPrimitiveLevel = storage_->getRefinementLevel( npid );
+            const auto primitiveLevel   = this->storage_->getRefinementLevel( pid );
+            const auto glPrimitiveLevel = this->storage_->getRefinementLevel( npid );
 
             if ( glPrimitiveLevel == primitiveLevel - 1 || glPrimitiveLevel == primitiveLevel + 1 )
             {
                WALBERLA_CHECK_GREATER_EQUAL(
-                   minLevel_,
+                   this->minLevel_,
                    1,
                    "AMR requires a minimum (micro-)refinement level of 1. Please change the minLevel parameter during function allocation." );
                WALBERLA_CHECK_GREATER_EQUAL(
-                   maxLevel_,
+                   this->maxLevel_,
                    1,
                    "AMR requires a minimum (micro-)refinement level of 1. Please change the maxLevel parameter during function allocation." );
             }
@@ -160,7 +160,8 @@ void VolumeDoFFunction< ValueType >::allocateMemory()
 
             const uint_t allocationLevelOffset = glPrimitiveLevel - primitiveLevel;
 
-            for ( uint_t level = minLevel_ + allocationLevelOffset; level <= maxLevel_ + allocationLevelOffset; level++ )
+            for ( uint_t level = this->minLevel_ + allocationLevelOffset; level <= this->maxLevel_ + allocationLevelOffset;
+                  level++ )
             {
                // Handling ghost-layer size for AMR
 
@@ -178,7 +179,7 @@ void VolumeDoFFunction< ValueType >::communicateNumScalarsPerPrimitive()
 {
    walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
 
-   const auto neighboringRanks = storage_->getNeighboringVolumeRanksOfAllVolumes();
+   const auto neighboringRanks = this->storage_->getNeighboringVolumeRanksOfAllVolumes();
 
    bs.setReceiverInfo( neighboringRanks, true );
 
@@ -201,7 +202,7 @@ void VolumeDoFFunction< ValueType >::communicateNumScalarsPerPrimitive()
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::addPackInfos()
 {
-   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   for ( uint_t level = this->minLevel_; level <= this->maxLevel_; level++ )
    {
       communicators_[level]->addPackInfo( std::make_shared< VolumeDoFPackInfo< ValueType > >( this->getStorage(),
                                                                                               level,
@@ -223,16 +224,15 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
                                                    indexing::VolumeDoFMemoryLayout            memoryLayout )
 
 : Function< VolumeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, name_( name )
-, storage_( storage )
-, minLevel_( minLevel )
-, maxLevel_( maxLevel )
 , numScalarsPerPrimitive_( numScalarsPerPrimitive )
 , memoryLayout_( memoryLayout )
+, referenceCounter_( new internal::ReferenceCounter() )
 {
    communicateNumScalarsPerPrimitive();
    allocateMemory();
    addPackInfos();
+
+   referenceCounter_->increaseRefs();
 }
 
 template < typename ValueType >
@@ -244,11 +244,8 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
                                                    indexing::VolumeDoFMemoryLayout            memoryLayout )
 
 : Function< VolumeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, name_( name )
-, storage_( storage )
-, minLevel_( minLevel )
-, maxLevel_( maxLevel )
 , memoryLayout_( memoryLayout )
+, referenceCounter_( new internal::ReferenceCounter() )
 {
    numScalarsPerPrimitive_.clear();
    for ( auto pid : storage->getPrimitiveIDs() )
@@ -258,12 +255,88 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
    communicateNumScalarsPerPrimitive();
    allocateMemory();
    addPackInfos();
+
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VolumeDoFFunction< ValueType >::~VolumeDoFFunction()
+{
+   referenceCounter_->decreaseRefs();
+   if ( referenceCounter_->refs() <= 0 )
+   {
+      // There are no copies of this handle left. We can delete the allocated DoFs.
+      deleteFunctionMemory();
+   }
+}
+
+template < typename ValueType >
+VolumeDoFFunction< ValueType >::VolumeDoFFunction( const VolumeDoFFunction< ValueType >& other )
+: Function< VolumeDoFFunction< ValueType > >( other )
+, numScalarsPerPrimitive_( other.numScalarsPerPrimitive_ )
+, memoryLayout_( other.memoryLayout_ )
+, faceInnerDataID_( other.faceInnerDataID_ )
+, cellInnerDataID_( other.cellInnerDataID_ )
+, faceGhostLayerDataIDs_( other.faceGhostLayerDataIDs_ )
+, cellGhostLayerDataIDs_( other.cellGhostLayerDataIDs_ )
+, referenceCounter_( other.referenceCounter_ )
+{
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VolumeDoFFunction< ValueType >& VolumeDoFFunction< ValueType >::operator=( const VolumeDoFFunction< ValueType >& other )
+{
+   if ( this == &other )
+   {
+      return *this;
+   }
+   else if ( other.referenceCounter_ == referenceCounter_ )
+   {
+      if ( this->storage_->hasGlobalCells() )
+      {
+         WALBERLA_CHECK_EQUAL( cellInnerDataID_, other.cellInnerDataID_ )
+      }
+      else
+      {
+         WALBERLA_CHECK_EQUAL( faceInnerDataID_, other.faceInnerDataID_ )
+      }
+   }
+   else
+   {
+      if ( this->storage_->hasGlobalCells() )
+      {
+         WALBERLA_CHECK_UNEQUAL( cellInnerDataID_, other.cellInnerDataID_ )
+      }
+      else
+      {
+         WALBERLA_CHECK_UNEQUAL( faceInnerDataID_, other.faceInnerDataID_ )
+      }
+
+      referenceCounter_->decreaseRefs();
+
+      if ( referenceCounter_->refs() == 0 )
+      {
+         // There are no copies of this handle left. We can delete the allocated DoFs.
+         deleteFunctionMemory();
+      }
+
+      numScalarsPerPrimitive_ = other.numScalarsPerPrimitive_;
+      memoryLayout_           = other.memoryLayout_;
+      faceInnerDataID_        = other.faceInnerDataID_;
+      faceGhostLayerDataIDs_  = other.faceGhostLayerDataIDs_;
+      cellInnerDataID_        = other.cellInnerDataID_;
+      cellGhostLayerDataIDs_  = other.cellGhostLayerDataIDs_;
+      referenceCounter_       = other.referenceCounter_;
+      referenceCounter_->increaseRefs();
+   }
+   return *this;
 }
 
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::communicate( uint_t level )
 {
-   if ( !storage_->hasGlobalCells() )
+   if ( !this->storage_->hasGlobalCells() )
    {
       this->communicators_[level]->template startCommunication< Face, Face >();
       this->communicators_[level]->template endCommunication< Face, Face >();
@@ -286,7 +359,7 @@ void VolumeDoFFunction< ValueType >::assign(
                          functions.size(),
                          "VolumeDoFFunction< ValueType >::assign(): must pass same number of scalars and functions." )
 
-   if ( storage_->hasGlobalCells() )
+   if ( this->storage_->hasGlobalCells() )
    {
       for ( const auto& cellIt : this->getStorage()->getCells() )
       {
@@ -377,7 +450,7 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
 {
    ValueType sum = 0;
 
-   if ( storage_->hasGlobalCells() )
+   if ( this->storage_->hasGlobalCells() )
    {
       for ( const auto& cellIt : this->getStorage()->getCells() )
       {

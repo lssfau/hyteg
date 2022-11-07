@@ -81,13 +81,18 @@ void testPrimitiveData()
 /// Having the Primitives own the actual allocated memory allows for "straightforward" data migration in parallel (think load balancing).
 /// Without any information about functions and operators, the PrimitiveStorage can migrate the data to other processes.
 /// On the downside, copying or deleting functions means that the memory that is attached to the Primitives must be handled accordingly.
+///
+/// Eventually functions are only handles to the memory. Copying does not copy the allocate memory.
+/// However, we want the memory to be deallocated once all handles are destroyed. This is tested here.
+///
+/// See issue https://i10git.cs.fau.de/hyteg/hyteg/-/issues/186
 void testRuleOfThree()
 {
    uint_t level = 2;
 
    auto                  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   const auto            storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   const auto            storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    auto primitiveIDs = storage->getPrimitiveIDs();
 
@@ -102,15 +107,15 @@ void testRuleOfThree()
    }
 
    {
-      vertexdof::VertexDoFFunction< real_t > f_vertex( "f_P1", storage, level, level );
+      vertexdof::VertexDoFFunction< real_t > f( "f", storage, level, level );
 
-      auto f_vertex_copy( f_vertex );
-      auto f_vertex_copy_2 = f_vertex;
-      f_vertex             = f_vertex_copy_2;
+      auto f_copy( f );
+      auto f_copy_2 = f;
+      f             = f_copy_2;
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... "
-                                 << f_vertex.getFunctionName() << ", " << f_vertex_copy.getFunctionName() << ", "
-                                 << f_vertex_copy_2.getFunctionName() );
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f.getFunctionName() << ", "
+                                                                                           << f_copy.getFunctionName() << ", "
+                                                                                           << f_copy_2.getFunctionName() );
 
       for ( auto id : primitiveIDs )
       {
@@ -125,7 +130,6 @@ void testRuleOfThree()
       WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
    }
 
-#if 0
    /////////////
    // EdgeDoF //
    /////////////
@@ -137,7 +141,15 @@ void testRuleOfThree()
    }
 
    {
-      EdgeDoFFunction< real_t > f_edge( "f_edge", storage, level, level );
+      EdgeDoFFunction< real_t > f( "f", storage, level, level );
+
+      auto f_copy( f );
+      auto f_copy_2 = f;
+      f             = f_copy_2;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f.getFunctionName() << ", "
+                                                                                           << f_copy.getFunctionName() << ", "
+                                                                                           << f_copy_2.getFunctionName() );
 
       for ( auto id : primitiveIDs )
       {
@@ -163,13 +175,29 @@ void testRuleOfThree()
    }
 
    {
-      volumedofspace::VolumeDoFFunction< real_t > f_volume(
-          "f_volume", storage, level, level, 2, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+      volumedofspace::VolumeDoFFunction< real_t > f(
+          "f", storage, level, level, 2, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+
+      auto f_copy( f );
+      auto f_copy_2 = f;
+      f             = f_copy_2;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f.getFunctionName() << ", "
+                                                                                           << f_copy.getFunctionName() << ", "
+                                                                                           << f_copy_2.getFunctionName() );
 
       for ( auto id : primitiveIDs )
       {
-         auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
-         WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating VolumeDoFFunction." );
+         if ( storage->cellExistsLocally( id ) )
+         {
+            auto numDataEntries = storage->getCell( id )->getNumberOfDataEntries();
+            WALBERLA_CHECK_EQUAL( numDataEntries, 5, "Data should be allocated after creating VolumeDoFFunction." );
+         }
+         else
+         {
+            auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
+            WALBERLA_CHECK_EQUAL( numDataEntries, 0, "Data should be allocated after creating VolumeDoFFunction." );
+         }
       }
    }
 
@@ -178,8 +206,6 @@ void testRuleOfThree()
       auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
       WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
    }
-
-#endif
 }
 
 int main( int argc, char* argv[] )
