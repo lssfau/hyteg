@@ -101,8 +101,8 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                                                bool               writeVTK = true )
 {
    using namespace std::complex_literals;
-   using StokesFunctionType          = typename StokesOperatorType::srcType;
-   using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
+   using StokesFunctionType = typename StokesOperatorType::srcType;
+   // using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
 
    // storage and domain
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
@@ -114,7 +114,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    //writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
 
    // function setup
-   StokesFunctionType   x( "x", storage, level, level );
+   StokesFunctionType   x_num( "x_num", storage, level, level );
    StokesFunctionType   x_exact( "x_exact", storage, level, level );
    StokesFunctionType   btmp( "btmp", storage, level, level );
    StokesFunctionType   b( "b", storage, level, level );
@@ -124,7 +124,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    //StokesFunctionType nullspace( "nullspace", storage, level, level );
    if constexpr ( isEGP0Discr< StokesOperatorType >() )
    {
-      copyBdry( x );
+      copyBdry( x_num );
       copyBdry( x_exact );
       copyBdry( err );
       copyBdry( Merr );
@@ -191,9 +191,6 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       auto uvp = analytic_uvp( xx );
       return uvp[2];
    };
-   //hyteg::vertexdof::projectMean( x_exact.p(), level );
-   //nullspace.p().interpolate( ones, level, All );
-   //x.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
    // Right-hand-side: derivatives of u, v, p for x and y
    std::function< real_t( const hyteg::Point3D& ) > ddx_u = [r_inclusion, A]( const hyteg::Point3D& xx ) {
@@ -269,11 +266,10 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
        };
 
    // interpolate solution, "Integrate" rhs
-   // btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
    x_exact.uvw().interpolate( { analyticU, analyticV }, level, All );
    x_exact.p().interpolate( analyticP, level, All );
-   btmp.uvw().interpolate( { rhsU, rhsV }, level, All );
-   //b.uvw().interpolate( { analyticU, analyticV }, level, DirichletBoundary );
+   btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
+   // x_num.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
 
    if constexpr ( isP2P1Discr< StokesOperatorType >() )
    {
@@ -281,7 +277,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       M_vel.apply( btmp.uvw()[0], b.uvw()[0], level, All );
       M_vel.apply( btmp.uvw()[1], b.uvw()[1], level, All );
 
-      x.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
+      x_num.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
    }
    else
    {
@@ -289,7 +285,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       {
          EGMassOperator M_vel( storage, level, level );
          M_vel.apply( btmp.uvw(), b.uvw(), level, All, Replace );
-         x.uvw().getConformingPart()->interpolate( { analyticU, analyticV }, level, DirichletBoundary );
+         x_num.uvw().getConformingPart()->interpolate( { analyticU, analyticV }, level, DirichletBoundary );
       }
       else
       {
@@ -297,37 +293,38 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       }
    }
 
-   StokesFunctionNumeratorType Numerator( "Num", storage, level, level );
-   Numerator.enumerate( level );
+   PETScLUSolver< StokesOperatorType > solver( storage, level );
+   //PETScMinResSolver< StokesOperatorType > solver( storage, level );
 
-   //auto Solver = solvertemplates::varViscStokesMinResSolver<StokesOperatorType>( storage, level, viscosity, 1, 1e-8, 100, true );
-   PETScLUSolver< StokesOperatorType > LU( storage, level );
-   StokesFunctionType                  nullSpace( "ns", storage, level, level );
+   StokesFunctionType nullSpace( "ns", storage, level, level );
+
    nullSpace.uvw().interpolate( 0, level, All );
    nullSpace.p().interpolate( 1, level, All );
-   LU.setNullSpace( nullSpace, level );
-   LU.solve( Op, x, b, level );
+   solver.setNullSpace( nullSpace, level );
 
-   // calculate the error in the L2 norm
+   solver.solve( Op, x_num, b, level );
+
    if constexpr ( isEGP0Discr< StokesOperatorType >() )
    {
-      hyteg::dg::projectMean( x.p(), level );
-      hyteg::dg::projectMean( x_exact.p(), level );
+      hyteg::dg::projectMean( x_num.p(), level );
+      // hyteg::dg::projectMean( x_exact.p(), level );
    }
    else if constexpr ( isP2P1Discr< StokesOperatorType >() )
    {
-      hyteg::vertexdof::projectMean( x.p(), level );
-      hyteg::vertexdof::projectMean( x_exact.p(), level );
+      hyteg::vertexdof::projectMean( x_num.p(), level );
+      //hyteg::vertexdof::projectMean( x_exact.p(), level );
    }
 
    Visc_func.interpolate( viscosity, level, All );
+   err.assign( { 1.0, -1.0 }, { x_num, x_exact }, level, All );
+
    if ( writeVTK )
    {
       // Visualization
       VTKOutput vtkOutput( "../../output", name, storage );
       vtkOutput.add( Visc_func );
-      vtkOutput.add( x.uvw() );
-      vtkOutput.add( x.p() );
+      vtkOutput.add( x_num.uvw() );
+      vtkOutput.add( x_num.p() );
       vtkOutput.add( x_exact.uvw() );
       vtkOutput.add( x_exact.p() );
       vtkOutput.add( err.uvw() );
@@ -337,7 +334,6 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       vtkOutput.write( level, 0 );
    }
 
-   err.assign( { 1.0, -1.0 }, { x, x_exact }, level, Inner );
    real_t discrL2_velocity_err = 0.0;
    real_t discrL2_pressure_err = 0.0;
 
@@ -357,8 +353,8 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
       dg::DGOperator M_pressure( storage, level, level, mass_form );
       M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
    }
+   discrL2_pressure_err = sqrt( err.p().dotGlobal( err.p(), level, Inner ) / real_c( numberOfGlobalDoFs( err.p(), level ) ) );
    discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
-   discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
    real_t h             = MeshQuality::getMaximalEdgeLength( storage, level );
    return std::make_tuple< real_t&, real_t&, real_t& >( h, discrL2_velocity_err, discrL2_pressure_err );
 }
@@ -379,6 +375,8 @@ void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const
    real_t currentError_p = std::nan( "" );
    real_t currentRate_v  = std::nan( "" );
    real_t currentRate_p  = std::nan( "" );
+   real_t mean_rate_v    = 0.;
+   real_t mean_rate_p    = 0.;
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       lastError_v      = currentError_v;
@@ -389,14 +387,18 @@ void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const
       errors_per_h.push_back( error_per_h );
       currentRate_v = lastError_v / currentError_v;
       currentRate_p = lastError_p / currentError_p;
+      if ( level > minLevel )
+      {
+         mean_rate_v += currentRate_v;
+         mean_rate_p += currentRate_p;
+      }
+
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           "%6d|%15.2e|%15.2e|%15.2e|%15.2e", level, currentError_v, currentError_p, currentRate_v, currentRate_p ) );
    }
-
-   //const real_t expectedRate = 4.;
-   //WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
-   //WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
-   //WALBERLA_LOG_INFO_ON_ROOT( "Test " << testName << " converged correctly." );
+   mean_rate_v = mean_rate_v / ( real_c( maxLevel ) - real_c( minLevel ) );
+   mean_rate_p = mean_rate_p / ( real_c( maxLevel ) - real_c( minLevel ) );
+   WALBERLA_LOG_INFO_ON_ROOT( name << ": mean conv. rate v = " << mean_rate_v << ", mean conv. rate p = " << mean_rate_p );
 
    // write to plot file
    std::ofstream err_file;
@@ -419,8 +421,8 @@ int main( int argc, char* argv[] )
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
 
-   SolViConvergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >( "P2P1_SolVi", 4, 8 );
-   SolViConvergenceTest< hyteg::dg::eg::EGP0EpsilonStokesOperator >( "EGP0_SolVi", 4, 8 );
+   SolViConvergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >( "P2P1_SolVi", 4, 7 );
+   SolViConvergenceTest< hyteg::dg::eg::EGP0EpsilonStokesOperator >( "EGP0_SolVi", 4, 7 );
 
    return EXIT_SUCCESS;
 }

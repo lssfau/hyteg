@@ -58,7 +58,6 @@ namespace hyteg {
 */
 
 void MultiSinker2D( const uint_t& level,
-                    const uint_t& solver,
                     const uint_t& nxy,
                     const uint_t& nSinkers,
                     const real_t& DR,
@@ -144,7 +143,7 @@ void MultiSinker2D( const uint_t& level,
 
    // Initial errors and residual
    x.interpolate( zero, level, hyteg::DirichletBoundary );
-   x.interpolate( [&unif, &re]( const hyteg::Point3D& xx ) { return unif( re ); }, level, hyteg::Inner );
+   x.interpolate( [&unif, &re]( const hyteg::Point3D& ) { return unif( re ); }, level, hyteg::Inner );
    A.apply( x, btmp, level, hyteg::Inner | hyteg::NeumannBoundary );
    residuum.assign( { 1.0, -1.0 }, { b, btmp }, level, hyteg::Inner | hyteg::NeumannBoundary );
    real_t residuum_l2_1 =
@@ -184,7 +183,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   MultiSinker2D( 6, 4, 1, 4, 1000, 200, 0.1 );
+   MultiSinker2D( 4, 1, 4, 1000, 200, 0.1 );
 
    return EXIT_SUCCESS;
 }
