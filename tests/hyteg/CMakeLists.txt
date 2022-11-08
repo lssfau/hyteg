@@ -814,8 +814,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGVectorLaplaceConvergenceTests.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGVectorLaplaceConvergenceTests)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTests2D.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGStokesConvergenceTests2D COMMAND $<TARGET_FILE:EGStokesConvergenceTests2D> -ksp_rtol 1e-7 -ksp_type minres -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
+    waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTests.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGStokesConvergenceTests )
 
     waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFormTest)

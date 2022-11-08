@@ -215,8 +215,8 @@ class StokesConvergenceOrderTest
          break;
       }
       default: {
-         PETScMinResSolver< StokesOperatorType > solver( storage, level );
-         StokesFunctionType                      nullSpace( "ns", storage, level, level );
+         PETScLUSolver< StokesOperatorType > solver( storage, level );
+         StokesFunctionType                  nullSpace( "ns", storage, level, level );
          nullSpace.uvw().interpolate( 0, level, All );
          nullSpace.p().interpolate( 1, level, All );
          solver.setNullSpace( nullSpace );
