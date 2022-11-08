@@ -1023,43 +1023,45 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
       receiverLocalVertexIDs.push_back( receiver->getLocalVertexID( vpid ) );
    }
 
-   // We need one iterator for each cell type at the boundary.
-   auto cellIteratorSenderCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
-                                                                             senderLocalVertexIDs[0],
-                                                                             senderLocalVertexIDs[1],
-                                                                             senderLocalVertexIDs[2],
-                                                                             1 );
+   // WALBERLA_LOG_INFO_ON_ROOT(
+   //     "levelinfo::num_microvertices_per_edge( level_ )=" << levelinfo::num_microvertices_per_edge( level_ ) );
+   auto cellIteratorSender = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
+                                                                    senderLocalVertexIDs[0],
+                                                                    senderLocalVertexIDs[1],
+                                                                    senderLocalVertexIDs[2],
+                                                                    1 );
 
-   auto cellIteratorReceiverCellType0 = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
-                                                                               receiverLocalVertexIDs[0],
-                                                                               receiverLocalVertexIDs[1],
-                                                                               receiverLocalVertexIDs[2] );
-
+   auto cellIteratorReceiverCell = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
+                                                                          receiverLocalVertexIDs[0],
+                                                                          receiverLocalVertexIDs[1],
+                                                                          receiverLocalVertexIDs[2],
+                                                                          1 );
 
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
 
    // Iterating over WHITE_UP cells ...
-   while ( cellIteratorSenderCellType0 != cellIteratorSenderCellType0.end() )
+   while ( cellIteratorSender != cellIteratorSender.end() )
    {
-      const auto senderIdx = vertexdof::macrocell::index(
-          level_, cellIteratorSenderCellType0->x(), cellIteratorSenderCellType0->y(), cellIteratorSenderCellType0->z() );
+      const auto senderIdx =
+          vertexdof::macrocell::index( level_, cellIteratorSender->x(), cellIteratorSender->y(), cellIteratorSender->z() );
       const auto senderVal = cellData[senderIdx];
-   
+
       const auto receiverIdx =
           volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
-                                                                         cellIteratorReceiverCellType0->x(),
-                                                                         cellIteratorReceiverCellType0->y(),
-                                                                         cellIteratorReceiverCellType0->z(),
-                                                                         celldof::CellType::WHITE_UP,
-                                                                         0,
-                                                                         1,
-                                                                         level_,
-                                                                         volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+                                                               cellIteratorReceiverCell->x(),
+                                                               cellIteratorReceiverCell->y(),
+                                                               cellIteratorReceiverCell->z(),
+                                                               celldof::CellType::WHITE_UP,
+                                                               0,
+                                                               1,
+                                                               level_,
+                                                               volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+      //  WALBERLA_LOG_INFO_ON_ROOT( "(senderIdx,receiverIdx)=(" << senderIdx << "," << receiverIdx << ")" );
       glData[receiverIdx] = senderVal;
 
-      cellIteratorSenderCellType0++;
-      cellIteratorReceiverCellType0++;
+      cellIteratorSender++;
+      cellIteratorReceiverCell++;
    }
 }
 
