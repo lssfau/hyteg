@@ -122,14 +122,21 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
       communication::syncFunctionBetweenPrimitives( src, level );
-
-      if ( !storage_->hasGlobalCells() )
+      if ( !form_->onlyVolumeIntegrals() )
       {
-         src.template communicate< Face, Face >( level );
-      }
-      else
-      {
-         src.template communicate< Cell, Cell >( level );
+         if ( !src.hasVolumeGhostLayer() )
+         {
+            WALBERLA_ABORT(
+                "Cannot do interface coupling without allocated ghost layers in p1 source, use AddVolumeGhostLayer in p1 ctor." );
+         }
+         if ( !storage_->hasGlobalCells() )
+         {
+            src.template communicate< Face, Face >( level );
+         }
+         else
+         {
+            src.template communicate< Cell, Cell >( level );
+         }
       }
 
       const auto storage = this->getStorage();
@@ -165,22 +172,25 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
          std::map< uint_t, VType* > glMemory;
 
-         if ( dim == 2 )
+         if ( !form_->onlyVolumeIntegrals() )
          {
-            WALBERLA_ASSERT( storage->faceExistsLocally( pid ) );
-            const auto face = storage->getFace( pid );
-            for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
+            if ( dim == 2 )
             {
-               glMemory[n] = face->getData( src.getFaceGLDataID( n ) )->getPointer( level );
+               WALBERLA_ASSERT( storage->faceExistsLocally( pid ) );
+               const auto face = storage->getFace( pid );
+               for ( const auto& [n, _] : face->getIndirectNeighborFaceIDsOverEdges() )
+               {
+                  glMemory[n] = face->getData( src.getFaceGLDataID( n ) )->getPointer( level );
+               }
             }
-         }
-         else
-         {
-            WALBERLA_ASSERT( storage->cellExistsLocally( pid ) );
-            const auto cell = storage->getCell( pid );
-            for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
+            else
             {
-               glMemory[n] = cell->getData( src.getCellGLDataID( n ) )->getPointer( level );
+               WALBERLA_ASSERT( storage->cellExistsLocally( pid ) );
+               const auto cell = storage->getCell( pid );
+               for ( const auto& [n, _] : cell->getIndirectNeighborCellIDsOverFaces() )
+               {
+                  glMemory[n] = cell->getData( src.getCellGLDataID( n ) )->getPointer( level );
+               }
             }
          }
 
@@ -717,18 +727,10 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
                                  if ( !onGhostLayer[srcDofIdx] )
                                  {
-                                    /*              std::cout << "srcDoFIdx " << srcDofIdx
-                                              << ": !onGhostLayer: globalColIdx = " << srcDofMemory[nSrcDoFArrIndices[srcDofIdx]]
-                                              << std::endl;
-                        */
                                     globalColIdx = srcDofMemory[nSrcDoFArrIndices[srcDofIdx]];
                                  }
                                  else
                                  {
-                                    /*      std::cout << "srcDoFIdx " << srcDofIdx << ": else: globalColIdx = "
-                                              << glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]]
-                                              << std::endl;
-*/
                                     globalColIdx = glMemory[neighborInfo.macroBoundaryID( n )][nSrcDoFArrIndices[srcDofIdx]];
                                  }
 
