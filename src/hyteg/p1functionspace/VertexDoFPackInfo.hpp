@@ -1057,7 +1057,6 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
                                                                1,
                                                                level_,
                                                                volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
-      //  WALBERLA_LOG_INFO_ON_ROOT( "(senderIdx,receiverIdx)=(" << senderIdx << "," << receiverIdx << ")" );
       glData[receiverIdx] = senderVal;
 
       cellIteratorSender++;
