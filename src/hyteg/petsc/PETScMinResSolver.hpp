@@ -124,6 +124,7 @@ class PETScMinResSolver : public Solver< OperatorType >
          MatSetNullSpace( Amat.get(), nullspace_ );
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
+      KSPSetFromOptions( ksp );
       KSPGetPC( ksp, &pc );
       PCSetType( pc, PCNONE );
 
