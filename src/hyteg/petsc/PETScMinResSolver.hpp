@@ -66,6 +66,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
+   , setFromOptions_( false )
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
@@ -91,6 +92,8 @@ class PETScMinResSolver : public Solver< OperatorType >
       VecNormalize( nullspaceVec_.get(), &norm );
       MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
+
+   void setFromOptions( bool doIt ) { setFromOptions_ = doIt; }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -124,9 +127,11 @@ class PETScMinResSolver : public Solver< OperatorType >
          MatSetNullSpace( Amat.get(), nullspace_ );
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
-      KSPSetFromOptions( ksp );
-      KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCNONE );
+      if ( !setFromOptions_ )
+      {
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCNONE );
+      }
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
@@ -151,6 +156,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    hyteg::DoFType flag_;
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
+   bool           setFromOptions_;
 };
 
 } // namespace hyteg
