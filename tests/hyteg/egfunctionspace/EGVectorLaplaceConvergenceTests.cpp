@@ -207,7 +207,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::PETScManager petscManager( &argc, &argv );
-   uint_t              minLevel   = 2;
+   uint_t              minLevel   = 3;
    uint_t              maxLevel3D = 5;
    uint_t              maxLevel2D = 6;
    const bool          writeVTK   = false;
@@ -335,7 +335,8 @@ void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, u
 
 void testEGVectorLaplace3D( uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
+   /*
+    WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
    {
       std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
@@ -359,7 +360,7 @@ void testEGVectorLaplace3D( uint_t solverType, bool writeVTK, uint_t minLevel, u
                           std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ),
                           solverType,
                           writeVTK );
-   }
+   }*/
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, second ###" );
    {
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
