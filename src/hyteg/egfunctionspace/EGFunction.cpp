@@ -26,8 +26,8 @@ namespace hyteg {
 
 void applyDirichletBC( const EGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
-   WALBERLA_LOG_INFO( "Warning EDG applies dirichlet boundary conditions for P1!"
-                      "This is could (should?) be done weakly with Nietsche's method." )
+   //WALBERLA_LOG_INFO( "Warning EDG applies dirichlet boundary conditions for P1!"
+   //                   "This is could (should?) be done weakly with Nietsche's method." )
 
    applyDirichletBC( numerator.getConformingPart()->component( 0 ), mat, level );
    applyDirichletBC( numerator.getConformingPart()->component( 1 ), mat, level );
