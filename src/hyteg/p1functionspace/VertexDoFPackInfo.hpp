@@ -1034,7 +1034,8 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
    auto cellIteratorReceiverCell = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
                                                                           receiverLocalVertexIDs[0],
                                                                           receiverLocalVertexIDs[1],
-                                                                          receiverLocalVertexIDs[2] );
+                                                                          receiverLocalVertexIDs[2],
+                                                                          1);
 
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
