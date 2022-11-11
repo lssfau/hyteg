@@ -229,7 +229,8 @@ class P0Function : public Function< P0Function< ValueType > >
 
    void swap( const P0Function< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+       WALBERLA_UNUSED(flag);
+       dgFunction_->swap(*other.getDGFunction(),level,flag);
    };
 
    void copyFrom( const P0Function< ValueType >&                 other,

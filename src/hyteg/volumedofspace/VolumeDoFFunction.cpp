@@ -330,7 +330,28 @@ void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, 
    WALBERLA_UNUSED( flag );
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented" );
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto mem     = dofMemory( cellId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx =
+                      indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                  mem[idx] +=scalar;
+               }
+            }
+         }
+      }
    }
    else
    {
@@ -487,6 +508,72 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
    return sum;
 }
 
+/// \brief swaps the content of one volumeDoFFunction with another.
+    template < typename ValueType >
+    void VolumeDoFFunction< ValueType >::swap( VolumeDoFFunction< ValueType >& rhs, uint_t level )
+    {
+        if ( storage_->hasGlobalCells() )
+        {
+            for ( const auto& cellIt : this->getStorage()->getCells() )
+            {
+                const auto cellId = cellIt.first;
+                const auto cell   = *cellIt.second;
+
+                const auto mem     = dofMemory( cellId, level );
+                const auto layout  = memoryLayout_;
+                const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+                const auto otherMem    = rhs.dofMemory( cellId, level );
+                const auto otherLayout = rhs.memoryLayout();
+
+                for ( auto cellType : celldof::allCellTypes )
+                {
+                    for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+                    {
+                        for ( uint_t dof = 0; dof < numDofs; dof++ )
+                        {
+                            const auto idx =
+                                    indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                            const auto otherIdx = indexing::index(
+                                    elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, otherLayout );
+
+                            std::swap(mem[idx], otherMem[otherIdx]);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for ( const auto& faceIt : this->getStorage()->getFaces() )
+            {
+                const auto faceId = faceIt.first;
+                const auto face   = *faceIt.second;
+
+                const auto mem     = dofMemory( faceId, level );
+                const auto layout  = memoryLayout_;
+                const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+                const auto otherMem    = rhs.dofMemory( faceId, level );
+                const auto otherLayout = rhs.memoryLayout();
+
+                for ( auto faceType : facedof::allFaceTypes )
+                {
+                    for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+                    {
+                        for ( uint_t dof = 0; dof < numDofs; dof++ )
+                        {
+                            const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                            const auto otherIdx =
+                                    indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, otherLayout );
+
+                            std::swap(mem[idx], otherMem[otherIdx]);
+                        }
+                    }
+                }
+            }
+        }
+    }
 /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
 template < typename ValueType >
 ValueType VolumeDoFFunction< ValueType >::dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
@@ -504,7 +591,27 @@ ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
 
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented" );
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto mem     = dofMemory( cellId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                   const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout);
+                  sum += mem[idx];
+               }
+            }
+         }
+      }
    }
    else
    {

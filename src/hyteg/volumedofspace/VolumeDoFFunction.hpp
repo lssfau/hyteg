@@ -92,6 +92,9 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                 const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level );
 
+/// \brief swaps the content of one volumeDoFFunction with another.
+    void swap( VolumeDoFFunction< ValueType >& rhs, uint_t level );
+
    /// \brief Adds a scalar to this VolumeDoFFunction.
    void add( const ValueType scalar, uint_t level, DoFType flag = All );
 
