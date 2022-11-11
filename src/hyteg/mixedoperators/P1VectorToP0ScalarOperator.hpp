@@ -103,9 +103,8 @@ typedef P1VectorToP0ScalarOperator< EGConstantEpsilonP1ToP0Coupling_X,
 
 typedef P1VectorToP0ScalarOperator< EGEpsilonP1ToP0Coupling_X, EGEpsilonP1ToP0Coupling_Y, EGEpsilonP1ToP0Coupling_Z >
     EGEpsilonP1ToP0Coupling;
-typedef P1VectorToP0ScalarOperator< P1ToP0ConstantP1EDGVectorMassXCouplingOperator,
-                                    P1ToP0ConstantP1EDGVectorMassYCouplingOperator,
-                                    P1ToP0ConstantP1EDGVectorMassZCouplingOperator >
-    P1ToP0ConstantP1EDGVectorMassCouplingOperator;
+typedef P1VectorToP0ScalarOperator< EGMassP1toP0Coupling_X,
+                                    EGMassP1toP0Coupling_Y, EGMassP1toP0Coupling_Z >
+    EGMassP1toP0Coupling;
 
 } // namespace hyteg

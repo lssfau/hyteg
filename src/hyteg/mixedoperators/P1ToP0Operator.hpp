@@ -938,11 +938,12 @@ typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_0 > EGEpsilonP1ToP0Coupling_X;
 typedef P1ToP0Operator< dg::eg::EGEpsilonFormEP1_1 > EGEpsilonP1ToP0Coupling_Y;
 typedef P1ToP0Operator< dg::DGFormAbort >            EGEpsilonP1ToP0Coupling_Z;
 
-typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > P1ToP0ConstantP1EDGVectorMassXCouplingOperator;
-typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_1 > P1ToP0ConstantP1EDGVectorMassYCouplingOperator;
-typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_2 > P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
-//typedef P1ToP0Operator< dg::DGFormAbort  > P1ToP0ConstantP1EDGVectorMassZCouplingOperator;
+// EGConstantEpsilonP1ToP0Coupling_Z
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_0 > EGMassP1toP0Coupling_X;
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_1 > EGMassP1toP0Coupling_Y;
+typedef P1ToP0Operator< dg::eg::EGVectorMassFormEP1_2 > EGMassP1toP0Coupling_Z;
+//typedef P1ToP0Operator< dg::DGFormAbort  > EGMassP1toP0Coupling_Z;
 
-typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
+//typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 
 } // namespace hyteg
