@@ -237,18 +237,26 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
    this->timingTree_->stop( "Macro-Edge" );
 }
 
-template < class P2Form >
-void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< real_t >& dst,
-                                                           const P2Function< real_t >& rhs,
-                                                           const real_t&               relax,
-                                                           const size_t                level,
-                                                           const DoFType               flag,
-                                                           const bool&                 backwards ) const
+namespace {
+void smooth_sor_macro_faces_impl(
+    const P2Function< real_t >&                                                                  dst,
+    const P2Function< real_t >&                                                                  rhs,
+    const PrimitiveStorage&                                                                      storage,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >&        v2VFaceStencil3DID,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& v2EFaceStencil3DID,
+    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face >& e2VFaceStencil3DID,
+    const PrimitiveDataID< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >&          e2EFaceStencil3DID,
+    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      v2VFaceStencilID,
+    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      v2EFaceStencilID,
+    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      e2VFaceStencilID,
+    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      e2EFaceStencilID,
+    const real_t&                                                                                relax,
+    const size_t                                                                                 level,
+    const DoFType                                                                                flag,
+    const bool&                                                                                  backwards )
 {
-   this->timingTree_->start( "Macro-Face" );
-
    std::vector< PrimitiveID > faceIDs;
-   for ( auto& it : storage_->getFaces() )
+   for ( auto& it : storage.getFaces() )
    {
       faceIDs.push_back( it.first );
    }
@@ -258,28 +266,28 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *storage_->getFace( PrimitiveID( faceIDs[uint_c( i )] ) );
+      auto face = storage.getFace( PrimitiveID( faceIDs[uint_c( i )] ) );
 
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face->getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         if ( storage_->hasGlobalCells() )
+         if ( storage.hasGlobalCells() )
          {
             if ( globalDefines::useGeneratedKernels )
             {
                using edgedof::EdgeDoFOrientation;
                using indexing::IndexIncrement;
 
-               auto v2v_operator = face.getData( vertexToVertex.getFaceStencil3DID() )->getData( level );
-               auto v2e_operator = face.getData( vertexToEdge.getFaceStencil3DID() )->getData( level );
-               auto e2v_operator = face.getData( edgeToVertex.getFaceStencil3DID() )->getData( level );
-               auto e2e_operator = face.getData( edgeToEdge.getFaceStencil3DID() )->getData( level );
+               auto v2v_operator = face->getData( v2VFaceStencil3DID )->getData( level );
+               auto v2e_operator = face->getData( v2EFaceStencil3DID )->getData( level );
+               auto e2v_operator = face->getData( e2VFaceStencil3DID )->getData( level );
+               auto e2e_operator = face->getData( e2EFaceStencil3DID )->getData( level );
 
-               real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-               real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_dst_data = face->getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_rhs_data = face->getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-               real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-               real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_dst_data = face->getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_rhs_data = face->getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
                const uint_t offset_x  = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::X );
                const uint_t offset_xy = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::XY );
@@ -294,35 +302,35 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
                   }
                }
 
-               if ( face.getNumNeighborCells() == 2 )
+               if ( face->getNumNeighborCells() == 2 )
                {
-                  auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-                  auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+                  auto neighborCell0 = storage.getCell( face->neighborCells()[0] );
+                  auto neighborCell1 = storage.getCell( face->neighborCells()[1] );
 
                   auto neighbor_cell_0_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 0 ) );
                   auto neighbor_cell_0_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 1 ) );
                   auto neighbor_cell_0_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 2 ) );
 
                   auto neighbor_cell_1_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell1->getLocalFaceID( face->getID() ) )
                                                   .at( 0 ) );
                   auto neighbor_cell_1_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell1->getLocalFaceID( face->getID() ) )
                                                   .at( 1 ) );
                   auto neighbor_cell_1_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell1->getLocalFaceID( face->getID() ) )
                                                   .at( 2 ) );
 
                   const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
@@ -639,19 +647,19 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
                }
                else // only one neighbor face
                {
-                  auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+                  auto neighborCell0 = storage.getCell( face->neighborCells()[0] );
 
                   auto neighbor_cell_0_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 0 ) );
                   auto neighbor_cell_0_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 1 ) );
                   auto neighbor_cell_0_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( neighborCell0->getLocalFaceID( face->getID() ) )
                                                   .at( 2 ) );
 
                   const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
@@ -758,13 +766,13 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
             {
                WALBERLA_CHECK( !backwards );
                P2::macroface::smoothSOR3D( level,
-                                           *storage_,
-                                           face,
+                                           storage,
+                                           *face,
                                            relax,
-                                           vertexToVertex.getFaceStencil3DID(),
-                                           edgeToVertex.getFaceStencil3DID(),
-                                           vertexToEdge.getFaceStencil3DID(),
-                                           edgeToEdge.getFaceStencil3DID(),
+                                           v2VFaceStencil3DID,
+                                           e2VFaceStencil3DID,
+                                           v2EFaceStencil3DID,
+                                           e2EFaceStencil3DID,
                                            dst.getVertexDoFFunction().getFaceDataID(),
                                            rhs.getVertexDoFFunction().getFaceDataID(),
                                            dst.getEdgeDoFFunction().getFaceDataID(),
@@ -777,16 +785,16 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
             {
                WALBERLA_CHECK( !backwards );
 
-               real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-               real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_dst_data = face->getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_rhs_data = face->getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-               real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-               real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_dst_data = face->getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_rhs_data = face->getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
-               real_t* v2v_opr_data = face.getData( vertexToVertex.getFaceStencilID() )->getPointer( level );
-               real_t* v2e_opr_data = face.getData( vertexToEdge.getFaceStencilID() )->getPointer( level );
-               real_t* e2v_opr_data = face.getData( edgeToVertex.getFaceStencilID() )->getPointer( level );
-               real_t* e2e_opr_data = face.getData( edgeToEdge.getFaceStencilID() )->getPointer( level );
+               real_t* v2v_opr_data = face->getData( v2VFaceStencilID )->getPointer( level );
+               real_t* v2e_opr_data = face->getData( v2EFaceStencilID )->getPointer( level );
+               real_t* e2v_opr_data = face->getData( e2VFaceStencilID )->getPointer( level );
+               real_t* e2e_opr_data = face->getData( e2EFaceStencilID )->getPointer( level );
 
                typedef edgedof::EdgeDoFOrientation eo;
                std::map< eo, uint_t >              firstIdx;
@@ -822,13 +830,13 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
             {
                WALBERLA_CHECK( !backwards );
                P2::macroface::smoothSOR( level,
-                                         face,
+                                         *face,
                                          relax,
-                                         vertexToVertex.getFaceStencilID(),
-                                         edgeToVertex.getFaceStencilID(),
+                                         v2VFaceStencilID,
+                                         e2VFaceStencilID,
                                          dst.getVertexDoFFunction().getFaceDataID(),
-                                         vertexToEdge.getFaceStencilID(),
-                                         edgeToEdge.getFaceStencilID(),
+                                         v2EFaceStencilID,
+                                         e2EFaceStencilID,
                                          dst.getEdgeDoFFunction().getFaceDataID(),
                                          rhs.getVertexDoFFunction().getFaceDataID(),
                                          rhs.getEdgeDoFFunction().getFaceDataID() );
@@ -836,6 +844,35 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
          }
       }
    }
+}
+
+} // namespace
+
+template < class P2Form >
+void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< real_t >& dst,
+                                                           const P2Function< real_t >& rhs,
+                                                           const real_t&               relax,
+                                                           const size_t                level,
+                                                           const DoFType               flag,
+                                                           const bool&                 backwards ) const
+{
+   this->timingTree_->start( "Macro-Face" );
+
+   smooth_sor_macro_faces_impl( dst,
+                                rhs,
+                                *storage_,
+                                vertexToVertex.getFaceStencil3DID(),
+                                vertexToEdge.getFaceStencil3DID(),
+                                edgeToVertex.getFaceStencil3DID(),
+                                edgeToEdge.getFaceStencil3DID(),
+                                vertexToVertex.getFaceStencilID(),
+                                edgeToVertex.getFaceStencilID(),
+                                vertexToEdge.getFaceStencilID(),
+                                edgeToEdge.getFaceStencilID(),
+                                relax,
+                                level,
+                                flag,
+                                backwards );
 
    this->timingTree_->stop( "Macro-Face" );
 }
