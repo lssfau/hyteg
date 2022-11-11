@@ -27,6 +27,14 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+namespace hyteg {
+
+namespace dg {
+
+void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
+}
+
+} // namespace hyteg
 using namespace hyteg;
 
 using walberla::real_t;
@@ -37,111 +45,126 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
-
-   MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   const uint_t minLevel = 2;
-   const uint_t maxLevel = 4;
-
-   hyteg::FaceDoFFunction_old< real_t > x( "x", storage, minLevel, maxLevel );
-   hyteg::FaceDoFFunction_old< real_t > y( "y", storage, minLevel, maxLevel );
-   hyteg::FaceDoFFunction_old< real_t > z( "z", storage, minLevel, maxLevel );
-
-   P0Function< real_t > dgVec( "dgVec", storage, minLevel, maxLevel );
-
-   x.interpolate( 0., maxLevel, All );
-
-   // check adding a scalar
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 0. );
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 0. );
+      MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-      x.add( 1., maxLevel, All );
+      const uint_t minLevel = 2;
+      const uint_t maxLevel = 4;
 
-      // the min/max value functions
-      x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
-      x.communicate< hyteg::Edge, hyteg::Face >( maxLevel );
+      hyteg::FaceDoFFunction_old< real_t > x( "x", storage, minLevel, maxLevel );
+      hyteg::FaceDoFFunction_old< real_t > y( "y", storage, minLevel, maxLevel );
+      hyteg::FaceDoFFunction_old< real_t > z( "z", storage, minLevel, maxLevel );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 1. );
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 1. );
+      x.interpolate( 0., maxLevel, All );
+
+      // check adding a scalar
+      {
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 0. );
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 0. );
+
+         x.add( 1., maxLevel, All );
+
+         // the min/max value functions
+         x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
+         x.communicate< hyteg::Edge, hyteg::Face >( maxLevel );
+
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 1. );
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 1. );
+      }
+
+      // check adding a scalar
+      {
+         x.interpolate( 1, maxLevel, All );
+         y.interpolate( 2, maxLevel, All );
+         z.interpolate( 3, maxLevel, All );
+
+         x.add( { -1., 3. }, { y, z }, maxLevel, All );
+
+         // the min/max value functions
+         x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
+         x.communicate< hyteg::Edge, hyteg::Face >( maxLevel );
+
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 8. );
+         WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 8. );
+      }
    }
-
-   // check adding a scalar
+   uint_t level = 3;
    {
-      x.interpolate( 1, maxLevel, All );
-      y.interpolate( 2, maxLevel, All );
-      z.interpolate( 3, maxLevel, All );
-
-      x.add( { -1., 3. }, { y, z }, maxLevel, All );
-
-      // the min/max value functions
-      x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
-      x.communicate< hyteg::Edge, hyteg::Face >( maxLevel );
-
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 8. );
-      WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 8. );
+      SetupPrimitiveStorage               setupStorage( MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+                                          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      hyteg::dg::checkAll( storage, level );
    }
-
-   // check adding a scalar
    {
-      
-      dgVec.interpolate( 1, maxLevel, All );
+      MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      hyteg::dg::checkAll( storage, level );
+   }
+   return 0;
+}
 
-      dgVec.add( -1., maxLevel, All );
+namespace hyteg {
 
-      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+namespace dg {
+void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
+{
+   // check adding a scalar
+   P0Function< real_t > dgVec( "dgVec", storage, level, level );
+
+   {
+      dgVec.interpolate( 1, level, All );
+
+      dgVec.add( -1., level, All );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, level ), 0.0 );
    }
    // check adding a scalar and function
    {
-      VTKOutput vtk( "../../output", "DGAddTest_function", storage );
-      vtk.add( dgVec );
 
-      dgVec.interpolate( 1, maxLevel, All );
-      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
-      vtk.add( dgVec2 );
+      dgVec.interpolate( 1, level, All );
+      P0Function< real_t > dgVec2( "dgVec2", storage, level, level );
 
-      dgVec2.interpolate( 1, maxLevel, All );
-      vtk.write( maxLevel, 0 );
+      dgVec2.interpolate( 1, level, All );
 
-      dgVec.add( { -1. }, { dgVec2 }, maxLevel, All );
-      vtk.write( maxLevel, 1 );  
+      dgVec.add( { -1. }, { dgVec2 }, level, All );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, level ), 0.0 );
    }
    // check adding a series of scalars and functions
    {
-      dgVec.interpolate( 1, maxLevel, All );
-      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
-      P0Function< real_t > dgVec3( "dgVec3", storage, minLevel, maxLevel );
-      P0Function< real_t > dgVec4( "dgVec3", storage, minLevel, maxLevel );
+      dgVec.interpolate( 1, level, All );
+      P0Function< real_t > dgVec2( "dgVec2", storage, level, level );
+      P0Function< real_t > dgVec3( "dgVec3", storage, level, level );
+      P0Function< real_t > dgVec4( "dgVec3", storage, level, level );
 
-      dgVec2.interpolate( 1, maxLevel, All );
-      dgVec3.interpolate( 2, maxLevel, All );
-      dgVec4.interpolate( 1, maxLevel, All );
-      dgVec.add( { -1., 0.5, -1 }, { dgVec2, dgVec3, dgVec4 }, maxLevel, All );
+      dgVec2.interpolate( 1, level, All );
+      dgVec3.interpolate( 2, level, All );
+      dgVec4.interpolate( 1, level, All );
+      dgVec.add( { -1., 0.5, -1 }, { dgVec2, dgVec3, dgVec4 }, level, All );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, maxLevel ), 0.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( dgVec.dotGlobal( dgVec, level ), 0.0 );
    }
 
    // check sumGlobal
    {
-      dgVec.interpolate( 1, maxLevel, All );
-      const auto sGlobal = dgVec.sumGlobal( maxLevel, All );
-      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( dgVec.getNumberOfGlobalDoFs( maxLevel ) ) );
+      dgVec.interpolate( 1, level, All );
+      const auto sGlobal = dgVec.sumGlobal( level, All );
+      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( dgVec.getNumberOfGlobalDoFs( level ) ) );
    }
 
    // check dotGlobal
    {
-      dgVec.interpolate( 1, maxLevel, All );
+      dgVec.interpolate( 1, level, All );
 
-      P0Function< real_t > dgVec2( "dgVec2", storage, minLevel, maxLevel );
-      dgVec2.interpolate( 2, maxLevel, All );
+      P0Function< real_t > dgVec2( "dgVec2", storage, level, level );
+      dgVec2.interpolate( 2, level, All );
 
-      const auto sGlobal = dgVec.dotGlobal( dgVec2, maxLevel, All );
-      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( 2 * dgVec.getNumberOfGlobalDoFs( maxLevel ) ) );
+      const auto sGlobal = dgVec.dotGlobal( dgVec2, level, All );
+      WALBERLA_CHECK_FLOAT_EQUAL( sGlobal, real_c( 2 * dgVec.getNumberOfGlobalDoFs( level ) ) );
    }
-
-   return 0;
 }
+} // namespace dg
+} // namespace hyteg
