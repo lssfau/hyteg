@@ -52,30 +52,30 @@ class P2FenicsForm : public P2Form
 
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override;
 
-   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const;
+   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const override;
 
-   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const;
+   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const override;
 
-   void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const;
+   void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const override;
 
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const override;
 
    // ----------------------------
    //  3D versions for tetrahedra
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override;
 
-   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToVertex() not implemented for 3D!" );
    }
 
-   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateVertexToEdge() not implemented for 3D!" );
    }
 
-   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToEdge() not implemented for 3D!" );
    }
@@ -98,7 +98,7 @@ class P2FenicsForm : public P2Form
    /// \return a single entry of the local element matrix
    real_t integrate( const std::array< Point3D, 4 >&     coords,
                      const P2Form::dofPosByVertexPair3D& cntrPos,
-                     const P2Form::dofPosByVertexPair3D& leafPos ) const;
+                     const P2Form::dofPosByVertexPair3D& leafPos ) const override;
 
    /// \brief Compute local element matrix and return selected entries from a row
    ///
@@ -115,7 +115,7 @@ class P2FenicsForm : public P2Form
    /// \return an array with entries of the local element matrix
    std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
                                     const P2Form::dofPosByVertexPair3D&                cntrPos,
-                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const;
+                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const override;
 
    /// \brief Compute local element matrix and return it
    ///
@@ -126,7 +126,7 @@ class P2FenicsForm : public P2Form
    ///
    /// \param coords  The coordinates of the four vertices of the tetrahedron
    /// \param elMat   On return is filled with the matrix entries
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override;
 
    // -------------
 

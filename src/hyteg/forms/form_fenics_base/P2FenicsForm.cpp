@@ -20,6 +20,21 @@
 
 #include "P2FenicsForm.hpp"
 
+#include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
+#include "hyteg/forms/form_fenics_generated/p2_div.h"
+#include "hyteg/forms/form_fenics_generated/p2_divt.h"
+#include "hyteg/forms/form_fenics_generated/p2_mass.h"
+#include "hyteg/forms/form_fenics_generated/p2_pspg.h"
+#include "hyteg/forms/form_fenics_generated/p2_stokes_epsilon.h"
+#include "hyteg/forms/form_fenics_generated/p2_stokes_full.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_diffusion.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_div_tet.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_divt_tet.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_mass.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_pspg_tet.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_stokes_epsilon_tet.h"
+#include "hyteg/forms/form_fenics_generated/p2_tet_stokes_full_tet.h"
+
 namespace hyteg {
 
 template < class UFCOperator2D, class UFCOperator3D >
@@ -153,5 +168,37 @@ void P2FenicsForm< UFCOperator2D, UFCOperator3D >::computeLocalStiffnessMatrix( 
    UFCOperator3D gen;
    gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
 }
+
+template class P2FenicsForm<hyteg::fenics::NoAssemble, hyteg::fenics::NoAssemble>;
+
+template class P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_mass_cell_integral_0_otherwise,      p2_tet_mass_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_divt_cell_integral_0_otherwise,      p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_divt_cell_integral_1_otherwise,      p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble,                     p2_tet_divt_tet_cell_integral_2_otherwise >;
+template class P2FenicsForm< p2_div_cell_integral_0_otherwise,       p2_tet_div_tet_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_div_cell_integral_1_otherwise,       p2_tet_div_tet_cell_integral_1_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble,                     p2_tet_div_tet_cell_integral_2_otherwise >;
+template class P2FenicsForm< p2_pspg_cell_integral_0_otherwise,      p2_tet_pspg_tet_cell_integral_0_otherwise >;
+
+template class P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise >;
+template class P2FenicsForm< p2_stokes_epsilon_cell_integral_2_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise >;
+template class P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise >;
+
+template class P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, p2_tet_stokes_full_tet_cell_integral_0_otherwise >;
+template class P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, p2_tet_stokes_full_tet_cell_integral_1_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_2_otherwise >;
+template class P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, p2_tet_stokes_full_tet_cell_integral_3_otherwise >;
+template class P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, p2_tet_stokes_full_tet_cell_integral_4_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_5_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_6_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_7_otherwise >;
+template class P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise >;
 
 } // namespace hyteg
