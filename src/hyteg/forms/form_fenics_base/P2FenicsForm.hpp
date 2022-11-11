@@ -65,17 +65,17 @@ class P2FenicsForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override;
 
-   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& ) const override
+   void integrateEdgeToVertex( const std::array< Point3D, 4 >&, Point4D& ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToVertex() not implemented for 3D!" );
    }
 
-   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& ) const override
+   void integrateVertexToEdge( const std::array< Point3D, 4 >&, Point4D& ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateVertexToEdge() not implemented for 3D!" );
    }
 
-   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& ) const override
+   void integrateEdgeToEdge( const std::array< Point3D, 4 >&, Point4D& ) const override
    {
       WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToEdge() not implemented for 3D!" );
    }
