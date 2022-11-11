@@ -27,6 +27,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 namespace hyteg {
 
+namespace dg {
+
+namespace eg {
 using walberla::real_t;
 using walberla::math::pi;
 
@@ -56,23 +59,48 @@ void testEvaluateLinearFunctional()
    vtk.add( *f.getDiscontinuousPart() );
    vtk.write( maxLevel );
 }
-
+void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
 } // namespace hyteg
-
+}
+}
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::PETScManager petscManager( &argc, &argv );
-
    using namespace hyteg;
-   uint_t                level = 4;
-   SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
-                                       uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+   PETScManager petscManager( &argc, &argv );
 
+   uint_t                level = 3;
+   {
+      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+                                          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+      dg::eg::checkAll( storage, level );
+   }
+   {
+      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+      dg::eg::checkAll( storage, level );
+   }
+
+   //hyteg::testEvaluateLinearFunctional();
+
+   return EXIT_SUCCESS;
+}
+
+namespace hyteg {
+
+namespace dg {
+
+namespace eg {
+void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
+{
    // check dotGlobal
    {
       EGFunction< real_t > f( "f", storage, level, level );
@@ -182,8 +210,7 @@ int main( int argc, char** argv )
 
       WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
    }
-
-   //hyteg::testEvaluateLinearFunctional();
-
-   return EXIT_SUCCESS;
+}
+}
+}
 }
