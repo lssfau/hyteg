@@ -18,6 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "core/DataTypes.h"
+#include "core/debug/Debug.h"
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
