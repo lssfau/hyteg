@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-#include "core/debug/Debug.h"
+#include "core/debug/CheckFunctions.h"
 #include "core/math/Constants.h"
 #include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/Gatherv.h"
