@@ -53,18 +53,20 @@ class PETScLUSolver : public Solver< OperatorType >
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
-   , Amat( "Amat", petscCommunicator_ )
+   , Amat( "LU_A", petscCommunicator_ )
    , AmatUnsymmetric( "AmatUnsymmetric", petscCommunicator_ )
    , AmatTmp( "AmatTmp", petscCommunicator_ )
-   , xVec( "xVec", petscCommunicator_ )
-   , bVec( "bVec", petscCommunicator_ )
-   , inKernel( "inKernel", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
+   , xVec( "LU_x", petscCommunicator_ )
+   , bVec( "LU_b", petscCommunicator_ )
+   , nullSpaceSet_( false )
    , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
-   , assumeSymmetry_( true )
+   , assumeSymmetry_( false )
    , solverType_( PETScDirectSolverType::MUMPS )
+
    {
       num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
@@ -74,23 +76,16 @@ class PETScLUSolver : public Solver< OperatorType >
 
    ~PETScLUSolver() { KSPDestroy( &ksp ); }
 
-   void setNullSpace( FunctionType& inKernelFunction, const uint_t& level )
+   void setNullSpace( FunctionType& nullspace, uint_t level )
    {
-      inKernel.createVectorFromFunction( inKernelFunction, num, level, All );
-      VecNormalize( inKernel.get(), NULL );
-      MatNullSpace nullspace;
-      MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &( inKernel.get() ), &nullspace );
-      MatSetNullSpace( Amat.get(), nullspace );
+      nullSpaceSet_ = true;
+      nullspaceVec_.createVectorFromFunction( nullspace, num, level );
+      real_t norm = 0;
+      VecNormalize( nullspaceVec_.get(), &norm );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
    void setDirectSolverType( PETScDirectSolverType solverType ) { solverType_ = solverType; }
-
-   void setConstantNullSpace()
-   {
-      MatNullSpace nullspace;
-      MatNullSpaceCreate( petscCommunicator_, PETSC_TRUE, 0, NULL, &nullspace );
-      MatSetNullSpace( Amat.get(), nullspace );
-   }
 
    void setVerbose( bool verbose ) { verbose_ = verbose; }
 
@@ -137,7 +132,7 @@ class PETScLUSolver : public Solver< OperatorType >
          AmatTmp.zeroEntries();
          AmatTmp.createMatrixFromOperator( A, allocatedLevel_, num, All );
 
-         MatCopy( AmatUnsymmetric.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+         MatCopy( AmatUnsymmetric.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
          if ( assumeSymmetry_ )
          {
@@ -146,6 +141,11 @@ class PETScLUSolver : public Solver< OperatorType >
          else
          {
             Amat.applyDirichletBC( num, allocatedLevel_ );
+         }
+         if ( nullSpaceSet_ )
+         {
+            MatSetNullSpace( Amat.get(), nullspace_ );
+            MatNullSpaceRemove( nullspace_, bVec.get() );
          }
 
          KSPSetOperators( ksp, Amat.get(), Amat.get() );
@@ -208,6 +208,13 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "PETSc LU Solver" );
       storage_->getTimingTree()->start( "Setup" );
 
+      num.copyBoundaryConditionFromFunction( x );
+      num.enumerate( level );
+      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+
+      xVec.createVectorFromFunction( x, num, level, All );
+      bVec.createVectorFromFunction( b, num, level, All );
+
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
@@ -217,10 +224,6 @@ class PETScLUSolver : public Solver< OperatorType >
       const double matrixAssemblyAndFactorizationTime = timer.last();
 
       storage_->getTimingTree()->start( "RHS vector setup" );
-
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      bVec.createVectorFromFunction( b, num, level, All );
-      xVec.createVectorFromFunction( x, num, level, All );
 
       if ( assumeSymmetry_ )
       {
@@ -235,6 +238,10 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "Solver" );
       timer.start();
+
+      //     Amat.print( "LU_Amat.m", false, PETSC_VIEWER_ASCII_MATLAB );
+      //    bVec.print( "LU_bVec.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
@@ -260,9 +267,9 @@ class PETScLUSolver : public Solver< OperatorType >
    PETScSparseMatrix< OperatorType >                                                             Amat;
    PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
    PETScSparseMatrix< OperatorType >                                                             AmatTmp;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > inKernel;
 
    KSP                        ksp;
    PC                         pc;
@@ -273,6 +280,8 @@ class PETScLUSolver : public Solver< OperatorType >
    bool                       reassembleMatrix_;
    bool                       assumeSymmetry_;
    PETScDirectSolverType      solverType_;
+   bool                       nullSpaceSet_;
+   MatNullSpace               nullspace_;
    std::map< uint_t, int >    mumpsIcntrl_;
    std::map< uint_t, real_t > mumpsCntrl_;
 };
