@@ -47,19 +47,25 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    // most general function in N1E1 space
-   const Eigen::Vector3r                                    a        = { 1, 2, 3 };
-   const Eigen::Vector3r                                    b        = { 4, 5, 6 };
-   const std::function< Eigen::Vector3r( const Point3D& ) > testFunc = [&]( const Point3D& x ) {
+   const Eigen::Vector3r                                    a          = { 1, 2, 3 };
+   const Eigen::Vector3r                                    b          = { 4, 5, 6 };
+   const std::function< Eigen::Vector3r( const Point3D& ) > testFuncAB = [&]( const Point3D& x ) {
       return ( a + b.cross( toEigen( x ) ) ).eval();
+   };
+   const std::function< Eigen::Vector3r( const Point3D& ) > testFuncBA = [&]( const Point3D& x ) {
+      return ( b + a.cross( toEigen( x ) ) ).eval();
    };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   f.interpolate( testFunc, coarseLevel );
-   f.interpolate( Eigen::Vector3r{ 1.0, 1.0, 1.0 }, fineLevel );
+   f.interpolate( testFuncAB, coarseLevel );
+   f.interpolate( testFuncBA, fineLevel );
 
    n1e1::N1E1VectorFunction< real_t > g( "g", storage, minLevel, maxLevel );
-   g.interpolate( testFunc, coarseLevel );
-   g.interpolate( Eigen::Vector3r{ 1.0, 1.0, 1.0 }, fineLevel );
+   g.interpolate( testFuncAB, coarseLevel );
+   g.interpolate( testFuncBA, fineLevel );
+
+   n1e1::N1E1VectorFunction< real_t > ba( "ba", storage, minLevel, maxLevel );
+   ba.interpolate( testFuncBA, coarseLevel );
 
    n1e1::N1E1toN1E1Prolongation prolongation;
    prolongation.prolongate( f, coarseLevel, All );
@@ -73,7 +79,7 @@ void test3D()
       coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
       coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
 
-      Eigen::Vector3r evalCoarse, evalFine;
+      Eigen::Vector3r evalCoarse, evalFine, evalBA;
       auto            successCoarse = f.evaluate( coordinates, coarseLevel, evalCoarse );
       auto            successFine   = f.evaluate( coordinates, fineLevel, evalFine );
       WALBERLA_CHECK( successCoarse );
@@ -82,38 +88,62 @@ void test3D()
       WALBERLA_CHECK_FLOAT_EQUAL( evalCoarse[1], evalFine[1], "Test3D: wrong Y-coordinate at " << coordinates << "." );
       WALBERLA_CHECK_FLOAT_EQUAL( evalCoarse[2], evalFine[2], "Test3D: wrong Z-coordinate at " << coordinates << "." );
 
-      successFine = g.evaluate( coordinates, fineLevel, evalFine );
+      successFine          = g.evaluate( coordinates, fineLevel, evalFine );
+      const bool successBA = ba.evaluate( coordinates, coarseLevel, evalBA );
       WALBERLA_CHECK( successFine );
+      WALBERLA_CHECK( successBA );
       WALBERLA_CHECK_FLOAT_EQUAL(
-          evalCoarse[0] + 1.0, evalFine[0], "Additive test3D: wrong X-coordinate at " << coordinates << "." );
+          evalCoarse[0] + evalBA[0], evalFine[0], "Additive test3D: wrong X-coordinate at " << coordinates << "." );
       WALBERLA_CHECK_FLOAT_EQUAL(
-          evalCoarse[1] + 1.0, evalFine[1], "Additive test3D: wrong Y-coordinate at " << coordinates << "." );
+          evalCoarse[1] + evalBA[1], evalFine[1], "Additive test3D: wrong Y-coordinate at " << coordinates << "." );
       WALBERLA_CHECK_FLOAT_EQUAL(
-          evalCoarse[2] + 1.0, evalFine[2], "Additive test3D: wrong Z-coordinate at " << coordinates << "." );
+          evalCoarse[2] + evalBA[2], evalFine[2], "Additive test3D: wrong Z-coordinate at " << coordinates << "." );
    }
 
    // test on edges and faces
-   n1e1::N1E1VectorFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-   tmp.copyFrom( f, fineLevel );
+   n1e1::N1E1VectorFunction< real_t > tmpF( "tmpF", storage, minLevel, maxLevel );
+   n1e1::N1E1VectorFunction< real_t > tmpG( "tmpG", storage, minLevel, maxLevel );
+   tmpF.copyFrom( f, fineLevel );
+   tmpG.copyFrom( g, fineLevel );
 
-   tmp.communicate< Edge, Face >( fineLevel );
-   tmp.communicate< Face, Cell >( fineLevel );
+   tmpF.communicate< Edge, Face >( fineLevel );
+   tmpF.communicate< Face, Cell >( fineLevel );
+
+   tmpG.communicate< Edge, Face >( fineLevel );
+   tmpG.communicate< Face, Cell >( fineLevel );
 
    for ( auto& it : storage->getCells() )
    {
-      Cell&      cell    = *it.second;
-      const auto fData   = cell.getData( f.getDoFs()->getCellDataID() )->getPointer( fineLevel );
-      const auto tmpData = cell.getData( tmp.getDoFs()->getCellDataID() )->getPointer( fineLevel );
+      Cell&      cell     = *it.second;
+      const auto fData    = cell.getData( f.getDoFs()->getCellDataID() )->getPointer( fineLevel );
+      const auto tmpFData = cell.getData( tmpF.getDoFs()->getCellDataID() )->getPointer( fineLevel );
+
+      const auto gData    = cell.getData( g.getDoFs()->getCellDataID() )->getPointer( fineLevel );
+      const auto tmpGData = cell.getData( tmpG.getDoFs()->getCellDataID() )->getPointer( fineLevel );
+
       for ( auto idx : edgedof::macrocell::Iterator( fineLevel ) )
       {
          const idx_t x = idx.x();
          const idx_t y = idx.y();
          const idx_t z = idx.z();
+
          for ( const auto edgeType : edgedof::allEdgeDoFOrientationsWithoutXYZ )
          {
-            const real_t fVal   = fData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
-            const real_t tmpVal = tmpData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
-            WALBERLA_CHECK_FLOAT_EQUAL( fVal, tmpVal, "Edge or Face values differ from Cell values" );
+            const real_t fVal    = fData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
+            const real_t tmpFVal = tmpFData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
+            WALBERLA_CHECK_FLOAT_EQUAL( fVal,
+                                        tmpFVal,
+                                        "edge type = " << edgeType << ", idx = " << idx << ", cell coordinates = ["
+                                                       << cell.getCoordinates()[0] << ", " << cell.getCoordinates()[1] << ", "
+                                                       << cell.getCoordinates()[2] << ", " << cell.getCoordinates()[3] << "]" );
+
+            const real_t gVal    = gData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
+            const real_t tmpGVal = tmpGData[edgedof::macrocell::index( fineLevel, x, y, z, edgeType )];
+            WALBERLA_CHECK_FLOAT_EQUAL( gVal,
+                                        tmpGVal,
+                                        "edge type = " << edgeType << ", idx = " << idx << ", cell coordinates = ["
+                                                       << cell.getCoordinates()[0] << ", " << cell.getCoordinates()[1] << ", "
+                                                       << cell.getCoordinates()[2] << ", " << cell.getCoordinates()[3] << "]" );
          }
       }
    }
