@@ -1031,11 +1031,10 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sen
                                                                     senderLocalVertexIDs[2],
                                                                     1 );
 
-   auto cellIteratorReceiverCell = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
+   auto cellIteratorReceiverCell = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
                                                                           receiverLocalVertexIDs[0],
                                                                           receiverLocalVertexIDs[1],
-                                                                          receiverLocalVertexIDs[2],
-                                                                          1);
+                                                                          receiverLocalVertexIDs[2]);
 
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
