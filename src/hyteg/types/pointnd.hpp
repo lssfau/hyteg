@@ -22,12 +22,16 @@
 
 #include <array>
 #include <cmath>
-#include <core/math/Vector3.h>
 #include <iostream>
 
 #include "core/DataTypes.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
+
+namespace walberla::math {
+template< typename Type >
+class Vector3;
+}
 
 namespace hyteg {
 
@@ -287,15 +291,9 @@ inline Point3D crossProduct( const Point3D & a, const Point3D & b )
   return Point3D({ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] });
 }
 
-inline walberla::math::Vector3< real_t > toVec3( const Point3D & p )
-{
-   return walberla::math::Vector3< real_t >( p[0], p[1], p[2] );
-}
+walberla::math::Vector3< real_t > toVec3( const Point3D & p );
 
-inline Point3D toPoint3D( const walberla::math::Vector3< real_t > & v )
-{
-   return Point3D( { v[0], v[1], v[2] } );
-}
+Point3D toPoint3D( const walberla::math::Vector3< real_t > & v );
 
 }
 

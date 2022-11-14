@@ -366,7 +366,7 @@ void smoothSOR( const uint_t&                                            level,
 void smoothSOR3D(
     const uint_t&                                                                                level,
     const PrimitiveStorage&                                                                      storage,
-    Face&                                                                                        face,
+    const Face&                                                                                  face,
     const real_t&                                                                                relax,
     const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& edgeToVertexOperatorId,

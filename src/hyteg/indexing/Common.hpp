@@ -20,13 +20,16 @@
 
 #pragma once
 
+#include "core/DataTypes.h"
+#include "core/debug/Debug.h"
+
 #include "hyteg/types/pointnd.hpp"
 #include "hyteg/types/types.hpp"
 
+using walberla::uint_t;
+
 namespace hyteg {
 namespace indexing {
-
-using walberla::uint_t;
 
 /// Helper function to create a 'tuple' from two integers taking less than 5 bits of space.
 /// Allows for more readable switch statements in some cases.
