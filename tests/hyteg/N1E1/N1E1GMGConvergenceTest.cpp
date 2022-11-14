@@ -18,8 +18,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "core/math/Constants.h"
-
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
@@ -37,16 +35,13 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
+#include "common.hpp"
+
 using namespace hyteg;
 using walberla::real_t;
-using walberla::math::pi;
 
 /// Returns the approximate L2 error.
-real_t test( const uint_t                                             maxLevel,
-             const MeshInfo                                           meshInfo,
-             const std::function< Eigen::Vector3r( const Point3D& ) > solFunc,
-             const std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc,
-             const bool                                               writeVTK = false )
+real_t test( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
 {
    using namespace n1e1;
 
@@ -59,7 +54,7 @@ real_t test( const uint_t                                             maxLevel,
    const int    numSpectralRadiusEstIts = 40;
    const int    numVCycles              = 8;
 
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage setupStorage( system.domain_, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -79,7 +74,7 @@ real_t test( const uint_t                                             maxLevel,
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    // Assemble RHS.
-   tmp.interpolate( rhsFunc, maxLevel );
+   tmp.interpolate( system.rhs_, maxLevel );
    M.apply( tmp, f, maxLevel, DoFType::All );
 
    // Boundary conditions: homogeneous tangential trace
@@ -91,7 +86,7 @@ real_t test( const uint_t                                             maxLevel,
    auto chebyshevSmoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
    auto p1Smoother        = std::make_shared< P1Smoother >();
 
-   sol.interpolate( solFunc, spectralRadiusEstLevel );
+   sol.interpolate( system.analyticalSol_, spectralRadiusEstLevel );
    const real_t spectralRadius =
        chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
    chebyshevSmoother->setupCoefficients( 4, spectralRadius );
@@ -116,7 +111,7 @@ real_t test( const uint_t                                             maxLevel,
        storage, hybridSmoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    // Interpolate solution
-   sol.interpolate( solFunc, maxLevel );
+   sol.interpolate( system.analyticalSol_, maxLevel );
 
    // Solve system.
    real_t discrL2 = 0.0;
@@ -144,41 +139,8 @@ real_t test( const uint_t                                             maxLevel,
    return discrL2;
 }
 
-// TODO extract to common header file
-void runTest( uint_t                                                    minLevel,
-              uint_t                                                    maxLevel,
-              const MeshInfo&                                           meshInfo,
-              const std::function< Eigen::Vector3r( const Point3D& ) >& solFunc,
-              const std::function< Eigen::Vector3r( const Point3D& ) >& rhsFunc )
-{
-   const real_t l2ConvRate  = 1.0 / 4.0;
-   const real_t convRateEps = l2ConvRate * 0.1;
-   real_t       err         = test( minLevel, meshInfo, solFunc, rhsFunc );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
-   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << std::scientific << err );
-
-   for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
-   {
-      const real_t errFiner     = test( level, meshInfo, solFunc, rhsFunc );
-      const real_t computedRate = errFiner / err;
-
-      WALBERLA_LOG_INFO_ON_ROOT( "error level " << level << ": " << std::scientific << errFiner );
-      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << level << " / " << level - 1 << ": " << computedRate );
-
-      WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                 l2ConvRate + convRateEps,
-                                 "Convergence L2 rate level " << level << " vs level " << level - 1
-                                                              << " not sufficiently small (computed: " << computedRate
-                                                              << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-      err = errFiner;
-   }
-}
-
 int main( int argc, char** argv )
 {
-   using std::sin;
-
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
@@ -186,119 +148,20 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 #endif
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, polynomial ###" );
-
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ y * z * ( x + y + z - 1 ), x * z * ( x + y + z - 1 ), x * y * ( x + y + z - 1 ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{
-             y * z * ( x + y + z - 1 ) - y - z, x * z * ( x + y + z - 1 ) - x - z, x * y * ( x + y + z - 1 ) - x - y };
-      };
-
-      runTest( 4, 6, meshInfo, solFunc, rhsFunc );
-   }
-
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, polynomial ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnSingleTet(), test );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, sinusoidal ###" );
-
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ sin( y ) * sin( z ) * sin( x + y + z - 1 ),
-                                 sin( x ) * sin( z ) * sin( x + y + z - 1 ),
-                                 sin( x ) * sin( y ) * sin( x + y + z - 1 ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ -sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                                     5 * sin( y ) * sin( z ) * sin( x + y + z - 1 ) + sin( y ) * cos( x ) * cos( x + y + z - 1 ) -
-                                     2 * sin( y ) * cos( z ) * cos( x + y + z - 1 ) + sin( z ) * cos( x ) * cos( x + y + z - 1 ) -
-                                     2 * sin( z ) * cos( y ) * cos( x + y + z - 1 ),
-                                 -sin( x ) * sin( y ) * sin( x + y + z - 1 ) + 5 * sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                                     sin( x ) * cos( y ) * cos( x + y + z - 1 ) - 2 * sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                                     sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( z ) * cos( x ) * cos( x + y + z - 1 ) +
-                                     sin( z ) * cos( y ) * cos( x + y + z - 1 ),
-                                 5 * sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) -
-                                     2 * sin( x ) * cos( y ) * cos( x + y + z - 1 ) + sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                                     sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( y ) * cos( x ) * cos( x + y + z - 1 ) +
-                                     sin( y ) * cos( z ) * cos( x + y + z - 1 ) };
-      };
-
-      runTest( 4, 6, meshInfo, solFunc, rhsFunc );
-   }
-
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, sinusoidal ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnSingleTet(), test );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, polynomial ###" );
-
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ y * ( 1 - y ) * z * ( 1 - z ), x * ( 1 - x ) * z * ( 1 - z ), x * ( 1 - x ) * y * ( 1 - y ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ 2 * ( y * ( 1 - y ) + z * ( 1 - z ) ) + y * ( 1 - y ) * z * ( 1 - z ),
-                                 2 * ( x * ( 1 - x ) + z * ( 1 - z ) ) + x * ( 1 - x ) * z * ( 1 - z ),
-                                 2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
-      };
-
-      runTest( 4, 6, meshInfo, solFunc, rhsFunc );
-   }
-
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, polynomial ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnCube(), test );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, sinusoidal ###" );
-
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ sin( 2 * pi * y ) * sin( 2 * pi * z ),
-                                 sin( 2 * pi * x ) * sin( 2 * pi * z ),
-                                 sin( 2 * pi * x ) * sin( 2 * pi * y ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ sin( 2 * pi * y ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * y ) * sin( 2 * pi * z ),
-                                 sin( 2 * pi * x ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * z ),
-                                 sin( 2 * pi * x ) * sin( 2 * pi * y ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * y ) };
-      };
-
-      runTest( 4, 6, meshInfo, solFunc, rhsFunc );
-   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, sinusoidal ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnCube(), test );
 
    return EXIT_SUCCESS;
 }
