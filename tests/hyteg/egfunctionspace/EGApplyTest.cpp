@@ -357,7 +357,7 @@ int main(int argc, char *argv[]) {
 
     using hyteg::Point3D;
     using walberla::math::pi;
-    const bool writeVTK = true;
+    //const bool writeVTK = true;
 
 
     /*
