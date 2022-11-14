@@ -20,9 +20,12 @@
 
 #pragma once
 
-#include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
+#include "hyteg/egfunctionspace/EGDivForm.hpp"
+#include "hyteg/egfunctionspace/EGDivtForm.hpp"
+
+#include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
@@ -43,9 +46,12 @@ class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFuncti
  public:
    P0ToEGDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+
    , p0_to_p1x( storage, minLevel, maxLevel )
    , p0_to_p1y( storage, minLevel, maxLevel )
-   , p0_to_edg( storage, minLevel, maxLevel )
+   , p0_to_p1z( storage, minLevel, maxLevel )
+   // ,   p0_to_p1( storage, minLevel, maxLevel )
+    , p0_to_edg( storage, minLevel, maxLevel )
    {}
 
    void apply( const P0Function< real_t >& src,
@@ -54,8 +60,15 @@ class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFuncti
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
+      //p0_to_p1.apply( src, *dst.getConformingPart(), level, flag, updateType );
+
       p0_to_p1x.apply( src, dst.getConformingPart()->component( 0 ), level, flag, updateType );
       p0_to_p1y.apply( src, dst.getConformingPart()->component( 1 ), level, flag, updateType );
+      if ( src.getDimension() == 3 )
+      {
+         p0_to_p1z.apply( src, dst.getConformingPart()->component( 2 ), level, flag, updateType );
+      }
+
       p0_to_edg.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
    }
 
@@ -65,18 +78,29 @@ class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFuncti
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
-      communication::syncVectorFunctionBetweenPrimitives( dst, level );
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      dst.getDiscontinuousPart()->communicate( level );
       src.communicate( level );
 
       p0_to_p1x.toMatrix( mat, src, dst.getConformingPart()->component( 0 ), level, flag );
       p0_to_p1y.toMatrix( mat, src, dst.getConformingPart()->component( 1 ), level, flag );
+      if ( src.getDimension() == 3 )
+      {
+         p0_to_p1z.toMatrix( mat, src, dst.getConformingPart()->component( 2 ), level, flag );
+      }
+
+     // p0_to_p1.toMatrix( mat, src, *dst.getConformingPart(), level, flag );
       p0_to_edg.toMatrix( mat, src, *dst.getDiscontinuousPart(), level, flag );
    }
 
  private:
-   P0ToP1Operator< DGDivtFormP1P0_0 > p0_to_p1x;
-   P0ToP1Operator< DGDivtFormP1P0_1 > p0_to_p1y;
-   P0Operator< EGDivtFormEP0 >        p0_to_edg;
+
+   P0ToP1Operator< EGDivtFormP1P0_0 > p0_to_p1x;
+   P0ToP1Operator< EGDivtFormP1P0_1 > p0_to_p1y;
+   P0ToP1Operator< EGDivtFormP1P0_2 > p0_to_p1z;
+
+  // P0ToP1ConstantDivTOperator p0_to_p1;
+    P0Operator< EGDivtFormEP0 >        p0_to_edg;
 };
 
 class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Function< real_t > >
@@ -86,7 +110,10 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
    : Operator< EGFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
    , p1x_to_p0( storage, minLevel, maxLevel )
    , p1y_to_p0( storage, minLevel, maxLevel )
-   , edg_to_p0( storage, minLevel, maxLevel )
+   , p1z_to_p0( storage, minLevel, maxLevel )
+
+    // ,  p1_to_p0( storage, minLevel, maxLevel )
+    , edg_to_p0( storage, minLevel, maxLevel )
    {}
 
    void apply( const EGFunction< real_t >& src,
@@ -95,12 +122,21 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
+
       communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
       dst.communicate( level );
       src.getDiscontinuousPart()->communicate( level );
 
+
       p1x_to_p0.apply( src.getConformingPart()->component( 0 ), dst, level, flag, updateType );
       p1y_to_p0.apply( src.getConformingPart()->component( 1 ), dst, level, flag, Add );
+      if ( src.getDimension() == 3 )
+      {
+         p1z_to_p0.apply( src.getConformingPart()->component( 2 ), dst, level, flag, Add );
+      }
+
+     // p1_to_p0.apply( *src.getConformingPart(), dst, level, flag, updateType );
+
       edg_to_p0.apply( *src.getDiscontinuousPart(), dst, level, flag, Add );
    }
 
@@ -114,15 +150,28 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
       dst.communicate( level );
       src.getDiscontinuousPart()->communicate( level );
 
+
       p1x_to_p0.toMatrix( mat, src.getConformingPart()->component( 0 ), dst, level, flag );
       p1y_to_p0.toMatrix( mat, src.getConformingPart()->component( 1 ), dst, level, flag );
+      if ( src.getDimension() == 3 )
+      {
+         p1z_to_p0.toMatrix( mat, src.getConformingPart()->component( 2 ), dst, level, flag );
+      }
+
+
+  //    p1_to_p0.toMatrix( mat, *src.getConformingPart(), dst, level, flag );
       edg_to_p0.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
    }
 
  private:
-   P1ToP0Operator< DGDivFormP0P1_0 > p1x_to_p0;
-   P1ToP0Operator< DGDivFormP0P1_1 > p1y_to_p0;
-   P0Operator< EGDivFormP0E >        edg_to_p0;
+
+   P1ToP0Operator< EGDivFormP0P1_0 > p1x_to_p0;
+   P1ToP0Operator< EGDivFormP0P1_1 > p1y_to_p0;
+   P1ToP0Operator< EGDivFormP0P1_2 > p1z_to_p0;
+
+
+   //P1ToP0ConstantDivOperator p1_to_p0;
+    P0Operator< EGDivFormP0E >        edg_to_p0;
 };
 
 class EGMassOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
@@ -168,8 +217,8 @@ class EGMassOperator final : public Operator< EGFunction< real_t >, EGFunction< 
 
  private:
    P1ConstantVectorMassOperator                  cg_to_cg_coupling_;
-   P1ToP0ConstantP1EDGVectorMassCouplingOperator cg_to_eg_coupling_;
-   P0ToP1ConstantP1EDGVectorMassCouplingOperator eg_to_cg_coupling_;
+   EGMassP1toP0Coupling                          cg_to_eg_coupling_;
+   EGMassP0toP1Coupling                          eg_to_cg_coupling_;
    P0Operator< EGVectorMassFormEE >              eg_to_eg_coupling_;
 };
 
@@ -215,9 +264,9 @@ class EGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunctio
    }
 
  private:
-   P1ConstantVectorLaplaceOperator     cg_to_cg_coupling_;
-  
- //  P1ElementwiseVectorLaplaceOperator     cg_to_cg_coupling_;
+   P1ConstantVectorLaplaceOperator cg_to_cg_coupling_;
+
+   //  P1ElementwiseVectorLaplaceOperator     cg_to_cg_coupling_;
    EGVectorLaplaceP1ToP0Coupling       cg_to_eg_coupling_;
    EGVectorLaplaceP0ToP1Coupling       eg_to_cg_coupling_;
    P0Operator< EGVectorLaplaceFormEE > eg_to_eg_coupling_;
