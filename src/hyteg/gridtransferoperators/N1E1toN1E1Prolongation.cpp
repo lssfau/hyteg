@@ -94,8 +94,8 @@ void N1E1toN1E1Prolongation::prolongateMacroEdge( const real_t* src, real_t* dst
 
    for ( idx_t i = 0; i < idx_t( n ); ++i )
    {
-      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i )] = dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i + 1 )] +=
-          0.5 * src[edgedof::macroedge::index( sourceLevel, i )];
+      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i )] += 0.5 * src[edgedof::macroedge::index( sourceLevel, i )];
+      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i + 1 )] += 0.5 * src[edgedof::macroedge::index( sourceLevel, i )];
    }
 }
 
