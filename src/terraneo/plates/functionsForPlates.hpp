@@ -42,14 +42,14 @@ typedef Kernel::Point_2                                   Point_2;
 ///
 /// The function returns a bool to indicate whether any plate matched, the plate's ID and
 /// the distance from this plate's boundary
-std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point )
+std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point, uint_t idWhenNoPlateFound )
 {
    // query all plates for given age stage
    auto& plates = plateStore.getPlatesForStage( age );
 
    // be pessimistic
    bool   plateFound{ false };
-   uint_t plateID{ 0 };
+   uint_t plateID{ idWhenNoPlateFound };
    real_t distance{ std::numeric_limits< real_t >::max() };
 
    for ( auto& currentPlate : plates )

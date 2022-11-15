@@ -54,7 +54,7 @@ class PlateVelocityProvider
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
 
-      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point, idWhenNoPlateFound );
 
       return plateID;
    }
@@ -83,7 +83,7 @@ class PlateVelocityProvider
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
 
-      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point );
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point, idWhenNoPlateFound );
 
       if ( !plateFound )
       {
