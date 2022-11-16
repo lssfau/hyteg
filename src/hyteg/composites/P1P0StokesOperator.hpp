@@ -57,24 +57,52 @@ class P1DivDivOperator : public VectorToVectorOperator< real_t, P1VectorFunction
       divdiv_2_1 = std::make_shared< forms::p1_divdiv_2_1_affine_q2 >();
       divdiv_2_2 = std::make_shared< forms::p1_divdiv_2_2_affine_q2 >();
 
-      P1LinearCombinationForm mudivdiv_0_0( { mu }, { divdiv_0_0.get() } );
-      P1LinearCombinationForm mudivdiv_0_1( { mu }, { divdiv_0_1.get() } );
+       P1LinearCombinationForm mudivdiv_0_0( { mu }, { divdiv_0_0.get() } );
+       P1LinearCombinationForm mudivdiv_0_1( { mu }, { divdiv_0_1.get() } );
+       P1LinearCombinationForm mudivdiv_0_2( { mu }, { divdiv_0_2.get() } );
 
-      P1LinearCombinationForm mudivdiv_1_0( { mu }, { divdiv_1_0.get() } );
-      P1LinearCombinationForm mudivdiv_1_1( { mu }, { divdiv_1_1.get() } );
+       P1LinearCombinationForm mudivdiv_1_0( { mu }, { divdiv_1_0.get() } );
+       P1LinearCombinationForm mudivdiv_1_1( { mu }, { divdiv_1_1.get() } );
+       P1LinearCombinationForm mudivdiv_1_2( { mu }, { divdiv_1_2.get() } );
+
+       P1LinearCombinationForm mudivdiv_2_0( { mu }, { divdiv_2_0.get() } );
+       P1LinearCombinationForm mudivdiv_2_1( { mu }, { divdiv_2_1.get() } );
+       P1LinearCombinationForm mudivdiv_2_2( { mu }, { divdiv_2_2.get() } );
 
       auto A_0_0 =
           std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_0_0 );
       auto A_0_1 =
           std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_0_1 );
+       auto A_0_2 =
+               std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_0_2 );
+
       auto A_1_0 =
           std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_1_0 );
       auto A_1_1 =
           std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_1_1 );
+       auto A_1_2 =
+               std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_1_2 );
+
+       auto A_2_0 =
+               std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_2_0 );
+       auto A_2_1 =
+               std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_2_1 );
+       auto A_2_2 =
+               std::make_shared< P1ElementwiseOperator< P1LinearCombinationForm > >( storage, minLevel, maxLevel, mudivdiv_2_2 );
 
       if ( this->dim_ == 3 )
       {
-         WALBERLA_ABORT( "Not implemented." );
+          this->subOper_[0][0] = A_0_0;
+          this->subOper_[0][1] = A_0_1;
+          this->subOper_[0][2] = A_0_2;
+
+          this->subOper_[1][0] = A_1_0;
+          this->subOper_[1][1] = A_1_1;
+          this->subOper_[1][2] = A_1_2;
+
+          this->subOper_[2][0] = A_2_0;
+          this->subOper_[2][1] = A_2_1;
+          this->subOper_[2][2] = A_2_2;
       }
       else
       {

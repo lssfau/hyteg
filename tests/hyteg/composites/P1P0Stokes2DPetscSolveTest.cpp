@@ -129,7 +129,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
-
+   WALBERLA_LOG_INFO_ON_ROOT( "errEpsU=" << errEpsU << ", errEpsP=" << errEpsP );
    WALBERLA_CHECK_LESS( discr_l2_err_u, errEpsU );
    WALBERLA_CHECK_LESS( discr_l2_err_p, errEpsP );
 }
