@@ -9,4 +9,5 @@ target_sources( hyteg
     EGVectorLaplaceForm.hpp
     EGDivForm.hpp
     EGDivtForm.hpp
+        EGConvTestUtils.hpp
 )
