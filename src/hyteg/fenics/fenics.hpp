@@ -21,7 +21,7 @@
 
 #include <functional>
 
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 namespace fenics {

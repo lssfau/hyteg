@@ -34,7 +34,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

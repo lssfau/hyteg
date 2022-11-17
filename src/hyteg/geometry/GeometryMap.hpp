@@ -19,8 +19,8 @@
  */
 #pragma once
 
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 
 using walberla::real_c;
 

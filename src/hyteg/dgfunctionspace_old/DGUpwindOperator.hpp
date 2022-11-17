@@ -26,7 +26,7 @@
 #include "hyteg/dgfunctionspace_old/DGFunctionMacroFace.hpp"
 #include "hyteg/dgfunctionspace_old/DGFunctionMacroVertex.hpp"
 #include "hyteg/operators/Operator.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

@@ -31,7 +31,7 @@
 #include "core/mpi/SendBuffer.h"
 
 #include "hyteg/eigen/EigenWrapper.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

@@ -29,7 +29,7 @@
 #include "hyteg/memory/StencilMemory.hpp"
 
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 #include "hyteg/polynomial/Polynomial.hpp"
 
 #include <string>

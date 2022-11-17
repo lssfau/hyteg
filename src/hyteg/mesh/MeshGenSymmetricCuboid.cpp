@@ -26,7 +26,7 @@
 #include "core/logging/Logging.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

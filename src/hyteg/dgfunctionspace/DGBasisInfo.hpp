@@ -22,7 +22,7 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 #include "Eigen/Eigen"
 

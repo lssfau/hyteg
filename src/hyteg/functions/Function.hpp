@@ -31,7 +31,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/operators/Operator.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {

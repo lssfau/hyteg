@@ -24,7 +24,7 @@
 #include "core/math/Constants.h"
 #include "core/Abort.h"
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 #include "core/debug/Debug.h"
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
 using walberla::uint_t;

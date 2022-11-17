@@ -1,8 +1,8 @@
 target_sources(hyteg
     PRIVATE
-    pointnd.cpp
-    pointnd.hpp
-    matrix.hpp
+    PointND.cpp
+    PointND.hpp
+    Matrix.hpp
     types.hpp
 )
 

@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "hyteg/PrimitiveID.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 namespace adaptiveRefinement {

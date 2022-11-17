@@ -28,7 +28,7 @@
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
-#include <hyteg/types/pointnd.hpp>
+#include <hyteg/types/PointND.hpp>
 
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 
