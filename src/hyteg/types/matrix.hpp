@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,18 +30,20 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
+using walberla::int_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-/// \brief  NxM Matrix
-/// \author Daniel Drzisga (drzisga@ma.tum.de)
-/// \date   September, 2017
+/// \brief  Dense NxM Matrix
 ///
-/// The Matrix class represents an MxN-dimensional matrix with basic support for algebraic operations
+/// The Matrix class represents a dense MxN-dimensional matrix with basic support for algebraic operations.
+/// Entries are stored in row-major ordering. Internally the class uses a dense Eigen::Matrix to store
+/// and perform algebraic ops.
 /// \tparam T Matrix value data type
 /// \tparam M Number of rows
 /// \tparam N Number of columns
@@ -49,104 +51,67 @@ template < typename T, uint_t M, uint_t N >
 class Matrix
 {
  public:
-   static const uint_t Size = M * N;
+   // static const uint_t Size = M * N;
 
    /// Default constructor setting all components to zero
-   Matrix()
-   {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] = (T) 0;
-      }
-   }
+   Matrix() { matrix_.array() = static_cast< T >( 0 ); }
 
    /// Sets all values to the given constant
-   Matrix( const T& constant )
-   {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] = constant;
-      }
-   }
+   Matrix( const T& constant ) { matrix_.array() = constant; }
 
-   /// Constructs the matrix using values from M*N-dimensional array \p _x in row-major order
-   /// \param _x Pointer to M*N-dimensional array
-   Matrix( T _x[Size] )
-   {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] = _x[i];
-      }
-   }
+   /// Sets all values to the given constant
+   Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
 
    /// Copy constructor
    /// \param b Reference to another instance of Matrix
-   Matrix( const Matrix& b )
-   {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] = b.x[i];
-      }
-   }
+   Matrix( const Matrix& other ) { matrix_ = other.matrix_; }
 
    /// Get reference to a single matrix component
-   /// \param row Row index
-   /// \param col Column index
-   /// \returns Reference to component at position [row,col] in matrix
-   T& operator()( uint_t row, uint_t col )
+   /// \param rIdx row index
+   /// \param cIdx column index
+   /// \returns Reference to component at position [rIdx,cIdx] in matrix
+   T& operator()( uint_t rIdx, uint_t cIdx )
    {
-      WALBERLA_ASSERT( row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M );
-      WALBERLA_ASSERT( col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N );
-      return x[N * row + col];
+      WALBERLA_ASSERT( rIdx < M, "Matrix row index out of bounds: rIdx = " << rIdx << " but M = " << M );
+      WALBERLA_ASSERT( cIdx < N, "Matrix column index out of bounds: cIdx = " << cIdx << " but N = " << N );
+      return matrix_( int_c( rIdx ), int_c( cIdx ) );
    }
 
    /// Get const reference to a single matrix component
-   /// \param row Row index
-   /// \param col Column index
-   /// \returns Const reference to component at position [row,col] in matrix
-   const T& operator()( uint_t row, uint_t col ) const
+   /// \param rIdx row index
+   /// \param cIdx column index
+   /// \returns Const reference to component at position [rIdx,cIdx] in matrix
+   const T& operator()( uint_t rIdx, uint_t cIdx ) const
    {
-      WALBERLA_ASSERT( row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M );
-      WALBERLA_ASSERT( col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N );
-      return x[N * row + col];
+      WALBERLA_ASSERT( rIdx < M, "Matrix row index out of bounds: rIdx = " << rIdx << " but M = " << M );
+      WALBERLA_ASSERT( cIdx < N, "Matrix column index out of bounds: cIdx = " << cIdx << " but N = " << N );
+      return matrix_( int_c( rIdx ), int_c( cIdx ) );
    }
 
    /// Get raw pointer to underlying matrix data
    /// \returns Pointer to first element of underlying matrix data
-   T* data() { return &x[0]; }
+   T* data() { return matrix_.data(); }
 
    /// Get const raw pointer to underlying matrix data
    /// \returns Constant pointer to first element of underlying matrix data
-   const T* data() const { return &x[0]; }
+   const T* data() const { return matrix_.data(); }
 
    Matrix< T, M, N >& operator+=( const Matrix< T, M, N >& rhs )
    {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] += rhs.x[i];
-      }
+      matrix_ += rhs.matrix_;
       return *this;
    }
 
    Matrix< T, M, N >& operator*=( T scalar )
    {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] *= scalar;
-      }
+      matrix_.array() *= scalar;
       return *this;
    }
 
    Matrix< T, N, M > transpose()
    {
       Matrix< T, N, M > out;
-      for ( uint_t i = 0; i < M; ++i )
-      {
-         for ( uint_t j = 0; j < N; ++j )
-         {
-            out( j, i ) = ( *this )( i, j );
-         }
-      }
+      out.matrix_ = matrix_.transpose();
       return out;
    }
 
@@ -154,79 +119,29 @@ class Matrix
    Matrix< T, M, N_rhs > mul( const Matrix< T, N, N_rhs >& rhs )
    {
       Matrix< T, M, N_rhs > out;
-      for ( uint_t i = 0; i < M; ++i )
-      {
-         for ( uint_t j = 0; j < N_rhs; ++j )
-         {
-            for ( uint_t k = 0; k < N; ++k )
-            {
-               out( i, j ) += ( *this )( i, k ) * rhs( k, j );
-            }
-         }
-      }
+      out.matrix_ = matrix_ * rhs.matrix_;
       return out;
    }
 
    PointND< T, M > mul( const PointND< T, N >& rhs ) const
    {
       PointND< T, M > out;
-      for ( uint_t i = 0; i < M; ++i )
-      {
-         for ( uint_t j = 0; j < N; ++j )
-         {
-            out[i] += ( *this )( i, j ) * rhs[j];
-         }
-      }
+      out.vector_ = matrix_ * rhs.vector_;
       return out;
    }
 
    Matrix< T, M, N > inverse() const
    {
-      if constexpr ( N == M && N == 2 )
-      {
-         Matrix< T, M, N > out;
-
-         T det       = ( *this )( 0, 0 ) * ( *this )( 1, 1 ) - ( *this )( 0, 1 ) * ( *this )( 1, 0 );
-         det         = static_cast< T >( 1 ) / det;
-         out( 0, 0 ) = +( *this )( 1, 1 ) * det;
-         out( 0, 1 ) = -( *this )( 0, 1 ) * det;
-         out( 1, 0 ) = -( *this )( 1, 0 ) * det;
-         out( 1, 1 ) = +( *this )( 0, 0 ) * det;
-
-         return out;
-      }
-      WALBERLA_ABORT( "Adjugate computation not implemented for matrix dimensions " << M << " x " << N )
+     Matrix< T, M, N > out;
+     out.matrix_ = matrix_.inverse();
    }
 
-   T det() const
-   {
-      if constexpr ( N == M && N == 2 )
-      {
-         return ( *this )( 0, 0 ) * ( *this )( 1, 1 ) - ( *this )( 0, 1 ) * ( *this )( 1, 0 );
-      }
-      else if constexpr ( N == M && N == 3 )
-      {
-         return ( *this )( 0, 0 ) * ( *this )( 1, 1 ) * ( *this )( 2, 2 ) +
-                ( *this )( 0, 1 ) * ( *this )( 1, 2 ) * ( *this )( 2, 0 ) +
-                ( *this )( 0, 2 ) * ( *this )( 1, 0 ) * ( *this )( 2, 1 ) -
-                ( *this )( 2, 0 ) * ( *this )( 1, 1 ) * ( *this )( 0, 2 ) -
-                ( *this )( 2, 1 ) * ( *this )( 1, 2 ) * ( *this )( 0, 0 ) -
-                ( *this )( 2, 2 ) * ( *this )( 1, 0 ) * ( *this )( 0, 1 );
-      }
+   T det() const { return matrix_.determinant(); }
 
-      WALBERLA_ABORT( "Determinant computation not implemented for matrix dimensions " << M << " x " << N )
-   }
+   void setAll( const T& constant ) { matrix_.array() = constant; }
 
-   void setAll( const T& constant )
-   {
-      for ( uint_t i = 0; i < Size; ++i )
-      {
-         x[i] = constant;
-      }
-   }
+   Eigen::Matrix< T, M, N, Eigen::RowMajor > matrix_;
 
- private:
-   T x[Size];
 };
 
 template < typename T, uint_t M, uint_t N >
