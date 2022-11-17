@@ -42,14 +42,15 @@ typedef Kernel::Point_2                                   Point_2;
 ///
 /// The function returns a bool to indicate whether any plate matched, the plate's ID and
 /// the distance from this plate's boundary
-std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point )
+std::tuple< bool, uint_t, real_t >
+    findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point, uint_t idWhenNoPlateFound )
 {
    // query all plates for given age stage
    auto& plates = plateStore.getPlatesForStage( age );
 
    // be pessimistic
    bool   plateFound{ false };
-   uint_t plateID{ 0 };
+   uint_t plateID{ idWhenNoPlateFound };
    real_t distance{ std::numeric_limits< real_t >::max() };
 
    for ( auto& currentPlate : plates )
@@ -75,13 +76,16 @@ std::tuple< bool, uint_t, real_t > findPlateAndDistance( const real_t age, const
          case CGAL::ON_BOUNDED_SIDE:
             for ( int k = 0; k < bdrPolygon.size() - 1; ++k )
             {
-               a = terraneo::plates::getDistanceLinePoint(
-                   rotPoint,
-                   { bdrPolygon[k]( 0 ), bdrPolygon[k]( 1 ), bdrPolygon[k]( 2 ) },
-                   { bdrPolygon[k + 1]( 0 ), bdrPolygon[k + 1]( 1 ), bdrPolygon[k + 1]( 2 ) } );
-               if ( bdrPolygon[k] != bdrPolygon[k + 1] and a <= distance )
+               if ( bdrPolygon[k] != bdrPolygon[k + 1] ) // apparently there can be "double points" in the data
                {
-                  distance = a;
+                  a = terraneo::plates::getDistanceLinePoint(
+                      rotPoint,
+                      { bdrPolygon[k]( 0 ), bdrPolygon[k]( 1 ), bdrPolygon[k]( 2 ) },
+                      { bdrPolygon[k + 1]( 0 ), bdrPolygon[k + 1]( 1 ), bdrPolygon[k + 1]( 2 ) } );
+                  if ( a < distance )
+                  {
+                     distance = a;
+                  }
                }
             }
             plateFound = true;
@@ -126,8 +130,8 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
    eVector = terraneo::conversions::degToRad( wXYZ ) * real_c( 1e-6 );
 
    // Transform to the point to the xyz in a sphere of earthRadius;
-   pxyz = terraneo::conversions::cart2sph( point );
-   pxyz = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
+   pxyz    = terraneo::conversions::cart2sph( point );
+   pxyz    = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
    vec3D v = eVector.cross( pxyz );
 
    v *= smoothing / toms;

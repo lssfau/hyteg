@@ -45,6 +45,8 @@ inline real_t distancePointPoint( const vec3D& lonlat1, const vec3D& lonlat2 )
 /// https://github.com/geopy/geopy/blob/master/geopy/distance.py
 vec3D intersectPointWithLine( const vec3D& point, const vec3D& lineStart, const vec3D& lineEnd )
 {
+   WALBERLA_ASSERT( lineStart != lineEnd, "Line in intersectPointWithLine() should not be degenerate." );
+
    // find the intersect point (the projected point) on the line
    vec3D  lineVec    = ( lineEnd - lineStart );
    real_t lineLength = lineVec.norm();
