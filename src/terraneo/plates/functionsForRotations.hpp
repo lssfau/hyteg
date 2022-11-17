@@ -147,7 +147,6 @@ int determineSeriesOfFiniteRotations( const rotIter_t&               rangeBegin,
       // determine in which position of the asked time to grab the corresponding lines
       //
       // NOTE: if loop does not return a hit, the 0 remains unchanged!
-      // Starting from 1, since fin0 has that leading extra entry
       int jj = 0;
       for ( int idx = 0; idx < fin0.size(); ++idx )
       {
