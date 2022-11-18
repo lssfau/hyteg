@@ -50,6 +50,19 @@ using walberla::uint_t;
 template < typename T, uint_t M, uint_t N >
 class Matrix
 {
+   // Eigen does not allow to create column-vectors in row-major ordering
+   static constexpr Eigen::StorageOptions storageType()
+   {
+      if constexpr ( N == 1 )
+      {
+         return Eigen::ColMajor;
+      }
+      else
+      {
+         return Eigen::RowMajor;
+      }
+   }
+
  public:
    // static const uint_t Size = M * N;
 
@@ -140,8 +153,8 @@ class Matrix
 
    void setAll( const T& constant ) { matrix_.array() = constant; }
 
-   Eigen::Matrix< T, M, N, Eigen::RowMajor > matrix_;
-
+   /// Internally the matrix is stores as a dense Eigen::Matrix
+   Eigen::Matrix< T, M, N, Matrix< T, M, N >::storageType() > matrix_;
 };
 
 template < typename T, uint_t M, uint_t N >
