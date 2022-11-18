@@ -88,6 +88,7 @@ namespace hyteg {
                 using StokesFunctionType = typename StokesOperatorType::srcType;
                 using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType<idx_t>;
 
+
                 StokesConvergenceOrderTest(const std::string &testName,
                                            LambdaTuple solTuple,
                                            LambdaTuple rhsTuple,
@@ -127,6 +128,7 @@ namespace hyteg {
                 }
 
             private:
+                // subclass handling the computation of convergence rates
                 class EGConvRatesCounter {
                 public:
                     EGConvRatesCounter() : errors_({std::nan(""), std::nan(""), std::nan(""), std::nan("")}),
@@ -160,72 +162,132 @@ namespace hyteg {
                     std::array<real_t, 4> rates_;
                 };
 
-                std::array<real_t, 4>
-                computeErrorNorms(uint_t level, StokesFunctionType &err, StokesFunctionType &Merr) {
-                    real_t e_v, e_v_conf, e_v_disc, e_p;
-                    e_v_conf = 0.;
-                    e_v_disc = 0.;
-                    if constexpr (isEGP0Discr<StokesOperatorType>()) {
-                        EGMassOperator M_vel(storage_, level, level);
-                        M_vel.apply(err.uvw(), Merr.uvw(), level, All, Replace);
-                        auto mass_form = std::make_shared<dg::P0P0MassForm>();
-                        dg::DGOperator M_pressure(storage_, level, level, mass_form);
-                        M_pressure.apply(*err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace);
-                        e_p = sqrt(err.p().dotGlobal(Merr.p(), level, All));
-                        e_v = sqrt(err.uvw().dotGlobal(Merr.uvw(), level, All));
-                    } else if constexpr (isP2P1Discr<StokesOperatorType>()) {
-                        WALBERLA_UNUSED(e_v_conf);
-                        WALBERLA_UNUSED(e_v_disc);
-                        P2ConstantMassOperator M_vel(storage_, level, level);
-                        if (!storage_->hasGlobalCells()) {
-                            M_vel.apply(err.uvw()[0], Merr.uvw()[0], level, Inner, Replace);
-                            M_vel.apply(err.uvw()[1], Merr.uvw()[1], level, Inner, Replace);
+                // subclass handling the computation of error norms
+                class EGNormComputer {
+                public:
+                    EGNormComputer(uint_t level, StokesFunctionType &err,
+                                   const std::shared_ptr<PrimitiveStorage> &storage) : level_(level), storage_(storage),
+                                                                                       err_(err),
+                                                                                       tmpErr_("tmpErr", storage, level,
+                                                                                               level) {}
+
+                    std::array<real_t, 4> computeInL2Norm() {
+                        if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                            auto [e_v_conf, e_v_disc] = L2VeloSplitError();
+                            return {L2VeloError(), e_v_conf, e_v_disc, L2PressureError()};
                         } else {
-                            M_vel.apply(err.uvw()[0], Merr.uvw()[0], level, Inner, Replace);
-                            M_vel.apply(err.uvw()[1], Merr.uvw()[1], level, Inner, Replace);
-                            M_vel.apply(err.uvw()[2], Merr.uvw()[2], level, Inner, Replace);
+                            return {L2VeloError(), -1., -1., L2PressureError()};
                         }
-                        P1ConstantMassOperator M_pressure(storage_, level, level);
-                        M_pressure.apply(err.p(), Merr.p(), level, All, Replace);
+                    }
 
-                        /*
-                        P2toP2QuadraticProlongation P2P2ProlongationOp;
-
-                        P1toP1LinearProlongation P1P1ProlongationOp;
-                        for (uint_t k = 0; k < err.uvw().getDimension(); k++) {
-                            P2P2ProlongationOp.prolongate(err.uvw()[k], level, Inner);
+                    std::array<real_t, 4> computeInEnergyNorm() {
+                        if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                            auto [e_v_conf, e_v_disc] = L2VeloSplitError();
+                            return {EnergyVeloError(), e_v_conf, e_v_disc, L2PressureError()};
+                        } else {
+                            return {EnergyVeloError(), -1., -1., L2PressureError()};
                         }
-                        P1P1ProlongationOp.prolongate(err.p(), level, Inner);
-                        //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
-                        //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
-                        //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
-                        discrL2_velocity_err =
-                                sqrt(err.uvw().dotGlobal(err.uvw(), level + 1, Inner) /
-                                     real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
-*/
-                        e_v = sqrt(err.uvw().dotGlobal(Merr.uvw(), level, All));
-                        e_p = sqrt(err.p().dotGlobal(Merr.p(), level, All));
                     }
-                    if constexpr (isEGP0Discr<StokesOperatorType>()) {
-                        e_v_disc = sqrt(err.uvw().getDiscontinuousPart()->dotGlobal(
-                                *err.uvw().getDiscontinuousPart(), level, All) /
-                                        real_c(numberOfGlobalDoFs(*err.uvw().getDiscontinuousPart(),
-                                                                  level)));
-                        e_v_conf = sqrt(err.uvw().getConformingPart()->dotGlobal(
-                                *err.uvw().getConformingPart(), level, All) /
-                                        real_c(numberOfGlobalDoFs(*err.uvw().getConformingPart(),
-                                                                  level)));
-                        return {e_v, e_v_conf, e_v_disc, e_p};
-                    } else {
-                        return {e_v, -1, -1, e_p};
+
+                private:
+                    real_t L2PressureError() {
+                        if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                            auto mass_form = std::make_shared<dg::P0P0MassForm>();
+                            dg::DGOperator M_pressure(storage_, level_, level_, mass_form);
+                            M_pressure.apply(*err_.p().getDGFunction(), *tmpErr_.p().getDGFunction(), level_, All,
+                                             Replace);
+
+                        } else {
+                            P1ConstantMassOperator M_pressure(storage_, level_, level_);
+                            M_pressure.apply(err_.p(), tmpErr_.p(), level_, All, Replace);
+                        }
+                        return sqrt(err_.p().dotGlobal(tmpErr_.p(), level_, All));
                     }
-                    // discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
-                    //      discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
-                    //  discrL2_velocity_err = sqrt( err.uvw().dotGlobal( err.uvw(), level, All )/ real_c( numberOfGlobalDoFs( u.uvw(), level ) ) );
-                    // discrL2_pressure_err = sqrt( err.p().dotGlobal( err.p(), level, All ) / real_c( numberOfGlobalDoFs( u.p(), level ) ));
 
+                    real_t EnergyVeloError() {
+                        if constexpr(std::is_same<StokesOperatorType, EGP0StokesOperator>::value || std::is_same<StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator>::value) {
+                            typename StokesOperatorType::VelocityBlockOperator_T A(storage_, level_, level_);
+                            A.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
+                            sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
+                        } else {
+                            WALBERLA_ABORT("Not imlemented");
+                        }
+                    }
 
-                }
+                    real_t L2VeloError() {
+                        real_t e_v = -1;
+                        if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                            EGMassOperator M_vel(storage_, level_, level_);
+                            M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
+                        } else if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                            P2ConstantMassOperator M_vel(storage_, level_, level_);
+                            if (!storage_->hasGlobalCells()) {
+                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_, Inner, Replace);
+                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_, Inner, Replace);
+                            } else {
+                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_, Inner, Replace);
+                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_, Inner, Replace);
+                                M_vel.apply(err_.uvw()[2], tmpErr_.uvw()[2], level_, Inner, Replace);
+                            }
+                            /*
+                          P2toP2QuadraticProlongation P2P2ProlongationOp;
+
+                          P1toP1LinearProlongation P1P1ProlongationOp;
+                          for (uint_t k = 0; k < err.uvw().getDimension(); k++) {
+                              P2P2ProlongationOp.prolongate(err.uvw()[k], level, Inner);
+                          }
+                          P1P1ProlongationOp.prolongate(err.p(), level, Inner);
+                          //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
+                          //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
+                          //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
+                          discrL2_velocity_err =
+                                  sqrt(err.uvw().dotGlobal(err.uvw(), level + 1, Inner) /
+                                       real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
+    */
+                        }
+                        return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
+                    }
+
+                    // returns the split velocity error for an EG discretization: conforming and discontinuous parts
+                    std::tuple<real_t, real_t> L2VeloSplitError() {
+                        real_t e_v_disc = sqrt(err_.uvw().getDiscontinuousPart()->dotGlobal(
+                                *err_.uvw().getDiscontinuousPart(), level_, All) /
+                                               real_c(numberOfGlobalDoFs(*err_.uvw().getDiscontinuousPart(),
+                                                                         level_)));
+                        real_t e_v_conf = sqrt(err_.uvw().getConformingPart()->dotGlobal(
+                                *err_.uvw().getConformingPart(), level_, All) /
+                                               real_c(numberOfGlobalDoFs(*err_.uvw().getConformingPart(),
+                                                                         level_)));
+                        return std::make_tuple(e_v_conf, e_v_disc);
+                    }
+
+                    const uint_t level_;
+                    const std::shared_ptr<PrimitiveStorage> &storage_;
+                    StokesFunctionType &err_;
+                    StokesFunctionType tmpErr_;
+
+                };
+                /*
+                                 P2toP2QuadraticProlongation P2P2ProlongationOp;
+
+                                 P1toP1LinearProlongation P1P1ProlongationOp;
+                                 for (uint_t k = 0; k < err.uvw().getDimension(); k++) {
+                                     P2P2ProlongationOp.prolongate(err.uvw()[k], level, Inner);
+                                 }
+                                 P1P1ProlongationOp.prolongate(err.p(), level, Inner);
+                                 //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
+                                 //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
+                                 //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
+                                 discrL2_velocity_err =
+                                         sqrt(err.uvw().dotGlobal(err.uvw(), level + 1, Inner) /
+                                              real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
+           */
+
+                // discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
+                //      discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
+                //  discrL2_velocity_err = sqrt( err.uvw().dotGlobal( err.uvw(), level, All )/ real_c( numberOfGlobalDoFs( u.uvw(), level ) ) );
+                // discrL2_pressure_err = sqrt( err.p().dotGlobal( err.p(), level, All ) / real_c( numberOfGlobalDoFs( u.p(), level ) ));
+
 
                 void setupRHSandBC(uint_t level, const StokesFunctionType &f, StokesFunctionType &rhs,
                                    StokesFunctionType &u) {
@@ -240,7 +302,7 @@ namespace hyteg {
                             M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All);
                             M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All);
                             u.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
-                            rhs.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
+                            rhs.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
                         } else {
                             M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All);
                             M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All);
@@ -258,11 +320,12 @@ namespace hyteg {
                         if (!storage_->hasGlobalCells()) {
                             u.uvw().getConformingPart()->interpolate({u_x_expr, u_y_expr}, level,
                                                                      DirichletBoundary);
-                            rhs.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
+                            rhs.uvw().getConformingPart()->interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
                         } else {
                             u.uvw().getConformingPart()->interpolate({u_x_expr, u_y_expr, u_z_expr}, level,
                                                                      DirichletBoundary);
-                            rhs.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
+                            rhs.uvw().getConformingPart()->interpolate({u_x_expr, u_y_expr, u_z_expr}, level,
+                                                                       DirichletBoundary);
                         }
 
                         auto mass_form = std::make_shared<dg::P0P0MassForm>();
@@ -314,37 +377,15 @@ namespace hyteg {
                     // interpolate analytical solution and rhs
                     if (!storage_->hasGlobalCells()) {
                         sol.uvw().interpolate({u_x_expr, u_y_expr}, level, All);
-                        f.uvw().interpolate({f_x_expr, f_y_expr}, level, All);
+                        f.uvw().interpolate({f_x_expr, f_y_expr}, level, Inner);
                     } else {
                         sol.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, All);
-                        f.uvw().interpolate({f_x_expr, f_y_expr, f_z_expr}, level, All);
+                        f.uvw().interpolate({f_x_expr, f_y_expr, f_z_expr}, level, Inner);
                     }
                     sol.p().interpolate(p_expr, level, All);
                     f.p().interpolate(g_expr, level, All);
 
                     setupRHSandBC(level, f, rhs, u);
-
-                    if (writeVTK_) {
-                        if constexpr (isEGP0Discr<StokesOperatorType>()) {
-                            VTKOutput vtk("/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg_premerge/hyteg-build/output",
-                                          testName_, storage_);
-                            vtk.add(u);
-                            vtk.add(*u.uvw().getConformingPart());
-                            vtk.add(*u.uvw().getDiscontinuousPart());
-
-                            vtk.add(sol);
-                            vtk.add(*sol.uvw().getConformingPart());
-                            vtk.add(*sol.uvw().getDiscontinuousPart());
-
-                            vtk.add(err);
-                            vtk.add(*err.uvw().getConformingPart());
-                            vtk.add(*err.uvw().getDiscontinuousPart());
-
-                            vtk.add(f);
-
-                            vtk.write(level, 1);
-                        }
-                    }
 
                     // solve
                     switch (solverType_) {
@@ -354,13 +395,24 @@ namespace hyteg {
                             solver.solve(Op_, u, rhs, level);
                             break;
                         }
+                        case 1: {
+                            // does this solver make sense with the D-block=0?
+                            PETScLUSolver<StokesOperatorType> solver(storage_, level);
+                            solver.setAssumeSymmetry(true);
+                            StokesFunctionType nullSpace("ns", storage_, level, level);
+                            nullSpace.uvw().interpolate(0, level, All);
+                            nullSpace.p().interpolate(1, level, All);
+                            solver.setNullSpace(nullSpace, level);
+                            solver.solve(Op_, u, rhs, level);
+                            break;
+                        }
                         default: {
                             PETScMinResSolver<StokesOperatorType> solver(storage_, level);
                             solver.setFromOptions(true);
-                            /*StokesFunctionType nullSpace("ns", storage, level, level);
+                            StokesFunctionType nullSpace("ns", storage_, level, level);
                             nullSpace.uvw().interpolate(0, level, All);
                             nullSpace.p().interpolate(1, level, All);
-                            solver.setNullSpace(nullSpace);*/
+                            solver.setNullSpace(nullSpace);
                             solver.solve(Op_, u, rhs, level);
                             break;
                         }
@@ -400,7 +452,8 @@ namespace hyteg {
                     }
 
                     //real_t h = MeshQuality::getMaximalEdgeLength(storage, level);
-                    return computeErrorNorms(level, err, Merr);
+                    //return computeErrorNorms(level, err, Merr);
+                    return EGNormComputer(level, err, storage_).computeInEnergyNorm();
                 }
 
                 std::string testName_;
