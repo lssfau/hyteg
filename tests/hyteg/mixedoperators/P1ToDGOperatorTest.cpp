@@ -34,10 +34,10 @@ using namespace hyteg;
 using walberla::real_t;
 using walberla::math::pi;
 
-void checkP1ToDG1ByIntegral(const uint_t dim)
+void checkP1ToDG1ByIntegral( const uint_t dim )
 {
    std::string mesh_file;
-   if (dim == 2)
+   if ( dim == 2 )
       mesh_file = "../../data/meshes/quad_4el.msh";
    else
       mesh_file = "../../data/meshes/3D/cube_6el.msh";
@@ -60,14 +60,42 @@ void checkP1ToDG1ByIntegral(const uint_t dim)
 
    op.apply( src, *dst.getDGFunction(), level, All, hyteg::Replace );
 
-   auto massForm    = std::make_shared< DGMassForm_Example >();
+   auto        massForm = std::make_shared< DGMassForm_Example >();
    DG1Operator M( storage, level, level, massForm );
 
    M.apply( dst, Mdst, level, All, Replace );
-   const real_t integralValue = Mdst.sumGlobal(level, All);
-   const real_t expectedIntegralValue = 0.5 - 0.1 * 0.5 + (dim==3 ? 0.2 * 0.5 : 0.);
+   const real_t integralValue         = Mdst.sumGlobal( level, All );
+   const real_t expectedIntegralValue = 0.5 - 0.1 * 0.5 + ( dim == 3 ? 0.2 * 0.5 : 0. );
 
    WALBERLA_CHECK_FLOAT_EQUAL( integralValue, expectedIntegralValue, "integral values must match" );
+
+   // VTK
+   // VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
+   // vtkOutput.add( src );
+   // vtkOutput.add( dst );
+   // vtkOutput.write( level, 0 );
+}
+
+void enumerateTest()
+{
+   std::string mesh_file = "../../data/meshes/quad_4el.msh";
+
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
+
+   SetupPrimitiveStorage setup( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   const auto            storage = std::make_shared< PrimitiveStorage >( setup, 1 );
+
+   const uint_t level = 2;
+   const auto   form  = std::make_shared< InterpolationForm >();
+
+   P1Function< idx_t >  src( "src", storage, level, level );
+   DG1Function< idx_t > dst( "dst", storage, level, level );
+
+   P1ToDGOperator< InterpolationForm, idx_t > op( storage, level, level, form );
+
+   src.enumerate( level );
+
+   op.apply( src, *dst.getDGFunction(), level, All, hyteg::Replace );
 
    // VTK
    // VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
@@ -81,8 +109,9 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   checkP1ToDG1ByIntegral(2);
-   checkP1ToDG1ByIntegral(3);
+   checkP1ToDG1ByIntegral( 2 );
+   checkP1ToDG1ByIntegral( 3 );
+   enumerateTest();
 
    return EXIT_SUCCESS;
 }

@@ -81,25 +81,25 @@ class InterpolationForm
    }
 };
 
-template < typename Form >
-class P1ToDGOperator : public Operator< P1Function< real_t >, DGFunction< real_t > >
+template < typename Form, typename ValueType = real_t >
+class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< ValueType > >
 {
  public:
    P1ToDGOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                    uint_t                                     minLevel,
                    uint_t                                     maxLevel,
                    std::shared_ptr< Form >                    form = std::make_shared< Form >() )
-   : Operator< P1Function< real_t >, DGFunction< real_t > >( storage, minLevel, maxLevel )
+   : Operator< P1Function< ValueType >, DGFunction< ValueType > >( storage, minLevel, maxLevel )
    , form_( form )
    {}
 
    typedef Form FormType;
 
-   void apply( const P1Function< real_t >& src,
-               const DGFunction< real_t >& dst,
-               size_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType ) const override
+   void apply( const P1Function< ValueType >& src,
+               const DGFunction< ValueType >& dst,
+               size_t                         level,
+               DoFType                        flag,
+               UpdateType                     updateType ) const override
    {
       assembleAndOrApply( src, dst, level, flag, nullptr, updateType );
    }
@@ -210,11 +210,11 @@ class P1ToDGOperator : public Operator< P1Function< real_t >, DGFunction< real_t
 
                if ( dim == 2 )
                {
-                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage_ );
+                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage );
                }
                else
                {
-                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage_ );
+                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage );
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
