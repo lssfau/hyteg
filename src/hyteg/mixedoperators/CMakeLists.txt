@@ -11,6 +11,7 @@ target_sources( hyteg
     P0ToP1Operator.hpp
     P1VectorToP0ScalarOperator.hpp
     P0ScalarToP1VectorOperator.hpp
+    P1ToDGOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( VertexDoFToEdgeDoFOperator )
