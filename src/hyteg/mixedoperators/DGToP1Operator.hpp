@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include <hyteg/communication/Syncing.hpp>
-
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
@@ -38,12 +37,14 @@
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/mixedoperators/P1ToDGOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+
 namespace hyteg {
 
 using namespace dg;
@@ -53,52 +54,22 @@ using volumedofspace::indexing::VolumeDoFMemoryLayout;
 using walberla::int_c;
 using walberla::real_t;
 
-class P1ToDG1InterpolationForm
-{
- public:
-   bool onlyVolumeIntegrals() { return true; }
-
-   void integrateVolume( int                                                      dim,
-                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
-                         const DGBasisInfo&                                       trialBasis,
-                         const DGBasisInfo&                                       testBasis,
-                         int                                                      trialDegree,
-                         int                                                      testDegree,
-                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-   {
-      WALBERLA_UNUSED( coords );
-      WALBERLA_UNUSED( trialBasis );
-      WALBERLA_UNUSED( testBasis );
-      WALBERLA_UNUSED( trialDegree );
-      WALBERLA_UNUSED( testDegree );
-
-      WALBERLA_ASSERT_EQUAL( trialBasis, 1, "trial basis has to be 1" );
-      WALBERLA_ASSERT_EQUAL( testBasis, 1, "test basis has to be 1" );
-      WALBERLA_ASSERT_EQUAL( trialDegree, 1, "trial degree has to be 1" );
-      WALBERLA_ASSERT_EQUAL( testDegree, 1, "trial degree has to be 1" );
-
-      const auto size = dim + 1;
-      elMat.resize( size, size );
-      elMat.setIdentity();
-   }
-};
-
 template < typename Form, typename ValueType = real_t >
-class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< ValueType > >
+class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< ValueType > >
 {
  public:
-   P1ToDGOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+   DGToP1Operator( const std::shared_ptr< PrimitiveStorage >& storage,
                    uint_t                                     minLevel,
                    uint_t                                     maxLevel,
                    std::shared_ptr< Form >                    form = std::make_shared< Form >() )
-   : Operator< P1Function< ValueType >, DGFunction< ValueType > >( storage, minLevel, maxLevel )
+   : Operator< DGFunction< ValueType >, P1Function< ValueType > >( storage, minLevel, maxLevel )
    , form_( form )
    {}
 
    typedef Form FormType;
 
-   void apply( const P1Function< ValueType >& src,
-               const DGFunction< ValueType >& dst,
+   void apply( const DGFunction< ValueType >& src,
+               const P1Function< ValueType >& dst,
                size_t                         level,
                DoFType                        flag,
                UpdateType                     updateType ) const override
@@ -107,8 +78,8 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1Function< idx_t >&                  src,
-                  const DGFunction< idx_t >&                  dst,
+                  const DGFunction< idx_t >&                  src,
+                  const P1Function< idx_t >&                  dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
@@ -138,8 +109,8 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
 
    /// \brief This is similar to the implementation in the dg::DGOperator class.
    template < typename VType >
-   inline void assembleAndOrApply( const P1Function< VType >&                  src,
-                                   const DGFunction< VType >&                  dst,
+   inline void assembleAndOrApply( const DGFunction< VType >&                  src,
+                                   const P1Function< VType >&                  dst,
                                    size_t                                      level,
                                    DoFType                                     flag,
                                    const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -148,12 +119,16 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
       // To avoid code duplication in this already long method, the implementation "fuses" the 2D and 3D implementation.
       // This more or less serves as a reference - for better performance the matrix-vector multiplication should be specialized.
 
-      DGBasisLinearLagrange_Example srcBasis;
+      // zero out destination
+      if (updateType == Replace)
+         dst.interpolate(0, level, All);
+
+      DGBasisLinearLagrange_Example dstBasis;
 
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
-      communication::syncFunctionBetweenPrimitives( src, level );
-      dst.communicate( level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
+      src.communicate( level );
 
       const auto storage = this->getStorage();
 
@@ -163,16 +138,16 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
 
       for ( const auto& pid : pids )
       {
-         const auto srcPolyDegree = 1;
-         const auto dstPolyDegree = dst.polynomialDegree( pid );
+         const auto dstPolyDegree = 1;
+         const auto srcPolyDegree = src.polynomialDegree( pid );
 
-         const auto numSrcDofs = dim + 1;
-         const auto numDstDofs = dst.basis()->numDoFsPerElement( dim, dstPolyDegree );
+         const auto numDstDofs = dim + 1;
+         const auto numSrcDofs = src.basis()->numDoFsPerElement( dim, dstPolyDegree );
 
-         const auto srcDofMemory = p1Data< VType >( src, storage, pid, level );
-         auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( pid, level );
+         const auto dstDofMemory = p1Data< VType >( dst, storage, pid, level );
+         auto       srcDofMemory = src.volumeDoFFunction()->dofMemory( pid, level );
 
-         const auto dstMemLayout = dst.volumeDoFFunction()->memoryLayout();
+         const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
 
          const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
@@ -212,11 +187,11 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
 
                if ( dim == 2 )
                {
-                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, src.getBoundaryCondition(), pid, storage );
+                  neighborInfo = ElementNeighborInfo( elementIdx, faceType, level, dst.getBoundaryCondition(), pid, storage );
                }
                else
                {
-                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, src.getBoundaryCondition(), pid, storage );
+                  neighborInfo = ElementNeighborInfo( elementIdx, cellType, level, dst.getBoundaryCondition(), pid, storage );
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
@@ -235,7 +210,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                // So we need to obtain the DoFs a little differently and set the basis manually.
 
                form_->integrateVolume(
-                   dim, neighborInfo.elementVertexCoords(), srcBasis, *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
+                   dim, neighborInfo.elementVertexCoords(), *src.basis(), dstBasis, srcPolyDegree, dstPolyDegree, localMat );
 
                Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
@@ -253,19 +228,23 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
                }
 
+               /*
+               for ( uint_t dstDofIdx = 0; dstDofIdx < numSrcDofs; dstDofIdx++ )
+               {
+               }
+                */
+
                for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                {
                   if ( dim == 2 )
                   {
-                     srcDofs( srcDofIdx ) = srcDofMemory[vertexdof::macroface::index(
-                         level, vertexDoFIndices[srcDofIdx].x(), vertexDoFIndices[srcDofIdx].y() )];
+                     srcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index(
+                         elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                   }
                   else
                   {
-                     srcDofs( srcDofIdx ) = srcDofMemory[vertexdof::macrocell::index( level,
-                                                                                      vertexDoFIndices[srcDofIdx].x(),
-                                                                                      vertexDoFIndices[srcDofIdx].y(),
-                                                                                      vertexDoFIndices[srcDofIdx].z() )];
+                     srcDofs( srcDofIdx ) = srcDofMemory[volumedofspace::indexing::index(
+                         elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                   }
                }
 
@@ -283,27 +262,27 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                      {
                         if ( dim == 2 )
                         {
-                           const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index(
-                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )];
-                           const auto globalColIdx = srcDofMemory[vertexdof::macroface::index(
-                               level, vertexDoFIndices[srcDofIdx].x(), vertexDoFIndices[srcDofIdx].y() )];
+                           const auto globalRowIdx = dstDofMemory[vertexdof::macroface::index(
+                               level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() )];
+                           const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index(
+                               elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )];
                            mat->addValue(
                                globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), Eigen::Index( srcDofIdx ) ) );
                         }
                         else
                         {
-                           const auto globalRowIdx = dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                           const auto globalRowIdx = dstDofMemory[vertexdof::macrocell::index( level,
+                                                                                               vertexDoFIndices[dstDofIdx].x(),
+                                                                                               vertexDoFIndices[dstDofIdx].y(),
+                                                                                               vertexDoFIndices[dstDofIdx].z() )];
+                           const auto globalColIdx = srcDofMemory[volumedofspace::indexing::index( elementIdx.x(),
                                                                                                    elementIdx.y(),
                                                                                                    elementIdx.z(),
                                                                                                    cellType,
-                                                                                                   dstDofIdx,
-                                                                                                   numDstDofs,
+                                                                                                   srcDofIdx,
+                                                                                                   numSrcDofs,
                                                                                                    level,
-                                                                                                   dstMemLayout )];
-                           const auto globalColIdx = srcDofMemory[vertexdof::macrocell::index( level,
-                                                                                               vertexDoFIndices[srcDofIdx].x(),
-                                                                                               vertexDoFIndices[srcDofIdx].y(),
-                                                                                               vertexDoFIndices[srcDofIdx].z() )];
+                                                                                                   srcMemLayout )];
                            mat->addValue(
                                globalRowIdx, globalColIdx, localMat( Eigen::Index( dstDofIdx ), Eigen::Index( srcDofIdx ) ) );
                         }
@@ -318,54 +297,38 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                   {
                      if ( dim == 2 )
                      {
-                        if ( updateType == Replace )
-                        {
-                           dstDofMemory[volumedofspace::indexing::index(
-                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] =
-                               dstDofs( dstDofIdx );
-                        }
-                        else if ( updateType == Add )
-                        {
-                           dstDofMemory[volumedofspace::indexing::index(
-                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] +=
-                               dstDofs( dstDofIdx );
-                        }
-                        else
-                        {
-                           WALBERLA_ABORT( "Invalid update type." );
-                        }
+                        const auto dstIdx = Eigen::Index( vertexdof::macroface::index(
+                            level, vertexDoFIndices[dstDofIdx].x(), vertexDoFIndices[dstDofIdx].y() ) );
+
+                        dstDofMemory[dstIdx] += dstDofs( dstDofIdx );
                      }
                      else
                      {
-                        if ( updateType == Replace )
-                        {
-                           dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                         elementIdx.y(),
-                                                                         elementIdx.z(),
-                                                                         cellType,
-                                                                         dstDofIdx,
-                                                                         numDstDofs,
-                                                                         level,
-                                                                         dstMemLayout )] = dstDofs( dstDofIdx );
-                        }
-                        else if ( updateType == Add )
-                        {
-                           dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                         elementIdx.y(),
-                                                                         elementIdx.z(),
-                                                                         cellType,
-                                                                         dstDofIdx,
-                                                                         numDstDofs,
-                                                                         level,
-                                                                         dstMemLayout )] += dstDofs( dstDofIdx );
-                        }
-                        else
-                        {
-                           WALBERLA_ABORT( "Invalid update type." );
-                        }
+                        const auto dstIdx = Eigen::Index( vertexdof::macrocell::index( level,
+                                                                                       vertexDoFIndices[dstDofIdx].x(),
+                                                                                       vertexDoFIndices[dstDofIdx].y(),
+                                                                                       vertexDoFIndices[dstDofIdx].z() ) );
+
+                        dstDofMemory[dstIdx] += dstDofs( dstDofIdx );
                      }
                   }
                }
+            }
+         }
+
+
+         if ( mat == nullptr )
+         {
+            if ( dim == 2 )
+            {
+               dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+               dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+            }
+            else
+            {
+               dst.template communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+               dst.template communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+               dst.template communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage, updateType == Replace );
             }
          }
       }

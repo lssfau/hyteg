@@ -27,6 +27,7 @@
 #include "core/math/Constants.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/mixedoperators/DGToP1Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -104,6 +105,44 @@ void enumerateTest()
    // vtkOutput.write( level, 0 );
 }
 
+void checkTranspose()
+{
+   std::string mesh_file = "../../data/meshes/quad_4el.msh";
+
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
+
+   SetupPrimitiveStorage setup( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   const auto            storage = std::make_shared< PrimitiveStorage >( setup, 1 );
+
+   const uint_t level = 2;
+   const auto   form  = std::make_shared< P1ToDG1InterpolationForm >();
+
+   P1Function< idx_t >  srcP1( "srcP1", storage, level, level );
+   P1Function< idx_t >  dstP1( "dstP1", storage, level, level );
+   DG1Function< idx_t > srcDG( "srcDG", storage, level, level );
+   DG1Function< idx_t > dstDG( "dstDG", storage, level, level );
+
+   P1ToDGOperator< P1ToDG1InterpolationForm, idx_t > opP1ToDG( storage, level, level, form );
+   DGToP1Operator< P1ToDG1InterpolationForm, idx_t > opDGToP1( storage, level, level, form );
+
+   srcP1.enumerate( level );
+   srcDG.enumerate( level );
+
+   opP1ToDG.apply( srcP1, *dstDG.getDGFunction(), level, All, hyteg::Replace );
+   const auto value1 = dstDG.dotGlobal( srcDG, level, All );
+
+   opDGToP1.apply( *srcDG.getDGFunction(), dstP1, level, All, hyteg::Replace );
+   const auto value2 = dstP1.dotGlobal( srcP1, level, All );
+
+   WALBERLA_CHECK_EQUAL( value1, value2, "values of transposes have to be equal" );
+
+   // VTK
+   // VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
+   // vtkOutput.add( srcDG );
+   // vtkOutput.add( dstP1 );
+   // vtkOutput.write( level, 0 );
+}
+
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -112,6 +151,7 @@ int main( int argc, char** argv )
    checkP1ToDG1ByIntegral( 2 );
    checkP1ToDG1ByIntegral( 3 );
    enumerateTest();
+   checkTranspose();
 
    return EXIT_SUCCESS;
 }
