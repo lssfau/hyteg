@@ -205,10 +205,10 @@ namespace hyteg {
                     }
 
                     real_t EnergyVeloError() {
-                        if constexpr(std::is_same<StokesOperatorType, EGP0StokesOperator>::value || std::is_same<StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator>::value) {
-                            typename StokesOperatorType::VelocityBlockOperator_T A(storage_, level_, level_);
-                            A.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
-                            sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
+                        if constexpr(std::is_same<StokesOperatorType, EGP0StokesOperator>::value) {
+                            EGNIPGLaplaceOperator A(storage_, level_, level_);
+                            A.apply(err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace);
+                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
                         } else {
                             WALBERLA_ABORT("Not imlemented");
                         }

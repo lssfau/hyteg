@@ -34,6 +34,7 @@
 #include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -288,10 +289,12 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                                        localMat );
 
                // P0 has only one DoF
-               auto srcDoF = srcDofMemory[volumedofspace::indexing::index(
-                   elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, srcMemLayout )];
+               auto srcDoF = dim == 2 ? srcDofMemory[volumedofspace::indexing::index(
+                   elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, srcMemLayout )] : srcDofMemory[volumedofspace::indexing::index(
+                       elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
 
-               // Getting the vertex DoF indices for the current micro volume.
+
+                // Getting the vertex DoF indices for the current micro volume.
                std::vector< Index > vertexDoFIndices;
                if ( dim == 2 )
                {
@@ -302,8 +305,6 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                {
                   auto vertexDoFIndicesArray = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
-                  srcDoF = srcDofMemory[volumedofspace::indexing::index(
-                      elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, 0, 1, level, srcMemLayout )];
                }
 
                if ( mat == nullptr )
@@ -469,7 +470,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
 
                         if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == Inner )
                         {
-                           ////////////////////////////////////////////////
+
+                            ////////////////////////////////////////////////
                            // i) micro-interface on macro-macro-boundary //
                            ////////////////////////////////////////////////
 
@@ -722,11 +724,16 @@ typedef P0ToP1Operator< dg::p0_to_p1_divt_2_affine_q0 > P0ToP1ConstantDivTzOpera
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_0 > EGVectorLaplaceP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_1 > EGVectorLaplaceP0ToP1Coupling_Y;
 typedef P0ToP1Operator< dg::eg::EGVectorLaplaceFormP1E_2 > EGVectorLaplaceP0ToP1Coupling_Z;
+
+
+    typedef P0ToP1Operator< dg::eg::EGNIPGVectorLaplaceFormP1E_0 > EGNIPGVectorLaplaceP0ToP1Coupling_X;
+    typedef P0ToP1Operator< dg::eg::EGNIPGVectorLaplaceFormP1E_1 > EGNIPGVectorLaplaceP0ToP1Coupling_Y;
+    typedef P0ToP1Operator< dg::eg::EGNIPGVectorLaplaceFormP1E_2 > EGNIPGVectorLaplaceP0ToP1Coupling_Z;
 //typedef P0ToP1Operator<  dg::DGFormAbort > EGVectorLaplaceP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_0 > EGConstantEpsilonP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_1 > EGConstantEpsilonP0ToP1Coupling_Y;
-typedef P0ToP1Operator< dg::DGFormAbort >                 EGConstantEpsilonP0ToP1Coupling_Z;
+typedef P0ToP1Operator< dg::eg::EGConstEpsilonFormP1E_2 > EGConstantEpsilonP0ToP1Coupling_Z;
 
 typedef P0ToP1Operator< dg::eg::EGEpsilonFormP1E_0 > EGEpsilonP0ToP1Coupling_X;
 typedef P0ToP1Operator< dg::eg::EGEpsilonFormP1E_1 > EGEpsilonP0ToP1Coupling_Y;

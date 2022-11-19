@@ -50,7 +50,7 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::math::pi;
 
-using hyteg::dg::eg::EGLaplaceOperator;
+using hyteg::dg::eg::EGSIPGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
 using hyteg::dg::eg::EGP0StokesOperator;
@@ -77,7 +77,7 @@ namespace hyteg {
         EGFunction<idx_t> numerator("numerator", storage, level, level);
         numerator.enumerate(level);
 
-        EGLaplaceOperator L(storage, level, level);
+        EGSIPGLaplaceOperator L(storage, level, level);
         EGMassOperator M_EG(storage, level, level);
 
         EGFunction<real_t> u("u", storage, level, level);
@@ -115,12 +115,12 @@ namespace hyteg {
 
         switch (solverType) {
             case 0: {
-                PETScCGSolver<EGLaplaceOperator> solver(storage, level, numerator, 1e-15, 1e-15);
+                PETScCGSolver<EGSIPGLaplaceOperator> solver(storage, level, numerator, 1e-15, 1e-15);
                 solver.solve(L, u, rhs, level);
                 break;
             }
             case 1: {
-                CGSolver<EGLaplaceOperator> solver(storage, level, level, 10000, 1e-15);
+                CGSolver<EGSIPGLaplaceOperator> solver(storage, level, level, 10000, 1e-15);
                 solver.solve(L, u, rhs, level);
                 break;
             }

@@ -157,8 +157,6 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
       {
          p1z_to_p0.toMatrix( mat, src.getConformingPart()->component( 2 ), dst, level, flag );
       }
-
-
   //    p1_to_p0.toMatrix( mat, *src.getConformingPart(), dst, level, flag );
       edg_to_p0.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
    }
@@ -168,10 +166,8 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
    P1ToP0Operator< EGDivFormP0P1_0 > p1x_to_p0;
    P1ToP0Operator< EGDivFormP0P1_1 > p1y_to_p0;
    P1ToP0Operator< EGDivFormP0P1_2 > p1z_to_p0;
-
-
    //P1ToP0ConstantDivOperator p1_to_p0;
-    P0Operator< EGDivFormP0E >        edg_to_p0;
+   P0Operator< EGDivFormP0E >        edg_to_p0;
 };
 
 class EGMassOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
@@ -222,10 +218,10 @@ class EGMassOperator final : public Operator< EGFunction< real_t >, EGFunction< 
    P0Operator< EGVectorMassFormEE >              eg_to_eg_coupling_;
 };
 
-class EGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
+class EGSIPGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
 {
  public:
-   EGLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   EGSIPGLaplaceOperator(const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel )
    , eg_to_cg_coupling_( storage, minLevel, maxLevel )
@@ -380,6 +376,57 @@ class EGEpsilonOperator final : public Operator< EGFunction< real_t >, EGFunctio
    EGEpsilonP0ToP1Coupling            eg_to_cg_coupling_;
    P0Operator< EGEpsilonFormEE >      eg_to_eg_coupling_;
 };
+
+class EGNIPGLaplaceOperator final : public Operator< EGFunction< real_t >, EGFunction< real_t > >
+    {
+    public:
+    EGNIPGLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+                : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+                , cg_to_cg_coupling_( storage, minLevel, maxLevel )
+                , eg_to_cg_coupling_( storage, minLevel, maxLevel )
+                , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+                , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< dg::eg::EGNIPGVectorLaplaceFormEE >() )
+        {}
+
+        void apply( const EGFunction< real_t >& src,
+                    const EGFunction< real_t >& dst,
+                    size_t                      level,
+                    DoFType                     flag,
+                    UpdateType                  updateType ) const override
+        {
+            eg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+            cg_to_cg_coupling_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+            cg_to_eg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+            eg_to_eg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
+        }
+
+        void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                       const EGFunction< idx_t >&                  src,
+                       const EGFunction< idx_t >&                  dst,
+                       size_t                                      level,
+                       DoFType                                     flag ) const override
+        {
+            communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+            communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+            src.getDiscontinuousPart()->communicate( level );
+            dst.getDiscontinuousPart()->communicate( level );
+
+            cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+            eg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+            cg_to_eg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+            eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
+        }
+
+    private:
+        P1ConstantVectorLaplaceOperator cg_to_cg_coupling_;
+
+        //  P1ElementwiseVectorLaplaceOperator     cg_to_cg_coupling_;
+        EGNIPGVectorLaplaceP1ToP0Coupling       cg_to_eg_coupling_;
+        EGNIPGVectorLaplaceP0ToP1Coupling       eg_to_cg_coupling_;
+        P0Operator< EGNIPGVectorLaplaceFormEE > eg_to_eg_coupling_;
+    };
+
 } // namespace eg
 } // namespace dg
 } // namespace hyteg

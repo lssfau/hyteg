@@ -40,7 +40,7 @@ using walberla::uint_t;
 
 
 using hyteg::Point3D;
-using hyteg::dg::eg::EGLaplaceOperator;
+using hyteg::dg::eg::EGSIPGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
 using hyteg::dg::eg::EGP0EpsilonStokesOperator;
@@ -72,17 +72,17 @@ int main(int argc, char *argv[]) {
 
     uint_t minLevel = 3;
 
-    if (false) {
+    if (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing 2D ###")
 
-        uint_t maxLevel2D = 6;
+        uint_t maxLevel2D = 5;
         hyteg::dg::eg::Stokes2D(minLevel, maxLevel2D);
     }
 
     if (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing 3D ###")
 
-        uint_t maxLevel3D = 6;
+        uint_t maxLevel3D = 5;
         hyteg::dg::eg::Stokes3D(minLevel, maxLevel3D);
     }
 
@@ -1196,8 +1196,8 @@ namespace hyteg {
                                     }),
                             EGP0StokesOp,
                             storage,
-                            minLevel - 1,
-                            maxLevel-1,
+                            minLevel,
+                            maxLevel,
                             2,
                             true);
                 }
@@ -1243,8 +1243,8 @@ namespace hyteg {
                             ),
                             EGP0StokesOp,
                             storage,
-                            minLevel - 1,
-                            maxLevel-1,
+                            minLevel,
+                            maxLevel,
                             2,
                             true);
                 }
@@ -1341,8 +1341,8 @@ namespace hyteg {
                                     }),
                             EGP0StokesOp,
                             storage,
-                            minLevel - 1,
-                            maxLevel-1,
+                            minLevel,
+                            maxLevel,
                             2,
                             true);
                 }
@@ -1388,8 +1388,8 @@ namespace hyteg {
                                             [](const hyteg::Point3D &) { return 0; }),
                             EGP0StokesOp,
                             storage,
-                            minLevel - 1,
-                            maxLevel-1,
+                            minLevel,
+                            maxLevel,
                             2,
                             true);
                 }

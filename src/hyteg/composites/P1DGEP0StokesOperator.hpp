@@ -29,6 +29,7 @@ template < typename VelocityBlockOperator >
 class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
 {
  public:
+    typedef VelocityBlockOperator VelocityBlockOperator_T;
    EGP0StokesOperatorType( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel )
@@ -62,12 +63,14 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    P0ToEGDivTOperator    divT;
 };
 
-typedef EGP0StokesOperatorType< EGLaplaceOperator >         EGP0StokesOperator;
+typedef EGP0StokesOperatorType< EGSIPGLaplaceOperator >         EGP0StokesOperator;
 typedef EGP0StokesOperatorType< EGConstantEpsilonOperator > EGP0ConstEpsilonStokesOperator;
 
 class EGP0EpsilonStokesOperator : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
 {
  public:
+
+    typedef EGEpsilonOperator VelocityBlockOperator_T;
    EGP0EpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel,       std::function< real_t( const Point3D& ) >  viscosity )
    : Operator( storage, minLevel, maxLevel )
    , eps( storage, minLevel, maxLevel, viscosity )

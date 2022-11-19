@@ -53,7 +53,7 @@ using walberla::uint_t;
 
 
 using hyteg::Point3D;
-using hyteg::dg::eg::EGLaplaceOperator;
+using hyteg::dg::eg::EGSIPGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
 using hyteg::dg::eg::EGP0EpsilonStokesOperator;

@@ -94,7 +94,10 @@ typedef P0ScalarToP1VectorOperator< EGVectorLaplaceP0ToP1Coupling_X,
                                     EGVectorLaplaceP0ToP1Coupling_Y,
                                     EGVectorLaplaceP0ToP1Coupling_Z >
     EGVectorLaplaceP0ToP1Coupling;
-
+typedef P0ScalarToP1VectorOperator< EGNIPGVectorLaplaceP0ToP1Coupling_X,
+            EGNIPGVectorLaplaceP0ToP1Coupling_Y,
+            EGNIPGVectorLaplaceP0ToP1Coupling_Z >
+            EGNIPGVectorLaplaceP0ToP1Coupling;
 typedef P0ScalarToP1VectorOperator< EGConstantEpsilonP0ToP1Coupling_X,
                                     EGConstantEpsilonP0ToP1Coupling_Y,
                                     EGConstantEpsilonP0ToP1Coupling_Z >
