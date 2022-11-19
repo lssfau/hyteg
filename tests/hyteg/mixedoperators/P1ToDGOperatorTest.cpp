@@ -48,13 +48,13 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
    const auto            storage = std::make_shared< PrimitiveStorage >( setup, 1 );
 
    const uint_t level = 2;
-   const auto   form  = std::make_shared< InterpolationForm >();
+   const auto   form  = std::make_shared< P1ToDG1InterpolationForm >();
 
    P1Function< real_t >  src( "src", storage, level, level );
    DG1Function< real_t > dst( "dst", storage, level, level );
    DG1Function< real_t > Mdst( "Mdst", storage, level, level );
 
-   P1ToDGOperator< InterpolationForm > op( storage, level, level, form );
+   P1ToDGOperator< P1ToDG1InterpolationForm > op( storage, level, level, form );
 
    src.interpolate( []( auto p ) { return p[0] - 0.1 * p[1] + 0.2 * p[2]; }, level, All );
 
@@ -86,12 +86,12 @@ void enumerateTest()
    const auto            storage = std::make_shared< PrimitiveStorage >( setup, 1 );
 
    const uint_t level = 2;
-   const auto   form  = std::make_shared< InterpolationForm >();
+   const auto   form  = std::make_shared< P1ToDG1InterpolationForm >();
 
    P1Function< idx_t >  src( "src", storage, level, level );
    DG1Function< idx_t > dst( "dst", storage, level, level );
 
-   P1ToDGOperator< InterpolationForm, idx_t > op( storage, level, level, form );
+   P1ToDGOperator< P1ToDG1InterpolationForm, idx_t > op( storage, level, level, form );
 
    src.enumerate( level );
 

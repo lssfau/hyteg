@@ -53,7 +53,7 @@ using volumedofspace::indexing::VolumeDoFMemoryLayout;
 using walberla::int_c;
 using walberla::real_t;
 
-class InterpolationForm
+class P1ToDG1InterpolationForm
 {
  public:
    bool onlyVolumeIntegrals() { return true; }
@@ -74,6 +74,8 @@ class InterpolationForm
 
       WALBERLA_ASSERT_EQUAL( trialBasis, 1, "trial basis has to be 1" );
       WALBERLA_ASSERT_EQUAL( testBasis, 1, "test basis has to be 1" );
+      WALBERLA_ASSERT_EQUAL( trialDegree, 1, "trial degree has to be 1" );
+      WALBERLA_ASSERT_EQUAL( testDegree, 1, "trial degree has to be 1" );
 
       const auto size = dim + 1;
       elMat.resize( size, size );
@@ -162,10 +164,10 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
       for ( const auto& pid : pids )
       {
          const auto srcPolyDegree = 1;
-         const auto dstPolyDegree = 1;
+         const auto dstPolyDegree = dst.polynomialDegree( pid );
 
          const auto numSrcDofs = dim + 1;
-         const auto numDstDofs = dim + 1;
+         const auto numDstDofs = dst.basis()->numDoFsPerElement( dim, dstPolyDegree );
 
          const auto srcDofMemory = p1Data< VType >( src, storage, pid, level );
          auto       dstDofMemory = dst.volumeDoFFunction()->dofMemory( pid, level );
