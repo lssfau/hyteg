@@ -335,6 +335,11 @@ if( HYTEG_BUILD_WITH_PETSC )
     waLBerla_execute_test(NAME P1ToDGOperatorTest)
 endif()
 
+if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES dg/P1WithDGFromPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1WithDGFromPoisson2DConvergenceTest)
+endif()
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
