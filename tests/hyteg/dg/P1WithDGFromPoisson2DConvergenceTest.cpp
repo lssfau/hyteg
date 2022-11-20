@@ -109,12 +109,12 @@ void runTest( uint_t                                           minLevel,
 {
    auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
    auto convRateEps = l2ConvRate * 0.1;
-   auto err         = hyteg::testDG1( minLevel, meshInfo, solFunc, rhsFunc );
+   auto err         = hyteg::testP1( minLevel, meshInfo, solFunc, rhsFunc );
    WALBERLA_LOG_INFO_ON_ROOT( " expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
    WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
    for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
    {
-      auto errFiner     = hyteg::testDG1( l, meshInfo, solFunc, rhsFunc );
+      auto errFiner     = hyteg::testP1( l, meshInfo, solFunc, rhsFunc );
       auto computedRate = errFiner / err;
 
       WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
