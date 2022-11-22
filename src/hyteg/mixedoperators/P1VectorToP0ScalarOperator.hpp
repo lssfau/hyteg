@@ -37,6 +37,10 @@ namespace hyteg {
                 std::shared_ptr<typename operY_t::FormType>,
                 std::shared_ptr<typename operZ_t::FormType> >
                 FormTuple;
+        typedef operX_t OperX_T;
+        typedef operY_t OperY_T;
+        typedef operZ_t OperZ_T;
+
 
         P1VectorToP0ScalarOperator(
                 const std::shared_ptr<PrimitiveStorage> &storage,
@@ -86,24 +90,37 @@ namespace hyteg {
     typedef P1VectorToP0ScalarOperator<P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator>
             P1ToP0ConstantDivOperator;
 
+    // EG Laplace operator couplings with different DG types
     typedef P1VectorToP0ScalarOperator<EGVectorLaplaceP1ToP0Coupling_X,
             EGVectorLaplaceP1ToP0Coupling_Y,
             EGVectorLaplaceP1ToP0Coupling_Z>
-            EGVectorLaplaceP1ToP0Coupling;
+            EGSIPGVectorLaplaceP1ToP0Coupling;
 
     typedef P1VectorToP0ScalarOperator<EGNIPGVectorLaplaceP1ToP0Coupling_X,
             EGNIPGVectorLaplaceP1ToP0Coupling_Y,
             EGNIPGVectorLaplaceP1ToP0Coupling_Z>
             EGNIPGVectorLaplaceP1ToP0Coupling;
+    
+    typedef P1VectorToP0ScalarOperator<EGIIPGVectorLaplaceP1ToP0Coupling_X,
+            EGIIPGVectorLaplaceP1ToP0Coupling_Y,
+            EGIIPGVectorLaplaceP1ToP0Coupling_Z>
+            EGIIPGVectorLaplaceP1ToP0Coupling;
 
+    // EG Epsilon operator couplings
     typedef P1VectorToP0ScalarOperator<EGConstantEpsilonP1ToP0Coupling_X,
             EGConstantEpsilonP1ToP0Coupling_Y,
             EGConstantEpsilonP1ToP0Coupling_Z>
             EGConstantEpsilonP1ToP0Coupling;
 
+    typedef P1VectorToP0ScalarOperator<EGEpsilonEnergyNormP1ToP0Coupling_X,
+            EGEpsilonEnergyNormP1ToP0Coupling_Y,
+            EGEpsilonEnergyNormP1ToP0Coupling_Z>
+            EGEpsilonEnergyNormP1ToP0Coupling;
+
     typedef P1VectorToP0ScalarOperator<EGEpsilonP1ToP0Coupling_X, EGEpsilonP1ToP0Coupling_Y, EGEpsilonP1ToP0Coupling_Z>
             EGEpsilonP1ToP0Coupling;
 
+    // EG mass coupling
     typedef P1VectorToP0ScalarOperator<EGMassP1toP0Coupling_X,
             EGMassP1toP0Coupling_Y, EGMassP1toP0Coupling_Z>
             EGMassP1toP0Coupling;

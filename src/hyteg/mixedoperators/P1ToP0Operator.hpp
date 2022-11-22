@@ -44,7 +44,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
-
+#include "hyteg/egfunctionspace/EGEpsilonEnergyNormForm.hpp"
 namespace hyteg {
 
     using namespace dg;
@@ -849,34 +849,40 @@ namespace hyteg {
         std::shared_ptr<Form> form_;
     };
 
+    // P1toP0 Stokes divergence
     typedef P1ToP0Operator<dg::p1_to_p0_div_0_affine_q0> P1ToP0ConstantDivxOperator;
     typedef P1ToP0Operator<dg::p1_to_p0_div_1_affine_q0> P1ToP0ConstantDivyOperator;
     typedef P1ToP0Operator<dg::p1_to_p0_div_2_affine_q0> P1ToP0ConstantDivzOperator;
 
+    // EG Laplace operator couplings with different DG schemes
     typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_0> EGVectorLaplaceP1ToP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_1> EGVectorLaplaceP1ToP0Coupling_Y;
     typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_2> EGVectorLaplaceP1ToP0Coupling_Z;
 
-
     typedef P1ToP0Operator<dg::eg::EGNIPGVectorLaplaceFormEP1_0> EGNIPGVectorLaplaceP1ToP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGNIPGVectorLaplaceFormEP1_1> EGNIPGVectorLaplaceP1ToP0Coupling_Y;
     typedef P1ToP0Operator<dg::eg::EGNIPGVectorLaplaceFormEP1_2> EGNIPGVectorLaplaceP1ToP0Coupling_Z;
-//typedef P1ToP0Operator< dg::DGFormAbort  > EGVectorLaplaceP1ToP0Coupling_Z;
 
+    typedef P1ToP0Operator<dg::eg::EGIIPGVectorLaplaceFormEP1_0> EGIIPGVectorLaplaceP1ToP0Coupling_X;
+    typedef P1ToP0Operator<dg::eg::EGIIPGVectorLaplaceFormEP1_1> EGIIPGVectorLaplaceP1ToP0Coupling_Y;
+    typedef P1ToP0Operator<dg::eg::EGIIPGVectorLaplaceFormEP1_2> EGIIPGVectorLaplaceP1ToP0Coupling_Z;
+
+    // EG Epsilon operator couplings
     typedef P1ToP0Operator<dg::eg::EGConstEpsilonFormEP1_0> EGConstantEpsilonP1ToP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGConstEpsilonFormEP1_1> EGConstantEpsilonP1ToP0Coupling_Y;
     typedef P1ToP0Operator<dg::eg::EGConstEpsilonFormEP1_2> EGConstantEpsilonP1ToP0Coupling_Z;
 
+    typedef P1ToP0Operator<dg::eg::EGEpsilonEnergyNormFormEP1_0> EGEpsilonEnergyNormP1ToP0Coupling_X;
+    typedef P1ToP0Operator<dg::eg::EGEpsilonEnergyNormFormEP1_1> EGEpsilonEnergyNormP1ToP0Coupling_Y;
+    typedef P1ToP0Operator<dg::eg::EGEpsilonEnergyNormFormEP1_2> EGEpsilonEnergyNormP1ToP0Coupling_Z;
+
     typedef P1ToP0Operator<dg::eg::EGEpsilonFormEP1_0> EGEpsilonP1ToP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGEpsilonFormEP1_1> EGEpsilonP1ToP0Coupling_Y;
-    typedef P1ToP0Operator<dg::DGFormAbort> EGEpsilonP1ToP0Coupling_Z;
+    typedef P1ToP0Operator<dg::eg::EGEpsilonFormEP1_2> EGEpsilonP1ToP0Coupling_Z;
 
-// EGConstantEpsilonP1ToP0Coupling_Z
+// EG mass couplings
     typedef P1ToP0Operator<dg::eg::EGVectorMassFormEP1_0> EGMassP1toP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGVectorMassFormEP1_1> EGMassP1toP0Coupling_Y;
     typedef P1ToP0Operator<dg::eg::EGVectorMassFormEP1_2> EGMassP1toP0Coupling_Z;
-//typedef P1ToP0Operator< dg::DGFormAbort  > EGMassP1toP0Coupling_Z;
-
-//typedef P1ToP0Operator< dg::eg::EGDivtFormEP1 > P1ToP0ConstantP1EDGVDivergenceCouplingOperator;
 
 } // namespace hyteg
