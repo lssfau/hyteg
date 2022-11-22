@@ -155,8 +155,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    A( 0, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[0];
    A( 1, 0 ) = ( face.getCoordinates()[1] - face.getCoordinates()[0] )[1];
    A( 1, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[1];
-   transform = A.adj();
-   transform *= 1.0 / A.det();
+   transform = A.inverse();
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
