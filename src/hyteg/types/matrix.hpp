@@ -144,7 +144,7 @@ class Matrix
       {
          for ( uint_t j = 0; j < N; ++j )
          {
-            out( j, i ) = (*this) ( i, j );
+            out( j, i ) = ( *this )( i, j );
          }
       }
       return out;
@@ -160,7 +160,7 @@ class Matrix
          {
             for ( uint_t k = 0; k < N; ++k )
             {
-               out( i, j ) += (*this) ( i, k ) * rhs( k, j );
+               out( i, j ) += ( *this )( i, k ) * rhs( k, j );
             }
          }
       }
@@ -174,21 +174,25 @@ class Matrix
       {
          for ( uint_t j = 0; j < N; ++j )
          {
-            out[i] += (*this) ( i, j ) * rhs[j];
+            out[i] += ( *this )( i, j ) * rhs[j];
          }
       }
       return out;
    }
 
-   Matrix< T, M, N > adj() const
+   Matrix< T, M, N > inverse() const
    {
-      if ( N == M && N == 2 )
+      if constexpr ( N == M && N == 2 )
       {
          Matrix< T, M, N > out;
-         out( 0, 0 ) = (*this) ( 1, 1 );
-         out( 0, 1 ) = -(*this) ( 0, 1 );
-         out( 1, 0 ) = -(*this) ( 1, 0 );
-         out( 1, 1 ) = (*this) ( 0, 0 );
+
+         T det       = ( *this )( 0, 0 ) * ( *this )( 1, 1 ) - ( *this )( 0, 1 ) * ( *this )( 1, 0 );
+         det         = static_cast< T >( 1 ) / det;
+         out( 0, 0 ) = +( *this )( 1, 1 ) * det;
+         out( 0, 1 ) = -( *this )( 0, 1 ) * det;
+         out( 1, 0 ) = -( *this )( 1, 0 ) * det;
+         out( 1, 1 ) = +( *this )( 0, 0 ) * det;
+
          return out;
       }
       WALBERLA_ABORT( "Adjugate computation not implemented for matrix dimensions " << M << " x " << N )
@@ -198,13 +202,16 @@ class Matrix
    {
       if constexpr ( N == M && N == 2 )
       {
-         return (*this) ( 0, 0 ) * (*this) ( 1, 1 ) - (*this) ( 0, 1 ) * (*this) ( 1, 0 );
+         return ( *this )( 0, 0 ) * ( *this )( 1, 1 ) - ( *this )( 0, 1 ) * ( *this )( 1, 0 );
       }
       else if constexpr ( N == M && N == 3 )
       {
-         return (*this) ( 0, 0 ) * (*this) ( 1, 1 ) * (*this) ( 2, 2 ) + (*this) ( 0, 1 ) * (*this) ( 1, 2 ) * (*this) ( 2, 0 ) +
-                (*this) ( 0, 2 ) * (*this) ( 1, 0 ) * (*this) ( 2, 1 ) - (*this) ( 2, 0 ) * (*this) ( 1, 1 ) * (*this) ( 0, 2 ) -
-                (*this) ( 2, 1 ) * (*this) ( 1, 2 ) * (*this) ( 0, 0 ) - (*this) ( 2, 2 ) * (*this) ( 1, 0 ) * (*this) ( 0, 1 );
+         return ( *this )( 0, 0 ) * ( *this )( 1, 1 ) * ( *this )( 2, 2 ) +
+                ( *this )( 0, 1 ) * ( *this )( 1, 2 ) * ( *this )( 2, 0 ) +
+                ( *this )( 0, 2 ) * ( *this )( 1, 0 ) * ( *this )( 2, 1 ) -
+                ( *this )( 2, 0 ) * ( *this )( 1, 1 ) * ( *this )( 0, 2 ) -
+                ( *this )( 2, 1 ) * ( *this )( 1, 2 ) * ( *this )( 0, 0 ) -
+                ( *this )( 2, 2 ) * ( *this )( 1, 0 ) * ( *this )( 0, 1 );
       }
 
       WALBERLA_ABORT( "Determinant computation not implemented for matrix dimensions " << M << " x " << N )

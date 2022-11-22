@@ -164,9 +164,7 @@ class CircularMap : public GeometryMap
    {
       Matrix2r tmp;
       evalDF( x, tmp );
-      real_t invDet = 1.0 / tmp.det();
-      DFxInv        = tmp.adj();
-      DFxInv *= invDet;
+      DFxInv = tmp.inverse();
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final

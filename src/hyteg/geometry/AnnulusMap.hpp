@@ -146,9 +146,7 @@ class AnnulusMap : public GeometryMap
    {
       Matrix2r tmp;
       evalDF( x, tmp );
-      real_t invDet = 1.0 / tmp.det();
-      DFinvx        = tmp.adj();
-      DFinvx *= invDet;
+      DFinvx = tmp.inverse();
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
