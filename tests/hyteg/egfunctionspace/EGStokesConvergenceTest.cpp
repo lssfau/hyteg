@@ -75,15 +75,14 @@ int main(int argc, char *argv[]) {
     if (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing 2D ###")
 
-        uint_t maxLevel2D = 5;
-        hyteg::dg::eg::Stokes2D(minLevel, maxLevel2D);
+        hyteg::dg::eg::Stokes2D(minLevel, 7);
+        
     }
 
     if (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing 3D ###")
 
-        uint_t maxLevel3D = 5;
-        hyteg::dg::eg::Stokes3D(minLevel, maxLevel3D);
+        hyteg::dg::eg::Stokes3D(minLevel, 5);
     }
 
 
@@ -110,6 +109,58 @@ namespace hyteg {
 
                     EGP0StokesOperator EGP0StokesOp(storage, minLevel, maxLevel);
                     StokesConvergenceOrderTest<EGP0StokesOperator>("EGP0StokesOp2D_quad_4el_inhom",
+                                                                   std::make_tuple(
+                                                                           [](const Point3D &p) -> real_t {
+                                                                               const real_t x = p[0];
+                                                                               const real_t y = p[1];
+                                                                               return y + 2 * std::sin(M_PI * (x + y)) +
+                                                                                      4;
+                                                                           },
+                                                                           [](const Point3D &p) -> real_t {
+                                                                               const real_t x = p[0];
+                                                                               const real_t y = p[1];
+                                                                               return -x -
+                                                                                      2 * std::sin(M_PI * (x + y)) + 3;
+                                                                           },
+                                                                           dummyLambda,
+                                                                           [](const Point3D &p) -> real_t {
+                                                                               const real_t x = p[0];
+                                                                               const real_t y = p[1];
+                                                                               return 2 * x - y + 1;
+                                                                           }),
+                                                                   std::make_tuple(
+                                                                           [](const Point3D &p) -> real_t {
+                                                                               const real_t x = p[0];
+                                                                               const real_t y = p[1];
+                                                                               return 4 * std::pow(M_PI, 2) *
+                                                                                      std::sin(M_PI * (x + y)) + 2;
+                                                                           },
+                                                                           [](const Point3D &p) -> real_t {
+                                                                               const real_t x = p[0];
+                                                                               const real_t y = p[1];
+                                                                               return -4 * std::pow(M_PI, 2) *
+                                                                                      std::sin(M_PI * (x + y)) - 1;
+                                                                           },
+                                                                           dummyLambda,
+                                                                           [](const Point3D &) -> real_t { return 0; }),
+                                                                   EGP0StokesOp,
+                                                                   storage,
+                                                                   minLevel,
+                                                                   maxLevel);
+                }
+
+                // IIPG: quad_4el, inhom
+                if(false) {
+                    auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+                    hyteg::SetupPrimitiveStorage setupStorage(meshInfo,
+                                                              walberla::uint_c(
+                                                                      walberla::mpi::MPIManager::instance()->numProcesses()));
+                    setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
+                    auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
+
+
+                    EGP0IIPGStokesOperator EGP0StokesOp(storage, minLevel, maxLevel);
+                    StokesConvergenceOrderTest<EGP0IIPGStokesOperator>("EGP0IIPGStokesOp2D_quad_4el_inhom",
                                                                    std::make_tuple(
                                                                            [](const Point3D &p) -> real_t {
                                                                                const real_t x = p[0];
@@ -201,210 +252,264 @@ namespace hyteg {
                                                                    minLevel,
                                                                    maxLevel);
                 }
-        /*
-                StokesConvergenceOrderTest<EGP0StokesOperator>(
-                        "EGP0StokesOp2D_simple",
-                        std::make_tuple(
-                                [](const Point3D &xx) -> real_t {
-                                    return 2*xx[0];
-                                },
-                                [](const Point3D &xx) -> real_t {
-                                    return -2*xx[1];
-                                },
-                                dummyLambda,
-                                [](const Point3D &) -> real_t {
-                                    return 1;
-                                }),
-                        std::make_tuple(
-                                [](const Point3D &) -> real_t {
-                                    return 0;
-                                },
-                                [](const Point3D &) -> real_t {
-                                    return 0;
-                                },
-                                dummyLambda,
-                                [](const Point3D &) -> real_t {
-                                    return 0;
-                                }),
-                        EGP0StokesOp,
-                        storage,
-                        minLevel,
-                        maxLevel);
 
-                StokesConvergenceOrderTest<EGP0StokesOperator>(
-                        "EGP0StokesOp2D_hom_asym",
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2) * std::exp(y);
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2) * std::exp(y);
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return x + y;
-                                }),
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
+                // IIPG: quad_16el, inhom
+                if(false) {
+                    auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_16el.msh");
+                    hyteg::SetupPrimitiveStorage setupStorage(meshInfo,
+                                                              walberla::uint_c(
+                                                                      walberla::mpi::MPIManager::instance()->numProcesses()));
+                    setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
+                    auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
 
-                                    const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
-                                    const real_t x1 = std::sin(x0);
-                                    const real_t x2 = std::exp(y);
-                                    const real_t x3 = std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0));
-                                    const real_t x4 = x2 * x3;
-                                    return (1.0 / 2.0) * std::pow(M_PI, 2) * x1 * x2 * x3 - x1 * x4 -
-                                           M_PI * x4 * std::cos(x0) + 1;
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
-                                    const real_t x1 = std::sin(x0);
-                                    const real_t x2 = std::exp(y);
-                                    const real_t x3 = std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0));
-                                    const real_t x4 = x2 * x3;
-                                    return (1.0 / 2.0) * std::pow(M_PI, 2) * x1 * x2 * x3 - x1 * x4 -
-                                           M_PI * x4 * std::cos(x0) + 1;
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0);
-                                    const real_t x1 = std::sin(x0);
-                                    const real_t x2 = std::exp(y);
-                                    const real_t x3 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
-                                    const real_t x4 = x2 * std::sin(x3);
-                                    const real_t x5 = M_PI_2;
-                                    return -x1 * x2 * x5 * std::cos(x3) - x1 * x4 - x4 * x5 * std::cos(x0);
-                                }),
-                        EGP0StokesOp,
-                        storage,
-                        minLevel,
-                        maxLevel);
 
-                StokesConvergenceOrderTest<EGP0StokesOperator>(
-                        "EGP0StokesOp2D_hom_pointsym",
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2);
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2);
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return x + y;
-                                }),
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return (1.0 / 2.0) * std::pow(M_PI, 2) *
-                                           std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0)) *
-                                           std::sin(M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0)) +
-                                           1;
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return (1.0 / 2.0) * std::pow(M_PI, 2) *
-                                           std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0)) *
-                                           std::sin(M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0)) +
-                                           1;
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
-                                    const real_t x1 = M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0);
-                                    const real_t x2 = M_PI_2;
-                                    return -x2 * std::sin(x0) * std::cos(x1) - x2 * std::sin(x1) * std::cos(x0);
-                                }),
-                        EGP0StokesOp,
-                        storage,
-                        minLevel,
-                        maxLevel);
+                    EGP0IIPGStokesOperator EGP0StokesOp(storage, minLevel, maxLevel);
+                    StokesConvergenceOrderTest<EGP0IIPGStokesOperator>("EGP0IIPGStokesOp2D_quad_16el_inhom",
+                                                                       std::make_tuple(
+                                                                               [](const Point3D &p) -> real_t {
+                                                                                   const real_t x = p[0];
+                                                                                   const real_t y = p[1];
+                                                                                   return y + 2 * std::sin(M_PI * (x + y)) +
+                                                                                          4;
+                                                                               },
+                                                                               [](const Point3D &p) -> real_t {
+                                                                                   const real_t x = p[0];
+                                                                                   const real_t y = p[1];
+                                                                                   return -x -
+                                                                                          2 * std::sin(M_PI * (x + y)) + 3;
+                                                                               },
+                                                                               dummyLambda,
+                                                                               [](const Point3D &p) -> real_t {
+                                                                                   const real_t x = p[0];
+                                                                                   const real_t y = p[1];
+                                                                                   return 2 * x - y + 1;
+                                                                               }),
+                                                                       std::make_tuple(
+                                                                               [](const Point3D &p) -> real_t {
+                                                                                   const real_t x = p[0];
+                                                                                   const real_t y = p[1];
+                                                                                   return 4 * std::pow(M_PI, 2) *
+                                                                                          std::sin(M_PI * (x + y)) + 2;
+                                                                               },
+                                                                               [](const Point3D &p) -> real_t {
+                                                                                   const real_t x = p[0];
+                                                                                   const real_t y = p[1];
+                                                                                   return -4 * std::pow(M_PI, 2) *
+                                                                                          std::sin(M_PI * (x + y)) - 1;
+                                                                               },
+                                                                               dummyLambda,
+                                                                               [](const Point3D &) -> real_t { return 0; }),
+                                                                       EGP0StokesOp,
+                                                                       storage,
+                                                                       minLevel,
+                                                                       maxLevel);
+                }
 
-                StokesConvergenceOrderTest<EGP0StokesOperator>(
-                        "EGP0StokesOp2D_hom_asym_p",
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * x) * std::sin(M_PI * y) * std::sin(M_PI * (x + y));
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return std::sin(M_PI * x) * std::sin(M_PI * y) * std::sin(M_PI * (x + y));
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    return 2 * x - y + 4;
-                                }),
-                        std::make_tuple(
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = M_PI * x;
-                                    const real_t x1 = std::sin(x0);
-                                    const real_t x2 = M_PI * (x + y);
-                                    const real_t x3 = std::pow(M_PI, 2);
-                                    const real_t x4 = M_PI * y;
-                                    const real_t x5 = x3 * std::sin(x4);
-                                    const real_t x6 = 2 * std::cos(x2);
-                                    return -x1 * x3 * x6 * std::cos(x4) + 4 * x1 * x5 * std::sin(x2) -
-                                           x5 * x6 * std::cos(x0) + 2;
-                                },
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = std::pow(M_PI, 2);
-                                    const real_t x1 = M_PI * x;
-                                    const real_t x2 = std::sin(x1);
-                                    const real_t x3 = M_PI * y;
-                                    const real_t x4 = std::sin(x3);
-                                    const real_t x5 = M_PI * (x + y);
-                                    const real_t x6 = 2 * std::cos(x5);
-                                    return 4 * x0 * x2 * x4 * std::sin(x5) - x0 * x2 * x6 * std::cos(x3) -
-                                           x0 * x4 * x6 * std::cos(x1) - 1;
-                                },
-                                dummyLambda,
-                                [](const Point3D &p) -> real_t {
-                                    const real_t x = p[0];
-                                    const real_t y = p[1];
-                                    const real_t x0 = M_PI * y;
-                                    const real_t x1 = M_PI * x;
-                                    const real_t x2 = std::sin(x1);
-                                    const real_t x3 = M_PI * (x + y);
-                                    const real_t x4 = M_PI * std::sin(x3);
-                                    const real_t x5 = std::sin(x0);
-                                    return -x2 * x4 * std::cos(x0) - 2 * M_PI * x2 * x5 * std::cos(x3) -
-                                           x4 * x5 * std::cos(x1);
-                                }),
-                        EGP0StokesOp,
-                        storage,
-                        minLevel,
-                        maxLevel);
-*/
+
+                /*
+                        StokesConvergenceOrderTest<EGP0StokesOperator>(
+                                "EGP0StokesOp2D_simple",
+                                std::make_tuple(
+                                        [](const Point3D &xx) -> real_t {
+                                            return 2*xx[0];
+                                        },
+                                        [](const Point3D &xx) -> real_t {
+                                            return -2*xx[1];
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &) -> real_t {
+                                            return 1;
+                                        }),
+                                std::make_tuple(
+                                        [](const Point3D &) -> real_t {
+                                            return 0;
+                                        },
+                                        [](const Point3D &) -> real_t {
+                                            return 0;
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &) -> real_t {
+                                            return 0;
+                                        }),
+                                EGP0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel);
+
+                        StokesConvergenceOrderTest<EGP0StokesOperator>(
+                                "EGP0StokesOp2D_hom_asym",
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2) * std::exp(y);
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2) * std::exp(y);
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return x + y;
+                                        }),
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+
+                                            const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
+                                            const real_t x1 = std::sin(x0);
+                                            const real_t x2 = std::exp(y);
+                                            const real_t x3 = std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0));
+                                            const real_t x4 = x2 * x3;
+                                            return (1.0 / 2.0) * std::pow(M_PI, 2) * x1 * x2 * x3 - x1 * x4 -
+                                                   M_PI * x4 * std::cos(x0) + 1;
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
+                                            const real_t x1 = std::sin(x0);
+                                            const real_t x2 = std::exp(y);
+                                            const real_t x3 = std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0));
+                                            const real_t x4 = x2 * x3;
+                                            return (1.0 / 2.0) * std::pow(M_PI, 2) * x1 * x2 * x3 - x1 * x4 -
+                                                   M_PI * x4 * std::cos(x0) + 1;
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0);
+                                            const real_t x1 = std::sin(x0);
+                                            const real_t x2 = std::exp(y);
+                                            const real_t x3 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
+                                            const real_t x4 = x2 * std::sin(x3);
+                                            const real_t x5 = M_PI_2;
+                                            return -x1 * x2 * x5 * std::cos(x3) - x1 * x4 - x4 * x5 * std::cos(x0);
+                                        }),
+                                EGP0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel);
+
+                        StokesConvergenceOrderTest<EGP0StokesOperator>(
+                                "EGP0StokesOp2D_hom_pointsym",
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2);
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * (x + 1) / 2) * std::sin(M_PI * (y + 1) / 2);
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return x + y;
+                                        }),
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return (1.0 / 2.0) * std::pow(M_PI, 2) *
+                                                   std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0)) *
+                                                   std::sin(M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0)) +
+                                                   1;
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return (1.0 / 2.0) * std::pow(M_PI, 2) *
+                                                   std::sin(M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0)) *
+                                                   std::sin(M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0)) +
+                                                   1;
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = M_PI * ((1.0 / 2.0) * y + 1.0 / 2.0);
+                                            const real_t x1 = M_PI * ((1.0 / 2.0) * x + 1.0 / 2.0);
+                                            const real_t x2 = M_PI_2;
+                                            return -x2 * std::sin(x0) * std::cos(x1) - x2 * std::sin(x1) * std::cos(x0);
+                                        }),
+                                EGP0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel);
+
+                        StokesConvergenceOrderTest<EGP0StokesOperator>(
+                                "EGP0StokesOp2D_hom_asym_p",
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * x) * std::sin(M_PI * y) * std::sin(M_PI * (x + y));
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return std::sin(M_PI * x) * std::sin(M_PI * y) * std::sin(M_PI * (x + y));
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            return 2 * x - y + 4;
+                                        }),
+                                std::make_tuple(
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = M_PI * x;
+                                            const real_t x1 = std::sin(x0);
+                                            const real_t x2 = M_PI * (x + y);
+                                            const real_t x3 = std::pow(M_PI, 2);
+                                            const real_t x4 = M_PI * y;
+                                            const real_t x5 = x3 * std::sin(x4);
+                                            const real_t x6 = 2 * std::cos(x2);
+                                            return -x1 * x3 * x6 * std::cos(x4) + 4 * x1 * x5 * std::sin(x2) -
+                                                   x5 * x6 * std::cos(x0) + 2;
+                                        },
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = std::pow(M_PI, 2);
+                                            const real_t x1 = M_PI * x;
+                                            const real_t x2 = std::sin(x1);
+                                            const real_t x3 = M_PI * y;
+                                            const real_t x4 = std::sin(x3);
+                                            const real_t x5 = M_PI * (x + y);
+                                            const real_t x6 = 2 * std::cos(x5);
+                                            return 4 * x0 * x2 * x4 * std::sin(x5) - x0 * x2 * x6 * std::cos(x3) -
+                                                   x0 * x4 * x6 * std::cos(x1) - 1;
+                                        },
+                                        dummyLambda,
+                                        [](const Point3D &p) -> real_t {
+                                            const real_t x = p[0];
+                                            const real_t y = p[1];
+                                            const real_t x0 = M_PI * y;
+                                            const real_t x1 = M_PI * x;
+                                            const real_t x2 = std::sin(x1);
+                                            const real_t x3 = M_PI * (x + y);
+                                            const real_t x4 = M_PI * std::sin(x3);
+                                            const real_t x5 = std::sin(x0);
+                                            return -x2 * x4 * std::cos(x0) - 2 * M_PI * x2 * x5 * std::cos(x3) -
+                                                   x4 * x5 * std::cos(x1);
+                                        }),
+                                EGP0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel);
+        */
 
             }
 
@@ -674,7 +779,7 @@ namespace hyteg {
                                 EGP0StokesOp,
                                 storage,
                                 minLevel,
-                                maxLevel, 5, true);
+                                maxLevel+1, 5, true);
 
 
                     }
@@ -1004,7 +1109,7 @@ namespace hyteg {
                                 EGP0StokesOp,
                                 storage,
                                 minLevel,
-                                maxLevel,
+                                maxLevel+1,
                                 2,
                                 true);
 
@@ -1342,7 +1447,104 @@ namespace hyteg {
                             EGP0StokesOp,
                             storage,
                             minLevel,
-                            maxLevel,
+                            maxLevel-1,
+                            2,
+                            true);
+                }
+
+                // IIPG: cube_24el, hom. solution
+                if (false) {
+                    // MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+                    auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_24el.msh");
+
+                    hyteg::SetupPrimitiveStorage setupStorage(meshInfo,
+                                                              walberla::uint_c(
+                                                                      walberla::mpi::MPIManager::instance()->numProcesses()));
+                    setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
+                    auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
+
+                    EGP0IIPGStokesOperator EGP0StokesOp(storage, minLevel - 1, maxLevel);
+
+                    // cube, hom. solution
+                    WALBERLA_LOG_INFO_ON_ROOT("### cube_24el, hom. solution ###");
+                    StokesConvergenceOrderTest<EGP0IIPGStokesOperator>(
+                            "EGP0IIPGStokesOp3D_cube_24el_hom",
+                            std::make_tuple([](const Point3D &xx) -> real_t {
+                                                const real_t x = xx[0];
+                                                const real_t y = xx[1];
+                                                const real_t z = xx[2];
+                                                const real_t x0 = 2 * M_PI;
+                                                return std::sin(x * x0) * std::sin(x0 * y) * std::sin(x0 * z);
+                                            },
+                                            [](const Point3D &xx) -> real_t {
+                                                const real_t x = xx[0];
+                                                const real_t y = xx[1];
+                                                const real_t z = xx[2];
+                                                const real_t x0 = 2 * M_PI;
+                                                return std::sin(x * x0) * std::sin(x0 * y) *
+                                                       std::sin(x0 * z);
+                                            },
+                                            [](const Point3D &xx) -> real_t {
+                                                const real_t x = xx[0];
+                                                const real_t y = xx[1];
+                                                const real_t z = xx[2];
+                                                const real_t x0 = 2 * M_PI;
+                                                return std::sin(x * x0) * std::sin(x0 * y) *
+                                                       std::sin(x0 * z);
+                                            },
+                                            [](const Point3D &xx) -> real_t {
+                                                return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) *
+                                                       std::sin(2 * xx[2]);
+                                            }),
+                            std::make_tuple(
+                                    [](const Point3D &xx) -> real_t {
+                                        const real_t x = xx[0];
+                                        const real_t y = xx[1];
+                                        const real_t z = xx[2];
+                                        const real_t x0 = 2 * z;
+                                        const real_t x1 = 2 * M_PI;
+                                        return 4 * std::sin(x0) * std::sin(8 * y) * std::cos(4 * x) +
+                                               12 * std::pow(M_PI, 2) * std::sin(M_PI * x0) * std::sin(x * x1) *
+                                               std::sin(x1 * y);
+                                    },
+                                    [](const Point3D &xx) -> real_t {
+                                        const real_t x = xx[0];
+                                        const real_t y = xx[1];
+                                        const real_t z = xx[2];
+                                        const real_t x0 = 2 * z;
+                                        const real_t x1 = 2 * M_PI;
+                                        return 8 * std::sin(4 * x) * std::sin(x0) * std::cos(8 * y) +
+                                               12 * std::pow(M_PI, 2) * std::sin(M_PI * x0) * std::sin(x * x1) *
+                                               std::sin(x1 * y);
+                                    },
+                                    [](const Point3D &xx) -> real_t {
+                                        const real_t x = xx[0];
+                                        const real_t y = xx[1];
+                                        const real_t z = xx[2];
+                                        const real_t x0 = 2 * z;
+                                        const real_t x1 = 2 * M_PI;
+                                        return 2 * std::sin(4 * x) * std::sin(8 * y) * std::cos(x0) +
+                                               12 * std::pow(M_PI, 2) * std::sin(M_PI * x0) * std::sin(x * x1) *
+                                               std::sin(x1 * y);
+                                    },
+                                    [](const Point3D &xx) -> real_t {
+                                        const real_t x = xx[0];
+                                        const real_t y = xx[1];
+                                        const real_t z = xx[2];
+                                        const real_t x0 = 2 * M_PI;
+                                        const real_t x1 = x0 * y;
+                                        const real_t x2 = std::sin(x1);
+                                        const real_t x3 = x * x0;
+                                        const real_t x4 = std::sin(x3);
+                                        const real_t x5 = x0 * z;
+                                        const real_t x6 = x0 * std::sin(x5);
+                                        return -x0 * x2 * x4 * std::cos(x5) - x2 * x6 * std::cos(x3) -
+                                               x4 * x6 * std::cos(x1);
+                                    }),
+                            EGP0StokesOp,
+                            storage,
+                            minLevel,
+                            maxLevel-1,
                             2,
                             true);
                 }
@@ -1389,10 +1591,57 @@ namespace hyteg {
                             EGP0StokesOp,
                             storage,
                             minLevel,
-                            maxLevel,
+                            maxLevel-1,
                             2,
                             true);
                 }
+
+                // IIPG: cube_24el, inhom. solution
+                if (false) {
+                    // MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+                    auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_24el.msh");
+
+                    hyteg::SetupPrimitiveStorage setupStorage(meshInfo,
+                                                              walberla::uint_c(
+                                                                      walberla::mpi::MPIManager::instance()->numProcesses()));
+                    setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
+                    auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
+
+                    EGP0IIPGStokesOperator EGP0StokesOp(storage, minLevel - 1, maxLevel);
+
+                    // cube, hom. solution
+                    WALBERLA_LOG_INFO_ON_ROOT("### cube_24el, inhom. solution ###");
+                    StokesConvergenceOrderTest<EGP0IIPGStokesOperator>(
+                            "EGP0IIPGStokesOp3D_cube_24el_inhom",
+                            std::make_tuple(
+                                    [](const hyteg::Point3D &xx) { return -real_c(4) * std::cos(real_c(4) * xx[2]); },
+                                    [](const hyteg::Point3D &xx) { return real_c(8) * std::cos(real_c(8) * xx[0]); },
+                                    [](const hyteg::Point3D &xx) { return -real_c(2) * std::cos(real_c(2) * xx[1]); },
+                                    [](const hyteg::Point3D &xx) {
+                                        return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::sin(2 * xx[2]);
+                                    }),
+                            std::make_tuple(
+                                    [](const hyteg::Point3D &xx) {
+                                        return 4 * std::sin(8 * xx[1]) * std::sin(2 * xx[2]) * std::cos(4 * xx[0]) -
+                                               64 * std::cos(4 * xx[2]);
+                                    },
+                                    [](const hyteg::Point3D &xx) {
+                                        return 8 * std::sin(4 * xx[0]) * std::sin(2 * xx[2]) * std::cos(8 * xx[1]) +
+                                               512 * std::cos(8 * xx[0]);
+                                    },
+                                    [](const hyteg::Point3D &xx) {
+                                        return 2 * std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::cos(2 * xx[2]) -
+                                               8 * std::cos(2 * xx[1]);
+                                    },
+                                    [](const hyteg::Point3D &) { return 0; }),
+                            EGP0StokesOp,
+                            storage,
+                            minLevel,
+                            maxLevel-1,
+                            2,
+                            true);
+                }
+
                 /*
      StokesConvergenceOrderTest< EGP0StokesOperator >(
          "EGP0StokesOp3D",
