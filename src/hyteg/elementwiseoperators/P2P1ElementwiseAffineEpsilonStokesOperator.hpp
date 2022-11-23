@@ -32,10 +32,9 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   
-   typedef P2ElementwiseAffineEpsilonOperator       VelocityOperator_T;
-   
+   typedef P2ElementwiseAffineEpsilonOperator                    VelocityOperator_T;
    typedef P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner BlockPreconditioner_T;
+   typedef P2ElementwiseAffineEpsilonOperator                    EnergyNormOperator_T;
 
    P2P1ElementwiseAffineEpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                uint_t                                     minLevel,
@@ -45,6 +44,7 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    , viscOp( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
+   , energyNormOp( viscOp )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -77,14 +77,12 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   const P2ElementwiseAffineEpsilonOperator& getA() const
-   {
-      return viscOp;
-   }
+   const P2ElementwiseAffineEpsilonOperator& getA() const { return viscOp; }
 
    P2ElementwiseAffineEpsilonOperator viscOp;
-   P2ToP1ElementwiseDivOperator  div;
-   P1ToP2ElementwiseDivTOperator divT;
+   P2ToP1ElementwiseDivOperator       div;
+   P1ToP2ElementwiseDivTOperator      divT;
+   EnergyNormOperator_T&               energyNormOp;
 
    bool hasGlobalCells_;
 };
