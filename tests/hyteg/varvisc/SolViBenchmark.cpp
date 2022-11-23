@@ -1,48 +1,22 @@
 
 #include <complex>
-#include <fstream>
-#include <iostream>
-#include <type_traits>
-#include <typeinfo>
 
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
-#include "core/math/Random.h"
-#include "core/timing/Timer.h"
+#include "core/mpi/MPIManager.h"
 
-#include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
-#include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/misc/ExactStencilWeights.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/petsc/PETScExportLinearSystem.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.cpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
-#include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
@@ -52,14 +26,17 @@ using walberla::uint_t;
 
 using hyteg::dg::eg::EGMassOperator;
 using hyteg::dg::eg::EGP0EpsilonStokesOperator;
-
 using hyteg::P2P1ElementwiseAffineEpsilonStokesOperator;
 using hyteg::Point3D;
-using hyteg::dg::eg::EGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
-using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
 using hyteg::dg::eg::EGP0EpsilonStokesOperator;
 using hyteg::dg::eg::EGP0StokesOperator;
+using hyteg::dg::eg::isEGP0Discr;
+using hyteg::dg::eg::isP2P1Discr;
+using hyteg::dg::eg::LambdaTuple;
+using hyteg::dg::eg::ScalarLambda;
+using hyteg::dg::eg::StokesConvergenceOrderTest;
+
 namespace hyteg {
 
 // SolVi benchmark (Circular inclusion)
@@ -67,72 +44,22 @@ namespace hyteg {
 The viscosity contains a jump from visc_matrix to visc_inclusion in a circle located at the center of the domain. 
 Difficulty for FE methods: the mesh can not align with the viscosity jump well.
 
+Implementation in parts from [3]
+
 [1]: "On the choice of finite element for applications in geodynamics" 
 by Cedric Thieulot and Wolfgang Bangerth
 
 [2]: "Analytical solutions for deformable elliptical inclusions in general shear" 
 by Daniel W. Schmid and Yuri Yu. Podladchikov
+
+[3]: https://github.com/geodynamics/aspect/blob/main/benchmarks/inclusion/inclusion.h
 */
 
-auto copyBdry = []( EGP0StokesFunction< real_t > fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
-
-template < typename StokesOperatorType >
-constexpr bool isEGP0Discr()
-{
-   return std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
-          std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
-          std::is_same< StokesOperatorType, EGP0ConstEpsilonStokesOperator >::value;
-}
-
-template < typename StokesOperatorType >
-constexpr bool isP2P1Discr()
-{
-   return std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
-          std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value;
-}
-
-template < typename StokesOperatorType >
-std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
-                                               const uint_t&      level,
-                                               const uint_t&      nxy,
-                                               const real_t       r_inclusion,
-                                               const real_t&      visc_inclusion,
-                                               const real_t&      visc_matrix,
-                                               bool               writeVTK = true )
+// returns (u,p) analytical solution, (f,g) rhs and mu viscosity function of the SolVi problem
+std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
+    SetupSolViSolution( const real_t r_inclusion, const real_t& visc_inclusion, const real_t& visc_matrix )
 {
    using namespace std::complex_literals;
-   using StokesFunctionType = typename StokesOperatorType::srcType;
-   // using StokesFunctionNumeratorType = typename StokesFunctionType::template FunctionType< idx_t >;
-
-   // storage and domain
-   auto meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), MeshInfo::CRISSCROSS, nxy, nxy );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   hyteg::loadbalancing::roundRobin( setupStorage );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-   //writeDomainPartitioningVTK( storage, "../../output", "SolViBenchmark_Domain" );
-
-   // function setup
-   StokesFunctionType   x_num( "x_num", storage, level, level );
-   StokesFunctionType   x_exact( "x_exact", storage, level, level );
-   StokesFunctionType   btmp( "btmp", storage, level, level );
-   StokesFunctionType   b( "b", storage, level, level );
-   StokesFunctionType   err( "err", storage, level, level );
-   StokesFunctionType   Merr( "err", storage, level, level );
-   P2Function< real_t > Visc_func( "visc_func", storage, level, level );
-   //StokesFunctionType nullspace( "nullspace", storage, level, level );
-   if constexpr ( isEGP0Discr< StokesOperatorType >() )
-   {
-      copyBdry( x_num );
-      copyBdry( x_exact );
-      copyBdry( err );
-      copyBdry( Merr );
-      copyBdry( b );
-      copyBdry( btmp );
-   }
-   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
-   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
 
    // radius helper function
    std::function< real_t( const hyteg::Point3D& ) > rad = []( const hyteg::Point3D& xx ) {
@@ -142,23 +69,25 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    // viscosity function and operator setup
    std::function< real_t( const hyteg::Point3D& ) > viscosity =
        [r_inclusion, visc_inclusion, visc_matrix, rad]( const hyteg::Point3D& xx ) {
-          if ( rad( xx ) < r_inclusion )
+          Point3D offset({1.0, 1.0, 0.0});
+          if ( rad( xx - offset) < r_inclusion )
              return visc_inclusion;
           else
              return visc_matrix;
        };
-   StokesOperatorType Op( storage, level, level, viscosity );
 
    // analytic solution for u,v,p
    const real_t                                             C_visc = visc_matrix / ( visc_inclusion + visc_matrix );
    const real_t                                             A      = C_visc * ( visc_inclusion - visc_matrix );
    std::function< hyteg::Point3D( const hyteg::Point3D& ) > analytic_uvp =
-       [A, r_inclusion, visc_matrix, visc_inclusion]( const hyteg::Point3D& xx ) {
+       [A, r_inclusion, visc_matrix, visc_inclusion, rad]( const hyteg::Point3D& xx ) {
           std::complex< real_t > phi, psi, dphi;
           real_t                 r2_inclusion = r_inclusion * r_inclusion;
-          real_t                 x            = xx[0];
-          real_t                 y            = xx[1];
-          real_t                 r2           = x * x + y * y;
+          Point3D offset({1.0, 1.0, 0.0});
+          Point3D tmp = xx - offset;
+          real_t                 x            = tmp[0];
+          real_t                 y            = tmp[1];
+          real_t                 r2           = std::pow( rad(tmp), 2.0 );//x * x + y * y;
 
           std::complex< real_t > z( x, y );
           if ( r2 < r2_inclusion )
@@ -175,10 +104,11 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
              dphi = -phi / z;
              psi  = -2.0 * ( visc_matrix * z + A * r2_inclusion * r2_inclusion / ( z * z * z ) );
           }
-          real_t                 visc = ( r2 < r2_inclusion ) ? visc_inclusion : 1.0;
+          real_t                 visc = ( r2 < r2_inclusion ) ? visc_inclusion : visc_matrix;
           std::complex< real_t > v    = ( phi - z * conj( dphi ) - conj( psi ) ) / ( 2.0 * visc );
           return Point3D( { v.real(), v.imag(), -2 * dphi.real() } );
        };
+
    std::function< real_t( const hyteg::Point3D& ) > analyticU = [analytic_uvp]( const hyteg::Point3D& xx ) {
       auto uvp = analytic_uvp( xx );
       return uvp[0];
@@ -265,34 +195,7 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
                         std::pow( xx[0] * xx[0] + xx[1] * xx[1], 2.0 ); //+ ddy_p(xx);
        };
 
-   // interpolate solution, "Integrate" rhs
-   x_exact.uvw().interpolate( { analyticU, analyticV }, level, All );
-   x_exact.p().interpolate( analyticP, level, All );
-   btmp.uvw().interpolate( { rhsU, rhsV }, level, Inner );
-   // x_num.p().interpolate( { analyticP }, level, hyteg::DirichletBoundary );
-
-   if constexpr ( isP2P1Discr< StokesOperatorType >() )
-   {
-      P2ConstantMassOperator M_vel( storage, level, level );
-      M_vel.apply( btmp.uvw()[0], b.uvw()[0], level, All );
-      M_vel.apply( btmp.uvw()[1], b.uvw()[1], level, All );
-
-      x_num.uvw().interpolate( { analyticU, analyticV }, level, hyteg::DirichletBoundary );
-   }
-   else
-   {
-      if constexpr ( isEGP0Discr< StokesOperatorType >() )
-      {
-         EGMassOperator M_vel( storage, level, level );
-         M_vel.apply( btmp.uvw(), b.uvw(), level, All, Replace );
-         x_num.uvw().getConformingPart()->interpolate( { analyticU, analyticV }, level, DirichletBoundary );
-      }
-      else
-      {
-         WALBERLA_ABORT( "SolVi Benchmark not implemented for other discretizations!" );
-      }
-   }
-
+   /*
    PETScLUSolver< StokesOperatorType > solver( storage, level );
    //PETScMinResSolver< StokesOperatorType > solver( storage, level );
 
@@ -303,66 +206,20 @@ std::tuple< real_t, real_t, real_t > RunSolVi( const std::string& name,
    solver.setNullSpace( nullSpace, level );
 
    solver.solve( Op, x_num, b, level );
+*/
 
-   if constexpr ( isEGP0Discr< StokesOperatorType >() )
-   {
-      hyteg::dg::projectMean( x_num.p(), level );
-      // hyteg::dg::projectMean( x_exact.p(), level );
-   }
-   else if constexpr ( isP2P1Discr< StokesOperatorType >() )
-   {
-      hyteg::vertexdof::projectMean( x_num.p(), level );
-      //hyteg::vertexdof::projectMean( x_exact.p(), level );
-   }
+   // pack
+   auto zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+   LambdaTuple solTuple = std::make_tuple( analyticU, analyticV, zero, analyticP );
+   LambdaTuple rhsTuple = std::make_tuple( rhsU, rhsV, zero, zero );
 
-   Visc_func.interpolate( viscosity, level, All );
-   err.assign( { 1.0, -1.0 }, { x_num, x_exact }, level, All );
-
-   if ( writeVTK )
-   {
-      // Visualization
-      VTKOutput vtkOutput( "../../output", name, storage );
-      vtkOutput.add( Visc_func );
-      vtkOutput.add( x_num.uvw() );
-      vtkOutput.add( x_num.p() );
-      vtkOutput.add( x_exact.uvw() );
-      vtkOutput.add( x_exact.p() );
-      vtkOutput.add( err.uvw() );
-      vtkOutput.add( err.p() );
-      vtkOutput.add( b.uvw() );
-      vtkOutput.add( b.p() );
-      vtkOutput.write( level, 0 );
-   }
-
-   real_t discrL2_velocity_err = 0.0;
-   real_t discrL2_pressure_err = 0.0;
-
-   if constexpr ( isP2P1Discr< StokesOperatorType >() )
-   {
-      P2ConstantMassOperator M_vel( storage, level, level );
-      M_vel.apply( err.uvw()[0], Merr.uvw()[0], level, Inner, Replace );
-      M_vel.apply( err.uvw()[1], Merr.uvw()[1], level, Inner, Replace );
-      P1ConstantMassOperator M_pressure( storage, level, level );
-      M_pressure.apply( err.p(), Merr.p(), level, All, Replace );
-   }
-   else if constexpr ( isEGP0Discr< StokesOperatorType >() )
-   {
-      EGMassOperator M_vel( storage, level, level );
-      M_vel.apply( err.uvw(), Merr.uvw(), level, Inner, Replace );
-      auto           mass_form = std::make_shared< dg::DGMassFormP0P0 >();
-      dg::DGOperator M_pressure( storage, level, level, mass_form );
-      M_pressure.apply( *err.p().getDGFunction(), *Merr.p().getDGFunction(), level, All, Replace );
-   }
-   discrL2_pressure_err = sqrt( err.p().dotGlobal( err.p(), level, Inner ) / real_c( numberOfGlobalDoFs( err.p(), level ) ) );
-   discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
-   real_t h             = MeshQuality::getMaximalEdgeLength( storage, level );
-   return std::make_tuple< real_t&, real_t&, real_t& >( h, discrL2_velocity_err, discrL2_pressure_err );
+   return std::make_tuple( solTuple, rhsTuple, viscosity );
 }
 
 } // namespace hyteg
 
 using namespace hyteg;
-
+/*
 template < typename StokesOperatorType >
 void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const uint_t maxLevel )
 {
@@ -410,19 +267,49 @@ void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const
    }
    err_file.close();
 }
-
+*/
 int main( int argc, char* argv[] )
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-   PETScManager petscManager( &argc, &argv );
 
+      walberla::MPIManager::instance()->initializeMPI(&argc, &argv);
+      walberla::MPIManager::instance()->useWorldComm();
+      hyteg::PETScManager petscManager(&argc, &argv);
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
+   uint_t minLevel = 4;
+   uint_t maxLevel = 8;
 
-   SolViConvergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >( "P2P1_SolVi", 4, 7 );
-   SolViConvergenceTest< hyteg::dg::eg::EGP0EpsilonStokesOperator >( "EGP0_SolVi", 4, 7 );
+   // storage setup
+   auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISSCROSS, 2, 2 );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
+
+   // SolVi solution setup
+   auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
+
+   if ( true )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
+
+      P2P1ElementwiseAffineEpsilonStokesOperator P2P1EpsilonOp(
+          storage, minLevel, maxLevel, viscosity );
+
+      StokesConvergenceOrderTest< P2P1ElementwiseAffineEpsilonStokesOperator >(
+          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel, 1, true );
+   }
+   if ( true )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0 ###" );
+
+      EGP0EpsilonStokesOperator EGP0EpsilonOp(
+          storage, minLevel, maxLevel, viscosity );
+
+      StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
+          "SolVi_EGP0", solTuple, rhsTuple, EGP0EpsilonOp, storage, minLevel, maxLevel, 1, true );
+   }
 
    return EXIT_SUCCESS;
 }
