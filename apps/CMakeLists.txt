@@ -97,6 +97,8 @@ if( HYTEG_TERRANEO_MODULE )
   add_subdirectory(TerraNeo)
 endif()
 
+add_subdirectory(surfaces)
+
 add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)
