@@ -67,7 +67,9 @@ class PETScMinResSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
    , setFromOptions_( false )
+   , iterNumber_( 0 )
    {
+       num.enumerate(level);
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
@@ -94,6 +96,10 @@ class PETScMinResSolver : public Solver< OperatorType >
    }
 
    void setFromOptions( bool doIt ) { setFromOptions_ = doIt; }
+
+   int getIterNumber() {
+      return iterNumber_;
+   }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -134,6 +140,7 @@ class PETScMinResSolver : public Solver< OperatorType >
       }
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
+      KSPGetIterationNumber(ksp, &iterNumber_);
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
 
@@ -157,6 +164,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
    bool           setFromOptions_;
+   int           iterNumber_;
 };
 
 } // namespace hyteg
