@@ -67,6 +67,7 @@ typedef std::tuple< ScalarLambda, ScalarLambda, ScalarLambda, ScalarLambda > Lam
 // datatype for errors and rates
 typedef std::vector< real_t > ErrorArray;
 
+// checks for discretization and operator template arguments
 template < typename StokesOperatorType >
 constexpr bool isEGP0Discr()
 {
@@ -74,26 +75,30 @@ constexpr bool isEGP0Discr()
           std::is_same< StokesOperatorType, EGP0StokesOperator >::value ||
           std::is_same< StokesOperatorType, EGP0IIPGStokesOperator >::value;
 }
-
 template < typename StokesOperatorType >
 constexpr bool isEpsilonOp()
 {
    return std::is_same< StokesOperatorType, EGP0EpsilonStokesOperator >::value ||
           std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value;
 }
-
 template < typename StokesOperatorType >
 constexpr bool isP2P1Discr()
 {
    return std::is_same< StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator >::value ||
           std::is_same< StokesOperatorType, hyteg::P2P1TaylorHoodStokesOperator >::value;
 }
-
 template < typename StokesOperatorType >
 constexpr bool isP1P0Discr()
 {
    return std::is_same< StokesOperatorType, hyteg::P1P0StokesOperator >::value;
 }
+
+// check for data member energyOp
+template<typename, typename = void>
+constexpr bool hasEnergyNormOp = false;
+template<typename T>
+constexpr bool hasEnergyNormOp<T, std::void_t<decltype(std::declval<T>().energyNormOp)>> = true;
+
 
 template < typename StokesOperatorType >
 class StokesConvergenceOrderTest
@@ -161,13 +166,9 @@ class StokesConvergenceOrderTest
 
       void update( const ErrorArray& newErrors, real_t h_new )
       {
-
          currentDoFs_ = newErrors[0];
          currentIts_  = newErrors[1];
-         for(auto v : newErrors)
-            std::cout << v << std::endl;
          std::transform( newErrors.begin() + 2, newErrors.end(), errors_.begin(), rates_.begin(), std::divides< real_t >() );
-
          std::transform( rates_.begin(), rates_.end(), rates_.begin(), [h_new, this]( real_t x ) {
             return std::log( x ) / std::log( h_new / h_old );
          } );
@@ -231,6 +232,8 @@ class StokesConvergenceOrderTest
       }
 
     private:
+
+
       real_t L2PressureError()
       {
          if constexpr ( isEGP0Discr< StokesOperatorType >() )
@@ -249,15 +252,8 @@ class StokesConvergenceOrderTest
 
       real_t EnergyVeloError( typename StokesOperatorType::EnergyNormOperator_T& energyNormOp )
       {
-         if constexpr ( isEGP0Discr< StokesOperatorType >() )
-         {
             energyNormOp.apply( err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace );
             return sqrt( err_.uvw().dotGlobal( tmpErr_.uvw(), level_, All ) );
-         }
-         else
-         {
-            WALBERLA_ABORT( "Not imlemented" );
-         }
       }
 
       real_t L2VeloError()
@@ -455,6 +451,16 @@ class StokesConvergenceOrderTest
          solver.solve( Op_, u, rhs, level );
          break;
       }
+      case 1: {
+         PETScLUSolver< StokesOperatorType > solver( storage_, level );
+         StokesFunctionType nullSpace( "ns", storage_, level, level );
+         nullSpace.uvw().interpolate( 0, level, All );
+         nullSpace.p().interpolate( 1, level, All );
+         solver.setNullSpace( nullSpace, level );
+         solver.solve( Op_, u, rhs, level );
+         iterNumber=1;
+         break;
+      }
       default: {
          PETScMinResSolver< StokesOperatorType > solver( storage_, level );
          solver.setFromOptions( true );
@@ -490,25 +496,30 @@ class StokesConvergenceOrderTest
             vtk.add( u );
             vtk.add( *u.uvw().getConformingPart() );
             vtk.add( *u.uvw().getDiscontinuousPart() );
-
             vtk.add( sol );
             vtk.add( *sol.uvw().getConformingPart() );
             vtk.add( *sol.uvw().getDiscontinuousPart() );
-
             vtk.add( err );
             vtk.add( *err.uvw().getConformingPart() );
             vtk.add( *err.uvw().getDiscontinuousPart() );
-
             vtk.add( f );
-
             vtk.write( level, 1 );
          }
          else
          {
-            WALBERLA_ABORT( "not implemented" );
+            VTKOutput vtk( "/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg_premerge/hyteg-build/output", testName_, storage_ );
+            vtk.add( u );
+            vtk.add( sol );
+            vtk.add( err );
+            vtk.add( f );
+            vtk.write( level, 1 );
          }
       }
 
+      // check for energyNormOp
+      static_assert(hasEnergyNormOp<StokesOperatorType>, "Member energyOp must be implemented in the used Stokes operator type.");
+
+      // pack returns: DoFs, iteration number, error norms
       std::vector< real_t > ret = { real_c( globalDoFs ), real_c( iterNumber ) };
       auto norms = EGNormComputer( level, err, storage_ ).compute( Op_.energyNormOp );
       ret.insert(ret.end(), norms.begin(), norms.end() );
