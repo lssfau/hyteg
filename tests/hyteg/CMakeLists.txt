@@ -929,11 +929,17 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME N1E1InverseDiagonalTest)
 endif ()
 
-waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME HybridSmootherTest)
+# For some reason executing these tests takes forever with clang and gcc in Debug mode.
+if ( NOT (    CMAKE_BUILD_TYPE MATCHES "Debug"
+          AND (WALBERLA_CXX_COMPILER_IS_CLANG OR WALBERLA_CXX_COMPILER_IS_GNU)
+         )
+   )
+    waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME HybridSmootherTest)
+
+    waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1GMGhIndependenceTest)
+endif ()
 
 waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1GMGConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1GMGConvergenceTest> LABELS longrun PROCESSES 4)
-
-waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME N1E1GMGhIndependenceTest)
