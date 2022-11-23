@@ -65,7 +65,7 @@ typedef std::function< real_t( const hyteg::PointND< real_t, 3 >& p ) > ScalarLa
 typedef std::tuple< ScalarLambda, ScalarLambda, ScalarLambda, ScalarLambda > LambdaTuple;
 
 // datatype for errors and rates
-typedef std::array< real_t, 3 > ErrorArray;
+typedef std::vector< real_t > ErrorArray;
 
 template < typename StokesOperatorType >
 constexpr bool isEGP0Discr()
@@ -155,25 +155,34 @@ class StokesConvergenceOrderTest
       EGConvRatesCounter()
       : h_old( std::numeric_limits< real_t >::max() )
       {
-         rates_.fill( -1. );
-         errors_.fill( -1. );
+         errors_ = { 0., 0., 0. };
+         rates_  = { 0., 0., 0. };
       }
 
       void update( const ErrorArray& newErrors, real_t h_new )
       {
-         std::transform( newErrors.begin(), newErrors.end(), errors_.begin(), rates_.begin(), std::divides< real_t >() );
+
+         currentDoFs_ = newErrors[0];
+         currentIts_  = newErrors[1];
+         for(auto v : newErrors)
+            std::cout << v << std::endl;
+         std::transform( newErrors.begin() + 2, newErrors.end(), errors_.begin(), rates_.begin(), std::divides< real_t >() );
 
          std::transform( rates_.begin(), rates_.end(), rates_.begin(), [h_new, this]( real_t x ) {
             return std::log( x ) / std::log( h_new / h_old );
          } );
-         h_old   = h_new;
-         errors_ = newErrors;
+
+         h_old        = h_new;
+         errors_.assign(newErrors.begin()+2, newErrors.end());
+
       }
 
       void printHeader()
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s|%15s|%15s|%15s|%15s|",
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|",
                                                       "level",
+                                                      "DoFs",
+                                                      "its",
                                                       "L2Norm(e_v)",
                                                       "ENorm(e_v)",
                                                       "L2Norm(e_p)",
@@ -184,8 +193,10 @@ class StokesConvergenceOrderTest
 
       void printCurrentRates( uint_t level )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|",
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|",
                                                       level,
+                                                      currentDoFs_,
+                                                      currentIts_,
                                                       errors_[0],
                                                       errors_[1],
                                                       errors_[2],
@@ -199,6 +210,8 @@ class StokesConvergenceOrderTest
       ErrorArray errors_;
       ErrorArray rates_;
       real_t     h_old;
+      real_t     currentDoFs_;
+      real_t     currentIts_;
    };
 
    // subclass handling the computation of error norms
@@ -393,10 +406,7 @@ class StokesConvergenceOrderTest
    {
       StokesFunctionNumeratorType numerator( "numerator", storage_, level, level );
       numerator.enumerate( level );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << numberOfGlobalDoFs( numerator, level )
-                                                 << ", u DoFs: " << numberOfGlobalDoFs( numerator.uvw(), level )
-                                                 << ", p DoFs: " << numberOfGlobalDoFs( numerator.p(), level ) );
+      uint_t globalDoFs = numberOfGlobalDoFs( numerator, level );
 
       // solution, rhs as a lambda function
       auto [u_x_expr, u_y_expr, u_z_expr, p_expr] = solTuple_;
@@ -436,22 +446,12 @@ class StokesConvergenceOrderTest
       setupRHSandBC( level, f, rhs, u );
 
       // solve
+      int iterNumber = 0;
       switch ( solverType_ )
       {
       case 0: {
          MinResSolver< StokesOperatorType > solver( storage_, level, level );
          solver.setPrintInfo( true );
-         solver.solve( Op_, u, rhs, level );
-         break;
-      }
-      case 1: {
-         // does this solver make sense with the D-block=0?
-         PETScLUSolver< StokesOperatorType > solver( storage_, level );
-         solver.setAssumeSymmetry( true );
-         StokesFunctionType nullSpace( "ns", storage_, level, level );
-         nullSpace.uvw().interpolate( 0, level, All );
-         nullSpace.p().interpolate( 1, level, All );
-         solver.setNullSpace( nullSpace, level );
          solver.solve( Op_, u, rhs, level );
          break;
       }
@@ -463,6 +463,7 @@ class StokesConvergenceOrderTest
          nullSpace.p().interpolate( 1, level, All );
          solver.setNullSpace( nullSpace );
          solver.solve( Op_, u, rhs, level );
+         iterNumber = solver.getIterNumber();
          break;
       }
       }
@@ -501,12 +502,17 @@ class StokesConvergenceOrderTest
             vtk.add( f );
 
             vtk.write( level, 1 );
-         } else {
-            WALBERLA_ABORT("not implemented");
+         }
+         else
+         {
+            WALBERLA_ABORT( "not implemented" );
          }
       }
 
-      return EGNormComputer( level, err, storage_ ).compute(Op_.energyNormOp);
+      std::vector< real_t > ret = { real_c( globalDoFs ), real_c( iterNumber ) };
+      auto norms = EGNormComputer( level, err, storage_ ).compute( Op_.energyNormOp );
+      ret.insert(ret.end(), norms.begin(), norms.end() );
+      return ret;
    }
 
    std::string                         testName_;
