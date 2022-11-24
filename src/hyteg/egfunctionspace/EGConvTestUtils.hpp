@@ -90,15 +90,14 @@ constexpr bool isP2P1Discr()
 template < typename StokesOperatorType >
 constexpr bool isP1P0Discr()
 {
-   return std::is_same< StokesOperatorType, hyteg::P1P0StokesOperator >::value;
+   return std::is_same< StokesOperatorType, hyteg::P1P0StokesOperator >::value ||std::is_same< StokesOperatorType, hyteg::P1P0EpsilonOperator >::value;
 }
 
 // check for data member energyOp
-template<typename, typename = void>
+template < typename, typename = void >
 constexpr bool hasEnergyNormOp = false;
-template<typename T>
-constexpr bool hasEnergyNormOp<T, std::void_t<decltype(std::declval<T>().energyNormOp)>> = true;
-
+template < typename T >
+constexpr bool hasEnergyNormOp< T, std::void_t< decltype( std::declval< T >().energyNormOp ) > > = true;
 
 template < typename StokesOperatorType >
 class StokesConvergenceOrderTest
@@ -115,7 +114,8 @@ class StokesConvergenceOrderTest
                                const uint_t                               minLevel,
                                const uint_t                               maxLevel,
                                const uint_t&                              solverType = 5,
-                               bool                                       writeVTK   = false )
+                               bool                                       writeVTK   = false,
+                                       bool writeRates = false)
    : testName_( testName )
    , solTuple_( solTuple )
    , rhsTuple_( rhsTuple )
@@ -134,11 +134,7 @@ class StokesConvergenceOrderTest
          ratesCounter.update( RunStokesTestOnLevel( level ), MeshQuality::getMaximalEdgeLength( storage_, level ) );
          ratesCounter.printCurrentRates( level );
       }
-
-      //const real_t expectedRate = 4.;
-      //WALBERLA_CHECK_LESS( 0.9 * expectedRate, currentRate, "unexpected rate!" );
-      //WALBERLA_CHECK_GREATER( 1.1 * expectedRate, currentRate, "unexpected rate!" );
-      //WALBERLA_LOG_INFO_ON_ROOT( "Test " << testName << " converged correctly." );
+      ratesCounter.printMeanRates();
 
       // write to plot file
       /*
@@ -159,9 +155,11 @@ class StokesConvergenceOrderTest
     public:
       EGConvRatesCounter()
       : h_old( std::numeric_limits< real_t >::max() )
+      , nUpdates_( 0 )
       {
-         errors_ = { 0., 0., 0. };
-         rates_  = { 0., 0., 0. };
+         errors_   = { 0., 0., 0. };
+         rates_    = { 0., 0., 0. };
+         sumRates_ = { 0., 0., 0. };
       }
 
       void update( const ErrorArray& newErrors, real_t h_new )
@@ -172,10 +170,11 @@ class StokesConvergenceOrderTest
          std::transform( rates_.begin(), rates_.end(), rates_.begin(), [h_new, this]( real_t x ) {
             return std::log( x ) / std::log( h_new / h_old );
          } );
-
-         h_old        = h_new;
-         errors_.assign(newErrors.begin()+2, newErrors.end());
-
+         if(nUpdates_ > 0)
+            std::transform( rates_.begin(), rates_.end(), sumRates_.begin(), sumRates_.begin(), std::plus< real_t >() );
+         nUpdates_++;
+         h_old = h_new;
+         errors_.assign( newErrors.begin() + 2, newErrors.end() );
       }
 
       void printHeader()
@@ -190,6 +189,16 @@ class StokesConvergenceOrderTest
                                                       "L2Rate_v",
                                                       "ERate_v",
                                                       "L2rate_p" ) );
+      }
+
+      void printMeanRates()
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%15s|%15.2s|%15.2s|%15.2s|", "", "L2Rate_v", "ERate_v", "L2rate_p" ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%15s|%15.2e|%15.2e|%15.2e|",
+                                                      "Mean rates:",
+                                                      sumRates_[0] / real_c( nUpdates_-1 ),
+                                                      sumRates_[1] / real_c( nUpdates_-1 ),
+                                                      sumRates_[2] / real_c( nUpdates_-1 ) ) );
       }
 
       void printCurrentRates( uint_t level )
@@ -210,6 +219,8 @@ class StokesConvergenceOrderTest
       // e_v e_v_conf e_v_disc e_p
       ErrorArray errors_;
       ErrorArray rates_;
+      ErrorArray sumRates_;
+      int        nUpdates_;
       real_t     h_old;
       real_t     currentDoFs_;
       real_t     currentIts_;
@@ -232,28 +243,28 @@ class StokesConvergenceOrderTest
       }
 
     private:
-
-
       real_t L2PressureError()
       {
-         if constexpr ( isEGP0Discr< StokesOperatorType >() )
+         if constexpr ( isEGP0Discr< StokesOperatorType >() || isP1P0Discr<StokesOperatorType>() )
          {
             auto           mass_form = std::make_shared< dg::P0P0MassForm >();
             dg::DGOperator M_pressure( storage_, level_, level_, mass_form );
             M_pressure.apply( *err_.p().getDGFunction(), *tmpErr_.p().getDGFunction(), level_, All, Replace );
          }
-         else
+         else if constexpr( isP2P1Discr<StokesOperatorType>())
          {
             P1ConstantMassOperator M_pressure( storage_, level_, level_ );
             M_pressure.apply( err_.p(), tmpErr_.p(), level_, All, Replace );
+         } else {
+            WALBERLA_ABORT("Not implemented.");
          }
          return sqrt( err_.p().dotGlobal( tmpErr_.p(), level_, All ) );
       }
 
       real_t EnergyVeloError( typename StokesOperatorType::EnergyNormOperator_T& energyNormOp )
       {
-            energyNormOp.apply( err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace );
-            return sqrt( err_.uvw().dotGlobal( tmpErr_.uvw(), level_, All ) );
+         energyNormOp.apply( err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace );
+         return sqrt( err_.uvw().dotGlobal( tmpErr_.uvw(), level_, All ) );
       }
 
       real_t L2VeloError()
@@ -262,6 +273,9 @@ class StokesConvergenceOrderTest
          if constexpr ( isEGP0Discr< StokesOperatorType >() )
          {
             EGMassOperator M_vel( storage_, level_, level_ );
+            M_vel.apply( err_.uvw(), tmpErr_.uvw(), level_, All, Replace );
+         } else if constexpr(isP1P0Discr< StokesOperatorType >()) {
+            P1ConstantVectorMassOperator M_vel( storage_, level_, level_ );
             M_vel.apply( err_.uvw(), tmpErr_.uvw(), level_, All, Replace );
          }
          else if constexpr ( isP2P1Discr< StokesOperatorType >() )
@@ -328,10 +342,6 @@ class StokesConvergenceOrderTest
                                               real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
            */
 
-   // discrL2_velocity_err = sqrt( err.uvw().dotGlobal( Merr.uvw(), level, Inner ) );
-   //      discrL2_pressure_err = sqrt( err.p().dotGlobal( Merr.p(), level, Inner ) );
-   //  discrL2_velocity_err = sqrt( err.uvw().dotGlobal( err.uvw(), level, All )/ real_c( numberOfGlobalDoFs( u.uvw(), level ) ) );
-   // discrL2_pressure_err = sqrt( err.p().dotGlobal( err.p(), level, All ) / real_c( numberOfGlobalDoFs( u.p(), level ) ));
 
    void setupRHSandBC( uint_t level, const StokesFunctionType& f, StokesFunctionType& rhs, StokesFunctionType& u )
    {
@@ -346,26 +356,36 @@ class StokesConvergenceOrderTest
          {
             M_vel.apply( f.uvw()[0], rhs.uvw()[0], level, All );
             M_vel.apply( f.uvw()[1], rhs.uvw()[1], level, All );
-            u.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
-            rhs.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
          }
          else
          {
             M_vel.apply( f.uvw()[0], rhs.uvw()[0], level, All );
             M_vel.apply( f.uvw()[1], rhs.uvw()[1], level, All );
             M_vel.apply( f.uvw()[2], rhs.uvw()[2], level, All );
-            u.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
-            rhs.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
          }
 
          P1ConstantMassOperator M_pressure( storage_, level, level );
          M_pressure.apply( f.p(), rhs.p(), level, All, Replace );
+
+         if ( !storage_->hasGlobalCells() )
+         {
+            u.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
+            rhs.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
+         }
+         else
+         {
+            u.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
+            rhs.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
+         }
       }
       else if constexpr ( isEGP0Discr< StokesOperatorType >() )
       {
          EGMassOperator M_vel( storage_, level, level );
          M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
 
+         auto           mass_form = std::make_shared< dg::P0P0MassForm >();
+         dg::DGOperator M_pressure( storage_, level, level, mass_form );
+         M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
          if ( !storage_->hasGlobalCells() )
          {
             u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
@@ -376,20 +396,24 @@ class StokesConvergenceOrderTest
             u.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
             rhs.uvw().getConformingPart()->interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
          }
+      }
+      else if constexpr ( isP1P0Discr< StokesOperatorType >() )
+      {
+         P1ConstantVectorMassOperator M_vel( storage_, level, level );
+         M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
 
          auto           mass_form = std::make_shared< dg::P0P0MassForm >();
          dg::DGOperator M_pressure( storage_, level, level, mass_form );
          M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
-      }
-      else if constexpr ( isP1P0Discr< StokesOperatorType >() )
-      {
          if ( !storage_->hasGlobalCells() )
          {
             u.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
+            rhs.uvw().interpolate( { u_x_expr, u_y_expr }, level, DirichletBoundary );
          }
          else
          {
             u.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
+            rhs.uvw().interpolate( { u_x_expr, u_y_expr, u_z_expr }, level, DirichletBoundary );
          }
       }
       else
@@ -403,6 +427,7 @@ class StokesConvergenceOrderTest
       StokesFunctionNumeratorType numerator( "numerator", storage_, level, level );
       numerator.enumerate( level );
       uint_t globalDoFs = numberOfGlobalDoFs( numerator, level );
+      WALBERLA_LOG_INFO_ON_ROOT("Global DoFs: "<<globalDoFs);
 
       // solution, rhs as a lambda function
       auto [u_x_expr, u_y_expr, u_z_expr, p_expr] = solTuple_;
@@ -453,12 +478,12 @@ class StokesConvergenceOrderTest
       }
       case 1: {
          PETScLUSolver< StokesOperatorType > solver( storage_, level );
-         StokesFunctionType nullSpace( "ns", storage_, level, level );
+         StokesFunctionType                  nullSpace( "ns", storage_, level, level );
          nullSpace.uvw().interpolate( 0, level, All );
          nullSpace.p().interpolate( 1, level, All );
          solver.setNullSpace( nullSpace, level );
          solver.solve( Op_, u, rhs, level );
-         iterNumber=1;
+         iterNumber = 1;
          break;
       }
       default: {
@@ -475,7 +500,7 @@ class StokesConvergenceOrderTest
       }
 
       // pressure projection to space of mean-value-0-functions
-      if constexpr ( isEGP0Discr< StokesOperatorType >() )
+      if constexpr ( isEGP0Discr< StokesOperatorType >() || isP1P0Discr<StokesOperatorType >() )
       {
          hyteg::dg::projectMean( u.p(), level );
          hyteg::dg::projectMean( sol.p(), level );
@@ -517,12 +542,13 @@ class StokesConvergenceOrderTest
       }
 
       // check for energyNormOp
-      static_assert(hasEnergyNormOp<StokesOperatorType>, "Member energyOp must be implemented in the used Stokes operator type.");
+      //static_assert( hasEnergyNormOp< StokesOperatorType >,
+      //               "Member energyOp must be implemented in the used Stokes operator type." );
 
       // pack returns: DoFs, iteration number, error norms
-      std::vector< real_t > ret = { real_c( globalDoFs ), real_c( iterNumber ) };
-      auto norms = EGNormComputer( level, err, storage_ ).compute( Op_.energyNormOp );
-      ret.insert(ret.end(), norms.begin(), norms.end() );
+      std::vector< real_t > ret   = { real_c( globalDoFs ), real_c( iterNumber ) };
+      auto                  norms = EGNormComputer( level, err, storage_ ).compute( Op_.energyNormOp );
+      ret.insert( ret.end(), norms.begin(), norms.end() );
       return ret;
    }
 
