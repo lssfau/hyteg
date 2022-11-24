@@ -152,9 +152,27 @@ class PointND
 
    void setAll( const T& scalar ) { vector_.array() = scalar; }
 
+#ifndef _MSC_VER
    void serialize( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << vector_; }
 
    void deserialize( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> vector_; }
+#else
+   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
+   {
+      for ( int k = 0; k < N; ++k )
+      {
+         sendBuffer << vector_( k );
+      }
+   }
+
+   void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
+   {
+      for ( int k = 0; k < N; ++k )
+      {
+         recvBuffer >> vector_( k );
+      }
+   }
+#endif
 
    Eigen::Matrix< T, N, 1 > vector_;
 };
