@@ -1222,7 +1222,7 @@ docu_build:
 #
 #
 coverage:
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
    script:
       - pip3 install gcovr
       - export NUM_CORES=$(nproc --all)
@@ -1234,27 +1234,33 @@ coverage:
       - mpirun --version
       - gcov --version
       - echo $CI_PROJECT_DIR
-      - mkdir build
-      - cd build
+      - mkdir $CI_PROJECT_DIR/build-coverage
+      - cd $CI_PROJECT_DIR/build-coverage
+      - pwd
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=DebugOptimized -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS=--coverage
+      - cmake .. -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=DebugOptimized -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fprofile-abs-path"
       - cmake . -LA
-      - cd tests
+      - cd $CI_PROJECT_DIR/build-coverage/tests
+      - pwd
       - make -j $MAX_BUILD_CORES -l $NUM_CORES
       - ctest -LE $CTEST_EXCLUDE_LABELS --output-on-failure -j $NUM_CORES
-      - cd ../..
+      - cd $CI_PROJECT_DIR/build-coverage
       - mkdir coverage
       - pwd
-      - gcovr -r $CI_PROJECT_DIR -k build -f "src" -e ".*generatedKernels.*" --print-summary --html coverage/coverage.html --html-details --xml coverage/coverage.xml
+      - gcovr --root ${CI_PROJECT_DIR} -f  ${CI_PROJECT_DIR}/src  -e ".*generatedKernels.*" --print-summary --html coverage/coverage.html --html-details --xml-pretty -o coverage/coverage.xml .
+   coverage: /^\s*lines:\s*\d+.\d+\%/
    artifacts:
       paths:
-         - coverage/
+         - build-coverage/coverage/
       reports:
         coverage_report:
           coverage_format: cobertura
-          path: coverage/coverage.xml
+          path: build-coverage/coverage/coverage.xml
    tags:
       - docker
+   when: manual
+   needs: [ ]
+   stage: benchmark
    variables:
       CTEST_EXCLUDE_LABELS: "longrun"
 
