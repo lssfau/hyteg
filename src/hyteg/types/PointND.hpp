@@ -75,10 +75,6 @@ class PointND
       }
    }
 
-   /// Copy constructor
-   /// \param b Reference to another instance of PointND
-   PointND( const PointND& other ) { vector_ = other.vector_; }
-
    /// Computes the dot product between two PointND vectors
    /// \param b Right hand side of dot operator
    /// \returns Dot product between \p this and \p b
