@@ -24,8 +24,6 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using hyteg::dg::eg::EGMassOperator;
-using hyteg::dg::eg::EGP0EpsilonStokesOperator;
 using hyteg::P2P1ElementwiseAffineEpsilonStokesOperator;
 using hyteg::Point3D;
 using hyteg::dg::eg::EGMassOperator;
@@ -69,8 +67,8 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
    // viscosity function and operator setup
    std::function< real_t( const hyteg::Point3D& ) > viscosity =
        [r_inclusion, visc_inclusion, visc_matrix, rad]( const hyteg::Point3D& xx ) {
-          Point3D offset({1.0, 1.0, 0.0});
-          if ( rad( xx - offset) < r_inclusion )
+          Point3D offset( { 1.0, 1.0, 0.0 } );
+          if ( rad( xx - offset ) < r_inclusion )
              return visc_inclusion;
           else
              return visc_matrix;
@@ -83,11 +81,11 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
        [A, r_inclusion, visc_matrix, visc_inclusion, rad]( const hyteg::Point3D& xx ) {
           std::complex< real_t > phi, psi, dphi;
           real_t                 r2_inclusion = r_inclusion * r_inclusion;
-          Point3D offset({1.0, 1.0, 0.0});
-          Point3D tmp = xx - offset;
-          real_t                 x            = tmp[0];
-          real_t                 y            = tmp[1];
-          real_t                 r2           = std::pow( rad(tmp), 2.0 );//x * x + y * y;
+          Point3D                offset( { 1.0, 1.0, 0.0 } );
+          Point3D                tmp = xx - offset;
+          real_t                 x   = tmp[0];
+          real_t                 y   = tmp[1];
+          real_t                 r2  = std::pow( rad( tmp ), 2.0 ); //x * x + y * y;
 
           std::complex< real_t > z( x, y );
           if ( r2 < r2_inclusion )
@@ -209,7 +207,7 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
 */
 
    // pack
-   auto zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+   auto        zero     = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    LambdaTuple solTuple = std::make_tuple( analyticU, analyticV, zero, analyticP );
    LambdaTuple rhsTuple = std::make_tuple( rhsU, rhsV, zero, zero );
 
@@ -270,18 +268,17 @@ void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const
 */
 int main( int argc, char* argv[] )
 {
-
-      walberla::MPIManager::instance()->initializeMPI(&argc, &argv);
-      walberla::MPIManager::instance()->useWorldComm();
-      hyteg::PETScManager petscManager(&argc, &argv);
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
+   hyteg::PETScManager petscManager( &argc, &argv );
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
-   uint_t minLevel = 4;
-   uint_t maxLevel = 8;
+   uint_t minLevel = 3;
+   uint_t maxLevel = 7;
 
    // storage setup
-   auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISSCROSS, 2, 2 );
+   auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISS, 2, 2 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -290,26 +287,24 @@ int main( int argc, char* argv[] )
    // SolVi solution setup
    auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
 
-   if ( true )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
-
-      P2P1ElementwiseAffineEpsilonStokesOperator P2P1EpsilonOp(
-          storage, minLevel, maxLevel, viscosity );
-
-      StokesConvergenceOrderTest< P2P1ElementwiseAffineEpsilonStokesOperator >(
-          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel, 1, true );
-   }
-   if ( true )
+   if ( false )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0 ###" );
 
-      EGP0EpsilonStokesOperator EGP0EpsilonOp(
-          storage, minLevel, maxLevel, viscosity );
+      EGP0EpsilonStokesOperator EGP0EpsilonOp( storage, minLevel, maxLevel, viscosity );
 
       StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
           "SolVi_EGP0", solTuple, rhsTuple, EGP0EpsilonOp, storage, minLevel, maxLevel, 1, true );
    }
 
+   if ( true )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
+
+      P2P1ElementwiseAffineEpsilonStokesOperator P2P1EpsilonOp( storage, minLevel, maxLevel, viscosity );
+
+      StokesConvergenceOrderTest< P2P1ElementwiseAffineEpsilonStokesOperator >(
+          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel-1, 1, true );
+   }
    return EXIT_SUCCESS;
 }
