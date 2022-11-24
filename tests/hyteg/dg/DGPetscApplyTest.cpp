@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), 4.0e-15 );
-   hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" ), 6.0e-14 );
+   hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" ), 8.0e-14 );
    hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), 1.0e-16 );
    hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ), 1.0e-15 );
    hyteg::dgPetscApplyTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ), 1.0e-15 );

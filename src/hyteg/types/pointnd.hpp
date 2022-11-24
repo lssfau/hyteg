@@ -79,16 +79,6 @@ public:
     }
   }
 
-  /// Copy constructor
-  /// \param b Reference to another instance of PointND
-  PointND(const PointND& b)
-  {
-    for (size_t i = 0; i < N; ++i)
-    {
-      x_[i] = b.x_[i];
-    }
-  }
-
   /// Computes the dot product between two PointND vectors
   /// \param b Right hand side of dot operator
   /// \returns Dot product between \p this and \p b
@@ -321,4 +311,3 @@ GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hyteg::PointND< Po
 
 }
 }
-
