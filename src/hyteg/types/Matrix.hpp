@@ -75,10 +75,6 @@ class Matrix
    /// Sets all values to the given constant
    Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
 
-   /// Copy constructor
-   /// \param b Reference to another instance of Matrix
-   Matrix( const Matrix& other ) { matrix_ = other.matrix_; }
-
    /// Get reference to a single matrix component
    /// \param rIdx row index
    /// \param cIdx column index
