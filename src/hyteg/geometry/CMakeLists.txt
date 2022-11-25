@@ -15,6 +15,6 @@ target_sources( hyteg
     GeometryMap.hpp
     GeometryHelpers.hpp
     GeometryHelpers.cpp
-    Polygons.hpp     
+    Polygons.hpp
+    ThinShellMap.hpp
 )
-

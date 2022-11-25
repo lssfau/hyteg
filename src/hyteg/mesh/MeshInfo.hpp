@@ -476,6 +476,15 @@ class MeshInfo
                                        const std::vector< double >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
 
+   /// Constructs a MeshInfo object for a thin spherical shell
+   ///
+   /// The method creates an icosahedral mesh for a thin shell, i.e. a 2D manifold, of given radius. It uses the
+   /// SHELLMESH_CLASSIC approach for this. All primitives are marked as being hollowFlag::flagInterior.
+   ///
+   /// \param ntan    number of nodes along spherical diamond edge
+   /// \param radius  the shell's radius
+   static MeshInfo meshThinSphericalShell( uint_t ntan, real_t radius );
+
    /// Constructs a MeshInfo object for a chain of triangles.
    ///
    /// Starting from the left side, numFaces faces are connected to each other in an alternating fashion

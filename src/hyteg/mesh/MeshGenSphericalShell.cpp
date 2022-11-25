@@ -884,6 +884,11 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
       MeshInfo::hollowFlag topologyMarker;
       std::tie( vertexCoordinates, topologyMarker ) =
           meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshType );
+
+      // thin shell case is different
+      if ( nrad == 1 )
+         topologyMarker = hollowFlag::flagInterior;
+
       vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoordinates, topologyMarker );
    }
 
@@ -895,6 +900,65 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
       delete[] nodeCoords[0];
       delete[] nodeCoords;
    }
+}
+
+MeshInfo MeshInfo::meshThinSphericalShell( uint_t ntan, real_t radius )
+{
+   if ( !( radius > real_c( 0 ) ) )
+   {
+      WALBERLA_ABORT( "ERROR: meshThinSphericalShell() requires a positive radius!" );
+   }
+
+   MeshInfo meshInfo;
+
+   // ----------------------------
+   //  generate vertex primitives
+   // ----------------------------
+   meshInfo.computeSphericalShellVertices( ntan, { radius }, MeshInfo::shellMeshType::SHELLMESH_CLASSIC );
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getVertices().size(), 10 * ( ntan - 1 ) * ( ntan - 1 ) + 2, "Oops! Inconsistent vertex count!" );
+
+   // --------------------------
+   //  generate face primitives
+   // --------------------------
+   for ( uint_t id = 0; id < 10; ++id ) // loop over diamonds
+   {
+      for ( uint_t is1 = 0; is1 < ntan - 1; ++is1 )
+      {
+         for ( uint_t is2 = 0; is2 < ntan - 1; ++is2 )
+         {
+            IDType v1 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 0, is2 + 0, id, 0 );
+            IDType v2 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 1, is2 + 0, id, 0 );
+            IDType v3 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 1, is2 + 1, id, 0 );
+            IDType v4 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 0, is2 + 1, id, 0 );
+            meshInfo.addFace( Face( { v1, v2, v4 }, hollowFlag::flagInterior ) );
+            meshInfo.addFace( Face( { v2, v3, v4 }, hollowFlag::flagInterior ) );
+         }
+      }
+   }
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getFaces().size(), 20 * ( ntan - 1 ) * ( ntan - 1 ), "Oops! Inconsistent face count!" );
+
+   // --------------------------
+   //  generate edge primitives
+   // --------------------------
+   for ( const auto& it : meshInfo.getFaces() )
+   {
+      const std::vector< IDType > faceCoordinates = it.first;
+
+      WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only face primitives supported." );
+
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[0], faceCoordinates[1] } } ), hollowFlag::flagInterior ) );
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[0], faceCoordinates[2] } } ), hollowFlag::flagInterior ) );
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[1], faceCoordinates[2] } } ), hollowFlag::flagInterior ) );
+   }
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getEdges().size(), 30 * ( ntan - 1 ) * ( ntan - 1 ), "Oops! Inconsistent edge count!" );
+
+   return meshInfo;
 }
 
 } // namespace hyteg
