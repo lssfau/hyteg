@@ -595,6 +595,9 @@ class MeshInfo
    /// Construct a MeshInfo for a rectangular domain using diamond approach
    static MeshInfo meshRectangleDiamond( const Point2D lowerLeft, const Point2D upperRight, uint_t nx, uint_t ny );
 
+   /// Auxilliary function for meshSphericalShell
+   void computeSphericalShellVertices( uint_t ntan, const std::vector< real_t >& layers, MeshInfo::shellMeshType meshType );
+
    /// Derive information on edges from vertices and faces (for rectangles)
 
    /// This method is used in the 2D inline mesh generators for rectangles. The latter
