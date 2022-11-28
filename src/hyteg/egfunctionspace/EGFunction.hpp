@@ -214,6 +214,12 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       if ( u_conforming_->getStorage()->hasGlobalCells() )
          WALBERLA_ABORT( "evaluation of linear functional not supported in 3D" );
 
+      const uint_t dim = 2;
+
+      u_discontinuous_->interpolate(0, level, All);
+      for (uint_t d = 0; d < dim; d += 1)
+         u_conforming_->component(d).setToZero(level);
+
       std::vector< std::function< real_t( const Point3D& ) > > f = { f0, f1 };
 
       for ( auto& it : this->getStorage()->getFaces() )
@@ -240,21 +246,27 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                {
                   for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
                   {
-                     const std::array< indexing::Index, 3 > vertexIndices =
+                     std::array< indexing::Index, 3 > vertexIndicesArray =
                          facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+
                      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
                      for ( uint_t i = 0; i < 3; i++ )
                      {
-                        const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                        const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndicesArray[i] );
                         elementVertices[i]( 0 )  = elementVertex[0];
                         elementVertices[i]( 1 )  = elementVertex[1];
+                     }
+
+                     for ( uint_t i = 0; i < numDofs; i++ )
+                     {
+                        vertexDoFIndices[i] = vertexdof::macroface::index( level, vertexIndicesArray[i].x(), vertexIndicesArray[i].y() );
                      }
 
                      vertexdof::getVertexDoFDataIndicesFromMicroFace( idxIt, faceType, level, vertexDoFIndices );
                      basis_conforming_.integrateBasisFunction( degree, elementVertices, f[d], dofValues );
                      for ( uint_t i = 0; i < numDofs; i++ )
                      {
-                        dofs[vertexDoFIndices[i]] = ValueType( dofValues[i] );
+                        dofs[vertexDoFIndices[i]] += ValueType( dofValues[i] );
                      }
                   }
                }
@@ -289,13 +301,32 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                   basis_discontinuous_.integrateBasisFunction( degree, elementVertices, f[0], f[1], dofValues );
                   for ( uint_t i = 0; i < numDofs; i++ )
                   {
-                     dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
+                     dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] +=
                          ValueType( dofValues[i] );
                   }
                }
             }
          }
       }
+
+      if ( dim == 2 )
+      {
+         for (uint_t d = 0; d < dim; d+=1)
+         {
+            getConformingPart()->component(d).template communicateAdditively< Face, Edge >( level,  true );
+            getConformingPart()->component(d).template communicateAdditively< Face, Vertex >( level,  true );
+         }
+      }
+      else
+      {
+         for (uint_t d = 0; d < dim; d+=1)
+         {
+            getConformingPart()->component(d).template communicateAdditively< Cell, Face >( level, true );
+            getConformingPart()->component(d).template communicateAdditively< Cell, Edge >( level, true );
+            getConformingPart()->component(d).template communicateAdditively< Cell, Vertex >( level, true );
+         }
+      }
+
    };
 
    uint_t getDimension() const override

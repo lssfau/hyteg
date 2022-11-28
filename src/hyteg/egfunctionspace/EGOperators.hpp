@@ -37,6 +37,7 @@
 #include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
+
 namespace hyteg {
 namespace dg {
 namespace eg {
