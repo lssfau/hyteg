@@ -67,6 +67,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
    , setFromOptions_( false )
+   , disableApplicationBC_( false )
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
@@ -83,6 +84,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    }
 
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+
+   void disableApplicationBC( bool dis ) { disableApplicationBC_ = dis; }
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -121,7 +124,8 @@ class PETScMinResSolver : public Solver< OperatorType >
       }
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
-      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+      if ( !disableApplicationBC_ )
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       if ( nullSpaceSet_ )
       {
          MatSetNullSpace( Amat.get(), nullspace_ );
@@ -157,6 +161,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
    bool           setFromOptions_;
+   bool           disableApplicationBC_;
 };
 
 } // namespace hyteg

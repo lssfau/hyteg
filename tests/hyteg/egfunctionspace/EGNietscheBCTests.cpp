@@ -30,7 +30,9 @@
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/egfunctionspace/EGOperatorsNew.hpp"
+#include "hyteg/egfunctionspace/EGDivFormNew.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
@@ -40,120 +42,6 @@
 namespace hyteg {
 using walberla::real_t;
 using walberla::math::pi;
-
-void applyDirichletBC( const std::shared_ptr< dg::DGForm >& form, const P1Function< real_t >& f, const uint_t level )
-{
-   if ( f.getStorage()->hasGlobalCells() )
-      WALBERLA_ABORT( "3D not implemented yet" );
-
-   using ValueType = real_t;
-
-   const int dim = 2;
-
-   auto basis = std::make_shared< DGBasisLinearLagrange_Example >();
-
-   auto boundaryCondition = f.getBoundaryCondition();
-   auto storage           = f.getStorage();
-
-   for ( const auto& faceIt : f.getStorage()->getFaces() )
-   {
-      const auto faceId = faceIt.first;
-      const Face& face   = *faceIt.second;
-
-      // ?
-      // if ( !face.hasData( f.getFaceDataID() ) )
-      //    continue;
-
-      const auto polyDegree = 1;
-      const auto numDofs    = 3;
-      const auto dofMemory = face.getData( f.getFaceDataID() )->getPointer( level );
-
-      for ( const auto& [n, _] : face.getIndirectNeighborFaceIDsOverEdges() )
-      {
-         auto data     = face.getData( f.getFaceGLDataID( n ) );
-         auto data_ptr = data->getPointer( level );
-
-         for ( uint_t i = 0; i < data->getSize( level ); i += 1 )
-            data_ptr[i] = 0.;
-      }
-
-      // zero out halo
-      for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
-      {
-         if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
-         {
-            auto arrayIdx       = vertexdof::macroface::index( level, idx.x(), idx.y() );
-            dofMemory[arrayIdx] = real_c( 0 );
-            // WALBERLA_LOG_INFO_ON_ROOT(idx.x() << " " << idx.y());
-         }
-      }
-
-      for ( auto faceType : facedof::allFaceTypes )
-      {
-         for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
-         {
-            volumedofspace::indexing::ElementNeighborInfo neighborInfo(
-                elementIdx, faceType, level, boundaryCondition, faceId, storage );
-
-            auto vertexDoFIndicesArray = facedof::macroface::getMicroVerticesFromMicroFace( elementIdx, faceType );
-
-            for ( uint_t n = 0; n < 3; n++ )
-            {
-               if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
-               {
-                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                  localMat.resize( Eigen::Index( numDofs ), 1 );
-                  localMat.setZero();
-                  form->integrateRHSDirichletBoundary( dim,
-                                                       neighborInfo.elementVertexCoords(),
-                                                       neighborInfo.interfaceVertexCoords( n ),
-                                                       neighborInfo.oppositeVertexCoords( n ),
-                                                       neighborInfo.outwardNormal( n ),
-                                                       *basis,
-                                                       polyDegree,
-                                                       localMat );
-
-                  for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
-                  {
-                     const uint_t p1Index = vertexdof::macroface::index(
-                         level, vertexDoFIndicesArray[dofIdx].x(), vertexDoFIndicesArray[dofIdx].y() );
-                     dofMemory[p1Index] += ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   if ( dim == 2 )
-   {
-      f.template communicateAdditively< Face, Edge >( level, All ^ DirichletBoundary, *storage,  false );
-      f.template communicateAdditively< Face, Vertex >( level, All ^ DirichletBoundary, *storage,  false );
-
-      // f.template communicateAdditively< Face, Edge >( level, All, *storage, false );
-      // f.template communicateAdditively< Face, Vertex >( level, All, *storage, false );
-   }
-   else
-   {
-      f.template communicateAdditively< Cell, Face >( level, All ^ DirichletBoundary, *storage, false );
-      f.template communicateAdditively< Cell, Edge >( level, All ^ DirichletBoundary, *storage, false );
-      f.template communicateAdditively< Cell, Vertex >( level, All ^ DirichletBoundary, *storage, false );
-   }
-}
-
-void applyDirichletBC( const std::shared_ptr< dg::DGForm >& p1Form1,
-                       const std::shared_ptr< dg::DGForm >& p1Form2,
-                       const std::shared_ptr< dg::DGForm >& dgForm,
-                       const EGFunction< real_t >&          f,
-                       const uint_t                         level )
-{
-   applyDirichletBC( p1Form1, f.getConformingPart()->component( 0 ), level );
-   applyDirichletBC( p1Form2, f.getConformingPart()->component( 1 ), level );
-
-   // correct ?
-   // does not work, wrong basis :)
-   f.getDiscontinuousPart()->getDGFunction()->applyDirichletBoundaryConditions( dgForm, level );
-}
 
 /// Returns the scaled L2 error.
 real_t testP1( uint_t                                    level,
@@ -168,8 +56,6 @@ real_t testP1( uint_t                                    level,
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   real_t beta_0 = storage->hasGlobalCells() ? 0.5 : 1.0;
-
    auto basis                                                = std::make_shared< DGBasisLinearLagrange_Example >();
    auto laplaceForm0                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_00 >();
    auto laplaceForm1                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_11 >();
@@ -182,7 +68,6 @@ real_t testP1( uint_t                                    level,
 
    EGFunction< real_t > u( "u", storage, level, level );
    EGFunction< real_t > f( "f", storage, level, level );
-   EGFunction< real_t > ff( "ff", storage, level, level );
    EGFunction< real_t > sol( "sol", storage, level, level );
    EGFunction< real_t > tmp( "tmp", storage, level, level );
    EGFunction< real_t > err( "err", storage, level, level );
@@ -200,31 +85,8 @@ real_t testP1( uint_t                                    level,
    fDG.evaluateLinearFunctional( rhsFunc, level );
    fDG.applyDirichletBoundaryConditions( laplaceForm0, level ); // TODO
    f.interpolate( 0, level, All );
-   // opDGToP1Real.apply(*fDG.getDGFunction(), f.getConformingPart()->component(0), level, All, Replace);
-   // opDGToP1Real.apply(*fDG.getDGFunction(), f.getConformingPart()->component(1), level, All, Replace);
-   opDGToP1Real.apply( *fDG.getDGFunction(), ff.getConformingPart()->component( 0 ), level, All, Replace );
-   opDGToP1Real.apply( *fDG.getDGFunction(), ff.getConformingPart()->component( 1 ), level, All, Replace );
    f.evaluateLinearFunctional( rhsFunc, rhsFunc, level );
-   {
-      VTKOutput out( "../../output", "test1", storage );
-      out.add( f );
-      out.write( level );
-   }
-   applyDirichletBC( laplaceForm0, laplaceForm1, laplaceFormDG, f, level );
-   {
-      VTKOutput out( "../../output", "test2", storage );
-      out.add( f );
-      out.write( level );
-   }
-
-   {
-      writeDomainPartitioningVTK(*storage, "../../output", "partitioning");
-   }
-
-   // rhs_int.interpolate(0, level, All);
-   // rhs_int.getConformingPart()->interpolate({rhsFunc, rhsFunc}, level, All);
-   // M.apply(rhs_int, f, level, All, Replace);
-
+   f.applyDirichletBC( laplaceForm0, laplaceForm1, laplaceFormDG, level );
 
    // Interpolate solution
    sol.interpolate( { solFunc, solFunc }, level, All );
@@ -233,7 +95,6 @@ real_t testP1( uint_t                                    level,
    PETScCGSolver< eg::EGLaplaceOperatorNew > solverA( storage, level, 1e-6, 1e-6, 10000 );
    solverA.disableApplicationBC( true );
    solverA.solve( A, u, f, level );
-   // u.getDiscontinuousPart()->interpolate(0, level, All); // TODO
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
    M.apply( err, Merr, level, All, Replace );
@@ -247,15 +108,182 @@ real_t testP1( uint_t                                    level,
       vtk.add( err );
       vtk.add( f );
       vtk.add( *f.getConformingPart() );
-      vtk.add( *ff.getConformingPart() );
-      vtk.add( ff );
-      vtk.add( ff );
       vtk.add( fDG );
       vtk.write( level );
    }
 
    return discrL2;
 }
+
+// TODO: fix code duplication
+class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Function< real_t > >
+{
+ public:
+   EGToP0DivOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+       : Operator< EGFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
+       , p1x_to_p0( storage, minLevel, maxLevel )
+       , p1y_to_p0( storage, minLevel, maxLevel )
+       //, p1z_to_p0( storage, minLevel, maxLevel )
+
+       // ,  p1_to_p0( storage, minLevel, maxLevel )
+       , edg_to_p0( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const EGFunction< real_t >& src,
+               const P0Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType ) const override
+   {
+
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      dst.communicate( level );
+      src.getDiscontinuousPart()->communicate( level );
+
+      p1x_to_p0.apply( src.getConformingPart()->component( 0 ), dst, level, flag, updateType );
+      p1y_to_p0.apply( src.getConformingPart()->component( 1 ), dst, level, flag, Add );
+      if ( src.getDimension() == 3 )
+      {
+         // p1z_to_p0.apply( src.getConformingPart()->component( 2 ), dst, level, flag, Add );
+      }
+
+      // p1_to_p0.apply( *src.getConformingPart(), dst, level, flag, updateType );
+
+      edg_to_p0.apply( *src.getDiscontinuousPart(), dst, level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EGFunction< idx_t >&                  src,
+                  const P0Function< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+      dst.communicate( level );
+      src.getDiscontinuousPart()->communicate( level );
+
+
+      p1x_to_p0.toMatrix( mat, src.getConformingPart()->component( 0 ), dst, level, flag );
+      p1y_to_p0.toMatrix( mat, src.getConformingPart()->component( 1 ), dst, level, flag );
+      if ( src.getDimension() == 3 )
+      {
+         // p1z_to_p0.toMatrix( mat, src.getConformingPart()->component( 2 ), dst, level, flag );
+      }
+
+
+      //    p1_to_p0.toMatrix( mat, *src.getConformingPart(), dst, level, flag );
+      edg_to_p0.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
+   }
+
+ private:
+
+   P1ToP0Operator< EGDivFormP0P1_new_0 > p1x_to_p0;
+   P1ToP0Operator< EGDivFormP0P1_new_1 > p1y_to_p0;
+
+
+   //P1ToP0ConstantDivOperator p1_to_p0;
+   P0Operator< EGDivFormP0EDG_new >        edg_to_p0;
+};
+
+// TODO: fix code duplication
+class P0ToEGDivTOperatorNew final : public Operator< P0Function< real_t >, EGFunction< real_t > >
+{
+ public:
+   P0ToEGDivTOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+       : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+
+       , p0_to_p1x( storage, minLevel, maxLevel )
+       , p0_to_p1y( storage, minLevel, maxLevel )
+       // , p0_to_p1z( storage, minLevel, maxLevel )
+       // ,   p0_to_p1( storage, minLevel, maxLevel )
+       , p0_to_edg( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P0Function< real_t >& src,
+               const EGFunction< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType ) const override
+   {
+      //p0_to_p1.apply( src, *dst.getConformingPart(), level, flag, updateType );
+
+      p0_to_p1x.apply( src, dst.getConformingPart()->component( 0 ), level, flag, updateType );
+      p0_to_p1y.apply( src, dst.getConformingPart()->component( 1 ), level, flag, updateType );
+      if ( src.getDimension() == 3 )
+      {
+         // p0_to_p1z.apply( src, dst.getConformingPart()->component( 2 ), level, flag, updateType );
+      }
+
+      p0_to_edg.apply( src, *dst.getDiscontinuousPart(), level, flag, updateType );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P0Function< idx_t >&                  src,
+                  const EGFunction< idx_t >&                  dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+      dst.getDiscontinuousPart()->communicate( level );
+      src.communicate( level );
+
+      p0_to_p1x.toMatrix( mat, src, dst.getConformingPart()->component( 0 ), level, flag );
+      p0_to_p1y.toMatrix( mat, src, dst.getConformingPart()->component( 1 ), level, flag );
+      if ( src.getDimension() == 3 )
+      {
+         // p0_to_p1z.toMatrix( mat, src, dst.getConformingPart()->component( 2 ), level, flag );
+      }
+
+      // p0_to_p1.toMatrix( mat, src, *dst.getConformingPart(), level, flag );
+      p0_to_edg.toMatrix( mat, src, *dst.getDiscontinuousPart(), level, flag );
+   }
+
+ private:
+
+   P0ToP1Operator< EGDivtFormP1P0_new_0 > p0_to_p1x;
+   P0ToP1Operator< EGDivtFormP1P0_new_1 > p0_to_p1y;
+   // P0ToP1Operator< EGDivtFormP1P0_new_2 > p0_to_p1z;
+
+   // P0ToP1ConstantDivTOperator p0_to_p1;
+   P0Operator< EGDivtFormEDGP0_new >        p0_to_edg;
+};
+
+class EGP0StokesOperatorNew : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
+{
+ public:
+   EGP0StokesOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+       : Operator( storage, minLevel, maxLevel )
+       , velocityBlockOp( storage, minLevel, maxLevel )
+       , div( storage, minLevel, maxLevel )
+       , divT( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const EGP0StokesFunction< real_t >& src,
+               const EGP0StokesFunction< real_t >& dst,
+               const uint_t                        level,
+               const DoFType                       flag ) const
+   {
+      velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EGP0StokesFunction< idx_t >&          src,
+                  const EGP0StokesFunction< idx_t >&          dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+   }
+
+   eg::EGLaplaceOperatorNew velocityBlockOp;
+
+   EGToP0DivOperatorNew     div;
+   P0ToEGDivTOperatorNew    divT;
+};
 
 void runTest( uint_t                                           minLevel,
               uint_t                                           maxLevel,
@@ -285,6 +313,102 @@ void runTest( uint_t                                           minLevel,
    }
 }
 
+real_t testStokes( uint_t                                    level,
+               MeshInfo                                  meshInfo,
+               bool                                      writeVTK = true )
+{
+   using namespace dg;
+
+   auto solFuncX = [](const Point3D& p){ return - 2 * p[1]; };
+   auto solFuncY = [](const Point3D& p){ return 5 * p[0]; };
+
+   // auto rhsFuncX = [](const Point3D& p){ return 2; };
+   // auto rhsFuncY = [](const Point3D& p){ return -1; };
+   auto rhsFuncX = [](const Point3D& p){ return 0.; };
+   auto rhsFuncY = [](const Point3D& p){ return 0.; };
+
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   auto basis                                                = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm0                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_00 >();
+   auto laplaceForm1                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_11 >();
+   auto laplaceFormDG                                        = std::make_shared< EGVectorLaplaceFormEDGEDG_new >();
+   laplaceForm1->callback_Scalar_Variable_Coefficient_2D_g1  = solFuncY;
+   laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0  = solFuncX;
+   laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+   laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
+   auto massForm                                             = std::make_shared< DGMassForm_Example >();
+
+   auto divForm = std::make_shared< EGDivFormP0EDG_new >();
+   divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+   divForm->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
+
+   // TODO: remove this
+   auto copyBdry = [](auto & fun) {
+     fun.p().setBoundaryCondition(fun.uvw().getBoundaryCondition());
+   };
+
+   EGP0StokesFunction< real_t > u( "u", storage, level, level );
+   EGP0StokesFunction< real_t > f( "f", storage, level, level );
+   EGP0StokesFunction< real_t > sol( "sol", storage, level, level );
+   EGP0StokesFunction< real_t > tmp( "tmp", storage, level, level );
+   EGP0StokesFunction< real_t > err( "err", storage, level, level );
+   EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
+   EGP0StokesFunction< real_t > rhs_int( "rhs_int", storage, level, level );
+   EGP0StokesFunction< idx_t > num( "num", storage, level, level );
+
+   copyBdry(u);
+   copyBdry(f);
+   copyBdry(sol);
+   copyBdry(tmp);
+   copyBdry(err);
+   copyBdry(Merr);
+   copyBdry(rhs_int);
+   copyBdry(num);
+
+   EGP0StokesOperatorNew A( storage, level, level );
+   eg::EGMassOperator    M( storage, level, level );
+
+   DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1Real(
+       storage, level, level, std::make_shared< P1ToDG1InterpolationForm >() );
+
+   // Assemble RHS.
+   f.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, level );
+   f.uvw().applyDirichletBC( laplaceForm0, laplaceForm1, laplaceFormDG, level );
+   f.p().interpolate(0, level, All);
+   f.p().getDGFunction()->applyDirichletBoundaryConditions( divForm, level );
+
+   // Interpolate solution
+   sol.uvw().interpolate( { solFuncX, solFuncY }, level, All );
+
+   // Solve system.
+   // PETScMinResSolver< EGP0StokesOperatorNew > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
+   PETScMinResSolver< EGP0StokesOperatorNew > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
+   solverA.disableApplicationBC( true );
+   // solverA.setFromOptions( true );
+   solverA.solve( A, u, f, level );
+
+   err.assign( { 1.0, -1.0 }, { u, sol }, level );
+   M.apply( err.uvw(), Merr.uvw(), level, All, Replace );
+   auto discrL2 = sqrt( err.uvw().dotGlobal( Merr.uvw(), level ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( discrL2 );
+
+   if ( writeVTK )
+   {
+      VTKOutput vtk( "../../output/", "EGStokesConvergenceTest", storage );
+      vtk.add( u );
+      vtk.add( sol );
+      vtk.add( err );
+      vtk.add( f );
+      vtk.write( level );
+   }
+
+   return discrL2;
+}
+
 } // namespace hyteg
 
 int main( int argc, char** argv )
@@ -299,6 +423,11 @@ int main( int argc, char** argv )
    using hyteg::Point3D;
    using walberla::real_t;
    using walberla::math::pi;
+
+   {
+      MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
+      testStokes( 2, meshInfo, true );
+   }
 
    /*
    {
@@ -318,6 +447,7 @@ int main( int argc, char** argv )
    }
     */
 
+   /*
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, rhs != 0 ###" );
 
@@ -382,6 +512,7 @@ int main( int argc, char** argv )
 
       hyteg::runTest( 3, 4, meshInfo, solFunc, rhsFunc );
    }
+    */
 
    return EXIT_SUCCESS;
 }

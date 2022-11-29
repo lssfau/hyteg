@@ -329,6 +329,16 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
    };
 
+   void applyDirichletBC( const std::shared_ptr< dg::DGForm >& p1Form1,
+                          const std::shared_ptr< dg::DGForm >& p1Form2,
+                          const std::shared_ptr< dg::DGForm >& dgForm,
+                          const uint_t                         level )
+   {
+      applyDirichletBC( p1Form1, getConformingPart()->component( 0 ), level );
+      applyDirichletBC( p1Form2, getConformingPart()->component( 1 ), level );
+      getDiscontinuousPart()->getDGFunction()->applyDirichletBoundaryConditions( dgForm, level );
+   }
+
    uint_t getDimension() const override
    {
       if ( u_conforming_->getStorage()->hasGlobalCells() )
@@ -438,6 +448,96 @@ class EGFunction final : public Function< EGFunction< ValueType > >
          conforming_list.push_back( *( f.get().getConformingPart() ) );
       }
       return conforming_list;
+   }
+
+   static void applyDirichletBC( const std::shared_ptr< dg::DGForm >& form, const P1Function< ValueType >& f, const uint_t level )
+   {
+      if ( f.getStorage()->hasGlobalCells() )
+      WALBERLA_ABORT( "3D not implemented yet" );
+
+      const int dim = 2;
+
+      auto basis = std::make_shared< DGBasisLinearLagrange_Example >();
+
+      auto boundaryCondition = f.getBoundaryCondition();
+      auto storage           = f.getStorage();
+
+      for ( const auto& faceIt : f.getStorage()->getFaces() )
+      {
+         const auto faceId = faceIt.first;
+         const Face& face   = *faceIt.second;
+
+         const auto polyDegree = 1;
+         const auto numDofs    = 3;
+         const auto dofMemory = face.getData( f.getFaceDataID() )->getPointer( level );
+
+         for ( const auto& [n, _] : face.getIndirectNeighborFaceIDsOverEdges() )
+         {
+            auto data     = face.getData( f.getFaceGLDataID( n ) );
+            auto data_ptr = data->getPointer( level );
+
+            for ( uint_t i = 0; i < data->getSize( level ); i += 1 )
+               data_ptr[i] = 0.;
+         }
+
+         // zero out halo
+         for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+         {
+            if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
+            {
+               auto arrayIdx       = vertexdof::macroface::index( level, idx.x(), idx.y() );
+               dofMemory[arrayIdx] = real_c( 0 );
+            }
+         }
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+            {
+               volumedofspace::indexing::ElementNeighborInfo neighborInfo(
+                   elementIdx, faceType, level, boundaryCondition, faceId, storage );
+
+               auto vertexDoFIndicesArray = facedof::macroface::getMicroVerticesFromMicroFace( elementIdx, faceType );
+
+               for ( uint_t n = 0; n < 3; n++ )
+               {
+                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
+                  {
+                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                     localMat.resize( Eigen::Index( numDofs ), 1 );
+                     localMat.setZero();
+                     form->integrateRHSDirichletBoundary( dim,
+                                                          neighborInfo.elementVertexCoords(),
+                                                          neighborInfo.interfaceVertexCoords( n ),
+                                                          neighborInfo.oppositeVertexCoords( n ),
+                                                          neighborInfo.outwardNormal( n ),
+                                                          *basis,
+                                                          polyDegree,
+                                                          localMat );
+
+                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
+                     {
+                        const uint_t p1Index = vertexdof::macroface::index(
+                            level, vertexDoFIndicesArray[dofIdx].x(), vertexDoFIndicesArray[dofIdx].y() );
+                        dofMemory[p1Index] += ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      if ( dim == 2 )
+      {
+         f.template communicateAdditively< Face, Edge >( level, All ^ DirichletBoundary, *storage,  false );
+         f.template communicateAdditively< Face, Vertex >( level, All ^ DirichletBoundary, *storage,  false );
+      }
+      else
+      {
+         f.template communicateAdditively< Cell, Face >( level, All ^ DirichletBoundary, *storage, false );
+         f.template communicateAdditively< Cell, Edge >( level, All ^ DirichletBoundary, *storage, false );
+         f.template communicateAdditively< Cell, Vertex >( level, All ^ DirichletBoundary, *storage, false );
+      }
    }
 
  protected:
