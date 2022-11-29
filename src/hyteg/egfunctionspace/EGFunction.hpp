@@ -216,9 +216,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       const uint_t dim = 2;
 
-      u_discontinuous_->interpolate(0, level, All);
-      for (uint_t d = 0; d < dim; d += 1)
-         u_conforming_->component(d).setToZero(level);
+      u_discontinuous_->interpolate( 0, level, All );
+      for ( uint_t d = 0; d < dim; d += 1 )
+         u_conforming_->component( d ).setToZero( level );
 
       std::vector< std::function< real_t( const Point3D& ) > > f = { f0, f1 };
 
@@ -252,14 +252,16 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
                      for ( uint_t i = 0; i < 3; i++ )
                      {
-                        const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndicesArray[i] );
-                        elementVertices[i]( 0 )  = elementVertex[0];
-                        elementVertices[i]( 1 )  = elementVertex[1];
+                        const auto elementVertex =
+                            vertexdof::macroface::coordinateFromIndex( level, face, vertexIndicesArray[i] );
+                        elementVertices[i]( 0 ) = elementVertex[0];
+                        elementVertices[i]( 1 ) = elementVertex[1];
                      }
 
                      for ( uint_t i = 0; i < numDofs; i++ )
                      {
-                        vertexDoFIndices[i] = vertexdof::macroface::index( level, vertexIndicesArray[i].x(), vertexIndicesArray[i].y() );
+                        vertexDoFIndices[i] =
+                            vertexdof::macroface::index( level, vertexIndicesArray[i].x(), vertexIndicesArray[i].y() );
                      }
 
                      vertexdof::getVertexDoFDataIndicesFromMicroFace( idxIt, faceType, level, vertexDoFIndices );
@@ -311,28 +313,27 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       if ( dim == 2 )
       {
-         for (uint_t d = 0; d < dim; d+=1)
+         for ( uint_t d = 0; d < dim; d += 1 )
          {
-            getConformingPart()->component(d).template communicateAdditively< Face, Edge >( level,  true );
-            getConformingPart()->component(d).template communicateAdditively< Face, Vertex >( level,  true );
+            getConformingPart()->component( d ).template communicateAdditively< Face, Edge >( level, true );
+            getConformingPart()->component( d ).template communicateAdditively< Face, Vertex >( level, true );
          }
       }
       else
       {
-         for (uint_t d = 0; d < dim; d+=1)
+         for ( uint_t d = 0; d < dim; d += 1 )
          {
-            getConformingPart()->component(d).template communicateAdditively< Cell, Face >( level, true );
-            getConformingPart()->component(d).template communicateAdditively< Cell, Edge >( level, true );
-            getConformingPart()->component(d).template communicateAdditively< Cell, Vertex >( level, true );
+            getConformingPart()->component( d ).template communicateAdditively< Cell, Face >( level, true );
+            getConformingPart()->component( d ).template communicateAdditively< Cell, Edge >( level, true );
+            getConformingPart()->component( d ).template communicateAdditively< Cell, Vertex >( level, true );
          }
       }
-
    };
 
-   void applyDirichletBC( const std::shared_ptr< dg::DGForm >& p1Form1,
-                          const std::shared_ptr< dg::DGForm >& p1Form2,
-                          const std::shared_ptr< dg::DGForm >& dgForm,
-                          const uint_t                         level )
+   void applyDirichletBoundaryConditions( const std::shared_ptr< dg::DGForm >& p1Form1,
+                                          const std::shared_ptr< dg::DGForm >& p1Form2,
+                                          const std::shared_ptr< dg::DGForm >& dgForm,
+                                          const uint_t                         level )
    {
       applyDirichletBC( p1Form1, getConformingPart()->component( 0 ), level );
       applyDirichletBC( p1Form2, getConformingPart()->component( 1 ), level );
@@ -453,7 +454,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    static void applyDirichletBC( const std::shared_ptr< dg::DGForm >& form, const P1Function< ValueType >& f, const uint_t level )
    {
       if ( f.getStorage()->hasGlobalCells() )
-      WALBERLA_ABORT( "3D not implemented yet" );
+         WALBERLA_ABORT( "3D not implemented yet" );
 
       const int dim = 2;
 
@@ -464,12 +465,12 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       for ( const auto& faceIt : f.getStorage()->getFaces() )
       {
-         const auto faceId = faceIt.first;
+         const auto  faceId = faceIt.first;
          const Face& face   = *faceIt.second;
 
          const auto polyDegree = 1;
          const auto numDofs    = 3;
-         const auto dofMemory = face.getData( f.getFaceDataID() )->getPointer( level );
+         const auto dofMemory  = face.getData( f.getFaceDataID() )->getPointer( level );
 
          for ( const auto& [n, _] : face.getIndirectNeighborFaceIDsOverEdges() )
          {
@@ -529,8 +530,8 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       if ( dim == 2 )
       {
-         f.template communicateAdditively< Face, Edge >( level, All ^ DirichletBoundary, *storage,  false );
-         f.template communicateAdditively< Face, Vertex >( level, All ^ DirichletBoundary, *storage,  false );
+         f.template communicateAdditively< Face, Edge >( level, All ^ DirichletBoundary, *storage, false );
+         f.template communicateAdditively< Face, Vertex >( level, All ^ DirichletBoundary, *storage, false );
       }
       else
       {

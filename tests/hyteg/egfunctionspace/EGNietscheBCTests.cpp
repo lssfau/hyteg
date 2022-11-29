@@ -28,16 +28,16 @@
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/egfunctionspace/EGDivFormNew.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/egfunctionspace/EGOperatorsNew.hpp"
-#include "hyteg/egfunctionspace/EGDivFormNew.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
 
 namespace hyteg {
 using walberla::real_t;
@@ -86,7 +86,7 @@ real_t testP1( uint_t                                    level,
    fDG.applyDirichletBoundaryConditions( laplaceForm0, level ); // TODO
    f.interpolate( 0, level, All );
    f.evaluateLinearFunctional( rhsFunc, rhsFunc, level );
-   f.applyDirichletBC( laplaceForm0, laplaceForm1, laplaceFormDG, level );
+   f.applyDirichletBoundaryConditions( laplaceForm0, laplaceForm1, laplaceFormDG, level );
 
    // Interpolate solution
    sol.interpolate( { solFunc, solFunc }, level, All );
@@ -120,13 +120,13 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
 {
  public:
    EGToP0DivOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-       : Operator< EGFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
-       , p1x_to_p0( storage, minLevel, maxLevel )
-       , p1y_to_p0( storage, minLevel, maxLevel )
-       //, p1z_to_p0( storage, minLevel, maxLevel )
+   : Operator< EGFunction< real_t >, P0Function< real_t > >( storage, minLevel, maxLevel )
+   , p1x_to_p0( storage, minLevel, maxLevel )
+   , p1y_to_p0( storage, minLevel, maxLevel )
+   //, p1z_to_p0( storage, minLevel, maxLevel )
 
-       // ,  p1_to_p0( storage, minLevel, maxLevel )
-       , edg_to_p0( storage, minLevel, maxLevel )
+   // ,  p1_to_p0( storage, minLevel, maxLevel )
+   , edg_to_p0( storage, minLevel, maxLevel )
    {}
 
    void apply( const EGFunction< real_t >& src,
@@ -135,7 +135,6 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-
       communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
       dst.communicate( level );
       src.getDiscontinuousPart()->communicate( level );
@@ -162,7 +161,6 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
       dst.communicate( level );
       src.getDiscontinuousPart()->communicate( level );
 
-
       p1x_to_p0.toMatrix( mat, src.getConformingPart()->component( 0 ), dst, level, flag );
       p1y_to_p0.toMatrix( mat, src.getConformingPart()->component( 1 ), dst, level, flag );
       if ( src.getDimension() == 3 )
@@ -170,19 +168,16 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
          // p1z_to_p0.toMatrix( mat, src.getConformingPart()->component( 2 ), dst, level, flag );
       }
 
-
       //    p1_to_p0.toMatrix( mat, *src.getConformingPart(), dst, level, flag );
       edg_to_p0.toMatrix( mat, *src.getDiscontinuousPart(), dst, level, flag );
    }
 
  private:
-
    P1ToP0Operator< EGDivFormP0P1_new_0 > p1x_to_p0;
    P1ToP0Operator< EGDivFormP0P1_new_1 > p1y_to_p0;
 
-
    //P1ToP0ConstantDivOperator p1_to_p0;
-   P0Operator< EGDivFormP0EDG_new >        edg_to_p0;
+   P0Operator< EGDivFormP0EDG_new > edg_to_p0;
 };
 
 // TODO: fix code duplication
@@ -190,13 +185,13 @@ class P0ToEGDivTOperatorNew final : public Operator< P0Function< real_t >, EGFun
 {
  public:
    P0ToEGDivTOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-       : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+   : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
 
-       , p0_to_p1x( storage, minLevel, maxLevel )
-       , p0_to_p1y( storage, minLevel, maxLevel )
-       // , p0_to_p1z( storage, minLevel, maxLevel )
-       // ,   p0_to_p1( storage, minLevel, maxLevel )
-       , p0_to_edg( storage, minLevel, maxLevel )
+   , p0_to_p1x( storage, minLevel, maxLevel )
+   , p0_to_p1y( storage, minLevel, maxLevel )
+   // , p0_to_p1z( storage, minLevel, maxLevel )
+   // ,   p0_to_p1( storage, minLevel, maxLevel )
+   , p0_to_edg( storage, minLevel, maxLevel )
    {}
 
    void apply( const P0Function< real_t >& src,
@@ -239,23 +234,22 @@ class P0ToEGDivTOperatorNew final : public Operator< P0Function< real_t >, EGFun
    }
 
  private:
-
    P0ToP1Operator< EGDivtFormP1P0_new_0 > p0_to_p1x;
    P0ToP1Operator< EGDivtFormP1P0_new_1 > p0_to_p1y;
    // P0ToP1Operator< EGDivtFormP1P0_new_2 > p0_to_p1z;
 
    // P0ToP1ConstantDivTOperator p0_to_p1;
-   P0Operator< EGDivtFormEDGP0_new >        p0_to_edg;
+   P0Operator< EGDivtFormEDGP0_new > p0_to_edg;
 };
 
 class EGP0StokesOperatorNew : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
 {
  public:
    EGP0StokesOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-       : Operator( storage, minLevel, maxLevel )
-       , velocityBlockOp( storage, minLevel, maxLevel )
-       , div( storage, minLevel, maxLevel )
-       , divT( storage, minLevel, maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , velocityBlockOp( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    {}
 
    void apply( const EGP0StokesFunction< real_t >& src,
@@ -281,15 +275,15 @@ class EGP0StokesOperatorNew : public Operator< EGP0StokesFunction< real_t >, EGP
 
    eg::EGLaplaceOperatorNew velocityBlockOp;
 
-   EGToP0DivOperatorNew     div;
-   P0ToEGDivTOperatorNew    divT;
+   EGToP0DivOperatorNew  div;
+   P0ToEGDivTOperatorNew divT;
 };
 
-void runTest( uint_t                                           minLevel,
-              uint_t                                           maxLevel,
-              const MeshInfo&                                  meshInfo,
-              const std::function< real_t( const Point3D& ) >& solFunc,
-              const std::function< real_t( const Point3D& ) >& rhsFunc )
+void runTestPoisson( uint_t                                           minLevel,
+                     uint_t                                           maxLevel,
+                     const MeshInfo&                                  meshInfo,
+                     const std::function< real_t( const Point3D& ) >& solFunc,
+                     const std::function< real_t( const Point3D& ) >& rhsFunc )
 {
    auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
    auto convRateEps = l2ConvRate * 0.1;
@@ -313,19 +307,15 @@ void runTest( uint_t                                           minLevel,
    }
 }
 
-real_t testStokes( uint_t                                    level,
-               MeshInfo                                  meshInfo,
-               bool                                      writeVTK = true )
+real_t testStokes( uint_t                                           level,
+                   MeshInfo                                         meshInfo,
+                   const std::function< real_t( const Point3D& ) >& solFuncX,
+                   const std::function< real_t( const Point3D& ) >& solFuncY,
+                   const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                   const std::function< real_t( const Point3D& ) >& rhsFuncY,
+                   bool                                             writeVTK = true )
 {
    using namespace dg;
-
-   auto solFuncX = [](const Point3D& p){ return - 2 * p[1]; };
-   auto solFuncY = [](const Point3D& p){ return 5 * p[0]; };
-
-   // auto rhsFuncX = [](const Point3D& p){ return 2; };
-   // auto rhsFuncY = [](const Point3D& p){ return -1; };
-   auto rhsFuncX = [](const Point3D& p){ return 0.; };
-   auto rhsFuncY = [](const Point3D& p){ return 0.; };
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -341,14 +331,12 @@ real_t testStokes( uint_t                                    level,
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
    auto massForm                                             = std::make_shared< DGMassForm_Example >();
 
-   auto divForm = std::make_shared< EGDivFormP0EDG_new >();
+   auto divForm                                        = std::make_shared< EGDivFormP0EDG_new >();
    divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
    divForm->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
    // TODO: remove this
-   auto copyBdry = [](auto & fun) {
-     fun.p().setBoundaryCondition(fun.uvw().getBoundaryCondition());
-   };
+   auto copyBdry = []( auto& fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
 
    EGP0StokesFunction< real_t > u( "u", storage, level, level );
    EGP0StokesFunction< real_t > f( "f", storage, level, level );
@@ -357,16 +345,16 @@ real_t testStokes( uint_t                                    level,
    EGP0StokesFunction< real_t > err( "err", storage, level, level );
    EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
    EGP0StokesFunction< real_t > rhs_int( "rhs_int", storage, level, level );
-   EGP0StokesFunction< idx_t > num( "num", storage, level, level );
+   EGP0StokesFunction< idx_t >  num( "num", storage, level, level );
 
-   copyBdry(u);
-   copyBdry(f);
-   copyBdry(sol);
-   copyBdry(tmp);
-   copyBdry(err);
-   copyBdry(Merr);
-   copyBdry(rhs_int);
-   copyBdry(num);
+   copyBdry( u );
+   copyBdry( f );
+   copyBdry( sol );
+   copyBdry( tmp );
+   copyBdry( err );
+   copyBdry( Merr );
+   copyBdry( rhs_int );
+   copyBdry( num );
 
    EGP0StokesOperatorNew A( storage, level, level );
    eg::EGMassOperator    M( storage, level, level );
@@ -376,8 +364,8 @@ real_t testStokes( uint_t                                    level,
 
    // Assemble RHS.
    f.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, level );
-   f.uvw().applyDirichletBC( laplaceForm0, laplaceForm1, laplaceFormDG, level );
-   f.p().interpolate(0, level, All);
+   f.uvw().applyDirichletBoundaryConditions( laplaceForm0, laplaceForm1, laplaceFormDG, level );
+   f.p().interpolate( 0, level, All );
    f.p().getDGFunction()->applyDirichletBoundaryConditions( divForm, level );
 
    // Interpolate solution
@@ -387,7 +375,7 @@ real_t testStokes( uint_t                                    level,
    // PETScMinResSolver< EGP0StokesOperatorNew > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
    PETScMinResSolver< EGP0StokesOperatorNew > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
    solverA.disableApplicationBC( true );
-   // solverA.setFromOptions( true );
+   solverA.setFromOptions( true );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
@@ -409,6 +397,36 @@ real_t testStokes( uint_t                                    level,
    return discrL2;
 }
 
+void runTestStokes( uint_t                                           minLevel,
+                    uint_t                                           maxLevel,
+                    const MeshInfo&                                  meshInfo,
+                    const std::function< real_t( const Point3D& ) >& solFuncX,
+                    const std::function< real_t( const Point3D& ) >& solFuncY,
+                    const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                    const std::function< real_t( const Point3D& ) >& rhsFuncY )
+{
+   auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
+   auto convRateEps = l2ConvRate * 0.1;
+   auto err         = hyteg::testStokes( minLevel, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY );
+   WALBERLA_LOG_INFO_ON_ROOT( " expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
+   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
+   for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
+   {
+      auto errFiner     = hyteg::testStokes( l, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY );
+      auto computedRate = errFiner / err;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
+      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
+
+      WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                 l2ConvRate + convRateEps,
+                                 "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                              << " not sufficiently small (computed: " << computedRate
+                                                              << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+      err = errFiner;
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char** argv )
@@ -424,30 +442,52 @@ int main( int argc, char** argv )
    using walberla::real_t;
    using walberla::math::pi;
 
-   {
-      MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
-      testStokes( 2, meshInfo, true );
-   }
-
    /*
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, inhom. BC, rhs = 0 ###" );
-
       MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
 
-      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-        return 2 * x[0]  - x[1];
-      };
+      auto solFuncX = []( const Point3D& p ) -> real_t { return -2 * p[1]; };
+      auto solFuncY = []( const Point3D& p ) -> real_t { return 5 * p[0]; };
 
-      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-        return 0.;
-      };
+      auto rhsFuncX = []( const Point3D& p ) -> real_t { return 0.; };
+      auto rhsFuncY = []( const Point3D& p ) -> real_t { return 0.; };
 
-      hyteg::runTest( 3, 5, meshInfo, solFunc, rhsFunc );
+      const real_t norm = testStokes( 2, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY, true );
+
+      WALBERLA_CHECK_LESS( norm, 1e-12 );
    }
-    */
+   */
 
-   /*
+   {
+      MeshInfo meshInfo = MeshInfo::meshFaceChain( 1 );
+
+      auto solFuncX = []( const Point3D& p ) -> real_t {
+         const real_t x = p[0];
+         const real_t y = p[1];
+         return 2 * x + std::sin( M_PI * y ) + std::cos( M_PI * ( x + y ) );
+      };
+      auto solFuncY = []( const Point3D& p ) -> real_t {
+         const real_t x = p[0];
+         const real_t y = p[1];
+         return -2 * y - std::sin( M_PI * x ) - std::cos( M_PI * ( x + y ) );
+      };
+
+      auto rhsFuncX = []( const Point3D& p ) -> real_t {
+         const real_t x  = p[0];
+         const real_t y  = p[1];
+         const real_t x0 = std::pow( M_PI, 2 );
+         return x0 * std::sin( M_PI * y ) + 2 * x0 * std::cos( M_PI * ( x + y ) ) + 2;
+      };
+      auto rhsFuncY = []( const Point3D& p ) -> real_t {
+         const real_t x  = p[0];
+         const real_t y  = p[1];
+         const real_t x0 = std::pow( M_PI, 2 );
+         return -x0 * std::sin( M_PI * x ) - 2 * x0 * std::cos( M_PI * ( x + y ) ) - 1;
+      };
+
+      hyteg::runTestStokes( 2, 3, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY );
+   }
+
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, rhs != 0 ###" );
 
@@ -461,7 +501,7 @@ int main( int argc, char** argv )
          return 4 * pi * pi * ( -2 * sin( 4 * pi * ( x[0] + x[1] ) ) + sin( 4 * pi * x[0] ) + sin( 4 * pi * x[1] ) );
       };
 
-      hyteg::runTest( 3, 5, meshInfo, solFunc, rhsFunc );
+      hyteg::runTestPoisson( 3, 5, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -479,7 +519,7 @@ int main( int argc, char** argv )
          return 8 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) );
       };
 
-      hyteg::runTest( 3, 5, meshInfo, solFunc, rhsFunc );
+      hyteg::runTestPoisson( 3, 5, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -492,7 +532,7 @@ int main( int argc, char** argv )
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
-      hyteg::runTest( 2, 5, meshInfo, solFunc, rhsFunc );
+      hyteg::runTestPoisson( 2, 5, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -510,9 +550,8 @@ int main( int argc, char** argv )
          return -( 4 * x[1] * x[1] - 1 ) * std::exp( -x[0] - ( x[1] * x[1] ) );
       };
 
-      hyteg::runTest( 3, 4, meshInfo, solFunc, rhsFunc );
+      hyteg::runTestPoisson( 3, 4, meshInfo, solFunc, rhsFunc );
    }
-    */
 
    return EXIT_SUCCESS;
 }
