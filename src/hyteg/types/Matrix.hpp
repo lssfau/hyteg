@@ -70,10 +70,10 @@ class Matrix
    Matrix() { matrix_.array() = static_cast< T >( 0 ); }
 
    /// Sets all values to the given constant
-   Matrix( const T& constant ) { matrix_.array() = constant; }
+   explicit Matrix( const T& constant ) { matrix_.array() = constant; }
 
    /// Sets all values to the given constant
-   Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
+   explicit Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
 
    /// Get reference to a single matrix component
    /// \param rIdx row index

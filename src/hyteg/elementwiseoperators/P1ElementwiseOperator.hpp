@@ -215,7 +215,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
       WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
       return localElementMatrices2D_[face.getID()][level][idx];
    }
 
@@ -228,7 +228,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
       WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
       return localElementMatrices2D_.at( face.getID() ).at( level ).at( idx );
    }
 
@@ -240,7 +240,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
       WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
       return localElementMatrices3D_[cell.getID()][level][idx];
    }
 
@@ -253,7 +253,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
       WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
       return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
    }
 
@@ -261,11 +261,13 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 
    /// Pre-computed local element matrices.
    /// localElementMatrices2D_[macroCellID][level][cellIdx] = mat3x3
-   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix3r > > > localElementMatrices2D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix3r, Eigen::aligned_allocator< Matrix3r > > > >
+       localElementMatrices2D_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat4x4
-   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix4r > > > localElementMatrices3D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix4r, Eigen::aligned_allocator< Matrix4r > > > >
+       localElementMatrices3D_;
 };
 
 template < class P1Form >
