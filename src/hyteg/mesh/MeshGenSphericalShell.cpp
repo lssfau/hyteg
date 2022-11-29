@@ -29,9 +29,9 @@
 
 namespace hyteg {
 
-using walberla::uint_c;
 using walberla::real_c;
 using walberla::real_t;
+using walberla::uint_c;
 
 namespace meshGenSphShell {
 
@@ -581,7 +581,8 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, real_t rmin, re
       WALBERLA_ABORT( "ERROR: meshSphericalShell() requires nrad >= 2, but it is " << nrad );
    }
 
-   if( !(rmin < rmax ) || rmin <= real_c(0) ) {
+   if ( !( rmin < rmax ) || rmin <= real_c( 0 ) )
+   {
       WALBERLA_ABORT( "ERROR: meshSphericalShell() requires 0 < rmin < rmax, but got rmin = " << rmin << ", rmax = " << rmax );
    }
 
@@ -618,37 +619,159 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
       WALBERLA_ABORT( "ERROR: meshSphericalShell() requires an ascending array of positive layer values!" );
    }
 
-   /// Flavour for generation of the spherical mesh
-   ///
-   /// The two possible choices for the flavour for generation of the spherical mesh
-   /// are
-   /// - SHELLMESH_ON_THE_FLY
-   /// - SHELLMESH_CLASSIC
-   /// Note: The variant SHELLMESH_CLASSIC employs midpoint refinement on the icosahedral
-   /// mesh, while the SHELLMESH_ON_THE_FLY variant has a lower memory footprint, but
-   /// introduces a bias in the meshing and is _not_ equivalent to midpoint refinement.
-   /// The resulting meshes are also not nested!
+   MeshInfo meshInfo;
 
-   /// Coordinates of the twelve icosahedral nodes of the base grid
+   // ----------------------------
+   //  generate vertex primitives
+   // ----------------------------
+   meshInfo.computeSphericalShellVertices( ntan, layers, meshType );
+
+   // ----------------------------------------------
+   //  derive info on higher dimensional primitives
+   // ----------------------------------------------
+
+   // Determine number of cells/tetrahedra
+   uint_t nElems_ = ( ntan - 1 ) * ( ntan - 1 ) * ( nrad - 1 ) * 10 * 6;
+
+   // Assign vertices of local cell to its six tetrahedrons on the northern hemisphere
+   uint_t tNode[6][4];
+   tNode[0][0] = 0;
+   tNode[0][1] = 1;
+   tNode[0][2] = 3;
+   tNode[0][3] = 7;
+   tNode[1][0] = 4;
+   tNode[1][1] = 7;
+   tNode[1][2] = 5;
+   tNode[1][3] = 0;
+   tNode[2][0] = 0;
+   tNode[2][1] = 5;
+   tNode[2][2] = 1;
+   tNode[2][3] = 7;
+   tNode[3][0] = 1;
+   tNode[3][1] = 2;
+   tNode[3][2] = 3;
+   tNode[3][3] = 6;
+   tNode[4][0] = 5;
+   tNode[4][1] = 7;
+   tNode[4][2] = 6;
+   tNode[4][3] = 1;
+   tNode[5][0] = 3;
+   tNode[5][1] = 6;
+   tNode[5][2] = 7;
+   tNode[5][3] = 1;
+
+   // Assign vertices of local cell to its six tetrahedrons on the southern hemisphere
+   uint_t sNode[6][4];
+   sNode[0][0] = 4;
+   sNode[0][1] = 7;
+   sNode[0][2] = 5;
+   sNode[0][3] = 1;
+   sNode[1][0] = 0;
+   sNode[1][1] = 1;
+   sNode[1][2] = 3;
+   sNode[1][3] = 4;
+   sNode[2][0] = 4;
+   sNode[2][1] = 3;
+   sNode[2][2] = 7;
+   sNode[2][3] = 1;
+   sNode[3][0] = 7;
+   sNode[3][1] = 6;
+   sNode[3][2] = 5;
+   sNode[3][3] = 2;
+   sNode[4][0] = 3;
+   sNode[4][1] = 1;
+   sNode[4][2] = 2;
+   sNode[4][3] = 7;
+   sNode[5][0] = 5;
+   sNode[5][1] = 2;
+   sNode[5][2] = 1;
+   sNode[5][3] = 7;
+
+   // Index offsets for computing address tuples for the
+   // eight vertices of a local cell (is1, is2, ir)
+   uint_t offset[8][3];
+   offset[0][0] = 0;
+   offset[0][1] = 0;
+   offset[0][2] = 1;
+   offset[1][0] = 1;
+   offset[1][1] = 0;
+   offset[1][2] = 1;
+   offset[2][0] = 1;
+   offset[2][1] = 1;
+   offset[2][2] = 1;
+   offset[3][0] = 0;
+   offset[3][1] = 1;
+   offset[3][2] = 1;
+   offset[4][0] = 0;
+   offset[4][1] = 0;
+   offset[4][2] = 0;
+   offset[5][0] = 1;
+   offset[5][1] = 0;
+   offset[5][2] = 0;
+   offset[6][0] = 1;
+   offset[6][1] = 1;
+   offset[6][2] = 0;
+   offset[7][0] = 0;
+   offset[7][1] = 1;
+   offset[7][2] = 0;
+
+   for ( uint_t cellID = 0; cellID < nElems_; cellID++ )
+   {
+      auto vertexIDs             = meshGenSphShell::getCell( ntan, nrad, cellID, offset, tNode, sNode );
+      meshInfo.cells_[vertexIDs] = MeshInfo::Cell( vertexIDs, 0 );
+   }
+
+   for ( const auto& it : meshInfo.getCells() )
+   {
+      const std::vector< IDType > cellCoordinates = it.first;
+      const MeshInfo::Cell        meshInfoCell    = it.second;
+
+      WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
+
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[1] } } ), 0 ) );
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[2] } } ), 0 ) );
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[3] } } ), 0 ) );
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
+      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
+
+      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
+      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
+      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
+      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
+   }
+
+   // Set correct "boundary" flags for our edges and faces
+   meshInfo.deduceEdgeFlagsFromVertices( MeshInfo::flagInterior );
+   meshInfo.deduceFaceFlagsFromVertices( MeshInfo::flagInterior );
+
+   return meshInfo;
+}
+
+void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< real_t >& layers, MeshInfo::shellMeshType meshType )
+{
+   uint_t nrad = layers.size();
+
+   // Flavour for generation of the spherical mesh
+   //
+   // The two possible choices for the flavour for generation of the spherical mesh
+   // are
+   // - SHELLMESH_ON_THE_FLY
+   // - SHELLMESH_CLASSIC
+   // Note: The variant SHELLMESH_CLASSIC employs midpoint refinement on the icosahedral
+   // mesh, while the SHELLMESH_ON_THE_FLY variant has a lower memory footprint, but
+   // introduces a bias in the meshing and is _not_ equivalent to midpoint refinement.
+   // The resulting meshes are also not nested!
+
+   // Coordinates of the twelve icosahedral nodes of the base grid
    real_t iNode[12][3];
 
-   /// Association of the ten diamonds to the twelve icosahedral nodes
-   ///
-   /// For each diamond we store the indices of its vertices on the
-   /// icosahedral base grid in this map. Ordering: We start with the
-   /// pole and proceed in counter-clockwise fashion.
+   // Association of the ten diamonds to the twelve icosahedral nodes
+   //
+   // For each diamond we store the indices of its vertices on the
+   // icosahedral base grid in this map. Ordering: We start with the
+   // pole and proceed in counter-clockwise fashion.
    uint_t dNode[10][4];
-
-   /// Assign vertices of local cell to its six tetrahedrons on the northern
-   /// hemisphere
-   uint_t tNode[6][4];
-
-   /// Assign vertices of local cell to its six tetrahedrons on the southern
-   /// hemisphere
-   uint_t sNode[6][4];
-
-   /// Index offsets (is1, is2, ir) for computing vertex addresses
-   uint_t offset[8][3];
 
    ////////////////
    // Setup Maps //
@@ -656,9 +779,6 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
 
    // Determine number of vertices
    uint_t nVerts_ = ( 10 * ( ntan - 1 ) * ( ntan - 1 ) + 2 ) * nrad;
-
-   // Determine number of elements/tetrahedra
-   uint_t nElems_ = ( ntan - 1 ) * ( ntan - 1 ) * ( nrad - 1 ) * 10 * 6;
 
    // -----------------------------------------
    //  Initialise the twelve icosahedral nodes
@@ -702,33 +822,6 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
    // ----------------------------------------------
    // Setup internal index maps for mesh generation
    // ----------------------------------------------
-
-   // Determine offsets for computing address tuples for the
-   // eight vertices of a local cell (is1, is2, ir)
-   offset[0][0] = 0;
-   offset[0][1] = 0;
-   offset[0][2] = 1;
-   offset[1][0] = 1;
-   offset[1][1] = 0;
-   offset[1][2] = 1;
-   offset[2][0] = 1;
-   offset[2][1] = 1;
-   offset[2][2] = 1;
-   offset[3][0] = 0;
-   offset[3][1] = 1;
-   offset[3][2] = 1;
-   offset[4][0] = 0;
-   offset[4][1] = 0;
-   offset[4][2] = 0;
-   offset[5][0] = 1;
-   offset[5][1] = 0;
-   offset[5][2] = 0;
-   offset[6][0] = 1;
-   offset[6][1] = 1;
-   offset[6][2] = 0;
-   offset[7][0] = 0;
-   offset[7][1] = 1;
-   offset[7][2] = 0;
 
    // Map icosahedral node indices to diamonds (northern hemisphere)
    dNode[0][0] = 0;
@@ -774,70 +867,16 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
    dNode[9][2] = 5;
    dNode[9][3] = 10;
 
-   // Mapping of northern tetrahedron to vertices of local cell
-   tNode[0][0] = 0;
-   tNode[0][1] = 1;
-   tNode[0][2] = 3;
-   tNode[0][3] = 7;
-   tNode[1][0] = 4;
-   tNode[1][1] = 7;
-   tNode[1][2] = 5;
-   tNode[1][3] = 0;
-   tNode[2][0] = 0;
-   tNode[2][1] = 5;
-   tNode[2][2] = 1;
-   tNode[2][3] = 7;
-   tNode[3][0] = 1;
-   tNode[3][1] = 2;
-   tNode[3][2] = 3;
-   tNode[3][3] = 6;
-   tNode[4][0] = 5;
-   tNode[4][1] = 7;
-   tNode[4][2] = 6;
-   tNode[4][3] = 1;
-   tNode[5][0] = 3;
-   tNode[5][1] = 6;
-   tNode[5][2] = 7;
-   tNode[5][3] = 1;
-
-   // Mapping of southern tetrahedron to vertices of local cell
-   sNode[0][0] = 4;
-   sNode[0][1] = 7;
-   sNode[0][2] = 5;
-   sNode[0][3] = 1;
-   sNode[1][0] = 0;
-   sNode[1][1] = 1;
-   sNode[1][2] = 3;
-   sNode[1][3] = 4;
-   sNode[2][0] = 4;
-   sNode[2][1] = 3;
-   sNode[2][2] = 7;
-   sNode[2][3] = 1;
-   sNode[3][0] = 7;
-   sNode[3][1] = 6;
-   sNode[3][2] = 5;
-   sNode[3][3] = 2;
-   sNode[4][0] = 3;
-   sNode[4][1] = 1;
-   sNode[4][2] = 2;
-   sNode[4][3] = 7;
-   sNode[5][0] = 5;
-   sNode[5][1] = 2;
-   sNode[5][2] = 1;
-   sNode[5][3] = 7;
-
    // if required, run setup routine for meshing unit sphere
    real_t**** nodeCoords = nullptr;
-   if ( meshType == shellMeshType::SHELLMESH_CLASSIC )
+   if ( meshType == MeshInfo::shellMeshType::SHELLMESH_CLASSIC )
    {
       meshGenSphShell::setupCoordsClassic( ntan, iNode, dNode, &nodeCoords );
    }
 
-   ////////////////////////////
-   // Create MeshInfo object //
-   ////////////////////////////
-
-   MeshInfo meshInfo;
+   ////////////////////////////////////////
+   // Fill MeshInfo object with Vertices //
+   ////////////////////////////////////////
 
    for ( uint_t vertexID = 0; vertexID < nVerts_; vertexID++ )
    {
@@ -845,38 +884,13 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
       MeshInfo::hollowFlag topologyMarker;
       std::tie( vertexCoordinates, topologyMarker ) =
           meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshType );
-      meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoordinates, topologyMarker );
+
+      // thin shell case is different
+      if ( nrad == 1 )
+         topologyMarker = hollowFlag::flagInterior;
+
+      vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoordinates, topologyMarker );
    }
-
-   for ( uint_t cellID = 0; cellID < nElems_; cellID++ )
-   {
-      auto vertexIDs             = meshGenSphShell::getCell( ntan, nrad, cellID, offset, tNode, sNode );
-      meshInfo.cells_[vertexIDs] = MeshInfo::Cell( vertexIDs, 0 );
-   }
-
-   for ( const auto& it : meshInfo.getCells() )
-   {
-      const std::vector< IDType > cellCoordinates = it.first;
-      const MeshInfo::Cell        meshInfoCell    = it.second;
-
-      WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
-
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[1] } } ), 0 ) );
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[2] } } ), 0 ) );
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[0], cellCoordinates[3] } } ), 0 ) );
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-      meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-
-      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-      meshInfo.addFace( Face( std::vector< IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-   }
-
-   // Set correct "boundary" flags for our edges and faces
-   meshInfo.deduceEdgeFlagsFromVertices( MeshInfo::flagInterior );
-   meshInfo.deduceFaceFlagsFromVertices( MeshInfo::flagInterior );
 
    // De-allocate 4D array
    if ( nodeCoords != nullptr )
@@ -886,6 +900,63 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
       delete[] nodeCoords[0];
       delete[] nodeCoords;
    }
+}
+
+MeshInfo MeshInfo::meshThinSphericalShell( uint_t ntan, real_t radius )
+{
+   if ( !( radius > real_c( 0 ) ) )
+   {
+      WALBERLA_ABORT( "ERROR: meshThinSphericalShell() requires a positive radius!" );
+   }
+
+   MeshInfo meshInfo;
+
+   // ----------------------------
+   //  generate vertex primitives
+   // ----------------------------
+   meshInfo.computeSphericalShellVertices( ntan, { radius }, MeshInfo::shellMeshType::SHELLMESH_CLASSIC );
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getVertices().size(), 10 * ( ntan - 1 ) * ( ntan - 1 ) + 2, "Oops! Inconsistent vertex count!" );
+
+   // --------------------------
+   //  generate face primitives
+   // --------------------------
+   for ( uint_t id = 0; id < 10; ++id ) // loop over diamonds
+   {
+      for ( uint_t is1 = 0; is1 < ntan - 1; ++is1 )
+      {
+         for ( uint_t is2 = 0; is2 < ntan - 1; ++is2 )
+         {
+            IDType v1 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 0, is2 + 0, id, 0 );
+            IDType v2 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 1, is2 + 0, id, 0 );
+            IDType v3 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 1, is2 + 1, id, 0 );
+            IDType v4 = meshGenSphShell::tuple2VertIdx( ntan, 1, is1 + 0, is2 + 1, id, 0 );
+            meshInfo.addFace( Face( { v1, v2, v4 }, hollowFlag::flagInterior ) );
+            meshInfo.addFace( Face( { v2, v3, v4 }, hollowFlag::flagInterior ) );
+         }
+      }
+   }
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getFaces().size(), 20 * ( ntan - 1 ) * ( ntan - 1 ), "Oops! Inconsistent face count!" );
+
+   // --------------------------
+   //  generate edge primitives
+   // --------------------------
+   for ( const auto& it : meshInfo.getFaces() )
+   {
+      const std::vector< IDType > faceCoordinates = it.first;
+
+      WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only face primitives supported." );
+
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[0], faceCoordinates[1] } } ), hollowFlag::flagInterior ) );
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[0], faceCoordinates[2] } } ), hollowFlag::flagInterior ) );
+      meshInfo.addEdge(
+          Edge( std::array< IDType, 2 >( { { faceCoordinates[1], faceCoordinates[2] } } ), hollowFlag::flagInterior ) );
+   }
+
+   WALBERLA_ASSERT_EQUAL( meshInfo.getEdges().size(), 30 * ( ntan - 1 ) * ( ntan - 1 ), "Oops! Inconsistent edge count!" );
 
    return meshInfo;
 }
