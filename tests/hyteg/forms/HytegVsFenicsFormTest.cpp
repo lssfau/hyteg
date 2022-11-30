@@ -481,7 +481,7 @@ void run2DTestsWithAffineMap()
    compareUsingAffineMap< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
                           P2Form_laplace,
                           Matrix6r,
-                          2 >( triangle, 1e-13, map );
+                          2 >( triangle, 2e-13, map );
 
    // HyTeG form generator test
 
