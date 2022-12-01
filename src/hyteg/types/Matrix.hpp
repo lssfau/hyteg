@@ -50,7 +50,7 @@ using walberla::uint_t;
 template < typename T, uint_t M, uint_t N >
 class Matrix
 {
-   // Eigen does not allow to create column-vectors in row-major ordering
+   /// Eigen does not allow to create column-vectors in row-major ordering
    static constexpr Eigen::StorageOptions storageType()
    {
       if constexpr ( N == 1 )
@@ -72,7 +72,7 @@ class Matrix
    /// Sets all values to the given constant
    explicit Matrix( const T& constant ) { matrix_.array() = constant; }
 
-   /// Sets all values to the given constant
+   /// Construct Matrix from an EigenMatrix
    explicit Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
 
    /// Get reference to a single matrix component
@@ -141,15 +141,40 @@ class Matrix
 
    Matrix< T, M, N > inverse() const
    {
-     Matrix< T, M, N > out;
-     out.matrix_ = matrix_.inverse();
+      if constexpr ( N != M )
+      {
+         WALBERLA_ABORT( "Inverse not available for matrix dimensions " << M << " x " << N );
+      }
+      else
+      {
+// #define MATRIX_CLASS_USES_INVERSE_FROM_EIGEN
+#ifndef MATRIX_CLASS_USES_INVERSE_FROM_EIGEN
+         if constexpr ( N == 2 )
+         {
+            Matrix< T, M, N > out;
+
+            T det       = ( *this )( 0, 0 ) * ( *this )( 1, 1 ) - ( *this )( 0, 1 ) * ( *this )( 1, 0 );
+            det         = static_cast< T >( 1 ) / det;
+            out( 0, 0 ) = +( *this )( 1, 1 ) * det;
+            out( 0, 1 ) = -( *this )( 0, 1 ) * det;
+            out( 1, 0 ) = -( *this )( 1, 0 ) * det;
+            out( 1, 1 ) = +( *this )( 0, 0 ) * det;
+
+            return out;
+         }
+         WALBERLA_ABORT( "Inverse computation not implemented for matrix dimensions " << M << " x " << N );
+#else
+         Matrix< T, M, N > out;
+         out.matrix_ = matrix_.inverse();
+#endif
+      }
    }
 
    T det() const { return matrix_.determinant(); }
 
    void setAll( const T& constant ) { matrix_.array() = constant; }
 
-   /// Internally the matrix is stores as a dense Eigen::Matrix
+   /// Internally the matrix is stored as a dense Eigen::Matrix
    Eigen::Matrix< T, M, N, Matrix< T, M, N >::storageType() > matrix_;
 };
 
