@@ -542,9 +542,9 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
 
    // add contributions for central stencil weights
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[k]] += elMat( k, k );
+      vertexData[vertexDoFIndices[uint_c(k)]] += elMat( k, k );
    }
 }
 

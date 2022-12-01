@@ -105,8 +105,8 @@ real_t P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrate( const std::array
 {
    Matrix10r elMat;
    computeLocalStiffnessMatrix( coords, elMat );
-   uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
-   uint_t colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
+   int rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+   int colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
 
    return walberla::real_c( elMat( rowIdx, colIdx ) );
 }
@@ -121,8 +121,8 @@ std::vector< real_t >
    computeLocalStiffnessMatrix( coords, elMat );
    std::vector< real_t > matRow( leafPos.size(), 0 );
 
-   uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
-   uint_t colIdx = 0;
+   int rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+   int colIdx = 0;
 
    for ( uint_t k = 0; k < leafPos.size(); ++k )
    {

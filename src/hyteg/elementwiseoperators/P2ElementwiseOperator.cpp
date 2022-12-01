@@ -639,13 +639,13 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    // add contributions for central stencil weights
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[k]] += elMat( k, k );
+      vertexData[vertexDoFIndices[uint_c(k)]] += elMat( k, k );
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      edgeData[edgeDoFIndices[k - 4]] += elMat( k, k );
+      edgeData[edgeDoFIndices[uint_c(k - 4)]] += elMat( k, k );
    }
 }
 template < class P2Form >

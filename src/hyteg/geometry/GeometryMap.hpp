@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "core/Abort.h"
+
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "core/Abort.h"
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
