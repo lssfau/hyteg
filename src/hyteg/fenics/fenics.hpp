@@ -56,8 +56,8 @@ class Dummy10x10Assembly
 {
 public:
 
-    Dummy10x10Assembly() : stiffnessMatrix_( real_c(0) ) {}
-    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( constant ) {}
+    Dummy10x10Assembly() : stiffnessMatrix_( Matrix10r::Zero() ) {}
+    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( Matrix10r::Constant(constant) ) {}
 
     void tabulate_tensor(real_t * A,
                          const real_t * const *,

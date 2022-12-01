@@ -31,7 +31,7 @@ real_t GeometryMap::evalDetDF( const Point3D& x )
 {
    Matrix2r DF;
    evalDF( x, DF );
-   return DF.det();
+   return DF.determinant();
 }
 
 void GeometryMap::serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer )

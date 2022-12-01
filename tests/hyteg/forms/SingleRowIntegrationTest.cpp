@@ -51,7 +51,7 @@ void logSectionHeader( const char* header, const char* marker = "-" )
    WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
 }
 
-template < uint_t nRows, uint_t nCols >
+template < int nRows, int nCols >
 real_t
     normOfDifference( const Matrixr< nRows, nCols >& mat1, const Matrixr< nRows, nCols >& mat2, Matrixr< nRows, nCols >& diffMat )
 {
