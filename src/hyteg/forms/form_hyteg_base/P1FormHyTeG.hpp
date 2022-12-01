@@ -103,7 +103,7 @@ class P1FormHyTeG : public P1Form
    };
    bool assembly3DDefined() const override
    {
-      WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
+      WALBERLA_ABORT( "Don't call assembly3DDefined on a P1FormHyteG child" );
       return false;
    };
 
