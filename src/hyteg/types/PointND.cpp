@@ -20,7 +20,7 @@
 
 #include <core/math/Vector3.h>
 
-#include "pointnd.hpp"
+#include "PointND.hpp"
 
 walberla::math::Vector3< walberla::real_t > hyteg::toVec3( const Point3D& p )
 {

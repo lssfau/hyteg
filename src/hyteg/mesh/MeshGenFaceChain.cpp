@@ -23,7 +23,7 @@
 #include "core/logging/Logging.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 #include <array>
 #include <vector>

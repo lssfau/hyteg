@@ -24,7 +24,7 @@
 #include "core/math/Matrix3.h"
 
 #include "hyteg/geometry/Intersection.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

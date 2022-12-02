@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 class p1_tet_diffusion_cell_integral_0_otherwise;
 class p1_tet_div_tet_cell_integral_0_otherwise;

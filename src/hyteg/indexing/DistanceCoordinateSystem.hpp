@@ -80,25 +80,25 @@ public:
     DistanceIndex( const DistanceIndex & other ) : PointND< uint_t, 4 >( other ) {}
 
     DistanceIndex( const uint_t & d0, const uint_t & d1, const uint_t & d2, const uint_t & d3 ) {
-      x_[0] = d0;
-      x_[1] = d1;
-      x_[2] = d2;
-      x_[3] = d3;
+      vector_[0] = d0;
+      vector_[1] = d1;
+      vector_[2] = d2;
+      vector_[3] = d3;
     }
 
     using PointND< uint_t, 4 >::operator[];
 
-    const uint_t & d0() const { return x_[0]; }
-          uint_t & d0() { return x_[0]; }
+    const uint_t & d0() const { return vector_[0]; }
+          uint_t & d0() { return vector_[0]; }
 
-    const uint_t & d1() const { return x_[1]; }
-          uint_t & d1() { return x_[1]; }
+    const uint_t & d1() const { return vector_[1]; }
+          uint_t & d1() { return vector_[1]; }
 
-    const uint_t & d2() const { return x_[2]; }
-          uint_t & d2() { return x_[2]; }
+    const uint_t & d2() const { return vector_[2]; }
+          uint_t & d2() { return vector_[2]; }
 
-    const uint_t & d3() const { return x_[3]; }
-          uint_t & d3() { return x_[3]; }
+    const uint_t & d3() const { return vector_[3]; }
+          uint_t & d3() { return vector_[3]; }
 };
 
 inline DistanceIndex toDistanceIndex( const Index & index, const std::array< uint_t, 4 > & basis, const uint_t & cellWidth )

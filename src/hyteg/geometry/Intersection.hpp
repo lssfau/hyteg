@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 #include "core/math/Matrix3.h"
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 
