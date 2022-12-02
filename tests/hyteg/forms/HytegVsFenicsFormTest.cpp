@@ -501,7 +501,7 @@ void run2DTestsWithAffineMap()
    compareUsingAffineMap< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
                           forms::p1_diffusion_blending_q3,
                           Matrix3r,
-                          2 >( triangle, 3e-15, map );
+                          2 >( triangle, 4e-15, map );
 
    logSectionHeader( "P2 diffusion, 2D, with blending (HFG)" );
    compareUsingAffineMap< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
