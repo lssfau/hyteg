@@ -47,20 +47,33 @@ std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()
    return storage;
 }
 
-void runPlume()
+void runPlume( walberla::Environment& env )
 {
-   const uint_t minLevel     = 2;
-   const uint_t maxLevel     = 5;
-   const uint_t stokesSteps  = 2;
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      auto defaultFile = "./2DPlume.prm";
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile )
+      cfg->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
+   const uint_t                        minLevel    = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t                        maxLevel    = mainConf.getParameter< uint_t >( "maxLevel" );
+   const bool                          vtk         = mainConf.getParameter< bool >( "vtk" );
+   const uint_t                        stokesSteps = mainConf.getParameter< uint_t >( "stokesSteps" );
+
    const real_t convectivity = 1e4;
    uint_t       vtkStep      = 0;
-   const bool   vtk          = false;
 
    auto storage = createPrimitiveStorage();
 
    const real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
 
-   if constexpr ( vtk )
+   if ( vtk )
    {
       writeDomainPartitioningVTK( storage, "vtk", "domain" );
    }
@@ -74,8 +87,12 @@ void runPlume()
    const auto numDofsStokes      = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    const auto numDofsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "Number of DoFs:" );
-   WALBERLA_LOG_INFO_ON_ROOT( " - Stokes system (velocity + pressure): " << numDofsStokes );
-   WALBERLA_LOG_INFO_ON_ROOT( " - Temperature:                         " << numDofsTemperature );
+   WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Stokes system (velocity + pressure):" << std::scientific
+                                        << real_c( numDofsStokes ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Temperature:" << std::scientific
+                                        << real_c( numDofsTemperature ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Total:" << std::scientific
+                                        << real_c( numDofsTemperature + numDofsTemperature ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    std::function< real_t( const Point3D& ) > initialTemperature = []( const Point3D& x ) {
@@ -85,7 +102,7 @@ void runPlume()
    c.interpolate( initialTemperature, maxLevel, All );
 
    VTKOutput vtkOutput( "vtk", "2DPlume", storage );
-   if constexpr ( vtk )
+   if ( vtk )
    {
       vtkOutput.add( c );
       vtkOutput.add( u );
@@ -97,8 +114,8 @@ void runPlume()
    auto massVelocityOperator = std::make_shared< P2ConstantMassOperator >( storage, minLevel, maxLevel );
    auto solver = solvertemplates::stokesMinResSolver< P2P1TaylorHoodStokesOperator >( storage, maxLevel, 1e-6, 10000, false );
    //auto solver = solvertemplates::stokesGMGUzawaSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
-//   auto solver =
-//       std::make_shared< PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, maxLevel, 1e-6, 1e-16, 10000 );
+   //   auto solver =
+   //       std::make_shared< PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, maxLevel, 1e-6, 1e-16, 10000 );
 
    MMOCTransport< P2Function< real_t > > transportOperator( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
@@ -121,7 +138,7 @@ void runPlume()
       auto   vMax = velocityMaxMagnitude( u.uvw(), uTmp, uTmp2, maxLevel, All );
       real_t dt   = ( 1.0 / vMax ) * hMin;
       transportOperator.step( c, u.uvw(), u.uvw(), maxLevel, All, dt, 1, true );
-      if constexpr ( vtk )
+      if ( vtk )
       {
          vtkOutput.write( maxLevel, vtkStep );
       }
@@ -139,6 +156,6 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
    //hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::runPlume();
+   hyteg::runPlume( env );
    return 0;
 }

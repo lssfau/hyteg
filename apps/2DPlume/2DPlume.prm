@@ -1,0 +1,10 @@
+Parameters
+{
+  minLevel    0;
+  maxLevel    4;
+  stokesSteps 2;
+  vtk false;
+  /// printTiming and write json
+  printTiming false;
+
+}
