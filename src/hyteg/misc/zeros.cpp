@@ -36,9 +36,15 @@ ValueType generateZero()
 }
 
 template <>
-real_t generateZero< real_t >()
+double generateZero< double >()
 {
-   return real_c( 0 );
+   return 0.0;
+}
+
+template <>
+float generateZero< float >()
+{
+   return 0.0f;
 }
 
 template <>

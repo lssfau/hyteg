@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,6 +21,7 @@
 
 #include "core/mpi/all.h"
 
+#include "hyteg/ReferenceCounter.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -82,6 +83,14 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                     const uint_t&                              maxLevel,
                     const BoundaryCondition&                   boundaryCondition );
 
+   ~EdgeDoFFunction();
+
+   /// Copy constructor
+   EdgeDoFFunction( const EdgeDoFFunction< ValueType >& other );
+
+   /// Copy assignment
+   EdgeDoFFunction& operator=( const EdgeDoFFunction< ValueType >& other );
+
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
@@ -118,8 +127,8 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const EdgeDoFFunction< ValueType >&            other,
-                  const uint_t&                                  level,
+   void copyFrom( const EdgeDoFFunction< ValueType >&    other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
@@ -374,6 +383,14 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
+   inline void deleteFunctionMemory()
+   {
+      this->storage_->deleteVertexData( vertexDataID_ );
+      this->storage_->deleteEdgeData( edgeDataID_ );
+      this->storage_->deleteFaceData( faceDataID_ );
+      this->storage_->deleteCellData( cellDataID_ );
+   }
+
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -386,6 +403,13 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    /// friend P2Function for usage of enumerate
    friend class P2Function< ValueType >;
+
+   /// All functions that actually allocate data and are not composites are handles to the allocated memory.
+   /// This means the copy-ctor and copy-assignment only create a handle that is associated with the same memory.
+   /// Deep copies must be created explicitly.
+   /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
+   /// Once it drops to zero, we can deallocate the memory from the storage.
+   std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
 };
 
 // extern template class EdgeDoFFunction< double >;

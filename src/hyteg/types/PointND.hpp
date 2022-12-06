@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl,
+ * Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,7 +23,6 @@
 
 #include <array>
 #include <cmath>
-#include <core/math/Vector3.h>
 #include <iostream>
 
 #include "core/DataTypes.h"
@@ -31,16 +31,21 @@
 
 #include "hyteg/eigen/EigenWrapper.hpp"
 
+namespace walberla::math {
+template < typename Type >
+class Vector3;
+}
+
 namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
 
 /// \brief  N-dimensional vector
-/// \author Daniel Drzisga (drzisga@ma.tum.de)
-/// \date   March, 2017
 ///
-/// The PointND class represents an N-dimensional vector with support for algebraic operations
+/// The PointND class represents an N-dimensional vector with support for algebraic operations.
+/// Internally the class uses a dense Eigen::Matrix for this and at some point we might want to
+/// switch to that representation altogether
 /// \tparam T Vector data type
 /// \tparam N Dimension of vector
 template < typename T, size_t N >
@@ -48,13 +53,7 @@ class PointND
 {
  public:
    /// Constructor setting all components to zero
-   PointND()
-   {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] = (T) 0;
-      }
-   }
+   PointND() { vector_.setZero(); }
 
    /// Constructs the vector using values from n-dimensional array \p _x
    /// \param _x Pointer to N-dimensional array
@@ -62,7 +61,7 @@ class PointND
    {
       for ( size_t i = 0; i < N; ++i )
       {
-         x_[i] = _x[i];
+         vector_[i] = _x[i];
       }
    }
 
@@ -70,56 +69,35 @@ class PointND
    /// \param list N-dimensional array
    PointND( std::array< T, N > list )
    {
-      for ( size_t i = 0; i < N; ++i )
+      for ( uint_t i = 0; i < N; ++i )
       {
-         x_[i] = list[i];
-      }
-   }
-
-   /// Copy constructor
-   /// \param b Reference to another instance of PointND
-   PointND( const PointND& b )
-   {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] = b.x_[i];
+         vector_[walberla::int_c( i )] = list[i];
       }
    }
 
    /// Computes the dot product between two PointND vectors
    /// \param b Right hand side of dot operator
    /// \returns Dot product between \p this and \p b
-   T dot( const PointND& b ) const
-   {
-      T tmp = 0.0;
-      for ( size_t i = 0; i < N; ++i )
-      {
-         tmp += x_[i] * b.x_[i];
-      }
-      return tmp;
-   }
+   T dot( const PointND& other ) const { return vector_.dot( other.vector_ ); }
 
    /// Computes the 2D normal of this PointND
    /// \returns 2D Point normal to this PointND
-   PointND< T, 2 > normal2D() { return PointND< T, 2 >( { this->x_[1], -this->x_[0] } ); }
+   PointND< T, 2 > normal2D() { return PointND< T, 2 >( { this->vector_[1], -this->vector_[0] } ); }
 
    /// Computes the squared Euclidean norm of \p this
    /// \returns Squared Euclidean norm of \p this
-   T normSq() const { return dot( *this ); }
+   T normSq() const { return vector_.dot( vector_ ); }
 
    /// Computes the Euclidean norm of \p this
    /// \returns Euclidean norm of \p this
-   T norm() const { return std::sqrt( normSq() ); }
+   T norm() const { return vector_.norm(); }
 
    /// Add another PointND component wise to \p this
    /// \param rhs Reference to PointND that will be added to \p this
    /// \returns Reference to \p this after addition
    PointND& operator+=( const PointND& rhs )
    {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] += rhs.x_[i];
-      }
+      vector_ += rhs.vector_;
       return *this;
    }
 
@@ -128,10 +106,7 @@ class PointND
    /// \returns Reference to \p this after subtraction
    PointND& operator-=( const PointND& rhs )
    {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] -= rhs.x_[i];
-      }
+      vector_ -= rhs.vector_;
       return *this;
    }
 
@@ -140,10 +115,7 @@ class PointND
    /// \returns Reference to \p this after multiplication with \p scalar
    PointND& operator*=( T scalar )
    {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] *= scalar;
-      }
+      vector_ *= scalar;
       return *this;
    }
 
@@ -152,10 +124,7 @@ class PointND
    /// \returns Reference to \p this after division by \p scalar
    PointND& operator/=( T scalar )
    {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] /= scalar;
-      }
+      vector_ /= scalar;
       return *this;
    }
 
@@ -169,7 +138,7 @@ class PointND
    T& operator[]( const uint_t index )
    {
       WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
-      return x_[index];
+      return vector_( walberla::int_c( index ) );
    }
 
    /// Value of component of vector at position \p index
@@ -178,35 +147,34 @@ class PointND
    T operator[]( const uint_t index ) const
    {
       WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
-      return x_[index];
+      return vector_( walberla::int_c( index ) );
    }
 
-   void setAll( const T& scalar )
-   {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         x_[i] = scalar;
-      }
-   }
+   void setAll( const T& scalar ) { vector_.array() = scalar; }
 
+#ifndef _MSC_VER
+   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << vector_; }
+
+   void deserialize( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> vector_; }
+#else
    void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
    {
-      for ( size_t index = 0; index < N; index++ )
+      for ( int k = 0; k < N; ++k )
       {
-         sendBuffer << x_[index];
+         sendBuffer << vector_( k );
       }
    }
 
    void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
    {
-      for ( size_t index = 0; index < N; index++ )
+      for ( int k = 0; k < N; ++k )
       {
-         recvBuffer >> x_[index];
+         recvBuffer >> vector_( k );
       }
    }
+#endif
 
- protected:
-   T x_[N];
+   Eigen::Matrix< T, static_cast< int >(N), 1 > vector_;
 };
 
 template < typename T, size_t N >
@@ -272,29 +240,14 @@ using PointNDr = PointND< real_t, N >;
 
 inline Point3D crossProduct( const Point3D& a, const Point3D& b )
 {
-   return Point3D( { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0] } );
+   Point3D cross;
+   cross.vector_ = a.vector_.cross( b.vector_ );
+   return cross;
 }
 
-inline walberla::math::Vector3< real_t > toVec3( const Point3D& p )
-{
-   return walberla::math::Vector3< real_t >( p[0], p[1], p[2] );
-}
+walberla::math::Vector3< real_t > toVec3( const Point3D& p );
 
-inline Point3D toPoint3D( const walberla::math::Vector3< real_t >& v )
-{
-   return Point3D( { v[0], v[1], v[2] } );
-}
-
-template < typename T, size_t N >
-inline Eigen::Matrix< T, N, 1 > toEigen( const PointND< T, N >& p )
-{
-   Eigen::Matrix< T, N, 1 > eigen;
-   for ( size_t i = 0; i < N; ++i )
-   {
-      eigen[i] = p[i];
-   }
-   return eigen;
-}
+Point3D toPoint3D( const walberla::math::Vector3< real_t >& v );
 
 } // namespace hyteg
 
@@ -323,4 +276,3 @@ GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::PointND<
 
 } // namespace mpi
 } // namespace walberla
-

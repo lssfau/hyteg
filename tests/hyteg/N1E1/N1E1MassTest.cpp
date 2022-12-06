@@ -92,7 +92,7 @@ void testLevel1()
    const Eigen::Vector3r                                    a    = { 1, 2, 3 };
    const Eigen::Vector3r                                    b    = { 4, 5, 6 };
    const std::function< Eigen::Vector3r( const Point3D& ) > func = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ a + b.cross( toEigen( x ) ) };
+      return Eigen::Vector3r{ a + b.cross( x.vector_ ) };
    };
 
    tmp.interpolate( func, level );

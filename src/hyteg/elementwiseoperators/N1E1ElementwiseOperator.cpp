@@ -422,8 +422,9 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
       colIdx[k] = uint_c( srcEdgeIdx[edgeDoFIndices[k]] );
    }
 
-   std::vector< real_t > blockMatData( elMat.Size );
-   for ( uint_t i = 0; i < elMat.Size; i++ )
+   const uint_t          elMatSize = 36;
+   std::vector< real_t > blockMatData( elMatSize );
+   for ( uint_t i = 0; i < elMatSize; i++ )
    {
       blockMatData[i] = elMat.data()[i];
    }

@@ -47,7 +47,7 @@ void test3D()
    const Eigen::Vector3r                                    a        = { 1, 2, 3 };
    const Eigen::Vector3r                                    b        = { 4, 5, 6 };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFunc = [&]( const Point3D& x ) {
-      return ( a + b.cross( toEigen( x ) ) ).eval();
+      return ( a + b.cross( x.vector_ ) ).eval();
    };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );

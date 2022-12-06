@@ -26,7 +26,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"

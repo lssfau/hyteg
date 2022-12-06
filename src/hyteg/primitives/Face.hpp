@@ -26,7 +26,7 @@
 #include <hyteg/Math.hpp>
 #include <hyteg/primitives/Primitive.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
-#include <hyteg/types/pointnd.hpp>
+#include <hyteg/types/PointND.hpp>
 #include <hyteg/types/types.hpp>
 #include <vector>
 
@@ -207,6 +207,15 @@ class Face : public Primitive
    inline void addData( const PrimitiveDataID< DataType, Face >& index, const std::shared_ptr< DataHandlingType >& dataHandling )
    {
       genericAddData( index, dataHandling, this );
+   }
+
+   /// Deletes the data that belongs to the passed \ref PrimitiveDataID.
+   /// Not public in order to guarantee that data is only deleted through the governing structure.
+   /// \param index the \ref PrimitiveDataID of the data that shall be deleted
+   template < typename DataType >
+   void deleteData( const PrimitiveDataID< DataType, Face >& index )
+   {
+      return genericDeleteData< DataType >( index );
    }
 
    virtual void serializeSubclass( walberla::mpi::SendBuffer& sendBuffer ) const;

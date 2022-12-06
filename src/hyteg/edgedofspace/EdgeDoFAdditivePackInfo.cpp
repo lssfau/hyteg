@@ -443,6 +443,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex( const C
 ///@}
 
 template class EdgeDoFAdditivePackInfo< double >;
+template class EdgeDoFAdditivePackInfo< float >;
 template class EdgeDoFAdditivePackInfo< int >;
 template class EdgeDoFAdditivePackInfo< long >;
 template class EdgeDoFAdditivePackInfo< long long >;

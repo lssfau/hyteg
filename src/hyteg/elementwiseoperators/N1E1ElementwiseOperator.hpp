@@ -114,7 +114,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
       WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
       return localElementMatrices3D_[cell.getID()][level][idx];
    }
 
@@ -127,7 +127,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
       WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
       WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
       return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
    }
 
@@ -141,8 +141,9 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat6x6
-   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices3D_;
-   bool                                                                 localElementMatricesPrecomputed_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix6r, Eigen::aligned_allocator< Matrix6r > > > >
+        localElementMatrices3D_;
+   bool localElementMatricesPrecomputed_;
 };
 
 template < class N1E1FormType >

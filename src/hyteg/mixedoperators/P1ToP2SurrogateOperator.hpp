@@ -29,7 +29,7 @@
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

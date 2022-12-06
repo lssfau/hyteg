@@ -26,7 +26,7 @@
 
 #include "core/DataTypes.h"
 
-#include "types/pointnd.hpp"
+#include "types/PointND.hpp"
 
 namespace hyteg {
 namespace math {

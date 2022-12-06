@@ -45,7 +45,7 @@ inline void add( const uint_t&                                            level,
    using ValueType = real_t;
 
    const VectorType< ValueType > microEdgeDirection =
-       toEigen( edge.getDirection() ) / real_c( levelinfo::num_microedges_per_edge( level ) );
+       edge.getDirection().vector_ / real_c( levelinfo::num_microedges_per_edge( level ) );
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
    const ValueType dofScalar = vector.dot( microEdgeDirection );
@@ -67,7 +67,7 @@ inline void interpolate( const uint_t&                                          
    using ValueType = real_t;
 
    const VectorType< ValueType > microEdgeDirection =
-       toEigen( edge.getDirection() ) / real_c( levelinfo::num_microedges_per_edge( level ) );
+       edge.getDirection().vector_ / real_c( levelinfo::num_microedges_per_edge( level ) );
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
    const ValueType dofScalar = constant.dot( microEdgeDirection );
@@ -98,7 +98,7 @@ inline void
 
    const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( level ) );
    const VectorType< ValueType > microEdgeDirection =
-       toEigen( edge.getDirection() ) / real_c( levelinfo::num_microedges_per_edge( level ) );
+       edge.getDirection().vector_ / real_c( levelinfo::num_microedges_per_edge( level ) );
 
    Point3D xBlend;
 

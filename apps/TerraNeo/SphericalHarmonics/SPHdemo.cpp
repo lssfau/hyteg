@@ -27,6 +27,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -87,17 +88,35 @@ int main( int argc, char* argv[] )
    // =========
    //  Meshing
    // =========
-   const uint_t level = params.getParameter< uint_t >( "level" );
-   const uint_t nRad  = params.getParameter< uint_t >( "nRad" );
-   const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
+   const bool   useThinShell = params.getParameter< bool >( "useThinShell" );
+   const uint_t level        = params.getParameter< uint_t >( "level" );
+   const uint_t nRad         = params.getParameter< uint_t >( "nRad" );
+   const uint_t nTan         = params.getParameter< uint_t >( "nTan" );
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, 1.0, 2.0 );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+   std::shared_ptr< hyteg::MeshInfo > meshInfo;
+   if ( useThinShell )
+   {
+      meshInfo = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::meshThinSphericalShell( nTan, real_c( 1 ) ) );
+   }
+   else
+   {
+      meshInfo =
+          std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::meshSphericalShell( nTan, nRad, real_c( 1 ), real_c( 2 ) ) );
+   }
+
+   hyteg::SetupPrimitiveStorage setupStorage( *meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
-
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   IcosahedralShellMap::setMap( setupStorage );
+
+   if ( useThinShell )
+   {
+      ThinShellMap::setMap( setupStorage, real_c( 1 ) );
+   }
+   else
+   {
+      IcosahedralShellMap::setMap( setupStorage );
+   }
 
    std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );

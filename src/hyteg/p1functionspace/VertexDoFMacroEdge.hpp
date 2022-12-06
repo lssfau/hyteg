@@ -33,7 +33,7 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
 #include "hyteg/format.hpp"

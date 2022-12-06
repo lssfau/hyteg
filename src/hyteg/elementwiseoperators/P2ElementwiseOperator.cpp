@@ -225,10 +225,6 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       {
          Face& face = *it.second;
 
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
-
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
@@ -442,10 +438,6 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
          for ( auto& it : storage_->getFaces() )
          {
             Face& face = *it.second;
-
-            Point3D x0( face.getCoordinates()[0] );
-            Point3D x1( face.getCoordinates()[1] );
-            Point3D x2( face.getCoordinates()[2] );
 
             uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
             uint_t                   inner_rowsize = rowsize;
@@ -716,10 +708,6 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
       for ( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
-
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;

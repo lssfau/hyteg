@@ -60,7 +60,7 @@ void test3D()
          const auto  edgeData = edge.getData( dofs->getEdgeDataID() )->getPointer( level );
          const auto  nEdges   = real_c( levelinfo::num_microedges_per_edge( level ) );
 
-         const auto correct = c.dot( toEigen( edge.getDirection() ) ) / nEdges;
+         const auto correct = c.dot( edge.getDirection().vector_ ) / nEdges;
 
          for ( const auto& it : edgedof::macroedge::Iterator( level ) )
          {
@@ -81,9 +81,9 @@ void test3D()
          const auto  faceData = face.getData( dofs->getFaceDataID() )->getPointer( level );
          const auto  nEdges   = real_c( levelinfo::num_microedges_per_edge( level ) );
 
-         const auto correctX  = c.dot( toEigen( face.getCoordinates()[1] - face.getCoordinates()[0] ) ) / nEdges;
-         const auto correctY  = c.dot( toEigen( face.getCoordinates()[2] - face.getCoordinates()[0] ) ) / nEdges;
-         const auto correctXY = c.dot( toEigen( face.getCoordinates()[2] - face.getCoordinates()[1] ) ) / nEdges;
+         const auto correctX  = c.dot( face.getCoordinates()[1].vector_ - face.getCoordinates()[0].vector_ ) / nEdges;
+         const auto correctY  = c.dot( face.getCoordinates()[2].vector_ - face.getCoordinates()[0].vector_ ) / nEdges;
+         const auto correctXY = c.dot( face.getCoordinates()[2].vector_ - face.getCoordinates()[1].vector_ ) / nEdges;
 
          for ( const auto& it : edgedof::macroface::Iterator( level ) )
          {
@@ -132,12 +132,12 @@ void test3D()
             const auto actualXZ = cellData[idxXZ];
             const auto actualYZ = cellData[idxYZ];
 
-            WALBERLA_CHECK_FLOAT_EQUAL( actualX, correctX, "cell index: " << idxX );
-            WALBERLA_CHECK_FLOAT_EQUAL( actualY, correctY, "cell index: " << idxY );
-            WALBERLA_CHECK_FLOAT_EQUAL( actualZ, correctZ, "cell index: " << idxZ );
-            WALBERLA_CHECK_FLOAT_EQUAL( actualXY, correctXY, "cell index: " << idxXY );
-            WALBERLA_CHECK_FLOAT_EQUAL( actualXZ, correctXZ, "cell index: " << idxXZ );
-            WALBERLA_CHECK_FLOAT_EQUAL( actualYZ, correctYZ, "cell index: " << idxYZ );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualX, correctX, "index: " << it );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualY, correctY, "index: " << it );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualZ, correctZ, "index: " << it );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualXY, correctXY, "index: " << it );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualXZ, correctXZ, "index: " << it );
+            WALBERLA_CHECK_FLOAT_EQUAL( actualYZ, correctYZ, "index: " << it );
          }
 
          for ( const auto& it : edgedof::macrocell::IteratorXYZ( level ) )

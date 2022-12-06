@@ -29,6 +29,7 @@
 
 // P2 to P1
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_div.h"
+#include "hyteg/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )

@@ -68,6 +68,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const BoundaryCondition&                   boundaryCondition )
 : Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
+, referenceCounter_( new internal::ReferenceCounter() )
 {
    std::shared_ptr< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > > vertexDataHandling =
        std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >();
@@ -110,6 +111,73 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
       additiveCommunicators_[level]->addPackInfo( std::make_shared< EdgeDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
+
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+EdgeDoFFunction< ValueType >::~EdgeDoFFunction()
+{
+   referenceCounter_->decreaseRefs();
+   if ( referenceCounter_->refs() <= 0 )
+   {
+      // There are no copies of this handle left. We can delete the allocated DoFs.
+      deleteFunctionMemory();
+   }
+}
+
+template < typename ValueType >
+EdgeDoFFunction< ValueType >::EdgeDoFFunction( const EdgeDoFFunction< ValueType >& other )
+: Function< EdgeDoFFunction< ValueType > >( other )
+, vertexDataID_( other.vertexDataID_ )
+, edgeDataID_( other.edgeDataID_ )
+, faceDataID_( other.faceDataID_ )
+, cellDataID_( other.cellDataID_ )
+, boundaryCondition_( other.boundaryCondition_ )
+, referenceCounter_( other.referenceCounter_ )
+{
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+EdgeDoFFunction< ValueType >& EdgeDoFFunction< ValueType >::operator=( const EdgeDoFFunction< ValueType >& other )
+{
+   if ( this == &other )
+   {
+      return *this;
+   }
+   else if ( other.referenceCounter_ == referenceCounter_ )
+   {
+      WALBERLA_CHECK_EQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_EQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_EQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_EQUAL( cellDataID_, other.cellDataID_ )
+      WALBERLA_CHECK_EQUAL( boundaryCondition_, other.boundaryCondition_ )
+   }
+   else
+   {
+      WALBERLA_CHECK_UNEQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_UNEQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_UNEQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_UNEQUAL( cellDataID_, other.cellDataID_ )
+
+      referenceCounter_->decreaseRefs();
+
+      if ( referenceCounter_->refs() == 0 )
+      {
+         // There are no copies of this handle left. We can delete the allocated DoFs.
+         deleteFunctionMemory();
+      }
+
+      vertexDataID_      = other.vertexDataID_;
+      edgeDataID_        = other.edgeDataID_;
+      faceDataID_        = other.faceDataID_;
+      cellDataID_        = other.cellDataID_;
+      boundaryCondition_ = other.boundaryCondition_;
+      referenceCounter_  = other.referenceCounter_;
+      referenceCounter_->increaseRefs();
+   }
+   return *this;
 }
 
 template < typename ValueType >
@@ -543,8 +611,8 @@ void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&            other,
-                                             const uint_t&                                  level,
+void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&    other,
+                                             const uint_t&                          level,
                                              const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                                              const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
@@ -625,10 +693,10 @@ void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&
       while ( !pkg.buffer().isEmpty() )
       {
          PrimitiveID otherID;
-         uint_t              primitiveType = 4;
-         uint_t              dataSize      = 0;
-         ValueType           value;
-         ValueType*          dstPointer;
+         uint_t      primitiveType = 4;
+         uint_t      dataSize      = 0;
+         ValueType   value;
+         ValueType*  dstPointer;
 
          pkg.buffer() >> otherID;
          pkg.buffer() >> primitiveType;
@@ -1964,7 +2032,7 @@ void EdgeDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, b
 //  explicit instantiation
 // ========================
 template class EdgeDoFFunction< double >;
-// template class EdgeDoFFunction< float >;
+template class EdgeDoFFunction< float >;
 template class EdgeDoFFunction< int32_t >;
 template class EdgeDoFFunction< int64_t >;
 

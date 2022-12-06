@@ -22,7 +22,7 @@
 
 #include <hyteg/operators/Operator.hpp>
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 #include <hyteg/p2functionspace/polynomial/P2PolynomialDataHandling.hpp>
 

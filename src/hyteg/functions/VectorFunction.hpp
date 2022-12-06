@@ -29,7 +29,7 @@
 #include "hyteg/communication/BufferedCommunication.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

@@ -96,7 +96,7 @@ class IcosahedralShellMap : public GeometryMap
       recvBuffer >> radRayVertex_;
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override
    {
       // determine barycentric coordinate w.r.t. vertex refVertex_
       real_t tmp0  = -rayVertex_[2];
@@ -135,7 +135,7 @@ class IcosahedralShellMap : public GeometryMap
       // SHELL_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override
    {
       // calculating the intersection point of the prism-parallel plane that contains xComp
       // with the line spanned by mu * xPhys
@@ -156,21 +156,21 @@ class IcosahedralShellMap : public GeometryMap
       xComp         = mu * xPhys;
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const final override
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "IcosahedralMap::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final override
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );
       WALBERLA_ABORT( "IcosahedralMap::evalDFinv unimplemented for 2D!" );
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final override
    {
       // real_t tmp0 = pow(x[0], 2);
       real_t tmp0  = x[0] * x[0];
@@ -228,7 +228,7 @@ class IcosahedralShellMap : public GeometryMap
              DFx( 2, 0 ) * DFx( 0, 1 ) * DFx( 1, 2 ) - DFx( 2, 0 ) * DFx( 1, 1 ) * DFx( 0, 2 );
    };
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
                  << radRayVertex_;

@@ -25,6 +25,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -45,15 +46,16 @@ void showUsage()
    std::cout
        << "\n --------\n  USAGE:\n --------\n\n"
        << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
-       << " 1) by importing a file in Gmsh format\n"
-       << " 2) by meshing a rectangle in a certain flavour\n"
-       << " 3) by meshing a full or partial annulus\n"
-       << " 4) by generating a strip of chained triangles\n"
-       << " 5) by meshing a thick spherical shell (w/ or w/o blending)\n"
-       << " 6) by meshing a rectangular cuboid\n"
-       << " 7) by meshing a symmetric rectangular cuboid\n"
-       << " 8) by meshing a T-domain using the cubed domain generator\n"
-       << " 9) by meshing a torus\n\n"
+       << "  1) by importing a file in Gmsh format\n"
+       << "  2) by meshing a rectangle in a certain flavour\n"
+       << "  3) by meshing a full or partial annulus\n"
+       << "  4) by generating a strip of chained triangles\n"
+       << "  5) by meshing a thick spherical shell (w/ or w/o blending)\n"
+       << "  6) by meshing a thin spherical shell (w/ or w/o blending)\n"
+       << "  7) by meshing a rectangular cuboid\n"
+       << "  8) by meshing a symmetric rectangular cuboid\n"
+       << "  9) by meshing a T-domain using the cubed domain generator\n"
+       << " 10) by meshing a torus\n\n"
        << " This is steered by choosing one of the options below:\n\n"
        << "  --file <name of Gmsh file>\n"
        << "  --rect [criss|cross|crisscross|diamond]\n"
@@ -61,6 +63,8 @@ void showUsage()
        << "  --face-chain [numFaces]\n"
        << "  --spherical-shell [ntan]\n"
        << "  --blended-spherical-shell [ntan]\n"
+       << "  --thin-spherical-shell [ntan]\n"
+       << "  --blended-thin-spherical-shell [ntan]\n"
        << "  --cuboid [nHint]\n"
        << "  --symm-cuboid [nSubCubes]\n"
        << "  --t-domain [nCubesInEachDirection]\n"
@@ -87,11 +91,13 @@ int main( int argc, char* argv[] )
       PARTIAL_ANNULUS,
       FACE_CHAIN,
       SPHERICAL_SHELL,
+      THIN_SPHERICAL_SHELL,
       CUBOID,
       SYMM_CUBOID,
       T_DOMAIN,
       TORUS
    } meshDomainType;
+
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
    MeshInfo*             meshInfo     = nullptr;
@@ -102,6 +108,7 @@ int main( int argc, char* argv[] )
    // std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
    std::vector< real_t > layers   = { 1.0, 2.0 };
    uint_t                numFaces = 2;
+   real_t                thinShellRadius = real_t(0.5);
 
    typedef enum
    {
@@ -191,6 +198,20 @@ int main( int argc, char* argv[] )
       meshDomain  = SPHERICAL_SHELL;
       blending    = true;
       vtkFileName = std::string( "blendedSphericalShell" );
+   }
+   else if ( strcmp( argv[1], "--thin-spherical-shell" ) == 0 )
+   {
+      ntan        = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = THIN_SPHERICAL_SHELL;
+      blending    = false;
+      vtkFileName = std::string( "thinSphericalShell" );
+   }
+   else if ( strcmp( argv[1], "--blended-thin-spherical-shell" ) == 0 )
+   {
+      ntan        = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = THIN_SPHERICAL_SHELL;
+      blending    = true;
+      vtkFileName = std::string( "blendedThinSphericalShell" );
    }
    else if ( strcmp( argv[1], "--cuboid" ) == 0 )
    {
@@ -311,6 +332,10 @@ int main( int argc, char* argv[] )
       meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
       break;
 
+   case THIN_SPHERICAL_SHELL:
+      meshInfo = new MeshInfo( MeshInfo::meshThinSphericalShell( ntan, thinShellRadius ) );
+      break;
+
    case CUBOID:
       meshInfo = new MeshInfo(
           MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ), Point3D( { 2.0, 0.0, 2.0 } ), nHint + 1, nHint + 1, nHint ) );
@@ -399,6 +424,11 @@ int main( int argc, char* argv[] )
       if ( meshDomain == SPHERICAL_SHELL )
       {
          IcosahedralShellMap::setMap( *setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+      }
+      else if ( meshDomain == THIN_SPHERICAL_SHELL )
+      {
+         ThinShellMap::setMap( *setupStorage, thinShellRadius );
          WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
       }
    }

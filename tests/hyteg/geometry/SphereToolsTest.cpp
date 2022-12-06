@@ -13,7 +13,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

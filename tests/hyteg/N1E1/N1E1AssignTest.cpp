@@ -48,10 +48,10 @@ void test3D()
    const Eigen::Vector3r                                    b         = { 4, 5, 6 };
    const Eigen::Vector3r                                    c         = { 7, 8, 9 };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFunc1 = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ a + b.cross( toEigen( x ) ) };
+      return Eigen::Vector3r{ a + b.cross( x.vector_ ) };
    };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFunc2 = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ b + c.cross( toEigen( x ) ) };
+      return Eigen::Vector3r{ b + c.cross( x.vector_ ) };
    };
 
    n1e1::N1E1VectorFunction< real_t > f1( "f1", storage, minLevel, maxLevel );

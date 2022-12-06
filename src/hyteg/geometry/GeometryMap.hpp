@@ -19,8 +19,10 @@
  */
 #pragma once
 
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
+
+using walberla::real_c;
 
 namespace hyteg {
 
@@ -81,6 +83,25 @@ class GeometryMap
    /// Evaluation of the determinant of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    real_t evalDetDF( const Point3D& x );
+
+   /// Verify that the given point from the physical domain is connected to the given
+   /// point on the computational domain.
+   ///
+   /// We require a blending map to be a homeomorphism globally. However, we allow that global blending
+   /// maps are constructed in a piecewise fashion from maps that differ locally between primitives.
+   /// These need to be homeomorphisms locally on the respective primitives, but not globally. This
+   /// can cause problems when we try to map a point back from the physical to the computational domain,
+   /// but do not know to which primitive the point will belong on the computational domain.
+   ///
+   /// This method is supposed to test, whether mapping a point from the computational domain to the
+   /// physical domain gives the desired coordinates. The base class implements this by mapping the
+   /// point from the computation to the physical domain and checking the distance of the two points
+   /// via the given threshold. The method is virtual so that children can override it, if need be.
+   ///
+   /// For details and motivation see issue 184.
+   virtual bool verifyPointPairing( const Point3D& computationalCoordinates,
+                                    const Point3D& physicalCoordinates,
+                                    real_t         threshold = real_c( 1e-12 ) ) const;
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );

@@ -32,7 +32,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
 using walberla::real_t;

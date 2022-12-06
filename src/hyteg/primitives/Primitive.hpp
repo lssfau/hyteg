@@ -251,6 +251,12 @@ class Primitive
    template < typename DataType, typename PrimitiveType >
    inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType >& index ) const;
 
+   template < typename DataType, typename PrimitiveType >
+   inline void genericDeleteData( const PrimitiveDataID< DataType, PrimitiveType >& index );
+
+   template < typename DataType >
+   inline void deleteData( const PrimitiveDataID< DataType, Primitive >& index );
+
    std::vector< PrimitiveID > neighborVertices_;
    std::vector< PrimitiveID > neighborEdges_;
    std::vector< PrimitiveID > neighborFaces_;
@@ -323,8 +329,14 @@ bool Primitive::genericHasData( const PrimitiveDataID< DataType, PrimitiveType >
 template < typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType >& index ) const
 {
-   WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified DataID!" );
+   WALBERLA_ASSERT( genericHasData( index ), "Cannot retrieve data - there is no data available for the specified DataID!" );
    return data_.at( index )->template get< DataType >();
+}
+
+template < typename DataType, typename PrimitiveType >
+void Primitive::genericDeleteData( const PrimitiveDataID< DataType, PrimitiveType >& index )
+{
+   data_.erase( index );
 }
 
 // Methods to retrieve data and data handling from primitives
@@ -338,6 +350,12 @@ template < typename DataType >
 DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive >& index ) const
 {
    return genericGetData< DataType >( index );
+}
+
+template < typename DataType >
+void Primitive::deleteData( const PrimitiveDataID< DataType, Primitive >& index )
+{
+   return genericDeleteData< DataType >( index );
 }
 
 } // namespace hyteg

@@ -30,6 +30,7 @@
 #endif
 
 #include "hyteg/forms/form_fenics_generated/p1_to_p2_divt.h"
+#include "hyteg/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )

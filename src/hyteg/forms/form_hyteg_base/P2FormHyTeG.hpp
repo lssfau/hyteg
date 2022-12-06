@@ -20,8 +20,8 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/forms/P2Form.hpp"
 
 namespace hyteg {

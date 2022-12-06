@@ -28,11 +28,11 @@ class IdentityMap : public GeometryMap
  public:
    IdentityMap() {}
 
-   void evalF( const Point3D& x, Point3D& Fx ) const final { Fx = x; }
+   void evalF( const Point3D& x, Point3D& Fx ) const override final { Fx = x; }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final { xComp = xPhys; }
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final { xComp = xPhys; }
 
-   void evalDF( const Point3D&, Matrix2r& DFx ) const final
+   void evalDF( const Point3D&, Matrix2r& DFx ) const override final
    {
       DFx( 0, 0 ) = 1.0;
       DFx( 0, 1 ) = 0.0;
@@ -40,7 +40,7 @@ class IdentityMap : public GeometryMap
       DFx( 1, 1 ) = 1.0;
    }
 
-   real_t evalDF( const Point3D&, Matrix3r& DFx ) const final
+   real_t evalDF( const Point3D&, Matrix3r& DFx ) const override final
    {
       DFx( 0, 0 ) = 1.0;
       DFx( 0, 1 ) = 0.0;
@@ -57,7 +57,7 @@ class IdentityMap : public GeometryMap
       return 1.0;
    }
 
-   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const override final
    {
       DFinvx( 0, 0 ) = 1.0;
       DFinvx( 0, 1 ) = 0.0;
@@ -65,7 +65,7 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = 1.0;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << Type::IDENTITY; }
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }
 };
 
 } // namespace hyteg
