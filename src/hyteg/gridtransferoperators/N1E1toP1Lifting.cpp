@@ -95,9 +95,9 @@ void N1E1toP1Lifting( const N1E1VectorFunction< real_t >& src,
 
    // Face → Edge comm must come before Cell → Face comm
    // otherwise the Cell → Edge contributions are propagated twice, via the two faces adjacent to the cell and edge
-   dst.communicateAdditively< Face, Edge >( lvl, false );
-   dst.communicateAdditively< Cell, Face >( lvl, false );
-   dst.communicateAdditively< Cell, Edge >( lvl, false );
+   dst.communicateAdditively< Face, Edge >( lvl, DoFType::All ^ flag, *src.getStorage(), false );
+   dst.communicateAdditively< Cell, Face >( lvl, DoFType::All ^ flag, *src.getStorage(), false );
+   dst.communicateAdditively< Cell, Edge >( lvl, DoFType::All ^ flag, *src.getStorage(), false );
 }
 
 void liftMacroVertex( const Vertex&                       vertex,

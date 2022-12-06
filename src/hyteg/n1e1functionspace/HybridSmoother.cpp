@@ -60,7 +60,10 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 
    vectorResidual_.copyBoundaryConditionFromFunction( x );
    scalarResidual_.setBoundaryCondition( x.getBoundaryCondition() );
-   scalarPotential_.setBoundaryCondition( x.getBoundaryCondition() );
+   // By lifting to potential space Dirichlet BCs become Neumann BCs.
+   // Since there is currently no easy way to modify the BCs of `x` accordingly, we handle all DoFs like Inner DoFs.
+   // This is Ok, since Neumann and Inner DoFs are treated equally.
+   scalarPotential_.setBoundaryCondition( BoundaryCondition::createAllInnerBC() );
 
    timingTree_->start( "Smoother in 𝒩 (curl)^⊥" );
    for ( uint_t i = 0; i < n1e1SmoothSteps_; ++i )
