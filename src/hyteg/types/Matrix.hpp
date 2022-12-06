@@ -73,7 +73,7 @@ class Matrix
    explicit Matrix( const T& constant ) { matrix_.array() = constant; }
 
    /// Construct Matrix from an EigenMatrix
-   explicit Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.matrix_.array(); }
+   explicit Matrix( const Eigen::Matrix< T, M, N, Eigen::RowMajor >& eigenMat ) { matrix_.array() = eigenMat.array(); }
 
    /// Get reference to a single matrix component
    /// \param rIdx row index
