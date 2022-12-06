@@ -60,6 +60,13 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    /// If the local element matrices need to be recomputed again, simply call this method again.
    void computeAndStoreLocalElementMatrices();
 
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void                                            computeDiagonalOperatorValues();
+   std::shared_ptr< N1E1VectorFunction< real_t > > getDiagonalValues() const;
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
    void                                            computeInverseDiagonalOperatorValues() override;
    std::shared_ptr< N1E1VectorFunction< real_t > > getInverseDiagonalValues() const override;
 
@@ -81,11 +88,13 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    N1E1FormType getForm() const;
 
  private:
-   void computeLocalInverseDiagonal( const Cell&             cell,
-                                     const uint_t            level,
-                                     const indexing::Index&  microCell,
-                                     const celldof::CellType cType,
-                                     real_t* const           diagData );
+   void computeDiagonalOperatorValues( bool invert );
+   void computeLocalDiagonal( const Cell&             cell,
+                              const uint_t            level,
+                              const indexing::Index&  microCell,
+                              const celldof::CellType cType,
+                              const real_t* const     edgeDirsData,
+                              real_t* const           diagData );
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
@@ -94,7 +103,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                                const celldof::CellType                     cType,
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstEdgeIdx,
-                               const real_t* const                         signs ) const;
+                               const real_t* const                         edgeDirsData ) const;
 
    /// \brief Returns a reference to the precomputed element matrix of the specified micro cell.
    /// Probably crashes if local element matrices have not been precomputed.
@@ -123,7 +132,11 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
 
    N1E1FormType form_;
 
+   std::shared_ptr< N1E1VectorFunction< real_t > > diagonalValues_;
    std::shared_ptr< N1E1VectorFunction< real_t > > inverseDiagonalValues_;
+
+   // TODO this is possible without allocating a new function
+   N1E1VectorFunction< real_t > edgeDirs_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat6x6
@@ -137,6 +150,7 @@ void assembleLocalElementMatrix3D( const Cell&            cell,
                                    const indexing::Index& microCell,
                                    celldof::CellType      cType,
                                    N1E1FormType           form,
+                                   const real_t* const    edgeDirsData,
                                    Matrix6r&              elMat )
 {
    // determine coordinates of vertices of micro-element
@@ -147,9 +161,18 @@ void assembleLocalElementMatrix3D( const Cell&            cell,
       coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
    }
 
+   // determine edge orienations
+   std::array< int, 6 >    edgeDirections;
+   std::array< uint_t, 6 > edgeDoFIndices;
+   n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
+   for ( uint_t i = 0; i < 6; ++i )
+   {
+      edgeDirections[i] = numeric_cast< int >( edgeDirsData[edgeDoFIndices[i]] );
+   }
+
    // assemble local element matrix
    form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
+   form.integrateAll( coords, edgeDirections, elMat );
 }
 
 /// compute product of element local vector with element matrix

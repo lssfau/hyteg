@@ -40,12 +40,14 @@ class N1E1Form_curl_curl : public N1E1Form
    /// |  /  `-2 `\.
    /// | 4      `\_`\
    /// 0------5------1
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix6r& elMat ) const final
+   void integrateAll( const std::array< Point3D, 4 >& coords,
+                      const std::array< int, 6 >&     edgeDirections,
+                      Matrix6r&                       elMat ) const final
    {
       elMat.setAll( real_c( 0 ) );
 
-      // F maps from reference tet K̂ to affine tet K
-      // K = F(K̂) = Bx̂ + b
+      // F maps from reference tet K' to affine tet K
+      // K = F(K') = Bx' + b
       // B is the Jacobian of the transformation
       Eigen::Matrix3r B;
       B.col( 0 ) = toEigen( coords[1] - coords[0] );
@@ -55,8 +57,14 @@ class N1E1Form_curl_curl : public N1E1Form
       const real_t absDetB = std::abs( B.determinant() );
 
       // for first order elements, the curl of the basis functions φ is constant
-      std::array< Eigen::Vector3r, 6 > curlPhi = {
-          Eigen::Vector3r{ 2, 0, 0 }, { 0, -2, 0 }, { 0, 0, 2 }, { -2, 2, 0 }, { 2, 0, -2 }, { 0, -2, 2 } };
+      // clang-format off
+      std::array< Eigen::Vector3r, 6 > curlPhi = { Eigen::Vector3r{  2,  0,  0 } * edgeDirections[0],
+                                                   Eigen::Vector3r{  0, -2,  0 } * edgeDirections[1],
+                                                   Eigen::Vector3r{  0,  0,  2 } * edgeDirections[2],
+                                                   Eigen::Vector3r{ -2,  2,  0 } * edgeDirections[3],
+                                                   Eigen::Vector3r{  2,  0, -2 } * edgeDirections[4],
+                                                   Eigen::Vector3r{  0, -2,  2 } * edgeDirections[5] };
+      // clang-format on
 
       for ( uint_t i = 0; i < 6; i++ )
       {

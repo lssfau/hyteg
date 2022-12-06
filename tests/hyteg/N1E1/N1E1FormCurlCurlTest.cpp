@@ -46,7 +46,7 @@ void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
    n1e1::N1E1Form_curl_curl form;
    Matrix6r                 elMat;
 
-   form.integrateAll( coords, elMat );
+   form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
 
    for ( uint_t i = 0; i < 6; ++i )
    {

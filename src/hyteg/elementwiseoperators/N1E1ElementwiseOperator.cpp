@@ -42,8 +42,15 @@ N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::sha
                                                                   const bool needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
+, edgeDirs_{ "edge directions", storage_, minLevel, maxLevel }
 , localElementMatricesPrecomputed_( false )
 {
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      edgeDirs_.getDoFs()->interpolate( 1, level );
+      communication::syncFunctionBetweenPrimitives( edgeDirs_, level );
+   }
+
    if ( !storage_->hasGlobalCells() )
    {
       WALBERLA_ABORT( "Not implemented for 2D." )
@@ -85,9 +92,9 @@ void localMatrixVectorMultiply3D( uint_t                 level,
 template < class N1E1FormType >
 void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< real_t >& src,
                                                      const N1E1VectorFunction< real_t >& dst,
-                                                     size_t                              level,
-                                                     DoFType                             flag,
-                                                     UpdateType                          updateType ) const
+                                                     const size_t                        level,
+                                                     const DoFType                       flag,
+                                                     const UpdateType                    updateType ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -95,11 +102,14 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
 
    this->storage_->getTimingTree()->start( "sync source communication" );
    // Make sure that halos are up-to-date
-   // Note that the order of communication is important, since the face -> cell communication may overwrite
-   // parts of the halos that carry the macro-edge unknowns.
-
-   src.communicate< Face, Cell >( level );
-   src.communicate< Edge, Cell >( level );
+   //
+   // Note: The order of communication is important, since the face -> cell communication may overwrite
+   //       parts of the halos that carry the macro-edge unknowns.
+   // Note: Edge directions can only be handled by the form.
+   //       Therefore, the communication must be performed on the DoFs,
+   //       otherwise signs would get flipped (again).
+   src.getDoFs()->communicate< Face, Cell >( level );
+   src.getDoFs()->communicate< Edge, Cell >( level );
    this->storage_->getTimingTree()->stop( "sync source communication" );
 
    if ( updateType == Replace )
@@ -120,9 +130,11 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       // get hold of the actual numerical data in the two functions
       PrimitiveDataID< FunctionMemory< real_t >, Cell > srcEdgeDoFIdx = src.getDoFs()->getCellDataID();
       PrimitiveDataID< FunctionMemory< real_t >, Cell > dstEdgeDoFIdx = dst.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< real_t >, Cell > edgeDirsId    = edgeDirs_.getDoFs()->getCellDataID();
 
-      real_t* srcEdgeData = cell.getData( srcEdgeDoFIdx )->getPointer( level );
-      real_t* dstEdgeData = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+      real_t* srcEdgeData  = cell.getData( srcEdgeDoFIdx )->getPointer( level );
+      real_t* dstEdgeData  = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+      real_t* edgeDirsData = cell.getData( edgeDirsId )->getPointer( level );
 
       // Zero out dst halos only
       //
@@ -146,7 +158,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       // loop over micro-cells
       for ( const auto& cType : celldof::allCellTypes )
       {
-         for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+         for ( const auto& micro : celldof::macrocell::Iterator( level, cType ) )
          {
             if ( localElementMatricesPrecomputed_ )
             {
@@ -154,7 +166,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
             }
             else
             {
-               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, edgeDirsData, elMat );
             }
 
             localMatrixVectorMultiply3D( level, micro, cType, srcEdgeData, dstEdgeData, elMat );
@@ -165,10 +177,13 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
    this->storage_->getTimingTree()->start( "additive communication" );
    // Push result to lower-dimensional primitives
    //
+   // Note: Edge directions can only be handled by the form.
+   //       Therefore, the communication must be performed on the DoFs,
+   //       otherwise signs would get flipped (again).
    // Note: We could avoid communication here by implementing the apply() also for the respective
    //       lower dimensional primitives!
-   dst.communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
-   dst.communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+   dst.getDoFs()->communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+   dst.getDoFs()->communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
    this->storage_->getTimingTree()->stop( "additive communication" );
 
    this->stopTiming( "apply" );
@@ -183,8 +198,10 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
 
       for ( const auto& it : storage_->getCells() )
       {
-         auto cellID = it.first;
-         auto cell   = it.second;
+         const PrimitiveID cellID = it.first;
+         Cell&             cell   = *it.second;
+
+         real_t* edgeDirsData = cell.getData( edgeDirs_.getDoFs()->getCellDataID() )->getPointer( level );
 
          auto& elementMatrices = localElementMatrices3D_[cellID][level];
 
@@ -197,9 +214,9 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
          {
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               Matrix6r& elMat = localElementMatrix3D( *cell, level, micro, cType );
+               Matrix6r& elMat = localElementMatrix3D( cell, level, micro, cType );
                elMat.setAll( 0 );
-               assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
+               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, edgeDirsData, elMat );
             }
          }
       }
@@ -209,47 +226,83 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
 }
 
 template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues()
+{
+   computeDiagonalOperatorValues( false );
+}
+
+template < class N1E1FormType >
 void N1E1ElementwiseOperator< N1E1FormType >::computeInverseDiagonalOperatorValues()
 {
-   if ( inverseDiagonalValues_ == nullptr )
+   computeDiagonalOperatorValues( true );
+}
+
+template < class N1E1FormType >
+void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues( const bool invert )
+{
+   std::shared_ptr< N1E1VectorFunction< real_t > > targetFunction;
+   if ( invert )
    {
-      inverseDiagonalValues_ =
-          std::make_shared< N1E1VectorFunction< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+      if ( inverseDiagonalValues_ == nullptr )
+      {
+         inverseDiagonalValues_ =
+             std::make_shared< N1E1VectorFunction< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+      }
+      targetFunction = inverseDiagonalValues_;
    }
    else
    {
-      for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+      if ( diagonalValues_ == nullptr )
       {
-         inverseDiagonalValues_->setToZero( level );
+         diagonalValues_ = std::make_shared< N1E1VectorFunction< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
       }
+      targetFunction = diagonalValues_;
    }
 
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
+      targetFunction->setToZero( level );
+
       // we only perform computations on cell primitives
       for ( auto& macroIter : storage_->getCells() )
       {
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data
-         real_t* diagData = cell.getData( inverseDiagonalValues_->getDoFs()->getCellDataID() )->getPointer( level );
+         real_t* diagData     = cell.getData( targetFunction->getDoFs()->getCellDataID() )->getPointer( level );
+         real_t* edgeDirsData = cell.getData( edgeDirs_.getDoFs()->getCellDataID() )->getPointer( level );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               computeLocalInverseDiagonal( cell, level, micro, cType, diagData );
+               computeLocalDiagonal( cell, level, micro, cType, edgeDirsData, diagData );
             }
          }
       }
 
-      // Push result to lower-dimensional primitives
-      inverseDiagonalValues_->getDoFs()->communicateAdditively< Cell, Face >( level );
-      inverseDiagonalValues_->getDoFs()->communicateAdditively< Cell, Edge >( level );
+      // Push result to lower-dimensional primitives.
+      //
+      // Note: Edge directions can only be handled by the form.
+      //       Therefore, the communication must be performed on the DoFs,
+      //       otherwise signs would get flipped (again).
+      targetFunction->getDoFs()->communicateAdditively< Cell, Face >( level );
+      targetFunction->getDoFs()->communicateAdditively< Cell, Edge >( level );
 
-      inverseDiagonalValues_->getDoFs()->invertElementwise( level );
+      if ( invert )
+      {
+         targetFunction->getDoFs()->invertElementwise( level );
+      }
    }
+}
+
+template < class N1E1FormType >
+std::shared_ptr< N1E1VectorFunction< real_t > > N1E1ElementwiseOperator< N1E1FormType >::getDiagonalValues() const
+{
+   WALBERLA_CHECK_NOT_NULLPTR(
+       diagonalValues_, "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+   return diagonalValues_;
 }
 
 template < class N1E1FormType >
@@ -282,11 +335,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< S
       WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in N1E1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
    }
 
-   // TODO this is possible without allocating a new function
-   N1E1VectorFunction< real_t > signs{ "signs", storage_, level, level };
-   signs.getDoFs()->interpolate( 1, level );
-   communication::syncFunctionBetweenPrimitives( signs, level );
-
    // we only perform computations on cell primitives
    for ( auto& macroIter : storage_->getCells() )
    {
@@ -295,29 +343,30 @@ void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< S
       // get hold of the actual numerical data in the two indexing functions
       PrimitiveDataID< FunctionMemory< idx_t >, Cell >  srcEdgeDoFId = src.getDoFs()->getCellDataID();
       PrimitiveDataID< FunctionMemory< idx_t >, Cell >  dstEdgeDoFId = dst.getDoFs()->getCellDataID();
-      PrimitiveDataID< FunctionMemory< real_t >, Cell > signsId      = signs.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< real_t >, Cell > edgeDirsId   = edgeDirs_.getDoFs()->getCellDataID();
 
       idx_t*  srcEdgeIndices = cell.getData( srcEdgeDoFId )->getPointer( level );
       idx_t*  dstEdgeIndices = cell.getData( dstEdgeDoFId )->getPointer( level );
-      real_t* signsData      = cell.getData( signsId )->getPointer( level );
+      real_t* edgeDirsData   = cell.getData( edgeDirsId )->getPointer( level );
 
       // loop over micro-cells
       for ( const auto& cType : celldof::allCellTypes )
       {
          for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
          {
-            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices, signsData );
+            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices, edgeDirsData );
          }
       }
    }
 }
 
 template < class N1E1FormType >
-void N1E1ElementwiseOperator< N1E1FormType >::computeLocalInverseDiagonal( const Cell&             cell,
-                                                                           const uint_t            level,
-                                                                           const indexing::Index&  microCell,
-                                                                           const celldof::CellType cType,
-                                                                           real_t* const           diagData )
+void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell&             cell,
+                                                                    const uint_t            level,
+                                                                    const indexing::Index&  microCell,
+                                                                    const celldof::CellType cType,
+                                                                    const real_t* const     edgeDirsData,
+                                                                    real_t* const           diagData )
 {
    Matrix6r elMat;
    if ( localElementMatricesPrecomputed_ )
@@ -326,7 +375,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalInverseDiagonal( const
    }
    else
    {
-      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, elMat );
+      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, edgeDirsData, elMat );
    }
 
    // obtain data indices of dofs associated with micro-cell
@@ -348,7 +397,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
                                                                      const celldof::CellType                     cType,
                                                                      const idx_t* const                          srcEdgeIdx,
                                                                      const idx_t* const                          dstEdgeIdx,
-                                                                     const real_t* const                         signs ) const
+                                                                     const real_t* const edgeDirsData ) const
 {
    Matrix6r elMat;
    if ( localElementMatricesPrecomputed_ )
@@ -357,7 +406,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    }
    else
    {
-      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, elMat );
+      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, edgeDirsData, elMat );
    }
 
    // obtain data indices of dofs associated with micro-cell
@@ -371,16 +420,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    {
       rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k]] );
       colIdx[k] = uint_c( srcEdgeIdx[edgeDoFIndices[k]] );
-   }
-
-   for ( size_t i = 0; i < 6; ++i )
-   {
-      for ( size_t j = i + 1; j < 6; ++j )
-      {
-         const real_t sign = signs[edgeDoFIndices[i]] * signs[edgeDoFIndices[j]];
-         elMat( i, j ) *= sign;
-         elMat( j, i ) *= sign;
-      }
    }
 
    std::vector< real_t > blockMatData( elMat.Size );
