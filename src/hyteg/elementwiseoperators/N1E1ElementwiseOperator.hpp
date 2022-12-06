@@ -21,6 +21,7 @@
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
@@ -195,6 +196,7 @@ void localMatrixVectorMultiply3D( uint_t                 level,
 using N1E1ElementwiseCurlCurlOperator          = N1E1ElementwiseOperator< N1E1Form_curl_curl >;
 using N1E1ElementwiseMassOperator              = N1E1ElementwiseOperator< N1E1Form_mass >;
 using N1E1ElementwiseLinearCombinationOperator = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+using N1E1ElementwiseLinearFormOperatorQ6      = N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
 
 } // namespace n1e1
 } // namespace hyteg

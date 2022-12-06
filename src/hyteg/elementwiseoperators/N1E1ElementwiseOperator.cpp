@@ -438,6 +438,8 @@ template class N1E1ElementwiseOperator< N1E1Form_curl_curl >;
 template class N1E1ElementwiseOperator< N1E1Form_mass >;
 // N1E1ElementwiseLinearCombinationOperator
 template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+// N1E1ElementwiseLinearFormOperatorQ6
+template class N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
 
 } // namespace n1e1
 } // namespace hyteg

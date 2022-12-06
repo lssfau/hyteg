@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2017-2022 Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * The entire file was generated with the HyTeG form generator.
+ * 
+ * Software:
+ *
+ * - quadpy version: 0.16.10
+ *
+ * Avoid modifying this file. If buggy, consider fixing the generator itself.
+ */
+
+#pragma once
+
+#include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/forms/form_hyteg_base/N1E1FormHyTeG.hpp"
+#include "hyteg/eigen/typeAliases.hpp"
+
+namespace hyteg {
+namespace forms {
+
+/// Implementation of the integration of a weak form over an element.
+///
+/// - name:        n1e1_linear_form_affine_q6
+/// - description: Implements a linear form of type: (k(x), psi) where psi a test function and k = k(x) a vectorial, external function.
+/// - trial space: N1E1
+/// - test space:  N1E1
+///
+class n1e1_linear_form_affine_q6 : public N1E1FormHyTeG
+{
+
+ public:
+
+   n1e1_linear_form_affine_q6() { WALBERLA_ABORT("Not implemented."); }
+
+   n1e1_linear_form_affine_q6( std::function< Eigen::Vector3r ( const Point3D & ) > _callback_Vector_Variable_Coefficient_3D_k )
+   : callback_Vector_Variable_Coefficient_3D_k(_callback_Vector_Variable_Coefficient_3D_k)
+   {}
+
+ private:
+
+   std::function< Eigen::Vector3r ( const Point3D & ) > callback_Vector_Variable_Coefficient_3D_k;
+
+
+ public:
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
+   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - quadrature rule:                        Xiao-Gimbutas 6 | points: 23, degree: 6, test tolerance: 7.137e-17
+   /// - floating point operations:
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                             1328    2229       1       0      1            518                23
+   ///
+   void integrateAll( const std::array< Point3D, 4 >& coords, const std::array< int, 6 >& edgeDirections, Matrix< real_t, 6, 6 >& elMat ) const override;
+
+   bool assemble2D() const override { return false; }
+
+   bool assembly2DDefined() const override { return false; }
+
+   bool assemble3D() const override { return true; }
+
+   bool assembly3DDefined() const override { return true; }
+
+ private:
+
+   void Vector_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+
+};
+
+} // namespace forms
+} // namespace hyteg
