@@ -20,6 +20,7 @@
 
 #include "N1E1VectorFunction.hpp"
 
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/n1e1functionspace/N1E1AdditivePackInfo.hpp"
 #include "hyteg/n1e1functionspace/N1E1PackInfo.hpp"
@@ -70,12 +71,12 @@ N1E1VectorFunction< ValueType >::N1E1VectorFunction( const std::string&         
 }
 
 template < typename ValueType >
-bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& coordinates,
+bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                 uint_t         level,
                                                 VectorType&    value,
                                                 real_t         searchToleranceRadius ) const
 {
-   WALBERLA_UNUSED( coordinates );
+   WALBERLA_UNUSED( physicalCoords );
    WALBERLA_UNUSED( level );
    WALBERLA_UNUSED( value );
    WALBERLA_UNUSED( searchToleranceRadius );
@@ -84,50 +85,21 @@ bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& coordinates,
 }
 
 template <>
-bool N1E1VectorFunction< real_t >::evaluate( const Point3D& coordinates,
+bool N1E1VectorFunction< real_t >::evaluate( const Point3D& physicalCoords,
                                              uint_t         level,
                                              VectorType&    value,
                                              real_t         searchToleranceRadius ) const
 {
-   for ( auto& it : this->getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
+   auto [found, cellID, computationalCoords] =
+       mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
 
-      if ( isPointInTetrahedron( coordinates,
-                                 cell.getCoordinates()[0],
-                                 cell.getCoordinates()[1],
-                                 cell.getCoordinates()[2],
-                                 cell.getCoordinates()[3],
-                                 cell.getFaceInwardNormal( 0 ),
-                                 cell.getFaceInwardNormal( 1 ),
-                                 cell.getFaceInwardNormal( 2 ),
-                                 cell.getFaceInwardNormal( 3 ) ) )
-      {
-         value = n1e1::macrocell::evaluate( level, cell, coordinates, dofs_->getCellDataID() );
-         return true;
-      }
+   if ( found )
+   {
+      value = n1e1::macrocell::evaluate(
+          level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, dofs_->getCellDataID() );
    }
 
-   if ( searchToleranceRadius > 0 )
-   {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( sphereTetrahedronIntersection( coordinates,
-                                             searchToleranceRadius,
-                                             cell.getCoordinates()[0],
-                                             cell.getCoordinates()[1],
-                                             cell.getCoordinates()[2],
-                                             cell.getCoordinates()[3] ) )
-         {
-            value = n1e1::macrocell::evaluate( level, cell, coordinates, dofs_->getCellDataID() );
-            return true;
-         }
-      }
-   }
-
-   return false;
+   return found;
 }
 
 template < typename ValueType >

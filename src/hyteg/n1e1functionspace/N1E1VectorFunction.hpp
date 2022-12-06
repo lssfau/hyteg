@@ -115,13 +115,13 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    /// -> Does not need to be called collectively.
    /// -> Different values are returned on each process.
    ///
-   /// \param coordinates where the function shall be evaluated
-   /// \param level refinement level
-   /// \param value function value at the coordinate if search was successful
+   /// \param physicalCoords        coordinates in physical domain where the function is to be evaluated
+   /// \param level                 refinement level
+   /// \param value                 function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& coordinates, uint_t level, VectorType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, VectorType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
    /// \brief Evaluate finite element function on a specific micro-cell.
    ///
@@ -138,7 +138,7 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    /// Furthermore, determining the macro- and micro-elements from global coordinates is quite expensive.
    /// Favor this method over evaluate() in case the elements are already known.
    ///
-   /// \param coordinates  where the function shall be evaluated
+   /// \param coordinates  coordinates in computational domain where the function shall be evaluated
    /// \param level        refinement level
    /// \param cellID       the macro-cell where the (micro-)element is located on
    /// \param elementIndex the logical index of the micro-element
