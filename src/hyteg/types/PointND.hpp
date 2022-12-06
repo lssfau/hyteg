@@ -174,7 +174,7 @@ class PointND
    }
 #endif
 
-   Eigen::Matrix< T, N, 1 > vector_;
+   Eigen::Matrix< T, static_cast< int >(N), 1 > vector_;
 };
 
 template < typename T, size_t N >

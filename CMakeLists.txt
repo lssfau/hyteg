@@ -21,7 +21,7 @@ set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
-include_directories ( ${EIGEN_DIR} )
+include_directories ( SYSTEM ${EIGEN_DIR} )
 link_directories    ( ${EIGEN_DIR} )
 
 include_directories ( src )
