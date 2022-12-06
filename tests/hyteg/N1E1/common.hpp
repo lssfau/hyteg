@@ -202,18 +202,19 @@ class System
 void L2ConvergenceTest( const uint_t                                                                             minLevel,
                         const uint_t                                                                             maxLevel,
                         const System                                                                             system,
-                        std::function< real_t( const uint_t level, const System& system, const bool writeVtk ) > test )
+                        std::function< real_t( const uint_t level, const System& system, const bool writeVtk ) > test,
+                        const bool writeVTK = false )
 {
    const real_t l2ConvRate  = 1.0 / 4.0;
    const real_t convRateEps = l2ConvRate * 0.1;
-   real_t       err         = test( minLevel, system, false );
+   real_t       err         = test( minLevel, system, writeVTK );
 
    WALBERLA_LOG_INFO_ON_ROOT( "expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
    WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << std::scientific << err );
 
    for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
    {
-      const real_t errFiner     = test( level, system, false );
+      const real_t errFiner     = test( level, system, writeVTK );
       const real_t computedRate = errFiner / err;
 
       WALBERLA_LOG_INFO_ON_ROOT( "error level " << level << ": " << std::scientific << errFiner );
