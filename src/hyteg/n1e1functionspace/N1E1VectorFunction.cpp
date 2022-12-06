@@ -76,30 +76,29 @@ bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                 VectorType&    value,
                                                 real_t         searchToleranceRadius ) const
 {
-   WALBERLA_UNUSED( physicalCoords );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( value );
-   WALBERLA_UNUSED( searchToleranceRadius );
-
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::evaluate not implemented for requested template parameter" );
-}
-
-template <>
-bool N1E1VectorFunction< real_t >::evaluate( const Point3D& physicalCoords,
-                                             uint_t         level,
-                                             VectorType&    value,
-                                             real_t         searchToleranceRadius ) const
-{
-   auto [found, cellID, computationalCoords] =
-       mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
-
-   if ( found )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      value = n1e1::macrocell::evaluate(
-          level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, dofs_->getCellDataID() );
-   }
+      WALBERLA_UNUSED( physicalCoords );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( value );
+      WALBERLA_UNUSED( searchToleranceRadius );
 
-   return found;
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::evaluate not implemented for requested template parameter" );
+      return false;
+   }
+   else
+   {
+      auto [found, cellID, computationalCoords] =
+          mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
+
+      if ( found )
+      {
+         value = n1e1::macrocell::evaluate(
+             level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, dofs_->getCellDataID() );
+      }
+
+      return found;
+   }
 }
 
 template < typename ValueType >
@@ -110,26 +109,23 @@ void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&    
                                                               celldof::CellType      cellType,
                                                               VectorType&            value ) const
 {
-   WALBERLA_UNUSED( coordinates );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( cellID );
-   WALBERLA_UNUSED( elementIndex );
-   WALBERLA_UNUSED( cellType );
-   WALBERLA_UNUSED( value );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( cellID );
+      WALBERLA_UNUSED( elementIndex );
+      WALBERLA_UNUSED( cellType );
+      WALBERLA_UNUSED( value );
 
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::evaluateOnMicroElement not implemented for requested template parameter" );
-}
-
-template <>
-void N1E1VectorFunction< real_t >::evaluateOnMicroElement( const Point3D&               coordinates,
-                                                           const uint_t                 level,
-                                                           const PrimitiveID&           cellID,
-                                                           const hyteg::indexing::Index elementIndex,
-                                                           const celldof::CellType      cellType,
-                                                           VectorType&                  value ) const
-{
-   const Cell& cell = *storage_->getCell( cellID );
-   value = n1e1::macrocell::evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dofs_->getCellDataID() );
+      WALBERLA_ABORT(
+          "N1E1VectorFunction< ValueType >::evaluateOnMicroElement not implemented for requested template parameter" );
+   }
+   else
+   {
+      const Cell& cell = *storage_->getCell( cellID );
+      value = n1e1::macrocell::evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dofs_->getCellDataID() );
+   }
 }
 
 template < typename ValueType >
@@ -171,64 +167,65 @@ void N1E1VectorFunction< ValueType >::multElementwise(
 template < typename ValueType >
 void N1E1VectorFunction< ValueType >::add( VectorType vector, uint_t level, DoFType flag ) const
 {
-   WALBERLA_UNUSED( vector );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
-
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::add not implemented for requested template parameter" );
-}
-
-template <>
-void N1E1VectorFunction< real_t >::add( VectorType vector, uint_t level, DoFType flag ) const
-{
-   this->startTiming( "Add (vector)" );
-
-   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
+      WALBERLA_UNUSED( vector );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
 
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         n1e1::macroedge::add( level, edge, vector, dofs_->getEdgeDataID() );
-      }
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::add not implemented for requested template parameter" );
    }
+   else
+   {
+      this->startTiming( "Add (vector)" );
 
-   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-   {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         n1e1::macroface::add( level, face, vector, dofs_->getFaceDataID() );
-      }
-   }
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-   if ( level >= 1 )
-   {
-      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-      {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macrocell::add( level, cell, vector, dofs_->getCellDataID() );
+            n1e1::macroedge::add( level, edge, vector, dofs_->getEdgeDataID() );
          }
       }
-   }
 
-   this->stopTiming( "Add (vector)" );
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
+      {
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            n1e1::macroface::add( level, face, vector, dofs_->getFaceDataID() );
+         }
+      }
+
+      if ( level >= 1 )
+      {
+         std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+         for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
+         {
+            Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               n1e1::macrocell::add( level, cell, vector, dofs_->getCellDataID() );
+            }
+         }
+      }
+
+      this->stopTiming( "Add (vector)" );
+   }
 }
 
 template < typename ValueType >
@@ -254,121 +251,123 @@ void N1E1VectorFunction< ValueType >::add(
 template < typename ValueType >
 void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t level, DoFType flag ) const
 {
-   WALBERLA_UNUSED( constant );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( constant );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
 
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
-}
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
+   }
+   else
+   {
+      this->startTiming( "Interpolate" );
 
-template <>
-void N1E1VectorFunction< real_t >::interpolate( VectorType constant, uint_t level, DoFType flag ) const
-{
-   this->startTiming( "Interpolate" );
-
-   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
-   {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
-      }
-   }
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
+         }
+      }
+
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-   {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
-      }
-   }
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
-   std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
+         }
+      }
+
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-   {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), constant );
-      }
-   }
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
-   this->stopTiming( "Interpolate" );
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), constant );
+         }
+      }
+
+      this->stopTiming( "Interpolate" );
+   }
 }
 
 template < typename ValueType >
 void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t level, BoundaryUID boundaryUID ) const
 {
-   WALBERLA_UNUSED( constant );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( boundaryUID );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( constant );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( boundaryUID );
 
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
-}
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
+   }
+   else
+   {
+      this->startTiming( "Interpolate" );
 
-template <>
-void N1E1VectorFunction< real_t >::interpolate( VectorType constant, uint_t level, BoundaryUID boundaryUID ) const
-{
-   this->startTiming( "Interpolate" );
-
-   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
-   {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
-
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
-      }
-   }
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+         {
+            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
+         }
+      }
+
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-   {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
-
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
-      }
-   }
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
-   std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+         {
+            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
+         }
+      }
+
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-   {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
-
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), constant );
-      }
-   }
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
-   this->stopTiming( "Interpolate" );
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+         {
+            n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), constant );
+         }
+      }
+
+      this->stopTiming( "Interpolate" );
+   }
 }
 
 template < typename ValueType >
@@ -398,68 +397,65 @@ void N1E1VectorFunction< ValueType >::interpolate(
     uint_t                                                                                 level,
     DoFType                                                                                flag ) const
 {
-   WALBERLA_UNUSED( expr );
-   WALBERLA_UNUSED( srcFunctions );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
-
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
-}
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate(
-    const std::function< VectorType( const Point3D&, const std::vector< VectorType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >&     srcFunctions,
-    uint_t                                                                                 level,
-    DoFType                                                                                flag ) const
-{
-   this->startTiming( "Interpolate" );
-
-   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
+      WALBERLA_UNUSED( expr );
+      WALBERLA_UNUSED( srcFunctions );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
 
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
-      }
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
    }
+   else
+   {
+      this->startTiming( "Interpolate" );
 
-   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-   {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
-      }
-   }
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-   if ( level >= 1 )
-   {
-      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-      {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
          }
       }
+
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
+      {
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
+         }
+      }
+
+      if ( level >= 1 )
+      {
+         std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+         for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
+         {
+            Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+            }
+         }
+      }
+      this->stopTiming( "Interpolate" );
    }
-   this->stopTiming( "Interpolate" );
 }
 
 template < typename ValueType >
@@ -469,68 +465,65 @@ void N1E1VectorFunction< ValueType >::interpolate(
     uint_t                                                                                 level,
     BoundaryUID                                                                            boundaryUID ) const
 {
-   WALBERLA_UNUSED( expr );
-   WALBERLA_UNUSED( srcFunctions );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( boundaryUID );
-
-   WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
-}
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate(
-    const std::function< VectorType( const Point3D&, const std::vector< VectorType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >&     srcFunctions,
-    uint_t                                                                                 level,
-    BoundaryUID                                                                            boundaryUID ) const
-{
-   this->startTiming( "Interpolate" );
-
-   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
+      WALBERLA_UNUSED( expr );
+      WALBERLA_UNUSED( srcFunctions );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( boundaryUID );
 
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
-      {
-         n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
-      }
+      WALBERLA_ABORT( "N1E1VectorFunction< ValueType >::interpolate not implemented for requested template parameter" );
    }
+   else
+   {
+      this->startTiming( "Interpolate" );
 
-   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
-   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-   {
-      Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
-
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
-      }
-   }
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-   if ( level >= 1 )
-   {
-      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for default( shared )
-#endif
-      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-      {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
-
-         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
          }
       }
+
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
+      {
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
+
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+         {
+            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
+         }
+      }
+
+      if ( level >= 1 )
+      {
+         std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+         for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
+         {
+            Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
+
+            if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+            {
+               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+            }
+         }
+      }
+      this->stopTiming( "Interpolate" );
    }
-   this->stopTiming( "Interpolate" );
 }
 
 template < typename ValueType >

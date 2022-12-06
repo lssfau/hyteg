@@ -424,34 +424,5 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    BoundaryCondition                               boundaryCondition_;
 };
 
-template <>
-bool N1E1VectorFunction< real_t >::evaluate( const Point3D& coordinates,
-                                             uint_t         level,
-                                             VectorType&    value,
-                                             real_t         searchToleranceRadius ) const;
-
-template <>
-void N1E1VectorFunction< real_t >::add( VectorType vector, uint_t level, DoFType flag ) const;
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate( VectorType constant, uint_t level, BoundaryUID boundaryUID ) const;
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate(
-    const std::function< VectorType( const Point3D&, const std::vector< VectorType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >&     srcFunctions,
-    uint_t                                                                                 level,
-    BoundaryUID                                                                            boundaryUID ) const;
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate( VectorType constant, uint_t level, DoFType flag ) const;
-
-template <>
-void N1E1VectorFunction< real_t >::interpolate(
-    const std::function< VectorType( const Point3D&, const std::vector< VectorType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >&     srcFunctions,
-    uint_t                                                                                 level,
-    DoFType                                                                                flag ) const;
-
 } // namespace n1e1
 } // namespace hyteg
