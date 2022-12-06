@@ -934,7 +934,7 @@ if ( NOT (    CMAKE_BUILD_TYPE MATCHES "Debug"
           AND (WALBERLA_CXX_COMPILER_IS_CLANG OR WALBERLA_CXX_COMPILER_IS_GNU)
          )
    )
-    waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp DEPENDS hyteg core)
+    waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp N1E1/common.hpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME HybridSmootherTest)
 
     waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)

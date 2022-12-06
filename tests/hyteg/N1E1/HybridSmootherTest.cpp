@@ -33,15 +33,16 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
+#include "common.hpp"
+
 using namespace hyteg;
 
-void test( const uint_t                                       level,
-           const MeshInfo                                     meshInfo,
-           std::function< Eigen::Vector3r( const Point3D& ) > analyticSolution,
-           std::function< Eigen::Vector3r( const Point3D& ) > rhs,
-           const uint_t                                       nIterations,
-           const real_t                                       expectedError,
-           const bool                                         writeVTK = false )
+void test( const uint_t        level,
+           const n1e1::System& system,
+           const uint_t        nIterations,
+           const real_t        expectedResidual,
+           const real_t        expectedError,
+           const bool          writeVTK = false )
 {
    using namespace n1e1;
 
@@ -52,7 +53,7 @@ void test( const uint_t                                       level,
    const uint_t minLevel = level;
    const uint_t maxLevel = level;
 
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage setupStorage( system.domain_, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -69,18 +70,20 @@ void test( const uint_t                                       level,
    N1E1Form_mass                            massForm;
    N1E1ElementwiseMassOperator              M( storage, level, level );
    N1E1ElementwiseLinearCombinationOperator A( storage, minLevel, maxLevel, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
-
-   tmp.interpolate( rhs, level );
-   M.apply( tmp, f, level, DoFType::All );
-   sol.interpolate( analyticSolution, level );
-
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );
+
+   // assemble RHS
+   N1E1ElementwiseLinearFormOperatorQ6 rhsOperator( storage, level, level, { system.rhs_ } );
+   rhsOperator.computeDiagonalOperatorValues();
+   f.copyFrom( *rhsOperator.getDiagonalValues(), level );
 
    // smoothers
    auto chebyshevSmoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
 
-   const real_t spectralRadius = chebyshev::estimateRadius( A, level, 100, storage, sol, tmp );
-   sol.interpolate( analyticSolution, level );
+   sol.interpolate( system.analyticalSol_, level );
+   const real_t spectralRadius = chebyshev::estimateRadius( A, level, 40, storage, sol, tmp );
+   sol.interpolate( system.analyticalSol_, level );
+
    chebyshevSmoother->setupCoefficients( 4, spectralRadius );
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius );
 
@@ -90,38 +93,64 @@ void test( const uint_t                                       level,
    // solve Au = f with hybrid smoother
    HybridSmoother hybridSmoother( storage, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
 
-   err.assign( { 1.0, -1.0 }, { u, sol }, level );
+   A.apply( u, tmp, level, DoFType::Inner );
+   tmp.assign( { 1.0, -1.0 }, { f, tmp }, level, DoFType::Inner );
+   real_t prevResidual = std::sqrt( tmp.dotGlobal( tmp, level ) );
+   // WALBERLA_LOG_DEVEL_VAR_ON_ROOT( prevResidual );
+
+   err.assign( { 1.0, -1.0 }, { sol, u }, level );
    M.apply( err, tmp, level, DoFType::All );
-   double prevDiscL2 = std::sqrt( err.dotGlobal( tmp, level ) );
+   real_t prevL2Error = std::sqrt( err.dotGlobal( tmp, level ) );
+   // WALBERLA_LOG_DEVEL_VAR_ON_ROOT( prevL2Error )
+
+   VTKOutput vtk( "../../output/", "HybridSmootherTest", storage );
+   if ( writeVTK )
+   {
+      vtk.add( u );
+      vtk.add( f );
+      vtk.add( sol );
+      vtk.add( err );
+      vtk.write( level, 0 );
+   }
 
    for ( uint_t i = 0; i < nIterations; ++i )
    {
       hybridSmoother.solve( A, u, f, level );
 
+      // determine residual
+      A.apply( u, tmp, level, DoFType::Inner );
+      tmp.assign( { 1.0, -1.0 }, { f, tmp }, level, DoFType::Inner );
+      const real_t residual = std::sqrt( tmp.dotGlobal( tmp, level ) );
+      // WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual )
+
+      WALBERLA_CHECK_LESS( residual, prevResidual, "hybrid smoother, does not decrease residual" );
+      prevResidual = residual;
+
       // determine error
-      err.assign( { 1.0, -1.0 }, { u, sol }, level );
+      err.assign( { 1.0, -1.0 }, { sol, u }, level );
       M.apply( err, tmp, level, DoFType::All );
-      const real_t discrL2 = std::sqrt( err.dotGlobal( tmp, level ) );
+      const real_t L2Error = std::sqrt( err.dotGlobal( tmp, level ) );
+      // WALBERLA_LOG_DEVEL_VAR_ON_ROOT( L2Error )
 
-      WALBERLA_CHECK_LESS( discrL2, prevDiscL2, "hybrid smoother, does not decrease error" );
-      prevDiscL2 = discrL2;
+      WALBERLA_CHECK_LESS( L2Error, prevL2Error, "hybrid smoother, does not decrease error" );
+      prevL2Error = L2Error;
+
+      if ( writeVTK )
+      {
+         vtk.write( level, i + 1 );
+      }
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Approximate L2 norm of error: " << prevDiscL2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "2-norm of residual: " << prevResidual );
+   WALBERLA_LOG_INFO_ON_ROOT( "Approximate L2-norm of error: " << prevL2Error );
 
-   if ( writeVTK )
-   {
-      VTKOutput vtk( "../../output/", "HybridSmootherTest", storage );
-      vtk.add( u );
-      vtk.add( f );
-      vtk.add( sol );
-      vtk.add( err );
-      vtk.write( level );
-   }
+   // the calculated residual should up to 10% match the expected residual
+   WALBERLA_CHECK_LESS( 0.9 * expectedResidual, prevResidual, "residual for hybrid smoother has changed " );
+   WALBERLA_CHECK_GREATER( 1.1 * expectedResidual, prevResidual, "residual for hybrid smoother has changed " );
 
    // the calculated error should up to 10% match the expected error
-   WALBERLA_CHECK_LESS( 0.9 * expectedError, prevDiscL2, "error for hybrid smoother has changed " );
-   WALBERLA_CHECK_GREATER( 1.1 * expectedError, prevDiscL2, "error for hybrid smoother has changed " );
+   WALBERLA_CHECK_LESS( 0.9 * expectedError, prevL2Error, "error for hybrid smoother has changed " );
+   WALBERLA_CHECK_GREATER( 1.1 * expectedError, prevL2Error, "error for hybrid smoother has changed " );
 }
 
 int main( int argc, char** argv )
@@ -130,94 +159,16 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Single Macro ###" );
-
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ y * z * ( x + y + z - 1 ), x * z * ( x + y + z - 1 ), x * y * ( x + y + z - 1 ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{
-             y * z * ( x + y + z - 1 ) - y - z, x * z * ( x + y + z - 1 ) - x - z, x * y * ( x + y + z - 1 ) - x - y };
-      };
-
-      test( 4, meshInfo, solFunc, rhsFunc, 100, 0.000111476 );
-   }
-
+   WALBERLA_LOG_INFO_ON_ROOT( "### Single Macro ###" );
+   test( 4, n1e1::System::polynomialOnSingleTet(), 60, 0.00317698, 0.000393222 );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Pyramid ###" );
-
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
-                                 z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
-                                 1 * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ) };
-      };
-
-      // yes, I know it's ugly
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{
-             16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z - 8 * x * x * z -
-                 16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) - 8 * x * z * z - 40 * x * z +
-                 32 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z + 24 * y * y * z - 16 * y * y +
-                 4 * y * std::pow( z, 3 ) - 8 * y * z * z - 56 * y * z + 16 * y + std::pow( z, 5 ) - 4 * std::pow( z, 4 ) -
-                 8 * std::pow( z, 3 ) + 32 * z * z - 8,
-             16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z + 24 * x * x * z -
-                 16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) - 8 * x * z * z - 56 * x * z +
-                 16 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z - 8 * y * y * z - 16 * y * y +
-                 4 * y * std::pow( z, 3 ) - 8 * y * z * z - 40 * y * z + 32 * y + std::pow( z, 5 ) - 4 * std::pow( z, 4 ) -
-                 8 * std::pow( z, 3 ) + 32 * z * z - 8,
-             16 * x * x * y * y + 16 * x * x * y - 4 * x * x * z * z + 8 * x * x * z - 48 * x * x + 16 * x * y * y - 48 * x * y -
-                 20 * x * z * z + 24 * x * z + 48 * x - 4 * y * y * z * z + 8 * y * y * z - 48 * y * y - 20 * y * z * z +
-                 24 * y * z + 48 * y + std::pow( z, 4 ) - 4 * std::pow( z, 3 ) + 44 * z * z - 64 * z };
-      };
-
-      test( 4, meshInfo, solFunc, rhsFunc, 100, 0.0269902 );
-   }
-
+   WALBERLA_LOG_INFO_ON_ROOT( "### Pyramid ###" );
+   test( 4, n1e1::System::polynomialOnPyramid(), 40, 0.287105, 0.0664059 );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Cube ###" );
-
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-
-      std::function< Eigen::Vector3r( const Point3D& ) > solFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ y * ( 1 - y ) * z * ( 1 - z ), x * ( 1 - x ) * z * ( 1 - z ), x * ( 1 - x ) * y * ( 1 - y ) };
-      };
-
-      std::function< Eigen::Vector3r( const Point3D& ) > rhsFunc = []( const Point3D& p ) {
-         const real_t x = p[0];
-         const real_t y = p[1];
-         const real_t z = p[2];
-         return Eigen::Vector3r{ 2 * ( y * ( 1 - y ) + z * ( 1 - z ) ) + y * ( 1 - y ) * z * ( 1 - z ),
-                                 2 * ( x * ( 1 - x ) + z * ( 1 - z ) ) + x * ( 1 - x ) * z * ( 1 - z ),
-                                 2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
-      };
-
-      test( 4, meshInfo, solFunc, rhsFunc, 100, 0.0349963 );
-   }
+   WALBERLA_LOG_INFO_ON_ROOT( "### Cube ###" );
+   test( 3, n1e1::System::sinusoidalOnCube(), 40, 0.59872, 0.060057 );
 
    return EXIT_SUCCESS;
 }
