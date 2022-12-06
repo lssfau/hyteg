@@ -127,6 +127,8 @@ class K_Mesh
    const std::set< std::shared_ptr< K_Simplex > >& get_elements() const { return _T; }
    // reference to list of vertex coordinates corresponding to current refinement
    const std::vector< Point3D >& get_vertices() const { return _vertices; }
+   // export mesh to gmsh file
+   void exportMesh( const std::string& filename ) const;
 
  private:
    /* apply round robin loadbalancing to volume elements
@@ -422,6 +424,19 @@ class Mesh
    }
 
    inline uint_t dim() const { return _DIM; }
+
+   // export mesh to gmsh file
+   void exportMesh( const std::string& filename ) const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->exportMesh( filename );
+      }
+      else
+      {
+         return _mesh2D->exportMesh( filename );
+      }
+   }
 
  private:
    uint_t                    _DIM;    // spacial dimension

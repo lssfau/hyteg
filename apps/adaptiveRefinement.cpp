@@ -371,7 +371,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     accurate_error,
                                        bool                                     l2_error_each_iteration = true )
 {
-   auto l_err = ( accurate_error ) ? l_max + 1 : l_max;
+   auto l_err = ( accurate_error ) ? l_max + 1 : l_max; // todo
+
+   // mesh.exportMesh("mesh_" + std::to_string(refinement_step) + ".msh");
 
    double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );

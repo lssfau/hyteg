@@ -1641,6 +1641,50 @@ real_t K_Mesh< K_Simplex >::volume() const
    return v_tot;
 }
 
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
+{
+   WALBERLA_ROOT_SECTION()
+   {
+      const int K = K_Simplex::TYPE;
+      int       elType;
+      if ( K == 2 )
+         elType = 2;
+      else if ( K == 3 )
+         elType = 4;
+      else
+         WALBERLA_ABORT( "Only implementation of 3d and 2d meshes implemented." )
+
+      std::ofstream file( filename );
+
+      file << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n" << n_vtx() << "\n";
+
+      for ( uint_t i = 0; i < n_vtx(); ++i )
+      {
+         file << ( i + 1 );
+         for ( int j = 0; j < 3; ++j )
+            file << " " << _vertices[i][j];
+         file << "\n";
+      }
+
+      file << "$EndNodes\n$Elements\n" << n_elements() << "\n";
+
+      uint_t i = 0;
+      for ( auto& el : _T )
+      {
+         auto& v = el->get_vertices();
+
+         file << ( i + 1 ) << " " << elType << " 2 0 0";
+         for ( int j = 0; j <= K; ++j )
+            file << " " << ( v[j] + 1 );
+         file << "\n";
+         ++i;
+      }
+
+      file << "$EndElements\n";
+   }
+}
+
 template class K_Mesh< Simplex2 >;
 template class K_Mesh< Simplex3 >;
 
