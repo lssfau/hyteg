@@ -890,3 +890,6 @@ waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
 waLBerla_execute_test(NAME EigenBasicTest)
 waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
 
+## types ##
+waLBerla_compile_test(FILES types/MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
