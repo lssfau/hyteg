@@ -99,6 +99,9 @@ bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& physicalCoords,
 
       return found;
    }
+
+   // will not be reached, but some compilers complain otherwise
+   return false;
 }
 
 template < typename ValueType >
