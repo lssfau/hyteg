@@ -456,6 +456,9 @@ waLBerla_execute_test(NAME ConcatenatedOperator)
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES composites/P1P0Stokes2DPetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
+
+    waLBerla_compile_test(FILES composites/P1P0Stokes3DPetscSolveTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1P0Stokes3DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes3DPetscSolveTest> PROCESSES 1)
 endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
@@ -817,6 +820,11 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGFunctionspaceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFunctionspaceTest)
 
+    # waLBerla_compile_test(FILES egfunctionspace/EGDivOpTest.cpp DEPENDS hyteg core)
+    # waLBerla_execute_test(NAME EGDivOpTest)
+
+    # waLBerla_compile_test(FILES egfunctionspace/EGDivTOpTest.cpp DEPENDS hyteg core)
+    # waLBerla_execute_test(NAME EGDivTOpTest)
 
     waLBerla_compile_test(FILES egfunctionspace/EGSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGSymmetryTest)
@@ -824,8 +832,11 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGVectorLaplaceConvergenceTests.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGVectorLaplaceConvergenceTests)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTests.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGStokesConvergenceTests COMMAND $<TARGET_FILE:EGStokesConvergenceTests> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
+    waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGStokesConvergenceTest COMMAND $<TARGET_FILE:EGStokesConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
+
+    waLBerla_compile_test(FILES egfunctionspace/EGEpsilonConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
 
     waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFormTest)

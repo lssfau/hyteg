@@ -62,12 +62,12 @@ namespace hyteg {
         EGFunction<real_t> err("error", storage, level, level);
         EGFunction<idx_t> numerator("numerator", storage, level, level);
 
-        EGLaplaceOperator L(storage, level, level);
+        EGSIPGLaplaceOperator L(storage, level, level);
 
         // PETSc apply
         PETScVector<real_t, EGFunction> srcPetscVec;
         PETScVector<real_t, EGFunction> dstPetscVec;
-        PETScSparseMatrix<EGLaplaceOperator> L_Matrix;
+        PETScSparseMatrix<EGSIPGLaplaceOperator> L_Matrix;
         PETScSparseMatrix<EGMassOperator> M_Matrix;
 
         std::function<real_t(const hyteg::Point3D &)> srcFunction = srcLambda;

@@ -23,83 +23,90 @@
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 
 namespace hyteg {
-namespace dg {
-namespace eg {
-template < typename VelocityBlockOperator >
-class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
-{
- public:
-   EGP0StokesOperatorType( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : Operator( storage, minLevel, maxLevel )
-   , velocityBlockOp( storage, minLevel, maxLevel )
-   , div( storage, minLevel, maxLevel )
-   , divT( storage, minLevel, maxLevel )
-   {}
+    namespace dg {
+        namespace eg {
+            template<typename VelocityBlockOperator, typename EnergyNormOperator>
+            class EGP0StokesOperatorType : public Operator<EGP0StokesFunction<real_t>, EGP0StokesFunction<real_t> > {
+            public:
+                typedef VelocityBlockOperator VelocityBlockOperator_T;
+                typedef EnergyNormOperator EnergyNormOperator_T;
 
-   void apply( const EGP0StokesFunction< real_t >& src,
-               const EGP0StokesFunction< real_t >& dst,
-               const uint_t                        level,
-               const DoFType                       flag ) const
-   {
-      velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
-      divT.apply( src.p(), dst.uvw(), level, flag, Add );
-      div.apply( src.uvw(), dst.p(), level, flag, Replace );
-   }
+                EGP0StokesOperatorType(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel,
+                                       size_t maxLevel)
+                        : Operator(storage, minLevel, maxLevel), velocityBlockOp(storage, minLevel, maxLevel),
+                          div(storage, minLevel, maxLevel), divT(storage, minLevel, maxLevel),
+                          energyNormOp(storage, minLevel, maxLevel) {}
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const EGP0StokesFunction< idx_t >&          src,
-                  const EGP0StokesFunction< idx_t >&          dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
-   {
-      velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
-      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
-   }
+                void apply(const EGP0StokesFunction<real_t> &src,
+                           const EGP0StokesFunction<real_t> &dst,
+                           const uint_t level,
+                           const DoFType flag) const {
+                    velocityBlockOp.apply(src.uvw(), dst.uvw(), level, flag, Replace);
+                    divT.apply(src.p(), dst.uvw(), level, flag, Add);
+                    div.apply(src.uvw(), dst.p(), level, flag, Replace);
+                }
 
-   VelocityBlockOperator velocityBlockOp;
-   EGToP0DivOperator     div;
-   P0ToEGDivTOperator    divT;
-};
+                void toMatrix(const std::shared_ptr<SparseMatrixProxy> &mat,
+                              const EGP0StokesFunction<idx_t> &src,
+                              const EGP0StokesFunction<idx_t> &dst,
+                              size_t level,
+                              DoFType flag) const {
+                    velocityBlockOp.toMatrix(mat, src.uvw(), dst.uvw(), level, flag);
+                    divT.toMatrix(mat, src.p(), dst.uvw(), level, flag);
+                    div.toMatrix(mat, src.uvw(), dst.p(), level, flag);
+                }
 
-typedef EGP0StokesOperatorType< EGLaplaceOperator >         EGP0StokesOperator;
-typedef EGP0StokesOperatorType< EGConstantEpsilonOperator > EGP0ConstEpsilonStokesOperator;
+                VelocityBlockOperator_T velocityBlockOp;
+                EGToP0DivOperator div;
+                P0ToEGDivTOperator divT;
+                EnergyNormOperator_T energyNormOp;
+            };
 
-class EGP0EpsilonStokesOperator : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
-{
- public:
-   EGP0EpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel,       std::function< real_t( const Point3D& ) >  viscosity )
-   : Operator( storage, minLevel, maxLevel )
-   , eps( storage, minLevel, maxLevel, viscosity )
-   , div( storage, minLevel, maxLevel )
-   , divT( storage, minLevel, maxLevel )
-   {}
+            typedef EGP0StokesOperatorType<EGSIPGLaplaceOperator, EGLaplaceEnergyNormOperator> EGP0StokesOperator;
+            typedef EGP0StokesOperatorType<EGIIPGLaplaceOperator, EGLaplaceEnergyNormOperator> EGP0IIPGStokesOperator;
 
-   void apply( const EGP0StokesFunction< real_t >& src,
-               const EGP0StokesFunction< real_t >& dst,
-               const uint_t                        level,
-               const DoFType                       flag ) const
-   {
-      eps.apply( src.uvw(), dst.uvw(), level, flag, Replace );
-      divT.apply( src.p(), dst.uvw(), level, flag, Add );
-      div.apply( src.uvw(), dst.p(), level, flag, Replace );
-   }
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const EGP0StokesFunction< idx_t >&          src,
-                  const EGP0StokesFunction< idx_t >&          dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
-   {
-      eps.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
-      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
-   }
+            template<typename VelocityBlockOperator>
+            class EGP0EpsilonStokesOperatorType
+                    : public Operator<EGP0StokesFunction<real_t>, EGP0StokesFunction<real_t> > {
+            public:
 
-   EGEpsilonOperator eps;
-   EGToP0DivOperator     div;
-   P0ToEGDivTOperator    divT;
-};
-} // namespace eg
-} // namespace dg
+                typedef VelocityBlockOperator VelocityBlockOperator_T;
+                typedef EGEpsilonEnergyNormOperator EnergyNormOperator_T;
+
+                EGP0EpsilonStokesOperatorType(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel,
+                                              size_t maxLevel, std::function<real_t(const Point3D &)> viscosity)
+                        : Operator(storage, minLevel, maxLevel), eps(storage, minLevel, maxLevel, viscosity),
+                          div(storage, minLevel, maxLevel), divT(storage, minLevel, maxLevel),
+                          energyNormOp(storage, minLevel, maxLevel, viscosity) {}
+
+                void apply(const EGP0StokesFunction<real_t> &src,
+                           const EGP0StokesFunction<real_t> &dst,
+                           const uint_t level,
+                           const DoFType flag) const {
+                    eps.apply(src.uvw(), dst.uvw(), level, flag, Replace);
+                    divT.apply(src.p(), dst.uvw(), level, flag, Add);
+                    div.apply(src.uvw(), dst.p(), level, flag, Replace);
+                }
+
+                void toMatrix(const std::shared_ptr<SparseMatrixProxy> &mat,
+                              const EGP0StokesFunction<idx_t> &src,
+                              const EGP0StokesFunction<idx_t> &dst,
+                              size_t level,
+                              DoFType flag) const {
+                    eps.toMatrix(mat, src.uvw(), dst.uvw(), level, flag);
+                    divT.toMatrix(mat, src.p(), dst.uvw(), level, flag);
+                    div.toMatrix(mat, src.uvw(), dst.p(), level, flag);
+                }
+
+                VelocityBlockOperator_T eps;
+                EGToP0DivOperator div;
+                P0ToEGDivTOperator divT;
+                EnergyNormOperator_T energyNormOp;
+            };
+
+
+            typedef EGP0EpsilonStokesOperatorType<EGEpsilonOperator> EGP0EpsilonStokesOperator;
+        } // namespace eg
+    } // namespace dg
 } // namespace hyteg

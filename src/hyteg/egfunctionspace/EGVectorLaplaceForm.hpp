@@ -144,7 +144,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_25 = -tmp_11 - tmp_16 - tmp_19 - tmp_21 + 1;
       real_t tmp_26 = 0.5*p_affine_10_0*(tmp_20*tmp_8 + tmp_7*tmp_9) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_18*tmp_8);
       real_t tmp_27 = std::abs(std::pow((tmp_12*tmp_12) + (tmp_2*tmp_2), 1.0/2.0));
-      real_t tmp_28 = 6/tmp_27;
+      real_t tmp_28 = 3/tmp_27;
       real_t tmp_29 = tmp_23*tmp_28;
       real_t tmp_30 = 0.11846344252809471*tmp_27;
       real_t tmp_31 = 0.23076534494715845*tmp_2 + tmp_4;
@@ -290,7 +290,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_34 = tmp_2*tmp_7;
       real_t tmp_35 = 0.5*p_affine_10_0*(tmp_14*tmp_33 + tmp_5*tmp_7) + 0.5*p_affine_10_1*(tmp_1*tmp_33 + tmp_1*tmp_34);
       real_t tmp_36 = std::abs(std::pow((tmp_11*tmp_11) + (tmp_8*tmp_8), 1.0/2.0));
-      real_t tmp_37 = 6/tmp_36;
+      real_t tmp_37 = 3/tmp_36;
       real_t tmp_38 = tmp_15*tmp_37;
       real_t tmp_39 = 0.11846344252809471*tmp_36;
       real_t tmp_40 = p_affine_6_1 + 0.23076534494715845*tmp_8;
@@ -424,7 +424,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_17 = tmp_14*tmp_16;
       real_t tmp_18 = tmp_11 + tmp_15;
       real_t tmp_19 = tmp_17 + tmp_9;
-      real_t tmp_20 = 0.71078065516856825*tmp_1*(tmp_18 - 1.0/3.0) + 0.71078065516856825*tmp_4*(tmp_19 - 1.0/3.0);
+      real_t tmp_20 = 0.35539032758428413*tmp_1*(tmp_18 - 1.0/3.0) + 0.35539032758428413*tmp_4*(tmp_19 - 1.0/3.0);
       real_t tmp_21 = tmp_5*(0.23076534494715845*tmp_6 + tmp_7);
       real_t tmp_22 = tmp_1*tmp_21;
       real_t tmp_23 = tmp_10*tmp_21;
@@ -433,7 +433,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_26 = tmp_16*tmp_24;
       real_t tmp_27 = tmp_23 + tmp_25;
       real_t tmp_28 = tmp_22 + tmp_26;
-      real_t tmp_29 = 1.4358860114980985*tmp_1*(tmp_27 - 1.0/3.0) + 1.4358860114980985*tmp_4*(tmp_28 - 1.0/3.0);
+      real_t tmp_29 = 0.71794300574904923*tmp_1*(tmp_27 - 1.0/3.0) + 0.71794300574904923*tmp_4*(tmp_28 - 1.0/3.0);
       real_t tmp_30 = tmp_5*(0.5*tmp_6 + tmp_7);
       real_t tmp_31 = tmp_1*tmp_30;
       real_t tmp_32 = tmp_10*tmp_30;
@@ -442,7 +442,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_35 = tmp_16*tmp_33;
       real_t tmp_36 = tmp_32 + tmp_34;
       real_t tmp_37 = tmp_31 + tmp_35;
-      real_t tmp_38 = 1.706666666666667*tmp_1*(tmp_36 - 1.0/3.0) + 1.706666666666667*tmp_4*(tmp_37 - 1.0/3.0);
+      real_t tmp_38 = 0.8533333333333335*tmp_1*(tmp_36 - 1.0/3.0) + 0.8533333333333335*tmp_4*(tmp_37 - 1.0/3.0);
       real_t tmp_39 = tmp_5*(0.7692346550528415*tmp_6 + tmp_7);
       real_t tmp_40 = tmp_1*tmp_39;
       real_t tmp_41 = tmp_10*tmp_39;
@@ -451,7 +451,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_44 = tmp_16*tmp_42;
       real_t tmp_45 = tmp_41 + tmp_43;
       real_t tmp_46 = tmp_40 + tmp_44;
-      real_t tmp_47 = 1.4358860114980985*tmp_1*(tmp_45 - 1.0/3.0) + 1.4358860114980985*tmp_4*(tmp_46 - 1.0/3.0);
+      real_t tmp_47 = 0.71794300574904923*tmp_1*(tmp_45 - 1.0/3.0) + 0.71794300574904923*tmp_4*(tmp_46 - 1.0/3.0);
       real_t tmp_48 = tmp_5*(0.95308992296933193*tmp_6 + tmp_7);
       real_t tmp_49 = tmp_1*tmp_48;
       real_t tmp_50 = tmp_10*tmp_48;
@@ -460,7 +460,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_53 = tmp_16*tmp_51;
       real_t tmp_54 = tmp_50 + tmp_52;
       real_t tmp_55 = tmp_49 + tmp_53;
-      real_t tmp_56 = 0.71078065516856825*tmp_1*(tmp_54 - 1.0/3.0) + 0.71078065516856825*tmp_4*(tmp_55 - 1.0/3.0);
+      real_t tmp_56 = 0.35539032758428413*tmp_1*(tmp_54 - 1.0/3.0) + 0.35539032758428413*tmp_4*(tmp_55 - 1.0/3.0);
       real_t a_0_0 = tmp_20*(-tmp_11 - tmp_15 - tmp_17 - tmp_9 + 1) + tmp_29*(-tmp_22 - tmp_23 - tmp_25 - tmp_26 + 1) + tmp_38*(-tmp_31 - tmp_32 - tmp_34 - tmp_35 + 1) + tmp_47*(-tmp_40 - tmp_41 - tmp_43 - tmp_44 + 1) + tmp_56*(-tmp_49 - tmp_50 - tmp_52 - tmp_53 + 1);
       real_t a_1_0 = tmp_18*tmp_20 + tmp_27*tmp_29 + tmp_36*tmp_38 + tmp_45*tmp_47 + tmp_54*tmp_56;
       real_t a_2_0 = tmp_19*tmp_20 + tmp_28*tmp_29 + tmp_37*tmp_38 + tmp_46*tmp_47 + tmp_55*tmp_56;
@@ -699,7 +699,7 @@ class EGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -1263,7 +1263,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)*std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)) + (std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)*std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)) + (std::abs(tmp_30*tmp_97 - tmp_37*tmp_96)*std::abs(tmp_30*tmp_97 - tmp_37*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -1890,7 +1890,7 @@ void integrateFacetDirichletBoundary3D(
       real_t tmp_55 = p_affine_8_1 - p_affine_9_1;
       real_t tmp_56 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_57 = p_affine_8_2 - p_affine_9_2;
-      real_t tmp_58 = 6.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
+      real_t tmp_58 = 3.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
       real_t tmp_59 = 0.0068572537431980923*tmp_58*(tmp_1*(tmp_52 - 1.0/4.0) + tmp_13*(tmp_54 - 1.0/4.0) + tmp_4*(tmp_53 - 1.0/4.0));
       real_t tmp_60 = tmp_19*(0.19601935860219369*tmp_21 + 0.60796128279561268*tmp_22 + tmp_23);
       real_t tmp_61 = tmp_6*tmp_60;
@@ -2337,7 +2337,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_25 = -tmp_11 - tmp_16 - tmp_19 - tmp_21 + 1;
       real_t tmp_26 = 0.5*p_affine_10_0*(tmp_1*tmp_15 + tmp_20*tmp_7) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_8*tmp_9);
       real_t tmp_27 = std::abs(std::pow((tmp_12*tmp_12) + (tmp_2*tmp_2), 1.0/2.0));
-      real_t tmp_28 = 6/tmp_27;
+      real_t tmp_28 = 3/tmp_27;
       real_t tmp_29 = tmp_23*tmp_28;
       real_t tmp_30 = 0.11846344252809471*tmp_27;
       real_t tmp_31 = 0.23076534494715845*tmp_2 + tmp_3;
@@ -2483,7 +2483,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_34 = tmp_2*tmp_7;
       real_t tmp_35 = 0.5*p_affine_10_0*(tmp_1*tmp_33 + tmp_14*tmp_33) + 0.5*p_affine_10_1*(tmp_1*tmp_34 + tmp_6*tmp_7);
       real_t tmp_36 = std::abs(std::pow((tmp_11*tmp_11) + (tmp_8*tmp_8), 1.0/2.0));
-      real_t tmp_37 = 6/tmp_36;
+      real_t tmp_37 = 3/tmp_36;
       real_t tmp_38 = tmp_15*tmp_37;
       real_t tmp_39 = 0.11846344252809471*tmp_36;
       real_t tmp_40 = p_affine_6_1 + 0.23076534494715845*tmp_8;
@@ -2618,7 +2618,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_17 = tmp_14*tmp_16;
       real_t tmp_18 = tmp_11 + tmp_15;
       real_t tmp_19 = tmp_17 + tmp_9;
-      real_t tmp_20 = 0.71078065516856825*tmp_3*(tmp_19 - 1.0/3.0) + 0.71078065516856825*tmp_4*(tmp_18 - 1.0/3.0);
+      real_t tmp_20 = 0.35539032758428413*tmp_3*(tmp_19 - 1.0/3.0) + 0.35539032758428413*tmp_4*(tmp_18 - 1.0/3.0);
       real_t tmp_21 = tmp_5*(0.23076534494715845*tmp_6 + tmp_7);
       real_t tmp_22 = tmp_1*tmp_21;
       real_t tmp_23 = tmp_10*tmp_21;
@@ -2627,7 +2627,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_26 = tmp_16*tmp_24;
       real_t tmp_27 = tmp_23 + tmp_25;
       real_t tmp_28 = tmp_22 + tmp_26;
-      real_t tmp_29 = 1.4358860114980985*tmp_3*(tmp_28 - 1.0/3.0) + 1.4358860114980985*tmp_4*(tmp_27 - 1.0/3.0);
+      real_t tmp_29 = 0.71794300574904923*tmp_3*(tmp_28 - 1.0/3.0) + 0.71794300574904923*tmp_4*(tmp_27 - 1.0/3.0);
       real_t tmp_30 = tmp_5*(0.5*tmp_6 + tmp_7);
       real_t tmp_31 = tmp_1*tmp_30;
       real_t tmp_32 = tmp_10*tmp_30;
@@ -2636,7 +2636,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_35 = tmp_16*tmp_33;
       real_t tmp_36 = tmp_32 + tmp_34;
       real_t tmp_37 = tmp_31 + tmp_35;
-      real_t tmp_38 = 1.706666666666667*tmp_3*(tmp_37 - 1.0/3.0) + 1.706666666666667*tmp_4*(tmp_36 - 1.0/3.0);
+      real_t tmp_38 = 0.8533333333333335*tmp_3*(tmp_37 - 1.0/3.0) + 0.8533333333333335*tmp_4*(tmp_36 - 1.0/3.0);
       real_t tmp_39 = tmp_5*(0.7692346550528415*tmp_6 + tmp_7);
       real_t tmp_40 = tmp_1*tmp_39;
       real_t tmp_41 = tmp_10*tmp_39;
@@ -2645,7 +2645,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_44 = tmp_16*tmp_42;
       real_t tmp_45 = tmp_41 + tmp_43;
       real_t tmp_46 = tmp_40 + tmp_44;
-      real_t tmp_47 = 1.4358860114980985*tmp_3*(tmp_46 - 1.0/3.0) + 1.4358860114980985*tmp_4*(tmp_45 - 1.0/3.0);
+      real_t tmp_47 = 0.71794300574904923*tmp_3*(tmp_46 - 1.0/3.0) + 0.71794300574904923*tmp_4*(tmp_45 - 1.0/3.0);
       real_t tmp_48 = tmp_5*(0.95308992296933193*tmp_6 + tmp_7);
       real_t tmp_49 = tmp_1*tmp_48;
       real_t tmp_50 = tmp_10*tmp_48;
@@ -2654,7 +2654,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_53 = tmp_16*tmp_51;
       real_t tmp_54 = tmp_50 + tmp_52;
       real_t tmp_55 = tmp_49 + tmp_53;
-      real_t tmp_56 = 0.71078065516856825*tmp_3*(tmp_55 - 1.0/3.0) + 0.71078065516856825*tmp_4*(tmp_54 - 1.0/3.0);
+      real_t tmp_56 = 0.35539032758428413*tmp_3*(tmp_55 - 1.0/3.0) + 0.35539032758428413*tmp_4*(tmp_54 - 1.0/3.0);
       real_t a_0_0 = tmp_20*(-tmp_11 - tmp_15 - tmp_17 - tmp_9 + 1) + tmp_29*(-tmp_22 - tmp_23 - tmp_25 - tmp_26 + 1) + tmp_38*(-tmp_31 - tmp_32 - tmp_34 - tmp_35 + 1) + tmp_47*(-tmp_40 - tmp_41 - tmp_43 - tmp_44 + 1) + tmp_56*(-tmp_49 - tmp_50 - tmp_52 - tmp_53 + 1);
       real_t a_1_0 = tmp_18*tmp_20 + tmp_27*tmp_29 + tmp_36*tmp_38 + tmp_45*tmp_47 + tmp_54*tmp_56;
       real_t a_2_0 = tmp_19*tmp_20 + tmp_28*tmp_29 + tmp_37*tmp_38 + tmp_46*tmp_47 + tmp_55*tmp_56;
@@ -2893,7 +2893,7 @@ class EGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -3457,7 +3457,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)*std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)) + (std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)*std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)) + (std::abs(tmp_30*tmp_97 - tmp_37*tmp_96)*std::abs(tmp_30*tmp_97 - tmp_37*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -4084,7 +4084,7 @@ void integrateFacetDirichletBoundary3D(
       real_t tmp_55 = p_affine_8_1 - p_affine_9_1;
       real_t tmp_56 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_57 = p_affine_8_2 - p_affine_9_2;
-      real_t tmp_58 = 6.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
+      real_t tmp_58 = 3.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
       real_t tmp_59 = 0.0068572537431980923*tmp_58*(tmp_11*(tmp_54 - 1.0/4.0) + tmp_3*(tmp_53 - 1.0/4.0) + tmp_5*(tmp_52 - 1.0/4.0));
       real_t tmp_60 = tmp_19*(0.19601935860219369*tmp_21 + 0.60796128279561268*tmp_22 + tmp_23);
       real_t tmp_61 = tmp_6*tmp_60;
@@ -4822,7 +4822,7 @@ class EGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -5386,7 +5386,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)*std::abs(tmp_23*tmp_96 - tmp_30*tmp_98)) + (std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)*std::abs(tmp_23*tmp_97 - tmp_37*tmp_98)) + (std::abs(tmp_30*tmp_97 - tmp_37*tmp_96)*std::abs(tmp_30*tmp_97 - tmp_37*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -6013,7 +6013,7 @@ void integrateFacetDirichletBoundary3D(
       real_t tmp_55 = p_affine_8_1 - p_affine_9_1;
       real_t tmp_56 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_57 = p_affine_8_2 - p_affine_9_2;
-      real_t tmp_58 = 6.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
+      real_t tmp_58 = 3.0*std::pow((std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)*std::abs(tmp_22*tmp_55 - tmp_31*tmp_57)) + (std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)*std::abs(tmp_22*tmp_56 - tmp_44*tmp_57)) + (std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)*std::abs(tmp_31*tmp_56 - tmp_44*tmp_55)), 0.25);
       real_t tmp_59 = 0.0068572537431980923*tmp_58*(tmp_10*(tmp_52 - 1.0/4.0) + tmp_14*(tmp_53 - 1.0/4.0) + tmp_8*(tmp_54 - 1.0/4.0));
       real_t tmp_60 = tmp_19*(0.19601935860219369*tmp_21 + 0.60796128279561268*tmp_22 + tmp_23);
       real_t tmp_61 = tmp_6*tmp_60;
@@ -6460,7 +6460,7 @@ class EGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
       real_t tmp_25 = -tmp_11 - tmp_16 - tmp_19 - tmp_21 + 1;
       real_t tmp_26 = 0.5*p_affine_10_0*(tmp_20*tmp_8 + tmp_7*tmp_9) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_18*tmp_8);
       real_t tmp_27 = std::abs(std::pow((tmp_12*tmp_12) + (tmp_2*tmp_2), 1.0/2.0));
-      real_t tmp_28 = 6/tmp_27;
+      real_t tmp_28 = 3/tmp_27;
       real_t tmp_29 = tmp_23*tmp_28;
       real_t tmp_30 = 0.11846344252809471*tmp_27;
       real_t tmp_31 = 0.23076534494715845*tmp_2 + tmp_4;
@@ -6606,7 +6606,7 @@ class EGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
       real_t tmp_34 = tmp_8*tmp_9;
       real_t tmp_35 = 0.5*p_affine_10_0*(tmp_15*tmp_34 + tmp_7*tmp_9) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_1*tmp_34);
       real_t tmp_36 = std::abs(std::pow((tmp_11*tmp_11) + (tmp_3*tmp_3), 1.0/2.0));
-      real_t tmp_37 = 6/tmp_36;
+      real_t tmp_37 = 3/tmp_36;
       real_t tmp_38 = tmp_16*tmp_37;
       real_t tmp_39 = 0.11846344252809471*tmp_36;
       real_t tmp_40 = p_affine_6_1 + 0.23076534494715845*tmp_3;
@@ -6990,7 +6990,7 @@ class EGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -7554,7 +7554,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)*std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)) + (std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)*std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)) + (std::abs(tmp_29*tmp_97 - tmp_36*tmp_96)*std::abs(tmp_29*tmp_97 - tmp_36*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -8380,7 +8380,7 @@ class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
       real_t tmp_25 = -tmp_11 - tmp_16 - tmp_19 - tmp_21 + 1;
       real_t tmp_26 = 0.5*p_affine_10_0*(tmp_1*tmp_15 + tmp_20*tmp_7) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_8*tmp_9);
       real_t tmp_27 = std::abs(std::pow((tmp_12*tmp_12) + (tmp_2*tmp_2), 1.0/2.0));
-      real_t tmp_28 = 6/tmp_27;
+      real_t tmp_28 = 3/tmp_27;
       real_t tmp_29 = tmp_23*tmp_28;
       real_t tmp_30 = 0.11846344252809471*tmp_27;
       real_t tmp_31 = 0.23076534494715845*tmp_2 + tmp_3;
@@ -8527,7 +8527,7 @@ class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
       real_t tmp_35 = -tmp_30 - tmp_31 - tmp_33 - tmp_34 + 1;
       real_t tmp_36 = 0.5*p_affine_10_0*(tmp_1*tmp_14 + tmp_14*tmp_16) + 0.5*p_affine_10_1*(tmp_1*tmp_10 + tmp_8*tmp_9);
       real_t tmp_37 = std::abs(std::pow((tmp_11*tmp_11) + (tmp_2*tmp_2), 1.0/2.0));
-      real_t tmp_38 = 6/tmp_37;
+      real_t tmp_38 = 3/tmp_37;
       real_t tmp_39 = tmp_18*tmp_38;
       real_t tmp_40 = 0.11846344252809471*tmp_37;
       real_t tmp_41 = p_affine_6_1 + 0.23076534494715845*tmp_2;
@@ -8911,7 +8911,7 @@ class EGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -9475,7 +9475,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)*std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)) + (std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)*std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)) + (std::abs(tmp_29*tmp_97 - tmp_36*tmp_96)*std::abs(tmp_29*tmp_97 - tmp_36*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -10592,7 +10592,7 @@ class EGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
       real_t tmp_60 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_61 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_62 = (std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)*std::abs(tmp_28*tmp_60 - tmp_35*tmp_59)) + (std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)*std::abs(tmp_28*tmp_61 - tmp_4*tmp_59)) + (std::abs(tmp_35*tmp_61 - tmp_4*tmp_60)*std::abs(tmp_35*tmp_61 - tmp_4*tmp_60));
-      real_t tmp_63 = 6.0*std::pow(tmp_62, -0.25);
+      real_t tmp_63 = 3.0*std::pow(tmp_62, -0.25);
       real_t tmp_64 = tmp_55*tmp_63;
       real_t tmp_65 = 1.0*std::pow(tmp_62, 1.0/2.0);
       real_t tmp_66 = 0.0068572537431980923*tmp_65;
@@ -11156,7 +11156,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_97 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_98 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_99 = (std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)*std::abs(tmp_22*tmp_96 - tmp_29*tmp_98)) + (std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)*std::abs(tmp_22*tmp_97 - tmp_36*tmp_98)) + (std::abs(tmp_29*tmp_97 - tmp_36*tmp_96)*std::abs(tmp_29*tmp_97 - tmp_36*tmp_96));
-      real_t tmp_100 = 6.0*std::pow(tmp_99, -0.25);
+      real_t tmp_100 = 3.0*std::pow(tmp_99, -0.25);
       real_t tmp_101 = tmp_100*tmp_46;
       real_t tmp_102 = 1.0*std::pow(tmp_99, 1.0/2.0);
       real_t tmp_103 = 0.0068572537431980923*tmp_102;
@@ -11974,7 +11974,7 @@ class EGVectorLaplaceFormEE : public hyteg::dg::DGForm
       real_t tmp_24 = tmp_10*tmp_16 + tmp_18*tmp_7;
       real_t tmp_25 = tmp_11*tmp_7;
       real_t tmp_26 = 1.0*p_affine_10_0*(tmp_10*tmp_25 + tmp_17*tmp_25) + 1.0*p_affine_10_1*(tmp_10*tmp_22 + tmp_20);
-      real_t tmp_27 = 6/tmp_2;
+      real_t tmp_27 = 3/tmp_2;
       real_t tmp_28 = 0.23076534494715845*tmp_1 + tmp_12;
       real_t tmp_29 = 0.23076534494715845*tmp_0 + tmp_14;
       real_t tmp_30 = tmp_22*tmp_28 + tmp_25*tmp_29 - 1.0/3.0;
@@ -12102,7 +12102,7 @@ class EGVectorLaplaceFormEE : public hyteg::dg::DGForm
       real_t tmp_46 = tmp_23*tmp_40 + tmp_26*tmp_39;
       real_t tmp_47 = tmp_11*tmp_7;
       real_t tmp_48 = 0.5*p_affine_10_0*(tmp_10*tmp_47 + tmp_17*tmp_47) + 0.5*p_affine_10_1*(tmp_10*tmp_44 + tmp_42);
-      real_t tmp_49 = 6/tmp_2;
+      real_t tmp_49 = 3/tmp_2;
       real_t tmp_50 = p_affine_6_1 + 0.23076534494715845*tmp_1;
       real_t tmp_51 = tmp_50 + tmp_6;
       real_t tmp_52 = p_affine_6_0 + 0.23076534494715845*tmp_0;
@@ -12234,7 +12234,7 @@ class EGVectorLaplaceFormEE : public hyteg::dg::DGForm
       real_t tmp_30 = tmp_7*(0.95308992296933193*tmp_11 + tmp_12);
       real_t tmp_31 = tmp_2*tmp_29 + tmp_30*tmp_4 - 1.0/3.0;
       real_t tmp_32 = tmp_1*tmp_29 + tmp_15*tmp_30 - 1.0/3.0;
-      real_t a_0_0 = 0.71078065516856825*((tmp_1*tmp_14 + tmp_16*tmp_5)*(tmp_1*tmp_14 + tmp_16*tmp_5)) + 1.4358860114980985*((tmp_1*tmp_19 + tmp_20*tmp_5)*(tmp_1*tmp_19 + tmp_20*tmp_5)) + 1.706666666666667*((tmp_1*tmp_23 + tmp_24*tmp_5)*(tmp_1*tmp_23 + tmp_24*tmp_5)) + 1.4358860114980985*((tmp_1*tmp_27 + tmp_28*tmp_5)*(tmp_1*tmp_27 + tmp_28*tmp_5)) + 0.71078065516856825*((tmp_1*tmp_31 + tmp_32*tmp_5)*(tmp_1*tmp_31 + tmp_32*tmp_5)) + 0.71078065516856825*((tmp_14*tmp_6 + tmp_16*tmp_4)*(tmp_14*tmp_6 + tmp_16*tmp_4)) + 1.4358860114980985*((tmp_19*tmp_6 + tmp_20*tmp_4)*(tmp_19*tmp_6 + tmp_20*tmp_4)) + 1.706666666666667*((tmp_23*tmp_6 + tmp_24*tmp_4)*(tmp_23*tmp_6 + tmp_24*tmp_4)) + 1.4358860114980985*((tmp_27*tmp_6 + tmp_28*tmp_4)*(tmp_27*tmp_6 + tmp_28*tmp_4)) + 0.71078065516856825*((tmp_31*tmp_6 + tmp_32*tmp_4)*(tmp_31*tmp_6 + tmp_32*tmp_4));
+      real_t a_0_0 = 0.35539032758428413*((tmp_1*tmp_14 + tmp_16*tmp_5)*(tmp_1*tmp_14 + tmp_16*tmp_5)) + 0.71794300574904923*((tmp_1*tmp_19 + tmp_20*tmp_5)*(tmp_1*tmp_19 + tmp_20*tmp_5)) + 0.8533333333333335*((tmp_1*tmp_23 + tmp_24*tmp_5)*(tmp_1*tmp_23 + tmp_24*tmp_5)) + 0.71794300574904923*((tmp_1*tmp_27 + tmp_28*tmp_5)*(tmp_1*tmp_27 + tmp_28*tmp_5)) + 0.35539032758428413*((tmp_1*tmp_31 + tmp_32*tmp_5)*(tmp_1*tmp_31 + tmp_32*tmp_5)) + 0.35539032758428413*((tmp_14*tmp_6 + tmp_16*tmp_4)*(tmp_14*tmp_6 + tmp_16*tmp_4)) + 0.71794300574904923*((tmp_19*tmp_6 + tmp_20*tmp_4)*(tmp_19*tmp_6 + tmp_20*tmp_4)) + 0.8533333333333335*((tmp_23*tmp_6 + tmp_24*tmp_4)*(tmp_23*tmp_6 + tmp_24*tmp_4)) + 0.71794300574904923*((tmp_27*tmp_6 + tmp_28*tmp_4)*(tmp_27*tmp_6 + tmp_28*tmp_4)) + 0.35539032758428413*((tmp_31*tmp_6 + tmp_32*tmp_4)*(tmp_31*tmp_6 + tmp_32*tmp_4));
       elMat( 0, 0) = a_0_0;
    }
 
@@ -12466,7 +12466,7 @@ class EGVectorLaplaceFormEE : public hyteg::dg::DGForm
       real_t tmp_62 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_63 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_64 = (std::abs(tmp_22*tmp_61 - tmp_28*tmp_63)*std::abs(tmp_22*tmp_61 - tmp_28*tmp_63)) + (std::abs(tmp_22*tmp_62 - tmp_34*tmp_63)*std::abs(tmp_22*tmp_62 - tmp_34*tmp_63)) + (std::abs(tmp_28*tmp_62 - tmp_34*tmp_61)*std::abs(tmp_28*tmp_62 - tmp_34*tmp_61));
-      real_t tmp_65 = 6.0*std::pow(tmp_64, -0.25);
+      real_t tmp_65 = 3.0*std::pow(tmp_64, -0.25);
       real_t tmp_66 = 1.0*std::pow(tmp_64, 1.0/2.0);
       real_t tmp_67 = tmp_19*(0.19601935860219369*tmp_21 + 0.60796128279561268*tmp_22 + tmp_23);
       real_t tmp_68 = tmp_19*(0.19601935860219369*tmp_27 + 0.60796128279561268*tmp_28 + tmp_29);
@@ -12839,7 +12839,7 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
       real_t tmp_117 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_118 = p_affine_8_2 - p_affine_9_2;
       real_t tmp_119 = (std::abs(tmp_116*tmp_23 - tmp_118*tmp_30)*std::abs(tmp_116*tmp_23 - tmp_118*tmp_30)) + (std::abs(tmp_116*tmp_37 - tmp_117*tmp_30)*std::abs(tmp_116*tmp_37 - tmp_117*tmp_30)) + (std::abs(tmp_117*tmp_23 - tmp_118*tmp_37)*std::abs(tmp_117*tmp_23 - tmp_118*tmp_37));
-      real_t tmp_120 = 6.0*std::pow(tmp_119, -0.25);
+      real_t tmp_120 = 3.0*std::pow(tmp_119, -0.25);
       real_t tmp_121 = 1.0*std::pow(tmp_119, 1.0/2.0);
       real_t tmp_122 = 0.19601935860219369*tmp_22 + 0.60796128279561268*tmp_23;
       real_t tmp_123 = tmp_19*(tmp_122 + tmp_20);
@@ -13363,7 +13363,7 @@ void integrateFacetDirichletBoundary3D(
       real_t tmp_46 = p_affine_8_1 - p_affine_9_1;
       real_t tmp_47 = p_affine_8_0 - p_affine_9_0;
       real_t tmp_48 = p_affine_8_2 - p_affine_9_2;
-      real_t tmp_49 = 6.0*std::pow((std::abs(tmp_22*tmp_46 - tmp_28*tmp_48)*std::abs(tmp_22*tmp_46 - tmp_28*tmp_48)) + (std::abs(tmp_22*tmp_47 - tmp_34*tmp_48)*std::abs(tmp_22*tmp_47 - tmp_34*tmp_48)) + (std::abs(tmp_28*tmp_47 - tmp_34*tmp_46)*std::abs(tmp_28*tmp_47 - tmp_34*tmp_46)), 0.25);
+      real_t tmp_49 = 3.0*std::pow((std::abs(tmp_22*tmp_46 - tmp_28*tmp_48)*std::abs(tmp_22*tmp_46 - tmp_28*tmp_48)) + (std::abs(tmp_22*tmp_47 - tmp_34*tmp_48)*std::abs(tmp_22*tmp_47 - tmp_34*tmp_48)) + (std::abs(tmp_28*tmp_47 - tmp_34*tmp_46)*std::abs(tmp_28*tmp_47 - tmp_34*tmp_46)), 0.25);
       real_t tmp_50 = tmp_19*(0.19601935860219369*tmp_21 + 0.60796128279561268*tmp_22 + tmp_23);
       real_t tmp_51 = tmp_19*(0.19601935860219369*tmp_27 + 0.60796128279561268*tmp_28 + tmp_29);
       real_t tmp_52 = tmp_19*(0.19601935860219369*tmp_33 + 0.60796128279561268*tmp_34 + tmp_35);

@@ -28,83 +28,101 @@
 
 namespace hyteg {
 
-using walberla::real_t;
+    using walberla::real_t;
 
-template < class operX_t, class operY_t, class operZ_t >
-class P1VectorToP0ScalarOperator : public Operator< P1VectorFunction< real_t >, P0Function< real_t > >
-{
- public:
-   typedef std::tuple< std::shared_ptr< typename operX_t::FormType >,
-                       std::shared_ptr< typename operY_t::FormType >,
-                       std::shared_ptr< typename operZ_t::FormType > >
-       FormTuple;
+    template<class operX_t, class operY_t, class operZ_t>
+    class P1VectorToP0ScalarOperator : public Operator<P1VectorFunction<real_t>, P0Function<real_t> > {
+    public:
+        typedef std::tuple<std::shared_ptr<typename operX_t::FormType>,
+                std::shared_ptr<typename operY_t::FormType>,
+                std::shared_ptr<typename operZ_t::FormType> >
+                FormTuple;
+        typedef operX_t OperX_T;
+        typedef operY_t OperY_T;
+        typedef operZ_t OperZ_T;
 
-   P1VectorToP0ScalarOperator(
-       const std::shared_ptr< PrimitiveStorage >& storage,
-       size_t                                     minLevel,
-       size_t                                     maxLevel,
-       // hand forms over to xyz operators: enable forms with variable coefficients
-       FormTuple forms = std::make_tuple( std::make_shared< typename operX_t::FormType >(),
-                                                        std::make_shared< typename operY_t::FormType >(),
-                                                        std::make_shared< typename operZ_t::FormType >() ) )
-   : Operator( storage, minLevel, maxLevel )
-   , operX( storage, minLevel, maxLevel, std::get<0>(forms) )
-   , operY( storage, minLevel, maxLevel,  std::get<1>(forms)  )
-   , operZ( storage, minLevel, maxLevel,  std::get<2>(forms)  )
-   {}
 
-   void apply( const P1VectorFunction< real_t >& src,
-               const P0Function< real_t >&       dst,
-               size_t                            level,
-               DoFType                           flag,
-               UpdateType                        updateType = Replace ) const
-   {
-      std::array< UpdateType, 3 > ut = { updateType, Add, Add };
-      operX.apply( src[0], dst, level, flag, ut[0] );
-      operY.apply( src[1], dst, level, flag, ut[1] );
-      if ( src.getDimension() == 3 ) {
-         operZ.apply( src[2], dst, level, flag, ut[2] );
-      }
-   }
+        P1VectorToP0ScalarOperator(
+                const std::shared_ptr<PrimitiveStorage> &storage,
+                size_t minLevel,
+                size_t maxLevel,
+                // hand forms over to xyz operators: enable forms with variable coefficients
+                FormTuple forms = std::make_tuple(std::make_shared<typename operX_t::FormType>(),
+                                                  std::make_shared<typename operY_t::FormType>(),
+                                                  std::make_shared<typename operZ_t::FormType>()))
+                : Operator(storage, minLevel, maxLevel), operX(storage, minLevel, maxLevel, std::get<0>(forms)),
+                  operY(storage, minLevel, maxLevel, std::get<1>(forms)),
+                  operZ(storage, minLevel, maxLevel, std::get<2>(forms)) {}
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1VectorFunction< idx_t >&            src,
-                  const P0Function< idx_t >&                  dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
-   {
-      operX.toMatrix( mat, src[0], dst, level, flag );
-      operY.toMatrix( mat, src[1], dst, level, flag );
-      if ( src.getDimension() == 3 ) {
-       
-         operZ.toMatrix( mat, src[2], dst, level, flag );
-      }
-   }
+        void apply(const P1VectorFunction<real_t> &src,
+                   const P0Function<real_t> &dst,
+                   size_t level,
+                   DoFType flag,
+                   UpdateType updateType = Replace) const {
+            std::array<UpdateType, 3> ut = {updateType, Add, Add};
+            operX.apply(src[0], dst, level, flag, ut[0]);
+            operY.apply(src[1], dst, level, flag, ut[1]);
+            if (src.getDimension() == 3) {
+                operZ.apply(src[2], dst, level, flag, ut[2]);
+            }
+        }
 
- private:
-   operX_t operX;
-   operY_t operY;
-   operZ_t operZ;
-};
+        void toMatrix(const std::shared_ptr<SparseMatrixProxy> &mat,
+                      const P1VectorFunction<idx_t> &src,
+                      const P0Function<idx_t> &dst,
+                      size_t level,
+                      DoFType flag) const {
+            operX.toMatrix(mat, src[0], dst, level, flag);
+            operY.toMatrix(mat, src[1], dst, level, flag);
+            if (src.getDimension() == 3) {
+
+                operZ.toMatrix(mat, src[2], dst, level, flag);
+            }
+        }
+
+    private:
+        operX_t operX;
+        operY_t operY;
+        operZ_t operZ;
+    };
 
 //// Some operators we might use more often than others
-typedef P1VectorToP0ScalarOperator< P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator >
-    P1ToP0ConstantDivOperator;
+    typedef P1VectorToP0ScalarOperator<P1ToP0ConstantDivxOperator, P1ToP0ConstantDivyOperator, P1ToP0ConstantDivzOperator>
+            P1ToP0ConstantDivOperator;
 
-typedef P1VectorToP0ScalarOperator< EGVectorLaplaceP1ToP0Coupling_X,
-                                    EGVectorLaplaceP1ToP0Coupling_Y,
-                                    EGVectorLaplaceP1ToP0Coupling_Z >
-    EGVectorLaplaceP1ToP0Coupling;
+    // EG Laplace operator couplings with different DG types
+    typedef P1VectorToP0ScalarOperator<EGVectorLaplaceP1ToP0Coupling_X,
+            EGVectorLaplaceP1ToP0Coupling_Y,
+            EGVectorLaplaceP1ToP0Coupling_Z>
+            EGSIPGVectorLaplaceP1ToP0Coupling;
 
-typedef P1VectorToP0ScalarOperator< EGConstantEpsilonP1ToP0Coupling_X,
-                                    EGConstantEpsilonP1ToP0Coupling_Y,
-                                    EGConstantEpsilonP1ToP0Coupling_Z >
-    EGConstantEpsilonP1ToP0Coupling;
+    typedef P1VectorToP0ScalarOperator<EGNIPGVectorLaplaceP1ToP0Coupling_X,
+            EGNIPGVectorLaplaceP1ToP0Coupling_Y,
+            EGNIPGVectorLaplaceP1ToP0Coupling_Z>
+            EGNIPGVectorLaplaceP1ToP0Coupling;
+    
+    typedef P1VectorToP0ScalarOperator<EGIIPGVectorLaplaceP1ToP0Coupling_X,
+            EGIIPGVectorLaplaceP1ToP0Coupling_Y,
+            EGIIPGVectorLaplaceP1ToP0Coupling_Z>
+            EGIIPGVectorLaplaceP1ToP0Coupling;
 
-typedef P1VectorToP0ScalarOperator< EGEpsilonP1ToP0Coupling_X, EGEpsilonP1ToP0Coupling_Y, EGEpsilonP1ToP0Coupling_Z >
-    EGEpsilonP1ToP0Coupling;
-typedef P1VectorToP0ScalarOperator< EGMassP1toP0Coupling_X,
-                                    EGMassP1toP0Coupling_Y, EGMassP1toP0Coupling_Z >
-    EGMassP1toP0Coupling;
+    // EG Epsilon operator couplings
+    typedef P1VectorToP0ScalarOperator<EGConstantEpsilonP1ToP0Coupling_X,
+            EGConstantEpsilonP1ToP0Coupling_Y,
+            EGConstantEpsilonP1ToP0Coupling_Z>
+            EGConstantEpsilonP1ToP0Coupling;
+
+    typedef P1VectorToP0ScalarOperator<EGEpsilonEnergyNormP1ToP0Coupling_X,
+            EGEpsilonEnergyNormP1ToP0Coupling_Y,
+            EGEpsilonEnergyNormP1ToP0Coupling_Z>
+            EGEpsilonEnergyNormP1ToP0Coupling;
+
+    typedef P1VectorToP0ScalarOperator<EGEpsilonP1ToP0Coupling_X, EGEpsilonP1ToP0Coupling_Y, EGEpsilonP1ToP0Coupling_Z>
+            EGEpsilonP1ToP0Coupling;
+
+    // EG mass coupling
+    typedef P1VectorToP0ScalarOperator<EGMassP1toP0Coupling_X,
+            EGMassP1toP0Coupling_Y, EGMassP1toP0Coupling_Z>
+            EGMassP1toP0Coupling;
 
 } // namespace hyteg
