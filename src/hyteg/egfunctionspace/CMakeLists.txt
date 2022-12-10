@@ -7,9 +7,11 @@ target_sources( hyteg
     EGConstEpsilonForm.hpp
     EGEpsilonForm.hpp
     EGVectorLaplaceForm.hpp
-        EGNIPGVectorLaplaceForm.hpp
-        EGIIPGVectorLaplaceForm.hpp
+    EGNIPGVectorLaplaceForm.hpp
+    EGIIPGVectorLaplaceForm.hpp
     EGDivForm.hpp
     EGDivtForm.hpp
-        EGConvTestUtils.hpp
+    EGOperatorsNew.hpp
+    EGVectorLaplaceFormNew.hpp
+    EGConvTestUtils.hpp
 )

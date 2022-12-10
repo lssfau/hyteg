@@ -330,6 +330,16 @@ waLBerla_execute_test(NAME P1SurrogateOperatorTest)
 waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ViscousOperatorsTest)
 
+if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES mixedoperators/P1ToDGOperatorTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1ToDGOperatorTest)
+endif()
+
+if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES dg/P1WithDGFromPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1WithDGFromPoisson2DConvergenceTest)
+endif()
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
@@ -810,11 +820,11 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGFunctionspaceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFunctionspaceTest)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGDivOpTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGDivOpTest)
+    # waLBerla_compile_test(FILES egfunctionspace/EGDivOpTest.cpp DEPENDS hyteg core)
+    # waLBerla_execute_test(NAME EGDivOpTest)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGDivTOpTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGDivTOpTest)
+    # waLBerla_compile_test(FILES egfunctionspace/EGDivTOpTest.cpp DEPENDS hyteg core)
+    # waLBerla_execute_test(NAME EGDivTOpTest)
 
     waLBerla_compile_test(FILES egfunctionspace/EGSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGSymmetryTest)
@@ -825,7 +835,7 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGStokesConvergenceTest COMMAND $<TARGET_FILE:EGStokesConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGEpsilonConvergenceTest DEPENDS hyteg core)
+    waLBerla_compile_test(FILES egfunctionspace/EGEpsilonConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
 
     waLBerla_compile_test(FILES egfunctionspace/EGFormTest.cpp DEPENDS hyteg core)
@@ -837,6 +847,10 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGApplyTest)
 
+    waLBerla_compile_test(FILES egfunctionspace/EGNietscheBCTests.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGNietscheBCTests)
+
+
     ## SolVi benchmark
     waLBerla_compile_test(FILES varvisc/SolViBenchmark.cpp DEPENDS hyteg core )
     waLBerla_execute_test(NAME SolViBenchmark)
@@ -845,8 +859,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES varvisc/P1P0EpsilonConvergenceTest.cpp DEPENDS hyteg core )
     waLBerla_execute_test(NAME P1P0EpsilonConvergenceTest)
 
-    #waLBerla_compile_test(FILES composites/MultiSinker2DBenchmark.cpp DEPENDS hyteg core )
-    #waLBerla_execute_test(NAME MultiSinker2DBenchmark)
+    waLBerla_compile_test(FILES composites/MultiSinker2DBenchmark.cpp DEPENDS hyteg core )
+    waLBerla_execute_test(NAME MultiSinker2DBenchmark)
 
 endif()
 

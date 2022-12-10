@@ -68,6 +68,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , reassembleMatrix_( false )
    , setFromOptions_( false )
    , iterNumber_( 0 )
+   , disableApplicationBC_( false )
    {
        num.enumerate(level);
       KSPCreate( petscCommunicator_, &ksp );
@@ -85,6 +86,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    }
 
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+
+   void disableApplicationBC( bool dis ) { disableApplicationBC_ = dis; }
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -127,7 +130,8 @@ class PETScMinResSolver : public Solver< OperatorType >
       }
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
-      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+      if ( !disableApplicationBC_ )
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       if ( nullSpaceSet_ )
       {
          MatSetNullSpace( Amat.get(), nullspace_ );
@@ -164,6 +168,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
    bool           setFromOptions_;
+   bool           disableApplicationBC_;
    int           iterNumber_;
 };
 
