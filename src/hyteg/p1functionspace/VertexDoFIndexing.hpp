@@ -530,5 +530,10 @@ void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellInde
                                            const uint_t level,
                                            std::array<uint_t, 4>& vertexDoFIndices );
 
+        void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
+                                                   const celldof::CellType & cellType,
+                                                   const uint_t level,
+                                                   std::vector< uint_t >& vertexDoFIndices );
+
 } // namespace vertexdof
 } // namespace hyteg
