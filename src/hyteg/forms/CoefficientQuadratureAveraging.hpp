@@ -20,12 +20,10 @@
 
 #pragma once
 
-#include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 
 namespace hyteg {
 namespace forms {
-    void MeanAverageCoefficients(std::vector<std::reference_wrapper<real_t>> coefficients) {
+    inline void MeanAverageCoefficients(std::vector<std::reference_wrapper<real_t>> coefficients) {
         real_t nCoeffs = coefficients.size();
         real_t sum = 0;
         for (auto c : coefficients) {
@@ -35,7 +33,7 @@ namespace forms {
             c.get() = sum / nCoeffs;
         }
     }
-    void HarmonicAverageCoefficients(std::vector<std::reference_wrapper<real_t>> coefficients) {
+    inline void HarmonicAverageCoefficients(std::vector<std::reference_wrapper<real_t>> coefficients) {
         real_t nCoeffs = coefficients.size();
         real_t sum = 0;
         for (auto c : coefficients) {
