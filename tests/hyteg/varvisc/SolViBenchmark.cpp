@@ -53,6 +53,13 @@ by Daniel W. Schmid and Yuri Yu. Podladchikov
 [3]: https://github.com/geodynamics/aspect/blob/main/benchmarks/inclusion/inclusion.h
 */
 
+// check for evaluate function: for investigating pressure jump
+    template<typename, typename = void>
+    constexpr bool hasEvaluate = false;
+    template<typename T>
+    constexpr bool hasEvaluate<T, std::void_t<decltype(std::declval<T>().evaluate)> > = true;
+
+
 // returns (u,p) analytical solution, (f,g) rhs and mu viscosity function of the SolVi problem
 std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
     SetupSolViSolution( const real_t r_inclusion, const real_t& visc_inclusion, const real_t& visc_matrix )
@@ -98,7 +105,7 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
           else
           {
              //outside the inclusion
-             phi  = -2 * A * r2_inclusion / z;
+                         phi  = -2 * A * r2_inclusion / z;
              dphi = -phi / z;
              psi  = -2.0 * ( visc_matrix * z + A * r2_inclusion * r2_inclusion / ( z * z * z ) );
           }
@@ -214,58 +221,28 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
    return std::make_tuple( solTuple, rhsTuple, viscosity );
 }
 
+template<typename StokesFunctionType>
+void printPressureJump(const StokesFunctionType& num_sol, real_t h) {
+   // static_assert(hasEvaluate<typename StokesFunctionType::PressureFunction_T>(), "The type of pressure function must posess an evaluate() function.");
+
+   auto p = num_sol.p();
+    std::ofstream file;
+    auto          filename = "./pressureJump.txt";
+    file.open( filename );
+
+    for(real_t x = 1.; x < 2.; x += h) {
+        auto pos = Point3D ({x,1.,0.});
+        real_t val = 0.;
+        p.evaluate(pos, 7, val, 1e-3);
+        file << x << " " << val << "\n";
+    }
+    file.close();
+
+}
 } // namespace hyteg
 
 using namespace hyteg;
-/*
-template < typename StokesOperatorType >
-void SolViConvergenceTest( const std::string& name, const uint_t minLevel, const uint_t maxLevel )
-{
-   std::vector< std::tuple< real_t, real_t, real_t > > errors_per_h;
-   WALBERLA_LOG_INFO_ON_ROOT( "Running " << name );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%15s|%15s|%15s|%15s", "level", "error_v", "error_p", "rate_v", "rate_p" ) );
-   real_t lastError_v    = std::nan( "" );
-   real_t lastError_p    = std::nan( "" );
-   real_t currentError_v = std::nan( "" );
-   real_t currentError_p = std::nan( "" );
-   real_t currentRate_v  = std::nan( "" );
-   real_t currentRate_p  = std::nan( "" );
-   real_t mean_rate_v    = 0.;
-   real_t mean_rate_p    = 0.;
-   for ( uint_t level = minLevel; level <= maxLevel; level++ )
-   {
-      lastError_v      = currentError_v;
-      lastError_p      = currentError_p;
-      auto error_per_h = RunSolVi< StokesOperatorType >( name, level, 1, 0.2, 100.0, 1.0 );
-      currentError_v   = std::get< 1 >( error_per_h );
-      currentError_p   = std::get< 2 >( error_per_h );
-      errors_per_h.push_back( error_per_h );
-      currentRate_v = lastError_v / currentError_v;
-      currentRate_p = lastError_p / currentError_p;
-      if ( level > minLevel )
-      {
-         mean_rate_v += currentRate_v;
-         mean_rate_p += currentRate_p;
-      }
 
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-          "%6d|%15.2e|%15.2e|%15.2e|%15.2e", level, currentError_v, currentError_p, currentRate_v, currentRate_p ) );
-   }
-   mean_rate_v = mean_rate_v / ( real_c( maxLevel ) - real_c( minLevel ) );
-   mean_rate_p = mean_rate_p / ( real_c( maxLevel ) - real_c( minLevel ) );
-   WALBERLA_LOG_INFO_ON_ROOT( name << ": mean conv. rate v = " << mean_rate_v << ", mean conv. rate p = " << mean_rate_p );
-
-   // write to plot file
-   std::ofstream err_file;
-   auto          err_file_name = "../../../hyteg-plots/EG_ConvOrders/" + name;
-   err_file.open( err_file_name );
-   for ( auto err : errors_per_h )
-   {
-      err_file << std::get< 0 >( err ) << ", " << std::get< 1 >( err ) << ", " << std::get< 2 >( err ) << "\n";
-   }
-   err_file.close();
-}
-*/
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -287,24 +264,24 @@ int main( int argc, char* argv[] )
    // SolVi solution setup
    auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
 
-   if ( false )
+   if ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0 ###" );
 
       EGP0EpsilonStokesOperator EGP0EpsilonOp( storage, minLevel, maxLevel, viscosity );
 
       StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
-          "SolVi_EGP0", solTuple, rhsTuple, EGP0EpsilonOp, storage, minLevel, maxLevel, 1, true );
+          "SolVi_EGP0", solTuple, rhsTuple, EGP0EpsilonOp, storage, minLevel, maxLevel, 1, true, std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
    }
 
-   if ( true )
+   if ( false )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
 
       P2P1ElementwiseAffineEpsilonStokesOperator P2P1EpsilonOp( storage, minLevel, maxLevel, viscosity );
 
       StokesConvergenceOrderTest< P2P1ElementwiseAffineEpsilonStokesOperator >(
-          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel-1, 1, true );
+          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel, 1, true, std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
    }
    return EXIT_SUCCESS;
 }

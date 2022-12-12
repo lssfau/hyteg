@@ -859,8 +859,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES varvisc/P1P0EpsilonConvergenceTest.cpp DEPENDS hyteg core )
     waLBerla_execute_test(NAME P1P0EpsilonConvergenceTest)
 
-    waLBerla_compile_test(FILES composites/MultiSinker2DBenchmark.cpp DEPENDS hyteg core )
-    waLBerla_execute_test(NAME MultiSinker2DBenchmark)
+    waLBerla_compile_test(FILES varvisc/MultiSinkerBenchmark.cpp DEPENDS hyteg core )
+    waLBerla_execute_test(NAME MultiSinkerBenchmark)
 
 endif()
 
