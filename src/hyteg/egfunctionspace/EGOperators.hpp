@@ -102,7 +102,7 @@ typedef EGOperator< P1ConstantVectorMassOperator, EGMassP1toP0Coupling, EGMassP0
 typedef EGOperator< P1ConstantVectorLaplaceOperator,
                     EGSIPGVectorLaplaceP1ToP0Coupling,
                     EGSIPGVectorLaplaceP0ToP1Coupling,
-                    EGVectorLaplaceFormEE >
+                    EGVectorLaplaceForm_EE >
     EGSIPGLaplaceOperator;
 typedef EGOperator< P1ConstantVectorLaplaceOperator,
                     EGIIPGVectorLaplaceP1ToP0Coupling,
@@ -203,7 +203,7 @@ typedef EGVariableCoeffOperator< P1ElementwiseAffineEpsilonOperator,
 class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFunction< real_t > >
 {
  public:
-   P0ToEGDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   P0ToEGDivTOperator(const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , p0_to_p1x( storage, minLevel, maxLevel )
    , p0_to_p1y( storage, minLevel, maxLevel )
@@ -252,12 +252,12 @@ class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFuncti
    }
 
  private:
-   P0ToP1Operator< EGDivtFormP1P0_0 > p0_to_p1x;
-   P0ToP1Operator< EGDivtFormP1P0_1 > p0_to_p1y;
-   P0ToP1Operator< EGDivtFormP1P0_2 > p0_to_p1z;
+   P0ToP1Operator< EGDivtForm_P1P0_0 > p0_to_p1x;
+   P0ToP1Operator< EGDivtForm_P1P0_1 > p0_to_p1y;
+   P0ToP1Operator< EGDivtForm_P1P0_2 > p0_to_p1z;
 
    // P0ToP1ConstantDivTOperator p0_to_p1;
-   P0Operator< EGDivtFormEP0 > p0_to_edg;
+   P0Operator< EGDivtForm_EP0 > p0_to_edg;
 };
 
 class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Function< real_t > >
@@ -316,11 +316,11 @@ class EGToP0DivOperator final : public Operator< EGFunction< real_t >, P0Functio
    }
 
  private:
-   P1ToP0Operator< EGDivFormP0P1_0 > p1x_to_p0;
-   P1ToP0Operator< EGDivFormP0P1_1 > p1y_to_p0;
-   P1ToP0Operator< EGDivFormP0P1_2 > p1z_to_p0;
+   P1ToP0Operator< EGDivForm_P0P1_0 > p1x_to_p0;
+   P1ToP0Operator< EGDivForm_P0P1_1 > p1y_to_p0;
+   P1ToP0Operator< EGDivForm_P0P1_2 > p1z_to_p0;
    //P1ToP0ConstantDivOperator p1_to_p0;
-   P0Operator< EGDivFormP0E > edg_to_p0;
+   P0Operator< EGDivForm_P0E > edg_to_p0;
 };
 
 } // namespace eg

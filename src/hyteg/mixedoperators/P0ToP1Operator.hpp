@@ -661,9 +661,9 @@ namespace hyteg {
     typedef P0ToP1Operator<dg::p0_to_p1_divt_2_affine_q0> P0ToP1ConstantDivTzOperator;
 
     // EG Laplace operator couplings with different DG schemes
-    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceFormP1E_0> EGVectorLaplaceP0ToP1Coupling_X;
-    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceFormP1E_1> EGVectorLaplaceP0ToP1Coupling_Y;
-    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceFormP1E_2> EGVectorLaplaceP0ToP1Coupling_Z;
+    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceForm_P1E_0> EGVectorLaplaceP0ToP1Coupling_X;
+    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceForm_P1E_1> EGVectorLaplaceP0ToP1Coupling_Y;
+    typedef P0ToP1Operator<dg::eg::EGVectorLaplaceForm_P1E_2> EGVectorLaplaceP0ToP1Coupling_Z;
 
 
     typedef P0ToP1Operator<dg::eg::EGNIPGVectorLaplaceFormP1E_0> EGNIPGVectorLaplaceP0ToP1Coupling_X;

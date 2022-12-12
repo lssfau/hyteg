@@ -35,8 +35,40 @@ namespace hyteg {
 namespace dg{
 namespace eg{
 
-class EGDivFormP0P1_0 : public hyteg::dg::DGForm
+class EGDivForm_P0P1_0 : public hyteg::dg::DGForm
 {
+
+ public:
+    EGDivForm_P0P1_0()
+: callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+    {}
+
+void Scalar_Variable_Coefficient_2D_g0( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g0( Point3D( {in_0, in_1, 0} ) );
+}
+void Scalar_Variable_Coefficient_2D_g1( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g1( Point3D( {in_0, in_1, 0} ) );
+}
+
+void Scalar_Variable_Coefficient_3D_g0( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g0( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g1( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g1( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g2( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g2( Point3D( {in_0, in_1, in_2} ) );
+}
+
  protected:
   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
@@ -309,7 +341,7 @@ class EGDivFormP0P1_0 : public hyteg::dg::DGForm
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
@@ -317,15 +349,49 @@ class EGDivFormP0P1_0 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id9 = 0;
+      Scalar_Variable_Coefficient_2D_g0( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_2D_g1( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_2D_g0( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id2 );
+      Scalar_Variable_Coefficient_2D_g1( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id3 );
+      Scalar_Variable_Coefficient_2D_g0( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id4 );
+      Scalar_Variable_Coefficient_2D_g1( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id5 );
+      Scalar_Variable_Coefficient_2D_g0( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_2D_g1( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_2D_g0( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id8 );
+      Scalar_Variable_Coefficient_2D_g1( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id9 );
+      real_t tmp_0 = std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0));
+      real_t a_0_0 = 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id0*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id1*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id2*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id3*p_affine_10_1) + 0.2844444444444445*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id4*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id5*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id6*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id7*p_affine_10_1) + 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id8*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id9*p_affine_10_1);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
@@ -335,15 +401,175 @@ class EGDivFormP0P1_0 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+   const auto p_affine_0_0 = coordsElement[0]( 0 );
+   const auto p_affine_0_1 = coordsElement[0]( 1 );
+   const auto p_affine_0_2 = coordsElement[0]( 2 );
+
+   const auto p_affine_1_0 = coordsElement[1]( 0 );
+   const auto p_affine_1_1 = coordsElement[1]( 1 );
+   const auto p_affine_1_2 = coordsElement[1]( 2 );
+
+   const auto p_affine_2_0 = coordsElement[2]( 0 );
+   const auto p_affine_2_1 = coordsElement[2]( 1 );
+   const auto p_affine_2_2 = coordsElement[2]( 2 );
+
+   const auto p_affine_3_0 = coordsElement[3]( 0 );
+   const auto p_affine_3_1 = coordsElement[3]( 1 );
+   const auto p_affine_3_2 = coordsElement[3]( 2 );
+
+   const auto p_affine_8_0 = coordsFacet[0]( 0 );
+   const auto p_affine_8_1 = coordsFacet[0]( 1 );
+   const auto p_affine_8_2 = coordsFacet[0]( 2 );
+
+   const auto p_affine_9_0 = coordsFacet[1]( 0 );
+   const auto p_affine_9_1 = coordsFacet[1]( 1 );
+   const auto p_affine_9_2 = coordsFacet[1]( 2 );
+
+   const auto p_affine_10_0 = coordsFacet[2]( 0 );
+   const auto p_affine_10_1 = coordsFacet[2]( 1 );
+   const auto p_affine_10_2 = coordsFacet[2]( 2 );
+
+   const auto p_affine_13_0 = outwardNormal( 0 );
+   const auto p_affine_13_1 = outwardNormal( 1 );
+   const auto p_affine_13_2 = outwardNormal( 2 );
+
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id9 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id10 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id11 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id12 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id13 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id14 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id15 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id16 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id17 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id18 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id19 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id20 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id21 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id22 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id23 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id24 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id25 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id26 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id27 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id28 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id29 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id30 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id31 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id32 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id33 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id34 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id35 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id36 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id37 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id38 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id39 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id40 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id41 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id42 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id43 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id44 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id45 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id46 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id47 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id48 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id49 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id50 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id51 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id52 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id53 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id54 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id55 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id56 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id57 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id58 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id59 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id60 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id61 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id62 = 0;
+      Scalar_Variable_Coefficient_3D_g0( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_3D_g1( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_3D_g2( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id2 );
+      Scalar_Variable_Coefficient_3D_g0( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id3 );
+      Scalar_Variable_Coefficient_3D_g1( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id4 );
+      Scalar_Variable_Coefficient_3D_g2( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id5 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id8 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id9 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id10 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id11 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id12 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id13 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id14 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id15 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id16 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id17 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id18 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id19 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id20 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id21 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id22 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id23 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id24 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id25 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id26 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id27 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id28 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id29 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id30 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id31 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id32 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id33 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id34 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id35 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id36 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id37 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id38 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id39 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id40 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id41 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id42 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id43 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id44 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id45 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id46 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id47 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id48 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id49 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id50 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id51 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id52 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id53 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id54 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id55 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id56 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id57 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id58 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id59 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id60 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id61 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id62 );
+      real_t tmp_0 = p_affine_10_0 - p_affine_8_0;
+      real_t tmp_1 = p_affine_8_1 - p_affine_9_1;
+      real_t tmp_2 = p_affine_10_1 - p_affine_8_1;
+      real_t tmp_3 = p_affine_8_0 - p_affine_9_0;
+      real_t tmp_4 = p_affine_8_2 - p_affine_9_2;
+      real_t tmp_5 = p_affine_10_2 - p_affine_8_2;
+      real_t tmp_6 = 1.0*std::pow((std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)*std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)) + (std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)*std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)) + (std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)*std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)), 1.0/2.0);
+      real_t a_0_0 = 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id0*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id1*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id2*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id12*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id13*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id14*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id15*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id16*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id17*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id18*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id19*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id20*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id21*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id22*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id23*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id24*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id25*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id26*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id27*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id28*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id29*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id3*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id4*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id5*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id30*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id31*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id32*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id33*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id34*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id35*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id36*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id37*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id38*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id39*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id40*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id41*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id42*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id43*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id44*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id45*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id46*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id47*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id48*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id49*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id50*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id51*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id52*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id53*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id54*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id55*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id56*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id57*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id58*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id59*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id6*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id7*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id8*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id60*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id61*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id62*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id9*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id10*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id11*p_affine_13_2);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
@@ -1247,14 +1473,53 @@ void integrateFacetDirichletBoundary3D(
       elMat( 0, 3) = a_0_3;
    }
 
+public:
+
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g2;
 
 };
 
 
 
 
-class EGDivFormP0P1_1 : public hyteg::dg::DGForm
+class EGDivForm_P0P1_1 : public hyteg::dg::DGForm
 {
+
+ public:
+    EGDivForm_P0P1_1()
+: callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+    {}
+
+void Scalar_Variable_Coefficient_2D_g0( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g0( Point3D( {in_0, in_1, 0} ) );
+}
+void Scalar_Variable_Coefficient_2D_g1( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g1( Point3D( {in_0, in_1, 0} ) );
+}
+
+void Scalar_Variable_Coefficient_3D_g0( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g0( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g1( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g1( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g2( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g2( Point3D( {in_0, in_1, in_2} ) );
+}
+
  protected:
   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
@@ -1527,7 +1792,7 @@ class EGDivFormP0P1_1 : public hyteg::dg::DGForm
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
@@ -1535,15 +1800,49 @@ class EGDivFormP0P1_1 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id9 = 0;
+      Scalar_Variable_Coefficient_2D_g0( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_2D_g1( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_2D_g0( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id2 );
+      Scalar_Variable_Coefficient_2D_g1( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id3 );
+      Scalar_Variable_Coefficient_2D_g0( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id4 );
+      Scalar_Variable_Coefficient_2D_g1( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id5 );
+      Scalar_Variable_Coefficient_2D_g0( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_2D_g1( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_2D_g0( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id8 );
+      Scalar_Variable_Coefficient_2D_g1( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id9 );
+      real_t tmp_0 = std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0));
+      real_t a_0_0 = 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id0*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id1*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id2*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id3*p_affine_10_1) + 0.2844444444444445*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id4*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id5*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id6*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id7*p_affine_10_1) + 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id8*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id9*p_affine_10_1);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
@@ -1553,15 +1852,175 @@ class EGDivFormP0P1_1 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+   const auto p_affine_0_0 = coordsElement[0]( 0 );
+   const auto p_affine_0_1 = coordsElement[0]( 1 );
+   const auto p_affine_0_2 = coordsElement[0]( 2 );
+
+   const auto p_affine_1_0 = coordsElement[1]( 0 );
+   const auto p_affine_1_1 = coordsElement[1]( 1 );
+   const auto p_affine_1_2 = coordsElement[1]( 2 );
+
+   const auto p_affine_2_0 = coordsElement[2]( 0 );
+   const auto p_affine_2_1 = coordsElement[2]( 1 );
+   const auto p_affine_2_2 = coordsElement[2]( 2 );
+
+   const auto p_affine_3_0 = coordsElement[3]( 0 );
+   const auto p_affine_3_1 = coordsElement[3]( 1 );
+   const auto p_affine_3_2 = coordsElement[3]( 2 );
+
+   const auto p_affine_8_0 = coordsFacet[0]( 0 );
+   const auto p_affine_8_1 = coordsFacet[0]( 1 );
+   const auto p_affine_8_2 = coordsFacet[0]( 2 );
+
+   const auto p_affine_9_0 = coordsFacet[1]( 0 );
+   const auto p_affine_9_1 = coordsFacet[1]( 1 );
+   const auto p_affine_9_2 = coordsFacet[1]( 2 );
+
+   const auto p_affine_10_0 = coordsFacet[2]( 0 );
+   const auto p_affine_10_1 = coordsFacet[2]( 1 );
+   const auto p_affine_10_2 = coordsFacet[2]( 2 );
+
+   const auto p_affine_13_0 = outwardNormal( 0 );
+   const auto p_affine_13_1 = outwardNormal( 1 );
+   const auto p_affine_13_2 = outwardNormal( 2 );
+
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id9 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id10 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id11 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id12 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id13 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id14 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id15 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id16 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id17 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id18 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id19 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id20 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id21 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id22 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id23 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id24 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id25 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id26 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id27 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id28 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id29 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id30 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id31 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id32 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id33 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id34 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id35 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id36 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id37 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id38 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id39 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id40 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id41 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id42 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id43 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id44 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id45 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id46 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id47 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id48 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id49 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id50 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id51 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id52 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id53 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id54 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id55 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id56 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id57 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id58 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id59 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id60 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id61 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id62 = 0;
+      Scalar_Variable_Coefficient_3D_g0( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_3D_g1( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_3D_g2( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id2 );
+      Scalar_Variable_Coefficient_3D_g0( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id3 );
+      Scalar_Variable_Coefficient_3D_g1( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id4 );
+      Scalar_Variable_Coefficient_3D_g2( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id5 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id8 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id9 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id10 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id11 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id12 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id13 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id14 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id15 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id16 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id17 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id18 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id19 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id20 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id21 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id22 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id23 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id24 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id25 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id26 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id27 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id28 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id29 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id30 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id31 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id32 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id33 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id34 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id35 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id36 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id37 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id38 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id39 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id40 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id41 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id42 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id43 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id44 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id45 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id46 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id47 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id48 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id49 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id50 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id51 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id52 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id53 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id54 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id55 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id56 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id57 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id58 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id59 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id60 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id61 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id62 );
+      real_t tmp_0 = p_affine_10_0 - p_affine_8_0;
+      real_t tmp_1 = p_affine_8_1 - p_affine_9_1;
+      real_t tmp_2 = p_affine_10_1 - p_affine_8_1;
+      real_t tmp_3 = p_affine_8_0 - p_affine_9_0;
+      real_t tmp_4 = p_affine_8_2 - p_affine_9_2;
+      real_t tmp_5 = p_affine_10_2 - p_affine_8_2;
+      real_t tmp_6 = 1.0*std::pow((std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)*std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)) + (std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)*std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)) + (std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)*std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)), 1.0/2.0);
+      real_t a_0_0 = 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id0*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id1*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id2*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id12*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id13*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id14*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id15*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id16*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id17*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id18*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id19*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id20*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id21*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id22*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id23*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id24*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id25*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id26*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id27*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id28*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id29*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id3*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id4*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id5*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id30*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id31*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id32*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id33*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id34*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id35*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id36*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id37*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id38*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id39*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id40*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id41*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id42*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id43*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id44*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id45*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id46*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id47*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id48*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id49*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id50*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id51*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id52*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id53*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id54*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id55*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id56*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id57*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id58*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id59*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id6*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id7*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id8*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id60*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id61*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id62*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id9*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id10*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id11*p_affine_13_2);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
@@ -2465,14 +2924,53 @@ void integrateFacetDirichletBoundary3D(
       elMat( 0, 3) = a_0_3;
    }
 
+public:
+
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g2;
 
 };
 
 
 
 
-class EGDivFormP0P1_2 : public hyteg::dg::DGForm
+class EGDivForm_P0P1_2 : public hyteg::dg::DGForm
 {
+
+ public:
+    EGDivForm_P0P1_2()
+: callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+    {}
+
+void Scalar_Variable_Coefficient_2D_g0( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g0( Point3D( {in_0, in_1, 0} ) );
+}
+void Scalar_Variable_Coefficient_2D_g1( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g1( Point3D( {in_0, in_1, 0} ) );
+}
+
+void Scalar_Variable_Coefficient_3D_g0( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g0( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g1( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g1( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g2( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g2( Point3D( {in_0, in_1, in_2} ) );
+}
+
  protected:
   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
@@ -2641,7 +3139,7 @@ class EGDivFormP0P1_2 : public hyteg::dg::DGForm
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
@@ -2649,15 +3147,49 @@ class EGDivFormP0P1_2 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id9 = 0;
+      Scalar_Variable_Coefficient_2D_g0( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_2D_g1( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_2D_g0( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id2 );
+      Scalar_Variable_Coefficient_2D_g1( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id3 );
+      Scalar_Variable_Coefficient_2D_g0( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id4 );
+      Scalar_Variable_Coefficient_2D_g1( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id5 );
+      Scalar_Variable_Coefficient_2D_g0( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_2D_g1( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_2D_g0( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id8 );
+      Scalar_Variable_Coefficient_2D_g1( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id9 );
+      real_t tmp_0 = std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0));
+      real_t a_0_0 = 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id0*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id1*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id2*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id3*p_affine_10_1) + 0.2844444444444445*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id4*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id5*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id6*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id7*p_affine_10_1) + 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id8*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id9*p_affine_10_1);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
@@ -2667,15 +3199,175 @@ class EGDivFormP0P1_2 : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+   const auto p_affine_0_0 = coordsElement[0]( 0 );
+   const auto p_affine_0_1 = coordsElement[0]( 1 );
+   const auto p_affine_0_2 = coordsElement[0]( 2 );
+
+   const auto p_affine_1_0 = coordsElement[1]( 0 );
+   const auto p_affine_1_1 = coordsElement[1]( 1 );
+   const auto p_affine_1_2 = coordsElement[1]( 2 );
+
+   const auto p_affine_2_0 = coordsElement[2]( 0 );
+   const auto p_affine_2_1 = coordsElement[2]( 1 );
+   const auto p_affine_2_2 = coordsElement[2]( 2 );
+
+   const auto p_affine_3_0 = coordsElement[3]( 0 );
+   const auto p_affine_3_1 = coordsElement[3]( 1 );
+   const auto p_affine_3_2 = coordsElement[3]( 2 );
+
+   const auto p_affine_8_0 = coordsFacet[0]( 0 );
+   const auto p_affine_8_1 = coordsFacet[0]( 1 );
+   const auto p_affine_8_2 = coordsFacet[0]( 2 );
+
+   const auto p_affine_9_0 = coordsFacet[1]( 0 );
+   const auto p_affine_9_1 = coordsFacet[1]( 1 );
+   const auto p_affine_9_2 = coordsFacet[1]( 2 );
+
+   const auto p_affine_10_0 = coordsFacet[2]( 0 );
+   const auto p_affine_10_1 = coordsFacet[2]( 1 );
+   const auto p_affine_10_2 = coordsFacet[2]( 2 );
+
+   const auto p_affine_13_0 = outwardNormal( 0 );
+   const auto p_affine_13_1 = outwardNormal( 1 );
+   const auto p_affine_13_2 = outwardNormal( 2 );
+
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id9 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id10 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id11 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id12 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id13 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id14 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id15 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id16 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id17 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id18 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id19 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id20 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id21 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id22 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id23 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id24 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id25 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id26 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id27 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id28 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id29 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id30 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id31 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id32 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id33 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id34 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id35 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id36 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id37 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id38 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id39 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id40 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id41 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id42 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id43 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id44 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id45 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id46 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id47 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id48 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id49 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id50 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id51 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id52 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id53 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id54 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id55 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id56 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id57 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id58 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id59 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id60 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id61 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id62 = 0;
+      Scalar_Variable_Coefficient_3D_g0( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_3D_g1( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_3D_g2( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id2 );
+      Scalar_Variable_Coefficient_3D_g0( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id3 );
+      Scalar_Variable_Coefficient_3D_g1( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id4 );
+      Scalar_Variable_Coefficient_3D_g2( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id5 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id8 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id9 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id10 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id11 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id12 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id13 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id14 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id15 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id16 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id17 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id18 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id19 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id20 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id21 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id22 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id23 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id24 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id25 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id26 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id27 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id28 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id29 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id30 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id31 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id32 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id33 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id34 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id35 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id36 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id37 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id38 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id39 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id40 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id41 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id42 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id43 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id44 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id45 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id46 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id47 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id48 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id49 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id50 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id51 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id52 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id53 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id54 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id55 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id56 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id57 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id58 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id59 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id60 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id61 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id62 );
+      real_t tmp_0 = p_affine_10_0 - p_affine_8_0;
+      real_t tmp_1 = p_affine_8_1 - p_affine_9_1;
+      real_t tmp_2 = p_affine_10_1 - p_affine_8_1;
+      real_t tmp_3 = p_affine_8_0 - p_affine_9_0;
+      real_t tmp_4 = p_affine_8_2 - p_affine_9_2;
+      real_t tmp_5 = p_affine_10_2 - p_affine_8_2;
+      real_t tmp_6 = 1.0*std::pow((std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)*std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)) + (std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)*std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)) + (std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)*std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)), 1.0/2.0);
+      real_t a_0_0 = 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id0*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id1*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id2*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id12*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id13*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id14*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id15*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id16*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id17*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id18*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id19*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id20*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id21*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id22*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id23*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id24*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id25*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id26*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id27*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id28*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id29*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id3*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id4*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id5*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id30*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id31*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id32*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id33*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id34*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id35*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id36*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id37*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id38*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id39*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id40*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id41*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id42*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id43*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id44*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id45*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id46*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id47*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id48*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id49*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id50*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id51*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id52*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id53*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id54*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id55*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id56*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id57*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id58*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id59*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id6*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id7*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id8*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id60*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id61*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id62*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id9*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id10*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id11*p_affine_13_2);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
@@ -3579,14 +4271,53 @@ void integrateFacetDirichletBoundary3D(
       elMat( 0, 3) = a_0_3;
    }
 
+public:
+
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g2;
 
 };
 
 
 
 
-class EGDivFormP0E : public hyteg::dg::DGForm
+class EGDivForm_P0E : public hyteg::dg::DGForm
 {
+
+ public:
+    EGDivForm_P0E()
+: callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_2D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+    {}
+
+void Scalar_Variable_Coefficient_2D_g0( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g0( Point3D( {in_0, in_1, 0} ) );
+}
+void Scalar_Variable_Coefficient_2D_g1( real_t in_0, real_t in_1, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_2D_g1( Point3D( {in_0, in_1, 0} ) );
+}
+
+void Scalar_Variable_Coefficient_3D_g0( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g0( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g1( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g1( Point3D( {in_0, in_1, in_2} ) );
+}
+void Scalar_Variable_Coefficient_3D_g2( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
+{
+   *out_0 = callback_Scalar_Variable_Coefficient_3D_g2( Point3D( {in_0, in_1, in_2} ) );
+}
+
  protected:
   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
@@ -3852,7 +4583,7 @@ class EGDivFormP0E : public hyteg::dg::DGForm
       elMat( 0, 0) = a_0_0;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
+    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
                                                  const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
@@ -3860,15 +4591,49 @@ class EGDivFormP0E : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+
+      const auto p_affine_6_0 = coordsFacet[0]( 0 );
+      const auto p_affine_6_1 = coordsFacet[0]( 1 );
+
+      const auto p_affine_7_0 = coordsFacet[1]( 0 );
+      const auto p_affine_7_1 = coordsFacet[1]( 1 );
+
+      const auto p_affine_10_0 = outwardNormal( 0 );
+      const auto p_affine_10_1 = outwardNormal( 1 );
+
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g0_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_2D_g1_out0_id9 = 0;
+      Scalar_Variable_Coefficient_2D_g0( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_2D_g1( 0.95308992296933193*p_affine_6_0 + 0.046910077030668018*p_affine_7_0, 0.95308992296933193*p_affine_6_1 + 0.046910077030668018*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_2D_g0( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id2 );
+      Scalar_Variable_Coefficient_2D_g1( 0.7692346550528415*p_affine_6_0 + 0.23076534494715845*p_affine_7_0, 0.7692346550528415*p_affine_6_1 + 0.23076534494715845*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id3 );
+      Scalar_Variable_Coefficient_2D_g0( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id4 );
+      Scalar_Variable_Coefficient_2D_g1( 0.5*p_affine_6_0 + 0.5*p_affine_7_0, 0.5*p_affine_6_1 + 0.5*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id5 );
+      Scalar_Variable_Coefficient_2D_g0( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_2D_g1( 0.2307653449471585*p_affine_6_0 + 0.7692346550528415*p_affine_7_0, 0.2307653449471585*p_affine_6_1 + 0.7692346550528415*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_2D_g0( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g0_out0_id8 );
+      Scalar_Variable_Coefficient_2D_g1( 0.046910077030668074*p_affine_6_0 + 0.95308992296933193*p_affine_7_0, 0.046910077030668074*p_affine_6_1 + 0.95308992296933193*p_affine_7_1, &Scalar_Variable_Coefficient_2D_g1_out0_id9 );
+      real_t tmp_0 = std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0));
+      real_t a_0_0 = 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id0*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id1*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id2*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id3*p_affine_10_1) + 0.2844444444444445*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id4*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id5*p_affine_10_1) + 0.2393143352496831*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id6*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id7*p_affine_10_1) + 0.11846344252809471*tmp_0*(Scalar_Variable_Coefficient_2D_g0_out0_id8*p_affine_10_0 + Scalar_Variable_Coefficient_2D_g1_out0_id9*p_affine_10_1);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
                                                  const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
@@ -3878,15 +4643,175 @@ class EGDivFormP0E : public hyteg::dg::DGForm
                                                  int                                                      degree,
                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
    {
-      WALBERLA_UNUSED( coordsElement );
-      WALBERLA_UNUSED( coordsFacet );
-      WALBERLA_UNUSED( oppositeVertex );
-      WALBERLA_UNUSED( outwardNormal );
-      WALBERLA_UNUSED( basis );
-      WALBERLA_UNUSED( degree );
-      WALBERLA_UNUSED( elMat );
+     elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
-      // Does nothing.
+   const auto p_affine_0_0 = coordsElement[0]( 0 );
+   const auto p_affine_0_1 = coordsElement[0]( 1 );
+   const auto p_affine_0_2 = coordsElement[0]( 2 );
+
+   const auto p_affine_1_0 = coordsElement[1]( 0 );
+   const auto p_affine_1_1 = coordsElement[1]( 1 );
+   const auto p_affine_1_2 = coordsElement[1]( 2 );
+
+   const auto p_affine_2_0 = coordsElement[2]( 0 );
+   const auto p_affine_2_1 = coordsElement[2]( 1 );
+   const auto p_affine_2_2 = coordsElement[2]( 2 );
+
+   const auto p_affine_3_0 = coordsElement[3]( 0 );
+   const auto p_affine_3_1 = coordsElement[3]( 1 );
+   const auto p_affine_3_2 = coordsElement[3]( 2 );
+
+   const auto p_affine_8_0 = coordsFacet[0]( 0 );
+   const auto p_affine_8_1 = coordsFacet[0]( 1 );
+   const auto p_affine_8_2 = coordsFacet[0]( 2 );
+
+   const auto p_affine_9_0 = coordsFacet[1]( 0 );
+   const auto p_affine_9_1 = coordsFacet[1]( 1 );
+   const auto p_affine_9_2 = coordsFacet[1]( 2 );
+
+   const auto p_affine_10_0 = coordsFacet[2]( 0 );
+   const auto p_affine_10_1 = coordsFacet[2]( 1 );
+   const auto p_affine_10_2 = coordsFacet[2]( 2 );
+
+   const auto p_affine_13_0 = outwardNormal( 0 );
+   const auto p_affine_13_1 = outwardNormal( 1 );
+   const auto p_affine_13_2 = outwardNormal( 2 );
+
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id0 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id1 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id2 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id3 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id4 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id5 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id6 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id7 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id8 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id9 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id10 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id11 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id12 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id13 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id14 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id15 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id16 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id17 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id18 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id19 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id20 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id21 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id22 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id23 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id24 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id25 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id26 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id27 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id28 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id29 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id30 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id31 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id32 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id33 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id34 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id35 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id36 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id37 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id38 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id39 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id40 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id41 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id42 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id43 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id44 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id45 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id46 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id47 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id48 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id49 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id50 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id51 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id52 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id53 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id54 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id55 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id56 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id57 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id58 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id59 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g0_out0_id60 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g1_out0_id61 = 0;
+      real_t Scalar_Variable_Coefficient_3D_g2_out0_id62 = 0;
+      Scalar_Variable_Coefficient_3D_g0( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id0 );
+      Scalar_Variable_Coefficient_3D_g1( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id1 );
+      Scalar_Variable_Coefficient_3D_g2( 0.93718850182767688*p_affine_10_0 + 0.031405749086161561*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.93718850182767688*p_affine_10_1 + 0.031405749086161561*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.93718850182767688*p_affine_10_2 + 0.031405749086161561*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id2 );
+      Scalar_Variable_Coefficient_3D_g0( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id3 );
+      Scalar_Variable_Coefficient_3D_g1( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id4 );
+      Scalar_Variable_Coefficient_3D_g2( 0.60796128279561268*p_affine_10_0 + 0.19601935860219366*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.60796128279561268*p_affine_10_1 + 0.19601935860219366*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.60796128279561268*p_affine_10_2 + 0.19601935860219366*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id5 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id6 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id7 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id8 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id9 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id10 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id11 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id12 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id13 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.039308471900058539*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.039308471900058539*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.039308471900058539*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id14 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id15 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id16 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id17 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id18 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id19 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.37605877282253797*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.37605877282253797*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.37605877282253797*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id20 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id21 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id22 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.1711304259088916*p_affine_8_0 + 0.78764240869137092*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.1711304259088916*p_affine_8_1 + 0.78764240869137092*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.1711304259088916*p_affine_8_2 + 0.78764240869137092*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id23 );
+      Scalar_Variable_Coefficient_3D_g0( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id24 );
+      Scalar_Variable_Coefficient_3D_g1( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id25 );
+      Scalar_Variable_Coefficient_3D_g2( 0.039308471900058539*p_affine_10_0 + 0.37605877282253791*p_affine_8_0 + 0.58463275527740355*p_affine_9_0, 0.039308471900058539*p_affine_10_1 + 0.37605877282253791*p_affine_8_1 + 0.58463275527740355*p_affine_9_1, 0.039308471900058539*p_affine_10_2 + 0.37605877282253791*p_affine_8_2 + 0.58463275527740355*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id26 );
+      Scalar_Variable_Coefficient_3D_g0( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id27 );
+      Scalar_Variable_Coefficient_3D_g1( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id28 );
+      Scalar_Variable_Coefficient_3D_g2( 0.78764240869137092*p_affine_10_0 + 0.041227165399737475*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.78764240869137092*p_affine_10_1 + 0.041227165399737475*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.78764240869137092*p_affine_10_2 + 0.041227165399737475*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id29 );
+      Scalar_Variable_Coefficient_3D_g0( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id30 );
+      Scalar_Variable_Coefficient_3D_g1( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id31 );
+      Scalar_Variable_Coefficient_3D_g2( 0.58463275527740355*p_affine_10_0 + 0.039308471900058484*p_affine_8_0 + 0.37605877282253791*p_affine_9_0, 0.58463275527740355*p_affine_10_1 + 0.039308471900058484*p_affine_8_1 + 0.37605877282253791*p_affine_9_1, 0.58463275527740355*p_affine_10_2 + 0.039308471900058484*p_affine_8_2 + 0.37605877282253791*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id32 );
+      Scalar_Variable_Coefficient_3D_g0( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id33 );
+      Scalar_Variable_Coefficient_3D_g1( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id34 );
+      Scalar_Variable_Coefficient_3D_g2( 0.1711304259088916*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.041227165399737475*p_affine_9_0, 0.1711304259088916*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.041227165399737475*p_affine_9_1, 0.1711304259088916*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.041227165399737475*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id35 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id36 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id37 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19107600050469298*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.19107600050469298*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.19107600050469298*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id38 );
+      Scalar_Variable_Coefficient_3D_g0( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id39 );
+      Scalar_Variable_Coefficient_3D_g1( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id40 );
+      Scalar_Variable_Coefficient_3D_g2( 0.37605877282253791*p_affine_10_0 + 0.58463275527740355*p_affine_8_0 + 0.039308471900058539*p_affine_9_0, 0.37605877282253791*p_affine_10_1 + 0.58463275527740355*p_affine_8_1 + 0.039308471900058539*p_affine_9_1, 0.37605877282253791*p_affine_10_2 + 0.58463275527740355*p_affine_8_2 + 0.039308471900058539*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id41 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id42 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id43 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.03140574908616154*p_affine_8_0 + 0.93718850182767688*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.03140574908616154*p_affine_8_1 + 0.93718850182767688*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.03140574908616154*p_affine_8_2 + 0.93718850182767688*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id44 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id45 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id46 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.19601935860219363*p_affine_8_0 + 0.60796128279561268*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.19601935860219363*p_affine_8_1 + 0.60796128279561268*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.19601935860219363*p_affine_8_2 + 0.60796128279561268*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id47 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id48 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id49 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.40446199974765351*p_affine_8_0 + 0.19107600050469298*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.40446199974765351*p_affine_8_1 + 0.19107600050469298*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.40446199974765351*p_affine_8_2 + 0.19107600050469298*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id50 );
+      Scalar_Variable_Coefficient_3D_g0( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id51 );
+      Scalar_Variable_Coefficient_3D_g1( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id52 );
+      Scalar_Variable_Coefficient_3D_g2( 0.031405749086161582*p_affine_10_0 + 0.93718850182767688*p_affine_8_0 + 0.031405749086161582*p_affine_9_0, 0.031405749086161582*p_affine_10_1 + 0.93718850182767688*p_affine_8_1 + 0.031405749086161582*p_affine_9_1, 0.031405749086161582*p_affine_10_2 + 0.93718850182767688*p_affine_8_2 + 0.031405749086161582*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id53 );
+      Scalar_Variable_Coefficient_3D_g0( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id54 );
+      Scalar_Variable_Coefficient_3D_g1( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id55 );
+      Scalar_Variable_Coefficient_3D_g2( 0.19601935860219369*p_affine_10_0 + 0.60796128279561268*p_affine_8_0 + 0.19601935860219369*p_affine_9_0, 0.19601935860219369*p_affine_10_1 + 0.60796128279561268*p_affine_8_1 + 0.19601935860219369*p_affine_9_1, 0.19601935860219369*p_affine_10_2 + 0.60796128279561268*p_affine_8_2 + 0.19601935860219369*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id56 );
+      Scalar_Variable_Coefficient_3D_g0( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id57 );
+      Scalar_Variable_Coefficient_3D_g1( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id58 );
+      Scalar_Variable_Coefficient_3D_g2( 0.40446199974765351*p_affine_10_0 + 0.19107600050469298*p_affine_8_0 + 0.40446199974765351*p_affine_9_0, 0.40446199974765351*p_affine_10_1 + 0.19107600050469298*p_affine_8_1 + 0.40446199974765351*p_affine_9_1, 0.40446199974765351*p_affine_10_2 + 0.19107600050469298*p_affine_8_2 + 0.40446199974765351*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id59 );
+      Scalar_Variable_Coefficient_3D_g0( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g0_out0_id60 );
+      Scalar_Variable_Coefficient_3D_g1( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g1_out0_id61 );
+      Scalar_Variable_Coefficient_3D_g2( 0.041227165399737475*p_affine_10_0 + 0.78764240869137092*p_affine_8_0 + 0.1711304259088916*p_affine_9_0, 0.041227165399737475*p_affine_10_1 + 0.78764240869137092*p_affine_8_1 + 0.1711304259088916*p_affine_9_1, 0.041227165399737475*p_affine_10_2 + 0.78764240869137092*p_affine_8_2 + 0.1711304259088916*p_affine_9_2, &Scalar_Variable_Coefficient_3D_g2_out0_id62 );
+      real_t tmp_0 = p_affine_10_0 - p_affine_8_0;
+      real_t tmp_1 = p_affine_8_1 - p_affine_9_1;
+      real_t tmp_2 = p_affine_10_1 - p_affine_8_1;
+      real_t tmp_3 = p_affine_8_0 - p_affine_9_0;
+      real_t tmp_4 = p_affine_8_2 - p_affine_9_2;
+      real_t tmp_5 = p_affine_10_2 - p_affine_8_2;
+      real_t tmp_6 = 1.0*std::pow((std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)*std::abs(tmp_0*tmp_1 - tmp_2*tmp_3)) + (std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)*std::abs(tmp_0*tmp_4 - tmp_3*tmp_5)) + (std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)*std::abs(tmp_1*tmp_5 - tmp_2*tmp_4)), 1.0/2.0);
+      real_t a_0_0 = 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id0*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id1*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id2*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id12*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id13*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id14*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id15*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id16*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id17*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id18*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id19*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id20*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id21*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id22*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id23*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id24*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id25*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id26*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id27*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id28*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id29*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id3*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id4*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id5*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id30*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id31*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id32*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id33*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id34*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id35*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id36*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id37*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id38*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id39*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id40*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id41*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id42*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id43*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id44*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id45*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id46*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id47*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id48*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id49*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id50*p_affine_13_2) + 0.0068572537431980923*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id51*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id52*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id53*p_affine_13_2) + 0.037198804536718075*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id54*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id55*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id56*p_affine_13_2) + 0.042507265838595799*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id57*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id58*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id59*p_affine_13_2) + 0.020848748529055869*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id6*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id7*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id8*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id60*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id61*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id62*p_affine_13_2) + 0.019202922745021479*tmp_6*(Scalar_Variable_Coefficient_3D_g0_out0_id9*p_affine_13_0 + Scalar_Variable_Coefficient_3D_g1_out0_id10*p_affine_13_1 + Scalar_Variable_Coefficient_3D_g2_out0_id11*p_affine_13_2);
+      elMat( 0, 0) = a_0_0;
    }
    void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
@@ -4641,6 +5566,13 @@ void integrateFacetDirichletBoundary3D(
       elMat( 0, 0) = a_0_0;
    }
 
+public:
+
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g1;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g0;
+std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g2;
 
 };
 

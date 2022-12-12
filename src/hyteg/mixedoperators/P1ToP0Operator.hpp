@@ -45,6 +45,7 @@
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGEpsilonEnergyNormForm.hpp"
+
 namespace hyteg {
 
     using namespace dg;
@@ -855,9 +856,9 @@ namespace hyteg {
     typedef P1ToP0Operator<dg::p1_to_p0_div_2_affine_q0> P1ToP0ConstantDivzOperator;
 
     // EG Laplace operator couplings with different DG schemes
-    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_0> EGVectorLaplaceP1ToP0Coupling_X;
-    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_1> EGVectorLaplaceP1ToP0Coupling_Y;
-    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceFormEP1_2> EGVectorLaplaceP1ToP0Coupling_Z;
+    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceForm_EP1_0> EGVectorLaplaceP1ToP0Coupling_X;
+    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceForm_EP1_1> EGVectorLaplaceP1ToP0Coupling_Y;
+    typedef P1ToP0Operator<dg::eg::EGVectorLaplaceForm_EP1_2> EGVectorLaplaceP1ToP0Coupling_Z;
 
     typedef P1ToP0Operator<dg::eg::EGNIPGVectorLaplaceFormEP1_0> EGNIPGVectorLaplaceP1ToP0Coupling_X;
     typedef P1ToP0Operator<dg::eg::EGNIPGVectorLaplaceFormEP1_1> EGNIPGVectorLaplaceP1ToP0Coupling_Y;

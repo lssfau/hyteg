@@ -86,6 +86,7 @@ EGEpsilonFormEP1_0( std::function< real_t( const Point3D& ) > callback )
       Scalar_Variable_Coefficient_2D_mu( 0.63650249912139867*p_affine_0_0 + 0.053145049844816938*p_affine_1_0 + 0.31035245103378439*p_affine_2_0, 0.63650249912139867*p_affine_0_1 + 0.053145049844816938*p_affine_1_1 + 0.31035245103378439*p_affine_2_1, &Scalar_Variable_Coefficient_2D_mu_out0_id9 );
       Scalar_Variable_Coefficient_2D_mu( 0.31035245103378439*p_affine_0_0 + 0.63650249912139867*p_affine_1_0 + 0.053145049844816938*p_affine_2_0, 0.31035245103378439*p_affine_0_1 + 0.63650249912139867*p_affine_1_1 + 0.053145049844816938*p_affine_2_1, &Scalar_Variable_Coefficient_2D_mu_out0_id10 );
       Scalar_Variable_Coefficient_2D_mu( 0.31035245103378439*p_affine_0_0 + 0.053145049844816938*p_affine_1_0 + 0.63650249912139867*p_affine_2_0, 0.31035245103378439*p_affine_0_1 + 0.053145049844816938*p_affine_1_1 + 0.63650249912139867*p_affine_2_1, &Scalar_Variable_Coefficient_2D_mu_out0_id11 );
+
       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
