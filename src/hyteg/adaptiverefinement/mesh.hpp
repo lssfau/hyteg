@@ -197,28 +197,17 @@ class K_Mesh
                                                              std::map< PrimitiveID, FaceData >&   faces,
                                                              std::map< PrimitiveID, CellData >&   cells );
 
-<<<<<<< HEAD
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
    uint_t                                                  _n_processes;        // number of processes
    std::vector< Point3D >                                  _vertices;           // vertex coordinates
    std::vector< PrimitiveID >                              _vertexGeometryMap;  // geometrymap for vertices
    std::vector< uint_t >                                   _vertexBoundaryFlag; // boundaryFlag for vertices
+   std::vector< uint_t >                                   _vertexTargetRank;   // targetRank of vertices
    std::set< std::shared_ptr< K_Simplex > >                _T;                  // set of elements of current refinement level
    std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
 
    PrimitiveID _invalidID;
-=======
-   uint_t                                             _n_vertices;
-   uint_t                                             _n_elements;
-   uint_t                                             _n_processes;        // number of processes
-   std::vector< Point3D >                             _vertices;           // vertex coordinates
-   std::vector< uint_t >                              _vertexGeometryMap;  // geometrymap of vertices
-   std::vector< uint_t >                              _vertexBoundaryFlag; // boundaryFlag of vertices
-   std::vector< uint_t >                              _vertexTargetRank;   // targetRank of vertices
-   std::set< std::shared_ptr< K_Simplex > >           _T;                  // set of elements of current refinement level
-   std::map< uint_t, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
 };
 
 using Mesh2D = K_Mesh< Simplex2 >;

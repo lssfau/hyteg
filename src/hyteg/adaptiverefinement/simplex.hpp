@@ -81,14 +81,9 @@ class Simplex
    */
    Simplex( const std::array< uint_t, K + 1 >& vertices,
             std::shared_ptr< K_Simplex >       parent,
-<<<<<<< HEAD
             const PrimitiveID&                 geometryMap  = PrimitiveID(),
-            uint_t                             boundaryFlag = 0 )
-=======
-            uint_t                             geometryMap  = std::numeric_limits< uint_t >::max(),
             uint_t                             boundaryFlag = 0,
             uint_t                             targetRank   = 0 )
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
    : _vertices( vertices )
    , _parent( parent )
    , _geometryMap( ( parent == nullptr || geometryMap != PrimitiveID() ) ? geometryMap : parent->getGeometryMap() )
@@ -187,16 +182,10 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
              uint_t                      p2,
              std::shared_ptr< Simplex1 > parent       = nullptr,
              Color                       c            = RED,
-<<<<<<< HEAD
              const PrimitiveID&          geometryMap  = PrimitiveID(),
-             uint_t                      boundaryFlag = 0 )
-   : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
-=======
-             uint_t                      geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                      boundaryFlag = 0,
              uint_t                      targetRank   = 0 )
    : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag, targetRank )
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
    , _color( c )
    , _midpoint( -1 )
    {}
@@ -243,14 +232,9 @@ class Simplex2 : public Simplex< FACE, Simplex2 >
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent       = nullptr,
-<<<<<<< HEAD
              const PrimitiveID&                                  geometryMap  = PrimitiveID(),
-             uint_t                                              boundaryFlag = 0 );
-=======
-             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                                              boundaryFlag = 0,
              uint_t                                              targetRank   = 0 );
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
@@ -309,14 +293,9 @@ class Simplex3 : public Simplex< CELL, Simplex3 >
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent       = nullptr,
-<<<<<<< HEAD
              const PrimitiveID&                                  geometryMap  = PrimitiveID(),
-             uint_t                                              boundaryFlag = 0 );
-=======
-             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
              uint_t                                              boundaryFlag = 0,
              uint_t                                              targetRank   = 0 );
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
 
    bool has_green_edge() const;
 

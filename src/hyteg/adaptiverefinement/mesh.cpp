@@ -352,8 +352,8 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    uint_t         numReceivingPrimitives = 0;
    for ( auto& [id, vtx] : vtxs )
    {
-      auto currentRnk = vtxs_old[i].getTargetRank();
-      auto targetRnk  = vtxs[i].getTargetRank();
+      auto currentRnk = vtxs_old[id].getTargetRank();
+      auto targetRnk  = vtx.getTargetRank();
 
       if ( rank == currentRnk )
       {
@@ -363,7 +363,6 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
       {
          ++numReceivingPrimitives;
       }
->>>>>>> 632de7f50 (bugfix)
    }
    for ( auto& [id, edge] : edges )
    {
@@ -1114,7 +1113,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
       for ( idx = 0; idx < _vertices.size(); ++idx )
       {
          auto id      = PrimitiveID::create( idx );
-         vtxData[idx] = VertexData( _vertexGeometryMap[idx], _vertexBoundaryFlag[idx], id, _vertexTargetRank[idx], { { idx } } );
+         vtxData[id] = VertexData( _vertexGeometryMap[idx], _vertexBoundaryFlag[idx], id, { { idx } },_vertexTargetRank[idx] );
       }
       // collect edgedata
       for ( auto& edge : edges )

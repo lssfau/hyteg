@@ -197,16 +197,10 @@ uint_t Simplex1::inner_vertices() const
 Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices,
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
                     std::shared_ptr< Simplex2 >                         parent,
-<<<<<<< HEAD
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag )
-=======
-                    uint_t                                              geometryMap,
                     uint_t                                              boundaryFlag,
                     uint_t                                              targetRank )
 : Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
 , _edges( edges )
 {
    for ( uint_t i = 0; i < 3; ++i )
@@ -303,16 +297,10 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
                     const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
                     std::shared_ptr< Simplex3 >                         parent,
-<<<<<<< HEAD
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag )
-=======
-                    uint_t                                              geometryMap,
                     uint_t                                              boundaryFlag,
                     uint_t                                              targetRank )
 : Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
 , _edges( edges )
 , _faces( faces )
 {

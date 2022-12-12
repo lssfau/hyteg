@@ -42,24 +42,16 @@ template < uint_t J >
 class SimplexData
 {
  public:
-<<<<<<< HEAD
    SimplexData( PrimitiveID                 geometryMap  = PrimitiveID(),
                 uint_t                      boundaryFlag = 0,
                 PrimitiveID                 id           = PrimitiveID(),
-                std::array< uint_t, J + 1 > vtxIncices   = {} )
+                std::array< uint_t, J + 1 > vtxIncices   = {},
+                uint_t                      targetRank   = 0 )
    : _vertices( vtxIncices )
    , _geometryMap( geometryMap )
    , _boundaryFlag( boundaryFlag )
    , _id( id )
-   , _targetRank( 0 )
-=======
-   SimplexData( uint_t geometryMap = 0, uint_t boundaryFlag = 0, uint_t id = 0, uint_t targetRank = 0 )
-   : _vertices( {} )
-   , _geometryMap( geometryMap )
-   , _boundaryFlag( boundaryFlag )
-   , _id( PrimitiveID( id ) )
    , _targetRank( targetRank )
->>>>>>> ba01b812b (add interpolation from unrefined to refined mesh)
    , _locality( NONE )
    {}
 
