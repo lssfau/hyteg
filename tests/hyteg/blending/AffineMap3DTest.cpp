@@ -47,12 +47,12 @@ std::array< real_t, 11 > volume;
 Matrix3r gemm( const Matrix3r& lMat, const Matrix3r& rMat )
 {
    Matrix3r aMat;
-   for ( uint_t i = 0; i < 3; i++ )
+   for ( int i = 0; i < 3; i++ )
    {
-      for ( uint_t j = 0; j < 3; j++ )
+      for ( int j = 0; j < 3; j++ )
       {
          aMat( i, j ) = real_c( 0 );
-         for ( uint_t k = 0; k < 3; k++ )
+         for ( int k = 0; k < 3; k++ )
          {
             aMat( i, j ) += lMat( i, k ) * rMat( k, j );
          }
