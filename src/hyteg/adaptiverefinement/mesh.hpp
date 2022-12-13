@@ -199,13 +199,11 @@ class K_Mesh
 
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
-   uint_t                                                  _n_processes;        // number of processes
-   std::vector< Point3D >                                  _vertices;           // vertex coordinates
-   std::vector< PrimitiveID >                              _vertexGeometryMap;  // geometrymap for vertices
-   std::vector< uint_t >                                   _vertexBoundaryFlag; // boundaryFlag for vertices
-   std::vector< uint_t >                                   _vertexTargetRank;   // targetRank of vertices
-   std::set< std::shared_ptr< K_Simplex > >                _T;                  // set of elements of current refinement level
-   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
+   uint_t                                                  _n_processes; // number of processes
+   std::vector< Point3D >                                  _vertices;    // vertex coordinates
+   std::vector< VertexData >                               _V;           // set of vertices of current refinement
+   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
+   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometrymaps of original mesh
 
    PrimitiveID _invalidID;
 };

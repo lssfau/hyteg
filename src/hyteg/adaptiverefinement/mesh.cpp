@@ -56,9 +56,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       // extract vertices
       _n_vertices = setupStorage.getVertices().size();
       _vertices.resize( _n_vertices );
-      _vertexBoundaryFlag.resize( _n_vertices );
-      _vertexGeometryMap.resize( _n_vertices );
-      _vertexTargetRank.resize( _n_vertices );
+      _V.resize( _n_vertices );
 
       // [0,1,...,n-1]
       std::vector< uint_t > vtxIndices( _n_vertices );
@@ -71,12 +69,9 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       {
          // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
-         // extract geometrymap of vertex
-         _vertexGeometryMap[idx] = id;
-         // extract boundaryFlag of vertex
-         _vertexBoundaryFlag[idx] = vtx->getMeshBoundaryFlag();
-         // extract targetRank
-         _vertexTargetRank[idx] = setupStorage.getTargetRank( PrimitiveID( id ) );
+         // extract geometrymap, boundaryflag, primitiveid and targetrank
+         _V[idx] = VertexData( id, vtx->getMeshBoundaryFlag(), id, { { idx } }, setupStorage.getTargetRank( id ) );
+
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
@@ -94,7 +89,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       {
          edge->getNeighborVertices( v );
          auto myEdge = fac.make_edge( conversion[v[0]], conversion[v[1]] );
-         myEdge->setPrimitiveID( PrimitiveID::create( idx ) );
+         myEdge->setPrimitiveID( id );
          myEdge->setGeometryMap( id );
          myEdge->setBoundaryFlag( edge->getMeshBoundaryFlag() );
          myEdge->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
@@ -105,23 +100,21 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       {
          face->getNeighborVertices( v );
          auto myFace = fac.make_face( conversion[v[0]], conversion[v[1]], conversion[v[2]] );
-         myFace->setPrimitiveID( PrimitiveID::create( idx ) );
+         myFace->setPrimitiveID( id );
          myFace->setGeometryMap( id );
          myFace->setBoundaryFlag( face->getMeshBoundaryFlag() );
          myFace->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
-         ++idx;
       }
 
       for ( auto& [id, cell] : setupStorage.getCells() )
       {
          cell->getNeighborVertices( v );
          auto myCell = fac.make_cell( conversion[v[0]], conversion[v[1]], conversion[v[2]], conversion[v[3]] );
-         myCell->setPrimitiveID( PrimitiveID::create( idx ) );
+         myCell->setPrimitiveID( id );
          myCell->setGeometryMap( id );
          myCell->setBoundaryFlag( cell->getMeshBoundaryFlag() );
          myCell->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
          cells.insert( myCell );
-         ++idx;
       }
 
       // insert volume elements into _T
@@ -585,38 +578,43 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
    // ****** create maps M: vertexIds -> primitiveID ******
-
    // identify edges with their vertex indices
    std::map< Idx< 2 >, EdgeData* > vertexIDXsToEdge;
    for ( auto& [_, edge] : edges )
    {
+      WALBERLA_ASSERT( _ == edge.getPrimitiveID() );
       vertexIDXsToEdge[edge.get_vertices()] = &edge;
    }
    // identify faces with their vertex IDs
    std::map< Idx< 3 >, FaceData* > vertexIDXsToFace;
    for ( auto& [_, face] : faces )
    {
+      WALBERLA_ASSERT( _ == face.getPrimitiveID() );
       vertexIDXsToFace[face.get_vertices()] = &face;
    }
 
    // ****** find primitives required locally or for halos ******
 
+   walberla::mpi::broadcastObject( _V );
+
    hyteg::MigrationMap_T nbrRanks;
 
    for ( auto& [_, vtx] : vtxs )
    {
+      WALBERLA_ASSERT( _ == vtx.getPrimitiveID() );
       vtx.setLocality( ( vtx.getTargetRank() == rank ) ? LOCAL : NONE );
    }
 
    for ( auto& [_, edge] : edges )
    {
+      WALBERLA_ASSERT( _ == edge.getPrimitiveID() );
       edge.setLocality( ( edge.getTargetRank() == rank ) ? LOCAL : NONE );
 
       auto& v = edge.get_vertices();
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( edge.isLocal() && !vtx.isLocal() )
@@ -634,13 +632,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
    for ( auto& [_, face] : faces )
    {
+      WALBERLA_ASSERT( _ == face.getPrimitiveID() );
       face.setLocality( ( face.getTargetRank() == rank ) ? LOCAL : NONE );
 
       auto& v = face.get_vertices();
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( face.isLocal() && !vtx.isLocal() )
@@ -675,13 +674,14 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
    for ( auto& [_, cell] : cells )
    {
+      WALBERLA_ASSERT( _ == cell.getPrimitiveID() );
       cell.setLocality( ( cell.getTargetRank() == rank ) ? LOCAL : NONE );
 
       auto& v = cell.get_vertices();
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( cell.isLocal() && !vtx.isLocal() )
@@ -761,7 +761,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = PrimitiveID::create( v[i] );
+         auto id = _V[v[i]].getPrimitiveID();
          WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
          vertexIDs[i] = id;
       }
@@ -785,7 +785,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = PrimitiveID::create( v[i] );
+         auto id = _V[v[i]].getPrimitiveID();
          WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
          vertexIDs[i] = id;
       }
@@ -825,7 +825,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::vector< PrimitiveID > vertexIDs( K + 1 );
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = PrimitiveID::create( v[i] );
+         auto id = _V[v[i]].getPrimitiveID();
          WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
          vertexIDs[i] = id;
       }
@@ -889,6 +889,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    PrimitiveStorage::VertexMap vtxs_ps, nbrVtxs_ps;
    for ( auto& [_, vtx] : vtxs )
    {
+      WALBERLA_ASSERT( _ == vtx.getPrimitiveID() );
       if ( vtx.isLocal() )
       {
          add_vertex( vtxs_ps, vtx );
@@ -903,6 +904,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    PrimitiveStorage::EdgeMap edges_ps, nbrEdges_ps;
    for ( auto& [_, edge] : edges )
    {
+      WALBERLA_ASSERT( _ == edge.getPrimitiveID() );
       if ( edge.isLocal() )
       {
          add_edge( edges_ps, edge );
@@ -917,6 +919,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    PrimitiveStorage::FaceMap faces_ps, nbrFaces_ps;
    for ( auto& [_, face] : faces )
    {
+      WALBERLA_ASSERT( _ == face.getPrimitiveID() );
       if ( face.isLocal() )
       {
          add_face( faces_ps, face );
@@ -931,6 +934,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    PrimitiveStorage::CellMap cells_ps, nbrCells_ps;
    for ( auto& [_, cell] : cells )
    {
+      WALBERLA_ASSERT( _ == cell.getPrimitiveID() );
       if ( cell.isLocal() )
       {
          add_cell( cells_ps, cell );
@@ -956,7 +960,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -977,7 +981,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -1013,7 +1017,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         auto& vtx = vtxs[PrimitiveID::create( vtxIdx )];
+         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -1058,6 +1062,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
             nbrFaces_ps[face->getPrimitiveID()]->addCell( id );
          }
       }
+   }
+
+   // vertex data only required on rank 0
+   if ( rank != 0 )
+   {
+      _V.clear();
    }
 
    // ****** create PrimitiveStorage ******
@@ -1107,37 +1117,25 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          }
       }
 
-      // collect data and add PrimitiveIDs
-      uint_t idx;
       // collect vertexdata
-      for ( idx = 0; idx < _vertices.size(); ++idx )
+      for ( auto& vtx : _V )
       {
-         auto id      = PrimitiveID::create( idx );
-         vtxData[id] = VertexData( _vertexGeometryMap[idx], _vertexBoundaryFlag[idx], id, { { idx } },_vertexTargetRank[idx] );
+         vtxData[vtx.getPrimitiveID()] = vtx;
       }
       // collect edgedata
       for ( auto& edge : edges )
       {
-         auto id = PrimitiveID::create( idx );
-         edge->setPrimitiveID( id );
-         edgeData[id] = EdgeData( edge.get() );
-         ++idx;
+         edgeData[edge->getPrimitiveID()] = EdgeData( edge.get() );
       }
       // collect facedata
       for ( auto& face : faces )
       {
-         auto id = PrimitiveID::create( idx );
-         face->setPrimitiveID( id );
-         faceData[id] = FaceData( face.get() );
-         ++idx;
+         faceData[face->getPrimitiveID()] = FaceData( face.get() );
       }
       // collect celldata
       for ( auto& cell : cells )
       {
-         auto id = PrimitiveID::create( idx );
-         cell->setPrimitiveID( id );
-         cellData[id] = CellData( cell.get() );
-         ++idx;
+         cellData[cell->getPrimitiveID()] = CellData( cell.get() );
       }
    }
 
@@ -1165,7 +1163,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          }
          for ( auto& idx : el->get_vertices() )
          {
-            auto id = PrimitiveID::create( idx );
+            auto id = _V[idx].getPrimitiveID();
             WALBERLA_ASSERT( vtxData[id].get_vertices()[0] == idx );
             nbrHood[el->getPrimitiveID()][VTX].push_back( id );
          }
@@ -1181,6 +1179,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
       {
          for ( const auto& [id2, _] : nbrHood )
          {
+            WALBERLA_UNUSED( _ );
             uint_t d = 0;
             if constexpr ( K_Simplex::TYPE == CELL )
             {
@@ -1202,6 +1201,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    i = 0;
    for ( auto& [_, nbrHood_1] : nbrHood )
    {
+      WALBERLA_UNUSED( _ );
       walberla::mpi::broadcastObject( nbrHood_1[K_Simplex::TYPE], int( i % _n_processes ) );
       ++i;
    }
@@ -1248,9 +1248,10 @@ void K_Mesh< K_Simplex >::update_targetRank( const std::map< PrimitiveID, Vertex
       }
 
       // add targetRank to vertices
-      for ( auto& [_, vtx] : vtxData )
+      for ( auto& [id, vtx] : vtxData )
       {
-         _vertexTargetRank[vtx.get_vertices()[0]] = vtx.getTargetRank();
+         WALBERLA_ASSERT( id == _V[vtx.get_vertices()[0]].getPrimitiveID() );
+         _V[vtx.get_vertices()[0]].setTargetRank( vtx.getTargetRank() );
       }
       // add targetRank to edges
       for ( auto& edge : edges )
@@ -1333,11 +1334,11 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
       std::set< std::shared_ptr< K_Simplex > > subelements;
       if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
       {
-         subelements = refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, el );
+         subelements = refine_face_red( _vertices, _V, el );
       }
       if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
       {
-         subelements = refine_cell_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, el );
+         subelements = refine_cell_red( _vertices, _V, el );
       }
 
       // if this red step only replaced a green step, subelements must be checked again
@@ -1409,7 +1410,7 @@ std::set< std::shared_ptr< Simplex3 > >
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, _vertexGeometryMap, _vertexBoundaryFlag, _vertexTargetRank, face );
+               refine_face_red( _vertices, _V, face );
             }
 
             ++n_red;

@@ -26,15 +26,39 @@ namespace hyteg {
 namespace adaptiveRefinement {
 
 /* apply edge bisection
-      @param edge the edge to be bisected
-      @param vtx index of the vertex on the edge midpoint
-   */
-inline void bisect_edge( std::shared_ptr< Simplex1 > edge, uint_t vtx )
+   @param vertices      global coordinates of all vertices in the mesh
+   @param vtxData       geometrymap, boundaryflag etc. of all vertices in the mesh
+   @param edge          the edge to be bisected
+   @return vtx index of the newly created vertex on the edge midpoint
+*/
+inline uint_t
+    bisect_edge( std::vector< Point3D >& vertices, std::vector< VertexData >& vtxData, std::shared_ptr< Simplex1 > edge )
 {
    WALBERLA_ASSERT( !edge->has_children() );
-   edge->set_midpoint_idx( vtx );
-   edge->add_child( std::make_shared< Simplex1 >( edge->get_vertices()[0], vtx, edge ) );
-   edge->add_child( std::make_shared< Simplex1 >( vtx, edge->get_vertices()[1], edge ) );
+
+   // create child IDs
+   auto childIDs = edge->getPrimitiveID().createChildren();
+
+   // vertex indices
+   const auto vtx0  = edge->get_vertices()[0];
+   const auto vtx1  = edge->get_vertices()[1];
+   uint_t     vtx01 = vertices.size();
+
+   // add midpoint to list of all vertices
+   vertices.push_back( ( vertices[vtx0] + vertices[vtx1] ) / 2 );
+   // add vertex data
+   vtxData.push_back(
+       VertexData( edge->getGeometryMap(), edge->getBoundaryFlag(), childIDs[0], { { vtx01 } }, edge->getTargetRank() ) );
+
+   // refine edge
+   edge->set_midpoint_idx( vtx01 );
+   edge->add_child( std::make_shared< Simplex1 >( vtx0, vtx01, edge ) );
+   edge->add_child( std::make_shared< Simplex1 >( vtx01, vtx1, edge ) );
+   // add IDs to child edges
+   edge->get_children()[0]->setPrimitiveID( childIDs[1] );
+   edge->get_children()[1]->setPrimitiveID( childIDs[2] );
+
+   return vtx01;
 }
 
 } // namespace adaptiveRefinement

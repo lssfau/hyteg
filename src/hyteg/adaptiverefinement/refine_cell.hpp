@@ -34,11 +34,8 @@ namespace adaptiveRefinement {
    @param cell          subject to refinement
    @return sub-elements
 */
-inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&     vertices,
-                                                                std::vector< PrimitiveID >& geometryMap,
-                                                                std::vector< uint_t >&      boundaryFlag,
-                                                                std::vector< uint_t >&      targetRank,
-                                                                std::shared_ptr< Simplex3 > cell )
+inline std::set< std::shared_ptr< Simplex3 > >
+    refine_cell_red( std::vector< Point3D >& vertices, std::vector< VertexData >& vtxData, std::shared_ptr< Simplex3 > cell )
 {
    // === split faces ===
    for ( auto& face : cell->get_faces() )
@@ -52,7 +49,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
       if ( !face->has_children() )
       {
          // apply red refinement to face
-         refine_face_red( vertices, geometryMap, boundaryFlag, targetRank, face );
+         refine_face_red( vertices, vtxData, face );
       }
    }
 
@@ -82,9 +79,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    {
       for ( uint_t j = i + 1; j < 4; ++j )
       {
-         auto mp = cell->get_Edge( ref_vertices[i], ref_vertices[j] )->get_midpoint_idx();
-         WALBERLA_ASSERT( mp >= 0 );
-         ref_vertices[refIdx( i, j )] = uint_t( mp );
+         ref_vertices[refIdx( i, j )] = cell->get_Edge( ref_vertices[i], ref_vertices[j] )->get_midpoint_idx();
+         ;
       }
    }
 
@@ -126,7 +122,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
 
    // === new edge in cell interior ===
    // following Bey
-   fac.make_edge( _02, _13 );
+   auto newEdge = fac.make_edge( _02, _13 );
 
    // === collect faces ===
 
@@ -152,15 +148,17 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    // === new inner faces ===
 
    // inner faces "cutting off" the parent cells vertices
-   fac.make_face( _01, _02, _03 );
-   fac.make_face( _01, _12, _13 );
-   fac.make_face( _02, _12, _23 );
-   fac.make_face( _03, _13, _23 );
+   std::array< std::shared_ptr< Simplex2 >, 8 > newFaces;
+   newFaces[0] = fac.make_face( _01, _02, _03 );
+   newFaces[1] = fac.make_face( _01, _12, _13 );
+   newFaces[2] = fac.make_face( _02, _12, _23 );
+   newFaces[3] = fac.make_face( _03, _13, _23 );
 
    // inner faces connecting the new inner edge with the remaining edge midpoints
-   for ( auto& vtx : { _01, _03, _12, _23 } )
+   std::vector< uint_t > edgeMidpts{ _01, _03, _12, _23 };
+   for ( uint_t i = 0; i < edgeMidpts.size(); ++i )
    {
-      fac.make_face( vtx, _02, _13 );
+      newFaces[i + 4] = fac.make_face( edgeMidpts[i], _02, _13 );
    }
 
    // === new cells ===
@@ -176,6 +174,20 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Poi
    cell->add_child( fac.make_cell( _01, _02, _12, _13 ) );
    cell->add_child( fac.make_cell( _02, _03, _13, _23 ) );
    cell->add_child( fac.make_cell( _02, _12, _13, _23 ) );
+
+   // === child IDs ===
+
+   auto childIDs = cell->getPrimitiveID().createChildren();
+   newEdge->setPrimitiveID( childIDs[0] );
+   for ( uint_t i = 0; i < newFaces.size(); ++i )
+   {
+      newFaces[i]->setPrimitiveID( childIDs[i + 1] );
+   }
+   auto& children = cell->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+   }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
 }
@@ -206,11 +218,9 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
 
    for ( auto& edge : cell->get_edges() )
    {
-      int64_t midpt = edge->get_midpoint_idx();
-
-      if ( midpt >= 0 )
+      if ( edge->has_children() )
       {
-         ref_vertices[4] = uint_t( midpt );
+         ref_vertices[4] = edge->get_midpoint_idx();
          split_edge      = edge;
          break;
       }
@@ -260,12 +270,22 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
 
    // === new interior face ===
 
-   fac.make_face( 0, 3, 4 );
+   auto newFace = fac.make_face( 0, 3, 4 );
 
    // === split cell ===
 
    cell->add_child( fac.make_cell( 0, 1, 4, 3 ) );
    cell->add_child( fac.make_cell( 0, 2, 4, 3 ) );
+
+   // === child IDs ===
+
+   auto childIDs = cell->getPrimitiveID().createChildren();
+   newFace->setPrimitiveID( childIDs[1] );
+   auto& children = cell->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+   }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
 }
@@ -300,11 +320,9 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
       if ( split_idx >= 2 )
          break;
 
-      int64_t midpt = edge->get_midpoint_idx();
-
-      if ( midpt >= 0 )
+      if ( edge->has_children() )
       {
-         ref_vertices[4 + split_idx] = uint_t( midpt );
+         ref_vertices[4 + split_idx] = edge->get_midpoint_idx();
          split_edges[split_idx]      = edge;
          ++split_idx;
       }
@@ -358,13 +376,14 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    fac.add_edge( 3, 5, child_faces3[1]->get_Edge( ref_vertices[3], ref_vertices[5] ) );
 
    // new edge in cell interior
-   fac.make_edge( 4, 5, GREEN );
+   auto newEdge = fac.make_edge( 4, 5, GREEN );
 
    // === new faces in cell interior
 
+   std::array< std::shared_ptr< Simplex2 >, 4 > newFaces;
    for ( uint_t k = 0; k < 4; ++k )
    {
-      fac.make_face( k, 4, 5 );
+      newFaces[k] = fac.make_face( k, 4, 5 );
    }
 
    // === split cell ===
@@ -373,6 +392,20 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    cell->add_child( fac.make_cell( 0, 2, 4, 5 ) );
    cell->add_child( fac.make_cell( 1, 3, 4, 5 ) );
    cell->add_child( fac.make_cell( 2, 3, 4, 5 ) );
+
+   // === child IDs ===
+
+   auto childIDs = cell->getPrimitiveID().createChildren();
+   newEdge->setPrimitiveID( childIDs[0] );
+   for ( uint_t i = 0; i < newFaces.size(); ++i )
+   {
+      newFaces[i]->setPrimitiveID( childIDs[i + 1] );
+   }
+   auto& children = cell->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+   }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
 }
@@ -405,9 +438,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    for ( uint_t k = 0; k < 3; ++k )
    {
       ref_vertices[k] = red_vtxs[k];
-      int64_t mp      = red_edges[k]->get_midpoint_idx();
-      WALBERLA_ASSERT( mp >= 0 );
-      ref_vertices[k + 4] = uint_t( mp );
+      ref_vertices[k + 4] = red_edges[k]->get_midpoint_idx();
    }
 
    // top vertex
@@ -485,9 +516,11 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
 
    // === new faces in cell interior
 
-   fac.make_face( 3, 4, 5 );
-   fac.make_face( 3, 5, 6 );
-   fac.make_face( 3, 4, 6 );
+   std::array< std::shared_ptr< Simplex2 >, 3 > newFaces;
+
+   newFaces[0] = fac.make_face( 3, 4, 5 );
+   newFaces[1] = fac.make_face( 3, 5, 6 );
+   newFaces[2] = fac.make_face( 3, 4, 6 );
 
    // === split cell ===
 
@@ -495,6 +528,19 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    cell->add_child( fac.make_cell( 1, 4, 5, 3 ) );
    cell->add_child( fac.make_cell( 2, 5, 6, 3 ) );
    cell->add_child( fac.make_cell( 4, 5, 6, 3 ) );
+
+   // === child IDs ===
+
+   auto childIDs = cell->getPrimitiveID().createChildren();
+   for ( uint_t i = 0; i < newFaces.size(); ++i )
+   {
+      newFaces[i]->setPrimitiveID( childIDs[i + 1] );
+   }
+   auto& children = cell->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+   }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
 }

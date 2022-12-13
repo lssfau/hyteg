@@ -51,57 +51,21 @@ namespace adaptiveRefinement {
       0---------3---------1
          [0]        [1]
    @param vertices      global coordinates of all vertices in the mesh
-   @param geometryMap   geometrymap ID of all vertices in the mesh
-   @param boundaryFlag  boundaryFlag of all vertices in the mesh
-   @param targetRank    targetRank of all vertices in the mesh
+   @param vtxData       geometrymap, boundaryflag etc. of all vertices in the mesh
    @param face          subject to refinement
    @return sub-elements
-   */
-inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Point3D >&     vertices,
-                                                                std::vector< PrimitiveID >& geometryMap,
-                                                                std::vector< uint_t >&      boundaryFlag,
-                                                                std::vector< uint_t >&      targetRank,
-                                                                std::shared_ptr< Simplex2 > face )
+*/
+inline std::set< std::shared_ptr< Simplex2 > >
+    refine_face_red( std::vector< Point3D >& vertices, std::vector< VertexData >& vtxData, std::shared_ptr< Simplex2 > face )
 {
    // === prepare sets of vertices and edges for face->split() ===
 
-   // add new vertices ======================
+   // collect old vertices ======================
 
-   std::vector< uint_t > ref_vertices( 6 ); // vertices of refined element
+   std::vector< uint_t > ref_vertices( 6 );
    for ( uint_t i = 0; i < 3; ++i )
    {
       ref_vertices[i] = face->get_vertices()[i];
-   }
-
-   for ( uint_t i = 0; i < 3; ++i )
-   {
-      auto edge = face->get_edges()[i];
-
-      int64_t midIdx = edge->get_midpoint_idx();
-
-      if ( midIdx >= 0 )
-      {
-         ref_vertices[3 + i] = uint_t( midIdx );
-      }
-      else
-      {
-         // compute edge midpoint
-         Point3D x0 = vertices[edge->get_vertices()[0]];
-         Point3D x1 = vertices[edge->get_vertices()[1]];
-         Point3D mid;
-         for ( int j = 0; j < 3; ++j )
-         {
-            mid[j] = ( x0[j] + x1[j] ) / 2;
-         }
-         // add midpoint to refined vertices
-         ref_vertices[3 + i] = vertices.size();
-         // add midpoint to list of all vertices
-         vertices.push_back( mid );
-         // add properties of new vertex
-         geometryMap.push_back( edge->getGeometryMap() );
-         boundaryFlag.push_back( edge->getBoundaryFlag() );
-         targetRank.push_back( edge->getTargetRank() );
-      }
    }
 
    // bisect edges ======================
@@ -112,9 +76,13 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
    {
       auto edge = face->get_edges()[i];
 
-      if ( !edge->has_children() )
+      if ( edge->has_children() )
       {
-         bisect_edge( edge, ref_vertices[3 + i] );
+         ref_vertices[3 + i] = edge->get_midpoint_idx();
+      }
+      else
+      {
+         ref_vertices[3 + i] = bisect_edge( vertices, vtxData, edge );
       }
 
       auto child_edges     = edge->get_children_sorted( { ref_vertices[i], ref_vertices[( i + 1 ) % 3] } );
@@ -123,6 +91,8 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
    }
 
    // add inner edges ======================
+
+   auto childIDs = face->getPrimitiveID().createChildren();
 
    for ( uint_t i = 0; i < 3; ++i )
    {
@@ -135,6 +105,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
                                                        face->getGeometryMap(),
                                                        face->getBoundaryFlag(),
                                                        face->getTargetRank() );
+      ref_edges[6 + i]->setPrimitiveID( childIDs[i] );
    }
 
    // === split face ===
@@ -155,6 +126,12 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
    std::array< uint_t, 3 >                      v3{ ref_vertices[4], ref_vertices[5], ref_vertices[3] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e3{ ref_edges[7], ref_edges[8], ref_edges[6] };
    face->add_child( std::make_shared< Simplex2 >( v3, e3, face ) );
+
+   auto& children = face->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 3] );
+   }
 
    return std::set< std::shared_ptr< Simplex2 > >( face->get_children().begin(), face->get_children().end() );
 }
@@ -205,9 +182,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    {
       ref_vertices[i] = face->get_vertices()[( i + offset ) % 3];
    }
-   int64_t mp = edge->get_midpoint_idx();
-   WALBERLA_ASSERT( mp >= 0 );
-   ref_vertices[3] = uint_t( mp );
+   ref_vertices[3] = edge->get_midpoint_idx();
 
    // get edges ======================
 
@@ -236,6 +211,15 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    std::array< uint_t, 3 >                      v1{ ref_vertices[1], ref_vertices[2], ref_vertices[3] };
    std::array< std::shared_ptr< Simplex1 >, 3 > e1{ ref_edges[1], ref_edges[2], ref_edges[4] };
    face->add_child( std::make_shared< Simplex2 >( v1, e1, face ) );
+
+   // add IDs to children
+   auto childIDs = face->getPrimitiveID().createChildren();
+   ref_edges[4]->setPrimitiveID( childIDs[0] );
+   auto& children = face->get_children();
+   for ( uint_t i = 0; i < children.size(); ++i )
+   {
+      children[i]->setPrimitiveID( childIDs[i + 3] );
+   }
 
    return std::set< std::shared_ptr< Simplex2 > >( face->get_children().begin(), face->get_children().end() );
 }
