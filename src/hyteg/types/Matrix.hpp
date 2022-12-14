@@ -30,13 +30,13 @@ using walberla::uint_t;
 
 
 template < uint_t M, uint_t N >
-using Matrixr = Eigen::Matrix< real_t, M, N >;
+using Matrixr = Eigen::Matrix< real_t, M, N, Eigen::RowMajor >;
 template < typename T, uint_t M, uint_t N >
-using Matrix = Eigen::Matrix< T, M, N >;
-typedef Eigen::Matrix< real_t, 2, 2 >   Matrix2r;
-typedef Eigen::Matrix< real_t, 3, 3 >   Matrix3r;
-typedef Eigen::Matrix< real_t, 4, 4 >   Matrix4r;
-typedef Eigen::Matrix< real_t, 6, 6 >   Matrix6r;
-typedef Eigen::Matrix< real_t, 10, 10 > Matrix10r;
+using Matrix = Eigen::Matrix< T, M, N, Eigen::RowMajor >;
+typedef Eigen::Matrix< real_t, 2, 2, Eigen::RowMajor >   Matrix2r;
+typedef Eigen::Matrix< real_t, 3, 3, Eigen::RowMajor >   Matrix3r;
+typedef Eigen::Matrix< real_t, 4, 4, Eigen::RowMajor >   Matrix4r;
+typedef Eigen::Matrix< real_t, 6, 6, Eigen::RowMajor >   Matrix6r;
+typedef Eigen::Matrix< real_t, 10, 10, Eigen::RowMajor > Matrix10r;
 
 } // namespace hyteg
