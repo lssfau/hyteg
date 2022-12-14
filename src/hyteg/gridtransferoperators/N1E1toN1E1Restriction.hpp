@@ -41,9 +41,18 @@ class N1E1toN1E1Restriction : public RestrictionOperator< N1E1VectorFunction< re
                             const DoFType&                      flag,
                             const UpdateType&                   updateType ) const;
 
-   void setToZeroIfNeededMacroEdge( FunctionMemory< real_t >* data, const uint_t& level, const UpdateType& updateType ) const;
-   void setToZeroIfNeededMacroFace( FunctionMemory< real_t >* data, const uint_t& level, const UpdateType& updateType ) const;
-   void setToZeroIfNeededMacroCell( FunctionMemory< real_t >* data, const uint_t& level, const UpdateType& updateType ) const;
+   void setToZeroIfNeededMacroEdge( const uint_t&                                            level,
+                                    const Edge&                                              edge,
+                                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeDataID,
+                                    const UpdateType&                                        updateType ) const;
+   void setToZeroIfNeededMacroFace( const uint_t&                                            level,
+                                    const Face&                                              face,
+                                    const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceDataID,
+                                    const UpdateType&                                        updateType ) const;
+   void setToZeroIfNeededMacroCell( const uint_t&                                            level,
+                                    const Cell&                                              cell,
+                                    const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellDataID,
+                                    const UpdateType&                                        updateType ) const;
 
    void restrictMacroEdge( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
    void restrictMacroFace( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;

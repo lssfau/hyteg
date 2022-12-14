@@ -22,6 +22,7 @@
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 
 namespace hyteg {
@@ -44,7 +45,7 @@ void N1E1toN1E1Restriction::restrictAdditively( const N1E1VectorFunction< real_t
       {
          auto data = edge.getData( function.getDoFs()->getEdgeDataID() );
 
-         setToZeroIfNeededMacroEdge( data, destinationLevel, updateType );
+         setToZeroIfNeededMacroEdge( destinationLevel, edge, function.getDoFs()->getEdgeDataID(), updateType );
          restrictMacroEdge( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
@@ -57,7 +58,7 @@ void N1E1toN1E1Restriction::restrictAdditively( const N1E1VectorFunction< real_t
       {
          auto data = face.getData( function.getDoFs()->getFaceDataID() );
 
-         setToZeroIfNeededMacroFace( data, destinationLevel, updateType );
+         setToZeroIfNeededMacroFace( destinationLevel, face, function.getDoFs()->getFaceDataID(), updateType );
          restrictMacroFace( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
@@ -70,7 +71,7 @@ void N1E1toN1E1Restriction::restrictAdditively( const N1E1VectorFunction< real_t
       {
          auto data = cell.getData( function.getDoFs()->getCellDataID() );
 
-         setToZeroIfNeededMacroCell( data, destinationLevel, updateType );
+         setToZeroIfNeededMacroCell( destinationLevel, cell, function.getDoFs()->getCellDataID(), updateType );
          restrictMacroCell( data->getPointer( sourceLevel ), data->getPointer( destinationLevel ), sourceLevel );
       }
    }
@@ -82,91 +83,46 @@ void N1E1toN1E1Restriction::restrictAdditively( const N1E1VectorFunction< real_t
    function.communicateAdditively< Cell, Edge >( destinationLevel, false );
 }
 
-void N1E1toN1E1Restriction::setToZeroIfNeededMacroEdge( FunctionMemory< real_t >* data,
-                                                        const uint_t&             level,
-                                                        const UpdateType&         updateType ) const
+void N1E1toN1E1Restriction::setToZeroIfNeededMacroEdge( const uint_t&                                            level,
+                                                        const Edge&                                              edge,
+                                                        const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeDataID,
+                                                        const UpdateType& updateType ) const
 {
    if ( updateType == Replace )
    {
-      data->setToZero( level );
+      edge.getData( edgeDataID )->setToZero( level );
    }
+   // updateType == Add: edges have no boundary ⇒ nothing to be done
 }
 
-void N1E1toN1E1Restriction::setToZeroIfNeededMacroFace( FunctionMemory< real_t >* data,
-                                                        const uint_t&             level,
-                                                        const UpdateType&         updateType ) const
+void N1E1toN1E1Restriction::setToZeroIfNeededMacroFace( const uint_t&                                            level,
+                                                        const Face&                                              face,
+                                                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceDataID,
+                                                        const UpdateType& updateType ) const
 {
    switch ( updateType )
    {
    case Replace:
-      data->setToZero( level );
+      face.getData( faceDataID )->setToZero( level );
       break;
    case Add:
-      // TODO make edgedoffunction method
-      real_t* dst = data->getPointer( level );
-
-      for ( const auto& idx :
-            edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT ) )
-      {
-         dst[edgedof::macroface::horizontalIndex( level, idx.col(), idx.row() )] = 0.0;
-      }
-
-      for ( const auto& idx : edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP ) )
-      {
-         dst[edgedof::macroface::verticalIndex( level, idx.col(), idx.row() )] = 0.0;
-      }
-
-      for ( const auto& idx :
-            edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP ) )
-      {
-         dst[edgedof::macroface::diagonalIndex( level, idx.col(), idx.row() )] = 0.0;
-      }
-
+      edgedof::macroface::setBoundaryToZero( level, face, faceDataID );
       break;
    }
 }
 
-void N1E1toN1E1Restriction::setToZeroIfNeededMacroCell( FunctionMemory< real_t >* data,
-                                                        const uint_t&             level,
-                                                        const UpdateType&         updateType ) const
+void N1E1toN1E1Restriction::setToZeroIfNeededMacroCell( const uint_t&                                            level,
+                                                        const Cell&                                              cell,
+                                                        const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellDataID,
+                                                        const UpdateType& updateType ) const
 {
    switch ( updateType )
    {
    case Replace:
-      data->setToZero( level );
+      cell.getData( cellDataID )->setToZero( level );
       break;
    case Add:
-      // TODO make edgedoffunction method
-      real_t* dst = data->getPointer( level );
-
-      for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 1, 2 ) )
-      {
-         dst[edgedof::macrocell::xIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::yIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::xyIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-      }
-
-      for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 1, 3 ) )
-      {
-         dst[edgedof::macrocell::xIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::zIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::xzIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-      }
-
-      for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 2, 3 ) )
-      {
-         dst[edgedof::macrocell::yIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::zIndex( level, idx.x(), idx.y(), idx.z() )]  = 0.0;
-         dst[edgedof::macrocell::yzIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-      }
-
-      for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 1, 2, 3 ) )
-      {
-         dst[edgedof::macrocell::xyIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-         dst[edgedof::macrocell::xzIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-         dst[edgedof::macrocell::yzIndex( level, idx.x(), idx.y(), idx.z() )] = 0.0;
-      }
-
+      edgedof::macrocell::setBoundaryToZero( level, cell, cellDataID );
       break;
    }
 }

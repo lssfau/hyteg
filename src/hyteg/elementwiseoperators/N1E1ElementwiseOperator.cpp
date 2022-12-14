@@ -22,6 +22,7 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
@@ -140,18 +141,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       //
       // This is also necessary when using update type == Add.
       // During additive comm we then skip zeroing the data on the lower-dim primitives.
-
-      for ( const auto& idx : edgedof::macrocell::Iterator( level ) )
-      {
-         for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
-         {
-            if ( !edgedof::macrocell::isInnerEdgeDoF( level, idx, orientation ) )
-            {
-               auto arrayIdx         = edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation );
-               dstEdgeData[arrayIdx] = real_c( 0 );
-            }
-         }
-      }
+      edgedof::macrocell::setBoundaryToZero( level, cell, dstEdgeDoFIdx );
 
       Matrix6r elMat;
 

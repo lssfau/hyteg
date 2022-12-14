@@ -1110,6 +1110,30 @@ inline void applyDirichletBC( const uint_t&                                     
    }
 }
 
+template < typename ValueType >
+inline void setBoundaryToZero( const uint_t&                                               level,
+                               const Face&                                                 face,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceDataID )
+{
+   real_t* data = face.getData( faceDataID )->getPointer( level );
+
+   for ( const auto& idx : edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT ) )
+   {
+      data[edgedof::macroface::horizontalIndex( level, idx.col(), idx.row() )] = 0;
+   }
+
+   for ( const auto& idx : edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP ) )
+   {
+      data[edgedof::macroface::verticalIndex( level, idx.col(), idx.row() )] = 0;
+   }
+
+   for ( const auto& idx :
+         edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+   {
+      data[edgedof::macroface::diagonalIndex( level, idx.col(), idx.row() )] = 0;
+   }
+}
+
 } // namespace macroface
 } // namespace edgedof
 } // namespace hyteg
