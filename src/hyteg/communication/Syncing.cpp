@@ -20,7 +20,6 @@
 #include "Syncing.hpp"
 
 #include "hyteg/functions/Function.hpp"
-#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"
@@ -97,10 +96,6 @@ template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< doubl
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< float >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int32_t >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int64_t >& function, const uint_t& level );
-
-template void syncFunctionBetweenPrimitives( const n1e1::N1E1VectorFunction< double >& function, const uint_t& level );
-template void syncFunctionBetweenPrimitives( const n1e1::N1E1VectorFunction< int32_t >& function, const uint_t& level );
-template void syncFunctionBetweenPrimitives( const n1e1::N1E1VectorFunction< int64_t >& function, const uint_t& level );
 
 } // namespace communication
 } // namespace hyteg

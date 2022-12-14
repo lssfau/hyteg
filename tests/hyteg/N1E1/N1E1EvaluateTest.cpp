@@ -55,7 +55,6 @@ void test3D()
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       f.interpolate( testFunc, level );
-      communication::syncFunctionBetweenPrimitives( f, level );
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {

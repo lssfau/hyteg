@@ -76,7 +76,6 @@ void test( std::function< Eigen::Vector3r( const Point3D& ) > f, const Result& r
    {
       x.interpolate( f, level );
       curlCurl.apply( x, b, level, DoFType::All );
-      communication::syncFunctionBetweenPrimitives( b, level );
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {

@@ -68,8 +68,10 @@ void test( const uint_t fineLevel, const MeshInfo meshInfo, const bool print = f
    // fill vectors with junk, in particular ghost layers!
    f.interpolate( 3.14, coarseLevel );
    f.interpolate( 3.14, fineLevel );
-   communication::syncFunctionBetweenPrimitives( f, coarseLevel );
-   communication::syncFunctionBetweenPrimitives( f, fineLevel );
+   f.communicate< Edge, Face >( coarseLevel );
+   f.communicate< Face, Cell >( coarseLevel );
+   f.communicate< Edge, Face >( fineLevel );
+   f.communicate< Face, Cell >( fineLevel );
 
    // assemble prolongation matrix
    for ( uint_t j = 0; j < nCoarse; ++j )
@@ -105,8 +107,10 @@ void test( const uint_t fineLevel, const MeshInfo meshInfo, const bool print = f
    // fill vectors with junk, in particular ghost layers!
    f.interpolate( 3.14, coarseLevel );
    f.interpolate( 3.14, fineLevel );
-   communication::syncFunctionBetweenPrimitives( f, coarseLevel );
-   communication::syncFunctionBetweenPrimitives( f, fineLevel );
+   f.communicate< Edge, Face >( coarseLevel );
+   f.communicate< Face, Cell >( coarseLevel );
+   f.communicate< Edge, Face >( fineLevel );
+   f.communicate< Face, Cell >( fineLevel );
 
    // assemble restriction matrix
    for ( uint_t j = 0; j < nFine; ++j )

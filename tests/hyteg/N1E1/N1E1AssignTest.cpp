@@ -63,7 +63,6 @@ void test3D()
       f1.interpolate( testFunc1, level );
       f2.interpolate( testFunc2, level );
       f3.assign( { 1, 2 }, { f1, f2 }, level );
-      communication::syncFunctionBetweenPrimitives( f3, level );
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {

@@ -68,8 +68,10 @@ void test( const uint_t lvl, const MeshInfo meshInfo, const bool print = false )
    // fill vectors with junk, in particular ghost layers!
    fP1.interpolate( 3.14, lvl );
    fN1E1.interpolate( 3.14, lvl );
-   communication::syncFunctionBetweenPrimitives( fP1, lvl );
-   communication::syncFunctionBetweenPrimitives( fN1E1, lvl );
+   fP1.communicate< Edge, Face >( lvl );
+   fP1.communicate< Face, Cell >( lvl );
+   fN1E1.communicate< Edge, Face >( lvl );
+   fN1E1.communicate< Face, Cell >( lvl );
 
    // assemble gradient matrix
    for ( uint_t j = 0; j < nP1; ++j )
@@ -105,8 +107,10 @@ void test( const uint_t lvl, const MeshInfo meshInfo, const bool print = false )
    // fill vectors with junk, in particular ghost layers!
    fP1.interpolate( 3.14, lvl );
    fN1E1.interpolate( 3.14, lvl );
-   communication::syncFunctionBetweenPrimitives( fP1, lvl );
-   communication::syncFunctionBetweenPrimitives( fN1E1, lvl );
+   fP1.communicate< Edge, Face >( lvl );
+   fP1.communicate< Face, Cell >( lvl );
+   fN1E1.communicate< Edge, Face >( lvl );
+   fN1E1.communicate< Face, Cell >( lvl );
 
    // assemble lifting matrix
    for ( uint_t j = 0; j < nN1E1; ++j )

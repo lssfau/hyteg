@@ -355,15 +355,18 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // -----------------------------------------------
    for ( const auto& function : n1e1Functions_.getFunctions< double >() )
    {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
    }
    for ( const auto& function : n1e1Functions_.getFunctions< int32_t >() )
    {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
    }
    for ( const auto& function : n1e1Functions_.getFunctions< int64_t >() )
    {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
    }
 }
 

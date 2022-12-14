@@ -121,20 +121,6 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    void communicateLocalFaceToCell( const Face* sender, Cell* receiver ) const override;
 
    inline void
-       packCellForFace( const Cell* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override
-   {
-      dofPackInfo_.packCellForFace( sender, receiver, buffer );
-   }
-   inline void unpackFaceFromCell( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
-   {
-      dofPackInfo_.unpackFaceFromCell( receiver, sender, buffer );
-   }
-   inline void communicateLocalCellToFace( const Cell* sender, Face* receiver ) const override
-   {
-      dofPackInfo_.communicateLocalCellToFace( sender, receiver );
-   }
-
-   inline void
        packVertexForCell( const Vertex* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override
    {
       dofPackInfo_.packVertexForCell( sender, receiver, buffer );

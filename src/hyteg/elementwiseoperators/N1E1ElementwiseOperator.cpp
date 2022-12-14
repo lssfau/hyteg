@@ -49,7 +49,8 @@ N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::sha
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
       edgeDirs_.getDoFs()->interpolate( 1, level );
-      communication::syncFunctionBetweenPrimitives( edgeDirs_, level );
+      edgeDirs_.communicate< Face, Cell >( level );
+      edgeDirs_.communicate< Edge, Cell >( level );
    }
 
    if ( !storage_->hasGlobalCells() )

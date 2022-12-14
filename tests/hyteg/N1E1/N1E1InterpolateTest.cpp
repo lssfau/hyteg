@@ -50,7 +50,7 @@ void test3D()
       WALBERLA_LOG_INFO_ON_ROOT( "Level: " << level )
 
       f.interpolate( c, level );
-      communication::syncFunctionBetweenPrimitives( f, level );
+      f.communicate< Edge, Face >( level );
 
       auto dofs = f.getDoFs();
 

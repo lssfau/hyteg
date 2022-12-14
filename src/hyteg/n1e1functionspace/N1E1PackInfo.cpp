@@ -38,7 +38,6 @@ N1E1PackInfo< ValueType >::N1E1PackInfo( uint_t                                 
 , dofPackInfo_( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
 {}
 
-// TODO other functions
 template < typename ValueType >
 void N1E1PackInfo< ValueType >::unpackCellFromFace( Cell*                      receiver,
                                                     const PrimitiveID&         sender,
