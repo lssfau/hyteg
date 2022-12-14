@@ -50,6 +50,29 @@ static void testPrimitiveID()
    WALBERLA_CHECK_EQUAL( id3, id0 );
    WALBERLA_CHECK_EQUAL( id4, id1 );
    WALBERLA_CHECK_EQUAL( id5, id2 );
+
+   auto parent = id1;
+   for ( uint_t k = 1; k <= PrimitiveID::maxRefinement(); ++k )
+   {
+      auto children = parent.createChildren();
+
+      SendBuffer snd;
+      for ( auto& child : children )
+      {
+         WALBERLA_CHECK_EQUAL( child.numAncestors(), k );
+         WALBERLA_CHECK_EQUAL( child.getParent(), parent );
+         snd << child;
+      }
+
+      RecvBuffer rcv( snd );
+      for ( auto& child : children )
+      {
+         rcv >> id5;
+         WALBERLA_CHECK_EQUAL( child, id5 );
+      }
+
+      parent = children[0];
+   }
 }
 
 } // namespace hyteg
