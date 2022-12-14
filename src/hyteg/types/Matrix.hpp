@@ -28,11 +28,10 @@ using walberla::int_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-
 template < uint_t M, uint_t N >
-using Matrixr = Eigen::Matrix< real_t, M, N, Eigen::RowMajor >;
+using Matrixr = Eigen::Matrix< real_t, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 template < typename T, uint_t M, uint_t N >
-using Matrix = Eigen::Matrix< T, M, N, Eigen::RowMajor >;
+using Matrix = Eigen::Matrix< T, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 typedef Eigen::Matrix< real_t, 2, 2, Eigen::RowMajor >   Matrix2r;
 typedef Eigen::Matrix< real_t, 3, 3, Eigen::RowMajor >   Matrix3r;
 typedef Eigen::Matrix< real_t, 4, 4, Eigen::RowMajor >   Matrix4r;
