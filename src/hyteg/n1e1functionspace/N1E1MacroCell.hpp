@@ -82,41 +82,18 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 {
    using ValueType = real_t;
 
-   // get vertices of microcell
+   // get micro vertex and edge dof indices of microcell
 
-   auto microCellIndices = getMicroVerticesFromMicroCell( elementIndex, cellType );
+   std::array< uint_t, 6 >          edgeDoFIndices;
+   std::array< indexing::Index, 4 > microCellIndices = getMicroVerticesFromMicroCell( elementIndex, cellType );
+   edgedof::getEdgeDoFDataIndicesFromMicroVerticesFEniCSOrdering( microCellIndices, level, edgeDoFIndices );
+
+   // get local coordinates
 
    auto microTet0 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[0] );
    auto microTet1 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[1] );
    auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
    auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
-
-   IndexIncrement vertexIndex0 =
-       IndexIncrement( int_c( microCellIndices[0].x() ), int_c( microCellIndices[0].y() ), int_c( microCellIndices[0].z() ) );
-   IndexIncrement vertexIndex1 =
-       IndexIncrement( int_c( microCellIndices[1].x() ), int_c( microCellIndices[1].y() ), int_c( microCellIndices[1].z() ) );
-   IndexIncrement vertexIndex2 =
-       IndexIncrement( int_c( microCellIndices[2].x() ), int_c( microCellIndices[2].y() ), int_c( microCellIndices[2].z() ) );
-   IndexIncrement vertexIndex3 =
-       IndexIncrement( int_c( microCellIndices[3].x() ), int_c( microCellIndices[3].y() ), int_c( microCellIndices[3].z() ) );
-
-   // get edges of microcell
-
-   auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
-   auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );
-   auto edgeIndex2 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex2 );
-   auto edgeIndex3 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex3 );
-   auto edgeIndex4 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex3 );
-   auto edgeIndex5 = edgedof::calcEdgeDoFIndex( vertexIndex2, vertexIndex3 );
-
-   auto edgeOrientation0 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
-   auto edgeOrientation1 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex2 );
-   auto edgeOrientation2 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex2 );
-   auto edgeOrientation3 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex3 );
-   auto edgeOrientation4 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex3 );
-   auto edgeOrientation5 = edgedof::calcEdgeDoFOrientation( vertexIndex2, vertexIndex3 );
-
-   // get local coordinates
 
    auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
@@ -126,49 +103,35 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 
    // get DoFs
 
-   const auto tetE0ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex0.x(), edgeIndex0.y(), edgeIndex0.z(), edgeOrientation0 );
-   const auto tetE1ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex1.x(), edgeIndex1.y(), edgeIndex1.z(), edgeOrientation1 );
-   const auto tetE2ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex2.x(), edgeIndex2.y(), edgeIndex2.z(), edgeOrientation2 );
-   const auto tetE3ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex3.x(), edgeIndex3.y(), edgeIndex3.z(), edgeOrientation3 );
-   const auto tetE4ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex4.x(), edgeIndex4.y(), edgeIndex4.z(), edgeOrientation4 );
-   const auto tetE5ArrayIdx =
-       edgedof::macrocell::index( level, edgeIndex5.x(), edgeIndex5.y(), edgeIndex5.z(), edgeOrientation5 );
-
    auto edgedofData = cell.getData( dataID )->getPointer( level );
 
-   auto valueTetE0 = edgedofData[tetE0ArrayIdx];
-   auto valueTetE1 = edgedofData[tetE1ArrayIdx];
-   auto valueTetE2 = edgedofData[tetE2ArrayIdx];
-   auto valueTetE3 = edgedofData[tetE3ArrayIdx];
-   auto valueTetE4 = edgedofData[tetE4ArrayIdx];
-   auto valueTetE5 = edgedofData[tetE5ArrayIdx];
+   auto valueTetE0 = edgedofData[edgeDoFIndices[0]];
+   auto valueTetE1 = edgedofData[edgeDoFIndices[1]];
+   auto valueTetE2 = edgedofData[edgeDoFIndices[2]];
+   auto valueTetE3 = edgedofData[edgeDoFIndices[3]];
+   auto valueTetE4 = edgedofData[edgeDoFIndices[4]];
+   auto valueTetE5 = edgedofData[edgeDoFIndices[5]];
 
    // evaluate function in reference tet
 
    // basis functions N1E1 φ(x, y, z):
-   // TODO use FEniCS ordering (for consistency)
-   //   at [0.5 0.  0. ]: (-y-z+1, x     , x     )ᵀ
-   //   at [0.  0.5 0. ]: (y     , -x-z+1, y     )ᵀ
-   //   at [0.5 0.5 0. ]: (-y    , x     , 0     )ᵀ
-   //   at [0.  0.  0.5]: (z     , z     , -x-y+1)ᵀ
-   //   at [0.5 0.  0.5]: (-z    , 0     , x     )ᵀ
-   //   at [0.  0.5 0.5]: (0     , -z    , y     )ᵀ
+   //   at [0.  0.5 0.5]: (     0,   -z  ,    y  )ᵀ
+   //   at [0.5 0.  0.5]: (  -z  ,      0,  x    )ᵀ
+   //   at [0.5 0.5 0. ]: (-y    ,  x    ,      0)ᵀ
+   //   at [0.  0.  0.5]: (   z  ,    z  , -x-y+1)ᵀ
+   //   at [0.  0.5 0. ]: ( y    , -x-z+1,    y  )ᵀ
+   //   at [0.5 0.  0. ]: (-y-z+1,  x    ,  x    )ᵀ
 
-   VectorType< ValueType > scaleE0 = valueTetE0 * VectorType< ValueType >{ -y - z + 1, x, x };
-   VectorType< ValueType > scaleE1 = valueTetE1 * VectorType< ValueType >{ y, -x - z + 1, y };
+   VectorType< ValueType > scaleE0 = valueTetE0 * VectorType< ValueType >{ 0, -z, y };
+   VectorType< ValueType > scaleE1 = valueTetE1 * VectorType< ValueType >{ -z, 0, x };
    VectorType< ValueType > scaleE2 = valueTetE2 * VectorType< ValueType >{ -y, x, 0 };
    VectorType< ValueType > scaleE3 = valueTetE3 * VectorType< ValueType >{ z, z, -x - y + 1 };
-   VectorType< ValueType > scaleE4 = valueTetE4 * VectorType< ValueType >{ -z, 0, x };
-   VectorType< ValueType > scaleE5 = valueTetE5 * VectorType< ValueType >{ 0, -z, y };
+   VectorType< ValueType > scaleE4 = valueTetE4 * VectorType< ValueType >{ y, -x - z + 1, y };
+   VectorType< ValueType > scaleE5 = valueTetE5 * VectorType< ValueType >{ -y - z + 1, x, x };
 
    VectorType< ValueType > localValue = scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
-   // transform to computational space (covariant Piola mapping)
+   // transform to affine space (covariant Piola mapping)
 
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Eigen::Matrix3r A;
