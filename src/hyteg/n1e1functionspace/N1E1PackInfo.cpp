@@ -65,6 +65,10 @@ void N1E1PackInfo< ValueType >::unpackCellFromFace( Cell*                      r
    for ( const auto& cellIterator :
          edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
    {
+      // Read DoFs from the buffer.
+      // We reuse the edgedof implementation of packFaceForCell which writes the DoFs in different order
+      // depending on if the manual or generated implementation is used.
+      // Hence the check..
       ValueType tmpX, tmpY, tmpXY;
       buffer >> tmpX;
       if ( globalDefines::useGeneratedKernels && level_ >= 1 )
