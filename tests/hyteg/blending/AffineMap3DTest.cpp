@@ -67,6 +67,7 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
 {
    // identity matrix
    Matrix3r identity;
+   identity.array() = static_cast< real_t >( 0 );
    identity( 0, 0 ) = real_c( 1.0 );
    identity( 1, 1 ) = real_c( 1.0 );
    identity( 2, 2 ) = real_c( 1.0 );
@@ -77,6 +78,9 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
    real_t alphaZ = pi / 180.0 * 35.0;
 
    Matrix3r rotX, rotY, rotZ;
+   rotX.array() = static_cast< real_t >( 0 );
+   rotY.array() = static_cast< real_t >( 0 );
+   rotZ.array() = static_cast< real_t >( 0 );
 
    rotX( 0, 0 ) = real_c( 1.0 );
    rotX( 1, 1 ) = +std::cos( alphaX );
