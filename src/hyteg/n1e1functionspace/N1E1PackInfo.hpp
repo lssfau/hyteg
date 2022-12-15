@@ -89,14 +89,8 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
    {
       dofPackInfo_.packEdgeForFace( sender, receiver, buffer );
    }
-   inline void unpackFaceFromEdge( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
-   {
-      dofPackInfo_.unpackFaceFromEdge( receiver, sender, buffer );
-   }
-   inline void communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const override
-   {
-      dofPackInfo_.communicateLocalEdgeToFace( sender, receiver );
-   }
+   void unpackFaceFromEdge( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
+   void communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const override;
 
    inline void packFaceForEdge( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const override
    {

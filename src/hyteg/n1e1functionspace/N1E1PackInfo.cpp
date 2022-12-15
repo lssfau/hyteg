@@ -39,6 +39,92 @@ N1E1PackInfo< ValueType >::N1E1PackInfo( uint_t                                 
 {}
 
 template < typename ValueType >
+void N1E1PackInfo< ValueType >::unpackFaceFromEdge( Face*                      receiver,
+                                                    const PrimitiveID&         sender,
+                                                    walberla::mpi::RecvBuffer& buffer ) const
+{
+   using edgedof::macroface::indexFromHorizontalEdge;
+   using hyteg::edgedof::macroface::BoundaryIterator;
+   ValueType*                            faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   const uint_t                          edgeIndexOnFace = receiver->edge_index( sender );
+   const int                             edgeOrientation = receiver->getEdgeOrientation()[edgeIndexOnFace];
+   const indexing::FaceBoundaryDirection faceDir         = indexing::getFaceBoundaryDirection( edgeIndexOnFace, edgeOrientation );
+   const ValueType                       sign            = numeric_cast< ValueType >( edgeOrientation );
+
+   for ( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
+   {
+      if ( edgeIndexOnFace == 0 )
+      {
+         ValueType tmp;
+         buffer >> tmp;
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+             sign * tmp;
+      }
+      else if ( edgeIndexOnFace == 2 )
+      {
+         ValueType tmp;
+         buffer >> tmp;
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+             sign * tmp;
+      }
+      else if ( edgeIndexOnFace == 1 )
+      {
+         ValueType tmp;
+         buffer >> tmp;
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+             sign * tmp;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Wrong edgeIndexOnFace" )
+      }
+   }
+}
+
+template < typename ValueType >
+void N1E1PackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const
+{
+   this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Edge to Face" );
+   using edgedof::macroface::indexFromHorizontalEdge;
+   using hyteg::edgedof::macroface::BoundaryIterator;
+   ValueType*                            faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   const ValueType*                      edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   const uint_t                          edgeIndexOnFace = receiver->edge_index( sender->getID() );
+   const int                             edgeOrientation = receiver->getEdgeOrientation()[edgeIndexOnFace];
+   const indexing::FaceBoundaryDirection faceDir         = indexing::getFaceBoundaryDirection( edgeIndexOnFace, edgeOrientation );
+   const ValueType                       sign            = numeric_cast< ValueType >( edgeOrientation );
+
+   uint_t indexOnEdge = 0;
+   for ( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
+   {
+      if ( edgeIndexOnFace == 0 )
+      {
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+             sign *
+             edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
+      }
+      else if ( edgeIndexOnFace == 2 )
+      {
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+             sign *
+             edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
+      }
+      else if ( edgeIndexOnFace == 1 )
+      {
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+             sign *
+             edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
+      }
+      else
+      {
+         WALBERLA_ABORT( "Wrong edgeIndexOnFace" )
+      }
+      ++indexOnEdge;
+   }
+   this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Edge to Face" );
+}
+
+template < typename ValueType >
 void N1E1PackInfo< ValueType >::unpackCellFromFace( Cell*                      receiver,
                                                     const PrimitiveID&         sender,
                                                     walberla::mpi::RecvBuffer& buffer ) const
