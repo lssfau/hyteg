@@ -179,7 +179,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
             }
          }
 
-         Matrix10r elMat;
+         Matrix10r elMat = Matrix10r::Zero();
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -268,7 +268,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
             }
          }
 
-         Matrix6r elMat;
+         Matrix6r elMat = Matrix6r::Zero();
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -626,7 +626,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    }
 
    // assemble local element matrix
-   Matrix10r elMat;
+   Matrix10r elMat = Matrix10r::Zero();
    P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
@@ -876,7 +876,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( const std::shared_p
    }
 
    // assemble local element matrix
-   Matrix10r elMat;
+   Matrix10r elMat = Matrix10r::Zero();
    P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
