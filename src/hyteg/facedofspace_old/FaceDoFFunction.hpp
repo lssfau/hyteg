@@ -53,6 +53,8 @@ class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
                         uint_t                                     maxLevel,
                         BoundaryCondition                          boundaryCondition );
 
+   virtual uint_t getDimension() const { return 1; }
+
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;

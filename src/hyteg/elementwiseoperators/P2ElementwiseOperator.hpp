@@ -38,6 +38,7 @@
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"

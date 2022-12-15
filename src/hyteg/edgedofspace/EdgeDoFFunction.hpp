@@ -91,6 +91,8 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// Copy assignment
    EdgeDoFFunction& operator=( const EdgeDoFFunction< ValueType >& other );
 
+   virtual uint_t getDimension() const { return 1; }
+
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;

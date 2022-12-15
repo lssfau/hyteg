@@ -22,7 +22,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/functions/VectorFunction.hpp"
+#include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -33,7 +33,7 @@ namespace hyteg {
 namespace n1e1 {
 
 template < typename ValueType >
-class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< ValueType > >
+class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType > >
 {
  public:
    using valueType  = ValueType;
@@ -416,8 +416,8 @@ class N1E1VectorFunction final : public VectorFunction< N1E1VectorFunction< Valu
    /// @}
 
  private:
-   using VectorFunction< N1E1VectorFunction< ValueType > >::communicators_;
-   using VectorFunction< N1E1VectorFunction< ValueType > >::additiveCommunicators_;
+   using Function< N1E1VectorFunction< ValueType > >::communicators_;
+   using Function< N1E1VectorFunction< ValueType > >::additiveCommunicators_;
 
    std::shared_ptr< PrimitiveStorage >             storage_;
    std::shared_ptr< EdgeDoFFunction< ValueType > > dofs_;

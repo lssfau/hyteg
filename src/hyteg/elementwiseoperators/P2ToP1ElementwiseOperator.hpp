@@ -25,6 +25,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_div.h"
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"

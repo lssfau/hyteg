@@ -26,6 +26,7 @@
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/solvers/Smoothables.hpp"

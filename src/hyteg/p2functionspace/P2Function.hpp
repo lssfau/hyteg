@@ -53,6 +53,8 @@ class P2Function final : public Function< P2Function< ValueType > >
                uint_t                                     maxLevel,
                BoundaryCondition                          boundaryCondition );
 
+   virtual uint_t getDimension() const { return 1; }
+
    inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
    inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
 

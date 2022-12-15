@@ -48,7 +48,7 @@ N1E1VectorFunction< ValueType >::N1E1VectorFunction( const std::string&         
                                                      const uint_t&                              minLevel,
                                                      const uint_t&                              maxLevel,
                                                      const BoundaryCondition&                   boundaryCondition )
-: VectorFunction< N1E1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel )
+: Function< N1E1VectorFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , storage_( storage )
 , dofs_( std::make_shared< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel, boundaryCondition ) )
 , boundaryCondition_( boundaryCondition )
