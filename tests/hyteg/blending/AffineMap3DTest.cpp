@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <cfenv>
+
 #include "hyteg/geometry/AffineMap3D.hpp"
 
 #include <core/Environment.h>
@@ -267,6 +269,14 @@ void testInverseMapping()
 
 int main( int argc, char* argv[] )
 {
+
+#ifndef __APPLE__
+   // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
+#endif
+
    // basic setup
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
