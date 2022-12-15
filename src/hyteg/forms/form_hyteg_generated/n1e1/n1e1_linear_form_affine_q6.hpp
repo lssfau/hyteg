@@ -31,7 +31,7 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/N1E1FormHyTeG.hpp"
+#include "hyteg/forms/N1E1Form.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
@@ -44,7 +44,7 @@ namespace forms {
 /// - trial space: N1E1
 /// - test space:  N1E1
 ///
-class n1e1_linear_form_affine_q6 : public N1E1FormHyTeG
+class n1e1_linear_form_affine_q6 : public n1e1::N1E1Form
 {
 
  public:

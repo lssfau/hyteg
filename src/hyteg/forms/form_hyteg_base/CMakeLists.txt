@@ -4,6 +4,5 @@ target_sources( hyteg
     P2FormHyTeG.hpp
     P2ToP1FormHyTeG.hpp
     P1ToP2FormHyTeG.hpp
-    N1E1FormHyTeG.hpp
 )
 
