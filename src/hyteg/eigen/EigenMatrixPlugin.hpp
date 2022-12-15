@@ -18,24 +18,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+hyteg::PointND< _Scalar, _Rows > mul( const hyteg::PointND< _Scalar, _Cols >& rhs ) const
+{
+   hyteg::PointND< _Scalar, _Rows > out;
+   out.vector_ = this->derived() * rhs.vector_;
+   return out;
+}
 
-#include "hyteg/eigen/EigenWrapper.hpp"
-
-namespace hyteg {
-
-using walberla::int_c;
-using walberla::real_t;
-using walberla::uint_t;
-
-template < uint_t M, uint_t N >
-using Matrixr = Eigen::Matrix< real_t, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
-template < typename T, uint_t M, uint_t N >
-using Matrix = Eigen::Matrix< T, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
-typedef Eigen::Matrix< real_t, 2, 2, Eigen::RowMajor >   Matrix2r;
-typedef Eigen::Matrix< real_t, 3, 3, Eigen::RowMajor >   Matrix3r;
-typedef Eigen::Matrix< real_t, 4, 4, Eigen::RowMajor >   Matrix4r;
-typedef Eigen::Matrix< real_t, 6, 6, Eigen::RowMajor >   Matrix6r;
-typedef Eigen::Matrix< real_t, 10, 10, Eigen::RowMajor > Matrix10r;
-
-} // namespace hyteg
+void setAll( _Scalar scalar)
+{
+   this->setConstant( scalar );
+}

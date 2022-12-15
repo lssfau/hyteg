@@ -68,7 +68,7 @@ class P2ToP1FenicsForm : public Form
    {
       Matrixr< 4, 10 > elMat;
       computeLocalStiffnessMatrix( coords, elMat );
-      uint_t rowIdx = fenics::P2DoFMap[0][0];
+      int rowIdx = fenics::P2DoFMap[0][0];
       out[0]        = elMat( rowIdx, fenics::P2DoFMap[0][0] );
       out[1]        = elMat( rowIdx, fenics::P2DoFMap[1][1] );
       out[2]        = elMat( rowIdx, fenics::P2DoFMap[2][2] );
@@ -83,8 +83,8 @@ class P2ToP1FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
       WALBERLA_ASSERT_LESS( cntrPos[0], 4 );
       WALBERLA_ASSERT_LESS( cntrPos[1], 4 );
-      uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
-      uint_t colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
+      int rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+      int colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
 
       return real_c( elMat( rowIdx, colIdx ) );
    }

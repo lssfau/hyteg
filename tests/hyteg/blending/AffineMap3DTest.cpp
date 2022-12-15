@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <cfenv>
+
 #include "hyteg/geometry/AffineMap3D.hpp"
 
 #include <core/Environment.h>
@@ -47,12 +49,12 @@ std::array< real_t, 11 > volume;
 Matrix3r gemm( const Matrix3r& lMat, const Matrix3r& rMat )
 {
    Matrix3r aMat;
-   for ( uint_t i = 0; i < 3; i++ )
+   for ( int i = 0; i < 3; i++ )
    {
-      for ( uint_t j = 0; j < 3; j++ )
+      for ( int j = 0; j < 3; j++ )
       {
          aMat( i, j ) = real_c( 0 );
-         for ( uint_t k = 0; k < 3; k++ )
+         for ( int k = 0; k < 3; k++ )
          {
             aMat( i, j ) += lMat( i, k ) * rMat( k, j );
          }
@@ -64,7 +66,7 @@ Matrix3r gemm( const Matrix3r& lMat, const Matrix3r& rMat )
 void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
 {
    // identity matrix
-   Matrix3r identity;
+   Matrix3r identity = Matrix3r::Zero();
    identity( 0, 0 ) = real_c( 1.0 );
    identity( 1, 1 ) = real_c( 1.0 );
    identity( 2, 2 ) = real_c( 1.0 );
@@ -74,7 +76,9 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
    real_t alphaY = pi / 180.0 * 25.0;
    real_t alphaZ = pi / 180.0 * 35.0;
 
-   Matrix3r rotX, rotY, rotZ;
+   Matrix3r rotX = Matrix3r::Zero();
+   Matrix3r rotY = Matrix3r::Zero();
+   Matrix3r rotZ = Matrix3r::Zero();
 
    rotX( 0, 0 ) = real_c( 1.0 );
    rotX( 1, 1 ) = +std::cos( alphaX );
@@ -267,6 +271,14 @@ void testInverseMapping()
 
 int main( int argc, char* argv[] )
 {
+
+#ifndef __APPLE__
+   // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
+   #ifndef _MSC_VER
+      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+   #endif
+#endif
+
    // basic setup
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );

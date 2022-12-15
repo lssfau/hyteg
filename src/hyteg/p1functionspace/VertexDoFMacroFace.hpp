@@ -212,7 +212,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    auto srcData = face.getData( srcID )->getPointer( level );
 
    transform *= hInv;
-   transform = transform.transpose();
+   transform.transposeInPlace();
 
    // decide if up or down triangle
    // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
