@@ -67,7 +67,7 @@ real_t
    return std::sqrt( norm );
 }
 
-template < typename Form, uint_t dim, uint_t rows, uint_t cols >
+template < typename Form, uint_t dim, int rows, int cols >
 void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& element, int row, real_t tol )
 {
    typedef Matrixr< rows, cols > LocalMatType;
