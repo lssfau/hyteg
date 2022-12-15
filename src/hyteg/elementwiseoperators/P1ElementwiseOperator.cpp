@@ -124,7 +124,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
             }
          }
 
-         Matrix4r elMat;
+         Matrix4r elMat( Matrix4r::Zero() );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -186,7 +186,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
             }
          }
 
-         Matrix3r elMat;
+         Matrix3r elMat( Matrix3r::Zero() );
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -486,7 +486,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
                                                                            const P1Elements::P1Elements2D::P1Element& element,
                                                                            real_t* const dstVertexData )
 {
-   Matrix3r                 elMat;
+   Matrix3r                 elMat( Matrix3r::Zero() );
    indexing::Index          nodeIdx;
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
@@ -532,7 +532,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    }
 
    // assemble local element matrix
-   Matrix4r elMat;
+   Matrix4r elMat( Matrix4r::Zero() );
    P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
@@ -643,7 +643,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
                                                              const idx_t* const                          srcIdx,
                                                              const idx_t* const                          dstIdx ) const
 {
-   Matrix3r                 elMat;
+   Matrix3r                 elMat( Matrix3r::Zero() );
    indexing::Index          nodeIdx;
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
@@ -706,7 +706,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
    }
 
    // assemble local element matrix
-   Matrix4r elMat;
+   Matrix4r elMat( Matrix4r::Zero() );
    P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
