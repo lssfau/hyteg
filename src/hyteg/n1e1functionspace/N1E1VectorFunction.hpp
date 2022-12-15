@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
@@ -237,7 +239,6 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
       dofs_->setBoundaryCondition( boundaryCondition_ );
    }
 
-   // TODO communicate real_t only
    // for idx_t we want to use normal edgedof comm
    template < typename OtherFunctionValueType >
    inline void copyBoundaryConditionFromFunction( const N1E1VectorFunction< OtherFunctionValueType >& other )
@@ -260,6 +261,11 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    template < typename SenderType, typename ReceiverType >
    inline void communicate( const uint_t& level ) const
    {
+      if constexpr ( !std::is_floating_point< ValueType >::value )
+      {
+         WALBERLA_ABORT(
+             "This function flips the signs of unknowns to accommodate for inconsistent edge orientations. Do not use it to communicate index vectors. Use getDoFs()->communicate instead!" )
+      }
       startCommunication< SenderType, ReceiverType >( level );
       endCommunication< SenderType, ReceiverType >( level );
    }

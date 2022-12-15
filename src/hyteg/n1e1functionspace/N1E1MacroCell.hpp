@@ -171,7 +171,6 @@ inline void add( const uint_t&                                            level,
    using ValueType = real_t;
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   // TODO different quadratures
    const ValueType dofScalarX   = vector.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
    const ValueType dofScalarY   = vector.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
    const ValueType dofScalarZ   = vector.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
