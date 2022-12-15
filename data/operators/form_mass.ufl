@@ -1,5 +1,6 @@
 u = TestFunction( testElement )
 v = TrialFunction( trialElement )
 
-a = u*v*dx
+a = dot(u,v)*dx
+# a = u*v*dx
  
