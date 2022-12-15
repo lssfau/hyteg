@@ -98,18 +98,17 @@ class N1E1PackInfo : public communication::DoFSpacePackInfo< ValueType >
       dofPackInfo_.communicateLocalEdgeToFace( sender, receiver );
    }
 
-   inline void
-       packFaceForEdge( const Face* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override
+   inline void packFaceForEdge( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const override
    {
-      dofPackInfo_.packFaceForEdge( sender, receiver, buffer );
+      WALBERLA_ABORT( "Macro-face to macro-edge communication not implemented!" );
    }
-   inline void unpackEdgeFromFace( Edge* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override
+   inline void unpackEdgeFromFace( Edge*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const override
    {
-      dofPackInfo_.unpackEdgeFromFace( receiver, sender, buffer );
+      WALBERLA_ABORT( "Macro-face to macro-edge communication not implemented!" );
    }
-   inline void communicateLocalFaceToEdge( const Face* sender, Edge* receiver ) const override
+   inline void communicateLocalFaceToEdge( const Face*, Edge* ) const override
    {
-      dofPackInfo_.communicateLocalFaceToEdge( sender, receiver );
+      WALBERLA_ABORT( "Macro-face to macro-edge communication not implemented!" );
    }
 
    inline void
