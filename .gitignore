@@ -11,7 +11,8 @@ build/*
 *.make
 *.bin
 *.log
-*.txt
+*.py
+*.sh
 *.marks
 *Makefile
 CMakeFiles/*
