@@ -335,10 +335,10 @@ if( HYTEG_BUILD_WITH_PETSC )
     waLBerla_execute_test(NAME P1ToDGOperatorTest)
 endif()
 
-if( HYTEG_BUILD_WITH_PETSC )
-    waLBerla_compile_test(FILES dg/P1WithDGFromPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P1WithDGFromPoisson2DConvergenceTest)
-endif()
+#if( HYTEG_BUILD_WITH_PETSC )
+#    waLBerla_compile_test(FILES dg/P1WithDGFromPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
+#    waLBerla_execute_test(NAME P1WithDGFromPoisson2DConvergenceTest)
+#endif()
 
 #################### P1 ####################
 
@@ -847,8 +847,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGApplyTest)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGNietscheBCTests.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGNietscheBCTests)
 
 
     ## SolVi benchmark
