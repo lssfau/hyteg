@@ -21,7 +21,7 @@
 #include "core/DataTypes.h"
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
-
+#include "hyteg/composites/P1P0StokesOperator.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
@@ -1347,7 +1347,7 @@ namespace hyteg {
                 }
 
                 // cube_6el, inhom.
-                if (true) {
+                if (false) {
                     //MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), 4, 4, 4);
                     auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh");
                     hyteg::SetupPrimitiveStorage setupStorage(meshInfo,
@@ -1403,39 +1403,133 @@ namespace hyteg {
                     setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
                     auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
 
-                    EGP0StokesOperatorNitscheBC EGP0StokesOp(storage, minLevel, maxLevel);
+                    // EG
+                    if(true) {
+                        EGP0StokesOperatorNitscheBC EGP0StokesOp(storage, minLevel, maxLevel);
+                        WALBERLA_LOG_INFO_ON_ROOT("### EG cube_6el, inhom.,  Nitsche BCs and rhs-integration ###");
+                        StokesConvergenceOrderTest<EGP0StokesOperatorNitscheBC>(
+                                "EGP0StokesOperatorNitscheBC3D_cube_6el_inhom",
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(4) * std::cos(real_c(4) * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return real_c(8) * std::cos(real_c(8) * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(2) * std::cos(real_c(2) * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::sin(2 * xx[2]);
+                                        }),
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return 4 * std::sin(8 * xx[1]) * std::sin(2 * xx[2]) * std::cos(4 * xx[0]) -
+                                                   64 * std::cos(4 * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 8 * std::sin(4 * xx[0]) * std::sin(2 * xx[2]) * std::cos(8 * xx[1]) +
+                                                   512 * std::cos(8 * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 2 * std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::cos(2 * xx[2]) -
+                                                   8 * std::cos(2 * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &) { return 0; }
+                                ),
+                                EGP0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel,
+                                2,
+                                true);
+                    }
 
-                    WALBERLA_LOG_INFO_ON_ROOT("### cube_6el, inhom.,  Nitsche BCs and rhs-integration ###");
-                    StokesConvergenceOrderTest<EGP0StokesOperatorNitscheBC>(
-                            "EGP0StokesOperatorNitscheBC3D_cube_6el_inhom",
-                            std::make_tuple(
-                                    [](const hyteg::Point3D &xx) { return -real_c(4) * std::cos(real_c(4) * xx[2]); },
-                                    [](const hyteg::Point3D &xx) { return real_c(8) * std::cos(real_c(8) * xx[0]); },
-                                    [](const hyteg::Point3D &xx) { return -real_c(2) * std::cos(real_c(2) * xx[1]); },
-                                    [](const hyteg::Point3D &xx) {
-                                        return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::sin(2 * xx[2]);
-                                    }),
-                            std::make_tuple(
-                                    [](const hyteg::Point3D &xx) {
-                                        return 4 * std::sin(8 * xx[1]) * std::sin(2 * xx[2]) * std::cos(4 * xx[0]) -
-                                               64 * std::cos(4 * xx[2]);
-                                    },
-                                    [](const hyteg::Point3D &xx) {
-                                        return 8 * std::sin(4 * xx[0]) * std::sin(2 * xx[2]) * std::cos(8 * xx[1]) +
-                                               512 * std::cos(8 * xx[0]);
-                                    },
-                                    [](const hyteg::Point3D &xx) {
-                                        return 2 * std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::cos(2 * xx[2]) -
-                                               8 * std::cos(2 * xx[1]);
-                                    },
-                                    [](const hyteg::Point3D &) { return 0; }
-                            ),
-                            EGP0StokesOp,
-                            storage,
-                            minLevel,
-                            maxLevel,
-                            2,
-                            true);
+                    // P1P0
+                    if(false ) {
+                        WALBERLA_LOG_INFO_ON_ROOT("### P1P0 cube_6el, inhom. ###");
+                        hyteg::P1P0StokesOperator P1P0StokesOp(storage, minLevel, maxLevel, 0.1);
+                        StokesConvergenceOrderTest<hyteg::P1P0StokesOperator>(
+                                "P1P0StokesOperator3D_cube_6el_inhom",
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(4) * std::cos(real_c(4) * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return real_c(8) * std::cos(real_c(8) * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(2) * std::cos(real_c(2) * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::sin(2 * xx[2]);
+                                        }),
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return 4 * std::sin(8 * xx[1]) * std::sin(2 * xx[2]) * std::cos(4 * xx[0]) -
+                                                   64 * std::cos(4 * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 8 * std::sin(4 * xx[0]) * std::sin(2 * xx[2]) * std::cos(8 * xx[1]) +
+                                                   512 * std::cos(8 * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 2 * std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::cos(2 * xx[2]) -
+                                                   8 * std::cos(2 * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &) { return 0; }
+                                ),
+                                P1P0StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel,
+                                1,
+                                false);
+                    }
+
+                    // P2P1
+                    if(false) {
+                        WALBERLA_LOG_INFO_ON_ROOT("### P2P1 cube_6el, inhom. ###");
+                        hyteg::P2P1TaylorHoodStokesOperator P2P1StokesOp(storage, minLevel - 1, maxLevel);
+                        StokesConvergenceOrderTest<hyteg::P2P1TaylorHoodStokesOperator>(
+                                "P2P1StokesOperator3D_cube_6el_inhom",
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(4) * std::cos(real_c(4) * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return real_c(8) * std::cos(real_c(8) * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return -real_c(2) * std::cos(real_c(2) * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::sin(2 * xx[2]);
+                                        }),
+                                std::make_tuple(
+                                        [](const hyteg::Point3D &xx) {
+                                            return 4 * std::sin(8 * xx[1]) * std::sin(2 * xx[2]) * std::cos(4 * xx[0]) -
+                                                   64 * std::cos(4 * xx[2]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 8 * std::sin(4 * xx[0]) * std::sin(2 * xx[2]) * std::cos(8 * xx[1]) +
+                                                   512 * std::cos(8 * xx[0]);
+                                        },
+                                        [](const hyteg::Point3D &xx) {
+                                            return 2 * std::sin(4 * xx[0]) * std::sin(8 * xx[1]) * std::cos(2 * xx[2]) -
+                                                   8 * std::cos(2 * xx[1]);
+                                        },
+                                        [](const hyteg::Point3D &) { return 0; }
+                                ),
+                                P2P1StokesOp,
+                                storage,
+                                minLevel,
+                                maxLevel,
+                                2,
+                                false);
+                    }
+
+
                 }
 
                 // cube_24el, hom. solution

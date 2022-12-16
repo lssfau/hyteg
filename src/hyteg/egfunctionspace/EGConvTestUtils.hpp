@@ -76,12 +76,14 @@ namespace hyteg {
                 return std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
                        std::is_same<StokesOperatorType, EGP0StokesOperator>::value ||
                        std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value ||
-                       std::is_same<StokesOperatorType, EGP0IIPGStokesOperator>::value;
+                       std::is_same<StokesOperatorType, EGP0IIPGStokesOperator>::value||
+                       std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value;
             }
 
             template<typename StokesOperatorType>
             constexpr bool usesNitscheBCs() {
-                return std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value;
+                return std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value ||
+                        std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value;
             }
 
             template<typename StokesOperatorType>
@@ -98,9 +100,8 @@ namespace hyteg {
 
             template<typename StokesOperatorType>
             constexpr bool isP1P0Discr() {
-                return std::is_same<StokesOperatorType, hyteg::P1P0StokesOperator>::value ||
-                       std::is_same<StokesOperatorType, hyteg::P1P0EpsilonOperator>::value;
-            }
+                return std::is_same<StokesOperatorType, hyteg::P1P0StokesOperator>::value;
+                }
 
 // check for data member energyOp
             template<typename, typename = void>
@@ -141,7 +142,6 @@ namespace hyteg {
                         ratesCounter.printCurrentRates(level);
                     }
                     ratesCounter.printMeanRates();
-
                 }
 
             private:
@@ -341,6 +341,7 @@ namespace hyteg {
                     // solution, rhs as a lambda function
                     auto [f_x_expr, f_y_expr, f_z_expr, g_expr] = rhsTuple_;
 
+                    // setup the rhs linear form inexactly by just multiplying the rhs function by the massmatrix corresponding to the discretization
                     if constexpr (isP2P1Discr<StokesOperatorType>()) {
                         P2ConstantMassOperator M_vel(storage_, level, level);
                         if (!storage_->hasGlobalCells()) {
@@ -370,6 +371,7 @@ namespace hyteg {
                     }
                 }
 
+                // apply bcs to the solution function
                 void setupBC(uint_t level, const StokesFunctionType &u) {
                     auto [u_x_expr, u_y_expr, u_z_expr, p_expr] = solTuple_;
                     if constexpr (isP2P1Discr<StokesOperatorType>() || isP1P0Discr<StokesOperatorType>()) {
@@ -388,58 +390,99 @@ namespace hyteg {
                     }
                 }
 
+                // integrate the rhs directly and apply the boundary values corresponding to the used operator to the rhs
                 void integrateRHS(uint_t level, StokesFunctionType &rhs) {
-                    static_assert(std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value,
+                    static_assert(std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value || std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value,
                                   "Not implemented for any other operator.");
                     WALBERLA_LOG_INFO_ON_ROOT("Not implemented for non divergence-free solutions!");
 
                     auto [solFuncX, solFuncY, solFuncZ, pFunc] = solTuple_;
                     auto [rhsFuncX, rhsFuncY, rhsFuncZ, g_expr] = rhsTuple_;
 
-                    if (!storage_->hasGlobalCells()) {
-                        auto basis = std::make_shared<DGBasisLinearLagrange_Example>();
-                        auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
-                        auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
-                        auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceForm_NewNew_EE>();
+                    // weakly/Nitsche type apply of bcs of corresponding operator velocity block
+                    if constexpr (std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value) {
+                        if (!storage_->hasGlobalCells()) {
+                            // corresponding operator forms for application of bcs to rhs
+                            auto basis = std::make_shared<DGBasisLinearLagrange_Example>();
+                            auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
+                            auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
+                            auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_EE>();
 
-                        laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
-                        laplaceForm1->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
-                        laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
-                        laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
-                        auto divForm = std::make_shared<dg::eg::EGDivFormNitscheBC_P0E>();
+                            // check in solution functions
+                            laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+                            laplaceForm1->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
+                            laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+                            laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
+
+                            // Assemble RHS by integration, apply bcs weakly
+                            rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, level);
+                            rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceFormDG,
+                                                                       level);
+                         } else {
+                            // corresponding operator forms for application of bcs to rhs
+                            auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
+                            auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
+                            auto laplaceForm2 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_22>();
+                            auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_EE>();
+
+                            // check in solution functions
+                            laplaceForm0->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            laplaceForm1->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            laplaceForm2->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+                            laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                            // Assemble RHS by integration, apply bcs weakly
+                            rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
+                            rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceForm2,
+                                                                       laplaceFormDG, level);
+                        }
+                    } else {
+                        if (!storage_->hasGlobalCells()) WALBERLA_ABORT("Not implemented.")
+
+                        // corresponding operator forms for application of bcs to rhs
+                        auto viscosity = Op_.velocityBlockOp.viscosity_;
+                        auto epsForm00 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_00>();
+                        auto epsForm11 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_11>();
+                        auto epsForm22 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_22>();
+                        auto epsFormDG = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_EE>();
+
+                        // check in solution functions
+                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                        // Assemble RHS by integration, apply bcs weakly
+                        rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
+                        rhs.uvw().applyDirichletBoundaryConditions(epsForm00, epsForm11, epsForm22,
+                                                                   epsFormDG, level);
+                    }
+
+                    // weakly/Nitsche type apply of div BCs
+                    auto divForm = std::make_shared<dg::eg::EGDivFormNitscheBC_P0E>();
+                    if (!storage_->hasGlobalCells()) {
                         divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
                         divForm->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
-
-                        // Assemble RHS.
-                        rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, level);
-                        rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceFormDG, level);
-                        rhs.p().interpolate(0, level, All);
-                        rhs.p().getDGFunction()->applyDirichletBoundaryConditions(divForm, level);
-                    } else {
-                        auto basis = std::make_shared<DGBasisLinearLagrange_Example>();
-                        auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
-                        auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
-                        auto laplaceForm2 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_22>();
-                        auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceForm_NewNew_EE>();
-
-                        laplaceForm0->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        laplaceForm1->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        laplaceForm2->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-                        laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-                        auto massForm = std::make_shared<DGMassForm_Example>();
-
-                        auto divForm = std::make_shared<dg::eg::EGDivFormNitscheBC_P0E>();
+                    }else{
                         divForm->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
                         divForm->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
                         divForm->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-                        rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
-                        rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceForm2,
-                                                                 laplaceFormDG, level);
-                        rhs.p().interpolate(0, level, All);
-                        rhs.p().getDGFunction()->applyDirichletBoundaryConditions(divForm, level);
                     }
+                    rhs.p().interpolate(0, level, All);
+                    rhs.p().getDGFunction()->applyDirichletBoundaryConditions(divForm, level);
                 }
 
                 ErrorArray RunStokesTestOnLevel(const uint_t &level) {
@@ -498,11 +541,11 @@ namespace hyteg {
                         }
                         case 1: {
                             PETScLUSolver<StokesOperatorType> solver(storage_, level, numerator);
-                            /*StokesFunctionType nullSpace("ns", storage_, level, level);
+                            StokesFunctionType nullSpace("ns", storage_, level, level);
                             nullSpace.uvw().interpolate(0, level, All);
                             nullSpace.p().interpolate(1, level, All);
                             solver.setNullSpace(nullSpace);
-                            */
+
                             solver.solve(Op_, u, rhs, level);
                             iterNumber = 1;
                             break;
@@ -536,7 +579,6 @@ namespace hyteg {
                         VTKOutput vtk("/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg_premerge/hyteg-build/output",
                                       testName_, storage_);
                         if constexpr (isEGP0Discr<StokesOperatorType>()) {
-
                             vtk.add(u);
                             vtk.add(*u.uvw().getConformingPart());
                             vtk.add(*u.uvw().getDiscontinuousPart());

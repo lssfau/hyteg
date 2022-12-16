@@ -26,7 +26,7 @@
 #include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
 #include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
-#include "hyteg/dgfunctionspace/P1WithDGFormOperator.hpp"
+#include "hyteg/dgfunctionspace/ScalarP1WithDGFormOperator.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGDivtForm.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
@@ -52,13 +52,10 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
  public:
    EGLaplaceOperatorNitscheBC(const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
-  // , cg_(storage, minLevel, maxLevel, std::make_shared< EGVectorLaplaceFormP1P1_new_00 >() )
            , cg_(storage, minLevel, maxLevel, std::make_shared< EGVectorLaplaceFormNitscheBC_P1P1_00 >() )
-
    , cg_to_dg_coupling_( storage, minLevel, maxLevel )
    , dg_to_cg_coupling_( storage, minLevel, maxLevel )
-   , dg_to_dg_coupling_( storage, minLevel, maxLevel, std::make_shared< EGVectorLaplaceForm_NewNew_EE >() )
-     //      , dg_to_dg_coupling_( storage, minLevel, maxLevel, std::make_shared< EGVectorLaplaceFormEDGEDG_new >() )
+   , dg_to_dg_coupling_( storage, minLevel, maxLevel, std::make_shared< EGVectorLaplaceFormNitscheBC_EE >() )
    {
 
    }
@@ -74,7 +71,6 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
       cg_.apply( src.getConformingPart()->component(1), dst.getConformingPart()->component(1), level, flag, Add );
        if ( src.getDimension() == 3 ) {
            cg_.apply( src.getConformingPart()->component(2), dst.getConformingPart()->component(2), level, flag, Add );
-         //  cg_to_cg_coupling_.apply(*src.getConformingPart(), *dst.getConformingPart(), level, flag, Add);
        }
       cg_to_dg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
       dg_to_dg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
@@ -91,8 +87,6 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
       src.getDiscontinuousPart()->communicate( level );
       dst.getDiscontinuousPart()->communicate( level );
 
-      // cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
-      // cg_to_cg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
       cg_.toMatrix( mat, src.getConformingPart()->component(0), dst.getConformingPart()->component(0), level, flag );
       cg_.toMatrix( mat, src.getConformingPart()->component(1), dst.getConformingPart()->component(1), level, flag );
        if ( src.getDimension() == 3 ) {
@@ -104,15 +98,7 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
    }
 
  private:
-/*
-    using CGToDGOperatorType = P1VectorToP0ScalarOperator< P1ToP0Operator< EGVectorLaplaceFormEDGP1_new_0 >,
-            P1ToP0Operator< EGVectorLaplaceFormEDGP1_new_1 >,
-            P1ToP0Operator< DGFormAbort > >;
-    using DGToCGOperatorType = P0ScalarToP1VectorOperator< P0ToP1Operator< EGVectorLaplaceFormP1EDG_new_0 >,
-            P0ToP1Operator< EGVectorLaplaceFormP1EDG_new_1 >,
-            P0ToP1Operator< DGFormAbort > >;
-    using DGToDGOperatorType = P0Operator< EGVectorLaplaceFormEDGEDG_new >;
-*/
+
 
 
    using CGToDGOperatorType = P1VectorToP0ScalarOperator< P1ToP0Operator< EGVectorLaplaceFormNitscheBC_EP1_0 >,
@@ -121,15 +107,107 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
    using DGToCGOperatorType = P0ScalarToP1VectorOperator< P0ToP1Operator< EGVectorLaplaceFormNitscheBC_P1E_0 >,
                                                           P0ToP1Operator< EGVectorLaplaceFormNitscheBC_P1E_1 >,
                                                           P0ToP1Operator< EGVectorLaplaceFormNitscheBC_P1E_2 > >;
-   using DGToDGOperatorType = P0Operator< EGVectorLaplaceForm_NewNew_EE >;
+   using DGToDGOperatorType = P0Operator< EGVectorLaplaceFormNitscheBC_EE >;
 
 
-   P1WithDGFormOperator cg_;
+   ScalarP1WithDGFormOperator cg_;
    // CGToCGOperatorType cg_to_cg_coupling_;
    CGToDGOperatorType cg_to_dg_coupling_;
    DGToCGOperatorType dg_to_cg_coupling_;
    DGToDGOperatorType dg_to_dg_coupling_;
 };
+
+
+// TODO: fix code duplication
+    class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunction< real_t > >
+    {
+    public:
+        EGEpsilonOperatorNitscheBC(const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, std::function< real_t( const Point3D& ) >  viscosity )
+                : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
+                , viscosity_(viscosity)
+                ,cg_00(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_00 >())
+                ,cg_01(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_01 >())
+                ,cg_02(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_02 >())
+                ,cg_10(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_10 >())
+                ,cg_11(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_11>())
+                ,cg_12(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_12 >())
+                ,cg_20(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_20 >())
+                ,cg_21(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_21 >())
+                ,cg_22(storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_22 >())
+               // , cg_(storage, minLevel, maxLevel, viscosity)
+                , cg_to_dg_coupling_( storage, minLevel, maxLevel,  std::make_tuple( std::make_shared< typename CGToDGOperatorType::OperX_T::FormType >(  ),
+                                                                                     std::make_shared< typename CGToDGOperatorType::OperY_T::FormType >(  ),
+                                                                                     std::make_shared< typename CGToDGOperatorType::OperZ_T::FormType >(  ) ) )
+                , dg_to_cg_coupling_( storage, minLevel, maxLevel, std::make_tuple( std::make_shared< typename DGToCGOperatorType::OperX_T::FormType >(  ),
+                                                                                    std::make_shared< typename DGToCGOperatorType::OperY_T::FormType >(  ),
+                                                                                    std::make_shared< typename DGToCGOperatorType::OperZ_T::FormType >(  ) ) )
+                , dg_to_dg_coupling_( storage, minLevel, maxLevel, std::make_shared< EGEpsilonFormNitscheBC_EE >() )
+        { }
+
+        void apply( const EGFunction< real_t >& src,
+                    const EGFunction< real_t >& dst,
+                    size_t                      level,
+                    DoFType                     flag,
+                    UpdateType                  updateType ) const override
+        {
+            WALBERLA_ABORT("Not implemented.")
+            dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+           // cg_.apply( *src.getConformingPart(), *dst.getConformingPart(), level, flag, Add );
+
+            cg_to_dg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
+            dg_to_dg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );
+        }
+
+        void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                       const EGFunction< idx_t >&                  src,
+                       const EGFunction< idx_t >&                  dst,
+                       size_t                                      level,
+                       DoFType                                     flag ) const override
+        {
+            communication::syncVectorFunctionBetweenPrimitives( *src.getConformingPart(), level );
+            communication::syncVectorFunctionBetweenPrimitives( *dst.getConformingPart(), level );
+            src.getDiscontinuousPart()->communicate( level );
+            dst.getDiscontinuousPart()->communicate( level );
+            cg_00.toMatrix( mat, src.getConformingPart()->component(0), dst.getConformingPart()->component(0), level, flag );
+            cg_01.toMatrix( mat, src.getConformingPart()->component(1), dst.getConformingPart()->component(0), level, flag );
+            cg_02.toMatrix( mat, src.getConformingPart()->component(2), dst.getConformingPart()->component(0), level, flag );
+            cg_10.toMatrix( mat, src.getConformingPart()->component(0), dst.getConformingPart()->component(1), level, flag );
+            cg_11.toMatrix( mat, src.getConformingPart()->component(1), dst.getConformingPart()->component(1), level, flag );
+            cg_12.toMatrix( mat, src.getConformingPart()->component(2), dst.getConformingPart()->component(1), level, flag );
+            cg_20.toMatrix( mat, src.getConformingPart()->component(0), dst.getConformingPart()->component(2), level, flag );
+            cg_21.toMatrix( mat, src.getConformingPart()->component(1), dst.getConformingPart()->component(2), level, flag );
+            cg_22.toMatrix( mat, src.getConformingPart()->component(2), dst.getConformingPart()->component(2), level, flag );
+
+            //   cg_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
+            dg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+            cg_to_dg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
+            dg_to_dg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
+        }
+
+        using CGToDGOperatorType = P1VectorToP0ScalarOperator< P1ToP0Operator< EGEpsilonFormNitscheBC_EP1_0 >,
+                P1ToP0Operator< EGEpsilonFormNitscheBC_EP1_1 >,
+                P1ToP0Operator< EGEpsilonFormNitscheBC_EP1_2> >;
+        using DGToCGOperatorType = P0ScalarToP1VectorOperator< P0ToP1Operator< EGEpsilonFormNitscheBC_P1E_0 >,
+                P0ToP1Operator< EGEpsilonFormNitscheBC_P1E_1 >,
+                P0ToP1Operator< EGEpsilonFormNitscheBC_P1E_2 > >;
+        using DGToDGOperatorType = P0Operator< EGEpsilonFormNitscheBC_EE >;
+
+        //VectorialP1WithEpsilonFormOperator cg_;
+        ScalarP1WithDGFormOperator cg_00;
+        ScalarP1WithDGFormOperator cg_01;
+        ScalarP1WithDGFormOperator cg_02;
+        ScalarP1WithDGFormOperator cg_10;
+        ScalarP1WithDGFormOperator cg_11;
+        ScalarP1WithDGFormOperator cg_12;
+        ScalarP1WithDGFormOperator cg_20;
+        ScalarP1WithDGFormOperator cg_21;
+        ScalarP1WithDGFormOperator cg_22;
+
+        CGToDGOperatorType cg_to_dg_coupling_;
+        DGToCGOperatorType dg_to_cg_coupling_;
+        DGToDGOperatorType dg_to_dg_coupling_;
+        std::function< real_t( const Point3D& ) > viscosity_;
+    };
 
 // TODO: fix code duplication
     class EGToP0DivOperatorNitscheBC final : public Operator< EGFunction< real_t >, P0Function< real_t > >
@@ -314,6 +392,47 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
         }
 
         eg::EGLaplaceOperatorNitscheBC velocityBlockOp;
+        EnergyNormOperator_T energyNormOp;
+        EGToP0DivOperatorNitscheBC  div;
+        P0ToEGDivTOperatorNitscheBC divT;
+    };
+
+    class EGP0EpsilonOperatorStokesNitscheBC : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
+    {
+    public:
+
+        typedef eg::EGEpsilonEnergyNormOperator EnergyNormOperator_T;
+
+        EGP0EpsilonOperatorStokesNitscheBC(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, std::function< real_t(const Point3D& ) >  viscosity )
+                : Operator( storage, minLevel, maxLevel )
+                , velocityBlockOp(storage, minLevel, maxLevel, viscosity )
+                , div(storage, minLevel, maxLevel )
+                , divT( storage, minLevel, maxLevel )
+                , energyNormOp(storage, minLevel, maxLevel,  viscosity)
+        {}
+
+        void apply( const EGP0StokesFunction< real_t >& src,
+                    const EGP0StokesFunction< real_t >& dst,
+                    const uint_t                        level,
+                    const DoFType                       flag ) const
+        {
+            velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+            divT.apply( src.p(), dst.uvw(), level, flag, Add );
+            div.apply( src.uvw(), dst.p(), level, flag, Replace );
+        }
+
+        void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                       const EGP0StokesFunction< idx_t >&          src,
+                       const EGP0StokesFunction< idx_t >&          dst,
+                       size_t                                      level,
+                       DoFType                                     flag ) const
+        {
+            velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+            divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+            div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+        }
+
+        eg::EGEpsilonOperatorNitscheBC velocityBlockOp;
         EnergyNormOperator_T energyNormOp;
         EGToP0DivOperatorNitscheBC  div;
         P0ToEGDivTOperatorNitscheBC divT;

@@ -22,5 +22,5 @@ target_sources( hyteg
     DGVectorMassForm.hpp
     DGVectorFunction.hpp
     DGVectorOperators.hpp
-    P1WithDGFormOperator.hpp
+        ScalarP1WithDGFormOperator.hpp
 )
