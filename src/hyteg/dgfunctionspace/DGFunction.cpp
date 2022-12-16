@@ -26,6 +26,7 @@
 #include "core/mpi/MPIWrapper.h"
 #include "core/mpi/Reduce.h"
 
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -219,7 +220,7 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
                                                       celldof::CellType      cellType,
                                                       ValueType&             value ) const
 {
-   // 2D
+   // 3D
 
    WALBERLA_ASSERT( storage_->hasGlobalCells() )
 

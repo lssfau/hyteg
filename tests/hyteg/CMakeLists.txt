@@ -890,6 +890,72 @@ waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
 waLBerla_execute_test(NAME EigenBasicTest)
 waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
 
+## N1E1 ##
+# For some reason executing some tests takes forever with clang and gcc in Debug mode.
+set(N1E1_CONDITIONAL_LONGRUN "")
+if (     CMAKE_BUILD_TYPE MATCHES "Debug"
+     AND (WALBERLA_CXX_COMPILER_IS_CLANG OR WALBERLA_CXX_COMPILER_IS_GNU)
+   )
+    set(N1E1_CONDITIONAL_LONGRUN "longrun")
+endif ()
+
+waLBerla_compile_test(FILES N1E1/N1E1AddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AddTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AssignTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AssignTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1EvaluateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1EvaluateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1InterpolateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1InterpolateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AdditiveCommunicationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AdditiveCommunicationTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1CurlCurlNullSpaceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1CurlCurlNullSpaceTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1MassTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1MassTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1FormCurlCurlTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1FormCurlCurlTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1CurlCurlConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1CurlCurlConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1CurlCurlConvergenceTest> LABELS longrun PROCESSES 4)
+
+waLBerla_compile_test(FILES N1E1/N1E1ProlongationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1ProlongationTest)
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1RestrictionTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1RestrictionTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+endif ()
+
+waLBerla_compile_test(FILES N1E1/P1toN1E1GradientTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1toN1E1GradientTest)
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1toP1LiftingTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1toP1LiftingTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+endif ()
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1InverseDiagonalTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1InverseDiagonalTest)
+endif ()
+
+waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HybridSmootherTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+
+waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1GMGhIndependenceTest LABELS longrun)
+
+waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1GMGConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1GMGConvergenceTest> LABELS longrun PROCESSES 4)
+
 ## types ##
 waLBerla_compile_test(FILES types/MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MatrixConstructFromEigenTest)

@@ -1099,6 +1099,42 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
+template < typename ValueType >
+inline void setBoundaryToZero( const uint_t&                                               level,
+                               const Cell&                                                 cell,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellDataID )
+{
+   real_t* data = cell.getData( cellDataID )->getPointer( level );
+
+   for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 1, 2 ) )
+   {
+      data[edgedof::macrocell::xIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::yIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::xyIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+   }
+
+   for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 1, 3 ) )
+   {
+      data[edgedof::macrocell::xIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::zIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::xzIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+   }
+
+   for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 2, 3 ) )
+   {
+      data[edgedof::macrocell::yIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::zIndex( level, idx.x(), idx.y(), idx.z() )]  = 0;
+      data[edgedof::macrocell::yzIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+   }
+
+   for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 1, 2, 3 ) )
+   {
+      data[edgedof::macrocell::xyIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+      data[edgedof::macrocell::xzIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+      data[edgedof::macrocell::yzIndex( level, idx.x(), idx.y(), idx.z() )] = 0;
+   }
+}
+
 } // namespace macrocell
 } // namespace edgedof
 } // namespace hyteg

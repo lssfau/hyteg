@@ -94,6 +94,8 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// Copy assignment
    VolumeDoFFunction& operator=( const VolumeDoFFunction< ValueType >& other );
 
+   virtual uint_t getDimension() const { return 1; }
+
    /// \brief Updates ghost-layers.
    void communicate( uint_t level );
 

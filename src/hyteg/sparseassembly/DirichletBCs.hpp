@@ -23,6 +23,7 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -119,6 +120,11 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
    {
       applyDirichletBC( numerator[k], mat, level );
    }
+}
+
+inline void applyDirichletBC( const n1e1::N1E1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   applyDirichletBC( *numerator.getDoFs(), mat, level );
 }
 
 // ==================

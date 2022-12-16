@@ -91,6 +91,8 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// Copy assignment
    EdgeDoFFunction& operator=( const EdgeDoFFunction< ValueType >& other );
 
+   virtual uint_t getDimension() const { return 1; }
+
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
@@ -174,6 +176,9 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
+
+   template < typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
    //@}
 
    /// Compute the product of several functions in an elementwise fashion
@@ -195,11 +200,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
    ValueType dotLocal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
-
-   /// @name Unimplemented methods (only dummys for inheritance)
-   /// @{
-   ValueType dotGlobal( const EdgeDoFFunction< ValueType >&, uint_t, DoFType ) const {
-       WALBERLA_ABORT( "EdgeDoFFunction::dotGlobal not implemented!" ) } /// @}
+   ValueType dotGlobal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
@@ -384,9 +385,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
-   template < typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
    inline void deleteFunctionMemory()
    {
       this->storage_->deleteVertexData( vertexDataID_ );

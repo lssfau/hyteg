@@ -72,7 +72,7 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    bool ssorSmoothable = properties[4];
    bool chebSmoothable = properties[5];
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1., 1. } ), MeshInfo::CRISSCROSS, 2, 2 );
    // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( {-1, -1, 0} ), Point3D( {1, 1, 2} ), 2, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -89,7 +89,7 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
 
    if constexpr ( needsViscosity )
    {
-      std::function< real_t( const Point3D& ) > mu = []( const Point3D& x ) { return real_c( 3 ) * x[0] + x[1]; };
+      std::function< real_t( const Point3D& ) > mu = []( const Point3D& x ) { return real_c( 3 ) + std::abs( x[0] + x[1] ); };
 
       oper = std::make_shared< opType >( storage, minLevel, maxLevel, mu );
    }
@@ -146,28 +146,28 @@ int main( int argc, char** argv )
    // =================
    //  ScalarOperators
    // =================
-   runCheck< P1ConstantLaplaceOperator >( {true, true, true, true, true, true}, "P1ConstantLaplaceOperator" );
-   runCheck< P2ConstantLaplaceOperator, false >( {true, true, true, false, false, false}, "P2ConstantLaplaceOperator (in 2D)" );
+   runCheck< P1ConstantLaplaceOperator >( { true, true, true, true, true, true }, "P1ConstantLaplaceOperator" );
+   runCheck< P2ConstantLaplaceOperator, false >( { true, true, true, false, false, false }, "P2ConstantLaplaceOperator (in 2D)" );
 
-   runCheck< P1BlendingLaplaceOperator >( {true, true, true, false, false, true}, "P1BlendingLaplaceOperator" );
+   runCheck< P1BlendingLaplaceOperator >( { true, true, true, false, false, true }, "P1BlendingLaplaceOperator" );
 
-   runCheck< P1ElementwiseLaplaceOperator, false >( {true, false, false, false, false, true}, "P1ElementwiseLaplaceOperator" );
-   runCheck< P2ElementwiseLaplaceOperator, false >( {true, false, false, false, false, true}, "P2ElementwiseLaplaceOperator" );
+   runCheck< P1ElementwiseLaplaceOperator, false >( { true, false, false, false, false, true }, "P1ElementwiseLaplaceOperator" );
+   runCheck< P2ElementwiseLaplaceOperator, false >( { true, false, false, false, false, true }, "P2ElementwiseLaplaceOperator" );
 
    // =========================
    //  VectorToVectorOperators
    // =========================
-   runCheck< P1ConstantVectorLaplaceOperator >( {true, true, true, true, true, true}, "P1ConstantVectorLaplaceOperator" );
+   runCheck< P1ConstantVectorLaplaceOperator >( { true, true, true, true, true, true }, "P1ConstantVectorLaplaceOperator" );
 
-   runCheck< P2ConstantVectorLaplaceOperator, false >( {true, true, true, false, false, false},
+   runCheck< P2ConstantVectorLaplaceOperator, false >( { true, true, true, false, false, false },
                                                        "P2ConstantVectorLaplaceOperator (in 2D)" );
 
-   runCheck< P1ElementwiseAffineEpsilonOperator, true, true >( {false, false, false, false, false, true},
+   runCheck< P1ElementwiseAffineEpsilonOperator, true, true >( { false, false, false, false, false, true },
                                                                "P1ElementwiseAffineEpsilonOperator" );
 
-   runCheck< P1ElementwiseBlendingEpsilonOperator, true, true >( {false, false, false, false, false, true},
+   runCheck< P1ElementwiseBlendingEpsilonOperator, true, true >( { false, false, false, false, false, true },
                                                                  "P1ElementwiseBlendingEpsilonOperator" );
 
-   runCheck< P2ElementwiseBlendingFullViscousOperator, true, true >( {false, false, false, false, false, true},
+   runCheck< P2ElementwiseBlendingFullViscousOperator, true, true >( { false, false, false, false, false, true },
                                                                      "P2ElementwiseBlendingFullViscousOperator" );
 }

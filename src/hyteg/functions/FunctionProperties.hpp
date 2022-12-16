@@ -163,6 +163,12 @@ inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& 
 }
 
 template <>
+inline uint_t numberOfLocalDoFs< N1E1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+}
+
+template <>
 inline uint_t numberOfLocalDoFs< P1StokesFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
    return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );

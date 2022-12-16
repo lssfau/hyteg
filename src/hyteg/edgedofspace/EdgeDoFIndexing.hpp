@@ -578,7 +578,7 @@ namespace macroface {
 
 typedef stencilDirection sD;
 
-/// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
+/// Index of an edge DoF on a macro face (only access to owned DoFs, no ghost layers).
 inline uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const EdgeDoFOrientation& orientation )
 {
    switch ( orientation )
@@ -595,7 +595,7 @@ inline uint_t index( const uint_t& level, const idx_t& x, const idx_t& y, const 
    }
 }
 
-/// Index of a edge DoF on a ghost layer of a macro face.
+/// Index of an edge DoF on a ghost layer of a macro face.
 /// EXAMPLE: number of DoFs in each direction for level 2:
 /// - X  on face:  start  0; size 10; last 9
 /// - Y  on face:  start 10; size 10; last 19
@@ -1371,14 +1371,10 @@ inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::In
 }
 
 /// Return data indices for the edge dofs of a given micro-cell in a macro-cell
-inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
-                                                              const celldof::CellType& cellType,
-                                                              const uint_t             level,
-                                                              std::array< uint_t, 6 >& edgeDoFIndices )
+inline void getEdgeDoFDataIndicesFromMicroVerticesFEniCSOrdering( const std::array< indexing::Index, 4 >& verts,
+                                                                  const uint_t                            level,
+                                                                  std::array< uint_t, 6 >&                edgeDoFIndices )
 {
-   // get indices of micro-vertices forming the micro-cell
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
-
    // loop over micro-vertex pairs
    std::array< std::pair< uint_t, uint_t >, 6 > pairs = { std::make_pair( 2, 3 ),
                                                           std::make_pair( 1, 3 ),
@@ -1406,6 +1402,17 @@ inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::In
       // finally get the data index of the edgeDoF
       edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
    }
+}
+
+/// Return data indices for the edge dofs of a given micro-cell in a macro-cell
+inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
+                                                              const celldof::CellType& cellType,
+                                                              const uint_t             level,
+                                                              std::array< uint_t, 6 >& edgeDoFIndices )
+{
+   // get indices of micro-vertices forming the micro-cell
+   const std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+   getEdgeDoFDataIndicesFromMicroVerticesFEniCSOrdering( verts, level, edgeDoFIndices );
 }
 
 } // namespace edgedof

@@ -51,6 +51,8 @@ class P0Function : public Function< P0Function< ValueType > >
    : P0Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
+   virtual uint_t getDimension() const { return dgFunction_->getDimension(); }
+
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
    void setBoundaryCondition( BoundaryCondition bc ) { dgFunction_->setBoundaryCondition( bc ); }
@@ -172,8 +174,8 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    };
 
-   void copyFrom( const P0Function< ValueType >&                 other,
-                  const uint_t&                                  level,
+   void copyFrom( const P0Function< ValueType >&         other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
