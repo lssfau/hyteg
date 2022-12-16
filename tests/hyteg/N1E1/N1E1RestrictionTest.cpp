@@ -18,12 +18,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// clang-format off
+#include "hyteg/eigen/EigenWrapper.hpp" // for hyteg/eigen/EigenMatrixPlugin.hpp
 #include <Eigen/Sparse>
+// clang-format on
 
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"

@@ -19,9 +19,9 @@
  */
 #pragma once
 
-#include <Eigen/Core>
-
 #include "core/DataTypes.h"
+
+#include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace Eigen {
 
@@ -59,6 +59,6 @@ using MatrixX10r   = Matrix< walberla::real_t, Dynamic, 10 >;
 
 // partial template spacialization for real_t
 template < int Rows, int Cols >
-using Matrix_r = Matrix< walberla::real_t, Rows, Cols >;
+using Matrixr = Matrix< walberla::real_t, Rows, Cols >;
 
 } // namespace Eigen

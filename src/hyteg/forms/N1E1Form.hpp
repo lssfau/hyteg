@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/forms/Form.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 namespace n1e1 {

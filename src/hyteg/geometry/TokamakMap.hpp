@@ -279,7 +279,7 @@ class TokamakMap : public GeometryMap
       DF( 2, 0 ) = -tmp50 * tmp74 + tmp56 * tmp75 - tmp56 * tmp76;
       DF( 2, 1 ) = -tmp67 * tmp77 + tmp69 * tmp75 - tmp69 * tmp76;
       DF( 2, 2 ) = -tmp71 * tmp75 + tmp72 * tmp74 - tmp77 * xold_2;
-      return DF.det();
+      return DF.determinant();
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final

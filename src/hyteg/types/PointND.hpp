@@ -29,6 +29,12 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+
+namespace hyteg {
+template < typename T, size_t N >
+class PointND;
+}
+
 #include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace walberla::math {

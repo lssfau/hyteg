@@ -51,7 +51,7 @@ void logSectionHeader( const char* header, const char* marker = "-" )
    WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
 }
 
-template < uint_t nRows, uint_t nCols >
+template < int nRows, int nCols >
 real_t
     normOfDifference( const Matrixr< nRows, nCols >& mat1, const Matrixr< nRows, nCols >& mat2, Matrixr< nRows, nCols >& diffMat )
 {
@@ -67,8 +67,8 @@ real_t
    return std::sqrt( norm );
 }
 
-template < typename Form, uint_t dim, uint_t rows, uint_t cols >
-void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& element, uint_t row, real_t tol )
+template < typename Form, uint_t dim, int rows, int cols >
+void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& element, int row, real_t tol )
 {
    typedef Matrixr< rows, cols > LocalMatType;
    typedef Matrixr< 1, cols >    LocalRowType;
@@ -79,9 +79,9 @@ void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& elemen
    LocalRowType elRowDifference;
 
    form.integrateAll( element, elMat );
-   form.integrateRow( row, element, elRow );
+   form.integrateRow( uint_c(row), element, elRow );
 
-   for ( uint_t col = 0; col < cols; col++ )
+   for ( int col = 0; col < cols; col++ )
    {
       elRowOfFullMat( row, col ) = elMat( row, col );
    }

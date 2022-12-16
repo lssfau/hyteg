@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <utility>
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -38,9 +39,9 @@ using walberla::real_c;
 class AffineMap3D : public GeometryMap
 {
  public:
-   AffineMap3D( const Matrix3r& mat, const Point3D& vec )
-   : mat_( mat )
-   , vec_( vec )
+   AffineMap3D( Matrix3r mat, Point3D vec )
+   : mat_( std::move( mat ) )
+   , vec_( std::move( vec ) )
    {
       // precompute Jacobian determinant
       real_t tmp1 = +mat_( 0, 0 ) * mat_( 1, 1 ) * mat_( 2, 2 );
@@ -52,11 +53,11 @@ class AffineMap3D : public GeometryMap
       jacDet_     = tmp1 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6;
    }
 
-   AffineMap3D( walberla::mpi::RecvBuffer& recvBuffer )
+   explicit AffineMap3D( walberla::mpi::RecvBuffer& recvBuffer )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( int i = 0; i < 3; i++ )
       {
-         for ( uint_t j = 0; j < 3; j++ )
+         for ( int j = 0; j < 3; j++ )
          {
             recvBuffer >> mat_( i, j );
          }
@@ -66,14 +67,14 @@ class AffineMap3D : public GeometryMap
       recvBuffer >> vec_[2];
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const override final
+   void evalF( const Point3D& xold, Point3D& xnew ) const final
    {
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + mat_( 0, 2 ) * xold[2] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + mat_( 1, 2 ) * xold[2] + vec_[1];
       xnew[2] = mat_( 2, 0 ) * xold[0] + mat_( 2, 1 ) * xold[1] + mat_( 2, 2 ) * xold[2] + vec_[2];
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final
    {
       real_t tmp0 = -vec_[0] + xPhys[0];
       real_t tmp1 = -vec_[1] + xPhys[1];
@@ -92,19 +93,19 @@ class AffineMap3D : public GeometryMap
       xComp *= real_c( 1 ) / jacDet_;
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const override final
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
    {
       WALBERLA_UNUSED( x );
       DFx = mat_;
       return jacDet_;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const final
    {
       sendBuffer << Type::AFFINE_3D;
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( int i = 0; i < 3; i++ )
       {
-         for ( uint_t j = 0; j < 3; j++ )
+         for ( int j = 0; j < 3; j++ )
          {
             sendBuffer << mat_( i, j );
          }
@@ -114,25 +115,25 @@ class AffineMap3D : public GeometryMap
 
    static void setMap( SetupPrimitiveStorage& setupStorage, const Matrix3r& mat, const Point3D& vec )
    {
-      for ( auto it : setupStorage.getCells() )
+      for ( const auto& it : setupStorage.getCells() )
       {
          Cell& cell = *it.second;
          setupStorage.setGeometryMap( cell.getID(), std::make_shared< AffineMap3D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getFaces() )
+      for ( const auto& it : setupStorage.getFaces() )
       {
          Face& face = *it.second;
          setupStorage.setGeometryMap( face.getID(), std::make_shared< AffineMap3D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getEdges() )
+      for ( const auto& it : setupStorage.getEdges() )
       {
          Edge& edge = *it.second;
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< AffineMap3D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getVertices() )
+      for ( const auto& it : setupStorage.getVertices() )
       {
          Vertex& vertex = *it.second;
          setupStorage.setGeometryMap( vertex.getID(), std::make_shared< AffineMap3D >( mat, vec ) );
@@ -143,14 +144,14 @@ class AffineMap3D : public GeometryMap
    *    methods for 2D (class only provides a pseudo-implementation to satisfy requirements of base class)
    */
    ///@{
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "AffineMap3D::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );
@@ -166,7 +167,7 @@ class AffineMap3D : public GeometryMap
    Point3D vec_;
 
    /// value of Jacobian determinant
-   real_t jacDet_;
+   real_t jacDet_{};
 };
 
 } // end of namespace hyteg

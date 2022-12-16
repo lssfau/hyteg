@@ -20,6 +20,9 @@
 #pragma once
 
 #include <functional>
+#include <array>
+
+#include "core/Abort.h"
 
 #include "hyteg/types/Matrix.hpp"
 
@@ -28,9 +31,10 @@ namespace fenics {
 
 using walberla::real_c;
 
-enum ElementType {
-  GRAY,
-  BLUE
+enum ElementType
+{
+   GRAY,
+   BLUE
 };
 
 /// Use this UFCOperator to assemble the zero-matrix.
@@ -56,8 +60,8 @@ class Dummy10x10Assembly
 {
 public:
 
-    Dummy10x10Assembly() : stiffnessMatrix_( real_c(0) ) {}
-    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( constant ) {}
+    Dummy10x10Assembly() : stiffnessMatrix_( Matrix10r::Zero() ) {}
+    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( Matrix10r::Constant(constant) ) {}
 
     void tabulate_tensor(real_t * A,
                          const real_t * const *,
@@ -113,7 +117,7 @@ typedef std::function<void(real_t *,
   /// P2DoFMap[3][3] = 3;
   // wait for C++17
   // constexpr static std::array< std::array<uint_t,4>, 4 > P2DoFMap =
-  const std::array< std::array<uint_t,4>, 4 > P2DoFMap =
+  const std::array< std::array<int,4>, 4 > P2DoFMap =
     { { { 0, 9, 8, 7 },
         { 9, 1, 6, 5 },
         { 8, 6, 2, 4 },
@@ -146,7 +150,7 @@ typedef std::function<void(real_t *,
   //
   // wait for C++17
   // constexpr static std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
-  const std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
+  const std::array< std::array<int,3>, 3 > P2DoFMapTriangle =
     { { { 0, 5, 4 },
         { 5, 1, 3 },
         { 4, 3, 2 } } };

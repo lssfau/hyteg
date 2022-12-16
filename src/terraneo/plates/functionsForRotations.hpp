@@ -165,7 +165,9 @@ int determineSeriesOfFiniteRotations( const rotIter_t&               rangeBegin,
 
       vec3D lonlatAng = intermediateRotations( fin0[jj - 1], fin0[jj], t );
       finRot.push_back( { t, lonlatAng } );
-      pID = fin0[jj].conjugateID;
+      if (ii == 0){
+         pID = fin0[jj-1].conjugateID;
+      }
    }
 
    return pID;
