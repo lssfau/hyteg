@@ -25,6 +25,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
 
 namespace hyteg {
 
@@ -805,5 +806,10 @@ template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
 
 template class P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >;
+
+// This is a slight misuse of the P1ElementwiseOperator class, since the spherical
+// elements are not P1. However, the SphericalElementFunction, like the P1Function
+// is only an alias for the VertexDoFFunction, so we can re-use this operator.
+template class P1ElementwiseOperator< SphericalElementFormMass >;
 
 } // namespace hyteg
