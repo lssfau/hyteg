@@ -48,9 +48,9 @@ void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
 
    form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
 
-   for ( uint_t i = 0; i < 6; ++i )
+   for ( int i = 0; i < 6; ++i )
    {
-      for ( uint_t j = 0; j < 6; ++j )
+      for ( int j = 0; j < 6; ++j )
       {
          WALBERLA_CHECK_FLOAT_EQUAL( elMat( i, j ), correct( i, j ) )
       }

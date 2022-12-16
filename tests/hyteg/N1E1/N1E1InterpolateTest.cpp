@@ -21,7 +21,6 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"

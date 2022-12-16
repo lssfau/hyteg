@@ -22,7 +22,6 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
