@@ -54,8 +54,6 @@ class ThinShellMap : public GeometryMap
       xPhys[0] = xComp[0] * radius_ / oldRad;
       xPhys[1] = xComp[1] * radius_ / oldRad;
       xPhys[2] = xComp[2] * radius_ / oldRad;
-
-      SHELL_MAP_LOG( "Mapped: " << xComp << " --> " << xPhys );
    }
 
    void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override {}
