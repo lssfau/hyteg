@@ -1,14 +1,17 @@
+
 /*
+* Copyright (c) 2017-2022 Nils Kohl.
+*
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
 *
 * This program is free software: you can redistribute it and/or modify
-        * it under the terms of the GNU General Public License as published by
+* it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
-        * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU General Public License for more details.
 *
@@ -28,9 +31,14 @@
 
 # include "Eigen/Eigen"
 
+
+using walberla::real_t;
+using walberla::uint_t;
+
 using walberla::uint_c;
 namespace hyteg {
     namespace dg {
+
         class P0P0MassForm : public hyteg::dg::DGForm {
         protected:
             void integrateVolume2D(const std::vector<Eigen::Matrix<real_t, 3, 1> > &coords,
@@ -432,6 +440,5 @@ namespace hyteg {
 
 
         };
-
     }
 }

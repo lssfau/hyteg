@@ -30,6 +30,8 @@
 
 #include "p1_epsilonvar_affine_q2.hpp"
 
+#include "hyteg/forms/CoefficientQuadratureAveraging.hpp"
+
 namespace hyteg {
 namespace forms {
 
@@ -47,6 +49,8 @@ namespace forms {
       Scalar_Variable_Coefficient_2D( 0.16666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.66666666666666663*p_affine_2_0, 0.16666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.66666666666666663*p_affine_2_1, &Scalar_Variable_Coefficient_2D_0_0 );
       Scalar_Variable_Coefficient_2D( 0.16666666666666671*p_affine_0_0 + 0.66666666666666663*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.16666666666666671*p_affine_0_1 + 0.66666666666666663*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_1_0 );
       Scalar_Variable_Coefficient_2D( 0.66666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.66666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_2_0 );
+       MeanAverageCoefficients({Scalar_Variable_Coefficient_2D_0_0, Scalar_Variable_Coefficient_2D_1_0, Scalar_Variable_Coefficient_2D_2_0});
+
       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
@@ -176,7 +180,8 @@ namespace forms {
       Scalar_Variable_Coefficient_3D( 0.13819660112501048*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.58541019662496829*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501048*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.58541019662496829*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501048*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.58541019662496829*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_1_0 );
       Scalar_Variable_Coefficient_3D( 0.13819660112501053*p_affine_0_0 + 0.58541019662496829*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501053*p_affine_0_1 + 0.58541019662496829*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501053*p_affine_0_2 + 0.58541019662496829*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_2_0 );
       Scalar_Variable_Coefficient_3D( 0.58541019662496807*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.58541019662496807*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.58541019662496807*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_3_0 );
-      real_t tmp_0 = -p_affine_0_0;
+
+       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
       real_t tmp_3 = p_affine_2_1 + tmp_2;
@@ -444,6 +449,8 @@ namespace forms {
       Scalar_Variable_Coefficient_2D( 0.16666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.66666666666666663*p_affine_2_0, 0.16666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.66666666666666663*p_affine_2_1, &Scalar_Variable_Coefficient_2D_0_0 );
       Scalar_Variable_Coefficient_2D( 0.16666666666666671*p_affine_0_0 + 0.66666666666666663*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.16666666666666671*p_affine_0_1 + 0.66666666666666663*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_1_0 );
       Scalar_Variable_Coefficient_2D( 0.66666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.66666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_2_0 );
+       MeanAverageCoefficients({Scalar_Variable_Coefficient_2D_0_0, Scalar_Variable_Coefficient_2D_1_0, Scalar_Variable_Coefficient_2D_2_0});
+
       real_t tmp_0 = 0.16666666666666666*Scalar_Variable_Coefficient_2D_0_0;
       real_t tmp_1 = -p_affine_0_1;
       real_t tmp_2 = p_affine_2_1 + tmp_1;
@@ -561,7 +568,8 @@ namespace forms {
       Scalar_Variable_Coefficient_3D( 0.13819660112501048*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.58541019662496829*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501048*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.58541019662496829*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501048*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.58541019662496829*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_1_0 );
       Scalar_Variable_Coefficient_3D( 0.13819660112501053*p_affine_0_0 + 0.58541019662496829*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501053*p_affine_0_1 + 0.58541019662496829*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501053*p_affine_0_2 + 0.58541019662496829*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_2_0 );
       Scalar_Variable_Coefficient_3D( 0.58541019662496807*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.58541019662496807*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.58541019662496807*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_3_0 );
-      real_t tmp_0 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_0_0;
+
+       real_t tmp_0 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_0_0;
       real_t tmp_1 = -p_affine_0_1;
       real_t tmp_2 = p_affine_1_1 + tmp_1;
       real_t tmp_3 = -p_affine_0_2;
@@ -994,7 +1002,9 @@ namespace forms {
       Scalar_Variable_Coefficient_2D( 0.16666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.66666666666666663*p_affine_2_0, 0.16666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.66666666666666663*p_affine_2_1, &Scalar_Variable_Coefficient_2D_0_0 );
       Scalar_Variable_Coefficient_2D( 0.16666666666666671*p_affine_0_0 + 0.66666666666666663*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.16666666666666671*p_affine_0_1 + 0.66666666666666663*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_1_0 );
       Scalar_Variable_Coefficient_2D( 0.66666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.66666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_2_0 );
-      real_t tmp_0 = 0.16666666666666666*Scalar_Variable_Coefficient_2D_0_0;
+       MeanAverageCoefficients({Scalar_Variable_Coefficient_2D_0_0, Scalar_Variable_Coefficient_2D_1_0, Scalar_Variable_Coefficient_2D_2_0});
+
+       real_t tmp_0 = 0.16666666666666666*Scalar_Variable_Coefficient_2D_0_0;
       real_t tmp_1 = -p_affine_0_0;
       real_t tmp_2 = p_affine_1_0 + tmp_1;
       real_t tmp_3 = -p_affine_0_1;
@@ -1110,7 +1120,8 @@ namespace forms {
       Scalar_Variable_Coefficient_3D( 0.13819660112501048*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.58541019662496829*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501048*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.58541019662496829*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501048*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.58541019662496829*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_1_0 );
       Scalar_Variable_Coefficient_3D( 0.13819660112501053*p_affine_0_0 + 0.58541019662496829*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501053*p_affine_0_1 + 0.58541019662496829*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501053*p_affine_0_2 + 0.58541019662496829*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_2_0 );
       Scalar_Variable_Coefficient_3D( 0.58541019662496807*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.58541019662496807*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.58541019662496807*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_3_0 );
-      real_t tmp_0 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_0_0;
+
+       real_t tmp_0 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_0_0;
       real_t tmp_1 = -p_affine_0_0;
       real_t tmp_2 = p_affine_2_0 + tmp_1;
       real_t tmp_3 = -p_affine_0_2;
@@ -1320,7 +1331,9 @@ namespace forms {
       Scalar_Variable_Coefficient_2D( 0.16666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.66666666666666663*p_affine_2_0, 0.16666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.66666666666666663*p_affine_2_1, &Scalar_Variable_Coefficient_2D_0_0 );
       Scalar_Variable_Coefficient_2D( 0.16666666666666671*p_affine_0_0 + 0.66666666666666663*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.16666666666666671*p_affine_0_1 + 0.66666666666666663*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_1_0 );
       Scalar_Variable_Coefficient_2D( 0.66666666666666674*p_affine_0_0 + 0.16666666666666666*p_affine_1_0 + 0.16666666666666666*p_affine_2_0, 0.66666666666666674*p_affine_0_1 + 0.16666666666666666*p_affine_1_1 + 0.16666666666666666*p_affine_2_1, &Scalar_Variable_Coefficient_2D_2_0 );
-      real_t tmp_0 = -p_affine_0_0;
+       MeanAverageCoefficients({Scalar_Variable_Coefficient_2D_0_0, Scalar_Variable_Coefficient_2D_1_0, Scalar_Variable_Coefficient_2D_2_0});
+
+       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
       real_t tmp_3 = p_affine_2_1 + tmp_2;
@@ -1449,7 +1462,8 @@ namespace forms {
       Scalar_Variable_Coefficient_3D( 0.13819660112501048*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.58541019662496829*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501048*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.58541019662496829*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501048*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.58541019662496829*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_1_0 );
       Scalar_Variable_Coefficient_3D( 0.13819660112501053*p_affine_0_0 + 0.58541019662496829*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501053*p_affine_0_1 + 0.58541019662496829*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501053*p_affine_0_2 + 0.58541019662496829*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_2_0 );
       Scalar_Variable_Coefficient_3D( 0.58541019662496807*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.58541019662496807*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.58541019662496807*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_3_0 );
-      real_t tmp_0 = -p_affine_0_0;
+
+       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
       real_t tmp_3 = p_affine_2_1 + tmp_2;
