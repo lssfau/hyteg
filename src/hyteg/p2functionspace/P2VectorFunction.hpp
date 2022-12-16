@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,22 +44,26 @@ class P2VectorFunction final : public CSFVectorFunction< P2VectorFunction< Value
    P2VectorFunction( const std::string&                         _name,
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
-                     size_t                                     maxLevel )
-   : P2VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+                     size_t                                     maxLevel,
+                     uint_t                                     vectorDim = 0 )
+   : P2VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC(), vectorDim )
    {}
 
    P2VectorFunction( const std::string&                         _name,
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
-                     BoundaryCondition                          bc )
+                     BoundaryCondition                          bc,
+                     uint_t                                     vectorDim = 0 )
    : CSFVectorFunction< P2VectorFunction< ValueType > >( _name )
    {
+      WALBERLA_ASSERT( vectorDim == 0 || vectorDim == 2 || vectorDim == 3, "P2Vectorfunction: vectorDim arg must be from {0,2,3}" );
+
       this->compFunc_.clear();
       this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc ) );
       this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc ) );
 
-      if ( storage->hasGlobalCells() )
+      if ( ( vectorDim == 0 && storage->hasGlobalCells() ) || vectorDim == 3 )
       {
          this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
       }

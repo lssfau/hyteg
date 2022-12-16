@@ -223,7 +223,8 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
 {
    WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
 
-   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), function.getDimension(), vtkDataFormat );
+   uint_t dim = function.getDimension();
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
 
    VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
 
@@ -239,46 +240,44 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
             {
                if ( it.col() % 2 == 0 )
                {
-                  streamWriter << face.getData( function[0].getVertexDoFFunction().getFaceDataID() )
-                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
-                  streamWriter << face.getData( function[1].getVertexDoFFunction().getFaceDataID() )
-                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     streamWriter << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
+                                         ->getPointer( level )[vertexdof::macroface::indexFromVertex(
+                                             level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                  }
                }
                else
                {
-                  streamWriter
-                      << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
-                  streamWriter
-                      << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     streamWriter
+                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                  }
                }
             }
             else
             {
                if ( it.col() % 2 == 0 )
                {
-                  streamWriter << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
-                  streamWriter << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     streamWriter
+                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                  }
                }
                else
                {
-                  streamWriter
-                      << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
-                  streamWriter
-                      << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     streamWriter << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                         ->getPointer( level )[edgedof::macroface::diagonalIndex(
+                                             level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                  }
                }
             }
          }
