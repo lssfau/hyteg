@@ -20,8 +20,6 @@
 
 #include "N1E1ElementwiseOperator.hpp"
 
-#include "hyteg/communication/Syncing.hpp"
-#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
@@ -374,9 +372,9 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell& 
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    // add contributions for central stencil weights
-   for ( uint_t k = 0; k < 6; ++k )
+   for ( int k = 0; k < 6; ++k )
    {
-      diagData[edgeDoFIndices[k]] += elMat( k, k );
+      diagData[edgeDoFIndices[uint_c( k )]] += elMat( k, k );
    }
 }
 

@@ -23,6 +23,7 @@
 #include "hyteg/forms/N1E1Form.hpp"
 
 using walberla::real_c;
+using walberla::uint_c;
 
 namespace hyteg {
 namespace n1e1 {
@@ -66,11 +67,11 @@ class N1E1Form_curl_curl : public N1E1Form
                                                    Eigen::Vector3r{  0, -2,  2 } * edgeDirections[5] };
       // clang-format on
 
-      for ( uint_t i = 0; i < 6; i++ )
+      for ( int i = 0; i < 6; i++ )
       {
-         for ( uint_t j = i; j < 6; j++ )
+         for ( int j = i; j < 6; j++ )
          {
-            const real_t val = 1.0 / ( 6.0 * absDetB ) * ( B * curlPhi[i] ).dot( B * curlPhi[j] );
+            const real_t val = 1.0 / ( 6.0 * absDetB ) * ( B * curlPhi[uint_c( i )] ).dot( B * curlPhi[uint_c( j )] );
             elMat( i, j )    = val;
             elMat( j, i )    = val;
          }
