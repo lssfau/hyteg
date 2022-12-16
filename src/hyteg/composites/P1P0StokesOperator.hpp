@@ -136,6 +136,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
  public:
    typedef P1ConstantVectorLaplaceOperator VelocityBlockOperator_T;
    typedef P1ConstantLaplaceOperator       VelocityOperator_T;
+    typedef VelocityBlockOperator_T EnergyNormOperator_T;
    // typedef P1P0StokesBlockPreconditioner BlockPreconditioner_T;
 
    P1P0StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, real_t mu )
@@ -145,6 +146,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , stab( storage, minLevel, maxLevel, std::make_shared< DGStokesP1P0PressureStabForm_Example >() )
+   , energyNormOp(Lapl)
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -178,60 +180,10 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    P1ToP0ConstantDivOperator  div;
    P0ToP1ConstantDivTOperator divT;
    dg::DGOperator             stab;
+   EnergyNormOperator_T&     energyNormOp;
 
    bool hasGlobalCells_;
 };
 
-
-class P1P0EpsilonOperator : public Operator< P1P0StokesFunction< real_t >, P1P0StokesFunction< real_t > >
-{
- public:
-   typedef P1ElementwiseAffineEpsilonOperator VelocityBlockOperator_T;
-   typedef IdentityOperator< P1VectorFunction< real_t > > EnergyNormOperator_T;
-
-   P1P0EpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, real_t mu, std::function<real_t(const Point3D &)> viscosity )
-   : Operator( storage, minLevel, maxLevel )
-   , eps( storage, minLevel, maxLevel, viscosity )
-   , mudivdiv( storage, minLevel, maxLevel, mu )
-   , div( storage, minLevel, maxLevel )
-   , divT( storage, minLevel, maxLevel )
-   , stab( storage, minLevel, maxLevel, std::make_shared< DGStokesP1P0PressureStabForm_Example >() )
-   , energyNormOp(storage, maxLevel)
-   , hasGlobalCells_( storage->hasGlobalCells() )
-   {}
-
-   void apply( const P1P0StokesFunction< real_t >& src,
-               const P1P0StokesFunction< real_t >& dst,
-               const uint_t                        level,
-               const DoFType                       flag ) const
-   {
-      eps.apply( src.uvw(), dst.uvw(), level, flag, Replace );
-      mudivdiv.apply( src.uvw(), dst.uvw(), level, flag, Add );
-      divT.apply( src.p(), dst.uvw(), level, flag, Add );
-      div.apply( src.uvw(), dst.p(), level, flag, Replace );
-      stab.apply( *src.p().getDGFunction(), *dst.p().getDGFunction(), level, flag, Add );
-   }
-
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P1P0StokesFunction< idx_t >&          src,
-                  const P1P0StokesFunction< idx_t >&          dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
-   {
-      eps.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-      mudivdiv.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
-      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
-      stab.toMatrix( mat, *src.p().getDGFunction(), *dst.p().getDGFunction(), level, flag );
-   }
-
-   VelocityBlockOperator_T    eps;
-   P1DivDivOperator           mudivdiv;
-   P1ToP0ConstantDivOperator  div;
-   P0ToP1ConstantDivTOperator divT;
-   dg::DGOperator             stab;
-   IdentityOperator<P1VectorFunction<real_t>> energyNormOp;
-   bool hasGlobalCells_;
-};
 
 } // namespace hyteg
