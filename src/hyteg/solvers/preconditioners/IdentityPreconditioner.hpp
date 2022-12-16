@@ -49,4 +49,30 @@ class IdentityPreconditioner : public Solver< OperatorType >
    DoFType    flag_;
 };
 
+template < typename functionType >
+class IdentityOperator : public Operator< functionType, functionType >
+{
+ public:
+   IdentityOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t level )
+   : Operator< functionType, functionType >( storage, level, level )
+   {}
+
+   void apply( const functionType&    src,
+               const functionType&    dst,
+               const walberla::uint_t level,
+               DoFType                flag,
+               UpdateType             updateType )
+   {
+      dst.assign( { 1.0 }, { src }, level, flag );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const functionType&                         src,
+                  const functionType&                         dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      WALBERLA_ABORT( "Not implemented." );
+   }
+};
 } // namespace hyteg
