@@ -26,7 +26,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -111,11 +111,6 @@ void performComputations( uint_t                                     level,
       return id;
    };
 
-   // create boundary condition object for the two surfaces
-   BoundaryCondition bcs;
-   BoundaryUID       regionSurface = bcs.createDirichletBC( "surface", MeshInfo::flagOuterBoundary );
-   BoundaryUID       regionCMB     = bcs.createDirichletBC( "core-mantle-boundary", MeshInfo::flagInnerBoundary );
-
    // use pointers so that we only request memory for function in the desired jobType
    std::shared_ptr< feFuncType >                               surfaceVelocity{ nullptr };
    std::shared_ptr< typename feFuncType::VectorComponentType > plateID{ nullptr };
@@ -124,22 +119,16 @@ void performComputations( uint_t                                     level,
    if ( jobType == PLATE_IDS || jobType == VELOCITIES_AND_IDS )
    {
       plateID = std::make_shared< typename feFuncType::VectorComponentType >( "plateID", storage, level, level );
-      plateID->setBoundaryCondition( bcs );
-      plateID->interpolate( real_c( 0 ), level, Inner );
-      plateID->interpolate( real_c( 0 ), level, regionCMB );
-      plateID->interpolate( findPlateID, level, regionSurface );
+      plateID->interpolate( findPlateID, level, All );
    }
 
    // for DoF locations on the surface determine their associate velocity vectors
    if ( jobType == VELOCITIES || jobType == VELOCITIES_AND_IDS )
    {
-      surfaceVelocity = std::make_shared< feFuncType >( "plateVelocities", storage, level, level );
-      surfaceVelocity->setBoundaryCondition( bcs );
-      surfaceVelocity->interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, Inner );
-      surfaceVelocity->interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, regionCMB );
+      surfaceVelocity = std::make_shared< feFuncType >( "plateVelocities", storage, level, level, 3 );
       for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
       {
-         ( *surfaceVelocity )[coordIdx].interpolate( computeVelocityComponent, level, regionSurface );
+         ( *surfaceVelocity )[coordIdx].interpolate( computeVelocityComponent, level, All );
       }
    }
 
@@ -229,14 +218,14 @@ int main( int argc, char* argv[] )
    // ---------
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 2: Generating Mesh" );
    const uint_t level = params.getParameter< uint_t >( "level" );
-   const uint_t nRad  = params.getParameter< uint_t >( "nRad" );
    const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
+   const real_t radius = real_c( 1 );
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, real_c( 0.57 ), real_c( 1.0 ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshThinSphericalShell( nTan, radius );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
-   IcosahedralShellMap::setMap( setupStorage );
+   ThinShellMap::setMap( setupStorage, radius );
 
    std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );

@@ -15,7 +15,6 @@ Parameters
 
   // meshing parameters
   nTan 3;
-  nRad 2;
   level 3;
 
   // FE space
