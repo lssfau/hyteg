@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <array>
 #include <bitset>
 
 #include "core/debug/CheckFunctions.h"
