@@ -29,6 +29,7 @@ using walberla::uint_t;
 using walberla::math::pi;
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/form_fenics_base/N1curlFenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
@@ -55,6 +56,7 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
@@ -126,7 +128,15 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    // assemble element matrices
    matType matFenics, matHyTeG;
    fenicsForm.integrateAll( elementForFenics, matFenics );
-   hytegForm.integrateAll( element, matHyTeG );
+   if constexpr ( std::is_same< FormHyTeG, n1e1::N1E1Form_mass >::value )
+   {
+      std::array< int, 6 > ones{ 1, 1, 1, 1, 1, 1 };
+      hytegForm.integrateAll( element, ones, matHyTeG );
+   }
+   else
+   {
+      hytegForm.integrateAll( element, matHyTeG );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( " FEniCS: " << matFenics );
    if ( wBlending && !applyMapToElement )
@@ -857,6 +867,13 @@ void run3DTestsWithoutBlending()
                  forms::p2_full_stokescc_2_2_affine_q3,
                  Matrix10r,
                  3 >( theTet, 1e-13 );
+
+   // Hand-made forms
+   logSectionHeader( "Nedelec, 1st Order, H(curl), 3D, no blending" );
+   compareForms< N1curlFenicsForm< fenics::NoAssemble, n1curl_tet_mass_cell_integral_0_otherwise >,
+                 n1e1::N1E1Form_mass,
+                 Matrix6r,
+                 3 >( theTet, 1e-15 );
 }
 
 void run3DTestsWithAffineMap()
