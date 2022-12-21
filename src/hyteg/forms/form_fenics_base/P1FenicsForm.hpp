@@ -78,7 +78,7 @@ class P1FenicsForm : public P1Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
-      Matrix3r localStiffnessMatrix;
+      Matrix3r localStiffnessMatrix{ Matrix3r::Zero() };
       real_t   fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
@@ -136,7 +136,7 @@ class P1FenicsForm : public P1Form
       }
    }
 
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
       real_t fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
@@ -149,7 +149,7 @@ class P1FenicsForm : public P1Form
       gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
    }
 
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
    {
       real_t fenicsCoords[12];
       fenicsCoords[0] = coords[0][0];
@@ -172,7 +172,7 @@ class P1FenicsForm : public P1Form
       gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
 };
 
 } // namespace hyteg
