@@ -226,7 +226,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
 
    auto cellType = celldof::CellType::WHITE_UP;
 
-   if ( inFullCube || !inCutCube )
+   if ( inFullCube || inCutCube )
    {
       std::vector< celldof::CellType > possibleCellTypes = { celldof::CellType::WHITE_UP,
                                                              celldof::CellType::BLUE_UP,
@@ -796,4 +796,4 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-} // namespace hyteg
+} // namespace hyteg::vertexdof::macrocell
