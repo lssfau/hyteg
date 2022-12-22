@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -244,11 +244,12 @@ template < typename ValueType >
 inline void interpolate( const uint_t&                                               Level,
                          Face&                                                       face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
-                         const ValueType&                                            scalar )
+                         const ValueType&                                            scalar,
+                         const uint_t&                                               offset = 1 )
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
-   for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( Level, offset ) )
    {
       const uint_t idx = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
       faceData[idx]    = scalar;
@@ -260,7 +261,8 @@ inline void interpolate( const uint_t&                                          
                          Face&                                                                                       face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                                 faceMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                  srcIds,
-                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr,
+                         const uint_t&                                                                               offset = 1 )
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -274,7 +276,7 @@ inline void interpolate( const uint_t&                                          
 
    Point3D xBlend;
 
-   for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( Level, offset ) )
    {
       const Point3D coordinate = coordinateFromIndex( Level, face, it );
       const uint_t  idx        = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -164,9 +164,14 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
+   /// \param id PrimitiveID of the cell/face where physicalCoords is located. If a valid id is provided, the loop over all local primitives is skipped.
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = real_c( 1e-05 ) ) const;
+   bool evaluate( const Point3D& physicalCoords,
+                  uint_t         level,
+                  ValueType&     value,
+                  real_t         searchToleranceRadius = real_c(1e-05),
+                  PrimitiveID    id                    = PrimitiveID() ) const;
 
    void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
@@ -238,6 +243,13 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
    //@}
+
+   /// interpolate data from a coarser mesh.
+   ///
+   /// Note that this only works for adaptively refined meshes and only if the
+   /// child-primitives are located on the same processes as their parents!
+   /// Involves global communication!
+   void interpolate( const VertexDoFFunction< ValueType >& functionOnParentGrid, uint_t level, uint_t srcLevel );
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;

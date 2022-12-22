@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -78,11 +78,12 @@ template < typename ValueType >
 inline void interpolate( const uint_t&                                               level,
                          const Cell&                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
-                         const ValueType&                                            scalar )
+                         const ValueType&                                            scalar,
+                         const uint_t&                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
       cellData[idx]    = scalar;
@@ -94,7 +95,8 @@ inline void interpolate( const uint_t&                                          
                          const Cell&                                                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                                 cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&                  srcIds,
-                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr,
+                         const uint_t&                                                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
@@ -108,7 +110,7 @@ inline void interpolate( const uint_t&                                          
 
    Point3D xBlend;
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const Point3D coordinate = coordinateFromIndex( level, cell, it );
       const uint_t  idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );

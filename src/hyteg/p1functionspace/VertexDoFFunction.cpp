@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -522,6 +522,86 @@ void VertexDoFFunction< ValueType >::interpolate(
 }
 
 template < typename ValueType >
+void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< ValueType >& functionOnParentGrid,
+                                                  uint_t                                level,
+                                                  uint_t                                srcLevel )
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+
+   auto storage       = this->getStorage();
+   auto parentStorage = functionOnParentGrid.getStorage();
+   auto threeD        = storage->hasGlobalCells();
+
+   auto getParentID = [&]( const PrimitiveID& id ) -> PrimitiveID {
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id ) )
+         return id;
+
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent() ) )
+         return id.getParent();
+
+      WALBERLA_ABORT( "Interpolation between parent and new grid failed: Primitive doesn't exist locally on parentStorage!" );
+      return PrimitiveID();
+   };
+
+   // update ghostlayers on source
+   functionOnParentGrid.communicate< Vertex, Edge >( srcLevel );
+   functionOnParentGrid.communicate< Edge, Face >( srcLevel );
+   functionOnParentGrid.communicate< Face, Cell >( srcLevel );
+
+   // interpolate function on volume elements, i.e., cells or faces
+   auto primitiveIDs = threeD ? storage->getCellIDs() : storage->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+   for ( int i = 0; i < int_c( primitiveIDs.size() ); i++ )
+   {
+      const auto& id       = primitiveIDs[uint_c( i )];
+      const auto  parentID = getParentID( id );
+
+      // if the element also exists in the coarser mesh, we simply copy the data
+      if ( parentID == id && srcLevel == level )
+      {
+         if ( threeD )
+         {
+            storage->getCell( id )
+                ->getData( cellDataID_ )
+                ->copyFrom( *parentStorage->getCell( id )->getData( functionOnParentGrid.getCellDataID() ), level );
+         }
+         else
+         {
+            storage->getFace( id )
+                ->getData( faceDataID_ )
+                ->copyFrom( *parentStorage->getFace( id )->getData( functionOnParentGrid.getFaceDataID() ), level );
+         }
+      }
+      // otherwise, we evaluate the coarse function at each point
+      else
+      {
+         auto expr = [&]( const Point3D& x, const std::vector< ValueType >& ) {
+            ValueType value;
+            functionOnParentGrid.evaluate( x, srcLevel, value, 0, parentID );
+            return value;
+         };
+         if ( threeD )
+            vertexdof::macrocell::interpolate< ValueType >( level, *storage->getCell( id ), cellDataID_, {}, expr, 0 );
+         else
+            vertexdof::macroface::interpolate< ValueType >( level, *storage->getFace( id ), faceDataID_, {}, expr, 0 );
+      }
+   }
+
+   // update interface primitives
+   this->communicate< Cell, Face >( level );
+   this->communicate< Face, Edge >( level );
+   this->communicate< Edge, Vertex >( level );
+
+   this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
 void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
 {
    if ( isDummy() )
@@ -561,7 +641,8 @@ template < typename ValueType >
 bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                uint_t         level,
                                                ValueType&     value,
-                                               real_t         searchToleranceRadius ) const
+                                               real_t         searchToleranceRadius,
+                                               PrimitiveID    id ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
@@ -569,36 +650,41 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( value );
       WALBERLA_UNUSED( searchToleranceRadius );
+      WALBERLA_UNUSED( id );
       WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
       return false;
    }
    else
    {
-      if ( !this->getStorage()->hasGlobalCells() )
+      auto storage = this->getStorage();
+      auto threeD  = storage->hasGlobalCells();
+
+      auto    coordExists = threeD ? storage->cellExistsLocally( id ) : storage->faceExistsLocally( id );
+      Point3D computationalCoords;
+
+      if ( coordExists )
       {
-         auto [found, faceID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
-         if ( found )
-         {
-            value = vertexdof::macroface::evaluate(
-                level, *( this->getStorage()->getFace( faceID ) ), computationalCoords, faceDataID_ );
-            return true;
-         }
+         if ( threeD )
+            storage->getCell( id )->getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+         else
+            storage->getFace( id )->getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
       }
       else
       {
-         auto [found, cellID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
-         if ( found )
-         {
-            value = vertexdof::macrocell::evaluate(
-                level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, cellDataID_ );
-            return true;
-         }
+         auto target         = threeD ? mapFromPhysicalToComputationalDomain3D( storage, physicalCoords, searchToleranceRadius ) :
+                                        mapFromPhysicalToComputationalDomain2D( storage, physicalCoords, searchToleranceRadius );
+         coordExists         = std::get< 0 >( target );
+         id                  = std::get< 1 >( target );
+         computationalCoords = std::get< 2 >( target );
       }
 
-      // no match found
-      return false;
+      if ( coordExists )
+      {
+         value = threeD ? vertexdof::macrocell::evaluate( level, *( storage->getCell( id ) ), computationalCoords, cellDataID_ ) :
+                          vertexdof::macroface::evaluate( level, *( storage->getFace( id ) ), computationalCoords, faceDataID_ );
+      }
+
+      return coordExists;
    }
 
    // will not be reached, but some compilers complain otherwise
@@ -868,7 +954,10 @@ void macroFaceAssign( const uint_t&                                             
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
