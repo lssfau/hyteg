@@ -197,13 +197,13 @@ public:
   typedef Polynomial1D<MonomialBasis1D> Polynomial1;
   typedef Polynomial2D<MonomialBasis2D> Polynomial2;
 
-  Polynomial2DEvaluator(uint_t degree)
+  explicit Polynomial2DEvaluator(uint_t degree)
     : degree_(degree)
     , poly1_(degree)
-    , deltas(degree+1)
+    , deltas_(degree+1)
   {}
 
-  Polynomial2DEvaluator(const Polynomial2& poly)
+  explicit Polynomial2DEvaluator(const Polynomial2& poly)
     : Polynomial2DEvaluator(poly.getDegree())
   {
     setPolynomial(poly);
@@ -212,11 +212,11 @@ public:
   void setPolynomial(const Polynomial2& poly)
   {
     WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
-    poly2_ = &poly;
+    poly2_ = std::make_shared<Polynomial2>(poly);
     // std::cout << "ptr to poly2_ = " << poly2_ << std::endl;
   }
 
-  real_t eval(const Point2D &x) const {
+  [[nodiscard]] real_t eval(const Point2D &x) const {
     return poly2_->eval(x);
   }
 
@@ -262,19 +262,19 @@ public:
   real_t setStartX(real_t x, real_t h) {
     switch (degree_)
     {
-    case 0: return polynomialevaluator::setStartX<0>(x, h, poly1_, deltas);
-    case 1: return polynomialevaluator::setStartX<1>(x, h, poly1_, deltas);
-    case 2: return polynomialevaluator::setStartX<2>(x, h, poly1_, deltas);
-    case 3: return polynomialevaluator::setStartX<3>(x, h, poly1_, deltas);
-    case 4: return polynomialevaluator::setStartX<4>(x, h, poly1_, deltas);
-    case 5: return polynomialevaluator::setStartX<5>(x, h, poly1_, deltas);
-    case 6: return polynomialevaluator::setStartX<6>(x, h, poly1_, deltas);
-    case 7: return polynomialevaluator::setStartX<7>(x, h, poly1_, deltas);
-    case 8: return polynomialevaluator::setStartX<8>(x, h, poly1_, deltas);
-    case 9: return polynomialevaluator::setStartX<9>(x, h, poly1_, deltas);
-    case 10: return polynomialevaluator::setStartX<10>(x, h, poly1_, deltas);
-    case 11: return polynomialevaluator::setStartX<11>(x, h, poly1_, deltas);
-    case 12: return polynomialevaluator::setStartX<12>(x, h, poly1_, deltas);
+    case 0: return polynomialevaluator::setStartX<0>(x, h, poly1_, deltas_ );
+    case 1: return polynomialevaluator::setStartX<1>(x, h, poly1_, deltas_ );
+    case 2: return polynomialevaluator::setStartX<2>(x, h, poly1_, deltas_ );
+    case 3: return polynomialevaluator::setStartX<3>(x, h, poly1_, deltas_ );
+    case 4: return polynomialevaluator::setStartX<4>(x, h, poly1_, deltas_ );
+    case 5: return polynomialevaluator::setStartX<5>(x, h, poly1_, deltas_ );
+    case 6: return polynomialevaluator::setStartX<6>(x, h, poly1_, deltas_ );
+    case 7: return polynomialevaluator::setStartX<7>(x, h, poly1_, deltas_ );
+    case 8: return polynomialevaluator::setStartX<8>(x, h, poly1_, deltas_ );
+    case 9: return polynomialevaluator::setStartX<9>(x, h, poly1_, deltas_ );
+    case 10: return polynomialevaluator::setStartX<10>(x, h, poly1_, deltas_ );
+    case 11: return polynomialevaluator::setStartX<11>(x, h, poly1_, deltas_ );
+    case 12: return polynomialevaluator::setStartX<12>(x, h, poly1_, deltas_ );
     default:return 0;
     }
   }
@@ -282,30 +282,30 @@ public:
   real_t incrementEval() {
     switch (degree_)
     {
-    case 0: return polynomialevaluator::incrementEval<0>(deltas);
-    case 1: return polynomialevaluator::incrementEval<1>(deltas);
-    case 2: return polynomialevaluator::incrementEval<2>(deltas);
-    case 3: return polynomialevaluator::incrementEval<3>(deltas);
-    case 4: return polynomialevaluator::incrementEval<4>(deltas);
-    case 5: return polynomialevaluator::incrementEval<5>(deltas);
-    case 6: return polynomialevaluator::incrementEval<6>(deltas);
-    case 7: return polynomialevaluator::incrementEval<7>(deltas);
-    case 8: return polynomialevaluator::incrementEval<8>(deltas);
-    case 9: return polynomialevaluator::incrementEval<9>(deltas);
-    case 10: return polynomialevaluator::incrementEval<10>(deltas);
-    case 11: return polynomialevaluator::incrementEval<11>(deltas);
-    case 12: return polynomialevaluator::incrementEval<12>(deltas);
+    case 0: return polynomialevaluator::incrementEval<0>( deltas_ );
+    case 1: return polynomialevaluator::incrementEval<1>( deltas_ );
+    case 2: return polynomialevaluator::incrementEval<2>( deltas_ );
+    case 3: return polynomialevaluator::incrementEval<3>( deltas_ );
+    case 4: return polynomialevaluator::incrementEval<4>( deltas_ );
+    case 5: return polynomialevaluator::incrementEval<5>( deltas_ );
+    case 6: return polynomialevaluator::incrementEval<6>( deltas_ );
+    case 7: return polynomialevaluator::incrementEval<7>( deltas_ );
+    case 8: return polynomialevaluator::incrementEval<8>( deltas_ );
+    case 9: return polynomialevaluator::incrementEval<9>( deltas_ );
+    case 10: return polynomialevaluator::incrementEval<10>( deltas_ );
+    case 11: return polynomialevaluator::incrementEval<11>( deltas_ );
+    case 12: return polynomialevaluator::incrementEval<12>( deltas_ );
     default:return 0;
     }
   }
 
 private:
-  const Polynomial2* poly2_;
+  std::shared_ptr<Polynomial2> poly2_{};
 
   uint_t degree_;
   Polynomial1 poly1_;
 
-  std::vector<real_t> deltas;
+  std::vector<real_t> deltas_;
 
 };
 
@@ -322,7 +322,7 @@ class Polynomial3DEvaluator{
     : degree_(degree)
     , poly_z_(degree)
     , poly_yz_(degree)
-    , deltas(degree+1)
+    , deltas_(degree+1)
   {
   }
 
@@ -335,7 +335,7 @@ class Polynomial3DEvaluator{
   void setPolynomial(const Polynomial3& poly)
   {
     WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
-    poly_ = &poly;
+    poly_ = std::make_shared<Polynomial3>(poly);
   }
 
   // restrict polynomial p to z
@@ -411,19 +411,19 @@ class Polynomial3DEvaluator{
   real_t setStartX(real_t x, real_t h) {
     switch (degree_)
     {
-    case 0: return polynomialevaluator::setStartX<0>(x, h, poly_yz_, deltas);
-    case 1: return polynomialevaluator::setStartX<1>(x, h, poly_yz_, deltas);
-    case 2: return polynomialevaluator::setStartX<2>(x, h, poly_yz_, deltas);
-    case 3: return polynomialevaluator::setStartX<3>(x, h, poly_yz_, deltas);
-    case 4: return polynomialevaluator::setStartX<4>(x, h, poly_yz_, deltas);
-    case 5: return polynomialevaluator::setStartX<5>(x, h, poly_yz_, deltas);
-    case 6: return polynomialevaluator::setStartX<6>(x, h, poly_yz_, deltas);
-    case 7: return polynomialevaluator::setStartX<7>(x, h, poly_yz_, deltas);
-    case 8: return polynomialevaluator::setStartX<8>(x, h, poly_yz_, deltas);
-    case 9: return polynomialevaluator::setStartX<9>(x, h, poly_yz_, deltas);
-    case 10: return polynomialevaluator::setStartX<10>(x, h, poly_yz_, deltas);
-    case 11: return polynomialevaluator::setStartX<11>(x, h, poly_yz_, deltas);
-    case 12: return polynomialevaluator::setStartX<12>(x, h, poly_yz_, deltas);
+    case 0: return polynomialevaluator::setStartX<0>(x, h, poly_yz_, deltas_ );
+    case 1: return polynomialevaluator::setStartX<1>(x, h, poly_yz_, deltas_ );
+    case 2: return polynomialevaluator::setStartX<2>(x, h, poly_yz_, deltas_ );
+    case 3: return polynomialevaluator::setStartX<3>(x, h, poly_yz_, deltas_ );
+    case 4: return polynomialevaluator::setStartX<4>(x, h, poly_yz_, deltas_ );
+    case 5: return polynomialevaluator::setStartX<5>(x, h, poly_yz_, deltas_ );
+    case 6: return polynomialevaluator::setStartX<6>(x, h, poly_yz_, deltas_ );
+    case 7: return polynomialevaluator::setStartX<7>(x, h, poly_yz_, deltas_ );
+    case 8: return polynomialevaluator::setStartX<8>(x, h, poly_yz_, deltas_ );
+    case 9: return polynomialevaluator::setStartX<9>(x, h, poly_yz_, deltas_ );
+    case 10: return polynomialevaluator::setStartX<10>(x, h, poly_yz_, deltas_ );
+    case 11: return polynomialevaluator::setStartX<11>(x, h, poly_yz_, deltas_ );
+    case 12: return polynomialevaluator::setStartX<12>(x, h, poly_yz_, deltas_ );
     default:return 0;
     }
   }
@@ -431,32 +431,32 @@ class Polynomial3DEvaluator{
   real_t incrementEval() {
     switch (degree_)
     {
-    case 0: return polynomialevaluator::incrementEval<0>(deltas);
-    case 1: return polynomialevaluator::incrementEval<1>(deltas);
-    case 2: return polynomialevaluator::incrementEval<2>(deltas);
-    case 3: return polynomialevaluator::incrementEval<3>(deltas);
-    case 4: return polynomialevaluator::incrementEval<4>(deltas);
-    case 5: return polynomialevaluator::incrementEval<5>(deltas);
-    case 6: return polynomialevaluator::incrementEval<6>(deltas);
-    case 7: return polynomialevaluator::incrementEval<7>(deltas);
-    case 8: return polynomialevaluator::incrementEval<8>(deltas);
-    case 9: return polynomialevaluator::incrementEval<9>(deltas);
-    case 10: return polynomialevaluator::incrementEval<10>(deltas);
-    case 11: return polynomialevaluator::incrementEval<11>(deltas);
-    case 12: return polynomialevaluator::incrementEval<12>(deltas);
+    case 0: return polynomialevaluator::incrementEval<0>( deltas_ );
+    case 1: return polynomialevaluator::incrementEval<1>( deltas_ );
+    case 2: return polynomialevaluator::incrementEval<2>( deltas_ );
+    case 3: return polynomialevaluator::incrementEval<3>( deltas_ );
+    case 4: return polynomialevaluator::incrementEval<4>( deltas_ );
+    case 5: return polynomialevaluator::incrementEval<5>( deltas_ );
+    case 6: return polynomialevaluator::incrementEval<6>( deltas_ );
+    case 7: return polynomialevaluator::incrementEval<7>( deltas_ );
+    case 8: return polynomialevaluator::incrementEval<8>( deltas_ );
+    case 9: return polynomialevaluator::incrementEval<9>( deltas_ );
+    case 10: return polynomialevaluator::incrementEval<10>( deltas_ );
+    case 11: return polynomialevaluator::incrementEval<11>( deltas_ );
+    case 12: return polynomialevaluator::incrementEval<12>( deltas_ );
     default:return 0;
     }
   }
 
  private:
 
-  const Polynomial3*  poly_;    // 3d polynomial p
+   std::shared_ptr<Polynomial3>  poly_{};    // 3d polynomial p
 
   uint_t              degree_;  // polynomial degree
   Polynomial2         poly_z_;  // p restricted to given z, i.e., p|z
   Polynomial1         poly_yz_;  // p|z restricted to given y, i.e., p|yz
 
-  std::vector<real_t> deltas;
+  std::vector<real_t> deltas_;
 
 };
 
