@@ -371,9 +371,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     accurate_error,
                                        bool                                     l2_error_each_iteration = true )
 {
-   auto l_err = ( accurate_error ) ? l_max + 1 : l_max; // todo
-
-   // mesh.exportMesh("mesh_" + std::to_string(refinement_step) + ".msh");
+   auto l_err = ( accurate_error ) ? l_max + 1 : l_max;
 
    double t0, t1;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -390,7 +388,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // operators
    t0 = walberla::timing::getWcTime();
    std::shared_ptr< A_t > A;
-   auto                   M = std::make_shared< Mass >( storage, l_min, l_max + 1 );
+   auto                   M = std::make_shared< Mass >( storage, l_min, l_err );
    auto                   P = std::make_shared< P1toP1LinearProlongation >();
    auto                   R = std::make_shared< P1toP1LinearRestriction >();
 
@@ -402,7 +400,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
    else
    {
-      A = std::make_shared< A_t >( storage, l_min, l_max + 1 );
+      A = std::make_shared< A_t >( storage, l_min, l_err );
    }
 
    // FE functions
@@ -480,10 +478,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          return ux;
       };
       u->interpolate( u_init, l_max, Inner );
-      if ( n_failed > 0 )
-      {
-         WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
-      }
+      // if ( n_failed > 0 )
+      // {
+      //    WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
+      // }
    }
    else
    {
@@ -504,21 +502,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // smoother
    // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
-   // coarse grid (agglomerated)
+   // coarse grid solver
    auto cgIter = std::max( uint_t( 5 ), n_dof_coarse );
-   // auto cgsAgglomerated = std::make_shared< AgglomerationWrapper< A_t > >( storage, l_min );
-   // auto npAgglomeration = std::min( uint_t( walberla::mpi::MPIManager::instance()->numProcesses() ), n_dof_coarse / 100 + 1 );
-   // cgsAgglomerated->setStrategyContinuousProcesses( 0, npAgglomeration - 1 );
-   // auto cgStorage = cgsAgglomerated->getAgglomerationStorage();
-   // auto cgs       = std::make_shared< CGSolver< A_t > >( cgStorage, l_min, l_min, cgIter, cg_tol );
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto cgs = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
 #else
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
-   // cgsAgglomerated->setSolver( cgs );
    // multigrid
-   // GeometricMultigridSolver< A_t > gmg( storage, smoother, cgsAgglomerated, R, P, l_min, l_max, 3, 3 );
    GeometricMultigridSolver< A_t > gmg( storage, smoother, cgs, R, P, l_min, l_max, 3, 3 );
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
@@ -893,16 +884,14 @@ int main( int argc, char* argv[] )
    // setup model problem
    ModelProblem problem( mp, dim );
    WALBERLA_LOG_INFO_ON_ROOT( "Model Problem: " << problem.name() );
-   problem.set_params( sigma, offset, refine_all );
-   // setup domain
-   auto setupStorage = domain( problem, N );
-   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-   //    setupStorage.toStream( std::cout, true );
-   // solve/refine iteratively
    if ( vtkname == "auto" )
    {
       vtkname = problem.name();
    }
+   problem.set_params( sigma, offset, refine_all );
+   // setup domain
+   auto setupStorage = domain( problem, N );
+   // solve/refine iteratively
    solve_for_each_refinement( setupStorage,
                               problem,
                               n_refinements,
