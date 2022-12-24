@@ -42,11 +42,12 @@ variables:
         -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
         -DHYTEG_BUILD_WITH_PETSC=$HYTEG_BUILD_WITH_PETSC
         -DPETSC_DIR=$PETSC_DIR
-        -DHYTEG_BUILD_WITH_EIGEN=$HYTEG_BUILD_WITH_EIGEN
+        -DHYTEG_BUILD_WITH_TRILINOS=$HYTEG_BUILD_WITH_TRILINOS
         -DHYTEG_TERRANEO_MODULE=$HYTEG_TERRANEO_MODULE
         -DHYTEG_DOWNLOAD_BOOST=$HYTEG_DOWNLOAD_BOOST
         -DWALBERLA_SANITIZE_ADDRESS=$WALBERLA_SANITIZE_ADDRESS
         -DWALBERLA_SANITIZE_UNDEFINED=$WALBERLA_SANITIZE_UNDEFINED
+        -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=$WALBERLA_OPTIMIZE_FOR_LOCALHOST
       - cmake . -LA
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $MAX_BUILD_CORES -l $NUM_CORES
@@ -71,6 +72,7 @@ variables:
      WALBERLA_DOUBLE_ACCURACY: "ON"
      WALBERLA_BUILD_WITH_METIS: "ON"
      WALBERLA_BUILD_WITH_PARMETIS: "ON"
+     WALBERLA_OPTIMIZE_FOR_LOCALHOST: "OFF"
      WARNING_ERROR: "ON"
 
 
@@ -120,7 +122,7 @@ intel_20_serial_dbg:
       - docker
       - intel
 
-intel_20_mpionly_dbg_eigen_petsc-complex_trilinos:
+intel_20_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
@@ -134,7 +136,7 @@ intel_20_mpionly_dbg_eigen_petsc-complex_trilinos:
       - docker
       - intel
 
-intel_20_mpionly_eigen_petsc_trilinos:
+intel_20_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    variables:
@@ -202,7 +204,7 @@ gcc_7_serial_dbg:
    tags:
       - docker
 
-gcc_7_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_7_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
    variables:
@@ -215,7 +217,7 @@ gcc_7_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_7_mpionly_eigen_petsc_trilinos:
+gcc_7_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
    variables:
@@ -268,7 +270,7 @@ gcc_8_serial_dbg:
    tags:
       - docker
 
-gcc_8_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_8_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
    variables:
@@ -284,7 +286,7 @@ gcc_8_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_8_mpionly_eigen_petsc_trilinos:
+gcc_8_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
    variables:
@@ -337,7 +339,7 @@ gcc_9_serial_dbg:
    tags:
       - docker
 
-gcc_9_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_9_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
    variables:
@@ -353,7 +355,7 @@ gcc_9_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_9_mpionly_eigen_petsc_trilinos:
+gcc_9_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
    variables:
@@ -406,7 +408,7 @@ gcc_10_serial_dbg:
    tags:
       - docker
 
-gcc_10_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_10_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    variables:
@@ -422,7 +424,7 @@ gcc_10_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_10_mpionly_eigen_petsc_trilinos:
+gcc_10_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    variables:
@@ -475,7 +477,7 @@ gcc_11_serial_dbg:
    tags:
       - docker
 
-gcc_11_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_11_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
    variables:
@@ -491,7 +493,7 @@ gcc_11_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_11_mpionly_eigen_petsc_trilinos:
+gcc_11_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
    variables:
@@ -540,7 +542,7 @@ gcc_12_serial_dbg:
    tags:
       - docker
 
-gcc_12_mpionly_dbg_eigen_petsc-complex_trilinos:
+gcc_12_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
    variables:
@@ -553,7 +555,7 @@ gcc_12_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-gcc_12_mpionly_eigen_petsc_trilinos:
+gcc_12_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
    variables:
@@ -619,7 +621,7 @@ clang_6.0_serial_dbg:
    tags:
       - docker
 
-clang_6.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_6.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
    variables:
@@ -632,7 +634,7 @@ clang_6.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_6.0_mpionly_eigen_petsc_trilinos:
+clang_6.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
    variables:
@@ -685,7 +687,7 @@ clang_7.0_serial_dbg:
    tags:
       - docker
 
-clang_7.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_7.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
    variables:
@@ -701,7 +703,7 @@ clang_7.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_7.0_mpionly_eigen_petsc_trilinos:
+clang_7.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
    variables:
@@ -754,7 +756,7 @@ clang_8.0_serial_dbg:
    tags:
       - docker
 
-clang_8.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_8.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
    variables:
@@ -770,7 +772,7 @@ clang_8.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_8.0_mpionly_eigen_petsc_trilinos:
+clang_8.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
    variables:
@@ -823,7 +825,7 @@ clang_9.0_serial_dbg:
    tags:
       - docker
 
-clang_9.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_9.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
    variables:
@@ -839,7 +841,7 @@ clang_9.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_9.0_mpionly_eigen_petsc_trilinos:
+clang_9.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
    variables:
@@ -892,7 +894,7 @@ clang_10.0_serial_dbg:
    tags:
       - docker
 
-clang_10.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_10.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
    variables:
@@ -908,7 +910,7 @@ clang_10.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_10.0_mpionly_eigen_petsc_trilinos:
+clang_10.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
    variables:
@@ -961,7 +963,7 @@ clang_11.0_serial_dbg:
    tags:
       - docker
 
-clang_11.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_11.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
    variables:
@@ -977,7 +979,7 @@ clang_11.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_11.0_mpionly_eigen_petsc_trilinos:
+clang_11.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
    variables:
@@ -1030,7 +1032,7 @@ clang_12.0_serial_dbg:
    tags:
       - docker
 
-clang_12.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_12.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
    variables:
@@ -1046,7 +1048,7 @@ clang_12.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_12.0_mpionly_eigen_petsc_trilinos:
+clang_12.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
    variables:
@@ -1096,7 +1098,7 @@ clang_13.0_serial_dbg:
    tags:
       - docker
 
-clang_13.0_mpionly_dbg_eigen_petsc-complex_trilinos:
+clang_13.0_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    variables:
@@ -1109,7 +1111,7 @@ clang_13.0_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_13.0_mpionly_eigen_petsc_trilinos:
+clang_13.0_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    stage: pretest
@@ -1174,7 +1176,7 @@ inteloneapi_22.1_serial_dbg:
    tags:
       - docker
 
-inteloneapi_22.1_mpionly_dbg_eigen_petsc-complex_trilinos:
+inteloneapi_22.1_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
    variables:
@@ -1187,7 +1189,7 @@ inteloneapi_22.1_mpionly_dbg_eigen_petsc-complex_trilinos:
    tags:
       - docker
 
-inteloneapi_22.1_mpionly_eigen_petsc_trilinos:
+inteloneapi_22.1_mpionly_petsc_trilinos:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
    variables:
