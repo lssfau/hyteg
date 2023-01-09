@@ -466,22 +466,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    if ( u0 == 1 && u_old != nullptr )
    {
-      uint_t n_failed = 0;
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
-      auto u_init = [&]( const Point3D& x ) -> real_t {
-         real_t ux = 0.0;
-         if ( !u_old->evaluate( x, l_interpolate, ux, 1e-10 ) )
-         {
-            // WALBERLA_LOG_INFO( "     interpolation failed at x = " << x );
-            ++n_failed;
-         }
-         return ux;
-      };
-      u->interpolate( u_init, l_max, Inner );
-      // if ( n_failed > 0 )
-      // {
-      //    WALBERLA_LOG_INFO( "     interpolation failed at " << n_failed << " dof!" );
-      // }
+      u->interpolate( *u_old, l_max, l_interpolate );
    }
    else
    {
