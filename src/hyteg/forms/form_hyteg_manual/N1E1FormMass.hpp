@@ -105,27 +105,6 @@ class N1E1Form_mass : public N1E1Form
       elMat(5, 4) = absDetB*((1.0/60.0)*std::pow(b_11, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_11*b_21*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_11*b_31*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_12, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_12*b_22*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_12*b_32*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_13, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_13*b_23*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_13*b_33*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_21, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_21*b_31*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_22, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_22*b_32*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_23, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_23*b_33*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_31, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_32, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_33, 2)*edgeDirections[4]*edgeDirections[5]);
       elMat(5, 5) = absDetB*((1.0/20.0)*std::pow(b_11, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_11*b_21*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_11*b_31*std::pow(edgeDirections[5], 2) + (1.0/20.0)*std::pow(b_12, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_12*b_22*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_12*b_32*std::pow(edgeDirections[5], 2) + (1.0/20.0)*std::pow(b_13, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_13*b_23*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_13*b_33*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_21, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_21*b_31*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_22, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_22*b_32*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_23, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_23*b_33*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_31, 2)*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_32, 2)*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_33, 2)*std::pow(edgeDirections[5], 2));      // clang-format on
    };
-
-   bool assemble2D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assemble3D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly2DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly3DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
 };
 
 } // namespace n1e1

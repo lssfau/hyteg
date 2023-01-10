@@ -121,14 +121,6 @@ class P1ToP2FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
    }
 
-   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
-
-   bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
-
-   bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::UndefinedAssembly >::value; }
-
-   bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value; }
-
    inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
 
  private:

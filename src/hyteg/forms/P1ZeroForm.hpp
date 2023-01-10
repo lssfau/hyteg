@@ -32,14 +32,6 @@ public:
 
     // 3D P1
     inline void integrate( const std::array< Point3D, 4 >&, Point4D& ) const override {}
-
-    inline bool assemble2D() const override { return true; }
-
-    inline bool assemble3D() const override { return true; }
-
-    inline bool assembly2DDefined() const override { return true; }
-
-    inline bool assembly3DDefined() const override { return true; }
 };
 
 } // namespace hyteg

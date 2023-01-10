@@ -29,13 +29,16 @@ class Form
  public:
    virtual ~Form() {}
 
-   virtual bool assemble2D() const = 0;
+   virtual bool assemble2D() const { return false; };
+   virtual bool assemble3D() const { return false; };
+   virtual bool assembly2DDefined() const { return false; };
+   virtual bool assembly3DDefined() const { return false; };
 
-   virtual bool assemble3D() const = 0;
-
-   virtual bool assembly2DDefined() const = 0;
-
-   virtual bool assembly3DDefined() const = 0;
+   // comment in to check that methods were successfully removed from generated forms
+   // virtual bool assemble2D() const final { return false; };
+   // virtual bool assemble3D() const final { return false; };
+   // virtual bool assembly2DDefined() const final { return false; };
+   // virtual bool assembly3DDefined() const final { return false; };
 
    /// Set the geometry/blending map for the form
    ///

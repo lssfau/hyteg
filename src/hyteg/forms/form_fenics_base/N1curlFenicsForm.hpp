@@ -64,22 +64,6 @@ class N1curlFenicsForm : public Form
       gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
    }
 
-   bool assemble2D() const override
-   {
-      WALBERLA_ABORT( "N1curlFenicsForm not implemented for 2D!" );
-      return false;
-   }
-
-   bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
-
-   bool assembly2DDefined() const override
-   {
-      WALBERLA_ABORT( "N1curlFenicsForm not implemented for 2D!" );
-      return false;
-   }
-
-   bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value; }
-
    inline void setGeometryMap( const std::shared_ptr< GeometryMap > ) const {}
 };
 

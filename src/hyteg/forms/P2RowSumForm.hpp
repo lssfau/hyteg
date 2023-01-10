@@ -169,14 +169,6 @@ class P2RowSumForm : public P2Form
       }
    }
 
-   bool assemble2D() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
    std::shared_ptr< P2Form > form_;
 };

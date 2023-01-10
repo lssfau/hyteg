@@ -77,27 +77,6 @@ class N1E1Form_curl_curl : public N1E1Form
          }
       }
    };
-
-   bool assemble2D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assemble3D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly2DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly3DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
 };
 
 } // namespace n1e1

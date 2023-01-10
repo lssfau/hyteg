@@ -66,46 +66,6 @@ class N1E1LinearCombinationForm : public N1E1Form
       }
    }
 
-   bool assemble2D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      return assemble;
-   }
-
-   bool assemble3D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      return assemble;
-   }
-
-   bool assembly2DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      return assemble;
-   }
-
-   bool assembly3DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      return assemble;
-   }
-
    virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
    {
       for ( auto& form : forms_ )

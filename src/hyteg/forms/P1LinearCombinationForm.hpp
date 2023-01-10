@@ -155,62 +155,6 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
-   bool assemble2D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      return assemble;
-   }
-
-   bool assemble3D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      return assemble;
-   }
-
-   bool assembly2DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      return assemble;
-   }
-
-   bool assembly3DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      return assemble;
-   }
-
    virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
    {
       for ( auto& form : unowned_forms_ )
