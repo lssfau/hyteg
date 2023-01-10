@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -97,14 +93,6 @@ class p2_mass_affine_qe : public P2FormHyTeG
    ///                                               23      46       0       0      1             45                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 

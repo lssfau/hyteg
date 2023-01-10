@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -50,15 +46,15 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
 
    p1_div_k_grad_affine_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p1_div_k_grad_affine_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
-   : callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
-   , callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
+   p1_div_k_grad_affine_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k )
+   : callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
+   , callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;
    std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;
 
 
  public:
@@ -91,11 +87,11 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              363     538       2       0      1            210                 6
+   ///                                              309     463       2       0      1            195                 5
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -103,21 +99,13 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              210     297       1       0      1            130                 6
+   ///                                              183     259       1       0      1            119                 5
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 

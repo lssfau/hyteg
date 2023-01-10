@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -50,15 +46,15 @@ class p2_linear_form_affine_q6 : public P2FormHyTeG
 
    p2_linear_form_affine_q6() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_linear_form_affine_q6( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k )
-   : callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
-   , callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   p2_linear_form_affine_q6( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
+   : callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   , callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
    std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
 
 
  public:
@@ -110,14 +106,6 @@ class p2_linear_form_affine_q6 : public P2FormHyTeG
    ///                                              275     404       0       0      1             91                23
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 
