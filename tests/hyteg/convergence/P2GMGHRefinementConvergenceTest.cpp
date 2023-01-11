@@ -83,7 +83,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero  = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 20.0 ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 20.0 ) ); };
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating u" );
    u.interpolate( rand, maxLevel, hyteg::Inner );

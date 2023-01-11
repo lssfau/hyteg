@@ -118,7 +118,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
       WALBERLA_ABORT( "Invalid cube type." );
    }
 
-   const real_t cubeSideLength = 1.0;
+   const real_t cubeSideLength = walberla::real_c( 1.0 );
 
    MeshInfo meshInfo;
 

@@ -89,7 +89,7 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    funcType funcErr( "error", storage, level, level );
 
    walberla::math::seedRandomGenerator( 1234 );
-   auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
+   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
    funcInp.interpolate( rand, level, All );
    // funcInp.interpolate( 1.9, level, All );
 

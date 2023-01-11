@@ -277,7 +277,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
          uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
          uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
 
-         real_t h = 1.0 / ( walberla::real_c( rowsize ) );
+         real_t h = real_c( 1.0 ) / ( walberla::real_c( rowsize ) );
 
          Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
          //       Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
@@ -310,7 +310,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
 
          Point3D horizontalMicroEdgePosition;
 
-         horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + 0.5 ) * dS_se;
+         horizontalMicroEdgePosition = leftCoords + real_c( 0.5 ) * dS_se;
 
          P2::variablestencil::assembleEdgeToEdgeStencil(
              form_,
@@ -370,6 +370,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
          {
             if ( hyteg::globalDefines::useGeneratedKernels )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                typedef edgedof::EdgeDoFOrientation eo;
                auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
                auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
@@ -416,6 +417,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                                                                                             stencilData,
                                                                                             static_cast< int32_t >( level ) );
                }
+#endif
             }
             else
             {
@@ -446,6 +448,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
             {
                if ( hyteg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
                   auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
                   auto dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
@@ -547,6 +550,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                       neighbor_cell_1_local_vertex_id_0,
                       neighbor_cell_1_local_vertex_id_1,
                       neighbor_cell_1_local_vertex_id_2 );
+#endif
                }
                else
                {
@@ -558,6 +562,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
             {
                if ( hyteg::globalDefines::useGeneratedKernels )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   typedef edgedof::EdgeDoFOrientation eo;
                   real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
                   real_t*                             src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -593,6 +598,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                                                                                                &opr_data[10],
                                                                                                static_cast< int32_t >( level ) );
                   }
+#endif
                }
                else
                {

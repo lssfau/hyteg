@@ -79,7 +79,7 @@ void P2Level0InterpolateTest()
       WALBERLA_CHECK_EQUAL( macroEdgeEdgeDoFDataSize, 1 + 2 * edge->getNumNeighborFaces() + 1 * edge->getNumNeighborCells() );
    }
 
-   auto someFunction = []( const Point3D& x ) -> real_t { return 42.0 + x[0] * 2367. + x[1] * 37. + x[2] * 999.; };
+   auto someFunction = []( const Point3D& x ) -> real_t { return real_c( 42.0 + x[0] * 2367. + x[1] * 37. + x[2] * 999. ); };
    f_interpolation.interpolate( someFunction, level, All );
 
    communication::syncP2FunctionBetweenPrimitives( f_interpolation, level );

@@ -117,13 +117,13 @@ namespace hyteg {
     cg.setupLanczosTriDiagMatrix( op, itrVec, rhsVec, level, numIts, mainDiag, subDiag );
 
     // compute spectrum of matrix using Eigen library
-    Eigen::Map<Eigen::VectorXd> dVec( mainDiag.data(), numIts );
-    Eigen::Map<Eigen::VectorXd> sVec( subDiag.data(), numIts - 1 );
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
+    Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> dVec( mainDiag.data(), numIts );
+    Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> sVec( subDiag.data(), numIts - 1 );
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>> es;
     es.computeFromTridiagonal( dVec, sVec, Eigen::EigenvaluesOnly );
 
     // Eigen sorts eigenvalues ascendingly, extract smallest and largest one
-    Eigen::VectorXd ev = es.eigenvalues();
+    Eigen::Matrix<real_t, Eigen::Dynamic, 1> ev = es.eigenvalues();
     lowerBound = ev[0];
     upperBound = ev[numIts-1];
   }

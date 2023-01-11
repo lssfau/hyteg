@@ -278,7 +278,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                }
                else
                {
-                  if ( hyteg::globalDefines::useGeneratedKernels )
+                  if constexpr ( hyteg::globalDefines::useGeneratedKernels )
                   {
                      apply_face_generated( face, src.getFaceDataID(), dst.getFaceDataID(), level, updateType );
                   }
@@ -307,7 +307,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
             if ( testFlag( cellBC, flag ) )
             {
-               if ( hyteg::globalDefines::useGeneratedKernels )
+               if constexpr ( hyteg::globalDefines::useGeneratedKernels )
                {
                   apply_cell_generated( cell, src.getCellDataID(), dst.getCellDataID(), level, updateType );
                }

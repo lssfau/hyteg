@@ -159,17 +159,17 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
       }
 
       const auto numNeighborFacesEdge0 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge1 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge2 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex0 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex1 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex2 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
 
       vertexdof::macroface::generated::prolongate_2D_macroface_P1_push_additive( srcData,
                                                                                  dstData,
@@ -234,6 +234,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
 
       if ( globalDefines::useGeneratedKernels )
       {
+#ifdef WALBERLA_USE_GENERATED_KERNELS
          auto storage = function.getStorage();
 
          const double numNeighborCellsFace0 =
@@ -284,6 +285,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                                                                                     numNeighborCellsVertex1,
                                                                                     numNeighborCellsVertex2,
                                                                                     numNeighborCellsVertex3 );
+#endif
       }
       else
       {
@@ -343,7 +345,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
 
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
             else if ( onCellEdges.size() > 0 )
@@ -359,7 +361,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
             else if ( onCellFaces.size() > 0 )
@@ -375,7 +377,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
             else
@@ -384,7 +386,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                {
                   const auto arrayIdxDst =
                       vertexdof::macrocell::indexFromVertex( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z(), dir );
-                  dstData[arrayIdxDst] += 0.5 * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += real_c( 0.5 ) * srcData[arrayIdxSrc];
                }
             }
          }
@@ -412,13 +414,13 @@ void P1toP1LinearProlongation::prolongateMacroEdge2D( const real_t* src, real_t*
           src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )];
 
       dst[vertexdof::macroedge::indexFromVertex( sourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )] =
-          0.5 * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
-                  src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
+          real_c( 0.5 ) * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
+                            src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
    }
 
    dst[vertexdof::macroedge::indexFromVertex( sourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )] =
-       0.5 * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
-               src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
+       real_c( 0.5 ) * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
+                         src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
 }
 
 void P1toP1LinearProlongation::prolongateMacroFace2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
@@ -438,25 +440,25 @@ void P1toP1LinearProlongation::prolongateMacroFace2D( const real_t* src, real_t*
          dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j, SD::VERTEX_C )] =
              src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )];
          dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j - 1, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+             real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
+                               src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
          dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
+             real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                               src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
          dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j - 1, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+             real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                               src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
       }
 
       dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j - 1, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+          real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
+                            src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
       dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
+          real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                            src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
       dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j - 1, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+          real_c( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                            src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
 
       --N_c_i;
    }

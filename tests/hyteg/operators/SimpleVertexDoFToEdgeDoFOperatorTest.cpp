@@ -99,10 +99,11 @@ static void testOperator() {
     auto face = faceIT.second;
     const uint_t size = face->getData(edgeDof->getFaceDataID())->getSize(level);
     real_t *data = face->getData(edgeDof->getFaceDataID())->getPointer(level);
-    for (uint_t i = 0; i < size; ++i) {
+    for (uint_t i = 0; i < size; ++i)
+    {
       ///the values on boundary can be 4 or 3 depending wether there is an adjacent face or not
       ///this check could be better but would be much more complicated
-      WALBERLA_CHECK(walberla::floatIsEqual(data[i],4.0) || walberla::floatIsEqual(data[i],3.0));
+      WALBERLA_CHECK( walberla::floatIsEqual( data[i], real_c( 4.0 ) ) || walberla::floatIsEqual( data[i], real_c( 3.0 ) ) );
     }
   }
 
@@ -110,9 +111,10 @@ static void testOperator() {
     auto edge = edgeIT.second;
     const uint_t size = edge->getData(edgeDof->getEdgeDataID())->getSize(level);
     real_t *data = edge->getData(edgeDof->getEdgeDataID())->getPointer(level);
-    for (uint_t i = 0; i < size; ++i) {
+    for (uint_t i = 0; i < size; ++i)
+    {
       ///this check could also be imporoved
-      WALBERLA_CHECK(walberla::floatIsEqual(data[i],4.0) || walberla::floatIsEqual(data[i],3.0));
+      WALBERLA_CHECK( walberla::floatIsEqual( data[i], real_c( 4.0 ) ) || walberla::floatIsEqual( data[i], real_c( 3.0 ) ) );
     }
     hyteg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
   }

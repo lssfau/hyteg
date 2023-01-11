@@ -785,8 +785,8 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // -----------------------------------------
 
    // the pentagonal nodes on each "ring" are given in anti-clockwise ordering
-   real_t fifthpi = 0.4 * std::asin( 1.0 );
-   real_t w       = 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) );
+   real_t fifthpi = real_c( 0.4 * std::asin( 1.0 ) );
+   real_t w       = real_c( 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) ) );
    real_t cosw    = std::cos( w );
    real_t sinw    = std::sin( w );
    real_t phi     = 0.0;
@@ -804,7 +804,7 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // upper ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi         = 2.0 * ( real_c( k ) - 0.5 ) * fifthpi;
+      phi         = real_c( 2.0 ) * ( real_c( k ) - real_c( 0.5 ) ) * fifthpi;
       iNode[k][0] = sinw * std::cos( phi );
       iNode[k][1] = sinw * std::sin( phi );
       iNode[k][2] = cosw;
@@ -813,7 +813,7 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // lower ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi             = 2.0 * ( real_c( k ) - 1 ) * fifthpi;
+      phi             = real_c( 2.0 ) * ( real_c( k ) - 1 ) * fifthpi;
       iNode[k + 5][0] = sinw * std::cos( phi );
       iNode[k + 5][1] = sinw * std::sin( phi );
       iNode[k + 5][2] = -cosw;

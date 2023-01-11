@@ -365,7 +365,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
 
 template < class EdgeDoFToVertexDoFForm >
 void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFFunction< real_t >& src,
-                                                                  const P1Function< double >&      dst,
+                                                                  const P1Function< real_t >&      dst,
                                                                   uint_t                           level,
                                                                   DoFType                          flag,
                                                                   UpdateType                       updateType ) const
@@ -394,6 +394,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
          {
             if ( hyteg::globalDefines::useGeneratedKernels && updateType == Add )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                typedef edgedof::EdgeDoFOrientation eo;
                auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
                auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
@@ -411,6 +412,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                                                                                            dstData,
                                                                                            stencilData,
                                                                                            static_cast< int32_t >( level ) );
+#endif
             }
             else
             {
@@ -444,6 +446,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
             {
                if ( hyteg::globalDefines::useGeneratedKernels && updateType == Add )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Generated" ); }
                   auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
                   auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -534,6 +537,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                          neighbor_cell_1_local_vertex_id_2 );
                   }
                   WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Generated" ); }
+#endif
                }
                else
                {
@@ -546,6 +550,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
             {
                if ( hyteg::globalDefines::useGeneratedKernels )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
                   real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
                   real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
@@ -575,6 +580,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                          dst_data,
                          static_cast< int32_t >( level ) );
                   }
+#endif
                }
                else
                {
@@ -608,6 +614,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
             {
                if ( globalDefines::useGeneratedKernels && updateType == Add )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   auto dstData     = edge.getData( dst.getEdgeDataID() )->getPointer( level );
                   auto srcData     = edge.getData( src.getEdgeDataID() )->getPointer( level );
                   auto stencilData = edge.getData( edgeStencil3DID_ )->getData( level );
@@ -652,6 +659,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                          static_cast< int64_t >( cellLocalVertexID2 ),
                          static_cast< int64_t >( edge.getNumNeighborFaces() ) );
                   }
+#endif
                }
                else
                {

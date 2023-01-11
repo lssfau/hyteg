@@ -93,7 +93,7 @@ void testTokamak( uint_t level, real_t errorL2Max )
    std::function< real_t( const Point3D& ) > one = []( const Point3D& ) -> real_t { return 1.0; };
 
    std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) -> real_t {
-      return walberla::math::realRandom( 0.0, 1.0 );
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
    };
 
    P1Function< real_t > res( "r", storage, minLevel, maxLevel );

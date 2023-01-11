@@ -651,7 +651,7 @@ void P2Function< ValueType >::setLocalCommunicationMode(
 //  explicit instantiation
 // ========================
 template class P2Function< double >;
-// template class P2Function< float >;
+template class P2Function< float >;
 template class P2Function< int32_t >;
 template class P2Function< int64_t >;
 

@@ -133,17 +133,17 @@ void P1toP1LinearRestriction::restrict2DAdditively( const P1Function< real_t >& 
     auto dstData = face->getData( function.getFaceDataID())->getPointer( destinationLevel );
 
     const auto numNeighborFacesEdge0 =
-    static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 0 ))->getNumNeighborFaces());
     const auto numNeighborFacesEdge1 =
-    static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 1 ))->getNumNeighborFaces());
     const auto numNeighborFacesEdge2 =
-    static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 2 ))->getNumNeighborFaces());
     const auto numNeighborFacesVertex0 =
-    static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 0 ))->getNumNeighborFaces());
     const auto numNeighborFacesVertex1 =
-    static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 1 ))->getNumNeighborFaces());
     const auto numNeighborFacesVertex2 =
-    static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ))->getNumNeighborFaces());
+    static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 2 ))->getNumNeighborFaces());
 
     vertexdof::macroface::generated::restrict_2D_macroface_P1_pull_additive( dstData,
                                                                              srcData,
@@ -181,6 +181,7 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function,
 
     if ( globalDefines::useGeneratedKernels )
     {
+#ifdef HYTEG_USE_GENERATED_KERNELS
        auto storage = function.getStorage();
 
        const double numNeighborCellsFace0 =
@@ -231,14 +232,14 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function,
                                                                                 numNeighborCellsVertex1,
                                                                                 numNeighborCellsVertex2,
                                                                                 numNeighborCellsVertex3 );
+#endif
     }
-
     else
     {
       // Calculate inverse number of neighboring cells for each neighboring macro-primitive.
-      std::array< real_t, 4 > invNumNeighborsOfVertex;
-      std::array< real_t, 6 > invNumNeighborsOfEdge;
-      std::array< real_t, 4 > invNumNeighborsOfFace;
+      std::array< real_t, 4 > invNumNeighborsOfVertex{};
+      std::array< real_t, 6 > invNumNeighborsOfEdge{};
+      std::array< real_t, 4 > invNumNeighborsOfFace{};
 
       invNumNeighborsOfVertex.fill( real_c( 0 ));
       invNumNeighborsOfEdge.fill( real_c( 0 ));
@@ -282,7 +283,7 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function,
           for ( const auto & dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
           {
             const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
-            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
+            dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
           }
         } else if ( onCellEdges.size() > 0 )
         {
@@ -292,7 +293,7 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function,
           for ( const auto & dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
           {
             const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
-            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
+            dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
           }
         } else if ( onCellFaces.size() > 0 )
         {
@@ -302,14 +303,14 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function,
           for ( const auto & dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
           {
             const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
-            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
+            dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
           }
         } else
         {
           for ( const auto & dir : vertexdof::macrocell::neighborsWithoutCenter )
           {
             const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
-            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
+            dstData[arrayIdxDst] += real_c( 0.5 ) * invFactorToScaleContributionCenter * srcData[arrayIdxSrcDir];
           }
         }
       }
@@ -329,7 +330,7 @@ void P1toP1LinearRestriction::restrictMacroVertex( const real_t *src, real_t *ds
   dst[0] = src[0];
 
   for (uint_t i = 0; i < numNeighborEdges; ++i) {
-    dst[0] += 0.5*src[i+1];
+    dst[0] += real_c( 0.5 )*src[i+1];
     i += 1;
   }
 }
@@ -342,20 +343,20 @@ void P1toP1LinearRestriction::restrictMacroEdge( const real_t *src, real_t *dst,
   idx_t i_c;
   for ( i_c = 1; i_c < idx_t( rowsize_c ) - 1; ++i_c )
   {
-    dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] = 1.0 * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
+    dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] = real_c( 1.0 ) * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
                                                                                                                                                       2 * i_c,
                                                                                                                                                       stencilDirection::VERTEX_C )];
 
     for ( auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
+      dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += real_c( 0.5 ) * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
                                                                                                                                                          2 * i_c,
                                                                                                                                                          neighbor )];
     }
 
     for ( auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
+      dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += real_c( 0.5 ) * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
                                                                                                                                                          2 * i_c,
                                                                                                                                                          neighbor )];
     }
@@ -364,7 +365,7 @@ void P1toP1LinearRestriction::restrictMacroEdge( const real_t *src, real_t *dst,
     {
       for ( auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
+        dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] += real_c( 0.5 ) * src[vertexdof::macroedge::indexFromVertex( sourceLevel,
                                                                                                                                                            2 *
                                                                                                                                                            i_c,
                                                                                                                                                            neighbor )];
@@ -392,7 +393,7 @@ void P1toP1LinearRestriction::restrictMacroFace( const real_t *src, real_t *dst,
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter )
       {
-        tmp += 0.5 * src[vertexdof::macroface::indexFromVertex( sourceLevel, 2 * i, 2 * j, neighbor )];
+        tmp += real_c( 0.5 ) * src[vertexdof::macroface::indexFromVertex( sourceLevel, 2 * i, 2 * j, neighbor )];
       }
 
       dst[vertexdof::macroface::indexFromVertex( sourceLevel - 1, i, j, stencilDirection::VERTEX_C )] = tmp;

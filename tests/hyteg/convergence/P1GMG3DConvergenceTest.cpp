@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
 
   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
-      return walberla::math::realRandom( 0.0, 1.0 );
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
   };
 
   hyteg::P1Function< real_t > res( "r", storage, minLevel, maxLevel );

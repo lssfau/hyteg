@@ -97,7 +97,7 @@ void run( const real_t absErrorTolerance )
    numerator.enumerate( maxLevel );
 
    walberla::math::seedRandomGenerator( 1234 );
-   auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
+   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
 
    u_src.uvw().interpolate( { rand, rand, rand }, maxLevel, All );
    u_src.p().interpolate( rand, maxLevel, All );

@@ -186,7 +186,7 @@ int main( int argc, char** argv )
    // Setup strong right-hand side
    P2ConstantMassOperator massOp( storage, level, level );
    P2Function< real_t >   rhsStrong( "right-hand side", storage, level, level );
-   rhsStrong.interpolate( -2.0 * ( COEFF_A20 + COEFF_A02 ), level );
+   rhsStrong.interpolate( real_c( -2.0 ) * ( COEFF_A20 + COEFF_A02 ), level );
 
    // Run tests
    WALBERLA_LOG_INFO_ON_ROOT( "Running tests with (P2ConstantMassOperator, P2ConstantLaplaceOperator)" );

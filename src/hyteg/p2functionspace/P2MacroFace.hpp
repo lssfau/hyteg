@@ -52,7 +52,7 @@ void smoothJacobiVertexDoF( const uint_t&                                       
                             const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeDoFStencilID,
                             const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
                             const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsVertexDoFID,
-                            const real_t                                             dampingFactor = 2.0 / 3.0 );
+                            const real_t                                             dampingFactor = real_c( 2.0 / 3.0 ) );
 
 void smoothJacobiEdgeDoF( const uint_t&                                            Level,
                           const Face&                                              face,
@@ -62,7 +62,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
                           const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
                           const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstEdgeDoFID,
                           const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsEdgeDoFID,
-                          const real_t                                             dampingFactor = 2.0 / 3.0 );
+                          const real_t                                             dampingFactor = real_c( 2.0 / 3.0 ) );
 
 void smoothSOR( const uint_t&                                            level,
                 const Face&                                              face,

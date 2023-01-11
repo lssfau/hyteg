@@ -405,12 +405,14 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalFaceToCell(const Face *
 
   if ( globalDefines::useGeneratedKernels )
   {
+#ifdef WALBERLA_USE_GENERATED_KERNELS
      vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell( cellData,
                                                                               faceData,
                                                                               static_cast< int32_t >( level_ ),
                                                                               static_cast< int64_t >( iterationVertex0 ),
                                                                               static_cast< int64_t >( iterationVertex1 ),
                                                                               static_cast< int64_t >( iterationVertex2 ) );
+#endif
   }
   else
   {
@@ -522,6 +524,7 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *
 
   if ( globalDefines::useGeneratedKernels )
   {
+#ifdef WALBERLA_USE_GENERATED_KERNELS
     const auto faceLocalCellID = receiver->cell_index( sender->getID() );
     const auto offsetToGhostLayer =
         faceLocalCellID == 0 ?
@@ -534,6 +537,7 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *
                                                                              static_cast< int64_t >( iterationVertex0 ),
                                                                              static_cast< int64_t >( iterationVertex1 ),
                                                                              static_cast< int64_t >( iterationVertex2 ) );
+#endif
   }
   else
   {

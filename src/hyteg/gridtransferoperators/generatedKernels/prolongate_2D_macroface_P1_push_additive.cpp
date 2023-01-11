@@ -23,20 +23,21 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "prolongate_2D_macroface_P1_push_additive.hpp"
+using walberla::real_c;
 
 namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void prolongate_2D_macroface_P1_push_additive_level_any(double const * RESTRICT const _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+static void prolongate_2D_macroface_P1_push_additive_level_any(real_t const * RESTRICT const _data_vertexCoarseSrc, real_t * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
-   const double xi_20 = 1 / (num_neighbor_faces_edge0);
-   const double xi_21 = 1 / (num_neighbor_faces_edge1);
-   const double xi_22 = 1 / (num_neighbor_faces_vertex0);
-   const double xi_34 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_48 = 1 / (num_neighbor_faces_vertex2);
+   const real_t xi_20 = 1 / (num_neighbor_faces_edge0);
+   const real_t xi_21 = 1 / (num_neighbor_faces_edge1);
+   const real_t xi_22 = 1 / (num_neighbor_faces_vertex0);
+   const real_t xi_34 = 1 / (num_neighbor_faces_edge2);
+   const real_t xi_35 = 1 / (num_neighbor_faces_vertex1);
+   const real_t xi_48 = 1 / (num_neighbor_faces_vertex2);
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
       {
@@ -161,7 +162,7 @@ static void prolongate_2D_macroface_P1_push_additive_level_any(double const * RE
 }
 
 
-void prolongate_2D_macroface_P1_push_additive(double const * RESTRICT const _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+void prolongate_2D_macroface_P1_push_additive(real_t const * RESTRICT const _data_vertexCoarseSrc, real_t * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
     switch( coarse_level )
     {

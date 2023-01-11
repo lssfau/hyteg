@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void restrict_3D_macrocell_P1_pull_additive_level_any(double * RESTRICT _data_vertexCoarseDst, double const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3, double num_neighbor_cells_vertex0, double num_neighbor_cells_vertex1, double num_neighbor_cells_vertex2, double num_neighbor_cells_vertex3)
+static void restrict_3D_macrocell_P1_pull_additive_level_any(real_t * RESTRICT _data_vertexCoarseDst, real_t const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3, double num_neighbor_cells_vertex0, double num_neighbor_cells_vertex1, double num_neighbor_cells_vertex2, double num_neighbor_cells_vertex3)
 {
    const double xi_21 = 1 / (num_neighbor_cells_edge0);
    const double xi_22 = 1 / (num_neighbor_cells_edge1);
@@ -274,7 +274,7 @@ static void restrict_3D_macrocell_P1_pull_additive_level_any(double * RESTRICT _
 }
 
 
-void restrict_3D_macrocell_P1_pull_additive(double * RESTRICT _data_vertexCoarseDst, double const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3, double num_neighbor_cells_vertex0, double num_neighbor_cells_vertex1, double num_neighbor_cells_vertex2, double num_neighbor_cells_vertex3)
+void restrict_3D_macrocell_P1_pull_additive(real_t * RESTRICT _data_vertexCoarseDst, real_t const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3, double num_neighbor_cells_vertex0, double num_neighbor_cells_vertex1, double num_neighbor_cells_vertex2, double num_neighbor_cells_vertex3)
 {
     switch( coarse_level )
     {

@@ -106,8 +106,8 @@ void test2D()
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
+      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ));
+      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ));
 
       if ( coordinates[0] < 0.5 && coordinates[1] < 0.5 )
       {
@@ -148,9 +148,9 @@ void test3D()
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
          Point3D coordinates;
-         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
          real_t eval;
          auto   success = x.evaluate( coordinates, level, eval );
