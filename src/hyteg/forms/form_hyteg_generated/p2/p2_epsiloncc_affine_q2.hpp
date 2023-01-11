@@ -98,14 +98,6 @@ class p2_epsiloncc_0_0_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -170,14 +162,6 @@ class p2_epsiloncc_0_1_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -223,14 +207,6 @@ class p2_epsiloncc_0_2_affine_q2 : public P2FormHyTeG
    ///                                              177     198       1       0      1            142                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -296,14 +272,6 @@ class p2_epsiloncc_1_0_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -368,14 +336,6 @@ class p2_epsiloncc_1_1_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -421,14 +381,6 @@ class p2_epsiloncc_1_2_affine_q2 : public P2FormHyTeG
    ///                                              177     198       1       0      1            142                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -476,14 +428,6 @@ class p2_epsiloncc_2_0_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -530,14 +474,6 @@ class p2_epsiloncc_2_1_affine_q2 : public P2FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -583,15 +519,6 @@ class p2_epsiloncc_2_2_affine_q2 : public P2FormHyTeG
    ///                                              368     510       1       0      1            295                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 } // namespace forms
