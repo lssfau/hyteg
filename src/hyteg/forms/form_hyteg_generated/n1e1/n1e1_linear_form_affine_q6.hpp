@@ -23,7 +23,7 @@
  * 
  * Software:
  *
- * - quadpy version: 0.16.10
+ * - quadpy version: 0.16.6
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -70,17 +70,9 @@ class n1e1_linear_form_affine_q6 : public n1e1::N1E1Form
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1328    2229       1       0      1            518                23
+   ///                                             1374    2228       1       0      1            568                23
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, const std::array< int, 6 >& edgeDirections, Matrix< real_t, 6, 6 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 
