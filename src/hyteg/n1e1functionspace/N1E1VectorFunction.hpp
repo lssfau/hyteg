@@ -123,7 +123,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& physicalCoords, uint_t level, VectorType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, VectorType& value, real_t searchToleranceRadius = real_c( 1e-05 ) ) const;
 
    /// \brief Evaluate finite element function on a specific micro-cell.
    ///

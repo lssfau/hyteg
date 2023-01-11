@@ -374,6 +374,7 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
 //  Explicit Instantiations
 // -------------------------
 template void VTKOutput::add( const GenericFunction< double >& function );
+template void VTKOutput::add( const GenericFunction< float >& function );
 template void VTKOutput::add( const GenericFunction< int32_t >& function );
 template void VTKOutput::add( const GenericFunction< int64_t >& function );
 

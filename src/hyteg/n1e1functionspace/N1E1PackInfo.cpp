@@ -287,6 +287,7 @@ void N1E1PackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* sender, 
 }
 
 template class N1E1PackInfo< double >;
+template class N1E1PackInfo< float >;
 template class N1E1PackInfo< int >;
 template class N1E1PackInfo< long >;
 template class N1E1PackInfo< long long >;
