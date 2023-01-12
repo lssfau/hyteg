@@ -129,9 +129,8 @@ intel_20_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
       - intel
@@ -142,9 +141,8 @@ intel_20_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
       - intel
@@ -156,9 +154,8 @@ intel_20_mpionly_eigen_petsc_trilinos_no_werror:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
@@ -211,9 +208,8 @@ gcc_7_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
@@ -223,9 +219,8 @@ gcc_7_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -277,9 +272,8 @@ gcc_8_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -292,9 +286,8 @@ gcc_8_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -346,9 +339,8 @@ gcc_9_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -361,9 +353,8 @@ gcc_9_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -415,9 +406,8 @@ gcc_10_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -430,9 +420,8 @@ gcc_10_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -484,9 +473,8 @@ gcc_11_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -499,9 +487,8 @@ gcc_11_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -549,9 +536,8 @@ gcc_12_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
@@ -561,9 +547,8 @@ gcc_12_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
@@ -574,216 +559,11 @@ gcc_12_mpionly_eigen_petsc_trilinos_no_werror:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
-   tags:
-      - docker
-
-clang_6.0_serial:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_6.0_mpionly:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_6.0_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_6.0_mpionly_dbg_petsc-complex_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   variables:
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
-   tags:
-      - docker
-
-clang_6.0_mpionly_petsc_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_7.0_serial:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_7.0_mpionly:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_7.0_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_7.0_mpionly_dbg_petsc-complex_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   variables:
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_7.0_mpionly_petsc_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_8.0_serial:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_8.0_mpionly:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_8.0_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   variables:
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_8.0_mpionly_dbg_petsc-complex_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   variables:
-      CMAKE_BUILD_TYPE: "DebugOptimized"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-
-clang_8.0_mpionly_petsc_trilinos:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
-   variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
-      HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
@@ -832,12 +612,8 @@ clang_9.0_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
@@ -847,9 +623,8 @@ clang_9.0_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -901,9 +676,8 @@ clang_10.0_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -916,9 +690,8 @@ clang_10.0_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -970,9 +743,8 @@ clang_11.0_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -985,9 +757,8 @@ clang_11.0_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -1039,9 +810,8 @@ clang_12.0_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -1054,9 +824,8 @@ clang_12.0_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -1105,9 +874,8 @@ clang_13.0_mpionly_dbg_petsc-complex_trilinos:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
@@ -1118,9 +886,8 @@ clang_13.0_mpionly_petsc_trilinos:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
       HYTEG_TERRANEO_MODULE: "ON"
    tags:
       - docker
@@ -1132,18 +899,17 @@ clang_13.0_mpionly_eigen_petsc_trilinos_no_werror:
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
    tags:
       - docker
 
-inteloneapi_22.1_serial:
+inteloneapi_22.3_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1154,9 +920,9 @@ inteloneapi_22.1_serial:
    tags:
       - docker
 
-inteloneapi_22.1_mpionly:
+inteloneapi_22.3_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
    only:
@@ -1165,9 +931,9 @@ inteloneapi_22.1_mpionly:
    tags:
       - docker
 
-inteloneapi_22.1_serial_dbg:
+inteloneapi_22.3_serial_dbg:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1176,41 +942,38 @@ inteloneapi_22.1_serial_dbg:
    tags:
       - docker
 
-inteloneapi_22.1_mpionly_dbg_petsc-complex_trilinos:
+inteloneapi_22.3_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc-complex"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
-inteloneapi_22.1_mpionly_petsc_trilinos:
+inteloneapi_22.3_mpionly_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
    tags:
       - docker
 
-inteloneapi_22.1_mpionly_eigen_petsc_trilinos_no_werror:
+inteloneapi_22.3_mpionly_eigen_petsc_trilinos_no_werror:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.1
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    stage: no_werror
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
-      HYTEG_BUILD_WITH_EIGEN: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/petsc"
+      PETSC_DIR: "/opt/spack/install"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
