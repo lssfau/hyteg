@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,19 +82,12 @@ EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< Primitiv
 
    if ( this->getStorage()->hasGlobalCells() )
    {
-      if ( form_.assemble3D() )
-      {
-         // WALBERLA_ABORT("Not implemented.");
-         assembleEdgeToEdgeStencils< EdgeDoFForm >(
-             storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
-      }
+      assembleEdgeToEdgeStencils< EdgeDoFForm >(
+          storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
    }
    else
    {
-      if ( form_.assemble2D() )
-      {
-         assembleStencils();
-      }
+      assembleStencils();
    }
 }
 

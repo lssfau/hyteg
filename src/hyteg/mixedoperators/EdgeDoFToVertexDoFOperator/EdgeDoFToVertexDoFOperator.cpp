@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -93,26 +93,19 @@ EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator
 
    if ( this->getStorage()->hasGlobalCells() )
    {
-      if ( form_.assemble3D() )
-      {
-         // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
-         assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
-                                                                 this->minLevel_,
-                                                                 this->maxLevel_,
-                                                                 getVertexStencil3DID(),
-                                                                 getEdgeStencil3DID(),
-                                                                 getFaceStencil3DID(),
-                                                                 getCellStencilID(),
-                                                                 form_ );
-      }
+      // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
+      assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
+                                                              this->minLevel_,
+                                                              this->maxLevel_,
+                                                              getVertexStencil3DID(),
+                                                              getEdgeStencil3DID(),
+                                                              getFaceStencil3DID(),
+                                                              getCellStencilID(),
+                                                              form_ );
    }
    else
    {
-      // Only assemble stencils if UFCOperator is specified
-      if ( form_.assemble2D() )
-      {
-         assembleStencils();
-      }
+      assembleStencils();
    }
 }
 
@@ -237,17 +230,17 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
          real_t* vStencil = storage_->getFace( face.getID() )->getData( faceStencilID_ )->getPointer( level );
 
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirW, x + dirS}, P2Elements::P2Face::elementSW_reord, vStencil );
+             form_, { x, x + dirW, x + dirS }, P2Elements::P2Face::elementSW_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirS, x + dirSE}, P2Elements::P2Face::elementS_reord, vStencil );
+             form_, { x, x + dirS, x + dirSE }, P2Elements::P2Face::elementS_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirSE, x + dirE}, P2Elements::P2Face::elementSE_reord, vStencil );
+             form_, { x, x + dirSE, x + dirE }, P2Elements::P2Face::elementSE_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirE, x + dirN}, P2Elements::P2Face::elementNE_reord, vStencil );
+             form_, { x, x + dirE, x + dirN }, P2Elements::P2Face::elementNE_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirN, x + dirNW}, P2Elements::P2Face::elementN_reord, vStencil );
+             form_, { x, x + dirN, x + dirNW }, P2Elements::P2Face::elementN_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dirNW, x + dirW}, P2Elements::P2Face::elementNW_reord, vStencil );
+             form_, { x, x + dirNW, x + dirW }, P2Elements::P2Face::elementNW_reord, vStencil );
       }
 
       // Assemble edge stencils
@@ -300,21 +293,21 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
          // assemble south
          form_.setGeometryMap( faceS->getGeometryMap() );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dir_W, x + dir_S}, P2Elements::P2Face::elementSW_reord, vStencil );
+             form_, { x, x + dir_W, x + dir_S }, P2Elements::P2Face::elementSW_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dir_S, x + dir_SE}, P2Elements::P2Face::elementS_reord, vStencil );
+             form_, { x, x + dir_S, x + dir_SE }, P2Elements::P2Face::elementS_reord, vStencil );
          P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-             form_, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil );
+             form_, { x, x + dir_SE, x + dir_E }, P2Elements::P2Face::elementSE_reord, vStencil );
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
             form_.setGeometryMap( faceN->getGeometryMap() );
             P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-                form_, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil );
+                form_, { x, x + dir_E, x + dir_N }, P2Elements::P2Face::elementNE_reord, vStencil );
             P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-                form_, {x, x + dir_N, x + dir_NW}, P2Elements::P2Face::elementN_reord, vStencil );
+                form_, { x, x + dir_N, x + dir_NW }, P2Elements::P2Face::elementN_reord, vStencil );
             P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-                form_, {x, x + dir_NW, x + dir_W}, P2Elements::P2Face::elementNW_reord, vStencil );
+                form_, { x, x + dir_NW, x + dir_W }, P2Elements::P2Face::elementNW_reord, vStencil );
          }
       }
 
@@ -342,15 +335,17 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
             std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
             x  = face->getCoordinates()[v_i];
-            d0 = ( face->getCoordinates()[face->vertex_index( storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
+            d0 = ( face->getCoordinates()[face->vertex_index(
+                       storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] -
                    x ) *
                  h;
-            d2 = ( face->getCoordinates()[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
+            d2 = ( face->getCoordinates()[face->vertex_index(
+                       storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] -
                    x ) *
                  h;
 
             Point3D matrixRow;
-            form_.integrateEdgeToVertex( {{x, x + d0, x + d2}}, matrixRow );
+            form_.integrateEdgeToVertex( { { x, x + d0, x + d2 } }, matrixRow );
 
             uint_t i = 1;
             // iterate over adjacent edges
@@ -627,7 +622,8 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                      const auto cellLocalVertexID1 =
                          neighborCell->getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 );
                      const auto cellLocalVertexID2 =
-                         algorithms::getMissingIntegersAscending< 2, 4 >( {{cellLocalVertexID0, cellLocalVertexID1}} ).at( 2 );
+                         algorithms::getMissingIntegersAscending< 2, 4 >( { { cellLocalVertexID0, cellLocalVertexID1 } } )
+                             .at( 2 );
 
                      const std::vector< uint_t > neighborFaces(
                          indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID ).begin(),

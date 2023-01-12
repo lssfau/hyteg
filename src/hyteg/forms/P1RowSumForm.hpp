@@ -104,14 +104,6 @@ class P1RowSumForm : public P1Form
       }
    }
 
-   bool assemble2D() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override

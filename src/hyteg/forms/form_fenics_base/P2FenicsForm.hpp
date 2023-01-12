@@ -128,22 +128,6 @@ class P2FenicsForm : public P2Form
    /// \param elMat   On return is filled with the matrix entries
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override;
 
-   // -------------
-
-   inline bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
-
-   inline bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
-
-   inline bool assembly2DDefined() const override
-   {
-      return !std::is_same< UFCOperator2D, hyteg::fenics::UndefinedAssembly >::value;
-   }
-
-   inline bool assembly3DDefined() const override
-   {
-      return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value;
-   }
-
    inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
 
  private:

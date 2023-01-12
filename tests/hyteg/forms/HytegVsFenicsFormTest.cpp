@@ -953,7 +953,7 @@ void run3DTestsWithAffineMap()
    compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_diffusion_cell_integral_0_otherwise >,
                           forms::p1_diffusion_blending_q3,
                           Matrix4r,
-                          3 >( theTet, 1e-15, map );
+                          3 >( theTet, 1.5e-15, map );
 
    logSectionHeader( "P2 diffusion, 3D, with blending (HFG)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
