@@ -234,7 +234,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
 
       if ( globalDefines::useGeneratedKernels )
       {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
          auto storage = function.getStorage();
 
          const double numNeighborCellsFace0 =

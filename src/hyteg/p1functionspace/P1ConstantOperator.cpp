@@ -206,7 +206,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
     const uint_t&                                            level,
     UpdateType                                               update ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    if ( face.getNumNeighborCells() == 2 )
    {
       WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Two-sided" ); }
@@ -297,7 +297,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
     const uint_t&                                            level,
     UpdateType                                               update ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
    real_t* src_data = face.getData( srcId )->getPointer( level );
    real_t* dst_data = face.getData( dstId )->getPointer( level );
@@ -323,7 +323,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
     const uint_t&                                            level,
     UpdateType                                               update ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    auto&   opr_data = cell.getData( cellStencilID_ )->getData( level );
    real_t* src_data = cell.getData( srcId )->getPointer( level );
    real_t* dst_data = cell.getData( dstId )->getPointer( level );
@@ -350,7 +350,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
     real_t                                                   relax,
     const bool&                                              backwards ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    auto  rhs_data = face.getData( rhsId )->getPointer( level );
    auto  dst_data = face.getData( dstId )->getPointer( level );
    auto& stencil  = face.getData( faceStencil3DID_ )->getData( level );
@@ -507,7 +507,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
     real_t                                                   relax,
     const bool&                                              backwards ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    auto rhs_data = face.getData( rhsId )->getPointer( level );
    auto dst_data = face.getData( dstId )->getPointer( level );
    auto stencil  = face.getData( faceStencilID_ )->getPointer( level );
@@ -534,7 +534,7 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
     real_t                                                   relax,
     const bool&                                              backwards ) const
 {
-#ifdef WALBERLA_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
    auto  rhs_data = cell.getData( rhsId )->getPointer( level );
    auto  dst_data = cell.getData( dstId )->getPointer( level );
    auto& stencil  = cell.getData( cellStencilID_ )->getData( level );
