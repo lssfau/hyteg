@@ -199,8 +199,8 @@ int main( int argc, char* argv[] )
    };
 
    expression parameterFunction = []( const hyteg::Point3D& x ) {
-      real_t value = real_c( 1.2 ) + std::sin( pi * ( x[1] * 0.5 + 0.1 ) ) + std::cos( 0.5 * pi * x[0] );
-      return 0.1 * value;
+      real_t value = real_c( 1.2 ) + std::sin( pi * ( x[1] * real_c( 0.5 + 0.1 ) ) ) + std::cos( real_c( 0.5 ) * pi * x[0] );
+      return real_c( 0.1 ) * value;
    };
 
    expression parameterFunction2 = []( const hyteg::Point3D& x ) { return 1.0 * x[0] + 0.0 * x[1] + 1.0; };

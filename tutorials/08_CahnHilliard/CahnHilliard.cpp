@@ -598,7 +598,7 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
    // auto preconditioner = std::make_shared< IdentityPreconditioner< BlockOperator< chType, chType > > >();
 
    const uint_t maxIter   = std::numeric_limits< uint_t >::max();
-   const real_t tolerance = 1e-8;
+   const real_t tolerance = real_c( 1e-8 );
 
    auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >(
        storage, minLevel, maxLevel, maxIter, tolerance, preconditioner );
@@ -621,7 +621,7 @@ std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const st
 
    /// [CahnHilliardFunction block-form-11]
    P1LinearCombinationForm form11;
-   form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, 2 ) * std::sqrt( tau ) );
+   form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, real_c( 2 ) ) * std::sqrt( tau ) );
    form11.addOwnedForm< MassFormType >( -2 * std::sqrt( tau ) );
    /// [CahnHilliardFunction block-form-11]
 
@@ -664,7 +664,7 @@ void RHSAssembler::assemble( const chType& u_prev, const chType& rhs, uint_t lev
       real_t phi_prev_value;
       WALBERLA_CHECK( u_prev.getPhi().evaluate( p, level, phi_prev_value ) );
 
-      return -3. + std::pow( phi_prev_value, 2 );
+      return real_c( -3. ) + std::pow( phi_prev_value, real_c( 2 ) );
    };
 
    forms::p1_k_mass_affine_q4 form( kappa, kappa );
@@ -698,7 +698,7 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    {}
 
    // y = M^{-1} * x
-   void solve( const BlockOperator< chType, chType >&, const chType& x, const chType& b, const uint_t level ) override;
+   void solve( const BlockOperator< chType, chType >&, const chType& x, const chType& b, uint_t level ) override;
 
  protected:
    static P1LinearCombinationForm create_block_00_form( real_t tau );
@@ -706,7 +706,7 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    static P1LinearCombinationForm create_block_11_form( real_t tau, real_t epsilon );
 
    static std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
-       create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel );
+       create_multigrid_solver( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel );
 
  protected:
    P1ConstantLinearCombinationOperator block_00_operator;
@@ -746,7 +746,7 @@ P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_00_form
 P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_11_form( real_t tau, real_t epsilon )
 {
    P1LinearCombinationForm form;
-   form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) * std::pow( epsilon, 2 ) );
+   form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) * std::pow( epsilon, real_c( 2 ) ) );
    form.addOwnedForm< MassFormType >( 1. );
    return form;
 }
@@ -754,11 +754,11 @@ P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_11_form
 
 /// [CahnHilliardDiagonalPreconditioner create-multigrid-solver]
 std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
-    CahnHilliardDiagonalPreconditioner::create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage,
-                                                                 const uint_t                        minLevel,
-                                                                 const uint_t                        maxLevel )
+    CahnHilliardDiagonalPreconditioner::create_multigrid_solver( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                 const uint_t                               minLevel,
+                                                                 const uint_t                               maxLevel )
 {
-   const real_t coarse_tolerance = 1e-16;
+   const real_t coarse_tolerance = real_c( 1e-16 );
    const uint_t max_coarse_iter  = 1000;
 
    auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
@@ -838,8 +838,8 @@ void CahnHilliardEvolutionOperator::apply( const chType& u_old, const chType& u_
 /// [CahnHilliardFunction scale]
 void CahnHilliardEvolutionOperator::scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
 {
-   const real_t factor = std::pow( tau_, 0.25 );
-   dst.getMu().assign( { 1. / factor }, { src.getMu() }, level, flag );
+   const real_t factor = std::pow( tau_, real_c( 0.25 ) );
+   dst.getMu().assign( { real_c( 1. ) / factor }, { src.getMu() }, level, flag );
    dst.getPhi().assign( { factor }, { src.getPhi() }, level, flag );
 }
 /// [CahnHilliardFunction scale]

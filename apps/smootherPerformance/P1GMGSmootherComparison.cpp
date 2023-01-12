@@ -138,7 +138,7 @@ std::shared_ptr< Solver< P1ConstantLaplaceOperator > > setupSmoother( const std:
    {
       laplaceOperator.computeInverseDiagonalOperatorValues();
       auto smoother = std::make_shared< P1JacobiSmoother >( storage, minLevel, maxLevel );
-      smoother->setWeight( 2. / 3. );
+      smoother->setWeight( real_c( 2. / 3. ) );
       return smoother;
    }
    else if ( smootherType == "chebyshev" )

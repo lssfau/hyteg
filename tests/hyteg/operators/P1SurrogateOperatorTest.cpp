@@ -49,7 +49,7 @@ void P1SurrogateOperatorTest( std::shared_ptr< PrimitiveStorage >               
 {
    WALBERLA_LOG_INFO_ON_ROOT( "P1 surrogate operator test" )
 
-   const real_t epsilon = 1e-12;
+   const real_t epsilon = real_c( 1e-12 );
 
    // operators
    forms::p1_div_k_grad_affine_q3    form( k, k );

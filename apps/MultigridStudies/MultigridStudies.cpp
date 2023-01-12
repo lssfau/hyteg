@@ -2051,19 +2051,19 @@ void setup( int argc, char** argv )
       auto inflowBC = [eps, tDomainDiameter]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps )
          {
-            const Point3D center( {0, 0.5 * real_c( tDomainDiameter ), 0.5 * real_c( tDomainDiameter )} );
-            const auto    radius  = 0.5 * real_c( tDomainDiameter );
+            const Point3D center( {0, real_c( 0.5 ) * real_c( tDomainDiameter ), real_c( 0.5 ) * real_c( tDomainDiameter )} );
+            const auto    radius  = real_c( 0.5 ) * real_c( tDomainDiameter );
             const auto    shifted = ( p - center ) / radius;
 #if 0
             return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
 #else
-            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
-                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+            return ( 1 - std::sin( real_c( 0.5 ) * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( real_c( 0.5 ) * pi * shifted[2] * shifted[2] ) );
 #endif
          }
          else
          {
-            return 0.0;
+            return real_c( 0.0 );
          }
       };
 
@@ -2135,19 +2135,19 @@ void setup( int argc, char** argv )
       auto inflowBC = [eps]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps && p[1] > -eps && p[1] < 1 + eps )
          {
-            const Point3D center( {0, 0.5, 0.5} );
-            const auto    radius  = 0.5;
+            const Point3D center( {0, real_c( 0.5 ), real_c( 0.5 )} );
+            const auto    radius  = real_c( 0.5 );
             const auto    shifted = ( p - center ) / radius;
 #if 0
            return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
 #else
-            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
-                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+            return ( 1 - std::sin( real_c( 0.5 ) * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( real_c( 0.5 ) * pi * shifted[2] * shifted[2] ) );
 #endif
          }
          else
          {
-            return 0.0;
+            return real_c( 0.0 );
          }
       };
 

@@ -112,7 +112,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
       @returns [h^(d/2)*||A - Aq||_F restricted to K] for all macro elements K
    */
-   std::vector< double > computeSurrogateError( uint_t level ) const
+   std::vector< real_t > computeSurrogateError( uint_t level ) const
    {
       if ( storage_->hasGlobalCells() )
       {
@@ -145,12 +145,12 @@ class P1SurrogateOperator : public P1Operator< P1Form >
  protected:
    static const uint_t faceStencilSize2D = 9;
 
-   std::vector< double > computeSurrogateError2D( uint_t level ) const
+   std::vector< real_t > computeSurrogateError2D( uint_t level ) const
    {
       uint_t stencilSize = faceStencilSize2D;
       uint_t rowsizeY    = levelinfo::num_microvertices_per_edge( level );
 
-      std::vector< double > err;
+      std::vector< real_t > err;
 
       for ( auto& it : storage_->getFaces() )
       {
@@ -164,7 +164,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
          assemble_variableStencil_face_init( face, level );
          assemble_stencil_face_init( face, level );
 
-         std::vector< double > variableStencil( stencilSize_ );
+         std::vector< real_t > variableStencil( stencilSize_ );
 
          real_t normF2 = real_c( 0 );
 
@@ -179,7 +179,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
                for ( uint_t s = 0; s < stencilSize; ++s )
                {
-                  double err_ij = opr_data[s] - variableStencil[s];
+                  real_t err_ij = opr_data[s] - variableStencil[s];
                   normF2 += err_ij * err_ij;
                }
             }
@@ -191,13 +191,13 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       return err;
    }
 
-   std::vector< double > computeSurrogateError3D( uint_t level ) const
+   std::vector< real_t > computeSurrogateError3D( uint_t level ) const
    {
       typedef stencilDirection sd;
 
       const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
 
-      std::vector< double >              err;
+      std::vector< real_t >              err;
       vertexdof::macrocell::StencilMap_T variableStencil;
 
       for ( auto& it : storage_->getCells() )
@@ -235,9 +235,9 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
                      for ( const auto& neighbor : vertexdof::macrocell::neighborsWithCenter )
                      {
-                        double sur     = operatorData[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
-                        double var     = variableStencil[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
-                        double err_ijk = sur - var;
+                        real_t sur     = operatorData[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        real_t var     = variableStencil[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        real_t err_ijk = sur - var;
 
                         normF2 += err_ijk * err_ijk;
                      }
