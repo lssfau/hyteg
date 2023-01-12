@@ -76,7 +76,7 @@ class PlateStorage
       extractPlateInfo( rootNode );
 
       // current approach treats plates as approximately being 2D
-      rotatePlatesToXYPlane();
+      // rotatePlatesToXYPlane();
 
       // for testing
       printStatistics();
@@ -166,8 +166,8 @@ class PlateStorage
             // convert to cartesian coordinates and compute center of plate
             for ( auto& node : plates[k].boundary )
             {
-               node = terraneo::conversions::sph2cart( {node[0], node[1]}, sphereRadius_ );
-               plates[k].center += node;
+               //node = terraneo::conversions::sph2cart( {node[0], node[1]}, sphereRadius_ );
+               plates[k].center += terraneo::conversions::sph2cart( {node[0], node[1]}, sphereRadius_ );
             }
             plates[k].center /= plates[k].boundary.size();
          }
