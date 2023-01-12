@@ -630,7 +630,7 @@ void smoothSOR3D(
     const bool&                                                                                  backwards )
 {
    WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "VertexDoFs" ); }
-   if constexpr ( globalDefines::useGeneratedKernels )
+   if ( globalDefines::useGeneratedKernels )
    {
 #ifdef HYTEG_USE_GENERATED_KERNELS
       smoothSOR3DUpdateVertexDoFsGenerated( level,
