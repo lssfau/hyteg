@@ -233,13 +233,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    /// Evaluates the linear functional
    ///
-   ///   l( v ) = \int_\Omega f * v
+   ///   \f[ l( v ) = \int_\Omega f * v \f]
    ///
    /// by integration over the local basis functions and writes the result into the vector, i.e.
    ///
-   ///   u_i <- \int_T f * \phi_i
+   ///   \f[ u_i <- \int_T f * \phi_i \f]
    ///
-   /// where \phi_i is the basis function associated with the DoF u_i and f a given analytical function.
+   /// where \f$\phi_i\f$ is the basis function associated with the DoF u_i and f a given analytical function.
    void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level );
 
    /// \brief Applies the Dirichlet boundary conditions to this function, treating it as the right-hand side of the linear system
