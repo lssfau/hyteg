@@ -21,6 +21,7 @@
 #pragma once
 
 #include "terraneo/dataimport/io.hpp"
+#include "terraneo/helpers/conversions.hpp"
 #include "terraneo/plates/PlateNotFoundHandlers.hpp"
 #include "terraneo/plates/PlateRotationProvider.hpp"
 #include "terraneo/plates/PlateStorage.hpp"
@@ -53,9 +54,13 @@ class PlateVelocityProvider
       uint_t plateID{ idWhenNoPlateFound };
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
+      vec3D  pointLonLat;
+      
+      // Transform the point to Lon, Lat, Radius - to preform all caculations
+      // We use the Lon, Lat coordinates
+      pointLonLat = terraneo::conversions::cart2sph( point );
 
-      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point, idWhenNoPlateFound );
-
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, pointLonLat, idWhenNoPlateFound );
       return plateID;
    }
 
@@ -82,8 +87,13 @@ class PlateVelocityProvider
       uint_t plateID{ 0 };
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
+      vec3D  pointLonLat;
 
-      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, point, idWhenNoPlateFound );
+      // Transform the point to Lon, Lat, Radius - to preform all caculations
+      // We use the Lon, Lat coordinates
+      pointLonLat = terraneo::conversions::cart2sph( point );
+
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, pointLonLat, idWhenNoPlateFound );
 
       if ( !plateFound )
       {
@@ -98,7 +108,7 @@ class PlateVelocityProvider
 
       WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
       WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
-      return computeCartesianVelocityVector( plateRotations_, plateID, age, point, smoothingFactor );
+      return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, smoothingFactor );
    };
 
    /// Query function to obtain a vector of plate stages avaible in the datafiles

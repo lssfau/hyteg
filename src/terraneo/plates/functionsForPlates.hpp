@@ -39,45 +39,44 @@ typedef boost::geometry::model::polygon<spherical_point> polygon_on_sphere;
 ///
 /// The function returns a bool to indicate whether any plate matched, the plate's ID and
 /// the distance from this plate's boundary
-std::tuple< bool, uint_t, real_t >
+
+inline std::tuple< bool, uint_t, real_t >
     findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point, uint_t idWhenNoPlateFound )
 {
    // query all plates for given age stage
-   auto& plates = plateStore.getPlatesForStage( age );
+   auto& plates = plateStore.getPlatesForStage( std::ceil( age ) );
 
    // be pessimistic
    bool   plateFound{ false };
    uint_t plateID{ idWhenNoPlateFound };
    real_t distance{ std::numeric_limits< real_t >::max() };
 
-   // Get the point in lon lat coordinates and create the point in sphere boost geometry 
-   vec3D pntLonLat = terraneo::conversions::cart2sph( point );
-   spherical_point pntSph(pntLonLat[0], pntLonLat[1]);
+   // Create the point in the surface of a sphere from the library boost::geometry 
+   spherical_point pntSph(point[0], point[1]);
+
+   //loop over the plates available
    for ( auto& currentPlate : plates )
    {
-      // rotate point using same rotation to xy-plane as was applied to this plate
-      // mat3D          rotMtx     = terraneo::plates::getRotationMatrixPolygon( currentPlate.center );
-      // vec3D          rotPoint   = rotMtx * point;
-      
-      // create the polygon on a sphere
+      // create the polygon on the surface of a sphere and populate with the plate boundary coordinates
       const Polygon& bdrPolygon = currentPlate.boundary;
       polygon_on_sphere polygonOnSphere;
       for ( int index = 0; index < bdrPolygon.size(); ++index )
       {
          boost::geometry::append(polygonOnSphere.outer(), spherical_point(bdrPolygon[index]( 0 ), bdrPolygon[index]( 1 )));
       }
-      // Correct the geomeetry
+      // Correct the geometry
       boost::geometry::correct(polygonOnSphere);
 
       // check if the point belongs to the polygon
       if (boost::geometry::within(pntSph, polygonOnSphere))
       {
-         //if so calculate the distace from the polygon to the point
+         // calculate the distace from the polygon to the point
          boost::geometry::for_each_segment(polygonOnSphere, [&distance, &pntSph](const auto& segment){
             distance = std::min<real_t>(distance, boost::geometry::distance(segment, pntSph));
          });
+         // distance at the surface of the Earth
          distance = distance * 6371.0; 
-         //std::cout << "Distance point to polygon (km):: "<<distance << std::endl;//
+         // plate is found 
          plateFound = true;
       }
       else{
@@ -94,8 +93,8 @@ std::tuple< bool, uint_t, real_t >
    return std::make_tuple( plateFound, plateID, distance );
 }
 
-/// From the Euler vector compute the velocity in xyz
-vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoothing )
+/// From the Euler vector compute the surface velocity in xyz
+inline vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoothing )
 {
    real_t earthRadius = plates::constants::earthRadiusInKm * real_c( 1e3 );
    real_t toms        = real_c( 3600 * 24 * 365 ); // conversions factor cm/yr -> m/s
@@ -106,8 +105,7 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
    eVector = terraneo::conversions::degToRad( wXYZ ) * real_c( 1e-6 );
 
    // Transform to the point to the xyz in a sphere of earthRadius;
-   pxyz    = terraneo::conversions::cart2sph( point );
-   pxyz    = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
+   pxyz    = terraneo::conversions::sph2cart( { point[0], point[1] }, earthRadius );
    vec3D v = eVector.cross( pxyz );
 
    v *= smoothing / toms;
@@ -117,13 +115,16 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
 
 /// Get the velocity in given the plate id, create the reconstruction path, get
 /// the rotations and calculate the velocity
-vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
-                                      const int                    plateID,
-                                      const real_t                 age,
-                                      const vec3D&                 point,
-                                      const real_t                 smoothing )
+inline vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
+                                             const int                    plateID,
+                                             const real_t                 age,
+                                             const vec3D&                 point,
+                                             const real_t                 smoothing )
 {
    // age of the euler pole is defined by ((age1 + age2)/2)
+   // This is valid when the velocities are calculated every 1 Myrs. 
+   // Otherwise this needs to be changed to the desired time step
+   // taking into conserdation the time resolution of the plate boundaries available.
    std::array< real_t, 2 >     time{ age, age + 1 };
    std::vector< RotationInfo > recTree;
 
