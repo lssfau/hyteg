@@ -191,8 +191,8 @@ void benchmark( int argc, char** argv )
       {
          // right anchor
          Point3D anchorRight( {tDist, 0, 0} );
-         auto pShift = p - anchorRight;
-         Matrix3r m;
+         auto     pShift = p - anchorRight;
+         Matrix3r m( Matrix3r::Zero() );
          m(0, 0) = std::cos(alpha);
          m(0, 1) = -std::sin(alpha);
          m(1, 0) = std::sin(alpha);
