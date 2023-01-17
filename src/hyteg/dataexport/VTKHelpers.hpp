@@ -40,6 +40,7 @@ enum class DoFType
    EDGE_YZ,
    EDGE_XYZ,
    DG,
+   FACEDOF_OLD,
    P2,
    N1E1
 };

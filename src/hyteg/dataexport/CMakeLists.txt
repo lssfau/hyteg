@@ -18,5 +18,8 @@ target_sources( hyteg
     VTKDGWriter.hpp
     VTKN1E1Writer.hpp
     VTKN1E1Writer.cpp
+
+    VTKFaceDoFWriter.hpp
+    VTKFaceDoFWriter.cpp
 )
 
