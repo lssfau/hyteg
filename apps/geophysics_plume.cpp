@@ -21,11 +21,11 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
 #include "hyteg/dgfunctionspace_old/DGFunction.hpp"
-#include "hyteg/dgfunctionspace_old/DGUpwindOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -116,9 +116,8 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   std::array< hyteg::P1Function< real_t >, 2 >           velocity{ u->uvw()[0], u->uvw()[1] };
-   hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
-   hyteg::P1P1StokesOperator                                L( storage, minLevel, maxLevel );
+   hyteg::DG0P1UpwindOperator                             N( storage, u->uvw(), minLevel, maxLevel );
+   hyteg::P1P1StokesOperator                              L( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator                          M( storage, minLevel, maxLevel );
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
@@ -129,6 +128,7 @@ int main( int argc, char* argv[] )
    const real_t finalTime = 100000.0;
    //  const real_t plotEach = 2.0;
    const auto timesteps = (uint_t) std::ceil( finalTime / dt );
+   WALBERLA_LOG_INFO_ON_ROOT( "Going to perform " << timesteps << " timesteps" );
    //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
    const uint_t plotModulo = 10;
    real_t       time       = 0.0;
@@ -147,7 +147,7 @@ int main( int argc, char* argv[] )
    auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1P1StokesOperator::VelocityOperator_T > >();
    auto uzawaVelocitySmoother =
        std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator > >( storage,
-                                                                                                             gaussSeidel );
+                                                                                                               gaussSeidel );
    auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >(
        storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37 );
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >(

@@ -1,10 +1,9 @@
 target_sources( hyteg
     PRIVATE
-    DGUpwindOperator.hpp
-    DGFunction.hpp
+    DG0P1UpwindOperator.hpp
     DGFunction.cpp
-    DGFunctionMacroVertex.hpp
-    DGFunctionMacroFace.hpp
+    DGFunction.hpp
     DGFunctionMacroEdge.hpp     
+    DGFunctionMacroFace.hpp
+    DGFunctionMacroVertex.hpp
 )
-

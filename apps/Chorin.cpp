@@ -19,7 +19,7 @@
  */
 #include <core/math/Constants.h>
 
-#include "hyteg/dgfunctionspace_old/DGUpwindOperator.hpp"
+#include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -58,7 +58,8 @@ int main( int argc, char* argv[] )
 
    real_t time              = 0.0;
    real_t inflowBuildupTime = 0.0;
-   real_t endTime           = 5.0;
+   // real_t endTime           = 5.0;
+   real_t endTime           = 0.1;
    uint_t iter              = 0;
    uint_t max_cg_iter       = 50;
    uint_t outerIterations   = 2;
@@ -111,8 +112,10 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
 
-   hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > v( "v", storage, minLevel, maxLevel );
+   // hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
+   // hyteg::P1Function< real_t > v( "v", storage, minLevel, maxLevel );
+   hyteg::P1VectorFunction< real_t > velocity( "velocity", storage, minLevel, maxLevel );
+
    hyteg::P1Function< real_t > p( "p", storage, minLevel, maxLevel );
    hyteg::P1Function< real_t > p_rhs( "p_rhs", storage, minLevel, maxLevel );
    hyteg::P1Function< real_t > p_res( "p_res", storage, minLevel, maxLevel );
@@ -139,8 +142,9 @@ int main( int argc, char* argv[] )
    hyteg::P1DivTyOperator         divT_y( storage, minLevel, maxLevel );
    hyteg::P1LumpedInvMassOperator invDiagMass( storage, minLevel, maxLevel );
 
-   std::array< hyteg::P1Function< real_t >, 2 > velocity{ u,v };
-   hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
+   // std::array< hyteg::P1Function< real_t >, 2 > velocity{ u,v };
+   // hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
+   hyteg::DG0P1UpwindOperator N( storage, velocity, minLevel, maxLevel );
 
    typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseSolver;
    auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel, max_cg_iter );
@@ -151,17 +155,17 @@ int main( int argc, char* argv[] )
    typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > LaplaceSover;
    LaplaceSover laplaceSolver( storage, smoother, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
-   u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
-   v.interpolate( bc_y, maxLevel, hyteg::DirichletBoundary );
+   // u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
+   // v.interpolate( bc_y, maxLevel, hyteg::DirichletBoundary );
+   velocity.interpolate( { bc_x, bc_y }, hyteg::DirichletBoundary );
    p.interpolate( zero, maxLevel - 1, hyteg::NeumannBoundary );
-   ones.interpolate( one, maxLevel, hyteg::All );
+   ones.interpolate( real_t(1), maxLevel, hyteg::All );
 
-   u_dg->projectP1( u, maxLevel, hyteg::All );
-   v_dg->projectP1( v, maxLevel, hyteg::All );
+   u_dg->projectP1( velocity[0], maxLevel, hyteg::All );
+   v_dg->projectP1( velocity[1], maxLevel, hyteg::All );
 
    hyteg::VTKOutput vtkOutput("../output", "test", storage, plotModulo);
-   vtkOutput.add( u );
-   vtkOutput.add( v );
+   vtkOutput.add( velocity );
    vtkOutput.add( p );
    vtkOutput.write( maxLevel, iter );
    ++iter;
@@ -170,30 +174,30 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "time = " << time );
       time += dt;
-      u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
+      velocity[0].interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
 
-      u_dg_old->projectP1( u, maxLevel, hyteg::All );
-      v_dg_old->projectP1( v, maxLevel, hyteg::All );
+      u_dg_old->projectP1( velocity[0], maxLevel, hyteg::All );
+      v_dg_old->projectP1( velocity[1], maxLevel, hyteg::All );
 
       N.apply( *u_dg_old, *u_dg, maxLevel, hyteg::All, Replace );
       N.apply( *v_dg_old, *v_dg, maxLevel, hyteg::All, Replace );
 
       // Predict u
       tmp.integrateDG( *u_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      Ascaled.apply( u, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
+      Ascaled.apply( velocity[0], tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      u.add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      velocity[0].add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Predict v
       tmp.integrateDG( *v_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      Ascaled.apply( v, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
+      Ascaled.apply( velocity[1], tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      v.add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      velocity[1].add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Solve p
       p.interpolate( zero, maxLevel - 1, hyteg::NeumannBoundary );
-      div_x.apply( u, p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Replace );
-      div_y.apply( v, p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Add );
+      div_x.apply( velocity[0], p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Replace );
+      div_y.apply( velocity[1], p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Add );
 
       restrictionOperator->restrict( p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary );
 
@@ -217,15 +221,14 @@ int main( int argc, char* argv[] )
 
       prolongationOperator->prolongate( p, maxLevel - 1, hyteg::Inner | hyteg::DirichletBoundary );
 
-      // Correct u
+      // Correct velocities
       divT_x.apply( p, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      u.add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      velocity[0].add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
-      // Correct v
       divT_y.apply( p, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      v.add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      velocity[1].add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       vtkOutput.write( maxLevel, iter );
       ++iter;

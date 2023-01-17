@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl,
+ * Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,31 +27,31 @@
 #include "hyteg/dgfunctionspace_old/DGFunctionMacroFace.hpp"
 #include "hyteg/dgfunctionspace_old/DGFunctionMacroVertex.hpp"
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 
-template < class VelocityBaseType >
-class DGUpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_old< real_t > >
+class DG0P1UpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_old< real_t > >
 {
-   typedef std::array< VelocityBaseType, 2 > VelocityType;
-
  public:
-   DGUpwindOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                     const VelocityType&                        velocity,
-                     size_t                                     minLevel,
-                     size_t                                     maxLevel )
+   DG0P1UpwindOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        const P1VectorFunction< real_t >&          velocity,
+                        uint_t                                     minLevel,
+                        uint_t                                     maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocity_( velocity )
-   {}
+   {
+      WALBERLA_ASSERT( velocity.getDimension() == 2 );
+   }
 
-   ~DGUpwindOperator() override = default;
+   ~DG0P1UpwindOperator() override = default;
 
    void apply( const DGFunction_old< real_t >& src,
                const DGFunction_old< real_t >& dst,
-               uint_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               uint_t                          level,
+               DoFType                         flag,
+               UpdateType                      updateType = Replace ) const
    {
       // start pulling edge halos
       src.startCommunication< Face, Edge >( level );
@@ -64,20 +65,14 @@ class DGUpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_o
       // end pulling vertex halos
       src.endCommunication< Edge, Vertex >( level );
 
-      for ( auto velocityComponent : velocity_ )
-      {
-         velocityComponent.template startCommunication< Edge, Vertex >( level );
-      }
+      velocity_[0].startCommunication< Edge, Vertex >( level );
+      velocity_[1].startCommunication< Edge, Vertex >( level );
 
-      for ( auto velocityComponent : velocity_ )
-      {
-         velocityComponent.template startCommunication< Face, Edge >( level );
-      }
+      velocity_[0].startCommunication< Face, Edge >( level );
+      velocity_[1].startCommunication< Face, Edge >( level );
 
-      for ( auto velocityComponent : velocity_ )
-      {
-         velocityComponent.template endCommunication< Edge, Vertex >( level );
-      }
+      velocity_[0].endCommunication< Edge, Vertex >( level );
+      velocity_[1].endCommunication< Edge, Vertex >( level );
 
       for ( auto& it : storage_->getVertices() )
       {
@@ -99,10 +94,8 @@ class DGUpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_o
 
       dst.startCommunication< Vertex, Edge >( level );
 
-      for ( auto velocityComponent : velocity_ )
-      {
-         velocityComponent.template endCommunication< Face, Edge >( level );
-      }
+      velocity_[0].endCommunication< Face, Edge >( level );
+      velocity_[1].endCommunication< Face, Edge >( level );
 
       for ( auto& it : storage_->getEdges() )
       {
@@ -148,7 +141,7 @@ class DGUpwindOperator : public Operator< DGFunction_old< real_t >, DGFunction_o
    }
 
  private:
-   VelocityType velocity_;
+   P1VectorFunction< real_t > velocity_;
 };
 
 } // namespace hyteg

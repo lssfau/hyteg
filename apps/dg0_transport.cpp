@@ -23,7 +23,6 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
 #include "hyteg/dgfunctionspace_old/DGFunction.hpp"
-#include "hyteg/dgfunctionspace_old/DGUpwindOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -86,8 +85,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< hyteg::P1VectorFunction< real_t > > velocityPtr =
        std::make_shared< hyteg::P1VectorFunction< real_t > >( "velocity", storage, minLevel, maxLevel );
 
-   hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N(
-       storage, { velocityPtr->component( 0 ), velocityPtr->component( 1 ) }, minLevel, maxLevel );
+   hyteg::DG0P1UpwindOperator transport( storage, *velocityPtr, minLevel, maxLevel );
 
    velocityPtr->interpolate( { vel_x, vel_y }, maxLevel );
    c_old->interpolate( initialConcentration, maxLevel );
@@ -102,7 +100,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= timesteps; i++ )
    {
-      N.apply( *c_old, *c, maxLevel, hyteg::Inner, Replace );
+      transport.apply( *c_old, *c, maxLevel, hyteg::Inner, Replace );
       c->assign( { 1.0, -dt }, { *c_old, *c }, maxLevel, hyteg::Inner );
 
       vtkOutput.write( maxLevel, i );
