@@ -86,7 +86,7 @@ class PointND
    /// \returns Dot product between \p this and \p b
    T dot( const PointND& other ) const { return vector_.dot( other.vector_ ); }
 
-   /// Computes the 2D normal of this PointND
+   /// Computes the (rightward pointing) 2D normal of this PointND
    /// \returns 2D Point normal to this PointND
    PointND< T, 2 > normal2D() { return PointND< T, 2 >( { this->vector_[1], -this->vector_[0] } ); }
 
