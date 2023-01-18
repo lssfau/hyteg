@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl,
+ * Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -125,12 +126,15 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
+   real_t max_error;
+
    for ( uint_t i = 1; i <= timesteps; i++ )
    {
       if ( i % 10 == 0 )
       {
          c_error->assign( { 1.0, -1.0 }, { *c, *c_final }, maxLevel, All );
-         const auto max_error = c_error->getMaxMagnitude( maxLevel, All );
+         // const auto max_error = c_error->getMaxMagnitude( maxLevel, All );
+         max_error = c_error->getMaxMagnitude( maxLevel, All );
          WALBERLA_LOG_INFO_ON_ROOT( "Timestep: " << i << ", max error magnitude = " << max_error );
       }
 
@@ -144,6 +148,12 @@ int main( int argc, char* argv[] )
 
       c_old.swap( c );
    }
+
+   // Check values here have no physical meaning, I only inserted them
+   // to check that algorithmic behaviour did not change [we test after
+   // 40 iterations]
+   WALBERLA_CHECK_LESS( max_error, real_c(1.000) )
+   WALBERLA_CHECK_GREATER( max_error, real_c(0.999) )
 
    return EXIT_SUCCESS;
 }
