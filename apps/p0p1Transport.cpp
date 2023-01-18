@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl,
+ * Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +21,7 @@
 #include <core/Environment.h>
 #include <core/timing/Timer.h>
 
+#include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
 #include "hyteg/dgfunctionspace_old/DGFunction.hpp"
@@ -29,6 +31,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
@@ -51,48 +54,51 @@ int main( int argc, char* argv[] )
    const uint_t minLevel  = 2;
    const uint_t maxLevel  = 7;
    const uint_t timesteps = 10;
-   real_t       dt        = 0.25 * std::pow( 2.0, -walberla::real_c( maxLevel + 1 ) );
+   real_t       dt        = real_c( 0.25 ) * std::pow( real_c( 2.0 ), -real_c( maxLevel + 1 ) );
    WALBERLA_LOG_DEVEL( "dt = " << dt )
 
    std::function< real_t( const hyteg::Point3D& ) > initialConcentration = []( const hyteg::Point3D& x ) {
-      if ( ( x - Point3D{ { { 0.5, 0.5, 0.0 } } } ).norm() < 0.1 )
+      if ( ( x - Point3D{ { { real_c( 0.5 ), real_c( 0.5 ), real_c( 0.0 ) } } } ).norm() < real_c( 0.1 ) )
       {
-         return 1.0;
+         return real_c( 1.0 );
       }
       else
       {
-         return 0.0;
+         return real_c( 0.0 );
       }
       //    return 1.0;
    };
 
    std::function< real_t( const hyteg::Point3D& ) > vel_x = []( const hyteg::Point3D& ) {
       //    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
-      return 1.0;
+      return real_c( 1.0 );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > vel_y = []( const hyteg::Point3D& ) {
       //    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
-      return 0.0;
+      return real_c( 0.0 );
    };
 
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   uint_t additionalHaloDepth{1u};
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, additionalHaloDepth );
 
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c_old =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c_old", storage, minLevel, maxLevel );
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
-   std::shared_ptr< hyteg::P1VectorFunction< real_t > > velocityPtr =
+   std::shared_ptr< hyteg::P0Function< real_t > > c_old =
+       std::make_shared< hyteg::P0Function< real_t > >( "c_old", storage, minLevel, maxLevel );
+
+   std::shared_ptr< hyteg::P0Function< real_t > > c =
+       std::make_shared< hyteg::P0Function< real_t > >( "c", storage, minLevel, maxLevel );
+
+   std::shared_ptr< hyteg::P1VectorFunction< real_t > > velocity =
        std::make_shared< hyteg::P1VectorFunction< real_t > >( "velocity", storage, minLevel, maxLevel );
 
-   hyteg::DG0P1UpwindOperator transport( storage, *velocityPtr, minLevel, maxLevel );
+   hyteg::P0P1UpwindOperator transport( storage, *velocity, minLevel, maxLevel );
 
-   velocityPtr->interpolate( { vel_x, vel_y }, maxLevel );
+   velocity->interpolate( { vel_x, vel_y }, maxLevel );
    c_old->interpolate( initialConcentration, maxLevel );
 
-   hyteg::VTKOutput vtkOutput( "../output", "dg0_transport", storage );
+   hyteg::VTKOutput vtkOutput( "../output", "P0P1Transport", storage );
 
-   vtkOutput.add( *velocityPtr );
+   vtkOutput.add( *velocity );
    vtkOutput.add( *c_old );
    vtkOutput.add( *c );
 
