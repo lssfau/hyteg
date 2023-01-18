@@ -202,12 +202,12 @@ class P0Function : public Function< P0Function< ValueType > >
 
    ValueType dotGlobal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
-      return dgFunction_->dotLocal( *rhs.getDGFunction(), level );
+      return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
    }
 
    ValueType dotLocal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
-      return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
+      return dgFunction_->dotLocal( *rhs.getDGFunction(), level );
    }
 
    void enumerate( uint_t level ) const { dgFunction_->enumerate( level ); }
