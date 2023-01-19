@@ -249,6 +249,7 @@ void runTest2( std::string tag, uint_t level ) {
      count++;
   }
   WALBERLA_ASSERT_EQUAL( count, 1 );
+  WALBERLA_UNUSED( count );
   PrimitiveStorage::FaceMap fMap = storage->getFaces();
   Face& faceUnmapped = *fMap[faceID];
   AnnulusMap myMap = AnnulusMap( faceUnmapped );

@@ -45,7 +45,7 @@ class P2ToP1FenicsForm : public Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      Matrixr< 3, 6 > localStiffnessMatrix;
+      Matrixr< 3, 6 > localStiffnessMatrix{ Matrixr< 3, 6 >::Zero() };
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 0, 0 );
       out[1] = localStiffnessMatrix( 0, 1 );
@@ -54,7 +54,7 @@ class P2ToP1FenicsForm : public Form
 
    void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      Matrixr< 3, 6 > localStiffnessMatrix;
+      Matrixr< 3, 6 > localStiffnessMatrix{ Matrixr< 3, 6 >::Zero() };
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 0, 3 );
       out[1] = localStiffnessMatrix( 0, 4 );
@@ -66,7 +66,7 @@ class P2ToP1FenicsForm : public Form
    // integrateVertexToVertex, but this would imply changing the P1 stuff, too.
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      Matrixr< 4, 10 > elMat;
+      Matrixr< 4, 10 > elMat{ Matrixr< 4, 10 >::Zero() };
       computeLocalStiffnessMatrix( coords, elMat );
       int rowIdx = fenics::P2DoFMap[0][0];
       out[0]        = elMat( rowIdx, fenics::P2DoFMap[0][0] );
@@ -75,11 +75,11 @@ class P2ToP1FenicsForm : public Form
       out[3]        = elMat( rowIdx, fenics::P2DoFMap[3][3] );
    }
 
-   real_t integrate( const std::array< Point3D, 4 >&     coords,
-                     const P2Form::dofPosByVertexPair3D& cntrPos,
-                     const P2Form::dofPosByVertexPair3D& leafPos ) const
+   [[nodiscard]] real_t integrate( const std::array< Point3D, 4 >&     coords,
+                                   const P2Form::dofPosByVertexPair3D& cntrPos,
+                                   const P2Form::dofPosByVertexPair3D& leafPos ) const
    {
-      Matrixr< 4, 10 > elMat;
+      Matrixr< 4, 10 > elMat{ Matrixr< 4, 10 >::Zero() };
       computeLocalStiffnessMatrix( coords, elMat );
       WALBERLA_ASSERT_LESS( cntrPos[0], 4 );
       WALBERLA_ASSERT_LESS( cntrPos[1], 4 );
@@ -89,9 +89,9 @@ class P2ToP1FenicsForm : public Form
       return real_c( elMat( rowIdx, colIdx ) );
    }
 
-   std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
-                                    const P2Form::dofPosByVertexPair3D&                cntrPos,
-                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
+   [[nodiscard]] std::vector< real_t > integrate( const std::array< Point3D, 4 >&,
+                                                  const P2Form::dofPosByVertexPair3D&,
+                                                  const std::vector< P2Form::dofPosByVertexPair3D >& ) const
    {
       WALBERLA_ABORT( "Missing implementation in P2ToP1FenicsForm" );
    }
@@ -120,7 +120,7 @@ class P2ToP1FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
 
  private:
    void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 >& localStiffnessMatrix ) const

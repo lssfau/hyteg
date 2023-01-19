@@ -2,6 +2,11 @@ add_library( hyteg )
 target_link_libraries( hyteg PUBLIC core vtk )
 target_compile_features(hyteg PUBLIC cxx_std_17)
 set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF )
+# There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366
+# TODO: check if this is still the case for gcc 12.3
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12.1.0 )
+   target_compile_options(hyteg PUBLIC "-Wno-nonnull")
+endif()
 target_sources( hyteg
       PRIVATE
       HytegDefinitions.in.hpp

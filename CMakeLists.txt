@@ -18,6 +18,7 @@ option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for CGAL
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
+set(WALBERLA_BUILD_WITH_BOOST       OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
@@ -89,11 +90,6 @@ if( HYTEG_TERRANEO_MODULE )
        message( WARNING "Missing plate topologies file: ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson.bzip2" )
      endif()
    endif()
-endif()
-
-# We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD
-if(WALBERLA_CXX_COMPILER_IS_INTEL)
-    add_flag ( CMAKE_CXX_FLAGS "-std=c++14" )
 endif()
 
 # Clang complains about braces in correct init list

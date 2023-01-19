@@ -41,7 +41,7 @@ namespace hyteg {
 template < class UFCOperator2D, class UFCOperator3D >
 void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
 {
-   Matrix6r localStiffnessMatrix;
+   Matrix6r localStiffnessMatrix{ Matrix6r::Zero() };
    computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
    out[0] = localStiffnessMatrix( 0, 0 );
    out[1] = localStiffnessMatrix( 0, 1 );
@@ -52,7 +52,7 @@ template < class UFCOperator2D, class UFCOperator3D >
 void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrateEdgeToVertex( const std::array< Point3D, 3 >& coords,
                                                                           Point3D&                        out ) const
 {
-   Matrix6r localStiffnessMatrix;
+   Matrix6r localStiffnessMatrix{ Matrix6r::Zero() };
    computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
    out[0] = localStiffnessMatrix( 0, 3 );
    out[1] = localStiffnessMatrix( 0, 4 );
@@ -63,7 +63,7 @@ template < class UFCOperator2D, class UFCOperator3D >
 void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrateVertexToEdge( const std::array< Point3D, 3 >& coords,
                                                                           Point3D&                        out ) const
 {
-   Matrix6r localStiffnessMatrix;
+   Matrix6r localStiffnessMatrix{ Matrix6r::Zero() };
    computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
    out[0] = localStiffnessMatrix( 5, 0 );
    out[1] = localStiffnessMatrix( 5, 1 );
@@ -74,7 +74,7 @@ template < class UFCOperator2D, class UFCOperator3D >
 void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrateEdgeToEdge( const std::array< Point3D, 3 >& coords,
                                                                         Point3D&                        out ) const
 {
-   Matrix6r localStiffnessMatrix;
+   Matrix6r localStiffnessMatrix{ Matrix6r::Zero() };
    computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
    out[0] = localStiffnessMatrix( 5, 3 );
    out[1] = localStiffnessMatrix( 5, 4 );
@@ -90,7 +90,7 @@ void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrateAll( const std::arra
 template < class UFCOperator2D, class UFCOperator3D >
 void P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
 {
-   Matrix10r localStiffnessMatrix;
+   Matrix10r localStiffnessMatrix{ Matrix10r::Zero() };
    computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
    out[0] = localStiffnessMatrix( 0, 0 );
    out[1] = localStiffnessMatrix( 0, 1 );
@@ -103,7 +103,7 @@ real_t P2FenicsForm< UFCOperator2D, UFCOperator3D >::integrate( const std::array
                                                                 const P2Form::dofPosByVertexPair3D& cntrPos,
                                                                 const P2Form::dofPosByVertexPair3D& leafPos ) const
 {
-   Matrix10r elMat;
+   Matrix10r elMat{ Matrix10r::Zero() };
    computeLocalStiffnessMatrix( coords, elMat );
    int rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
    int colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
@@ -117,7 +117,7 @@ std::vector< real_t >
                                                              const P2Form::dofPosByVertexPair3D&                cntrPos,
                                                              const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
 {
-   Matrix10r elMat;
+   Matrix10r elMat{ Matrix10r::Zero() };
    computeLocalStiffnessMatrix( coords, elMat );
    std::vector< real_t > matRow( leafPos.size(), 0 );
 

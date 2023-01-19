@@ -93,7 +93,7 @@ class P2RowSumForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      Matrix10r localStiffnessMatrix;
+      Matrix10r localStiffnessMatrix {Matrix10r::Zero()};
       integrateAll( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 0, 0 );
       out[1] = localStiffnessMatrix( 0, 1 );
