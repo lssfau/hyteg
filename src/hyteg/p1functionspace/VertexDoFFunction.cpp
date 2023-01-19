@@ -537,11 +537,20 @@ void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< Value
    auto threeD        = storage->hasGlobalCells();
 
    auto getParentID = [&]( const PrimitiveID& id ) -> PrimitiveID {
+      // the element also exists on the coarse grid
       if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id ) )
          return id;
 
+      // the parent element exits on the coarse grid
       if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent() ) )
          return id.getParent();
+
+      // "pseudo-siblings" from a green refinement step exist on the coarse grid
+      for (auto& localID : functionOnParentGrid.getStorage()->getPrimitiveIDs())
+      {
+         if (localID.getParent() == id.getParent())
+            return PrimitiveID();
+      }
 
       WALBERLA_ABORT( "Interpolation between parent and new grid failed: Primitive doesn't exist locally on parentStorage!" );
       return PrimitiveID();
