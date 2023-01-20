@@ -568,6 +568,8 @@ class ElementNeighborInfo
 
    [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
 
+   [[nodiscard]] const std::vector< Index >& elementVertexIndices() const { return vertexIndicesVolume_; }
+
    Index neighborElementIndices( uint_t neighbor ) const { return neighborElementIndices_[neighbor]; }
 
    [[nodiscard]] const std::vector< Point >& neighborElementVertexCoords( uint_t neighbor ) const
@@ -582,6 +584,11 @@ class ElementNeighborInfo
    [[nodiscard]] const std::vector< Point >& interfaceVertexCoords( uint_t neighbor ) const
    {
       return interfaceVertexCoords_[neighbor];
+   }
+
+   [[nodiscard]] const std::vector< Index >& interfaceVertexIndices( uint_t neighbor ) const
+   {
+      return interfaceVertexIndices_[neighbor];
    }
 
    [[nodiscard]] const Point& oppositeVertexCoords( uint_t neighbor ) const { return oppositeVertexCoords_[neighbor]; }
