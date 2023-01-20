@@ -59,7 +59,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
-   template < typename SenderType, typename ReceiverType >
+   // template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const
    {
       dgFunction_->communicate( level );
