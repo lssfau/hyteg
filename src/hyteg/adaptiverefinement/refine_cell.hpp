@@ -284,7 +284,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_1( std::shared_
    auto& children = cell->get_children();
    for ( uint_t i = 0; i < children.size(); ++i )
    {
-      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8 + 8] ); // we require different ids for different types of refinement
    }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
@@ -404,7 +404,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_2( std::shared_
    auto& children = cell->get_children();
    for ( uint_t i = 0; i < children.size(); ++i )
    {
-      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+      children[i]->setPrimitiveID( childIDs[i + 1 + 8 + 8 + 2] ); // we require different ids for different types of refinement
    }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );
@@ -437,7 +437,7 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
 
    for ( uint_t k = 0; k < 3; ++k )
    {
-      ref_vertices[k] = red_vtxs[k];
+      ref_vertices[k]     = red_vtxs[k];
       ref_vertices[k + 4] = red_edges[k]->get_midpoint_idx();
    }
 
@@ -539,7 +539,8 @@ inline std::set< std::shared_ptr< Simplex3 > > refine_cell_green_3( std::shared_
    auto& children = cell->get_children();
    for ( uint_t i = 0; i < children.size(); ++i )
    {
-      children[i]->setPrimitiveID( childIDs[i + 1 + 8] );
+      children[i]->setPrimitiveID(
+          childIDs[i + 1 + 8 + 8 + 2 + 4] ); // we require different ids for different types of refinement
    }
 
    return std::set< std::shared_ptr< Simplex3 > >( cell->get_children().begin(), cell->get_children().end() );

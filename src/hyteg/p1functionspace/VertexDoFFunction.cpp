@@ -545,10 +545,21 @@ void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< Value
       if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent() ) )
          return id.getParent();
 
+      // the grand-parent element exits on the coarse grid (may happen when element is subject to both red and green refinement)
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent().getParent() ) )
+         return id.getParent().getParent();
+
       // "pseudo-siblings" from a green refinement step exist on the coarse grid
       for (auto& localID : functionOnParentGrid.getStorage()->getPrimitiveIDs())
       {
          if (localID.getParent() == id.getParent())
+            return PrimitiveID();
+      }
+
+      // parent element has "pseudo-siblings" on the coarse grid
+      for (auto& localID : functionOnParentGrid.getStorage()->getPrimitiveIDs())
+      {
+         if (localID.getParent() == id.getParent().getParent())
             return PrimitiveID();
       }
 

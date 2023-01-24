@@ -23,8 +23,8 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 1; // number of refinement steps
-  percentile 1; // minimum proportion of elements to refine in each step [0,1]
+  n_refinements 8; // number of refinement steps
+  percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
   // n_el_max 6144; // max number of macro elements
 
   // local regular refinement
@@ -33,8 +33,9 @@ Parameters
   // microlevel_final 4;
 
   // linear solver (GMG)
-  initial_guess 0; // 0: zero, 1: u_h from previous refinement
-  n_iterations 150;
+  cg_level 1; // defaults to 0
+  initial_guess 1; // 0: zero, 1: u_h from previous refinement
+  n_iterations 30;
   tolerance 1e-9;
   cg_tolerance 1e-12;
   // use different number of iterations and tolerance for final solve step

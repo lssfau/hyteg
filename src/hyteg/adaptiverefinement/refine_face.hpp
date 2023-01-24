@@ -218,7 +218,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_green( std::shared_pt
    auto& children = face->get_children();
    for ( uint_t i = 0; i < children.size(); ++i )
    {
-      children[i]->setPrimitiveID( childIDs[i + 3] );
+      children[i]->setPrimitiveID( childIDs[i + 3 + 4] ); // we require different ids for different types of refinement
    }
 
    return std::set< std::shared_ptr< Simplex2 > >( face->get_children().begin(), face->get_children().end() );

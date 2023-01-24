@@ -847,7 +847,7 @@ int main( int argc, char* argv[] )
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
 
-   const uint_t l_min   = 0;
+   const uint_t l_min   = parameters.getParameter< uint_t >( "cg_level", 0 );
    const uint_t l_max   = parameters.getParameter< uint_t >( "microlevel" );
    const uint_t l_final = parameters.getParameter< uint_t >( "microlevel_final", l_max );
 
