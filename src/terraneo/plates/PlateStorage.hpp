@@ -41,21 +41,11 @@ class PlateStorage
    /// Information describing a single plate at a certain age
    struct PlateInfo
    {
-      /// Set to true, after plate was rotated to xy-plane
-      bool rotatedToXY{false};
-
       /// ID of the plate
       uint_t id{0};
 
       /// Nodes describing the boundary of the plate
       Polygon boundary;
-
-      /// Center of the plate in original coordinates
-      ///
-      /// If the plate was a 2D object, this would represent its barycenter.
-      /// The center is not rotated to the xy-plane, but kept at its original
-      /// position.
-      vec3D center{real_c( 0 ), real_c( 0 ), real_c( 0 )};
 
       /// Textual name of plate
       std::string name;
@@ -74,9 +64,6 @@ class PlateStorage
 
       // convert required data into our internal format
       extractPlateInfo( rootNode );
-
-      // current approach treats plates as approximately being 2D
-      rotatePlatesToXYPlane();
 
       // for testing
       printStatistics();
@@ -162,38 +149,12 @@ class PlateStorage
             {
                plates[k].boundary.push_back( {element[0], element[1], real_c( 0 )} );
             }
-
-            // convert to cartesian coordinates and compute center of plate
-            for ( auto& node : plates[k].boundary )
-            {
-               node = terraneo::conversions::sph2cart( {node[0], node[1]}, sphereRadius_ );
-               plates[k].center += node;
-            }
-            plates[k].center /= plates[k].boundary.size();
          }
       }
 
       // sort the list of plate stages (should be sorted in data-file, but hey,
       // better safe than sorry
       std::sort( listOfPlateStages_.begin(), listOfPlateStages_.end() );
-   };
-
-   /// Rotate plates to xy-plane, so that their pseudo-barycenter lies at the origin
-   void rotatePlatesToXYPlane()
-   {
-      for ( auto& mapElem : ageToPlatesMap_ )
-      {
-         plateVec_t& plates = mapElem.second;
-         for ( auto& plate : plates )
-         {
-            mat3D rotMtx = terraneo::plates::getRotationMatrixPolygon( plate.center );
-            for ( auto& node : plate.boundary )
-            {
-               node = rotMtx * node;
-            }
-            plate.rotatedToXY = true;
-         }
-      }
    };
 
    /// name of datafile from which object obtained information

@@ -5,7 +5,6 @@
 ################################################################################
 
 add_library( terraneo )
-target_link_libraries( terraneo PUBLIC core hyteg CGAL::CGAL )
 # target_sources( terraneo )
 
 add_subdirectory( dataimport )

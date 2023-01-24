@@ -22,10 +22,7 @@
 
 #include <limits>
 
-// CGAL: compilation with -lCGAL -lmpfr -lgmp -DCGAL_DISABLE_ROUNDING_MATH_CHECK
-#include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Polygon_2_algorithms.h>
+#include <boost/geometry.hpp>
 
 #include "terraneo/helpers/conversions.hpp"
 #include "terraneo/plates/functionsForGeometry.hpp"
@@ -35,76 +32,55 @@
 namespace terraneo {
 namespace plates {
 
-typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
-typedef Kernel::Point_2                                   Point_2;
+typedef boost::geometry::model::point<double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree>> spherical_point;
+typedef boost::geometry::model::polygon<spherical_point> polygon_on_sphere;
 
 /// Determine to which plate a point belongs
 ///
 /// The function returns a bool to indicate whether any plate matched, the plate's ID and
 /// the distance from this plate's boundary
-std::tuple< bool, uint_t, real_t >
+
+inline std::tuple< bool, uint_t, real_t >
     findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point, uint_t idWhenNoPlateFound )
 {
    // query all plates for given age stage
-   auto& plates = plateStore.getPlatesForStage( age );
+   auto& plates = plateStore.getPlatesForStage( std::ceil( age ) );
 
    // be pessimistic
    bool   plateFound{ false };
    uint_t plateID{ idWhenNoPlateFound };
    real_t distance{ std::numeric_limits< real_t >::max() };
 
+   // Create the point in the surface of a sphere from the library boost::geometry 
+   spherical_point pntSph(point[0], point[1]);
+
+   //loop over the plates available
    for ( auto& currentPlate : plates )
    {
-      // rotate point using same rotation to xy-plane as was applied to this plate
-      mat3D          rotMtx     = terraneo::plates::getRotationMatrixPolygon( currentPlate.center );
-      vec3D          rotPoint   = rotMtx * point;
+      // create the polygon on the surface of a sphere and populate with the plate boundary coordinates
       const Polygon& bdrPolygon = currentPlate.boundary;
-      Point_2        polyPoints[bdrPolygon.size()];
+      polygon_on_sphere polygonOnSphere;
       for ( int index = 0; index < bdrPolygon.size(); ++index )
       {
-         polyPoints[index] = Point_2( bdrPolygon[index]( 0 ), bdrPolygon[index]( 1 ) );
+         boost::geometry::append(polygonOnSphere.outer(), spherical_point(bdrPolygon[index]( 0 ), bdrPolygon[index]( 1 )));
       }
+      // Correct the geometry
+      boost::geometry::correct(polygonOnSphere);
 
-      if ( rotPoint[2] > real_c( 0 ) )
+      // check if the point belongs to the polygon
+      if (boost::geometry::within(pntSph, polygonOnSphere))
       {
-         real_t a;
-
-         // check if the point belongs to the polygon
-         switch (
-             CGAL::bounded_side_2( polyPoints, polyPoints + bdrPolygon.size(), Point_2( rotPoint[0], rotPoint[1] ), Kernel() ) )
-         {
-         case CGAL::ON_BOUNDED_SIDE:
-            for ( int k = 0; k < bdrPolygon.size() - 1; ++k )
-            {
-               if ( bdrPolygon[k] != bdrPolygon[k + 1] ) // apparently there can be "double points" in the data
-               {
-                  a = terraneo::plates::getDistanceLinePoint(
-                      rotPoint,
-                      { bdrPolygon[k]( 0 ), bdrPolygon[k]( 1 ), bdrPolygon[k]( 2 ) },
-                      { bdrPolygon[k + 1]( 0 ), bdrPolygon[k + 1]( 1 ), bdrPolygon[k + 1]( 2 ) } );
-                  if ( a < distance )
-                  {
-                     distance = a;
-                  }
-               }
-            }
-            plateFound = true;
-            break;
-
-         case CGAL::ON_BOUNDARY:
-            distance   = real_c( 0 );
-            plateFound = true;
-            break;
-
-         case CGAL::ON_UNBOUNDED_SIDE:
-            break;
-         }
+         // calculate the distace from the polygon to the point
+         boost::geometry::for_each_segment(polygonOnSphere, [&distance, &pntSph](const auto& segment){
+            distance = std::min<real_t>(distance, boost::geometry::distance(segment, pntSph));
+         });
+         // distance at the surface of the Earth
+         distance = distance * 6371.0; 
+         // plate is found 
+         plateFound = true;
       }
-      else
-      {
-         // std::string exception{ "How to handle z value <= 0?" };
-         // WALBERLA_LOG_INFO_ON_ROOT( exception );
-         // throw( exception );
+      else{
+         // ;
       }
 
       // plate found then leave loop
@@ -114,12 +90,11 @@ std::tuple< bool, uint_t, real_t >
          break;
       }
    }
-
    return std::make_tuple( plateFound, plateID, distance );
 }
 
-/// From the Euler vector compute the velocity in xyz
-vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoothing )
+/// From the Euler vector compute the surface velocity in xyz
+inline vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoothing )
 {
    real_t earthRadius = plates::constants::earthRadiusInKm * real_c( 1e3 );
    real_t toms        = real_c( 3600 * 24 * 365 ); // conversions factor cm/yr -> m/s
@@ -130,8 +105,7 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
    eVector = terraneo::conversions::degToRad( wXYZ ) * real_c( 1e-6 );
 
    // Transform to the point to the xyz in a sphere of earthRadius;
-   pxyz    = terraneo::conversions::cart2sph( point );
-   pxyz    = terraneo::conversions::sph2cart( { pxyz[0], pxyz[1] }, earthRadius );
+   pxyz    = terraneo::conversions::sph2cart( { point[0], point[1] }, earthRadius );
    vec3D v = eVector.cross( pxyz );
 
    v *= smoothing / toms;
@@ -141,13 +115,16 @@ vec3D eulerVectorToVelocity( const vec3D& point, vec3D& wXYZ, const real_t smoot
 
 /// Get the velocity in given the plate id, create the reconstruction path, get
 /// the rotations and calculate the velocity
-vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
-                                      const int                    plateID,
-                                      const real_t                 age,
-                                      const vec3D&                 point,
-                                      const real_t                 smoothing )
+inline vec3D computeCartesianVelocityVector( const PlateRotationProvider& rotData,
+                                             const int                    plateID,
+                                             const real_t                 age,
+                                             const vec3D&                 point,
+                                             const real_t                 smoothing )
 {
    // age of the euler pole is defined by ((age1 + age2)/2)
+   // This is valid when the velocities are calculated every 1 Myrs. 
+   // Otherwise this needs to be changed to the desired time step
+   // taking into conserdation the time resolution of the plate boundaries available.
    std::array< real_t, 2 >     time{ age, age + 1 };
    std::vector< RotationInfo > recTree;
 
