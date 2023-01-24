@@ -26,6 +26,6 @@ target_sources( hyteg
 )
 add_subdirectory( variablestencil )
 add_subdirectory( polynomial )
-if (HYTEG_USE_GENERATED_KERNEL)
-   add_subdirectory( generatedKernels )
+if (HYTEG_USE_GENERATED_KERNELS)
+   add_subdirectory(generatedKernels)
 endif ()

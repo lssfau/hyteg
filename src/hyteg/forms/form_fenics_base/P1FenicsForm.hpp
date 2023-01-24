@@ -78,8 +78,8 @@ class P1FenicsForm : public P1Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
-      Matrix3r localStiffnessMatrix{ Matrix3r::Zero() };
-      real_t   fenicsCoords[6];
+      Eigen::Matrix3d localStiffnessMatrix{ Eigen::Matrix3d::Zero() };
+      double   fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[1][0];
