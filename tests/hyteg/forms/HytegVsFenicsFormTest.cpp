@@ -126,7 +126,8 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    }
 
    // assemble element matrices
-   matType matFenics, matHyTeG;
+   matType matFenics = matType::Zero();
+   matType matHyTeG = matType::Zero();
    fenicsForm.integrateAll( elementForFenics, matFenics );
    if constexpr ( std::is_same< FormHyTeG, n1e1::N1E1Form_mass >::value )
    {
