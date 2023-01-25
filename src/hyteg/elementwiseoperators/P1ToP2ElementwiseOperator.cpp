@@ -608,7 +608,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
    }
 
    // assemble local element matrix
-   Matrixr< 10, 4 > elMat;
+   Matrixr< 10, 4 > elMat = Matrixr< 10, 4 >::Zero();
    P1toP2Form       form;
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
