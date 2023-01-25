@@ -132,9 +132,10 @@ class P2ToP1FenicsForm : public Form
       fenicsCoords[3] = coords[1][1];
       fenicsCoords[4] = coords[2][0];
       fenicsCoords[5] = coords[2][1];
-      UFCOperator2D gen;
-      Eigen::Matrix<double, 3, 6 > tmp = localStiffnessMatrix.cast<double>();
+      UFCOperator2D                 gen;
+      hyteg::Matrix< double, 3, 6 > tmp = localStiffnessMatrix.cast< double >();
       gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      localStiffnessMatrix = tmp.cast< real_t >();
    }
 
    void computeLocalStiffnessMatrix( const std::array< Point3D, 4 >& coords, Matrixr< 4, 10 >& localStiffnessMatrix ) const
@@ -147,9 +148,10 @@ class P2ToP1FenicsForm : public Form
             fenicsCoords[node * 3 + dim] = coords[node][dim];
          }
       }
-      UFCOperator3D gen;
-      Eigen::Matrix<double, 4, 10 > tmp = localStiffnessMatrix.cast<double>();
+      UFCOperator3D                  gen;
+      hyteg::Matrix< double, 4, 10 > tmp = localStiffnessMatrix.cast< double >();
       gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      localStiffnessMatrix = tmp.cast< real_t >();
    }
 };
 

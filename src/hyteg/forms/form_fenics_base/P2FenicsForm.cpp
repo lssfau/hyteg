@@ -150,9 +150,10 @@ void P2FenicsForm< UFCOperator2D, UFCOperator3D >::computeLocalStiffnessMatrix( 
    fenicsCoords[3] = coords[1][1];
    fenicsCoords[4] = coords[2][0];
    fenicsCoords[5] = coords[2][1];
-   UFCOperator2D gen;
-   Eigen::Matrix< double, 6, 6, Eigen::RowMajor > tmp = localStiffnessMatrix.cast<double>();
+   UFCOperator2D                 gen;
+   hyteg::Matrix< double, 6, 6 > tmp = localStiffnessMatrix.cast< double >();
    gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+   localStiffnessMatrix = tmp.cast< real_t >();
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
@@ -167,9 +168,10 @@ void P2FenicsForm< UFCOperator2D, UFCOperator3D >::computeLocalStiffnessMatrix( 
          fenicsCoords[node * 3 + dim] = coords[walberla::uint_c( node )][walberla::uint_c( dim )];
       }
    }
-   UFCOperator3D gen;
-   Eigen::Matrix< double, 10, 10, Eigen::RowMajor > tmp = localStiffnessMatrix.cast<double>();
+   UFCOperator3D                   gen;
+   hyteg::Matrix< double, 10, 10 > tmp = localStiffnessMatrix.cast< double >();
    gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+   localStiffnessMatrix = tmp.cast< real_t >();
 }
 
 template class P2FenicsForm<hyteg::fenics::NoAssemble, hyteg::fenics::NoAssemble>;

@@ -146,9 +146,10 @@ class P1FenicsForm : public P1Form
       fenicsCoords[3] = coords[1][1];
       fenicsCoords[4] = coords[2][0];
       fenicsCoords[5] = coords[2][1];
-      UFCOperator2D gen;
-      Eigen::Matrix3d tmp = elMat.cast<double>();
+      UFCOperator2D                 gen;
+      hyteg::Matrix< double, 3, 3 > tmp = elMat.cast< double >();
       gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      elMat = tmp.cast< real_t >();
    }
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
@@ -170,9 +171,10 @@ class P1FenicsForm : public P1Form
       fenicsCoords[10] = coords[3][1];
       fenicsCoords[11] = coords[3][2];
 
-      UFCOperator3D gen;
-      Eigen::Matrix4d tmp = elMat.cast<double>();
+      UFCOperator3D                 gen;
+      hyteg::Matrix< double, 4, 4 > tmp = elMat.cast< double >();
       gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      elMat = tmp.cast< real_t >();
    }
 
    inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
