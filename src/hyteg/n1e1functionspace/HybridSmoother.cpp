@@ -98,6 +98,7 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 }
 
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLaplaceOperator >;
+template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLinearCombinationOperator >;
 
 } // namespace n1e1
 } // namespace hyteg
