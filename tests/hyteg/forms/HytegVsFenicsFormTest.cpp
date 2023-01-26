@@ -185,7 +185,8 @@ void compareVarForms3D( const std::array< Point3D, dim + 1 >& element,
    }
 
    // assemble element matrices
-   matType matFenics, matHyTeG;
+   matType matFenics = matType::Zero();
+   matType matHyTeG = matType::Zero();
    fenicsForm.integrateAll( elementForFenics, matFenics );
    hytegForm.integrateAll( element, matHyTeG );
 
@@ -230,7 +231,8 @@ void compareVarForms( const std::array< Point3D, dim + 1 >& element,
    }
 
    // assemble element matrices
-   matType matFenics, matHyTeG;
+   matType matFenics = matType::Zero();
+   matType matHyTeG = matType::Zero();
    fenicsForm.integrateAll( elementForFenics, matFenics );
    hytegForm.integrateAll( element, matHyTeG );
 

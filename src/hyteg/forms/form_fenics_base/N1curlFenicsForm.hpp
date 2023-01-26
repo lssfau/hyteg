@@ -43,7 +43,7 @@ class N1curlFenicsForm : public Form
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix6r& elMat ) const
    {
-      real_t fenicsCoords[12];
+      double fenicsCoords[12];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[0][2];
@@ -61,7 +61,9 @@ class N1curlFenicsForm : public Form
       fenicsCoords[11] = coords[3][2];
 
       UFCOperator3D gen;
-      gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
+      hyteg::Matrix< double, 6, 6 > tmp = elMat.cast< double >();
+      gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      elMat = tmp.cast< real_t >();
    }
 
    inline void setGeometryMap( const std::shared_ptr< GeometryMap > ) const {}

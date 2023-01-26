@@ -49,14 +49,14 @@ class N1E1Form_mass : public N1E1Form
       // F maps from reference tet K' to affine tet K
       // K = F(K') = Bx' + b
       // B is the Jacobian of the transformation
-      Eigen::Matrix3r B;
+      hyteg::Matrix3r B;
       B.col( 0 ) = coords[1].vector_ - coords[0].vector_;
       B.col( 1 ) = coords[2].vector_ - coords[0].vector_;
       B.col( 2 ) = coords[3].vector_ - coords[0].vector_;
 
       const real_t absDetB = std::abs( B.determinant() );
 
-      const Eigen::Matrix3r b    = B.inverse();
+      const hyteg::Matrix3r b    = B.inverse();
       const real_t          b_11 = b( 0, 0 );
       const real_t          b_12 = b( 0, 1 );
       const real_t          b_13 = b( 0, 2 );

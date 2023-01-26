@@ -78,8 +78,8 @@ class P1FenicsForm : public P1Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
-      Eigen::Matrix3d localStiffnessMatrix{ Eigen::Matrix3d::Zero() };
-      double   fenicsCoords[6];
+      hyteg::Matrix< double, 3, 3 > localStiffnessMatrix{ hyteg::Matrix< double, 3, 3 >::Zero() };
+      double                        fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[1][0];
@@ -108,7 +108,11 @@ class P1FenicsForm : public P1Form
       }
 
       UFCOperator3D gen;
-      Eigen::Matrix<double, fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime> localStiffnessMatrix;
+      Eigen::Matrix< double,
+                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
+                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime,
+                     Eigen::RowMajor >
+          localStiffnessMatrix;
       gen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
       out[0] = localStiffnessMatrix( 0, 0 );
