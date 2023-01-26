@@ -74,8 +74,9 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    // Assemble RHS.
-   tmp.interpolate( system.rhs_, maxLevel );
-   M.apply( tmp, f, maxLevel, DoFType::All );
+   N1E1ElementwiseLinearFormOperatorQ6 rhsOperator( storage, maxLevel, maxLevel, { system.rhs_ } );
+   rhsOperator.computeDiagonalOperatorValues();
+   f.copyFrom( *rhsOperator.getDiagonalValues(), maxLevel );
 
    // Boundary conditions: homogeneous tangential trace
    u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
@@ -125,6 +126,12 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
       discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( discrL2 )
    }
+
+   // determine residual
+   A.apply( u, tmp, maxLevel, DoFType::Inner );
+   tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
+   const real_t residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel ) );
+   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual )
 
    if ( writeVTK )
    {
