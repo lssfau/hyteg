@@ -96,7 +96,7 @@ struct OperatorHandler
    }
 
    template < class OP >
-   static real_t setup( std::shared_ptr< OP >, const uint_t, const uint_t )
+   static double setup( std::shared_ptr< OP >, const uint_t, const uint_t )
    {
       return 0;
    }
@@ -264,7 +264,7 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Apply LSQ-fit with q = %d", polyDegree ) );
    }
-   real_t setupTime = FE::setup( L, polyDegree, interpolationLevel );
+   double setupTime = FE::setup( L, polyDegree, interpolationLevel );
 
    // reset u
    u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, maxLevel, hyteg::Inner );
