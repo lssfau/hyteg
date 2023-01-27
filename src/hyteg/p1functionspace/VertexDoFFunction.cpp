@@ -708,58 +708,6 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-   this->startTiming( "Copy" );
-
-   for ( auto& it : this->getStorage()->getVertices() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getVertex( primitiveID )
-          ->getData( vertexDataID_ )
-          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getEdges() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getEdge( primitiveID )
-          ->getData( edgeDataID_ )
-          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getFaces() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getFace( primitiveID )
-          ->getData( faceDataID_ )
-          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getCells() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getCell( primitiveID )
-          ->getData( cellDataID_ )
-          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
-   }
-
-   this->stopTiming( "Copy" );
-}
-
-template < typename ValueType >
 void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >&  other,
                                                const uint_t&                          level,
                                                const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,

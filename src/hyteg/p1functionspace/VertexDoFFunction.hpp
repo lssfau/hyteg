@@ -29,6 +29,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
@@ -112,7 +113,8 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
    /// Both storages must have identical distribution.
    ///
-   void copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const;
+   template< typename otherValueType >
+   void copyFrom( const VertexDoFFunction< otherValueType >& other, const uint_t& level ) const;
 
    /// \brief Copies all values function data from other to this.
    ///
@@ -462,6 +464,59 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
 extern template class VertexDoFFunction< idx_t >;
+
+template < typename ValueType >
+template < typename otherValueType >
+void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< otherValueType >& other, const uint_t& level ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Copy" );
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getVertex( primitiveID )
+          ->getData( vertexDataID_ )
+          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getEdge( primitiveID )
+          ->getData( edgeDataID_ )
+          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getFace( primitiveID )
+          ->getData( faceDataID_ )
+          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getCell( primitiveID )
+          ->getData( cellDataID_ )
+          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
+   }
+
+   this->stopTiming( "Copy" );
+}
 
 } // namespace vertexdof
 } // namespace hyteg

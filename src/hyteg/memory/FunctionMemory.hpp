@@ -46,6 +46,8 @@ template < typename ValueType >
 class FunctionMemory
 {
    static_assert( std::is_arithmetic< ValueType >::value, "Wrong ValueType template" );
+   template<typename otherValueType>
+   friend class FunctionMemory;
 
  public:
    /// Constructs memory for a function
@@ -111,7 +113,8 @@ class FunctionMemory
    }
 
    /// Copies the data of one leve from the other FunctionMemory.
-   inline void copyFrom( const FunctionMemory& other, const uint_t& level ) { *data_[level] = *other.data_.at( level ); }
+   template< typename otherValueType >
+   inline void copyFrom( const FunctionMemory< otherValueType >& other, const uint_t& level ) { data_[level]->assign(other.data_.at( level )->begin(),other.data_.at( level )->end()); }
 
    inline void swap( const FunctionMemory< ValueType >& other, const uint_t& level ) const
    {
