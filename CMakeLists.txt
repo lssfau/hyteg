@@ -30,6 +30,11 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
 
+if ( NOT WALBERLA_DOUBLE_ACCURACY )
+   set( HYTEG_USE_GENERATED_KERNELS OFF)
+   message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF" )
+endif()
+
 if ( HYTEG_USE_GENERATED_KERNELS )
     message(STATUS "Using generated HyTeG kernels.")
 else()
