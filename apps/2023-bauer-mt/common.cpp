@@ -36,8 +36,9 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/Solver.hpp"
 
-Results solve( const Params& params )
+Results solve( const Params& params, const bool useGmg )
 {
    using namespace n1e1;
 
@@ -105,31 +106,48 @@ Results solve( const Params& params )
        chebyshev::estimateRadius( A, params.maxLevel, params.numSpectralRadiusEstIts, storage, sol, tmp );
    chebyshevSmoother->setupCoefficients( params.chebyshevOrder, spectralRadius );
 
-   auto hybridSmoother = std::make_shared< HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1LaplaceOperator > >(
-       storage, p1LaplaceOperator, chebyshevSmoother, p1Smoother, params.minLevel, params.maxLevel );
+   auto hybridSmoother =
+       std::make_shared< HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1LaplaceOperator > >( storage,
+                                                                                                          p1LaplaceOperator,
+                                                                                                          chebyshevSmoother,
+                                                                                                          p1Smoother,
+                                                                                                          params.minLevel,
+                                                                                                          params.maxLevel,
+                                                                                                          params.n1e1SmoothSteps,
+                                                                                                          params.p1SmoothSteps );
 
-   // GMG solver
+   std::shared_ptr< Solver< N1E1ElementwiseLinearCombinationOperator > > solver;
+   if ( useGmg )
+   {
+      // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
-   WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto coarseGridSolver =
-       std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, params.minLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
+      auto coarseGridSolver =
+          std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, params.minLevel );
 #else
-   WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
-   auto coarseGridSolver = std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >(
-       storage, params.minLevel, params.minLevel, 10000, 1e-12 );
+      WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
+      auto coarseGridSolver = std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >(
+          storage, params.minLevel, params.minLevel, 10000, 1e-12 );
 #endif
-   auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
-   auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
+      auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
+      auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
 
-   auto gmgSolver = GeometricMultigridSolver< N1E1ElementwiseLinearCombinationOperator >( storage,
-                                                                                          hybridSmoother,
-                                                                                          coarseGridSolver,
-                                                                                          restrictionOperator,
-                                                                                          prolongationOperator,
-                                                                                          params.minLevel,
-                                                                                          params.maxLevel,
-                                                                                          params.preSmoothSteps,
-                                                                                          params.postSmoothSteps );
+      auto gmgSolver =
+          std::make_shared< GeometricMultigridSolver< N1E1ElementwiseLinearCombinationOperator > >( storage,
+                                                                                                    hybridSmoother,
+                                                                                                    coarseGridSolver,
+                                                                                                    restrictionOperator,
+                                                                                                    prolongationOperator,
+                                                                                                    params.minLevel,
+                                                                                                    params.maxLevel,
+                                                                                                    params.preSmoothSteps,
+                                                                                                    params.postSmoothSteps );
+      solver = gmgSolver;
+   }
+   else
+   {
+      solver = hybridSmoother;
+   }
 
    // Interpolate solution
    sol.interpolate( params.system.analyticalSol_, params.maxLevel );
@@ -148,11 +166,12 @@ Results solve( const Params& params )
    real_t discrL2  = 0.0;
    uint_t its      = 0;
 
-   for ( ; its < params.nMaxVCycles &&
-           ( params.residual2Reduction.has_value() ? residual / initRes > params.residual2Reduction.value() : true );
+   for ( ;
+         its < params.nMaxIterations && ( params.u2Reduction.has_value() ? uNorm / initU2 > params.u2Reduction.value() : true ) &&
+         ( params.residual2Reduction.has_value() ? residual / initRes > params.residual2Reduction.value() : true );
          ++its )
    {
-      gmgSolver.solve( A, u, f, params.maxLevel );
+      solver->solve( A, u, f, params.maxLevel );
 
       // Determine solution norm
       uNorm = std::sqrt( u.dotGlobal( u, params.maxLevel, DoFType::Inner ) );
@@ -182,4 +201,14 @@ Results solve( const Params& params )
    }
 
    return Results{ numberOfGlobalDoFs( u, params.maxLevel ), spectralRadius, initU2, uNorm, initRes, residual, discrL2, its };
+}
+
+Results solve( const Params& params )
+{
+   return solve( params, true );
+}
+
+Results smooth( const Params& params )
+{
+   return solve( params, false );
 }

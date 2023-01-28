@@ -33,8 +33,9 @@
 
 using namespace hyteg;
 
-struct Params
+class Params
 {
+ public:
    std::string name;
 
    // system
@@ -49,13 +50,35 @@ struct Params
    uint_t chebyshevOrder;
    uint_t numSpectralRadiusEstIts;
    // hybrid smoother
+   uint_t n1e1SmoothSteps, p1SmoothSteps;
    uint_t preSmoothSteps, postSmoothSteps;
    // stopping criteria
-   uint_t                  nMaxVCycles;
+   uint_t                  nMaxIterations;
+   std::optional< real_t > u2Reduction;
    std::optional< real_t > residual2Reduction;
 
    // output
    bool writeVTK;
+
+   Params( const std::string _name )
+   : name{ _name }
+   , coefficients{ 1.0, 1.0 }
+   , system{ n1e1::System::polynomialOnCube() }
+   , initialGuess{}
+   , minLevel{ 0 }
+   , maxLevel{ 0 }
+   , computeAndStoreLocalElementMatrices{ false }
+   , chebyshevOrder{ 4 }
+   , numSpectralRadiusEstIts{ 40 }
+   , n1e1SmoothSteps{ 1 }
+   , p1SmoothSteps{ 1 }
+   , preSmoothSteps{ 1 }
+   , postSmoothSteps{ 1 }
+   , nMaxIterations{ 10 }
+   , u2Reduction{}
+   , residual2Reduction{}
+   , writeVTK{ false }
+   {}
 
    void store( KeyValueStore& store )
    {
@@ -66,10 +89,16 @@ struct Params
       store.store( "/" + name + "/computeAndStoreLocalElementMatrices", computeAndStoreLocalElementMatrices );
       store.store( "/" + name + "/chebyshevOrder", chebyshevOrder );
       store.store( "/" + name + "/numSpectralRadiusEstIts", numSpectralRadiusEstIts );
+      store.store( "/" + name + "/n1e1SmoothSteps", n1e1SmoothSteps );
+      store.store( "/" + name + "/p1SmoothSteps", p1SmoothSteps );
       store.store( "/" + name + "/preSmoothSteps", preSmoothSteps );
       store.store( "/" + name + "/postSmoothSteps", postSmoothSteps );
-      store.store( "/" + name + "/nMaxVCycles", nMaxVCycles );
+      store.store( "/" + name + "/nMaxIterations", nMaxIterations );
 
+      if ( u2Reduction.has_value() )
+      {
+         store.store( "/" + name + "/u2Reduction", u2Reduction.value() );
+      }
       if ( residual2Reduction.has_value() )
       {
          store.store( "/" + name + "/residual2Reduction", residual2Reduction.value() );
@@ -84,7 +113,8 @@ struct Results
    const real_t initU2, finalU2;
    const real_t initResidual2, finalResidual2;
    const real_t finalErrL2;
-   const uint_t nVCycles;
+   const uint_t nIterations;
 };
 
 Results solve( const Params& params );
+Results smooth( const Params& params );

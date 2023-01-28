@@ -40,23 +40,12 @@ void hIndependenceTest()
                                   n1e1::System::polynomialOnCube(),
                                   n1e1::System::sinusoidalOnCube() };
 
-   Params params{ "hIndependence",
-                  // system
-                  { 1.0, 1.0 }, // coefficients
-                  systems[0],
-                  {}, // initial guess = 0
-                  // solver
-                  0,        // min level
-                  maxLevel, // max level
-                  false,    // precompute element matrices
-                  4,        // Chebyshev order
-                  40,       // spectral estimation iterations
-                  3,        // pre smooth
-                  3,        // post smooth
-                  10,       // max V-cycles
-                  { 1e-6 }, // residual reduction
-                  // output
-                  false };
+   Params params{ "hIndependence" };
+   params.maxLevel           = maxLevel;
+   params.preSmoothSteps     = 3;
+   params.postSmoothSteps    = 3;
+   params.nMaxIterations     = 12;
+   params.residual2Reduction = { 1e-6 };
 
    KeyValueStore store;
    params.store( store );
@@ -71,10 +60,10 @@ void hIndependenceTest()
          params.maxLevel = level;
 
          Results results = solve( params );
-         WALBERLA_LOG_INFO_ON_ROOT( "level " << level << ": " << results.nVCycles )
+         WALBERLA_LOG_INFO_ON_ROOT( "level " << level << ": " << results.nIterations )
 
          table.addElement( level - minLevel, 0, level );
-         table.addElement( level - minLevel, i + 1, results.nVCycles );
+         table.addElement( level - minLevel, i + 1, results.nIterations );
       }
    }
 

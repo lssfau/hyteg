@@ -39,23 +39,11 @@ void L2ConvergenceTest()
                                   n1e1::System::polynomialOnCube(),
                                   n1e1::System::sinusoidalOnCube() };
 
-   Params params{ "L2Convergence",
-                  // system
-                  { 1.0, 1.0 }, // coefficients
-                  systems[0],
-                  {}, // initial guess = 0
-                  // solver
-                  0,        // min level
-                  maxLevel, // max level
-                  false,    // precompute element matrices
-                  4,        // Chebyshev order
-                  40,       // spectral estimation iterations
-                  3,        // pre smooth
-                  3,        // post smooth
-                  8,        // max V-cycles
-                  {},       // residual reduction (no check)
-                  // output
-                  false };
+   Params params{ "L2Convergence" };
+   params.maxLevel        = maxLevel;
+   params.preSmoothSteps  = 3;
+   params.postSmoothSteps = 3;
+   params.nMaxIterations  = 8;
 
    KeyValueStore store;
    params.store( store );

@@ -45,27 +45,16 @@ void solverConvergenceCube()
        zero  // rhs
    };
 
-   Params params{ "solverConvergenceCube",
-                  // system
-                  { 1.0, 1.0 }, // coefficients (set below)
-                  system,
-                  { []( const Point3D& ) {
-                     return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
-                                             walberla::math::realRandom( -1.0, 1.0 ),
-                                             walberla::math::realRandom( -1.0, 1.0 ) };
-                  } }, // initial guess: random
-                  // solver
-                  0,        // min level
-                  maxLevel, // max level
-                  true,     // precompute element matrices
-                  4,        // Chebyshev order
-                  40,       // spectral estimation iterations
-                  1,        // pre smooth
-                  1,        // post smooth
-                  12,       // max V-cycles
-                  {},       // residual reduction (no check)
-                  // output
-                  false };
+   Params params{ "solverConvergenceCube" };
+   params.system                              = system;
+   params.initialGuess                        = { []( const Point3D& ) {
+      return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
+                              walberla::math::realRandom( -1.0, 1.0 ),
+                              walberla::math::realRandom( -1.0, 1.0 ) };
+   } };
+   params.maxLevel                            = maxLevel;
+   params.computeAndStoreLocalElementMatrices = true;
+   params.nMaxIterations                      = 12;
 
    KeyValueStore store;
    params.store( store );
@@ -88,7 +77,7 @@ void solverConvergenceCube()
             Results results     = solve( params );
 
             const real_t conv =
-                std::pow( results.finalU2 / results.initU2, 1.0 / walberla::numeric_cast< real_t >( params.nMaxVCycles ) );
+                std::pow( results.finalU2 / results.initU2, 1.0 / walberla::numeric_cast< real_t >( params.nMaxIterations ) );
             WALBERLA_LOG_INFO_ON_ROOT( "Level " << level << ": " << conv )
 
             table.addElement( a, 0, alphas[a] );
@@ -116,27 +105,17 @@ void solverConvergenceTorus()
        zero  // rhs
    };
 
-   Params params{ "solverConvergenceTorus",
-                  // system
-                  { alpha, 1.0 }, // coefficients (set below)
-                  system,
-                  { []( const Point3D& ) {
-                     return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
-                                             walberla::math::realRandom( -1.0, 1.0 ),
-                                             walberla::math::realRandom( -1.0, 1.0 ) };
-                  } }, // initial guess: random
-                  // solver
-                  0,        // min level
-                  maxLevel, // max level
-                  true,     // precompute element matrices
-                  4,        // Chebyshev order
-                  40,       // spectral estimation iterations
-                  1,        // pre smooth
-                  1,        // post smooth
-                  12,       // max V-cycles
-                  {},       // residual reduction (no check)
-                  // output
-                  false };
+   Params params{ "solverConvergenceTorus" };
+   params.coefficients                        = { alpha, 1.0 };
+   params.system                              = system;
+   params.initialGuess                        = { []( const Point3D& ) {
+      return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
+                              walberla::math::realRandom( -1.0, 1.0 ),
+                              walberla::math::realRandom( -1.0, 1.0 ) };
+   } };
+   params.maxLevel                            = maxLevel;
+   params.computeAndStoreLocalElementMatrices = true;
+   params.nMaxIterations                      = 12;
 
    KeyValueStore store;
    params.store( store );
@@ -158,7 +137,7 @@ void solverConvergenceTorus()
          Results results     = solve( params );
 
          const real_t conv =
-             std::pow( results.finalU2 / results.initU2, 1.0 / walberla::numeric_cast< real_t >( params.nMaxVCycles ) );
+             std::pow( results.finalU2 / results.initU2, 1.0 / walberla::numeric_cast< real_t >( params.nMaxIterations ) );
          WALBERLA_LOG_INFO_ON_ROOT( "Level " << level << ": " << conv )
 
          table.addElement( level - minLevel, 0, level );
