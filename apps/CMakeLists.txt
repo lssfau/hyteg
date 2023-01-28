@@ -102,3 +102,5 @@ add_subdirectory(surfaces)
 add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)
+
+add_subdirectory(2023-bauer-mt)
