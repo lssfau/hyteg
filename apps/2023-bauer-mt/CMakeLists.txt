@@ -17,3 +17,7 @@ waLBerla_add_executable(NAME L2Convergence
 waLBerla_add_executable(NAME solverConvergence
       FILES solverConvergence.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
       DEPENDS hyteg)
+
+waLBerla_add_executable(NAME performance
+      FILES performance.cpp common.hpp common.cpp KeyValueStore.hpp
+      DEPENDS hyteg)

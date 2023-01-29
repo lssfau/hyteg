@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include "core/timing/TimingTree.h"
+
 #include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/types/PointND.hpp"
@@ -108,12 +110,13 @@ class Params
 
 struct Results
 {
-   const uint_t numberOfGlobalDoFs;
-   const real_t spectralRadius;
-   const real_t initU2, finalU2;
-   const real_t initResidual2, finalResidual2;
-   const real_t finalErrL2;
-   const uint_t nIterations;
+   const uint_t                 numberOfGlobalDoFs;
+   const real_t                 spectralRadius;
+   const real_t                 initU2, finalU2;
+   const real_t                 initResidual2, finalResidual2;
+   const real_t                 finalErrL2;
+   const uint_t                 nIterations;
+   const walberla::WcTimingTree timingTree;
 };
 
 Results solve( const Params& params );

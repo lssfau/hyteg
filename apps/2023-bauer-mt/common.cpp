@@ -102,8 +102,12 @@ Results solve( const Params& params, const bool useGmg )
    // estimate spectral radius (initial guess is sol + u_0)
    sol.interpolate( params.system.analyticalSol_, params.maxLevel );
    sol.assign( { 1.0, 1.0 }, { sol, u }, params.maxLevel );
+
+   storage->getTimingTree()->start( "Chebyshev estimate radius" );
    const real_t spectralRadius =
        chebyshev::estimateRadius( A, params.maxLevel, params.numSpectralRadiusEstIts, storage, sol, tmp );
+   storage->getTimingTree()->stop( "Chebyshev estimate radius" );
+
    chebyshevSmoother->setupCoefficients( params.chebyshevOrder, spectralRadius );
 
    auto hybridSmoother =
@@ -200,7 +204,11 @@ Results solve( const Params& params, const bool useGmg )
       vtk.write( params.maxLevel );
    }
 
-   return Results{ numberOfGlobalDoFs( u, params.maxLevel ), spectralRadius, initU2, uNorm, initRes, residual, discrL2, its };
+   storage->getTimingTree()->synchronize();
+   auto ttReduced = storage->getTimingTree()->getReduced().getCopyWithRemainder();
+
+   return Results{
+       numberOfGlobalDoFs( u, params.maxLevel ), spectralRadius, initU2, uNorm, initRes, residual, discrL2, its, ttReduced };
 }
 
 Results solve( const Params& params )
