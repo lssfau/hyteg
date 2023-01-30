@@ -45,7 +45,7 @@ using namespace hyteg;
 void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
 {
    const bool   writeVTK   = true;
-   const real_t errorLimit = 1e-15;
+   const real_t errorLimit = real_c( 1e-15 );
 
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

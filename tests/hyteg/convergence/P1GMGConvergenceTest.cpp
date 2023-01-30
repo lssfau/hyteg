@@ -133,7 +133,8 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   WALBERLA_CHECK_LESS( discr_l2_res, 3.0e-14 );
+   bool dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( discr_l2_res, dp ? 3.0e-14 : 5e-8 );
    WALBERLA_CHECK_LESS( discr_l2_err, 2.9e-06 );
 
    return 0;

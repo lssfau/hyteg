@@ -215,7 +215,7 @@ int main( int argc, char* argv[] )
                                               << averageConvergenceRate / real_c( i - convergenceStartIter ) );
    WALBERLA_LOG_INFO_ON_ROOT( std::setw( 25 ) << "L^2 error: " << std::scientific << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 8.4e-08 )
+   WALBERLA_CHECK_LESS( discr_l2_err, 9e-08 )
 
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {

@@ -47,7 +47,7 @@ using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
 inline Eigen::Vector3r microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const real_t          stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const real_t          stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
    const Eigen::Vector3r xDir          = ( cell.getCoordinates()[1].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;
    const Eigen::Vector3r yDir          = ( cell.getCoordinates()[2].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;
    const Eigen::Vector3r zDir          = ( cell.getCoordinates()[3].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;

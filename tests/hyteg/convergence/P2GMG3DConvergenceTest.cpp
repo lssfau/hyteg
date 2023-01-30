@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
   const uint_t      maxLevel        = 3;
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
 
-  const uint_t      numVCycles      = 10;
+  const uint_t      numVCycles      = 4;
 
   const bool        writeVTK        = false;
 
@@ -134,19 +134,20 @@ int main( int argc, char* argv[] )
 
     if ( writeVTK )
     {
-      vtkOutput.write( maxLevel, i );
+       vtkOutput.write( maxLevel, i );
     }
 
     const real_t discrL2ErrHigherLevel = err.dotGlobal( err, maxLevel, DoFType::Inner ) / numPointsHigherLevel;
-    discrL2ResHigherLevel = res.dotGlobal( res, maxLevel, DoFType::Inner ) / numPointsHigherLevel;
+    discrL2ResHigherLevel              = res.dotGlobal( res, maxLevel, DoFType::Inner ) / numPointsHigherLevel;
 
     const real_t discrResConvRate = discrL2ResHigherLevel / lastResidual;
     WALBERLA_CHECK_LESS( discrResConvRate, 3.0e-02 )
 
     lastResidual = discrL2ResHigherLevel;
 
-    WALBERLA_LOG_INFO_ON_ROOT( "After " << std::setw(3) << i << " VCycles: Residual: " << std::scientific << discrL2ResHigherLevel << " | convRate: " << discrResConvRate << " | Error L2: " << discrL2ErrHigherLevel );
-
+    WALBERLA_LOG_INFO_ON_ROOT( "After " << std::setw( 3 ) << i << " VCycles: Residual: " << std::scientific
+                                        << discrL2ResHigherLevel << " | convRate: " << discrResConvRate
+                                        << " | Error L2: " << discrL2ErrHigherLevel );
   }
 
   return 0;

@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
   real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << std::scientific << discr_l2_err);
-  WALBERLA_CHECK_LESS( discr_l2_err, 2e-8 );
+  bool dp = std::is_same< real_t, double >();
+  WALBERLA_CHECK_LESS( discr_l2_err, dp ? 2e-8 : 3e-7 );
   return EXIT_SUCCESS;
 }

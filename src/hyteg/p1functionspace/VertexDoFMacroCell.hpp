@@ -67,7 +67,7 @@ inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index&  v
 
 inline Point3D coordinateFromIndex( const uint_t& level, const Cell& cell, const Index& index )
 {
-   const real_t  stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const real_t  stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
    const Point3D xStep         = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D zStep         = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
@@ -193,7 +193,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
    // 2. Find micro-cube in macro-cell. Each micro-cube is composed of 6 cells of all 6 cell-types.
 
    const int    numMicroEdges = (int) levelinfo::num_microedges_per_edge( level );
-   const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
+   const real_t microEdgeSize = real_c( 1.0 ) / real_c( numMicroEdges );
 
    int planeX = (int) ( xRelMacro[0] / microEdgeSize );
    int planeY = (int) ( xRelMacro[1] / microEdgeSize );
@@ -363,8 +363,8 @@ inline real_t evaluate( const uint_t&                                           
 
    auto xLocal = detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
-   auto value = valueTet0 * ( 1.0 - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1] +
-                valueTet3 * xLocal[2];
+   auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
+                valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
    return value;
 }

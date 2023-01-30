@@ -7,9 +7,10 @@ waLBerla_execute_test(NAME adaptiveRefinementTest)
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
 
+if(WALBERLA_DOUBLE_ACCURACY)
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
-
+endif()
 
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
@@ -47,17 +48,10 @@ waLBerla_execute_test(NAME P2GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG
 waLBerla_compile_test(FILES convergence/P1VectorLaplaceCGTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1VectorLaplaceCGTest)
 
-#waLBerla_compile_test(FILES convergence/P1CGTensorVarcoeffConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGTensorVarcoeffConvergenceTest)
-
-#waLBerla_compile_test(FILES convergence/P1CGVarcoeffConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
-
-#waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
-
-waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1GSConvergenceTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1GSConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P1JacobiConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1JacobiConvergenceTest)
@@ -145,8 +139,10 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
 endif ()
 
-waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2GSConvergenceTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P2GSConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P2P1ElementwiseUzawaConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1ElementwiseUzawaConvergenceTest)

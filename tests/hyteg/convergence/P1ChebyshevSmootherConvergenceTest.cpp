@@ -55,7 +55,8 @@ void runTest()
    eigenvector.interpolate( analytic_solution, minLevel, DirichletBoundary );
    const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, eigenvector, tmp );
 
-   const std::array< real_t, 5 > expectedResiduals{0.00799318, 0.000244743, 4.86337e-05, 1.53384e-05, 6.00188e-06};
+   const std::array< real_t, 5 > expectedResiduals{
+       real_c( 0.00799318 ), real_c( 0.000244743 ), real_c( 4.86337e-05 ), real_c( 1.53384e-05 ), real_c( 6.00188e-06 ) };
 
    for ( uint_t order = 1; order < 6; order += 1 )
    {

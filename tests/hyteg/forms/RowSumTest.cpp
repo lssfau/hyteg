@@ -60,7 +60,7 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running with mesh = " << meshFile << ", level = " << level );
 
-   const real_t eps = 1e-14;
+   const real_t eps = std::is_same< real_t, double >() ? real_c( 1e-14) : real_c(6e-6);
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
