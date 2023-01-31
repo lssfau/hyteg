@@ -122,7 +122,8 @@ void solverConvergenceTorus()
    WALBERLA_LOG_INFO_ON_ROOT( std::endl << store )
    store.writePgfKeys( "output", params.name );
 
-   Table< 4 > table( { "level\\beta",
+   Table< 5 > table( { "level\\beta",
+                       "n_dofs",
                        walberla::format( "%e", betas[0] ),
                        walberla::format( "%e", betas[1] ),
                        walberla::format( "%e", betas[2] ) } );
@@ -141,7 +142,8 @@ void solverConvergenceTorus()
          WALBERLA_LOG_INFO_ON_ROOT( "Level " << level << ": " << conv )
 
          table.addElement( level - minLevel, 0, level );
-         table.addElement( level - minLevel, b + 1, conv );
+         table.addElement( level - minLevel, 1, results.numberOfGlobalDoFs );
+         table.addElement( level - minLevel, b + 2, conv );
       }
    }
 

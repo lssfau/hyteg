@@ -40,10 +40,11 @@ void L2ConvergenceTest()
                                   n1e1::System::sinusoidalOnCube() };
 
    Params params{ "L2Convergence" };
-   params.maxLevel        = maxLevel;
-   params.preSmoothSteps  = 3;
-   params.postSmoothSteps = 3;
-   params.nMaxIterations  = 8;
+   params.maxLevel           = maxLevel;
+   params.preSmoothSteps     = 3;
+   params.postSmoothSteps    = 3;
+   params.nMaxIterations     = 40;
+   params.residual2Reduction = { 1e-12 };
 
    KeyValueStore store;
    params.store( store );

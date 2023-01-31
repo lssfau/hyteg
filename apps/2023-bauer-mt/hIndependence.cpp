@@ -50,7 +50,19 @@ void hIndependenceTest()
    KeyValueStore store;
    params.store( store );
 
-   Table< 5 > table( { "level", "tet_poly", "tet_sine", "cube_poly", "cube_sine" } );
+   Table< 13 > table( { "level",
+                        "tet_poly_n_dofs",
+                        "tet_poly_n_its",
+                        "tet_poly_rate",
+                        "tet_sine_n_dofs",
+                        "tet_sine_n_its",
+                        "tet_sine_rate",
+                        "cube_poly_n_dofs",
+                        "cube_poly_n_its",
+                        "cube_poly_rate",
+                        "cube_sine_n_dofs",
+                        "cube_sine_n_its",
+                        "cube_sine_rate" } );
 
    for ( uint_t i = 0; i < systems.size(); ++i )
    {
@@ -59,11 +71,18 @@ void hIndependenceTest()
          params.system   = systems[i];
          params.maxLevel = level;
 
-         Results results = solve( params );
-         WALBERLA_LOG_INFO_ON_ROOT( "level " << level << ": " << results.nIterations )
+         Results      results = solve( params );
+         const real_t rate    = std::pow( results.finalResidual2 / results.initResidual2,
+                                       1.0 / walberla::numeric_cast< real_t >( results.nIterations ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "Level " << level << std::endl
+                                             << "  Number of DoFs            : " << results.numberOfGlobalDoFs << std::endl
+                                             << "  Rate of residual reduction: " << results.numberOfGlobalDoFs << std::endl
+                                             << "  Number of iterations      : " << results.nIterations )
 
          table.addElement( level - minLevel, 0, level );
-         table.addElement( level - minLevel, i + 1, results.nIterations );
+         table.addElement( level - minLevel, 3 * i + 1, results.numberOfGlobalDoFs );
+         table.addElement( level - minLevel, 3 * i + 2, results.nIterations );
+         table.addElement( level - minLevel, 3 * i + 3, rate );
       }
    }
 

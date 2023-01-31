@@ -122,7 +122,7 @@ void collectTimings( const walberla::WcTimingTree& tt, KeyValueStore& store, std
    store.store( "/" + name + "/gmg/apply/sncComm", sncComm / apply * 100.0 );
 }
 
-void performance()
+void performance( const std::string& name, const bool computeAndStoreLocalElementMatrices )
 {
    const MeshInfo     solidTorus = MeshInfo::meshTorus( 16, 8, 4.0, { 1.6 } );
    const auto         zero       = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
@@ -132,16 +132,16 @@ void performance()
        zero  // rhs
    };
 
-   Params params{ "performance" };
+   Params params{ name };
    params.system                              = system;
    params.initialGuess                        = { []( const Point3D& ) {
       return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
                               walberla::math::realRandom( -1.0, 1.0 ),
                               walberla::math::realRandom( -1.0, 1.0 ) };
    } };
-   params.minLevel                            = 1;
-   params.maxLevel                            = 4;
-   params.computeAndStoreLocalElementMatrices = false;
+   params.minLevel                            = 2;
+   params.maxLevel                            = 5;
+   params.computeAndStoreLocalElementMatrices = computeAndStoreLocalElementMatrices;
    params.nMaxIterations                      = 20;
 
    Results results = solve( params );
@@ -166,5 +166,6 @@ int main( int argc, char** argv )
 
    walberla::math::seedRandomGenerator( 0 );
 
-   performance();
+   performance( "performance", false );
+   performance( "performance-precompute", true );
 }
