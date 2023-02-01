@@ -134,7 +134,7 @@ int main( int argc, char* argv[] )
       {
          c_error->assign( { 1.0, -1.0 }, { *c, *c_final }, maxLevel, All );
          // const auto max_error = c_error->getMaxMagnitude( maxLevel, All );
-         max_error = c_error->getMaxMagnitude( maxLevel, All );
+         max_error = c_error->getMaxMagnitude( maxLevel );
          WALBERLA_LOG_INFO_ON_ROOT( "Timestep: " << i << ", max error magnitude = " << max_error );
       }
 

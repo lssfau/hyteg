@@ -60,10 +60,7 @@ class P0Function : public Function< P0Function< ValueType > >
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
    // template < typename SenderType, typename ReceiverType >
-   void communicate( const uint_t& level ) const
-   {
-      dgFunction_->communicate( level );
-   }
+   void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { WALBERLA_ABORT( "Not implemented." ); };
 
@@ -82,9 +79,8 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
+   void interpolate( ValueType constant, uint_t level, DoFType ) const
    {
-      WALBERLA_UNUSED( dofType );
       WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
@@ -242,8 +238,12 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
-   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const {
-     return dgFunction_->getMaxMagnitude( level, mpiReduce );
+   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   {
+      if( flag != All && flag != Inner ) {
+        WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxMagnitude -> DoFType flag will be ignored!" );
+      }
+      return dgFunction_->getMaxMagnitude( level, mpiReduce );
    }
 
  private:
