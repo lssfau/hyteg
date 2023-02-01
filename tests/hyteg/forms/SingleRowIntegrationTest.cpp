@@ -155,7 +155,7 @@ int main( int argc, char** argv )
    form_p2_full_stokesvar_2_1_blending_q3.setGeometryMap( identityMap );
    form_p2_full_stokesvar_2_2_blending_q3.setGeometryMap( identityMap );
 
-   const double eps = 1e-14;
+   const real_t eps = real_c( std::is_same< real_t, double >() ? 1e-14 : 4e-6 );
 
    compareRows< forms::p1_div_k_grad_affine_q3, 2, 3, 3 >( form_p1_div_k_grad_affine_q3, element2D, 0, eps );
    compareRows< forms::p1_div_k_grad_affine_q3, 3, 4, 4 >( form_p1_div_k_grad_affine_q3, element3D, 0, eps );

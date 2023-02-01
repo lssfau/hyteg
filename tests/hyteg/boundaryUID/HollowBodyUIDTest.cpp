@@ -86,7 +86,7 @@ void runTest( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, real_t
    // ------------------
    std::function< real_t( const Point3D& ) > controlValues = [innerRad, outerRad, iValue, mValue, oValue]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      real_t mytol  = 1e-14;
+      real_t mytol  = real_c( std::is_same< real_t, double >() ? 1e-14 : 1e-6 );
       if ( std::abs( innerRad - radius ) < mytol )
       {
          return iValue;

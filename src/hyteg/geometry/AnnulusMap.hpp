@@ -207,7 +207,8 @@ class AnnulusMap : public GeometryMap
       ANNULUS_MAP_LOG( "r0 x r2 = " << std::showpos << std::scientific << cross02 );
       ANNULUS_MAP_LOG( "r1 x r2 = " << std::showpos << std::scientific << cross12 );
 
-      real_t tol    = 1e-14;
+      auto dp = std::is_same< real_t, double >();
+      real_t tol    = dp ? 1e-14 : 1e-6;
       uint_t intRay = 99;
       uint_t intRef = 99;
 

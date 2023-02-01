@@ -31,7 +31,7 @@ void runTest()
    const uint_t maxLevel         = 5;
    const uint_t max_outer_iter   = 4;
    const uint_t max_coarse_iter  = 1000;
-   const real_t coarse_tolerance = 1e-16;
+   const real_t coarse_tolerance = real_c( 1e-16 );
    const uint_t smoothingSteps   = 2;
 
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );

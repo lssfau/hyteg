@@ -157,7 +157,7 @@ void test3D()
          WALBERLA_CHECK( success );
          WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ), "Test3D: wrong value at " << coordinates << "." );
 
-         WALBERLA_LOG_INFO_ON_ROOT( "Passed: " << coordinates )
+         WALBERLA_LOG_DETAIL_ON_ROOT( "Passed: " << coordinates );
       }
    }
 }
@@ -253,7 +253,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          ctrlValue          = testFunc( samples[idx] );
-         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( 1e-15 ) );
+         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( tolerance ) );
          real_t error       = std::abs( testValue - ctrlValue );
          WALBERLA_LOG_INFO_ON_ROOT( "sampling Point: " << std::scientific << std::showpos << samples[idx] << ", coordsFound = "
                                                        << ( coordsFound ? "TRUE" : "FALSE" ) << ", ctrl = " << ctrlValue

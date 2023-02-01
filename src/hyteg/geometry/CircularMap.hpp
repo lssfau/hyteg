@@ -61,16 +61,16 @@ class CircularMap : public GeometryMap
       real_t s3 = std::atan2( ( x3 - center )[1], ( x3 - center )[0] );
       s3bar_    = s3 - s1_;
 
-      if ( s3bar_ < -0.5 * walberla::math::pi )
+      if ( s3bar_ < real_c( -0.5 ) * walberla::math::pi )
       {
-         s3bar_ += 2.0 * walberla::math::pi;
+         s3bar_ += real_c( 2.0 ) * walberla::math::pi;
       }
-      else if ( s3bar_ > 0.5 * walberla::math::pi )
+      else if ( s3bar_ > real_c( 0.5 ) * walberla::math::pi )
       {
-         s3bar_ -= 2.0 * walberla::math::pi;
+         s3bar_ -= real_c( 2.0 ) * walberla::math::pi;
       }
 
-      invDet_ = 1.0 / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
+      invDet_ = real_c( 1.0 ) / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
    }
 
    CircularMap( walberla::mpi::RecvBuffer& recvBuffer )
@@ -88,7 +88,7 @@ class CircularMap : public GeometryMap
    void evalF( const Point3D& x, Point3D& Fx ) const override final
    {
       real_t tmp0  = -x1_[0];
-      real_t tmp1  = 1.0 / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
+      real_t tmp1  = real_c( 1.0 ) / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
       real_t tmp2  = tmp1 * ( tmp0 + x[0] );
       real_t tmp3  = tmp2 * x3bar_[1];
       real_t tmp4  = -x1_[1];
@@ -116,7 +116,7 @@ class CircularMap : public GeometryMap
    {
       real_t tmp0  = x2bar_[0] * x3bar_[1];
       real_t tmp1  = x3bar_[0] * x2bar_[1];
-      real_t tmp2  = 1.0 / ( tmp0 - tmp1 );
+      real_t tmp2  = real_c( 1.0 ) / ( tmp0 - tmp1 );
       real_t tmp3  = tmp0 * tmp2;
       real_t tmp4  = -tmp1 * tmp2 + tmp3;
       real_t tmp5  = tmp2 * x2bar_[1];
@@ -131,13 +131,13 @@ class CircularMap : public GeometryMap
       real_t tmp14 = -tmp13 + tmp9 + 1;
       if ( std::fabs( tmp14 ) < 1e-14 )
       {
-         DFx( 0, 0 ) = 1.0;
-         DFx( 0, 1 ) = 0.0;
-         DFx( 1, 0 ) = 0.0;
-         DFx( 1, 1 ) = 1.0;
+         DFx( 0, 0 ) = real_c( 1.0 );
+         DFx( 0, 1 ) = real_c( 0.0 );
+         DFx( 1, 0 ) = real_c( 0.0 );
+         DFx( 1, 1 ) = real_c( 1.0 );
          return;
       }
-      real_t tmp15 = 1.0 / tmp14;
+      real_t tmp15 = real_c( 1.0 ) / tmp14;
       real_t tmp16 = tmp15 * ( tmp5 - tmp6 );
       real_t tmp17 = tmp13 - tmp9;
       real_t tmp18 = s1_ + s3bar_ * tmp17;

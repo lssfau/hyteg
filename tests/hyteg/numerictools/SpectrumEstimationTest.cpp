@@ -99,11 +99,11 @@ int main( int argc, char* argv[] )
   uint_t N = 1u << level;
   WALBERLA_LOG_INFO_ON_ROOT( "Analytic spectral bounds:" );
 
-  real_t argOne = 0.5 * pi / static_cast<real_t>(N);
-  real_t argTwo = 0.5 * pi * ( static_cast<real_t>(N-1) / static_cast<real_t>(N) );
+  real_t argOne = real_c( 0.5 ) * pi / static_cast< real_t >( N );
+  real_t argTwo = real_c( 0.5 ) * pi * ( static_cast< real_t >( N - 1 ) / static_cast< real_t >( N ) );
 
-  real_t lambdaMin = 8.0 * sin( argOne ) * sin( argOne );
-  real_t lambdaMax = 8.0 * sin( argTwo ) * sin( argTwo );
+  real_t lambdaMin = real_c( 8.0 ) * sin( argOne ) * sin( argOne );
+  real_t lambdaMax = real_c( 8.0 ) * sin( argTwo ) * sin( argTwo );
   WALBERLA_LOG_INFO_ON_ROOT( "lambdaMin = " << std::scientific << lambdaMin );
   WALBERLA_LOG_INFO_ON_ROOT( "lambdaMax = " << std::scientific << lambdaMax );
 
@@ -116,18 +116,19 @@ int main( int argc, char* argv[] )
   real_t radius = estimateSpectralRadiusWithPowerIteration( op, uRand1, tmp, numIts, storage, level );
   WALBERLA_LOG_INFO_ON_ROOT( "Estimation for spectral radius with Power Iteration = " << std::scientific << radius );
   WALBERLA_CHECK_LESS( std::abs( 7.9 - radius ), 5e-2 );
-  WALBERLA_CHECK_FLOAT_EQUAL( radius, 7.92126990394241570e+00 );
+  auto dp = std::is_same< real_t, double >();
+  WALBERLA_CHECK_FLOAT_EQUAL( radius, dp ? 7.92126990394241570e+00 : 7.91265965e+00 );
 
   // CG/Lanczos approach
   real_t lowerBound, upperBound;
   estimateSpectralBoundsWithCG( op, uRand2, rhs, numIts, storage, level, lowerBound, upperBound );
-  WALBERLA_LOG_INFO_ON_ROOT( "Estimation for spectrum with CG = [" << std::scientific << lowerBound << ", " << upperBound << "]" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Estimation for spectrum with CG = [" << std::scientific << lowerBound << ", " << upperBound
+                                                                   << "]" );
   WALBERLA_CHECK_LESS( std::abs( lambdaMax - upperBound ), 1e-2 );
-  WALBERLA_CHECK_FLOAT_EQUAL( upperBound, 7.98704774334941625e+00 );
+  WALBERLA_CHECK_FLOAT_EQUAL( upperBound, dp ? 7.98704774334941625e+00 : 7.99281073e+00 );
   WALBERLA_CHECK_LESS( std::abs( lambdaMin - lowerBound ), 1e-2 );
   WALBERLA_CHECK_FLOAT_EQUAL( lowerBound, 5.756730e-03 );
 
   // If we got up to here, everything's fine
   return EXIT_SUCCESS;
-
 }

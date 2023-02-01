@@ -160,7 +160,7 @@ void icosahedralSurfaceTriangles( real_t                                  radius
    std::vector< Point3D >                 tmpVertices;
    std::vector< std::array< uint_t, 3 > > tmpTriangles;
 
-   const real_t s = ( 1.0 + std::sqrt( 5.0 ) ) / 2.0;
+   const real_t s = ( real_c( 1.0 ) + std::sqrt( 5.0 ) ) / real_c( 2.0 );
 
    // Vertices
    tmpVertices.push_back( Point3D( { -1.0, s, 0.0 } ) );

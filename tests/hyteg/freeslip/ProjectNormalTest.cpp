@@ -83,26 +83,27 @@ static void testProjectNormal( )
    StokesFunctionType u( "u", storage, level, level );
 
    // we check if a radial function gets set to zero on the free slip boundary:
-   u.uvw()[0].interpolate( [=](auto & p){ return normalInterpolant(p)[0]; }, level );
-   u.uvw()[1].interpolate( [=](auto & p){ return normalInterpolant(p)[1]; }, level );
-   if (storage->hasGlobalCells())
-      u.uvw()[2].interpolate( [=](auto & p){ return normalInterpolant(p)[2]; }, level );
-   WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
+   u.uvw()[0].interpolate( [=]( auto& p ) { return normalInterpolant( p )[0]; }, level );
+   u.uvw()[1].interpolate( [=]( auto& p ) { return normalInterpolant( p )[1]; }, level );
+   if ( storage->hasGlobalCells() )
+      u.uvw()[2].interpolate( [=]( auto& p ) { return normalInterpolant( p )[2]; }, level );
+   WALBERLA_CHECK_GREATER( u.dotGlobal( u, level, FreeslipBoundary ), 1 );
    projectNormalOperator.project( u, level, FreeslipBoundary );
-   WALBERLA_CHECK_LESS( u.dotGlobal(u, level, FreeslipBoundary), 1e-14 );
+   auto dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( u.dotGlobal( u, level, FreeslipBoundary ), dp ? 1e-14 : 3e-11 );
 
    // we check if a tangential function is not changed by the projection operator:
    StokesFunctionType uTan( "uTan", storage, level, level );
-   uTan.uvw()[0].interpolate( [=](auto & p){ return -p[1]; }, level );
-   uTan.uvw()[1].interpolate( [=](auto & p){ return p[0]; }, level );
-   if (storage->hasGlobalCells())
-      uTan.uvw()[2].interpolate(0, level );
-   u.assign({1}, {uTan}, level, All);
-   WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
+   uTan.uvw()[0].interpolate( [=]( auto& p ) { return -p[1]; }, level );
+   uTan.uvw()[1].interpolate( [=]( auto& p ) { return p[0]; }, level );
+   if ( storage->hasGlobalCells() )
+      uTan.uvw()[2].interpolate( 0, level );
+   u.assign( { 1 }, { uTan }, level, All );
+   WALBERLA_CHECK_GREATER( u.dotGlobal( u, level, FreeslipBoundary ), 1 );
    projectNormalOperator.project( u, level, FreeslipBoundary );
    StokesFunctionType diff( "diff", storage, level, level );
    diff.assign( {1, -1}, {u, uTan}, level, All );
-   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), 1e-14 );
+   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), dp ? 1e-14 : 8e-13 );
 }
 
 int main( int argc, char* argv[] )

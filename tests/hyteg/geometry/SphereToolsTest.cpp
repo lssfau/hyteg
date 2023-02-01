@@ -118,13 +118,13 @@ void testEvaluateUV()
    writeSimpleVTKFile( vertices, "../../output/SphereToolsTest_UV_m16_p16.vtu" );
 
    const auto           level   = 3;
-   auto                 storage = referenceDomain( 3, 3, 0.55, 1, false );
+   auto                 storage = referenceDomain( 3, 3, real_c( 0.55 ), 1, false );
    P1Function< real_t > someFunction( "someFunction", storage, level, level );
 
    auto f = []( const Point3D& p ) { return p[0] * p[1] * p[2]; };
    someFunction.interpolate( f, level );
 
-   evaluateSphericalSliceUV( 0.8, 16, 16, someFunction, level, "../../output/SphereToolsTest_UV.csv" );
+   evaluateSphericalSliceUV( real_c( 0.8 ), 16, 16, someFunction, level, "../../output/SphereToolsTest_UV.csv" );
 }
 
 void testEvaluateIco()
@@ -142,13 +142,13 @@ void testEvaluateIco()
    }
 
    const auto           level   = 3;
-   auto                 storage = referenceDomain( 3, 3, 0.55, 1, false );
+   auto                 storage = referenceDomain( 3, 3, real_c( 0.55 ), 1, false );
    P1Function< real_t > someFunction( "someFunction", storage, level, level );
 
    auto f = []( const Point3D& p ) { return p[0] * p[1] * p[2]; };
    someFunction.interpolate( f, level );
 
-   evaluateSphericalSliceIco( 0.8, 4, someFunction, level, "../../output/SphereToolsTest_Ico.csv" );
+   evaluateSphericalSliceIco( real_c( 0.8 ), 4, someFunction, level, "../../output/SphereToolsTest_Ico.csv" );
 }
 } // namespace hyteg
 
@@ -160,7 +160,7 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::referenceDomain( 3, 3, 0.55, 1, true );
+   hyteg::referenceDomain( 3, 3, real_c( 0.55 ), 1, true );
    hyteg::testEvaluateUV();
    hyteg::testEvaluateIco();
 

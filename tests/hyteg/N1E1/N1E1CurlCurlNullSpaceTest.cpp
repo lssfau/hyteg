@@ -44,7 +44,7 @@ class Result
       }
       else
       {
-         WALBERLA_CHECK_FLOAT_UNEQUAL( dof, 0.0 )
+         WALBERLA_CHECK_FLOAT_UNEQUAL_EPSILON( dof, 0.0, 10e-8 )
       }
    };
 
@@ -54,7 +54,7 @@ class Result
    bool isZero_;
 };
 
-void test( std::function< Eigen::Vector3r( const Point3D& ) > f, const Result& result )
+void test( const std::function< Eigen::Vector3r( const Point3D& ) >& f, const Result& result )
 {
    MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

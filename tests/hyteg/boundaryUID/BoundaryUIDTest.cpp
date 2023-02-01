@@ -153,7 +153,7 @@ void runTest( bool useCentroids )
    // ------------------
    std::function< real_t( const Point3D& ) > controlValues = [innerRad, outerRad, iValue, mValue, oValue]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
-      real_t mytol  = 1e-14;
+      real_t mytol  = real_c( std::is_same< real_t, double >() ? 1e-14 : 1e-6 );
       if ( std::abs( innerRad - radius ) < mytol )
       {
          return iValue;
@@ -210,7 +210,7 @@ void runTest( bool useCentroids )
 
 void captureTheFlags( bool useCentroids )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "Playing 'capture the flags'" );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "Playing 'capture the flags'" );
 
    // -----------------------------------------
    //  Define markers for geometric boundaries
@@ -258,7 +258,7 @@ void captureTheFlags( bool useCentroids )
 
    std::stringstream sStr;
    setupStorage.toStream( sStr, true );
-   WALBERLA_LOG_INFO_ON_ROOT( "Here we go:\n" << sStr.str() );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "Here we go:\n" << sStr.str() );
 }
 
 // we mesh a rectangle and use a PolarCoordsMap to map it to a half annulus
@@ -358,7 +358,7 @@ void centroidHardBlendingTest()
    std::function< real_t( const Point3D& ) > controlValues =
        [innerRad, outerRad, iValue, mValue, oValue, sValue]( const Point3D& x ) {
           real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
-          real_t mytol  = 1e-14;
+          real_t mytol  = real_c( std::is_same< real_t, double >() ? 1e-14 : 1e-6 );
           if ( std::abs( innerRad - radius ) < mytol )
           {
              return iValue;

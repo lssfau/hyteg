@@ -275,7 +275,7 @@ class IcosahedralShellMap : public GeometryMap
    ///@}
 
    /// tolerance for comparing numerical values for equality
-   const real_t tol = 1e-14;
+   const real_t tol = std::is_same< real_t, double >() ? 1e-14 : 1e-7;
 
    /// distance from origin of vertex rayVertex_
    real_t radRefVertex_;

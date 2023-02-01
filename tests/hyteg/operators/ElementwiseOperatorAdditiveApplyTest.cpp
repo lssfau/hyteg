@@ -48,7 +48,7 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Additive apply test" )
 
-   const real_t epsilon = real_c( 1e-12 );
+   const real_t epsilon = real_c( std::is_same<real_t, double>() ? 1e-12 : 1e-5 );
 
    // functions
    FuncType srcA( "srcA", storage, level, level );

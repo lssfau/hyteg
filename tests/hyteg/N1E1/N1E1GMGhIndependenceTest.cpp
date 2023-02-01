@@ -139,11 +139,11 @@ uint_t test( const uint_t maxLevel, const uint_t numMaxVCycles, const n1e1::Syst
    return its;
 }
 
-void hIndependenceTest( const uint_t minLevel, const uint_t maxLevel, const n1e1::System system )
+void hIndependenceTest( const uint_t minLevel, const uint_t maxLevel, const n1e1::System& system )
 {
    const uint_t maxIts         = 10;
    const uint_t maxAbsIncrease = 1;
-   const real_t maxRelIncrease = 0.2;
+   const real_t maxRelIncrease = real_c( 0.2 );
 
    uint_t nItsCoarse = test( minLevel, maxIts, system );
    WALBERLA_LOG_INFO_ON_ROOT( "level " << minLevel << ": " << nItsCoarse )
