@@ -242,6 +242,10 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
+   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const {
+     return dgFunction_->getMaxMagnitude( level, mpiReduce );
+   }
+
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
 };
