@@ -106,9 +106,11 @@ Results solve( const Params& params, const bool useGmg )
    storage->getTimingTree()->start( "Chebyshev estimate radius" );
    const real_t spectralRadius =
        chebyshev::estimateRadius( A, params.maxLevel, params.numSpectralRadiusEstIts, storage, sol, tmp );
+   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius )
    storage->getTimingTree()->stop( "Chebyshev estimate radius" );
 
-   chebyshevSmoother->setupCoefficients( params.chebyshevOrder, spectralRadius );
+   chebyshevSmoother->setupCoefficients(
+       params.chebyshevOrder, params.lowerBoundFactor * spectralRadius, params.upperBoundFactor * spectralRadius );
 
    auto hybridSmoother =
        std::make_shared< HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1LaplaceOperator > >( storage,

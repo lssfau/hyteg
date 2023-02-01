@@ -106,15 +106,32 @@ class ChebyshevSmoother : public Solver< OperatorType >
    ///
    /// \param order The order of our polynomial smoother. Only 1 to 5 are supported.
    /// \param spectralRadius An estimate for our spectral radius.
-   void setupCoefficients( const uint_t& order, const real_t& spectralRadius )
+   void setupCoefficients( const uint_t order, const real_t spectralRadius )
+   {
+      const real_t upperBound = 1.2 * spectralRadius;
+      const real_t lowerBound = 0.3 * spectralRadius;
+
+      setupCoefficients( order, lowerBound, upperBound );
+   }
+
+   /// Calculates the coefficients for our Chebyshev-Smoother.
+   /// Has to be called prior to the first usage of the solver.
+   ///
+   /// This function is based on the mfem implementation at
+   ///     https://github.com/mfem/mfem/blob/7cbb0d484863bf661e88378eac4ab0247f10545c/linalg/solvers.cpp#L185
+   /// which references the article
+   ///     Parallel multigrid smoothing: polynomial versus Gauss-Seidel by Adams et al.
+   ///
+   /// \param order The order of our polynomial smoother. Only 1 to 5 are supported.
+   /// \param lowerBound The smallest eigenvalue whose corresponding eigenvector will be smoothed.
+   /// \param upperBound The largest eigenvalue.
+   void setupCoefficients( const uint_t order, const real_t lowerBound, const real_t upperBound )
    {
       WALBERLA_ASSERT_GREATER( order, 0, "Order cannot be 0." );
       WALBERLA_ASSERT_LESS( order, 6, "Chebyshev-Smoother does not support polynomial orders larger than 5." );
 
-      const double upperBound = 1.2 * spectralRadius;
-      const double lowerBound = 0.3 * spectralRadius;
-      const double theta      = 0.5 * ( upperBound + lowerBound );
-      const double delta      = 0.5 * ( upperBound - lowerBound );
+      const double theta = 0.5 * ( upperBound + lowerBound );
+      const double delta = 0.5 * ( upperBound - lowerBound );
 
       coefficients.resize( order, 0 );
 

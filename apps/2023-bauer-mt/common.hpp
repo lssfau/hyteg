@@ -51,6 +51,7 @@ class Params
    // Chebyshev smoother
    uint_t chebyshevOrder;
    uint_t numSpectralRadiusEstIts;
+   real_t lowerBoundFactor, upperBoundFactor;
    // hybrid smoother
    uint_t n1e1SmoothSteps, p1SmoothSteps;
    uint_t preSmoothSteps, postSmoothSteps;
@@ -72,6 +73,8 @@ class Params
    , computeAndStoreLocalElementMatrices{ false }
    , chebyshevOrder{ 4 }
    , numSpectralRadiusEstIts{ 40 }
+   , lowerBoundFactor{ 0.05 }
+   , upperBoundFactor{ 1.05 }
    , n1e1SmoothSteps{ 1 }
    , p1SmoothSteps{ 1 }
    , preSmoothSteps{ 1 }
@@ -91,6 +94,8 @@ class Params
       store.store( "/" + name + "/computeAndStoreLocalElementMatrices", computeAndStoreLocalElementMatrices );
       store.store( "/" + name + "/chebyshevOrder", chebyshevOrder );
       store.store( "/" + name + "/numSpectralRadiusEstIts", numSpectralRadiusEstIts );
+      store.store( "/" + name + "/lowerBoundFactor", lowerBoundFactor );
+      store.store( "/" + name + "/upperBoundFactor", upperBoundFactor );
       store.store( "/" + name + "/n1e1SmoothSteps", n1e1SmoothSteps );
       store.store( "/" + name + "/p1SmoothSteps", p1SmoothSteps );
       store.store( "/" + name + "/preSmoothSteps", preSmoothSteps );

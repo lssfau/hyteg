@@ -20,6 +20,10 @@ waLBerla_add_executable(NAME projectionQuadrature
       FILES projectionQuadrature.cpp Table.hpp
       DEPENDS hyteg)
 
+waLBerla_add_executable(NAME chebyshevParameters
+      FILES chebyshevParameters.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      DEPENDS hyteg)
+
 waLBerla_add_executable(NAME hIndependence
       FILES hIndependence.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
       DEPENDS hyteg)
