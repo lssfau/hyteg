@@ -33,18 +33,18 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
 
+find_package( waLBerla )
+
 if ( NOT WALBERLA_DOUBLE_ACCURACY )
    set( HYTEG_USE_GENERATED_KERNELS OFF)
    message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF" )
 endif()
 
 if ( HYTEG_USE_GENERATED_KERNELS )
-    message(STATUS "Using generated HyTeG kernels.")
+   message(STATUS "Using generated HyTeG kernels.")
 else()
-    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
+   message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
 endif()
-
-find_package( waLBerla )
 
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )

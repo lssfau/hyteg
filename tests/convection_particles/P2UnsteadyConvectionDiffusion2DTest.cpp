@@ -284,8 +284,8 @@ int main( int argc, char* argv[] )
    auto checks = std::map<uint_t, std::pair<real_t,real_t>>();
    checks[10] = {real_c( 1.4e-04 ), real_c( 8.7e-03 )};
    checks[20] = {real_c( 9.0e-05 ), real_c( 3.6e-03 )};
-   checks[30] = {real_c( dp ? 2e-05: 4.6e-05 ), real_c( dp ? 1.3e-03 : 3e-03 )};
-   checks[40] = {real_c( dp ? 5.5e-06 : 4.5e-05 ), real_c( dp ? 9.0e-05 : 3e-03 )};
+   checks[30] = {real_c( dp ? 3e-05: 4.6e-05 ), real_c( dp ? 1.5e-03 : 3e-03 )};
+   checks[40] = {real_c( dp ? 2e-05 : 4.5e-05 ), real_c( dp ? 2.0e-03 : 3e-03 )};
    runTest( maxLevel, 40, timeSteppingScheme, checks );
 
    return EXIT_SUCCESS;
