@@ -23,9 +23,8 @@
 #include <core/math/Constants.h>
 #include <core/timing/Timer.h>
 
+#include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
-#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -95,20 +94,21 @@ int main( int argc, char* argv[] )
 
    auto vel_y = []( const hyteg::Point3D& x ) -> real_t { return x[0] - 0.5; };
 
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1u );
 
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c_old =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c_old", storage, minLevel, maxLevel );
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c_final =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c_final", storage, minLevel, maxLevel );
-   std::shared_ptr< hyteg::DGFunction_old< real_t > > c_error =
-       std::make_shared< hyteg::DGFunction_old< real_t > >( "c_error", storage, minLevel, maxLevel );
+   std::shared_ptr< hyteg::P0Function< real_t > > c_old =
+       std::make_shared< hyteg::P0Function< real_t > >( "c_old", storage, minLevel, maxLevel );
+   std::shared_ptr< hyteg::P0Function< real_t > > c =
+       std::make_shared< hyteg::P0Function< real_t > >( "c", storage, minLevel, maxLevel );
+   std::shared_ptr< hyteg::P0Function< real_t > > c_final =
+       std::make_shared< hyteg::P0Function< real_t > >( "c_final", storage, minLevel, maxLevel );
+   std::shared_ptr< hyteg::P0Function< real_t > > c_error =
+       std::make_shared< hyteg::P0Function< real_t > >( "c_error", storage, minLevel, maxLevel );
    std::shared_ptr< hyteg::P1VectorFunction< real_t > > velocityPtr =
        std::make_shared< hyteg::P1VectorFunction< real_t > >( "velocity", storage, minLevel, maxLevel );
 
-   hyteg::DG0P1UpwindOperator transport( storage, *velocityPtr, minLevel, maxLevel );
+   // hyteg::DG0P1UpwindOperator transport( storage, *velocityPtr, minLevel, maxLevel );
+   hyteg::P0P1UpwindOperator transport( storage, *velocityPtr, minLevel, maxLevel );
 
    velocityPtr->interpolate( { vel_x, vel_y }, maxLevel );
    c_old->interpolate( initialBodies, maxLevel );
