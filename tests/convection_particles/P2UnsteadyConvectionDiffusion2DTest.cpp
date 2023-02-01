@@ -218,9 +218,9 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map
 
    real_t total_mass_lost = 0;
 
-   auto output = [&](real_t discrL2Eps, real_t peakEps, uint_t steps){
+   auto output = [&](real_t discrL2Eps, real_t peakEps, uint_t step){
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-          " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", steps, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
+          " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", step, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
 
       auto error_E1_consistent = errorE1( maxLevel, c, cSolution, tmp0, tmp1, M );
       auto error_E2_consistent = errorE2( maxLevel, c, cSolution, tmp0, tmp1, M );
