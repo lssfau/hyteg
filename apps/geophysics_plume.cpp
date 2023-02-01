@@ -21,6 +21,7 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/MeshQuality.hpp"
+#include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -116,9 +117,9 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   hyteg::DG0P1UpwindOperator                             N( storage, u->uvw(), minLevel, maxLevel );
-   hyteg::P1P1StokesOperator                              L( storage, minLevel, maxLevel );
-   hyteg::P1ConstantMassOperator                          M( storage, minLevel, maxLevel );
+   hyteg::DG0P1UpwindOperator    N( storage, u->uvw(), minLevel, maxLevel );
+   hyteg::P1P1StokesOperator     L( storage, minLevel, maxLevel );
+   hyteg::P1ConstantMassOperator M( storage, minLevel, maxLevel );
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( { { &u->uvw()[0], &u->uvw()[1] } }, maxLevel );
    const real_t minimalEdgeLength    = hyteg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
