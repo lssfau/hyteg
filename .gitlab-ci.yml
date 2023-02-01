@@ -129,13 +129,14 @@ intel_20_serial_dbg:
 intel_20_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
    tags:
       - docker
       - intel
@@ -203,13 +204,14 @@ gcc_8_serial_dbg:
 gcc_8_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -271,13 +273,14 @@ gcc_9_serial_dbg:
 gcc_9_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -342,13 +345,14 @@ gcc_10_serial_dbg:
 gcc_10_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -413,13 +417,14 @@ gcc_11_serial_dbg:
 gcc_11_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -481,13 +486,14 @@ gcc_12_serial_dbg:
 gcc_12_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -561,13 +567,14 @@ clang_9.0_serial_dbg:
 clang_9.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -629,13 +636,14 @@ clang_10.0_serial_dbg:
 clang_10.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -700,13 +708,14 @@ clang_11.0_serial_dbg:
 clang_11.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -771,13 +780,14 @@ clang_12.0_serial_dbg:
 clang_12.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -839,13 +849,14 @@ clang_13.0_serial_dbg:
 clang_13.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
@@ -919,13 +930,14 @@ inteloneapi_22.3_serial_dbg:
 inteloneapi_22.3_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
+   before_script:
+      - echo "add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion )" > CMakeLists.txt )
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       WALBERLA_BUILD_WITH_METIS: "OFF"
-      CXXFLAGS: "-Wno-implicit-float-conversion"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
