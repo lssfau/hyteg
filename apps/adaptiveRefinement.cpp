@@ -73,7 +73,7 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
          real_t x1  = alpha * x0;
          real_t x12 = cosh( x1 );
          real_t x2  = real_c( 1.0 ) / ( x12 * x12 );
-         return real_c( -2.0 ) * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0;
+         return real_c( -2.0  * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0);
       };
 
       pde.u_D = pde.u_anal;
