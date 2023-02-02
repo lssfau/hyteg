@@ -47,7 +47,7 @@ using walberla::uint_t;
 using namespace hyteg;
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
+    setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
    Point2D left( { -channelLength / 2, 0 } );
    Point2D right( { channelLength / 2, channelHeight } );
