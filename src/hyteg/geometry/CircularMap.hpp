@@ -148,7 +148,7 @@ class CircularMap : public GeometryMap
       real_t tmp23 = tmp2 * x3bar_[0];
       real_t tmp24 = tmp11 * tmp23 + tmp14 - tmp6 * tmp8;
       real_t tmp25 = tmp15 * tmp24;
-      real_t tmp26 = pow( tmp14, -2 );
+      real_t tmp26 = real_c( pow( tmp14, -2 ) );
       real_t tmp27 = tmp2 * tmp24 * tmp26 * x2bar_[1];
       real_t tmp28 = tmp15 * ( -tmp12 + tmp23 );
       real_t tmp29 = s3bar_ * tmp2 * x2bar_[0];
