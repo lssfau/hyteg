@@ -49,9 +49,9 @@ void test2D()
 
    const uint_t numRandomEvaluations = 1000;
 
-   auto testFunc            = []( const Point3D& x ) { return 10.0 * x[0] + 3.0 * x[1] + 1.0; };
-   auto testFuncDerivativeX = []( const Point3D& ) { return 10.0; };
-   auto testFuncDerivativeY = []( const Point3D& ) { return 3.0; };
+   auto testFunc            = []( const Point3D& x ) { return real_c( 10.0 ) * x[0] + real_c( 3.0 ) * x[1] + real_c( 1.0 ); };
+   auto testFuncDerivativeX = []( const Point3D& ) { return real_c( 10.0 ); };
+   auto testFuncDerivativeY = []( const Point3D& ) { return real_c( 3.0 ); };
 
    P1Function< real_t > x( "x", storage, minLevel, maxLevel );
    x.interpolate( testFunc, maxLevel );
