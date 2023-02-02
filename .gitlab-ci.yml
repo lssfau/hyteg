@@ -102,28 +102,31 @@ intel_20_serial:
       - docker
       - intel
 
-intel_20_mpionly_sp:
+intel_20_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+      - intel
+
+intel_20_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    before_script:
       - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
-   tags:
-      - docker
-      - intel
-
-intel_20_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
-   variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    tags:
       - docker
       - intel
@@ -173,30 +176,30 @@ gcc_8_serial:
    tags:
       - docker
 
-gcc_8_mpionly_sp:
+gcc_8_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-gcc_8_serial_dbg:
+gcc_8_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -245,30 +248,30 @@ gcc_9_serial:
    tags:
       - docker
 
-gcc_9_mpionly_sp:
+gcc_9_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-gcc_9_serial_dbg:
+gcc_9_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -317,30 +320,30 @@ gcc_10_serial:
    tags:
       - docker
 
-gcc_10_mpionly_sp:
+gcc_10_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-gcc_10_serial_dbg:
+gcc_10_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -389,30 +392,30 @@ gcc_11_serial:
    tags:
       - docker
 
-gcc_11_mpionly_sp:
+gcc_11_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-gcc_11_serial_dbg:
+gcc_11_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -461,27 +464,30 @@ gcc_12_serial:
    tags:
       - docker
 
-gcc_12_mpionly_sp:
+gcc_12_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
+   stage: pretest
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_TERRANEO_MODULE: "ON"
+      HYTEG_DOWNLOAD_BOOST: "ON"
+   tags:
+      - docker
+
+gcc_12_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
    before_script:
       - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
-   tags:
-      - docker
-
-gcc_12_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
-   variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    tags:
       - docker
 
@@ -536,30 +542,30 @@ clang_9.0_serial:
    tags:
       - docker
 
-clang_9.0_mpionly_sp:
+clang_9.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-clang_9.0_serial_dbg:
+clang_9.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -608,30 +614,30 @@ clang_10.0_serial:
    tags:
       - docker
 
-clang_10.0_mpionly_sp:
+clang_10.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-clang_10.0_serial_dbg:
+clang_10.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -680,30 +686,30 @@ clang_11.0_serial:
    tags:
       - docker
 
-clang_11.0_mpionly_sp:
+clang_11.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-clang_11.0_serial_dbg:
+clang_11.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -752,30 +758,30 @@ clang_12.0_serial:
    tags:
       - docker
 
-clang_12.0_mpionly_sp:
+clang_12.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
-   before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
-clang_12.0_serial_dbg:
+clang_12.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
+   before_script:
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    only:
       variables:
          - $ENABLE_NIGHTLY_BUILDS
@@ -824,27 +830,30 @@ clang_13.0_serial:
    tags:
       - docker
 
-clang_13.0_mpionly_sp:
+clang_13.0_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_13.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    before_script:
       - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
-   tags:
-      - docker
-
-clang_13.0_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
-   variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    tags:
       - docker
 
@@ -902,27 +911,30 @@ inteloneapi_22.3_serial:
    tags:
       - docker
 
-inteloneapi_22.3_mpionly_sp:
+inteloneapi_22.3_mpionly:
+   extends: .build_template
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
+   variables:
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+inteloneapi_22.3_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    before_script:
       - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
-      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-      WALBERLA_BUILD_WITH_METIS: "OFF"
-   tags:
-      - docker
-
-inteloneapi_22.3_serial_dbg:
-   extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
-   variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+      WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      WALBERLA_BUILD_WITH_METIS: "OFF"
    tags:
       - docker
 
