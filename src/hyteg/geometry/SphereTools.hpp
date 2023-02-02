@@ -45,7 +45,14 @@ void pointwiseScalarFunctionEvaluation( const std::vector< Point3D >& points,
    for ( uint_t idx = 0; idx < points.size(); idx++ )
    {
       real_t value;
-      bool   onProcess = f.evaluate( points.at( idx ), level, value, 1e-12 );
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+      real_t searchToleranceRadius = 1e-12;
+#else
+      real_t searchToleranceRadius = 1e-6f;
+#endif
+
+      bool   onProcess = f.evaluate( points.at( idx ), level, value, searchToleranceRadius );
 
       if ( onProcess )
       {
