@@ -89,7 +89,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                        petscRows.data(),
                        static_cast< PetscInt >( petscCols.size() ),
                        petscCols.data(),
-                       values.data(),
+                       // This cast is only here to prevent compiler errors
+                       reinterpret_cast<const PetscReal *>( values.data() ),
                        ADD_VALUES );
       }
       else
