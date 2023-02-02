@@ -647,6 +647,7 @@ void smoothSOR3D(
                                             edgeDoFRhsId,
                                             backwards );
 #endif
+      WALBERLA_UNUSED( vertexToVertexOperatorMapId );
    }
    else
    {
