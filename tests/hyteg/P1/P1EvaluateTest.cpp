@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -106,8 +106,8 @@ void test2D()
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ));
-      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ));
+      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
       if ( coordinates[0] < 0.5 && coordinates[1] < 0.5 )
       {
@@ -192,7 +192,14 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-7 );
+      }
    }
 
    // 2D affine map
@@ -222,7 +229,14 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-6 );
+      }
    }
 
    const size_t minLevel = 2;
