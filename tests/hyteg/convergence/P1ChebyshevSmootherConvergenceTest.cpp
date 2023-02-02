@@ -31,7 +31,7 @@ void runTest()
    const uint_t maxLevel         = 5;
    const uint_t max_outer_iter   = 4;
    const uint_t max_coarse_iter  = 1000;
-   const real_t coarse_tolerance = real_c( 1e-16 );
+   const real_t coarse_tolerance = real_c( 1e-10 );
    const uint_t smoothingSteps   = 2;
 
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
@@ -95,15 +95,18 @@ void runTest()
          multiGridSolver.solve( laplaceOperator, function, rightHandSide, maxLevel );
 
       laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, Inner );
-      residual.assign( {1.0, -1.0}, {rightHandSide, laplaceTimesFunction}, maxLevel, Inner );
+      residual.assign( { 1.0, -1.0 }, { rightHandSide, laplaceTimesFunction }, maxLevel, Inner );
       const auto residualValue = std::sqrt( residual.dotGlobal( residual, maxLevel, Inner ) );
 
       // the calculated residuals should up to 10% match the expected residual.
       const auto expectedResidualValue = expectedResiduals[order - 1];
-      WALBERLA_CHECK_LESS(
-          0.9 * expectedResidualValue, residualValue, "residual for chebyshev smoother of order " << order << " has changed " );
-      WALBERLA_CHECK_GREATER(
-          1.1 * expectedResidualValue, residualValue, "residual for chebyshev smoother of order " << order << " has changed " );
+      auto       dp                    = std::is_same< real_t, double >();
+      WALBERLA_CHECK_LESS( ( dp ? 0.9 : 0.75 ) * expectedResidualValue,
+                           residualValue,
+                           "residual for chebyshev smoother of order " << order << " has changed " );
+      WALBERLA_CHECK_GREATER( ( dp ? 1.1 : 1.25 ) * expectedResidualValue,
+                              residualValue,
+                              "residual for chebyshev smoother of order " << order << " has changed " );
    }
 }
 

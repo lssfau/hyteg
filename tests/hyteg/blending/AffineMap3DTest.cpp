@@ -262,10 +262,11 @@ void testInverseMapping()
       // WALBERLA_LOG_INFO_ON_ROOT( "shift = " << shiftVector );
       AffineMap3D blendingMap( rotationMatrix, shiftVector );
       blendingMap.evalFinv( mappedPoints[idx], mappedBack );
-      real_t error = (originalPoint - mappedBack).norm();
-      WALBERLA_LOG_INFO_ON_ROOT( "test: " << mappedPoints[idx] << ", orig = " << originalPoint << ", mapped back "
-                                          << mappedBack << ", error = " << error );
-      WALBERLA_CHECK_LESS( error, real_c( 1e-15 ) );
+      real_t error = ( originalPoint - mappedBack ).norm();
+      WALBERLA_LOG_INFO_ON_ROOT( "test: " << mappedPoints[idx] << ", orig = " << originalPoint << ", mapped back " << mappedBack
+                                          << ", error = " << error );
+      auto dp = std::is_same< real_t, double >();
+      WALBERLA_CHECK_LESS( error, real_c( dp ? 1e-15 : 1e-7 ) );
    }
 }
 
