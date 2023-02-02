@@ -76,7 +76,7 @@ void hIndependenceTest()
                                        1.0 / walberla::numeric_cast< real_t >( results.nIterations ) );
          WALBERLA_LOG_INFO_ON_ROOT( "Level " << level << std::endl
                                              << "  Number of DoFs            : " << results.numberOfGlobalDoFs << std::endl
-                                             << "  Rate of residual reduction: " << results.numberOfGlobalDoFs << std::endl
+                                             << "  Rate of residual reduction: " << rate << std::endl
                                              << "  Number of iterations      : " << results.nIterations )
 
          table.addElement( level - minLevel, 0, level );

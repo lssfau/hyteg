@@ -32,8 +32,8 @@ using namespace hyteg;
 
 void solverConvergenceCube()
 {
-   const uint_t                  minLevel = 2;
-   const uint_t                  maxLevel = 5;
+   const uint_t                  minLevel = 3;
+   const uint_t                  maxLevel = 6;
    const std::array< real_t, 3 > alphas   = { 0.01, 1.0, 100.0 };
    const std::array< real_t, 3 > betas    = { 0.01, 1.0, 100.0 };
 
