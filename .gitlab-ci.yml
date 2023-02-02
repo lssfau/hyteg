@@ -118,7 +118,7 @@ intel_20_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -191,7 +191,7 @@ gcc_8_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -263,7 +263,7 @@ gcc_9_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -335,7 +335,7 @@ gcc_10_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -407,7 +407,7 @@ gcc_11_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -479,7 +479,7 @@ gcc_12_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:12
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -557,7 +557,7 @@ clang_9.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -629,7 +629,7 @@ clang_10.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -701,7 +701,7 @@ clang_11.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -773,7 +773,7 @@ clang_12.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:12.0
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -845,7 +845,7 @@ clang_13.0_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -926,7 +926,7 @@ inteloneapi_22.3_serial_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/inteloneapi:22.3
    before_script:
-      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"

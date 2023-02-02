@@ -95,13 +95,15 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  auto coarseGrid     = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, minLevel, minLevel, std::numeric_limits< uint_t >::max(), 1e-16 );
+  auto coarseGrid = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >(
+      storage, minLevel, minLevel, std::numeric_limits< uint_t >::max(), real_c(1e-9) );
   auto smoother       = std::make_shared< GaussSeidelSmoother< P2ConstantLaplaceOperator > >();
   auto prolongation   = std::make_shared< P2toP2QuadraticProlongation >();
   auto restriction    = std::make_shared< P2toP2QuadraticRestriction >();
   auto velocitySolver = std::make_shared< GeometricMultigridSolver< P2ConstantLaplaceOperator > >( storage, smoother, coarseGrid, restriction, prolongation, minLevel, level, 2, 2 );
-  auto loop           = std::make_shared< SolverLoop< P2ConstantLaplaceOperator > >( velocitySolver, 10 );
-  StokesPCGSolverOld< P2P1TaylorHoodStokesOperator > solver( storage, loop, minLevel, level, 1e-10, 100, Inner | NeumannBoundary );
+  auto loop = std::make_shared< SolverLoop< P2ConstantLaplaceOperator > >( velocitySolver, 10 );
+  StokesPCGSolverOld< P2P1TaylorHoodStokesOperator > solver(
+      storage, loop, minLevel, level, real_c( 1e-10 ), 100, Inner | NeumannBoundary );
 
   walberla::WcTimer timer;
   solver.solve( A, x, b, level );
@@ -125,12 +127,13 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-//  vtkOutput.write( level, 3 );
+  //  vtkOutput.write( level, 3 );
 
+  auto dp = std::is_same< real_t, double >();
   WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_v, 2.4e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_p, 2.9e-01 );
-  WALBERLA_CHECK_LESS( residuum_l2_1,  2.5e-09 );
+  WALBERLA_CHECK_LESS( residuum_l2_1, dp ? 2.5e-09 : 1e-4 );
 }
 
 }

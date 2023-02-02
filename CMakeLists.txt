@@ -51,7 +51,7 @@ if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
     add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
     if( NOT WALBERLA_DOUBLE_ACCURACY )
-       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=implicit-float-conversion" )
+       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=float-conversion" )
     endif()
 endif()
 

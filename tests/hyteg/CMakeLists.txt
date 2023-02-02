@@ -134,10 +134,8 @@ waLBerla_execute_test(NAME P2GMGPRefinementConvergenceTestMPI COMMAND $<TARGET_F
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
-endif ()
+waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
 
 if(WALBERLA_DOUBLE_ACCURACY)
     waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core)
