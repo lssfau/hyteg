@@ -108,8 +108,8 @@ class CircularMap : public GeometryMap
       }
       real_t tmp14 = ( tmp13 - tmp3 + tmp6 ) / tmp13;
       real_t tmp15 = tmp10 * x3bar_[1];
-      Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
-      Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
+      Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * std::cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
+      Fx[1]        = tmp14 * ( center_[1] + radius_ * std::sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
    }
 
    void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
@@ -141,10 +141,10 @@ class CircularMap : public GeometryMap
       real_t tmp16 = tmp15 * ( tmp5 - tmp6 );
       real_t tmp17 = tmp13 - tmp9;
       real_t tmp18 = s1_ + s3bar_ * tmp17;
-      real_t tmp19 = radius_ * cos( tmp18 );
+      real_t tmp19 = radius_ * std::cos( tmp18 );
       real_t tmp20 = center_[0] - tmp17 * x3bar_[0] + tmp19 + tmp7;
       real_t tmp21 = s3bar_ * tmp2 * x2bar_[1];
-      real_t tmp22 = radius_ * sin( tmp18 );
+      real_t tmp22 = radius_ * std::sin( tmp18 );
       real_t tmp23 = tmp2 * x3bar_[0];
       real_t tmp24 = tmp11 * tmp23 + tmp14 - tmp6 * tmp8;
       real_t tmp25 = tmp15 * tmp24;
