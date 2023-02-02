@@ -850,7 +850,7 @@ clang_13.0_mpionly_dbg_petsc-complex_trilinos_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:13.0
    before_script:
-      - echo 'add_flag ( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion" )' >> $CI_PROJECT_DIR/CMakeLists.txt
+      - sed -i 's/"-Wno-error=implicit-float-conversion"/"-Wno-implicit-float-conversion"/g' $CI_PROJECT_DIR/CMakeLists.txt
       - cat $CI_PROJECT_DIR/CMakeLists.txt
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
