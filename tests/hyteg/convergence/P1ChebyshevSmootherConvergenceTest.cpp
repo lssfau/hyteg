@@ -100,13 +100,10 @@ void runTest()
 
       // the calculated residuals should up to 10% match the expected residual.
       const auto expectedResidualValue = expectedResiduals[order - 1];
-      auto       dp                    = std::is_same< real_t, double >();
-      WALBERLA_CHECK_LESS( ( dp ? 0.9 : 0.75 ) * expectedResidualValue,
-                           residualValue,
-                           "residual for chebyshev smoother of order " << order << " has changed " );
-      WALBERLA_CHECK_GREATER( ( dp ? 1.1 : 1.25 ) * expectedResidualValue,
-                              residualValue,
-                              "residual for chebyshev smoother of order " << order << " has changed " );
+      WALBERLA_CHECK_LESS(
+          0.9 * expectedResidualValue, residualValue, "residual for chebyshev smoother of order " << order << " has changed " );
+      WALBERLA_CHECK_GREATER(
+          1.1 * expectedResidualValue, residualValue, "residual for chebyshev smoother of order " << order << " has changed " );
    }
 }
 

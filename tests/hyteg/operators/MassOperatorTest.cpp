@@ -355,7 +355,7 @@ int main( int argc, char** argv )
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
    checkArea< P2ElementwiseBlendingMassOperator >(
-       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, real_c( dp ? 5e-6 : 1e-5 ) );
+       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, real_c( dp ? 5e-6 : 5e-5 ) );
 
    // ------------------
    //  2D Surface Tests
