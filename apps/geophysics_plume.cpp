@@ -33,6 +33,7 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1HelperFunctions.hpp"
+#include "hyteg/p1functionspace/P1IntegrateDG.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
@@ -192,8 +193,8 @@ int main( int argc, char* argv[] )
 
          f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
-         f->uvw()[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
-         f->uvw()[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
+         P1IntegrateDG( *f_dg, *n_x, f->uvw()[0], maxLevel, hyteg::All );
+         P1IntegrateDG( *f_dg, *n_y, f->uvw()[1], maxLevel, hyteg::All );
 
          for ( uint_t outer = 0; outer < 2; ++outer )
          {

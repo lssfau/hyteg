@@ -1809,74 +1809,8 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
       }
    }
 
-   /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
+   // in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    communication::syncFunctionBetweenPrimitives( *this, level );
-}
-
-template < typename ValueType >
-void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >& rhs,
-                                                  VertexDoFFunction< ValueType >&   rhsP1,
-                                                  uint_t                            level,
-                                                  DoFType                           flag )
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-   this->startTiming( "integrateDG" );
-
-   rhsP1.startCommunication< Edge, Vertex >( level );
-   rhsP1.startCommunication< Face, Edge >( level );
-
-   rhs.template startCommunication< Face, Edge >( level );
-   rhs.template endCommunication< Face, Edge >( level );
-
-   rhs.template startCommunication< Edge, Vertex >( level );
-   rhs.template endCommunication< Edge, Vertex >( level );
-
-   rhsP1.endCommunication< Edge, Vertex >( level );
-
-   for ( auto& it : this->getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macrovertex::integrateDG< ValueType >(
-             vertex, this->getStorage(), rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level );
-      }
-   }
-
-   communicators_[level]->template startCommunication< Vertex, Edge >();
-   rhsP1.endCommunication< Face, Edge >( level );
-
-   for ( auto& it : this->getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macroedge::integrateDG< ValueType >(
-             level, edge, this->getStorage(), rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_ );
-      }
-   }
-
-   communicators_[level]->template endCommunication< Vertex, Edge >();
-   communicators_[level]->template startCommunication< Edge, Face >();
-
-   for ( auto& it : this->getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macroface::integrateDG< ValueType >( level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_ );
-      }
-   }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
-
-   this->stopTiming( "integrateDG" );
 }
 
 template < typename ValueType >

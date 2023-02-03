@@ -206,8 +206,6 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
-   void integrateDG( FaceDoFFunction_old< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
-
    /// @name Member functions for interpolation using BoundaryUID flags
    //@{
    void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
