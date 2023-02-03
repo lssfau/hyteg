@@ -44,7 +44,7 @@ void L2ConvergenceTest()
    params.preSmoothSteps     = 3;
    params.postSmoothSteps    = 3;
    params.nMaxIterations     = 40;
-   params.residual2Reduction = { 1e-12 };
+   params.residual2Reduction = { 1e-11 };
 
    KeyValueStore store;
    params.store( store );
