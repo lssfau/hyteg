@@ -131,13 +131,13 @@ static void vertIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jvert, uint_t& is1
 void findVertexOnArc( real_t* vL, real_t* vR, real_t& xpos, real_t& ypos, real_t& zpos, uint_t nPoints, uint_t idx )
 {
    // angle between left and right vertex
-   real_t alpha = acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
+   real_t alpha = std::acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
 
    // weights for spherical interpolation
    real_t gamma = real_c( idx ) * ( alpha / real_c( nPoints - 1 ) );
    real_t beta  = alpha - gamma;
-   real_t omg1  = sin( beta ) / sin( alpha );
-   real_t omg2  = sin( gamma ) / sin( alpha );
+   real_t omg1  = std::sin( beta ) / std::sin( alpha );
+   real_t omg2  = std::sin( gamma ) / std::sin( alpha );
 
    // compute vertex coordinates
    xpos = omg1 * vL[0] + omg2 * vR[0];
@@ -514,7 +514,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1][i2 - l2][id][1] + nodeCoords[i1][i2 + l2][id][1];
                z = nodeCoords[i1][i2 - l2][id][2] + nodeCoords[i1][i2 + l2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
@@ -536,7 +536,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1 - l2][i2][id][1] + nodeCoords[i1 + l2][i2][id][1];
                z = nodeCoords[i1 - l2][i2][id][2] + nodeCoords[i1 + l2][i2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
@@ -558,7 +558,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1 - l2][i2 + l2][id][1] + nodeCoords[i1 + l2][i2 - l2][id][1];
                z = nodeCoords[i1 - l2][i2 + l2][id][2] + nodeCoords[i1 + l2][i2 - l2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
