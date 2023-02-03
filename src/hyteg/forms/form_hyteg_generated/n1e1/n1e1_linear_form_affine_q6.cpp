@@ -159,7 +159,7 @@ namespace forms {
       real_t tmp_17 = tmp_10*tmp_3;
       real_t tmp_18 = tmp_1*tmp_11;
       real_t tmp_19 = 1.0 / (tmp_12*tmp_5 + tmp_13*tmp_15 - tmp_13*tmp_18 - tmp_14*tmp_17 + tmp_16*tmp_4 - tmp_16*tmp_7);
-      real_t tmp_20 = edgeDirections[0]*tmp_19;
+      real_t tmp_20 = tmp_19*walberla::real_c(edgeDirections[0]);
       real_t tmp_21 = 0.90292879901361134*tmp_20;
       real_t tmp_22 = tmp_15 - tmp_18;
       real_t tmp_23 = 0.03391614239336127*tmp_20;
@@ -247,7 +247,7 @@ namespace forms {
       real_t tmp_105 = 0.32683350461904581*tmp_20;
       real_t tmp_106 = 0.018667118254730612*tmp_20;
       real_t tmp_107 = 0.0072065494492455648*tmp_40;
-      real_t tmp_108 = edgeDirections[1]*tmp_19;
+      real_t tmp_108 = tmp_19*walberla::real_c(edgeDirections[1]);
       real_t tmp_109 = 0.038836084344884447*tmp_108;
       real_t tmp_110 = tmp_11*tmp_5 - tmp_14*tmp_3;
       real_t tmp_111 = 0.03391614239336127*tmp_108;
@@ -297,7 +297,7 @@ namespace forms {
       real_t tmp_155 = 0.61020140952806623*tmp_108;
       real_t tmp_156 = 0.32511965857702518*tmp_108;
       real_t tmp_157 = 0.018667118254730612*tmp_108;
-      real_t tmp_158 = edgeDirections[2]*tmp_19;
+      real_t tmp_158 = tmp_19*walberla::real_c(edgeDirections[2]);
       real_t tmp_159 = 0.038836084344884447*tmp_158;
       real_t tmp_160 = 0.90292879901361134*tmp_158;
       real_t tmp_161 = 0.90377000133218188*tmp_158;
@@ -344,7 +344,7 @@ namespace forms {
       real_t tmp_202 = 0.060016149166168681*tmp_158;
       real_t tmp_203 = 0.32511965857702518*tmp_158;
       real_t tmp_204 = 0.32683350461904581*tmp_158;
-      real_t tmp_205 = edgeDirections[3]*tmp_19;
+      real_t tmp_205 = tmp_19*walberla::real_c(edgeDirections[3]);
       real_t tmp_206 = 0.03391614239336127*tmp_205;
       real_t tmp_207 = -0.90292879901361134;
       real_t tmp_208 = 0.9611639156551155;
@@ -437,7 +437,7 @@ namespace forms {
       real_t tmp_295 = -0.32683350461904581;
       real_t tmp_296 = 0.67488034142297482;
       real_t tmp_297 = tmp_205*(tmp_295 + tmp_296);
-      real_t tmp_298 = edgeDirections[4]*tmp_19;
+      real_t tmp_298 = tmp_19*walberla::real_c(edgeDirections[4]);
       real_t tmp_299 = 0.90292879901361134*tmp_298;
       real_t tmp_300 = -0.03391614239336127;
       real_t tmp_301 = tmp_298*(tmp_208 + tmp_300);
@@ -507,7 +507,7 @@ namespace forms {
       real_t tmp_365 = 0.32683350461904581*tmp_298;
       real_t tmp_366 = -0.018667118254730612;
       real_t tmp_367 = tmp_298*(tmp_296 + tmp_366);
-      real_t tmp_368 = edgeDirections[5]*tmp_19;
+      real_t tmp_368 = tmp_19*walberla::real_c(edgeDirections[5]);
       real_t tmp_369 = 0.038836084344884447*tmp_368;
       real_t tmp_370 = tmp_368*(tmp_207 + tmp_300 + 1);
       real_t tmp_371 = 0.90377000133218188*tmp_368;
