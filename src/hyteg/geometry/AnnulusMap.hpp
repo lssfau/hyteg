@@ -191,7 +191,7 @@ class AnnulusMap : public GeometryMap
    /// method for classifying the vertices of the macro triangle
    void classifyVertices( const std::array< Point3D, 3 >& coords )
    {
-      std::array< real_t, 3 > radius;
+      std::array< real_t, 3 > radius{};
       for ( uint_t k = 0; k < 3; k++ )
       {
          radius[k] = std::sqrt( coords[k].normSq() );
@@ -208,7 +208,7 @@ class AnnulusMap : public GeometryMap
       ANNULUS_MAP_LOG( "r1 x r2 = " << std::showpos << std::scientific << cross12 );
 
       auto   dp     = std::is_same< real_t, double >();
-      real_t tol    = real_c( dp ? 1e-14 : 1e-6 );
+      real_t tol    = real_c( dp ? 1e-14 : 1e-5 );
       uint_t intRay = 99;
       uint_t intRef = 99;
 

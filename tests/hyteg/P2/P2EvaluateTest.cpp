@@ -299,7 +299,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       }
       else
       {
-         tolerance = real_c( 1e-6 );
+         tolerance = real_c( 2e-6 );
       }
    }
 

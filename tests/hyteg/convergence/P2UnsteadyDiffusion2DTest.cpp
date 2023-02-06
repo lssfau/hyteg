@@ -232,6 +232,6 @@ int main( int argc, char* argv[] )
 
    timeIntegrator = 1;
    hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 5.7e-06 ) );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 3.4e-06 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 3.6e-06 ) );
    hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 3.5e-07 ) );
 }

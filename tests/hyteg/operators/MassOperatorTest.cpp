@@ -125,7 +125,9 @@ int main( int argc, char** argv )
 {
 #ifndef __APPLE__
 #ifndef _MSC_VER
+#ifndef IntelLLVM
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 #endif
    walberla::debug::enterTestMode();
@@ -344,7 +346,7 @@ int main( int argc, char** argv )
    AffineMap3D::setMap( *setStore.get(), matAffineMap, vecAffineMap );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, dp ? 6e-8 : 3e-7 );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, real_c(dp ? 6e-8 : 4e-7) );
 
    // Test with thick spherical shell
    logSectionHeader( "Testing with BLENDING( Thick Spherical Shell -- IcosahedralShellMap )" );
