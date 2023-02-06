@@ -286,6 +286,12 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
    {
       WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "One-sided" ); }
    }
+#else
+   WALBERLA_UNUSED( face );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( srcId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( update );
 #endif
 }
 
@@ -312,6 +318,12 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
       vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
           dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
    }
+#else
+   WALBERLA_UNUSED( face );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( srcId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( update );
 #endif
 }
 
@@ -338,6 +350,12 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
       vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
           dst_data, src_data, static_cast< int32_t >( level ), opr_data );
    }
+#else
+   WALBERLA_UNUSED( cell );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( srcId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( update );
 #endif
 }
 
@@ -495,6 +513,13 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
 
       this->timingTree_->stop( "Two-sided" );
    }
+#else
+   WALBERLA_UNUSED( face );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( rhsId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( relax );
+   WALBERLA_UNUSED( backwards );
 #endif
 }
 
@@ -522,6 +547,13 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
       vertexdof::macroface::generated::sor_2D_macroface_vertexdof_to_vertexdof(
           dst_data, rhs_data, stencil, static_cast< int32_t >( level ), relax );
    }
+#else
+   WALBERLA_UNUSED( face );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( rhsId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( relax );
+   WALBERLA_UNUSED( backwards );
 #endif
 }
 
@@ -548,6 +580,13 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
    {
       vertexdof::macrocell::generated::sor_3D_macrocell_P1( dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
    }
+#else
+   WALBERLA_UNUSED( cell );
+   WALBERLA_UNUSED( dstId );
+   WALBERLA_UNUSED( rhsId );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( relax );
+   WALBERLA_UNUSED( backwards );
 #endif
 }
 
