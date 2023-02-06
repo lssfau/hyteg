@@ -125,7 +125,7 @@ int main( int argc, char** argv )
 {
 #ifndef __APPLE__
 #ifndef _MSC_VER
-#ifndef IntelLLVM
+#ifndef __INTEL_LLVM_COMPILER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 #endif
 #endif
