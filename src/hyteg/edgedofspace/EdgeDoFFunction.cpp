@@ -2052,4 +2052,20 @@ template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell
                                                                                     uint_t        level,
                                                                                     DoFType       flag ) const;
 
+template void EdgeDoFFunction< float >::interpolateByPrimitiveType< hyteg::Vertex >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
+template void EdgeDoFFunction< float >::interpolateByPrimitiveType< hyteg::Edge >( const float& constant,
+                                                                                   uint_t       level,
+                                                                                   DoFType      flag ) const;
+
+template void EdgeDoFFunction< float >::interpolateByPrimitiveType< hyteg::Face >( const float& constant,
+                                                                                   uint_t       level,
+                                                                                   DoFType      flag ) const;
+
+template void EdgeDoFFunction< float >::interpolateByPrimitiveType< hyteg::Cell >( const float& constant,
+                                                                                   uint_t       level,
+                                                                                   DoFType      flag ) const;
+
 } // namespace hyteg

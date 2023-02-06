@@ -63,7 +63,7 @@ namespace hyteg {
 
     // scale input vector
     real_t norm = std::sqrt( itrVec.dotGlobal( itrVec, level, hyteg::All ) );
-    itrVec.assign( {1.0/norm}, {itrVec}, level, hyteg::All );
+    itrVec.assign( { real_c( 1.0 ) / norm }, { itrVec }, level, hyteg::All );
 
     // prepare iteration
     op.apply( itrVec, auxVec, level, hyteg::All );
@@ -71,10 +71,10 @@ namespace hyteg {
 
     // run power iteration
     for( uint_t it = 1; it <= numIts; ++it ) {
-      norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
-      itrVec.assign( {1.0/norm}, {auxVec}, level, hyteg::All );
-      op.apply( itrVec, auxVec, level, hyteg::All );
-      radius = itrVec.dotGlobal( auxVec, level, hyteg::All );
+       norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
+       itrVec.assign( { real_c( 1.0 ) / norm }, { auxVec }, level, hyteg::All );
+       op.apply( itrVec, auxVec, level, hyteg::All );
+       radius = itrVec.dotGlobal( auxVec, level, hyteg::All );
     }
 
     return radius;

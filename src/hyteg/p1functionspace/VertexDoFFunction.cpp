@@ -2302,5 +2302,21 @@ template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Ce
                                                                                       uint_t        level,
                                                                                       DoFType       flag ) const;
 
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Vertex >( const float& constant,
+                                                                                       uint_t       level,
+                                                                                       DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Edge >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Face >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Cell >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
 } // namespace vertexdof
 } // namespace hyteg
