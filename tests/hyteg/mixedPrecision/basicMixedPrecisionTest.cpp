@@ -53,7 +53,7 @@ void testMixedPrecision() {
    auto p1FloatFacePtr = floatFaceData->getPointer(minLevel);
 
 
-   for ( int i = 0; i < doubleFaceData->getSize(minLevel); ++i )
+   for ( uint_t i = 0; i < doubleFaceData->getSize(minLevel); ++i )
    {
       // The difference between float and double should not be bigger than 1e-7
       WALBERLA_CHECK_LESS(p1DobuleFacePtr[i] - static_cast<double>(p1FloatFacePtr[i]), 1e-7)
@@ -62,7 +62,7 @@ void testMixedPrecision() {
    p1Float.interpolate(floatRand, minLevel);
    p1Double.copyFrom(p1Float, minLevel);
 
-   for ( int i = 0; i < doubleFaceData->getSize(minLevel); ++i )
+   for ( uint_t i = 0; i < doubleFaceData->getSize(minLevel); ++i )
    {
       WALBERLA_CHECK_EQUAL(p1DobuleFacePtr[i] - static_cast<double>(p1FloatFacePtr[i]), real_t(0))
    }
