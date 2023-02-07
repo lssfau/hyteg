@@ -55,8 +55,7 @@ class P0P1UpwindOperator : public Operator< P0Function< real_t >, P0Function< re
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
    {
-      // might be possible to do that more efficiently, like we do
-      // with the P1 velocity function below?
+      // need to update faces on the ghost-layers
       src.communicate( level );
 
       velocity_[0].startCommunication< Edge, Vertex >( level );
@@ -98,9 +97,6 @@ class P0P1UpwindOperator : public Operator< P0Function< real_t >, P0Function< re
                         UpdateType                                 updateType ) const
    {
       using namespace vertexdof::macroface;
-
-      size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
-      size_t inner_rowsize = rowsize;
 
       // get velocity memories
       auto u = face.getData( velocity_[0].getFaceDataID() )->getPointer( level );
