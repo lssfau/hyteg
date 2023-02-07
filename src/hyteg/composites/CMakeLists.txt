@@ -1,6 +1,7 @@
 target_sources( hyteg
     PRIVATE
     ConcatenatedOperator.hpp
+    P0P1HelperFunctions.hpp
     P0P1UpwindOperator.hpp
     P1BlendingStokesOperator.hpp
     P1EpsilonStokesOperator.hpp

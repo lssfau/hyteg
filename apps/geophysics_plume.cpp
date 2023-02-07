@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,6 +21,7 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/MeshQuality.hpp"
+#include "hyteg/composites/P0P1HelperFunctions.hpp"
 #include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
@@ -50,6 +51,8 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 using namespace hyteg;
+
+#define USE_P0
 
 int main( int argc, char* argv[] )
 {
@@ -96,17 +99,30 @@ int main( int argc, char* argv[] )
       return std::sin( std::atan2( x[1], x[0] ) );
    };
 
+#ifdef USE_P0
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree, 1 );
+#else
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+#endif
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
    loadbalancing::distributed::parmetis( *storage );
 #endif
 
    // Setting up Functions
+#ifdef USE_P0
+   auto c_old = std::make_shared< hyteg::P0Function< real_t > >( "c", storage, minLevel, maxLevel );
+   auto c     = std::make_shared< hyteg::P0Function< real_t > >( "c", storage, minLevel, maxLevel );
+   auto f_dg  = std::make_shared< hyteg::P0Function< real_t > >( "f_dg", storage, minLevel, maxLevel );
+
+#else
+
    auto c_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
    auto c     = std::make_shared< hyteg::DGFunction_old< real_t > >( "c", storage, minLevel, maxLevel );
 
    auto f_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "f_dg", storage, minLevel, maxLevel );
+
+#endif
 
    auto r = std::make_shared< hyteg::P1StokesFunction< real_t > >( "r", storage, minLevel, maxLevel );
    auto f = std::make_shared< hyteg::P1StokesFunction< real_t > >( "f", storage, minLevel, maxLevel );
@@ -118,7 +134,11 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
+#ifdef USE_P0
+   hyteg::P0P1UpwindOperator    N( storage, u->uvw(), minLevel, maxLevel );
+#else
    hyteg::DG0P1UpwindOperator    N( storage, u->uvw(), minLevel, maxLevel );
+#endif
    hyteg::P1P1StokesOperator     L( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator M( storage, minLevel, maxLevel );
 
@@ -127,12 +147,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
    WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt )
-   const real_t finalTime = 100000.0;
+   // const real_t finalTime = 100000.0;
+   const real_t finalTime = 20.0;
    //  const real_t plotEach = 2.0;
    const auto timesteps = (uint_t) std::ceil( finalTime / dt );
    WALBERLA_LOG_INFO_ON_ROOT( "Going to perform " << timesteps << " timesteps" );
    //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
-   const uint_t plotModulo = 10;
+   // const uint_t plotModulo = 10;
+   const uint_t plotModulo = 1;
    real_t       time       = 0.0;
 
    // Interpolate normal components
@@ -173,9 +195,9 @@ int main( int argc, char* argv[] )
       totalGlobalDofsStokes += tmpDofStokes;
       // totalGlobalDofsTemp += tmpDofTemp;
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
-   WALBERLA_LOG_INFO_ON_ROOT( "Total Temperature DoFs on all level :" << totalGlobalDofsTemp );
-   WALBERLA_LOG_INFO_ON_ROOT( "Total DoFs on all level :" << ( totalGlobalDofsTemp + totalGlobalDofsStokes ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all levels: " << totalGlobalDofsStokes );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total Temperature DoFs on all levels: " << totalGlobalDofsTemp );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total DoFs on all levels: " << ( totalGlobalDofsTemp + totalGlobalDofsStokes ) );
 
    hyteg::VTKOutput vtkOutput( "../output", "plume", storage, plotModulo );
    vtkOutput.add( *u );
@@ -193,8 +215,17 @@ int main( int argc, char* argv[] )
 
          f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
+#ifdef USE_P0
+
+         integrateP0P1ToP1( *f_dg, *n_x, f->uvw()[0], maxLevel, hyteg::All );
+         integrateP0P1ToP1( *f_dg, *n_y, f->uvw()[1], maxLevel, hyteg::All );
+
+#else
+
          P1IntegrateDG( *f_dg, *n_x, f->uvw()[0], maxLevel, hyteg::All );
          P1IntegrateDG( *f_dg, *n_y, f->uvw()[1], maxLevel, hyteg::All );
+
+#endif
 
          for ( uint_t outer = 0; outer < 2; ++outer )
          {
