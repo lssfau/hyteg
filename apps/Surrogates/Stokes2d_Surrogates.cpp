@@ -147,7 +147,7 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
    // solve iteratively
    uint_t       iter       = 0;
    real_t       res        = 0, res_old, discr_l2_err_uv, discr_l2_err_u, discr_l2_err_v, discr_l2_err_p;
-   real_t       vCycleTime = 0, solveTime = 0;
+   double       vCycleTime = 0, solveTime = 0;
    real_t       averageConvergenceRate = 0;
    const uint_t convergenceStartIter   = 3;
 

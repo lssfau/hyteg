@@ -547,7 +547,7 @@ void N1E1VectorFunction< ValueType >::setLocalCommunicationMode(
 //  explicit instantiation
 // ========================
 template class N1E1VectorFunction< double >; // TODO real_t?
-// template class N1E1VectorFunction< float >;
+template class N1E1VectorFunction< float >;
 template class N1E1VectorFunction< int32_t >;
 template class N1E1VectorFunction< int64_t >;
 

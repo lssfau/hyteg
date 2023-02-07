@@ -68,7 +68,7 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
       return sin( xx[0] ) * sinh( xx[1] );
    };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
 
    x.interpolate( exact, level, hyteg::DirichletBoundary );
    x.interpolate( rand, level, hyteg::Inner );

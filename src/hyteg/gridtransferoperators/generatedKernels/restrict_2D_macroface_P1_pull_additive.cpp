@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void restrict_2D_macroface_P1_pull_additive_level_any(double * RESTRICT _data_vertexCoarseDst, double const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+static void restrict_2D_macroface_P1_pull_additive_level_any(real_t * RESTRICT _data_vertexCoarseDst, real_t const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
    const double xi_13 = 1 / (num_neighbor_faces_edge0);
    const double xi_14 = 1 / (num_neighbor_faces_edge1);
@@ -117,7 +117,7 @@ static void restrict_2D_macroface_P1_pull_additive_level_any(double * RESTRICT _
 }
 
 
-void restrict_2D_macroface_P1_pull_additive(double * RESTRICT _data_vertexCoarseDst, double const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+void restrict_2D_macroface_P1_pull_additive(real_t * RESTRICT _data_vertexCoarseDst, real_t const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
     switch( coarse_level )
     {

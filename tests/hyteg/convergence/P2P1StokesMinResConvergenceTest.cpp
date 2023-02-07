@@ -70,7 +70,8 @@ void stokesMinResConvergenceTest()
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
-   WALBERLA_CHECK_LESS( final_residuum, 2.6e-05 );
+   bool dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( final_residuum, dp ? 2.6e-05 : 3.8e-5 );
 }
 
 int main( int argc, char* argv[] )

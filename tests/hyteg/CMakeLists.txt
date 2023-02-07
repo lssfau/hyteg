@@ -7,9 +7,10 @@ waLBerla_execute_test(NAME adaptiveRefinementTest)
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
 
+if(WALBERLA_DOUBLE_ACCURACY)
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
-
+endif()
 
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
@@ -47,17 +48,10 @@ waLBerla_execute_test(NAME P2GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG
 waLBerla_compile_test(FILES convergence/P1VectorLaplaceCGTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1VectorLaplaceCGTest)
 
-#waLBerla_compile_test(FILES convergence/P1CGTensorVarcoeffConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGTensorVarcoeffConvergenceTest)
-
-#waLBerla_compile_test(FILES convergence/P1CGVarcoeffConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
-
-#waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
-
-waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1GSConvergenceTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1GSConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P1JacobiConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1JacobiConvergenceTest)
@@ -140,13 +134,13 @@ waLBerla_execute_test(NAME P2GMGPRefinementConvergenceTestMPI COMMAND $<TARGET_F
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
-endif ()
+waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2GSConvergenceTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P2GSConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P2P1ElementwiseUzawaConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1ElementwiseUzawaConvergenceTest)
@@ -154,8 +148,10 @@ waLBerla_execute_test(NAME P2P1ElementwiseUzawaConvergenceTest)
 waLBerla_compile_test(FILES convergence/P2P1UzawaConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P1ChebyshevSmootherConvergenceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES convergence/P1ChebyshevSmootherConvergenceTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
@@ -730,8 +726,10 @@ waLBerla_execute_test(NAME SpectrumEstimationTest)
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3)
 
 ## Form Evaluation ##
-waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME HytegVsFenicsFormTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+    waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME HytegVsFenicsFormTest)
+endif()
 
 waLBerla_compile_test(FILES forms/SingleRowIntegrationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SingleRowIntegrationTest)

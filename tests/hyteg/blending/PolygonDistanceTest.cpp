@@ -53,37 +53,37 @@ int main( int argc, char* argv[] )
 
    real_t r, angle;
 
-   fractionalRadiusToPolygonBoundary( Point3D( { 0.5, 0, 42 } ), center, polygon, r, angle );
-   WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( 0.5 ) );
+   fractionalRadiusToPolygonBoundary( Point3D( { real_c(0.5), 0, 42 } ), center, polygon, r, angle );
+   WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( real_c(0.5) ) );
 
    fractionalRadiusToPolygonBoundary( center, center, polygon, r, angle );
    WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( 0 ) );
 
-   fractionalRadiusToPolygonBoundary( Point3D( { 1.5, 0, 42 } ), center, polygon, r, angle );
-   WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( 0.5 ) );
+   fractionalRadiusToPolygonBoundary( Point3D( { real_c(1.5), 0, 42 } ), center, polygon, r, angle );
+   WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( real_c(0.5) ) );
 
    for ( const auto & bp : polygon )
    {
       fractionalRadiusToPolygonBoundary( bp, center, polygon, r, angle );
       WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( 1 ), "Point: " << bp );
 
-      auto p = center + 0.3 * (bp - center);
+      auto p = center + real_c(0.3) * (bp - center);
       fractionalRadiusToPolygonBoundary( p, center, polygon, r, angle );
-      WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( 0.3 ), "Point: " << p );
+      WALBERLA_CHECK_FLOAT_EQUAL( r, real_c( real_c(0.3) ), "Point: " << p );
    }
 
    std::vector< Point3D > polygon2 = {
-       Point3D( { 1.29493, 0.114682, 0 } ),
-       Point3D( { 1.29493, 0.114682, 0.175 } ),
-       Point3D( { 0.896491, 0.0793954, 0.525 } ),
-       Point3D( { 0.697271, 0.061752, 0.525 } ),
-       Point3D( { 0.697271, 0.061752, -0.525 } ),
-       Point3D( { 0.896491, 0.0793954, -0.525 } ),
-       Point3D( { 1.29493, 0.114682, -0.175 } ),
+       Point3D( { real_c(1.29493), real_c(0.114682), 0 } ),
+       Point3D( { real_c(1.29493), real_c(0.114682), real_c(0.175) } ),
+       Point3D( { real_c(0.896491), real_c(0.0793954), real_c(0.525) } ),
+       Point3D( { real_c(0.697271), real_c(0.061752), real_c(0.525) } ),
+       Point3D( { real_c(0.697271), real_c(0.061752), -real_c(0.525) } ),
+       Point3D( { real_c(0.896491), real_c(0.0793954), -real_c(0.525) } ),
+       Point3D( { real_c(1.29493), real_c(0.114682), -real_c(0.175) } ),
    };
 
-   Point3D center2( { 0.796881, 0.0705737, 0 } );
-   Point3D p2( { 0.846686, 0.0749846, -2.08167e-17 } );
+   Point3D center2( { real_c(0.796881), real_c(0.0705737), 0 } );
+   Point3D p2( { real_c(0.846686), real_c(0.0749846), -real_c(2.08167e-17) } );
 
    fractionalRadiusToPolygonBoundary( p2, center2, polygon2, r, angle );
    WALBERLA_LOG_DEVEL_ON_ROOT( "" << r << ", " << angle );

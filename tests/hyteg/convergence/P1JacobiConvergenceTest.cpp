@@ -102,21 +102,23 @@ static void test( const std::string& meshFile, const uint_t& level, const uint_t
          vtkOutput.write( level, i );
       }
 
-      helperFun.assign( {1.0}, {p2functionConst}, level, All );
+      helperFun.assign( { 1.0 }, { p2functionConst }, level, All );
       Lconst.smooth_jac( p2functionConst, rhs, helperFun, 1.0, level, Inner );
-      helperFun.assign( {1.0}, {p2functionElem}, level, All );
+      helperFun.assign( { 1.0 }, { p2functionElem }, level, All );
       Lelem.smooth_jac( p2functionElem, rhs, helperFun, 1.0, level, Inner );
 
-      error.assign( {1.0, -1.0}, {p2functionConst, p2functionElem}, level, All );
+      error.assign( { 1.0, -1.0 }, { p2functionConst, p2functionElem }, level, All );
       auto jacobiDiff = std::sqrt( error.dotGlobal( error, level, Inner ) );
 
-       WALBERLA_CHECK_LESS( jacobiDiff, 1e-13, "ElemOp Jacobi produces different result than ConstOp Jacobi" );
+      bool dp = std::is_same< real_t, double >();
+      WALBERLA_CHECK_LESS( jacobiDiff, dp ? 1e-13 : 8e-6, "ElemOp Jacobi produces different result than ConstOp Jacobi" );
 
       Lconst.apply( p2functionConst, Lu, level, Inner );
-      residuum.assign( {1.0, -1.0}, {rhs, Lu}, level, Inner );
+      residuum.assign( { 1.0, -1.0 }, { rhs, Lu }, level, Inner );
       abs_res = std::sqrt( residuum.dotGlobal( residuum, level, Inner ) );
       rel_res = abs_res / begin_res;
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, jacobiDiff, abs_res, rel_res, abs_res / abs_res_old ) )
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, jacobiDiff, abs_res, rel_res, abs_res / abs_res_old ) )
       WALBERLA_CHECK_LESS( abs_res, abs_res_old );
       abs_res_old = abs_res;
    }

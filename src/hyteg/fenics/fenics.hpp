@@ -40,18 +40,18 @@ enum ElementType
 /// Use this UFCOperator to assemble the zero-matrix.
 class NoAssemble {
  public:
-  void tabulate_tensor(real_t *,
-                       const real_t * const *,
-                       const real_t *,
+  void tabulate_tensor(double *,
+                       const double * const *,
+                       const double *,
                        int) const { }
 };
 
 /// Use this UFCOperator to indicate that no assembly is defined at all.
 class UndefinedAssembly {
 public:
-    void tabulate_tensor(real_t *,
-                         const real_t * const *,
-                         const real_t *,
+    void tabulate_tensor(double *,
+                         const double * const *,
+                         const double *,
                          int) const { WALBERLA_ABORT( "Assembly undefined." ); }
 };
 
@@ -61,11 +61,11 @@ class Dummy10x10Assembly
 public:
 
     Dummy10x10Assembly() : stiffnessMatrix_( Matrix10r::Zero() ) {}
-    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( Matrix10r::Constant(constant) ) {}
+    Dummy10x10Assembly( const double & constant ) : stiffnessMatrix_( Matrix10r::Constant(constant) ) {}
 
-    void tabulate_tensor(real_t * A,
-                         const real_t * const *,
-                         const real_t *,
+    void tabulate_tensor(double * A,
+                         const double * const *,
+                         const double *,
                          int) const
     {
       for ( uint_t i = 0; i < 100; i++ )
@@ -78,9 +78,9 @@ private:
 };
 
 
-typedef std::function<void(real_t *,
-                      const real_t * const *,
-                      const real_t *,
+typedef std::function<void(double *,
+                      const double * const *,
+                      const double *,
                       int cell_orientation)> TabulateTensor;
 
   /// The P2DoFMap maps a pair of vertex indices to a corresponding local

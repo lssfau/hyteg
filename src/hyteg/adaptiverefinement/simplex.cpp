@@ -25,6 +25,8 @@
 #include <cmath>
 #include <iostream>
 
+using walberla::real_c;
+
 namespace hyteg {
 namespace adaptiveRefinement {
 
@@ -100,7 +102,7 @@ inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K
    {
       bc += vtx;
    }
-   bc *= ( 1.0 / ( K + 1 ) );
+   bc *= ( real_c( 1.0 ) / ( K + 1 ) );
    return bc;
 }
 
@@ -108,7 +110,7 @@ template < uint_t K, class K_Simplex >
 inline real_t Simplex< K, K_Simplex >::radius( const std::array< Point3D, K + 1 >& vertices )
 {
    Point3D bc = barycenter( vertices );
-   real_t  r  = 0.0;
+   real_t  r  = real_c( 0.0 );
    for ( auto& vtx : vertices )
    {
       r = std::max( r, ( vtx - bc ).norm() );
@@ -133,17 +135,17 @@ inline real_t Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
       if constexpr ( K == 2 )
       {
          // ||X x Y|| / 2
-         return crossProduct( x, y ).norm() / 2.0;
+         return crossProduct( x, y ).norm() / real_c( 2.0 );
       }
       if constexpr ( K == 3 )
       {
          auto z = vertices[3] - vertices[0];
          // |(X x Y)/2 * Z/3|
-         return std::abs( crossProduct( x, y ).dot( z ) ) / 6.0;
+         return std::abs( crossProduct( x, y ).dot( z ) ) / real_c( 6.0 );
       }
    }
 
-   return 0.0;
+   return real_c( 0.0 );
 }
 
 template < uint_t K, class K_Simplex >

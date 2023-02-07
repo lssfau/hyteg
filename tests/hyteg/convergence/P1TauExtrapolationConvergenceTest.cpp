@@ -20,7 +20,6 @@
 
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
-#include "core/timing/Timer.h"
 
 #include "hyteg/gridtransferoperators/P1toP1InjectionRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -28,6 +27,7 @@
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -50,8 +50,8 @@ int main( int argc, char* argv[] )
 
   const uint_t      minLevel  = 2;
   const uint_t      maxLevel  = 5;
-  const std::string meshFile  = "../../data/meshes/quad_8el.msh";
-  const real_t      coarseGridSolverTolerance = 1e-16;
+  const std::string meshFile                  = "../../data/meshes/quad_8el.msh";
+  const real_t      coarseGridSolverTolerance = real_c( 1e-16 );
   const uint_t      maxCoarseGridSolverIter   = 10000;
   const uint_t      numVCycles = 10;
 
@@ -165,7 +165,7 @@ int main( int argc, char* argv[] )
   P2toP1Conversion( quadraticRhs, f, maxLevel, hyteg::All );
 
   restrictionOperator->restrict( f, maxLevel, All );
-  f.assign( {1.0, -4.0 / 3.0, 4.0 / 3.0}, {f, IAu, AIu}, maxLevel - 1 );
+  f.assign( { 1.0, real_c( -4.0 / 3.0 ), real_c( 4.0 / 3.0 ) }, { f, IAu, AIu }, maxLevel - 1 );
 
   const uint_t tauMaxLevel = maxLevel - 1;
   
@@ -180,18 +180,19 @@ int main( int argc, char* argv[] )
 
     discr_l2_err = std::sqrt( err.dotGlobal( err, tauMaxLevel, DoFType::All ) / npoints_tau );
     discr_l2_res_last_step = discr_l2_res;
-    discr_l2_res = std::sqrt( r.dotGlobal( r, tauMaxLevel, DoFType::Inner ) / npoints_tau );
+    discr_l2_res           = std::sqrt( r.dotGlobal( r, tauMaxLevel, DoFType::Inner ) / npoints_tau );
 
     const real_t convRate = discr_l2_res / discr_l2_res_last_step;
 
-    WALBERLA_LOG_INFO_ON_ROOT( "After " << vCycleCount << " V-cycles: "
-                               "discrete L2 error = " << discr_l2_err <<
-                               ", discrete L2 residual = " << discr_l2_res <<
-                               ", conv rate = " << convRate )
+    WALBERLA_LOG_INFO_ON_ROOT( "After " << vCycleCount
+                                        << " V-cycles: "
+                                           "discrete L2 error = "
+                                        << discr_l2_err << ", discrete L2 residual = " << discr_l2_res
+                                        << ", conv rate = " << convRate )
   }
 
-  WALBERLA_CHECK_LESS( discr_l2_err, 3.3e-09 );
-
+  auto dp = std::is_same< real_t, double >();
+  WALBERLA_CHECK_LESS( discr_l2_err, dp ? 3.3e-09 : 2e-7 );
 
   return 0;
 }

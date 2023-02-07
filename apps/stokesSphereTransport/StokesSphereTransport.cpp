@@ -85,7 +85,7 @@ void simulate( int argc, char* argv[] )
    const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
 
    const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
-   std::vector< double > layers;
+   std::vector< real_t > layers;
    for ( const auto& it : layersParam )
    {
       layers.push_back( layersParam.getParameter< double >( it.first ) );

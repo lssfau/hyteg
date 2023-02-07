@@ -45,7 +45,7 @@ inline real_t faceOrientation2D( const Point3D& a, const Point3D& b, const Point
    jac[0] = b - a;
    jac[1] = c - a;
 
-   return std::copysign( 1.0, det2( jac ) );
+   return std::copysign( walberla::real_c( 1.0 ), det2( jac ) );
 }
 
 constexpr uint_t binomialCoefficient(uint_t n, uint_t k)

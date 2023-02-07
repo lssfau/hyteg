@@ -44,7 +44,7 @@ class Result
       }
       else
       {
-         WALBERLA_CHECK_FLOAT_UNEQUAL( dof, 0.0 )
+         WALBERLA_CHECK_FLOAT_UNEQUAL_EPSILON( dof, 0.0, 10e-8 )
       }
    };
 
@@ -54,7 +54,7 @@ class Result
    bool isZero_;
 };
 
-void test( std::function< Eigen::Vector3r( const Point3D& ) > f, const Result& result )
+void test( const std::function< Eigen::Vector3r( const Point3D& ) >& f, const Result& result )
 {
    MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -79,9 +79,9 @@ void test( std::function< Eigen::Vector3r( const Point3D& ) > f, const Result& r
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
          Point3D coordinates;
-         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
          Eigen::Vector3r eval;
          auto            success = b.evaluate( coordinates, level, eval );

@@ -45,7 +45,14 @@ void pointwiseScalarFunctionEvaluation( const std::vector< Point3D >& points,
    for ( uint_t idx = 0; idx < points.size(); idx++ )
    {
       real_t value;
-      bool   onProcess = f.evaluate( points.at( idx ), level, value, 1e-12 );
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+      real_t searchToleranceRadius = 1e-12;
+#else
+      real_t searchToleranceRadius = 1e-6f;
+#endif
+
+      bool   onProcess = f.evaluate( points.at( idx ), level, value, searchToleranceRadius );
 
       if ( onProcess )
       {
@@ -160,7 +167,7 @@ void icosahedralSurfaceTriangles( real_t                                  radius
    std::vector< Point3D >                 tmpVertices;
    std::vector< std::array< uint_t, 3 > > tmpTriangles;
 
-   const real_t s = ( 1.0 + std::sqrt( 5.0 ) ) / 2.0;
+   const real_t s = ( real_c( 1.0 ) + std::sqrt( 5.0 ) ) / real_c( 2.0 );
 
    // Vertices
    tmpVertices.push_back( Point3D( { -1.0, s, 0.0 } ) );

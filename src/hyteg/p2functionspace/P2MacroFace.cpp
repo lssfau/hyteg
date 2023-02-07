@@ -25,9 +25,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 
-namespace hyteg {
-namespace P2 {
-namespace macroface {
+namespace hyteg::P2::macroface {
 
 real_t evaluate( const uint_t&                                            level,
                  Face&                                                    face,
@@ -85,22 +83,22 @@ void evaluateGradient( const uint_t&                                            
 
    Point2D gradient_;
 
-   gradient_[0] = ( 4.0 * x + 4.0 * y - 3.0 ) * localVertexDoFs[0];
-   gradient_[0] += ( 4.0 * x - 1.0 ) * localVertexDoFs[1];
+   gradient_[0] = ( real_c( 4.0 ) * x + real_c( 4.0 ) * y - real_c( 3.0 ) ) * localVertexDoFs[0];
+   gradient_[0] += ( real_c( 4.0 ) * x - real_c( 1.0 ) ) * localVertexDoFs[1];
 
-   gradient_[1] = ( 4.0 * x + 4.0 * y - 3.0 ) * localVertexDoFs[0];
-   gradient_[1] += ( 4.0 * y - 1.0 ) * localVertexDoFs[2];
+   gradient_[1] = ( real_c( 4.0 ) * x + real_c( 4.0 ) * y - real_c( 3.0 ) ) * localVertexDoFs[0];
+   gradient_[1] += ( real_c( 4.0 ) * y - real_c( 1.0 ) ) * localVertexDoFs[2];
 
    edgedof::macroface::getLocalElementDoFIndicesFromCoordinates< real_t >(
        level, face, coordinates, srcEdgeDoFID, localCoordinates, transform, localEdgeDoFs );
 
-   gradient_[0] += ( 4.0 * y ) * localEdgeDoFs[0];
-   gradient_[0] += ( -4.0 * y ) * localEdgeDoFs[1];
-   gradient_[0] += ( -8.0 * x - 4.0 * y + 4.0 ) * localEdgeDoFs[2];
+   gradient_[0] += ( real_c( 4.0 ) * y ) * localEdgeDoFs[0];
+   gradient_[0] += ( real_c( -4.0 ) * y ) * localEdgeDoFs[1];
+   gradient_[0] += ( real_c( -8.0 ) * x - real_c( 4.0 ) * y + real_c( 4.0 ) ) * localEdgeDoFs[2];
 
-   gradient_[1] += ( 4.0 * x ) * localEdgeDoFs[0];
-   gradient_[1] += ( -4.0 * x - 8.0 * y + 4.0 ) * localEdgeDoFs[1];
-   gradient_[1] += ( -4.0 * x ) * localEdgeDoFs[2];
+   gradient_[1] += ( real_c( 4.0 ) * x ) * localEdgeDoFs[0];
+   gradient_[1] += ( real_c( -4.0 ) * x - real_c( 8.0 ) * y + real_c( 4.0 ) ) * localEdgeDoFs[1];
+   gradient_[1] += ( real_c( -4.0 ) * x ) * localEdgeDoFs[2];
 
    gradient_   = transform.mul( gradient_ );
    gradient[0] = gradient_[0];
@@ -146,7 +144,7 @@ void smoothJacobiVertexDoF( const uint_t&                                       
       }
       dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
           dampingFactor * ( tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )] ) +
-          ( 1.0 - dampingFactor ) *
+          ( real_c( 1.0 ) - dampingFactor ) *
               srcVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )];
    }
 }
@@ -216,7 +214,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
 
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), sD::EDGE_DI_C )] =
              dampingFactor * ( tmp / edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )] ) +
-             ( 1.0 - dampingFactor ) *
+             ( real_c( 1.0 ) - dampingFactor ) *
                  srcEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), sD::EDGE_DI_C )];
       }
       if ( it.col() != 0 )
@@ -271,10 +269,10 @@ void smoothSOR( const uint_t&                                            level,
    real_t tmpVertex = 0, tmpEdgeHO = 0, tmpEdgeDI = 0, tmpEdgeVE = 0;
 
    // invert center weights
-   const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
-   const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
-   const real_t invEdgeXYCenter = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
-   const real_t invEdgeYCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
+   const real_t invVertexCenter = real_c( 1.0 ) / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
+   const real_t invEdgeXCenter  = real_c( 1.0 ) / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
+   const real_t invEdgeXYCenter = real_c( 1.0 ) / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
+   const real_t invEdgeYCenter  = real_c( 1.0 ) / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
 
    /// sum up weighted values first for vertex and edges and write to corresponding dof
    for ( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
@@ -296,7 +294,7 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
-             ( 1.0 - relax ) * dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] +
+             ( real_c( 1.0 ) - relax ) * dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
@@ -316,7 +314,7 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] =
-             ( 1.0 - relax ) *
+             ( real_c( 1.0 ) - relax ) *
                  dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] +
              relax * invEdgeXCenter * tmpEdgeHO;
       }
@@ -337,7 +335,7 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] =
-             ( 1.0 - relax ) * dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] +
+             ( real_c( 1.0 ) - relax ) * dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] +
              relax * invEdgeYCenter * tmpEdgeVE;
       }
       ////////// DIAGONAL EDGE //////////
@@ -357,7 +355,7 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] =
-             ( 1.0 - relax ) * dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] +
+             ( real_c( 1.0 ) - relax ) * dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] +
              relax * invEdgeXYCenter * tmpEdgeDI;
       }
    }
@@ -609,7 +607,7 @@ void smoothGaussSeidel( const uint_t&                                           
 {
    smoothSOR( level,
               face,
-              1.0,
+              real_c( 1.0 ),
               vertexToVertexStencilID,
               edgeToVertexStencilID,
               dstVertexDoFID,
@@ -620,6 +618,4 @@ void smoothGaussSeidel( const uint_t&                                           
               rhsEdgeDoFID );
 }
 
-} // namespace macroface
-} // namespace P2
 } // namespace hyteg

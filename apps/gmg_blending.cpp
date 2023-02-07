@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
 
   }
   auto end = walberla::timing::getWcTime();
-  real_t setupTime = end - start;
+  double setupTime = end - start;
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
   u_exact.interpolate(exact, maxLevel);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
-  real_t solveTime = real_c(0.0);
+  double solveTime = 0.0;
   real_t averageConvergenceRate = real_c(0.0);
   const uint_t convergenceStartIter = 3;
 
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
       laplaceSolverNodal.solve(*L, u, f, maxLevel);
     }
     end = walberla::timing::getWcTime();
-    real_t vCycleTime = end - start;
+    double vCycleTime = end - start;
 
     start = walberla::timing::getWcTime();
     // Estimating discretization error
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
 //    L->smooth_gs(tmp, r, maxMemoryLevel, hyteg::Inner);
 //    estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
     end = walberla::timing::getWcTime();
-    real_t estimatorTime = end - start;
+    double estimatorTime = end - start;
     if (polynomialOperator) {
       Lpoly->apply(u, Lu, maxLevel, hyteg::Inner);
     } else {

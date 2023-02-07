@@ -67,13 +67,13 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
       pde.k = [=]( const hyteg::Point3D& ) { return 1.0; };
 
       pde.f = [=]( const hyteg::Point3D& x ) {
-         auto x0  = x.norm();
-         if (x0 < 1e-100)
+         real_t x0 = x.norm();
+         if ( x0 < 1e-100 )
             return x0;
-         auto x1  = alpha * x0;
-         auto x12 = cosh( x1 );
-         auto x2  = 1.0 / ( x12 * x12 );
-         return -2.0 * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0;
+         real_t x1  = alpha * x0;
+         real_t x12 = cosh( x1 );
+         real_t x2  = real_c( 1.0 ) / ( x12 * x12 );
+         return real_c( -2.0  * ( alpha * alpha ) * x2 * tanh( x1 ) + real_t( dim - 1 ) * alpha * x2 / x0);
       };
 
       pde.u_D = pde.u_anal;
@@ -81,9 +81,9 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
    else
    {
       pde.u_anal = [=]( const hyteg::Point3D& x ) {
-         auto x0 = tanh( alpha * ( x.norm() - 1.5 ) );
-         return 0.5 * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) * exp( -beta ) /
-                alpha;
+         real_t x0 = tanh( alpha * ( x.norm() - real_c( 1.5 ) ) );
+         return real_c( 0.5 ) * ( exp( 2 * beta ) * std::expint( -beta * ( x0 + 1 ) ) - std::expint( -beta * ( x0 - 1 ) ) ) *
+                exp( -beta ) / alpha;
       };
 
       pde.k = [=]( const hyteg::Point3D& x ) {
@@ -160,15 +160,15 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
 }
 
 // solve problem with current refinement and return list of elementwise squared errors of local elements
-adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > storage,
-                                       const PDE_data&                     pde,
-                                       uint_t                              l_min,
-                                       uint_t                              l_max,
-                                       uint_t                              max_iter,
-                                       real_t                              tol,
-                                       std::string                         vtkname,
-                                       uint_t                              refinement_step,
-                                       bool                                l2_error_each_iteration = true )
+adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >& storage,
+                                       const PDE_data&                            pde,
+                                       uint_t                                     l_min,
+                                       uint_t                                     l_max,
+                                       uint_t                                     max_iter,
+                                       real_t                                     tol,
+                                       const std::string&                         vtkname,
+                                       uint_t                                     refinement_step,
+                                       bool                                       l2_error_each_iteration = true )
 {
    uint_t dim = storage->hasGlobalCells() ? 3 : 2;
 
@@ -273,7 +273,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       for ( auto& [id, cell] : storage->getCells() )
       {
-         real_t err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
+         auto err_2_cell = vertexdof::macrocell::dot< real_t >( l_max + 1, *cell, err.getCellDataID(), err.getCellDataID(), 0 );
 
          // scale squared error by cell-volume
          std::array< Point3D, 3 + 1 > vertices;
@@ -292,7 +292,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< PrimitiveStorage > stora
    {
       for ( auto& [id, face] : storage->getFaces() )
       {
-         real_t err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
+         auto err_2_face = vertexdof::macroface::dot< real_t >( l_max + 1, *face, err.getFaceDataID(), err.getFaceDataID(), 0 );
 
          // scale squared error by face-volume
          std::array< Point3D, 2 + 1 > vertices;
@@ -355,7 +355,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&      setupStorage,
                                 uint_t                            l_max,
                                 uint_t                            max_iter,
                                 real_t                            tol,
-                                std::string                       vtkname,
+                                const std::string&                vtkname,
                                 adaptiveRefinement::Loadbalancing loadbalancing,
                                 bool                              writePartitioning )
 {

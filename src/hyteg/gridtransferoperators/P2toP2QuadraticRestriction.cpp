@@ -59,17 +59,17 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       auto edgeCoarseData   = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
 
       const auto numNeighborFacesEdge0 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge1 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge2 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex0 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex1 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex2 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< real_t >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
 
       typedef edgedof::EdgeDoFOrientation eo;
       std::map< eo, uint_t >              firstIdxFine;

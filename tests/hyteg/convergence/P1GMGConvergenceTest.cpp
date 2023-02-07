@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    const uint_t      minLevel                  = 0;
    const uint_t      maxLevel                  = 5;
    const std::string meshFile                  = "../../data/meshes/quad_8el.msh";
-   const real_t      coarseGridSolverTolerance = 1e-16;
+   const real_t      coarseGridSolverTolerance = real_c( 1e-16 );
    const uint_t      maxCoarseGridSolverIter   = 10000;
    const uint_t      numVCycles                = 10;
    const bool        writeVTK                  = false;
@@ -133,7 +133,8 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   WALBERLA_CHECK_LESS( discr_l2_res, 3.0e-14 );
+   bool dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( discr_l2_res, dp ? 3.0e-14 : 5e-8 );
    WALBERLA_CHECK_LESS( discr_l2_err, 2.9e-06 );
 
    return 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -49,9 +49,9 @@ void test2D()
 
    const uint_t numRandomEvaluations = 1000;
 
-   auto testFunc            = []( const Point3D& x ) { return 10.0 * x[0] + 3.0 * x[1] + 1.0; };
-   auto testFuncDerivativeX = []( const Point3D& ) { return 10.0; };
-   auto testFuncDerivativeY = []( const Point3D& ) { return 3.0; };
+   auto testFunc            = []( const Point3D& x ) { return real_c( 10.0 ) * x[0] + real_c( 3.0 ) * x[1] + real_c( 1.0 ); };
+   auto testFuncDerivativeX = []( const Point3D& ) { return real_c( 10.0 ); };
+   auto testFuncDerivativeY = []( const Point3D& ) { return real_c( 3.0 ); };
 
    P1Function< real_t > x( "x", storage, minLevel, maxLevel );
    x.interpolate( testFunc, maxLevel );
@@ -106,8 +106,8 @@ void test2D()
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
+      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
       if ( coordinates[0] < 0.5 && coordinates[1] < 0.5 )
       {
@@ -148,16 +148,16 @@ void test3D()
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
          Point3D coordinates;
-         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
          real_t eval;
          auto   success = x.evaluate( coordinates, level, eval );
          WALBERLA_CHECK( success );
          WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ), "Test3D: wrong value at " << coordinates << "." );
 
-         WALBERLA_LOG_INFO_ON_ROOT( "Passed: " << coordinates )
+         WALBERLA_LOG_DETAIL_ON_ROOT( "Passed: " << coordinates );
       }
    }
 }
@@ -192,7 +192,14 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-7 );
+      }
    }
 
    // 2D affine map
@@ -222,7 +229,14 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-6 );
+      }
    }
 
    const size_t minLevel = 2;
@@ -253,7 +267,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          ctrlValue          = testFunc( samples[idx] );
-         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( 1e-15 ) );
+         bool   coordsFound = func.evaluate( samples[idx], level, testValue, real_c( tolerance ) );
          real_t error       = std::abs( testValue - ctrlValue );
          WALBERLA_LOG_INFO_ON_ROOT( "sampling Point: " << std::scientific << std::showpos << samples[idx] << ", coordsFound = "
                                                        << ( coordsFound ? "TRUE" : "FALSE" ) << ", ctrl = " << ctrlValue

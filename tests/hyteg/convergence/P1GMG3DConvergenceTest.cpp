@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
   const uint_t      maxLevel        = 3;
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
 
-  const uint_t      numVCycles      = 10;
+  const uint_t      numVCycles      = 4;
 //  const uint_t      numPreSmoothingSteps  = 2;
 //  const uint_t      numPostSmoothingSteps = 2;
 //
@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
 
   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
-      return walberla::math::realRandom( 0.0, 1.0 );
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
   };
 
   hyteg::P1Function< real_t > res( "r", storage, minLevel, maxLevel );

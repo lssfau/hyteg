@@ -140,10 +140,11 @@ void testSmoother( SmootherType type,
   // Check size of difference for Jacobi smoother
   uint_t nDoFs = numberOfGlobalDoFs<P2FunctionTag>( (*storage), level );
   real_t errorNorm = std::sqrt( difference.dotGlobal( difference, level ) / real_c(nDoFs) );
-  WALBERLA_CHECK_LESS( errorNorm, 2e-13 );
+  auto dp = std::is_same< real_t, double >();
+  WALBERLA_CHECK_LESS( errorNorm, dp ? 2e-13 : 1.5e-7 );
 
   errorNorm = difference.getMaxMagnitude( level );
-  WALBERLA_CHECK_LESS( errorNorm, 3e-13 );
+  WALBERLA_CHECK_LESS( errorNorm, dp ? 3e-13 : 8e-7 );
 
   switch( type ) {
   case JACOBI:
@@ -186,7 +187,7 @@ int main( int argc, char** argv )
    // Setup strong right-hand side
    P2ConstantMassOperator massOp( storage, level, level );
    P2Function< real_t >   rhsStrong( "right-hand side", storage, level, level );
-   rhsStrong.interpolate( -2.0 * ( COEFF_A20 + COEFF_A02 ), level );
+   rhsStrong.interpolate( real_c( -2.0 ) * ( COEFF_A20 + COEFF_A02 ), level );
 
    // Run tests
    WALBERLA_LOG_INFO_ON_ROOT( "Running tests with (P2ConstantMassOperator, P2ConstantLaplaceOperator)" );

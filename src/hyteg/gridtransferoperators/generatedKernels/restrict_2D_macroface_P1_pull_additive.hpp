@@ -23,15 +23,19 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "core/DataTypes.h"
 #include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
+
+using walberla::real_t;
+using walberla::real_c;
 
 namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void restrict_2D_macroface_P1_pull_additive(double * RESTRICT _data_vertexCoarseDst, double const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2);
+void restrict_2D_macroface_P1_pull_additive(real_t * RESTRICT _data_vertexCoarseDst, real_t const * RESTRICT const _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2);
 
 } // namespace generated
 } // namespace macroface

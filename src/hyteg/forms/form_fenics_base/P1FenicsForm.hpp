@@ -78,8 +78,8 @@ class P1FenicsForm : public P1Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
-      Matrix3r localStiffnessMatrix{ Matrix3r::Zero() };
-      real_t   fenicsCoords[6];
+      hyteg::Matrix< double, 3, 3 > localStiffnessMatrix{ hyteg::Matrix< double, 3, 3 >::Zero() };
+      double                        fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[1][0];
@@ -95,7 +95,7 @@ class P1FenicsForm : public P1Form
 
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
-      typename fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T localStiffnessMatrix;
+      //typename fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T localStiffnessMatrix;
 
       // Flattening the offset array to be able to pass it to the fenics routines.
       double geometricOffsetsArray[12];
@@ -108,6 +108,11 @@ class P1FenicsForm : public P1Form
       }
 
       UFCOperator3D gen;
+      Eigen::Matrix< double,
+                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
+                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime,
+                     Eigen::RowMajor >
+          localStiffnessMatrix;
       gen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
       out[0] = localStiffnessMatrix( 0, 0 );
@@ -138,20 +143,22 @@ class P1FenicsForm : public P1Form
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
-      real_t fenicsCoords[6];
+      double fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[1][0];
       fenicsCoords[3] = coords[1][1];
       fenicsCoords[4] = coords[2][0];
       fenicsCoords[5] = coords[2][1];
-      UFCOperator2D gen;
-      gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
+      UFCOperator2D                 gen;
+      hyteg::Matrix< double, 3, 3 > tmp = elMat.cast< double >();
+      gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      elMat = tmp.cast< real_t >();
    }
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
    {
-      real_t fenicsCoords[12];
+      double fenicsCoords[12];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[0][2];
@@ -168,8 +175,10 @@ class P1FenicsForm : public P1Form
       fenicsCoords[10] = coords[3][1];
       fenicsCoords[11] = coords[3][2];
 
-      UFCOperator3D gen;
-      gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
+      UFCOperator3D                 gen;
+      hyteg::Matrix< double, 4, 4 > tmp = elMat.cast< double >();
+      gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      elMat = tmp.cast< real_t >();
    }
 
    inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }

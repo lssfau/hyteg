@@ -53,7 +53,8 @@ void testInverse( real_t radInnerShell, real_t radOuterShell )
          geometryMap.evalF( position, mappedPosition );
          geometryMap.evalFinv( mappedPosition, invMappedPosition );
          auto error = ( position - invMappedPosition ).norm();
-         WALBERLA_CHECK_LESS( error, 5e-13 );
+         auto dp = std::is_same<real_t, double>();
+         WALBERLA_CHECK_LESS( error, dp ? 5e-13 : 5e-7 );
       }
    }
 }

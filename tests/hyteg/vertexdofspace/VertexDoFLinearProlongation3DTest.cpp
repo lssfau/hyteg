@@ -45,7 +45,7 @@ using namespace hyteg;
 void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
 {
    const bool   writeVTK   = true;
-   const real_t errorLimit = 1e-15;
+   const real_t errorLimit = real_c( std::is_same<real_t, double>() ? 1e-15 : 8e-9 );
 
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -81,7 +81,7 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
    vtkOutput.add( resultExact );
    vtkOutput.add( err );
 
-   auto testProlongationResult = [&]( std::function< real_t( const hyteg::Point3D& ) > uFunction ) -> real_t {
+   auto testProlongationResult = [&]( const std::function< real_t( const hyteg::Point3D& ) >& uFunction ) -> real_t {
       u.interpolate( uFunction, lowerLevel, All );
       resultExact.interpolate( uFunction, lowerLevel + 1, Inner | NeumannBoundary );
 
@@ -100,21 +100,21 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
    // ------------
    //   a) u = 0
    const real_t errorUZero = testProlongationResult( zero );
-   WALBERLA_LOG_INFO_ON_ROOT( "u = 0: L2 error: " << errorUZero );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "u = 0: L2 error: " << errorUZero );
    if ( writeVTK )
       vtkOutput.write( lowerLevel + 1, 1 );
    WALBERLA_CHECK_LESS( errorUZero, errorLimit );
 
    //   b) u = 1
    const real_t errorUOne = testProlongationResult( one );
-   WALBERLA_LOG_INFO_ON_ROOT( "u = 1: L2 error: " << errorUOne );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "u = 1: L2 error: " << errorUOne );
    if ( writeVTK )
       vtkOutput.write( lowerLevel + 1, 2 );
    WALBERLA_CHECK_LESS( errorUOne, errorLimit );
 
    //   c) u = some other constant
    const real_t errorUConstant = testProlongationResult( constant );
-   WALBERLA_LOG_INFO_ON_ROOT( "u = const: L2 error: " << errorUConstant );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "u = const: L2 error: " << errorUConstant );
    if ( writeVTK )
       vtkOutput.write( lowerLevel + 1, 3 );
    WALBERLA_CHECK_LESS( errorUConstant, errorLimit );
@@ -123,14 +123,14 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
    // -----------
    //   a) u linear in x
    const real_t errorULinearInX = testProlongationResult( linearInX );
-   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x: L2 error: " << errorULinearInX );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "u linear in x: L2 error: " << errorULinearInX );
    if ( writeVTK )
       vtkOutput.write( lowerLevel + 1, 4 );
    WALBERLA_CHECK_LESS( errorULinearInX, errorLimit );
 
    //   b) u linear in x, y and z
    const real_t errorULinearInXYZ = testProlongationResult( linearInXYZ );
-   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x, y and z: L2 error: " << errorULinearInXYZ );
+   WALBERLA_LOG_DETAIL_ON_ROOT( "u linear in x, y and z: L2 error: " << errorULinearInXYZ );
    if ( writeVTK )
       vtkOutput.write( lowerLevel + 1, 5 );
    WALBERLA_CHECK_LESS( errorULinearInXYZ, errorLimit );
@@ -139,7 +139,7 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
 void testProlongateAndAdd3D( const std::string& meshFile, const uint_t& lowerLevel )
 {
    const bool   writeVTK   = true;
-   const real_t errorLimit = 1e-15;
+   const real_t errorLimit = real_c( std::is_same< real_t, double >() ? 1e-15 : 8e-11 );
 
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

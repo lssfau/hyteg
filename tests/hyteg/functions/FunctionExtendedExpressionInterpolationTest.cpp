@@ -119,7 +119,8 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // ... and check result
    real_t error = difference.getMaxMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
-   WALBERLA_CHECK_LESS( error, 1e-15 );
+   auto dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
 }
 
 template < typename myFuncType >
@@ -200,7 +201,8 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // ... and check result
    real_t error = difference.getMaxMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
-   WALBERLA_CHECK_LESS( error, 1e-15 );
+   auto dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
 }
 
 } // namespace hyteg

@@ -113,18 +113,18 @@ int main( int argc, char* argv[] )
    hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true, false );
    hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true, false );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, real_c(1.5e-05), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, real_c(2e-05), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, real_c(3e-06), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, real_c(2e-04), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, real_c(1.5e-04), true, false );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, real_c(1e-7), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, real_c(3e-7), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, real_c(3e-6), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, real_c(3e-7), true, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, real_c(3e-5), false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, real_c(1.7e-5), true, false );
 
    hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 0, 1, false, true );
    hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 0, 1, false, true );
@@ -133,16 +133,16 @@ int main( int argc, char* argv[] )
    hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true, true );
    hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true, true );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, real_c(1.5e-05), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, real_c(2e-05), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, real_c(3e-06), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, real_c(2e-04), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, real_c(1.5e-04), true, true );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, real_c(1e-7), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, real_c(3e-7), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, real_c(3e-6), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, real_c(3e-7), true, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, real_c(3e-5), false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, real_c(1.7e-5), true, true );
 }

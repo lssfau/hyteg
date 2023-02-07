@@ -102,7 +102,7 @@ int main( int argc, char* argv[] )
          return damping * velocity;
       } else
       {
-         return 0.0;
+         return real_c( 0.0 );
       }
    };
 

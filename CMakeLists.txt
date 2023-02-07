@@ -19,6 +19,10 @@ set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimization
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
+set(WALBERLA_BUILD_TESTS            OFF )
+set(WALBERLA_BUILD_BENCHMARKS       OFF )
+set(WALBERLA_BUILD_TUTORIALS        OFF )
+set(WALBERLA_BUILD_SHOWCASES        OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
@@ -30,17 +34,25 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
 
-if ( HYTEG_USE_GENERATED_KERNELS )
-    message(STATUS "Using generated HyTeG kernels.")
-else()
-    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
+find_package( waLBerla )
+
+if ( NOT WALBERLA_DOUBLE_ACCURACY )
+   set( HYTEG_USE_GENERATED_KERNELS OFF)
+   message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF" )
 endif()
 
-find_package( waLBerla )
+if ( HYTEG_USE_GENERATED_KERNELS )
+   message(STATUS "Using generated HyTeG kernels.")
+else()
+   message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
+endif()
 
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
     add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
+    if( NOT WALBERLA_DOUBLE_ACCURACY )
+       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=float-conversion" )
+    endif()
 endif()
 
 include(FetchContent)
@@ -81,6 +93,9 @@ endif()
 if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
     add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
+    if( NOT WALBERLA_DOUBLE_ACCURACY )
+       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=implicit-float-conversion" )
+    endif()
 endif()
 
 # MSVC generates so many warnings that the CI log gets too large to complete the job successfully

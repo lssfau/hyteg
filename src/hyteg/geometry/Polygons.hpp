@@ -42,7 +42,7 @@ using walberla::math::pi;
 static void
     fractionalRadiusToPolygonBoundary( const Point3D& P, const Point3D& center, const std::vector< Point3D >& polygonVertices, real_t & r, real_t & angle )
 {
-   const real_t eps = 1e-12;
+   const real_t eps = std::is_same< real_t, double >() ? 1e-12 : 1e-6;
 
    auto   C        = center;
    real_t gammaSum = 0;

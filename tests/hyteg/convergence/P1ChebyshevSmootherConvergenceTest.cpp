@@ -31,7 +31,7 @@ void runTest()
    const uint_t maxLevel         = 5;
    const uint_t max_outer_iter   = 4;
    const uint_t max_coarse_iter  = 1000;
-   const real_t coarse_tolerance = 1e-16;
+   const real_t coarse_tolerance = real_c( 1e-10 );
    const uint_t smoothingSteps   = 2;
 
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
@@ -55,7 +55,8 @@ void runTest()
    eigenvector.interpolate( analytic_solution, minLevel, DirichletBoundary );
    const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, eigenvector, tmp );
 
-   const std::array< real_t, 5 > expectedResiduals{0.00799318, 0.000244743, 4.86337e-05, 1.53384e-05, 6.00188e-06};
+   const std::array< real_t, 5 > expectedResiduals{
+       real_c( 0.00799318 ), real_c( 0.000244743 ), real_c( 4.86337e-05 ), real_c( 1.53384e-05 ), real_c( 6.00188e-06 ) };
 
    for ( uint_t order = 1; order < 6; order += 1 )
    {
@@ -94,7 +95,7 @@ void runTest()
          multiGridSolver.solve( laplaceOperator, function, rightHandSide, maxLevel );
 
       laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, Inner );
-      residual.assign( {1.0, -1.0}, {rightHandSide, laplaceTimesFunction}, maxLevel, Inner );
+      residual.assign( { 1.0, -1.0 }, { rightHandSide, laplaceTimesFunction }, maxLevel, Inner );
       const auto residualValue = std::sqrt( residual.dotGlobal( residual, maxLevel, Inner ) );
 
       // the calculated residuals should up to 10% match the expected residual.

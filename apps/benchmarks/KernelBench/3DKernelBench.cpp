@@ -25,7 +25,7 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/misc/dummy.hpp"
-#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.cpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
 int main( int argc, char** argv )
@@ -51,7 +51,7 @@ int main( int argc, char** argv )
       std::vector< double > dst( tetSize );
       std::generate( dst.begin(), dst.end(), std::rand );
 
-      hyteg::vertexdof::macrocell::StencilMap_T stencil;
+      std::map< hyteg::indexing::IndexIncrement, double > stencil;
       for ( const auto & neighbor : hyteg::vertexdof::macrocell::neighborsWithCenter )
         stencil[hyteg::vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = walberla::real_c( std::rand() );
 

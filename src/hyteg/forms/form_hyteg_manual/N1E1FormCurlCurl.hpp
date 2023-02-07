@@ -50,7 +50,7 @@ class N1E1Form_curl_curl : public N1E1Form
       // F maps from reference tet K' to affine tet K
       // K = F(K') = Bx' + b
       // B is the Jacobian of the transformation
-      Eigen::Matrix3r B;
+      hyteg::Matrix3r B;
       B.col( 0 ) = coords[1].vector_ - coords[0].vector_;
       B.col( 1 ) = coords[2].vector_ - coords[0].vector_;
       B.col( 2 ) = coords[3].vector_ - coords[0].vector_;

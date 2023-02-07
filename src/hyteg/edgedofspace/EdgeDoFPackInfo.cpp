@@ -627,6 +627,7 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
    this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Face to Cell (pack)" );
    if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
+#ifdef HYTEG_USE_GENERATED_KERNELS
       auto         cell             = storage_.lock()->getCell( receiver );
       const uint_t localFaceID      = cell->getLocalFaceID( sender->getID() );
       const uint_t iterationVertex0 = cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
@@ -649,6 +650,7 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
                                                                                 static_cast< int >( iterationVertex1 ),
                                                                                 static_cast< int >( iterationVertex2 ),
                                                                                 0 );
+#endif
    }
    else
    {
@@ -712,6 +714,7 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
 
    if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
+#ifdef HYTEG_USE_GENERATED_KERNELS
       const uint_t requiredBufferElements = levelinfo::num_microedges_per_face( level_ );
       auto         buffer_ptr             = (real_t*) ( buffer.skip( requiredBufferElements * sizeof( real_t ) ) );
 
@@ -732,6 +735,7 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
           static_cast< int >( iterationVertex1 ),
           static_cast< int >( iterationVertex2 ),
           0 );
+#endif
    }
    else
    {
@@ -810,6 +814,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalFaceToCell( const Face* sender, 
 
   if ( globalDefines::useGeneratedKernels && level_ >= 1 )
   {
+#ifdef HYTEG_USE_GENERATED_KERNELS
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxFace;
     for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
       firstIdxFace[e] = edgedof::macroface::index( level_, 0, 0, e );
@@ -833,6 +838,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalFaceToCell( const Face* sender, 
       static_cast< int >( iterationVertex1 ),
       static_cast< int >( iterationVertex2 )
     );
+#endif
   }
   else
   {
@@ -1046,6 +1052,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
 
   if ( level_ >= 1 && globalDefines::useGeneratedKernels )
   {
+#ifdef HYTEG_USE_GENERATED_KERNELS
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxCell;
     for ( auto e : edgedof::allEdgeDoFOrientations )
       firstIdxCell[e] = edgedof::macrocell::index( level_, 0, 0, 0, e );
@@ -1092,6 +1099,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
       static_cast< int >( iterationVertex1 ),
       static_cast< int >( iterationVertex2 )
     );
+#endif
   }
   else
   {

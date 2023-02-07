@@ -39,7 +39,7 @@ using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
 inline Point3D microEdgeDirection( const uint_t& level, const Face& face, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const real_t stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const real_t stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
 
    switch ( orientation )
    {

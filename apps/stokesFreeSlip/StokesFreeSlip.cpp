@@ -49,7 +49,7 @@ using walberla::uint_t;
 using namespace hyteg;
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
+    setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
    Point2D left( {-channelLength / 2, 0} );
    Point2D right( {channelLength / 2, channelHeight} );
@@ -88,7 +88,7 @@ void applyDirichletBCRectangle( const double channelLength, const double channel
 }
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageAnnulus( const double rmin, const double rmax, const uint_t nTan, const uint_t nRad )
+    setupStorageAnnulus( const real_t rmin, const real_t rmax, const uint_t nTan, const uint_t nRad )
 {
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshAnnulus( rmin, rmax, MeshInfo::CRISS, nTan, nRad );
 

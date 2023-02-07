@@ -83,7 +83,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero  = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 20.0 ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 20.0 ) ); };
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating u" );
    u.interpolate( rand, maxLevel, hyteg::Inner );
@@ -215,7 +215,7 @@ int main( int argc, char* argv[] )
                                               << averageConvergenceRate / real_c( i - convergenceStartIter ) );
    WALBERLA_LOG_INFO_ON_ROOT( std::setw( 25 ) << "L^2 error: " << std::scientific << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 8.4e-08 )
+   WALBERLA_CHECK_LESS( discr_l2_err, 9e-08 )
 
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {

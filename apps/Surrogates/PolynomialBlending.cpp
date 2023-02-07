@@ -96,7 +96,7 @@ struct OperatorHandler
    }
 
    template < class OP >
-   static real_t setup( std::shared_ptr< OP >, const uint_t, const uint_t )
+   static double setup( std::shared_ptr< OP >, const uint_t, const uint_t )
    {
       return 0;
    }
@@ -104,7 +104,7 @@ struct OperatorHandler
 
 template <>
 template < class OP >
-real_t OperatorHandler< StencilType::LSQP >::setup( std::shared_ptr< OP > op,
+double OperatorHandler< StencilType::LSQP >::setup( std::shared_ptr< OP > op,
                                                     const uint_t          polyDegree,
                                                     const uint_t          interpolationlvl )
 {
@@ -264,7 +264,7 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Apply LSQ-fit with q = %d", polyDegree ) );
    }
-   real_t setupTime = FE::setup( L, polyDegree, interpolationLevel );
+   double setupTime = FE::setup( L, polyDegree, interpolationLevel );
 
    // reset u
    u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, maxLevel, hyteg::Inner );
@@ -272,7 +272,7 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
    // solve iteratively
    uint_t       iter       = 0;
    real_t       res        = 0, res_old, discr_l2_err;
-   real_t       vCycleTime = 0, solveTime = 0;
+   double       vCycleTime = 0, solveTime = 0;
    real_t       averageConvergenceRate = 0;
    const uint_t convergenceStartIter   = 3;
 
@@ -553,7 +553,7 @@ int main( int argc, char* argv[] )
    Point3D                                               circleCenter{ { 0, 0, 0 } };
    real_t                                                rMin        = pi / 2;
    real_t                                                rMax        = pi;
-   real_t                                                middle      = ( rMax + rMin ) / 2.0;
+   real_t                                                middle      = ( rMax + rMin ) / real_c( 2.0 );
    std::function< real_t( const real_t, const real_t ) > exact_polar = []( const real_t r, const real_t phi ) {
       return sin( 2 * r ) * sin( 4 * phi );
    };
@@ -567,8 +567,8 @@ int main( int argc, char* argv[] )
       rhs = [&]( const hyteg::Point3D& x ) {
          real_t r  = radius( x );
          real_t T1 = 8 * x[0] * x[1] * ( x[0] * x[0] - x[1] * x[1] );
-         real_t T2 = pow( r, 8 ) * ( -r * cos( 2 * r ) + ( 2 * r * r + 8 ) * sin( 2 * r ) );
-         real_t T3 = pow( r, 14 );
+         real_t T2 = real_c( pow( r, 8 ) * ( -r * cos( 2 * r ) + ( 2 * r * r + 8 ) * sin( 2 * r ) ) );
+         real_t T3 = real_c( pow( r, 14 ) );
          return T1 * T2 / T3;
       };
 

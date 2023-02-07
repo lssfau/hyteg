@@ -27,6 +27,8 @@
 #include <array>
 #include <vector>
 
+using walberla::real_c;
+
 namespace hyteg {
 
 MeshInfo MeshInfo::meshCuboid( const Point3D lowerLeftFront,
@@ -61,9 +63,9 @@ MeshInfo MeshInfo::meshCuboid( const Point3D lowerLeftFront,
 
   // compute vertices and insert them
   Point3D vertexCoords;
-  real_t xpos = 0.0;
-  real_t ypos = 0.0;
-  real_t zpos = 0.0;
+  real_t xpos = real_c( 0.0 );
+  real_t ypos = real_c( 0.0 );
+  real_t zpos = real_c( 0.0 );
   uint_t vertexID = 0;
 
   for ( uint_t iz = 0; iz <= nz; ++iz ) {

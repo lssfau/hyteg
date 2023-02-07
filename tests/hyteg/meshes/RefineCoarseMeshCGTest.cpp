@@ -51,7 +51,7 @@ real_t runTest( uint_t coarseRefinements, uint_t level, hyteg::MeshInfo meshInfo
    std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D& ) -> real_t { return 1.0; };
 
    std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D& ) -> real_t {
-      return walberla::math::realRandom( 0.0, 1.0 );
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
    };
 
    hyteg::P1Function< real_t > res( "r", storage, level, level );

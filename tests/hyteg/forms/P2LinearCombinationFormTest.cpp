@@ -49,7 +49,7 @@ namespace hyteg {
 bool P2LinearCombinationFormTest( const uint_t& level, const std::string& meshFile )
 {
    const bool   writeVTK = false;
-   const real_t eps      = 1e-14;
+   const real_t eps      = std::is_same< real_t, double >() ? real_c( 1e-14) : real_c(6e-6);
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -76,8 +76,8 @@ bool P2LinearCombinationFormTest( const uint_t& level, const std::string& meshFi
 
    P2ConstantLaplaceOperator L( storage, level, level );
    P2ConstantMassOperator    M( storage, level, level );
-   const real_t              c0 = 0.3;
-   const real_t              c1 = 0.7;
+   const real_t              c0 = real_c(0.3);
+   const real_t              c1 = real_c(0.7);
 
    // linear combination through forms
 

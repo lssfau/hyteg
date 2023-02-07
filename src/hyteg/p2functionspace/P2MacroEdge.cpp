@@ -54,8 +54,8 @@ void smoothSOR( const uint_t&                                            level,
 
    real_t tmpVertex = 0, tmpEdgeHO = 0;
 
-   const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
-   const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
+   const real_t invVertexCenter = real_c( 1.0 ) / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const real_t invEdgeXCenter  = real_c( 1.0 ) / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
 
    for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
@@ -103,7 +103,7 @@ void smoothSOR( const uint_t&                                            level,
             }
          }
          dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             (1.0 - relax) * dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
+             (real_c( 1.0 ) - relax) * dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
@@ -141,11 +141,12 @@ void smoothSOR( const uint_t&                                            level,
          }
       }
       dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
-          (1.0 - relax) * dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
+          (real_c( 1.0 ) - relax) * dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
           relax * invEdgeXCenter * tmpEdgeHO;
    }
 }
 
+#ifdef HYTEG_USE_GENERATED_KERNELS
 static void smoothSOR3DUpdateVertexDoFsGenerated(
     const uint_t&                                                                                level,
     const PrimitiveStorage&                                                                      storage,
@@ -244,6 +245,7 @@ static void smoothSOR3DUpdateVertexDoFsGenerated(
       vertexDoFDst[dstIdx] = oneMinusRelax * vertexDoFDst[dstIdx] + vertexDoFRelaxOverCenter * stencilSum;
    }
 }
+#endif
 
 static void smoothSOR3DUpdateVertexDoFs(
     const uint_t&                                                                                level,
@@ -630,6 +632,7 @@ void smoothSOR3D(
    WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "VertexDoFs" ); }
    if ( globalDefines::useGeneratedKernels )
    {
+#ifdef HYTEG_USE_GENERATED_KERNELS
       smoothSOR3DUpdateVertexDoFsGenerated( level,
                                             storage,
                                             edge,
@@ -643,6 +646,8 @@ void smoothSOR3D(
                                             edgeDoFDstId,
                                             edgeDoFRhsId,
                                             backwards );
+#endif
+      WALBERLA_UNUSED( vertexToVertexOperatorMapId );
    }
    else
    {
@@ -706,8 +711,8 @@ void smoothJacobi( const uint_t&                                            leve
 
    real_t tmpVertex = 0, tmpEdgeHO = 0;
 
-   const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
-   const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
+   const real_t invVertexCenter = real_c( 1.0 ) / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const real_t invEdgeXCenter  = real_c( 1.0 ) / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
 
    for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
@@ -755,7 +760,7 @@ void smoothJacobi( const uint_t&                                            leve
             }
          }
          dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             (1.0 - relax) * srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
+             (real_c( 1.0 ) - relax) * srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
@@ -793,7 +798,7 @@ void smoothJacobi( const uint_t&                                            leve
          }
       }
       dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
-          (1.0 - relax) * srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
+          (real_c( 1.0 ) - relax) * srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
           relax * invEdgeXCenter * tmpEdgeHO;
    }
 }

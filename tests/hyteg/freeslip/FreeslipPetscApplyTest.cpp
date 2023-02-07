@@ -47,7 +47,7 @@ using walberla::uint_t;
 using namespace hyteg;
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
+    setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
    Point2D left( { -channelLength / 2, 0 } );
    Point2D right( { channelLength / 2, channelHeight } );
@@ -97,7 +97,7 @@ void run( const real_t absErrorTolerance )
    numerator.enumerate( maxLevel );
 
    walberla::math::seedRandomGenerator( 1234 );
-   auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
+   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
 
    u_src.uvw().interpolate( { rand, rand, rand }, maxLevel, All );
    u_src.p().interpolate( rand, maxLevel, All );

@@ -27,6 +27,8 @@
 #include <array>
 #include <vector>
 
+using walberla::real_c;
+
 namespace hyteg {
 
 
@@ -195,9 +197,9 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
             for( uint_t j = 0; j < ny; ++j )
               {
                 // add new central vertex
-                midx = llx + ( (real_t)i + 0.5 ) * hx;
-                midy = lly + ( (real_t)j + 0.5 ) * hy;
-                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, 0.0 } ), 0 );
+                midx = llx + ( (real_t)i + real_c( 0.5 ) ) * hx;
+                midy = lly + ( (real_t)j + real_c( 0.5 ) ) * hy;
+                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, real_c( 0.0 ) } ), 0 );
 
                 meshInfo.addFace( Face( { rectMap(  i ,  j  ), idx, rectMap( i+1,  j  ) }, 0 ) );
                 meshInfo.addFace( Face( { rectMap( i+1,  j  ), idx, rectMap( i+1, j+1 ) }, 0 ) );
@@ -215,7 +217,7 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
     }
 
   // generate edges from faces
-  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, 0.1 * std::min( hx, hy ) );
+  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, real_c( 0.1 ) * std::min( hx, hy ) );
 
   return meshInfo;
 }
@@ -247,8 +249,8 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
   WALBERLA_ASSERT_GREATER( ny, 0 );
 
   // compute mesh spacings (we virtually refine once!)
-  real_t hx = 0.5 * ( urx - llx ) / (real_t)nx;
-  real_t hy = 0.5 * ( ury - lly ) / (real_t)ny;
+  real_t hx = real_c( 0.5 ) * ( urx - llx ) / (real_t)nx;
+  real_t hy = real_c( 0.5 ) * ( ury - lly ) / (real_t)ny;
 
   // --------------------
   //  generate mesh info
@@ -358,7 +360,7 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
     }
 
   // generate edges from faces
-  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, 0.1 * std::min( hx, hy ) );
+  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, real_c( 0.1 ) * std::min( hx, hy ) );
 
   return meshInfo;
 }

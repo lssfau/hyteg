@@ -21,7 +21,6 @@
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
-#include "core/timing/Timer.h"
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -227,12 +226,12 @@ int main( int argc, char* argv[] )
    real_t tMax           = 1;
    uint_t maxLevel       = 4;
    uint_t timeIntegrator = 0;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 3.6e-04 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.8e-04 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 8.6e-05 );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 3.6e-04 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 1.8e-04 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 8.6e-05 ) );
 
    timeIntegrator = 1;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 5.7e-06 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-06 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 3.5e-07 );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 5.7e-06 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 3.6e-06 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 3.5e-07 ) );
 }

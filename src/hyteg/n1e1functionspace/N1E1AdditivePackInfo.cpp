@@ -395,6 +395,7 @@ void N1E1AdditivePackInfo< ValueType >::communicateLocalCellToVertex( const Cell
 ///@}
 
 template class N1E1AdditivePackInfo< double >;
+template class N1E1AdditivePackInfo< float >;
 template class N1E1AdditivePackInfo< int >;
 template class N1E1AdditivePackInfo< long >;
 template class N1E1AdditivePackInfo< long long >;
