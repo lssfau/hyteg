@@ -199,8 +199,8 @@ class P0Function : public Function< P0Function< ValueType > >
 
             for ( const auto src : srcFunctions )
             {
-               dofs.push_back( src.getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level ) );
-               memLayouts.push_back( src.getDGFunction()->volumeDoFFunction()->memoryLayout() );
+               dofs.push_back( src.get().getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level ) );
+               memLayouts.push_back( src.get().getDGFunction()->volumeDoFFunction()->memoryLayout() );
             }
 
             for ( auto faceType : facedof::allFaceTypes )
@@ -226,7 +226,7 @@ class P0Function : public Function< P0Function< ValueType > >
                          dofs[k+1][volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[k+1] )];
                   }
 
-                  const auto newValue = expr( Point3D( { centroid( 0 ), centroid( 1 ), 0 } ), srcValues );
+                  const auto newValue = expression( Point3D( { centroid( 0 ), centroid( 1 ), 0 } ), srcValues );
 
                   dofs[0][volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[0] )] =
                       ValueType( newValue );
