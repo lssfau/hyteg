@@ -64,7 +64,8 @@ real_t test( uint_t                                    level,
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
    DGFunction< real_t > err( "err", storage, level, level, basis, degree );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << u.getNumberOfGlobalDoFs( level ) );
+   auto numGlobalDoFs = u.getNumberOfGlobalDoFs( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "dofs: " << numGlobalDoFs );
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
