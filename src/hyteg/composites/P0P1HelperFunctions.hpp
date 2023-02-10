@@ -113,7 +113,7 @@ void integrateP0P1ToP1( P0Function< real_t >& srcP0,
    }
 }
 
-void projectP1ToP0( P1Function< real_t >& srcP1, P0Function< real_t >& dstP0, uint_t level, UpdateType updateType )
+void projectP1ToP0( P1Function< real_t >& srcP1, P0Function< real_t >& dstP0, uint_t level, UpdateType updateType = Replace )
 {
    using namespace vertexdof::macroface;
 

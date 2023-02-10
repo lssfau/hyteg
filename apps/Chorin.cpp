@@ -17,10 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <cfenv>
 #include <core/math/Constants.h>
 
+#include "hyteg/composites/P0P1HelperFunctions.hpp"
+#include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -43,6 +45,14 @@ using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
+
+#ifndef __APPLE__
+// should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
+#ifndef _MSC_VER
+   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+#endif
+
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
@@ -71,7 +81,7 @@ int main( int argc, char* argv[] )
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree, 1 );
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
    loadbalancing::distributed::parmetis( *storage );
@@ -128,11 +138,11 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< real_t > res( "res", storage, minLevel, maxLevel );
    hyteg::P1Function< real_t > ones( "ones", storage, minLevel, maxLevel );
 
-   auto u_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg = std::make_shared< hyteg::DGFunction_old< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg = std::make_shared< hyteg::P0Function< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg = std::make_shared< hyteg::P0Function< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   auto u_dg_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg_old = std::make_shared< hyteg::DGFunction_old< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg_old = std::make_shared< hyteg::P0Function< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg_old = std::make_shared< hyteg::P0Function< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
    hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hyteg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );
@@ -148,7 +158,7 @@ int main( int argc, char* argv[] )
 
    // std::array< hyteg::P1Function< real_t >, 2 > velocity{ u,v };
    // hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
-   hyteg::DG0P1UpwindOperator N( storage, velocity, minLevel, maxLevel );
+   hyteg::P0P1UpwindOperator N( storage, velocity, minLevel, maxLevel );
 
    typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseSolver;
    auto coarseLaplaceSolver  = std::make_shared< CoarseSolver >( storage, minLevel, minLevel, max_cg_iter );
@@ -166,8 +176,8 @@ int main( int argc, char* argv[] )
    p.interpolate( zero, maxLevel - 1, hyteg::NeumannBoundary );
    ones.interpolate( real_t( 1 ), maxLevel, hyteg::All );
 
-   u_dg->projectP1( velocity[0], maxLevel, hyteg::All );
-   v_dg->projectP1( velocity[1], maxLevel, hyteg::All );
+   projectP1ToP0( velocity[0], *u_dg, maxLevel );
+   projectP1ToP0( velocity[1], *v_dg, maxLevel );
 
    hyteg::VTKOutput vtkOutput( "../output", "test", storage, plotModulo );
    vtkOutput.add( velocity );
@@ -181,23 +191,21 @@ int main( int argc, char* argv[] )
       time += dt;
       velocity[0].interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
 
-      u_dg_old->projectP1( velocity[0], maxLevel, hyteg::All );
-      v_dg_old->projectP1( velocity[1], maxLevel, hyteg::All );
+      projectP1ToP0( velocity[0], *u_dg_old, maxLevel );
+      projectP1ToP0( velocity[1], *v_dg_old, maxLevel );
 
       N.apply( *u_dg_old, *u_dg, maxLevel, hyteg::All, Replace );
       N.apply( *v_dg_old, *v_dg, maxLevel, hyteg::All, Replace );
 
       // Predict u
-      // tmp.integrateDG( *u_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      P1IntegrateDG( *u_dg, ones, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      integrateP0P1ToP1( *u_dg, ones, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       Ascaled.apply( velocity[0], tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       velocity[0].add( { -dt }, { tmp2 }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Predict v
-      // tmp.integrateDG( *v_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-      P1IntegrateDG( *v_dg, ones, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      integrateP0P1ToP1( *v_dg, ones, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       Ascaled.apply( velocity[1], tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       velocity[1].add( { -dt }, { tmp2 }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
