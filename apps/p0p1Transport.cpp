@@ -23,8 +23,6 @@
 
 #include "hyteg/composites/P0P1UpwindOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace_old/DG0P1UpwindOperator.hpp"
-#include "hyteg/dgfunctionspace_old/DGFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
