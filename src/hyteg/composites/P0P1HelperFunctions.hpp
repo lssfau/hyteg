@@ -113,4 +113,63 @@ void integrateP0P1ToP1( P0Function< real_t >& srcP0,
    }
 }
 
+void projectP1ToP0( P1Function< real_t >& srcP1, P0Function< real_t >& dstP0, uint_t level, UpdateType updateType )
+{
+   using namespace vertexdof::macroface;
+
+   WALBERLA_ASSERT( srcP1.getStorage() == dstP0.getStorage() );
+
+   auto storage = dstP0.getStorage();
+
+   // loop over all macro-faces to locally integrate to P1
+   for ( auto& it : storage->getFaces() )
+   {
+      Face&      face   = *it.second;
+      const auto faceID = face.getID();
+
+      // obtain memory access
+      auto srcP1dofs = face.getData( srcP1.getFaceDataID() )->getPointer( level );
+
+      const auto dstP0MemLayout = dstP0.getDGFunction()->volumeDoFFunction()->memoryLayout();
+      auto       dstP0dofs      = dstP0.getDGFunction()->volumeDoFFunction()->dofMemory( faceID, level );
+
+      // got blue and gray triangles
+      for ( uint_t microVolType = 0; microVolType < 2; microVolType++ )
+      {
+         auto faceType = facedof::allFaceTypes[microVolType];
+
+         // loop of all micro-faces of current type belonging to current macro-face
+         for ( auto itFace = facedof::macroface::Iterator( level, faceType, 0 ).begin(); itFace != itFace.end(); ++itFace )
+         {
+            indexing::Index elementIdx = *itFace;
+
+            auto neighborInfo = volumedofspace::indexing::ElementNeighborInfo(
+                elementIdx, faceType, level, dstP0.getBoundaryCondition(), faceID, storage );
+
+            const auto& vertexID = neighborInfo.elementVertexIndices();
+
+            real_t tmp = real_c( 1.0 / 3.0 ) *
+                         ( srcP1dofs[indexFromVertex( level, vertexID[0].x(), vertexID[0].y(), stencilDirection::VERTEX_C )] +
+                           srcP1dofs[indexFromVertex( level, vertexID[1].x(), vertexID[1].y(), stencilDirection::VERTEX_C )] +
+                           srcP1dofs[indexFromVertex( level, vertexID[2].x(), vertexID[2].y(), stencilDirection::VERTEX_C )] );
+
+            if ( updateType == Replace )
+            {
+               dstP0dofs[volumedofspace::indexing::index(
+                   elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, dstP0MemLayout )] = tmp;
+            }
+            else if ( updateType == Add )
+            {
+               dstP0dofs[volumedofspace::indexing::index(
+                   elementIdx.x(), elementIdx.y(), faceType, 0, 1, level, dstP0MemLayout )] += tmp;
+            }
+            else
+            {
+               WALBERLA_ABORT( "Unsupported updateType detected!" );
+            }
+         }
+      }
+   }
+}
+
 } // namespace hyteg
