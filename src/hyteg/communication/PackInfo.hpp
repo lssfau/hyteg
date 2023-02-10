@@ -28,6 +28,13 @@ namespace hyteg {
 // namespace containing function for communication between primitives
 namespace communication {
 
+enum class PackType
+{
+   PACK = 0,
+   UNPACK = 1,
+   DIRECT = 2
+};
+
 /// /brief Abstract class for pack and unpack functions of primitives
 ///
 /// This abstract class provides the necessary functions to handle communication between the different primitives
