@@ -27,7 +27,6 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/BlendingHelpers.hpp"

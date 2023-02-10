@@ -32,7 +32,6 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1HelperFunctions.hpp"
-#include "hyteg/p1functionspace/P1IntegrateDG.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"

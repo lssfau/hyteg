@@ -25,7 +25,6 @@ target_sources( hyteg
     P1DataHandling.cpp
     P1Function.hpp
     VertexDoFMacroVertex.hpp     
-    P1IntegrateDG.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( freeslip )

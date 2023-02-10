@@ -259,40 +259,6 @@ inline void
 }
 
 template < typename ValueType >
-inline void integrateDG( Vertex&                                                       vertex,
-                         const std::shared_ptr< PrimitiveStorage >&                    storage,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsId,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsP1Id,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                         uint_t                                                        level )
-{
-   auto rhs   = vertex.getData( rhsId )->getPointer( level );
-   auto rhsP1 = vertex.getData( rhsP1Id )->getPointer( level );
-   auto dst   = vertex.getData( dstId )->getPointer( level );
-
-   auto tmp = real_t( 0 );
-
-   for ( const auto& faceIt : vertex.neighborFaces() )
-   {
-      Face* face = storage->getFace( faceIt );
-
-      real_t weightedFaceArea = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
-
-      uint_t localFaceId = vertex.face_index( face->getID() );
-
-      uint_t faceMemoryIndex = 2 * localFaceId;
-
-      std::vector< PrimitiveID > adj_edges   = face->adjacent_edges( vertex.getID() );
-      uint_t                     edge_idx[2] = { vertex.edge_index( adj_edges[0] ) + 1, vertex.edge_index( adj_edges[1] ) + 1 };
-
-      tmp += weightedFaceArea * rhs[faceMemoryIndex] *
-             ( 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[0]] ) + 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[1]] ) );
-   }
-
-   dst[0] = ValueType( tmp );
-}
-
-template < typename ValueType >
 inline ValueType
     getMaxValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
