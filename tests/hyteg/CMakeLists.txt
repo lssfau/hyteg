@@ -531,34 +531,36 @@ endif ()
 waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
-## Other ##
+## FaceDoFFunction (old) ##
 
-waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGInterpolateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGInterpolateTest)
 
-waLBerla_compile_test(FILES DGAddTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGAddTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGAddTest)
 
-waLBerla_compile_test(FILES DGSwapTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGSwapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGSwapTest)
 
-waLBerla_compile_test(FILES DGDotTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGDotTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGDotTest)
 
-waLBerla_compile_test(FILES DGCopyFromTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGCopyFromTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGCopyFromTest)
 
-waLBerla_compile_test(FILES DGMinMaxTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES facedofspace_old/DGMinMaxTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGMinMaxTest)
+
+waLBerla_compile_test(FILES facedofspace_old/DGCommTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGCommTest)
+
+waLBerla_compile_test(FILES facedofspace_old/DGEnumerateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGEnumerateTest)
+
+## Other ##
 
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
-
-waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGCommTest)
-
-waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGEnumerateTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveIDTest)
