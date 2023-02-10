@@ -19,7 +19,11 @@
  */
 #pragma once
 
+#include "core/logging/Logging.h"
+
 namespace hyteg {
+
+using walberla::uint_t;
 
 namespace vtk {
 

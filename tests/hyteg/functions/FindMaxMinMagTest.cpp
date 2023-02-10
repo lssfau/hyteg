@@ -26,7 +26,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -249,18 +248,6 @@ int main( int argc, char* argv[] )
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
-  // ============
-  //  DGFunction 
-  // ============
-
-  WALBERLA_LOG_INFO_ON_ROOT( "\n\nDGFunction (DoFType=All)\n" );
-
-  theLevel = 2;
-  hyteg::FaceDoFFunction_old< real_t > dgFunc( "", storage, theLevel, theLevel );
-  runFindTest( "Test #C (combo    ): maximum   = ", FIND_MAX, theLevel, dgFunc, testFuncCombo,  3.0 );
-  runFindTest( "                     minimum   = ", FIND_MIN, theLevel, dgFunc, testFuncCombo, -5.0 );
-  runFindTest( "                     magnitude = ", FIND_MAG, theLevel, dgFunc, testFuncCombo,  5.0 );
-
   // ===========
   //  3D Meshes
   // ===========
@@ -282,8 +269,6 @@ int main( int argc, char* argv[] )
 
   hyteg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
   hyteg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
-  hyteg::FaceDoFFunction_old< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
-
 
   // --------------------------------------------------------------------------------------------------
   WALBERLA_LOG_INFO_ON_ROOT( "\nSingle point test (micro-vertex-dof)\n" );

@@ -30,7 +30,6 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -45,7 +44,6 @@
 // clang on
 
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
-#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKN1E1Writer.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
@@ -113,12 +111,6 @@ class VTKOutput
    inline void add( const EdgeDoFFunction< value_t >& function )
    {
       edgeDoFFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const FaceDoFFunction_old< value_t >& function )
-   {
-      faceDoFFunctions_.push_back( function );
    }
 
    template < typename value_t >
@@ -254,7 +246,6 @@ class VTKOutput
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
    FunctionMultiStore< EdgeDoFFunction >     edgeDoFFunctions_;
-   FunctionMultiStore< FaceDoFFunction_old > faceDoFFunctions_;
 
    FunctionMultiStore< dg::DGFunction >           dgFunctions_;
    FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;

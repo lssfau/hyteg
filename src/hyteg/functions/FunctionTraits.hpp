@@ -45,8 +45,6 @@ struct EdgeDoFFunctionTag
 {};
 struct VolumeFunctionTag
 {};
-struct FaceDoFFunction_old_Tag
-{};
 struct DGFunctionTag
 {};
 struct N1E1VectorFunctionTag
@@ -87,9 +85,6 @@ namespace volumedofspace {
 template < typename VType >
 class VolumeDoFFunction;
 }
-
-template < typename VType >
-class FaceDoFFunction_old;
 
 namespace dg {
 template < typename VType >
@@ -140,7 +135,6 @@ typedef enum
    P2_FUNCTION,
    EDGE_DOF_FUNCTION,
    VOLUME_DOF_FUNCTION,
-   FACE_DOF_FUNCTION_OLD,
    DG_FUNCTION,
    N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
@@ -193,18 +187,6 @@ struct FunctionTrait< EdgeDoFFunction< VType > >
    static std::string getTypeName() { return "EdgeDoFFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::EDGE_DOF_FUNCTION;
-};
-
-/// Face DoF specialization
-template < typename VType >
-struct FunctionTrait< FaceDoFFunction_old< VType > >
-{
-   typedef VType                   ValueType;
-   typedef FaceDoFFunction_old_Tag Tag;
-
-   static std::string getTypeName() { return "FaceDoFFunction_old"; }
-
-   static const functionTraits::FunctionKind kind = functionTraits::FACE_DOF_FUNCTION_OLD;
 };
 
 /// Volume DoF specialization

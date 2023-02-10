@@ -531,32 +531,6 @@ endif ()
 waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
-## FaceDoFFunction (old) ##
-
-waLBerla_compile_test(FILES facedofspace_old/DGInterpolateTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGInterpolateTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGAddTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAddTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGSwapTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGSwapTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGDotTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGDotTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGCopyFromTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGCopyFromTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGMinMaxTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGMinMaxTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGCommTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGCommTest)
-
-waLBerla_compile_test(FILES facedofspace_old/DGEnumerateTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGEnumerateTest)
-
 ## Other ##
 
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)

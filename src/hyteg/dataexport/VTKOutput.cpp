@@ -28,8 +28,6 @@
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -128,7 +126,6 @@ const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
     { vtk::DoFType::EDGE_YZ, "YZEdgeDoF" },
     { vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF" },
     { vtk::DoFType::DG, "DGDoF" },
-    { vtk::DoFType::FACEDOF_OLD, "FaceDoF_old" },
     { vtk::DoFType::P2, "P2" },
     { vtk::DoFType::N1E1, "N1E1" },
 };
@@ -156,9 +153,6 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
       break;
    case vtk::DoFType::DG:
       VTKDGWriter::write( *this, output, level );
-      break;
-   case vtk::DoFType::FACEDOF_OLD:
-      VTKFaceDoFWriter::write( *this, output, level );
       break;
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
@@ -188,9 +182,6 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
       return edgeDoFFunctions_.size();
    case vtk::DoFType::DG:
       return dgFunctions_.size();
-      break;
-   case vtk::DoFType::FACEDOF_OLD:
-      return faceDoFFunctions_.size();
       break;
    case vtk::DoFType::P2:
       return p2Functions_.size() + p2VecFunctions_.size();
@@ -222,7 +213,6 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
                                                        vtk::DoFType::EDGE_Y,
                                                        vtk::DoFType::EDGE_XY,
                                                        vtk::DoFType::DG,
-                                                       vtk::DoFType::FACEDOF_OLD,
                                                        vtk::DoFType::P2 };
 
       const std::vector< vtk::DoFType > dofTypes3D = { vtk::DoFType::VERTEX,

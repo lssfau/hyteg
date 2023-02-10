@@ -41,8 +41,6 @@ using walberla::real_t;
 using walberla::uint_t;
 
 template < typename ValueType >
-class FaceDoFFunction_old;
-template < typename ValueType >
 class FunctionMemory;
 template < typename DataType, typename PrimitiveType >
 class PrimitiveDataID;

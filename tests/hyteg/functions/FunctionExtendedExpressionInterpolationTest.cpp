@@ -23,7 +23,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -233,9 +232,6 @@ int main( int argc, char* argv[] )
 
    hyteg::run2DTest< P2Function< real_t > >( CONST_FUNCS, storage, "P2Function" );
    hyteg::run2DTest< P2Function< real_t > >( POLY_RAT, storage, "P2Function" );
-
-   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( CONST_FUNCS, storage, "FaceDoFFunction_old" );
-   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( POLY_RAT, storage, "FaceDoFFunction_old" );
 
    // NOT IMPLEMENTED FOR P0Function
    // hyteg::run2DTest< P0Function< real_t > >( CONST_FUNCS, storage, "P0Function" );
