@@ -43,7 +43,7 @@ void integrateP0P1ToP1( P0Function< real_t >& srcP0,
    // We assume that we always want to treat nodes interior to a macro-face
    WALBERLA_ASSERT( flag == All || flag == Inner );
 
-   // src functions need to be up-to-date
+   // src function needs to be up-to-date
    communication::syncFunctionBetweenPrimitives( srcP1, level );
 
    // all three functions are assumed to have the same storage or that at least
@@ -121,7 +121,10 @@ void projectP1ToP0( P1Function< real_t >& srcP1, P0Function< real_t >& dstP0, ui
 
    auto storage = dstP0.getStorage();
 
-   // loop over all macro-faces to locally integrate to P1
+   // src function needs to be up-to-date
+   communication::syncFunctionBetweenPrimitives( srcP1, level );
+
+   // loop over all macro-faces to locally project from P1 to P0
    for ( auto& it : storage->getFaces() )
    {
       Face&      face   = *it.second;
@@ -147,6 +150,7 @@ void projectP1ToP0( P1Function< real_t >& srcP1, P0Function< real_t >& dstP0, ui
                 elementIdx, faceType, level, dstP0.getBoundaryCondition(), faceID, storage );
 
             const auto& vertexID = neighborInfo.elementVertexIndices();
+            WALBERLA_ASSERT( vertexID.size() == 3 );
 
             real_t tmp = real_c( 1.0 / 3.0 ) *
                          ( srcP1dofs[indexFromVertex( level, vertexID[0].x(), vertexID[0].y(), stencilDirection::VERTEX_C )] +

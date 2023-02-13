@@ -444,10 +444,14 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
 endif ()
 
+## composites ##
+
 waLBerla_compile_test(FILES composites/ConcatenatedOperator.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ConcatenatedOperator)
 
-## composites ##
+waLBerla_compile_test(FILES composites/P0P1HelperFunctionsTest DEPENDS hyteg core)
+waLBerla_execute_test(NAME P0P1HelperFunctionsTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES composites/P1P0Stokes2DPetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
