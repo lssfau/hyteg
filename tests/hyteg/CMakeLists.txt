@@ -235,13 +235,6 @@ endif ()
 waLBerla_compile_test(FILES Indexing/VolumeDoFIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VolumeDoFIndexingTest)
 
-#if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-#  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
-#    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS hyteg core)
-#    waLBerla_execute_test(NAME ConstexprIndexTest)
-#  endif()
-#endif(
-
 ## Math ##
 
 waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
