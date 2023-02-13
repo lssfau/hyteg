@@ -50,7 +50,7 @@ void runProjectionTestIn2D()
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Setup functions
-   uint_t               minLevel = 3;
+   uint_t               minLevel = 0;
    uint_t               maxLevel = 3;
    P1Function< real_t > p1Source( "source P1", storage, minLevel, maxLevel );
    P0Function< real_t > p0Destination( "destination P0", storage, minLevel, maxLevel );
@@ -63,9 +63,9 @@ void runProjectionTestIn2D()
    bool outputVTK = false;
 
 #ifdef WALBERLA_DOUBLE_ACCURACY
-   real_t tolerance = 1e-16;
+   real_t tolerance = 1e-14;
 #else
-   real_t tolerance = 1e-6;
+   real_t tolerance = 5e-6;
 #endif
 
    // Test projection
@@ -78,7 +78,7 @@ void runProjectionTestIn2D()
       projectP1ToP0( p1Source, p0Destination, currentLevel, Replace );
 
       p0Control.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { p0Control, p0Destination }, currentLevel, All );
-      real_t error = p0Control.dotGlobal( p0Control, currentLevel, All );
+      real_t error = std::sqrt( p0Control.dotGlobal( p0Control, currentLevel, All ) );
       WALBERLA_LOG_INFO_ON_ROOT( "Projection error in discrete L2-norm is " << error );
       WALBERLA_CHECK_LESS( error, tolerance );
 
@@ -95,10 +95,12 @@ void runProjectionTestIn2D()
 
 int main( int argc, char* argv[] )
 {
+#if defined (WALBERLA_DOUBLE_ACCURACY) || !defined(__INTEL_LLVM_COMPILER)
 #ifndef __APPLE__
 // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
 #ifndef _MSC_VER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 #endif
 
