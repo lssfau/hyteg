@@ -23,7 +23,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/HytegDefinitions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -31,6 +30,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 using namespace hyteg;
 using walberla::real_t;

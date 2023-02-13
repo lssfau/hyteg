@@ -25,7 +25,6 @@
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace vertexdof {

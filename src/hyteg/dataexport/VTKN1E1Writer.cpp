@@ -20,9 +20,9 @@
 
 #include "hyteg/dataexport/VTKN1E1Writer.hpp"
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 #include "vtk/UtilityFunctions.h"
 

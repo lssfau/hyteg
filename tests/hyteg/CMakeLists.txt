@@ -235,13 +235,6 @@ endif ()
 waLBerla_compile_test(FILES Indexing/VolumeDoFIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VolumeDoFIndexingTest)
 
-#if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-#  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
-#    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS hyteg core)
-#    waLBerla_execute_test(NAME ConstexprIndexTest)
-#  endif()
-#endif(
-
 ## Math ##
 
 waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
@@ -444,10 +437,15 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
 endif ()
 
+## composites ##
+
 waLBerla_compile_test(FILES composites/ConcatenatedOperator.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ConcatenatedOperator)
 
-## composites ##
+waLBerla_compile_test(FILES composites/P0P1HelperFunctionsTest DEPENDS hyteg core)
+waLBerla_execute_test(NAME P0P1HelperFunctionsTest1 COMMAND $<TARGET_FILE:P0P1HelperFunctionsTest> PROCESSES 1)
+waLBerla_execute_test(NAME P0P1HelperFunctionsTest3 COMMAND $<TARGET_FILE:P0P1HelperFunctionsTest> PROCESSES 3)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES composites/P1P0Stokes2DPetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
@@ -533,32 +531,8 @@ waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
 ## Other ##
 
-waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGInterpolateTest)
-
-waLBerla_compile_test(FILES DGAddTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGAddTest)
-
-waLBerla_compile_test(FILES DGSwapTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGSwapTest)
-
-waLBerla_compile_test(FILES DGDotTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGDotTest)
-
-waLBerla_compile_test(FILES DGCopyFromTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGCopyFromTest)
-
-waLBerla_compile_test(FILES DGMinMaxTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGMinMaxTest)
-
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
-
-waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGCommTest)
-
-waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DGEnumerateTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveIDTest)

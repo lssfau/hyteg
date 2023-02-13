@@ -21,9 +21,7 @@
 #pragma once
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/eigen/EigenWrapper.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -32,6 +30,8 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace volumedofspace {
@@ -568,6 +568,8 @@ class ElementNeighborInfo
 
    [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
 
+   [[nodiscard]] const std::vector< Index >& elementVertexIndices() const { return vertexIndicesVolume_; }
+
    Index neighborElementIndices( uint_t neighbor ) const { return neighborElementIndices_[neighbor]; }
 
    [[nodiscard]] const std::vector< Point >& neighborElementVertexCoords( uint_t neighbor ) const
@@ -582,6 +584,11 @@ class ElementNeighborInfo
    [[nodiscard]] const std::vector< Point >& interfaceVertexCoords( uint_t neighbor ) const
    {
       return interfaceVertexCoords_[neighbor];
+   }
+
+   [[nodiscard]] const std::vector< Index >& interfaceVertexIndices( uint_t neighbor ) const
+   {
+      return interfaceVertexIndices_[neighbor];
    }
 
    [[nodiscard]] const Point& oppositeVertexCoords( uint_t neighbor ) const { return oppositeVertexCoords_[neighbor]; }

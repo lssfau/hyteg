@@ -27,7 +27,6 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
@@ -882,82 +881,6 @@ inline void enumerate( const uint_t&                                            
       }
 
       mr += 2;
-      --inner_rowsize;
-   }
-}
-
-template < typename ValueType >
-inline void integrateDG( const uint_t&                                               Level,
-                         Face&                                                       face,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsP1Id,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
-{
-   using namespace vertexdof::macroface;
-   typedef stencilDirection SD;
-
-   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
-   uint_t inner_rowsize = rowsize;
-
-   auto rhs   = face.getData( rhsId )->getPointer( Level );
-   auto rhsP1 = face.getData( rhsP1Id )->getPointer( Level );
-   auto dst   = face.getData( dstId )->getPointer( Level );
-
-   real_t faceArea         = std::pow( 4.0, -walberla::real_c( Level ) ) * face.getArea();
-   real_t weightedFaceArea = faceArea / 3.0;
-
-   real_t tmp;
-
-   for ( uint_t j = 1; j < rowsize - 2; ++j )
-   {
-      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
-      {
-         tmp =
-             rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_W )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                     rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_S )] ) );
-         tmp +=
-             rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_GRAY_SE )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_S )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                     rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_SE )] ) );
-         tmp += rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_BLUE_SE )] *
-                ( 0.5 * 0.5 *
-                      ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                        rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_SE )] ) +
-                  0.5 * 0.5 *
-                      ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                        rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_E )] ) );
-
-         tmp +=
-             rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_GRAY_NW )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_W )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                     rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_NW )] ) );
-         tmp += rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_BLUE_NW )] *
-                ( 0.5 * 0.5 *
-                      ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                        rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_NW )] ) +
-                  0.5 * 0.5 *
-                      ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                        rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_N )] ) );
-         tmp +=
-             rhs[facedof::macroface::indexFaceFromVertex( Level, i, j, SD::CELL_GRAY_NE )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_N )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
-                     rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_E )] ) );
-
-         dst[indexFromVertex( Level, i, j, SD::VERTEX_C )] = ValueType( weightedFaceArea * tmp );
-      }
       --inner_rowsize;
    }
 }

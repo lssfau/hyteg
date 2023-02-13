@@ -23,7 +23,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/HytegDefinitions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 

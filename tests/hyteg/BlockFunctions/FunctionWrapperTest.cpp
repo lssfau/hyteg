@@ -26,7 +26,6 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -110,7 +109,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Testing wrapping functions:" );
    wrapFunction< vertexdof::VertexDoFFunction< real_t > >( storage, minLevel, maxLevel, 1 );
    wrapFunction< EdgeDoFFunction< real_t > >( storage, minLevel, maxLevel, 1 );
-   wrapFunction< FaceDoFFunction_old< real_t > >( storage, minLevel, maxLevel, 1 );
    wrapFunction< P1Function< real_t > >( storage, minLevel, maxLevel, 1 );
    wrapFunction< P2Function< real_t > >( storage, minLevel, maxLevel, 1 );
    wrapFunction< P1VectorFunction< real_t > >( storage, minLevel, maxLevel, 2 );
