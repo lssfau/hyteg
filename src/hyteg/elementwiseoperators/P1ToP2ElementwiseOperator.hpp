@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
@@ -30,6 +29,7 @@
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 #ifdef _MSC_VER
 #pragma warning( push, 0 )

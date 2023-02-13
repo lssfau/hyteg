@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include <hyteg/communication/Syncing.hpp>
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p0/p1_to_p0_div_affine_q0.hpp"
 #include "hyteg/functions/Function.hpp"
@@ -36,6 +35,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 

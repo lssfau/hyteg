@@ -22,7 +22,6 @@
 #include "core/Format.hpp"
 
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKDGWriter.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
@@ -32,6 +31,7 @@
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 #include "vtk/UtilityFunctions.h"
 

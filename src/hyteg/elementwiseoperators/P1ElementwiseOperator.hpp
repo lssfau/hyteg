@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
@@ -35,6 +34,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 

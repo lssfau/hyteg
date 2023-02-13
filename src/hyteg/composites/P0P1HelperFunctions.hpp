@@ -41,7 +41,8 @@ void integrateP0P1ToP1( P0Function< real_t >& srcP0,
    using namespace vertexdof::macroface;
 
    // We assume that we always want to treat nodes interior to a macro-face
-   WALBERLA_ASSERT( flag == All || flag == Inner );
+   // WALBERLA_ASSERT( flag == All || flag == Inner );
+   WALBERLA_ASSERT( flag | Inner == flag );
 
    // src function needs to be up-to-date
    communication::syncFunctionBetweenPrimitives( srcP1, level );

@@ -25,8 +25,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/HytegDefinitions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 
 namespace hyteg {

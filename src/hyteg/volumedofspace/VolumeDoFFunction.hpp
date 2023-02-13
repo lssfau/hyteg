@@ -21,8 +21,6 @@
 #pragma once
 
 #include "hyteg/ReferenceCounter.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"

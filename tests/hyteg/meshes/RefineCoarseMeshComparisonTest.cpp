@@ -21,10 +21,10 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 #include "array"
 namespace hyteg {

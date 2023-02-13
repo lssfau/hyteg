@@ -21,9 +21,7 @@
 #pragma once
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/eigen/EigenWrapper.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -32,6 +30,8 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace volumedofspace {
