@@ -62,7 +62,7 @@ namespace hyteg {
                 real_t tmp_0 = std::abs(
                         p_affine_0_0 * p_affine_1_1 - p_affine_0_0 * p_affine_2_1 - p_affine_0_1 * p_affine_1_0 +
                         p_affine_0_1 * p_affine_2_0 + p_affine_1_0 * p_affine_2_1 - p_affine_1_1 * p_affine_2_0);
-                real_t a_0_0 = 0.5 * tmp_0;
+                real_t a_0_0 =  tmp_0;
                 elMat(0, 0) = a_0_0;
             }
 
