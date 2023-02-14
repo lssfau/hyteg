@@ -52,28 +52,28 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperator(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::P1ConstantOperator(
     const std::shared_ptr< PrimitiveStorage >& storage,
     size_t                                     minLevel,
     size_t                                     maxLevel )
-: P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >( storage, minLevel, maxLevel, P1Form() )
+: P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >( storage, minLevel, maxLevel, P1Form() )
 {}
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperator(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::P1ConstantOperator(
     const std::shared_ptr< PrimitiveStorage >& storage,
     size_t                                     minLevel,
     size_t                                     maxLevel,
     const P1Form&                              form )
-: P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >( storage, minLevel, maxLevel, form )
+: P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >( storage, minLevel, maxLevel, form )
 {
    // pre-assemble edge, face and cell stencils
    assembleStencils();
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real_t scalar )
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::scale( ValueType scalar )
 {
    // todo: Remove these constraints
    WALBERLA_CHECK_GREATER_EQUAL( minLevel_, 2, "scale() not implemented for level < 2" )
@@ -130,76 +130,8 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real
    }
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                               const P1Function< idx_t >&                  src,
-                                                                               const P1Function< idx_t >&                  dst,
-                                                                               size_t                                      level,
-                                                                               DoFType flag ) const
-{
-   for ( auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         vertexdof::macrovertex::saveOperator(
-             vertex, this->getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
-      }
-   }
-   if ( level >= 1 )
-   {
-      for ( auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            vertexdof::macroedge::saveOperator(
-                level, edge, *storage_, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-         }
-      }
-   }
-   if ( level >= 2 )
-   {
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            if ( storage_->hasGlobalCells() )
-            {
-               vertexdof::macroface::saveOperator3D(
-                   level, face, *storage_, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-            else
-            {
-               vertexdof::macroface::saveOperator(
-                   level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-         }
-      }
-
-      for ( auto& it : storage_->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if ( testFlag( cellBC, flag ) )
-         {
-            vertexdof::macrocell::saveOperator(
-                level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-         }
-      }
-   }
-}
-
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply_face3D_generated(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::apply_face3D_generated(
     Face&                                                    face,
     const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,
     const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
@@ -209,7 +141,10 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
 #ifdef HYTEG_USE_GENERATED_KERNELS
    if ( face.getNumNeighborCells() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Two-sided" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         this->timingTree_->start( "Two-sided" );
+      }
    }
    else
    {
@@ -295,18 +230,18 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
 #endif
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply_face_generated(
-    Face&                                                    face,
-    const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,
-    const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
-    const uint_t&                                            level,
-    UpdateType                                               update ) const
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::apply_face_generated(
+    Face&                                                       face,
+    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
+    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+    const uint_t&                                               level,
+    UpdateType                                                  update ) const
 {
 #ifdef HYTEG_USE_GENERATED_KERNELS
-   real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-   real_t* src_data = face.getData( srcId )->getPointer( level );
-   real_t* dst_data = face.getData( dstId )->getPointer( level );
+   ValueType* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+   ValueType* src_data = face.getData( srcId )->getPointer( level );
+   ValueType* dst_data = face.getData( dstId )->getPointer( level );
 
    if ( update == hyteg::Replace )
    {
@@ -327,8 +262,8 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
 #endif
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply_cell_generated(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::apply_cell_generated(
     Cell&                                                    cell,
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& srcId,
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dstId,
@@ -359,8 +294,8 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::appl
 #endif
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_face3D_generated(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_sor_face3D_generated(
     Face&                                                    face,
     const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsId,
@@ -523,14 +458,14 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
 #endif
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_face_generated(
-    Face&                                                    face,
-    const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
-    const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsId,
-    const uint_t&                                            level,
-    real_t                                                   relax,
-    const bool&                                              backwards ) const
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_sor_face_generated(
+    Face&                                                       face,
+    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
+    const uint_t&                                               level,
+    ValueType                                                   relax,
+    const bool&                                                 backwards ) const
 {
 #ifdef HYTEG_USE_GENERATED_KERNELS
    auto rhs_data = face.getData( rhsId )->getPointer( level );
@@ -557,8 +492,8 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
 #endif
 }
 
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_cell_generated(
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_sor_cell_generated(
     Cell&                                                    cell,
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& rhsId,
@@ -590,9 +525,8 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smoo
 #endif
 }
 
-
-template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleStencils()
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assembleStencils()
 {
    for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
    {
@@ -650,7 +584,17 @@ template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoA
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::UndefinedAssembly > >;
 
 template class P1ConstantOperator<
-    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
+    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
+    false,
+    false,
+    false,
+    double >;
+template class P1ConstantOperator<
+    hyteg::P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
+    false,
+    false,
+    false,
+    float >;
 template class P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly >, true >;
 
 template class P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise > >;

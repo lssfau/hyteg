@@ -836,18 +836,7 @@ void macroFaceAssign( const uint_t&                                             
                       const std::vector< ValueType >&                                            scalars,
                       const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
-                      const PrimitiveStorage& )
-{
-   vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
-}
-
-template <>
-void macroFaceAssign< double >( const uint_t&                                                           level,
-                                Face&                                                                   face,
-                                const std::vector< double >&                                            scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
-                                const PrimitiveStorage&                                                 storage )
+                      const PrimitiveStorage&                                                    storage )
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
@@ -897,12 +886,37 @@ void macroFaceAssign< double >( const uint_t&                                   
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
-      vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+      vertexdof::macroface::assign( level, face, scalars, srcFaceIDs, dstFaceID );
    }
+}
+
+template <>
+void macroFaceAssign< int32_t >( const uint_t&                                                            level,
+                                 Face&                                                                    face,
+                                 const std::vector< int32_t >&                                            scalars,
+                                 const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
+                                 const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
+                                 const PrimitiveStorage&                                                  storage )
+{
+   vertexdof::macroface::assign< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAssign< int64_t >( const uint_t&                                                            level,
+                                 Face&                                                                    face,
+                                 const std::vector< int64_t >&                                            scalars,
+                                 const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
+                                 const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
+                                 const PrimitiveStorage&                                                  storage )
+{
+   vertexdof::macroface::assign< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
 template < typename ValueType >
@@ -1128,18 +1142,7 @@ void macroFaceAdd( const uint_t&                                                
                    const std::vector< ValueType >&                                            scalars,
                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
-                   const PrimitiveStorage& )
-{
-   vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
-}
-
-template <>
-void macroFaceAdd< double >( const uint_t&                                                           level,
-                             Face&                                                                   face,
-                             const std::vector< double >&                                            scalars,
-                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
-                             const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
-                             const PrimitiveStorage&                                                 storage )
+                   const PrimitiveStorage&                                                    storage )
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
@@ -1197,8 +1200,30 @@ void macroFaceAdd< double >( const uint_t&                                      
    }
    else
    {
-      vertexdof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+      vertexdof::macroface::add( level, face, scalars, srcFaceIDs, dstFaceID );
    }
+}
+
+template <>
+void macroFaceAdd< int32_t >( const uint_t&                                                            level,
+                              Face&                                                                    face,
+                              const std::vector< int32_t >&                                            scalars,
+                              const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
+                              const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
+                              const PrimitiveStorage&                                                  storage )
+{
+   vertexdof::macroface::add< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAdd< int64_t >( const uint_t&                                                            level,
+                              Face&                                                                    face,
+                              const std::vector< int64_t >&                                            scalars,
+                              const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
+                              const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
+                              const PrimitiveStorage&                                                  storage )
+{
+   vertexdof::macroface::add< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
 template < typename ValueType >

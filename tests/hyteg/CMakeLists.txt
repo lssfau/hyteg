@@ -939,3 +939,6 @@ waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
 
 waLBerla_compile_test(FILES mixedPrecision/basicMixedPrecisionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME basicMixedPrecisionTest)
+
+waLBerla_compile_test(FILES mixedPrecision/mixedPrecisionIterativeRefinement.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME mixedPrecisionIterativeRefinement)

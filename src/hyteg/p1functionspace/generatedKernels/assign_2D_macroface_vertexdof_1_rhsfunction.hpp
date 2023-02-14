@@ -32,6 +32,7 @@ namespace macroface {
 namespace generated {
 
 void assign_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level);
+void assign_2D_macroface_vertexdof_1_rhs_function(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level);
 
 } // namespace generated
 } // namespace macroface

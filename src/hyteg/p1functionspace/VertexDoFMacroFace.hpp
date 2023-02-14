@@ -950,12 +950,13 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
    return localMin;
 }
 
-inline void saveOperator( const uint_t&                                           Level,
-                          Face&                                                   face,
-                          const PrimitiveDataID< StencilMemory< real_t >, Face >& operatorId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >& srcId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&             mat )
+template < typename ValueType >
+inline void saveOperator( const uint_t&                                              Level,
+                          Face&                                                      face,
+                          const PrimitiveDataID< StencilMemory< ValueType >, Face >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >&    srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Face >&    dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&                mat )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
