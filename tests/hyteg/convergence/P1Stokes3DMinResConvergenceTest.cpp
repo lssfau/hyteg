@@ -179,8 +179,8 @@ int main( int argc, char* argv[] )
 
    auto coarseGridSolver     = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
    auto smoother             = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >()();
-   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >()();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
    auto gmgSolver            = std::make_shared< GMGSolver_T >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
    //hyteg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );

@@ -97,7 +97,7 @@ void solvePoisson( uint_t minLevel, uint_t maxLevel )
    P1ConstantLaplaceOperatorSP ASP( storage, minLevel, maxLevel );
    P1ConstantMassOperator      M( storage, minLevel, maxLevel );
 
-   std::function< double( const Point3D& ) > random = []( const Point3D& x ) { return walberla::math::realRandom(); };
+   std::function< double( const Point3D& ) > random = []( const Point3D& ) { return walberla::math::realRandom(); };
 
    for ( uint_t l = minLevel; l <= maxLevel; l++ )
    {
