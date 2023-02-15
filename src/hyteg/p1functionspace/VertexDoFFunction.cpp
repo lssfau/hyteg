@@ -903,7 +903,7 @@ void macroFaceAssign< int32_t >( const uint_t&                                  
                                  const std::vector< int32_t >&                                            scalars,
                                  const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
                                  const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
-                                 const PrimitiveStorage&                                                  storage )
+                                 const PrimitiveStorage& )
 {
    vertexdof::macroface::assign< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
@@ -914,7 +914,7 @@ void macroFaceAssign< int64_t >( const uint_t&                                  
                                  const std::vector< int64_t >&                                            scalars,
                                  const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
                                  const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
-                                 const PrimitiveStorage&                                                  storage )
+                                 const PrimitiveStorage& )
 {
    vertexdof::macroface::assign< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
@@ -1210,7 +1210,7 @@ void macroFaceAdd< int32_t >( const uint_t&                                     
                               const std::vector< int32_t >&                                            scalars,
                               const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
                               const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
-                              const PrimitiveStorage&                                                  storage )
+                              const PrimitiveStorage& )
 {
    vertexdof::macroface::add< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
@@ -1221,7 +1221,7 @@ void macroFaceAdd< int64_t >( const uint_t&                                     
                               const std::vector< int64_t >&                                            scalars,
                               const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
                               const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
-                              const PrimitiveStorage&                                                  storage )
+                              const PrimitiveStorage& )
 {
    vertexdof::macroface::add< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
