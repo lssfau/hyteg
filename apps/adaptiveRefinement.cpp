@@ -37,6 +37,8 @@
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
@@ -367,6 +369,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        real_t                                   cg_tol,
                                        std::string                              vtkname,
                                        bool                                     writePartitioning,
+                                       bool                                     writeMeshfile,
                                        uint_t                                   refinement_step,
                                        bool                                     accurate_error,
                                        bool                                     l2_error_each_iteration = true )
@@ -642,6 +645,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       }
    }
 
+   if ( writeMeshfile )
+   {
+      mesh.exportMesh( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".msh" );
+   }
+
    // update u_old
    if ( u0 == 1 )
    {
@@ -667,7 +675,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 real_t                       cg_tol,
                                 bool                         accurate_error,
                                 std::string                  vtkname,
-                                bool                         writePartitioning )
+                                bool                         writePartitioning,
+                                bool                         writeMeshfile )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -691,6 +700,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           cg_tol,
                                           vtkname,
                                           writePartitioning,
+                                          writeMeshfile,
                                           refinement,
                                           accurate_error );
       else
@@ -706,6 +716,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            cg_tol,
                                            vtkname,
                                            writePartitioning,
+                                           writeMeshfile,
                                            refinement,
                                            accurate_error );
 
@@ -784,6 +795,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            cg_tol,
                            vtkname,
                            writePartitioning,
+                           writeMeshfile,
                            refinement,
                            accurate_error );
       }
@@ -801,6 +813,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             cg_tol,
                             vtkname,
                             writePartitioning,
+                            writeMeshfile,
                             refinement,
                             accurate_error );
       }
@@ -860,6 +873,7 @@ int main( int argc, char* argv[] )
 
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
+   const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
 
    const bool accurate_error = parameters.getParameter< bool >( "compute_error_on_higher_lvl", false );
 
@@ -894,7 +908,8 @@ int main( int argc, char* argv[] )
                               cg_tol,
                               accurate_error,
                               vtkname,
-                              writePartitioning );
+                              writePartitioning,
+                              writeMeshfile );
 
    return 0;
 }
