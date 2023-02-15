@@ -4,6 +4,7 @@ import math
 import random
 import re
 from influxdb import InfluxDBClient
+from git import Repo
 
 
 def main():
@@ -12,6 +13,9 @@ def main():
     client = InfluxDBClient('i10grafana.informatik.uni-erlangen.de', 8086,
                             'terraneo', write_user_pw, 'terraneo')
 
+    repo = Repo(search_parent_directories=True)
+    commit = repo.head.commit
+    branch = repo.active_branch.name
 
     with open("./BuildTiming.txt") as f:
         s = f.read()
@@ -27,6 +31,8 @@ def main():
             'tags': {
                 'host'     : os.uname()[1],
                 'project'  : 'terraneo',
+                'commit'   : commit,
+                'branch'   : branch,
             },
             'time': int(time.time()),
             'fields': {'hyteg_buildtime': float(hyteg.group(1)),
