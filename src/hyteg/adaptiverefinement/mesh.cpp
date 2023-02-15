@@ -1675,7 +1675,7 @@ void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
          auto& v = el->get_vertices();
 
          file << ( i + 1 ) << " " << elType << " 2 0 0";
-         for ( uint_t j = 0; j < K; ++j )
+         for ( uint_t j = 0; j <= K; ++j )
             file << " " << ( v[j] + 1 );
          file << "\n";
          ++i;
