@@ -1,5 +1,5 @@
 add_library( hyteg )
-target_link_libraries( hyteg PUBLIC core vtk )
+target_link_libraries( hyteg PUBLIC core vtk PETSc::PETSc)
 target_compile_features(hyteg PUBLIC cxx_std_17)
 set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF )
 # There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366
