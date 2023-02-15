@@ -85,8 +85,8 @@ int main( int argc, char* argv[] )
    auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
-   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
    auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
@@ -96,7 +96,7 @@ int main( int argc, char* argv[] )
 
    // init residual once
    L.apply( u, Au, maxLevel, hyteg::Inner );
-   r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner );
+   r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, hyteg::Inner );
 
    real_t discr_l2_err;
    real_t discr_l2_res           = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );

@@ -104,17 +104,17 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, maxLevel, DoFType::All );
   oneFunction.interpolate( one, maxLevel, DoFType::All );
 
-  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+  auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
-  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+  auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
-     storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, maxLevel, DoFType::Inner );
 
-  VTKOutput vtkOutput("../../output", "P1GMG3DConvergenceTest", storage);
+  VTKOutput vtkOutput( "../../output", "P1GMG3DConvergenceTest", storage );
   vtkOutput.add( u );
   vtkOutput.add( err );
 

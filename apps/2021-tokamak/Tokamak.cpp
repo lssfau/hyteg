@@ -827,8 +827,8 @@ void run( int argc, char** argv )
                forms::p1_div_k_grad_blending_q3,
                P1ElementwiseBlendingDivKGradOperator,
                P1ElementwiseBlendingMassOperator,
-               P1toP1LinearRestriction,
-               P1toP1LinearProlongation >( tokamakDomain, discretization, solverSettings, appSettings );
+               P1toP1LinearRestriction<>,
+               P1toP1LinearProlongation<> >( tokamakDomain, discretization, solverSettings, appSettings );
    }
    else
    {

@@ -98,18 +98,26 @@ int main( int argc, char* argv[] )
   npoints_helper.interpolate( rhs, maxLevel );
   M.apply( npoints_helper, f, maxLevel, hyteg::All );
 
-  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+  auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
       storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
-  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-  auto solutionRestrictionOperator = std::make_shared< hyteg::P1toP1InjectionRestriction>();
-  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+  auto restrictionOperator         = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+  auto solutionRestrictionOperator = std::make_shared< hyteg::P1toP1InjectionRestriction >();
+  auto prolongationOperator        = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
-  auto gmgSolver = hyteg::FASSolver< hyteg::P1ConstantLaplaceOperator >(
-    storage, smoother, coarseGridSolver, restrictionOperator, solutionRestrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+  auto gmgSolver = hyteg::FASSolver< hyteg::P1ConstantLaplaceOperator >( storage,
+                                                                         smoother,
+                                                                         coarseGridSolver,
+                                                                         restrictionOperator,
+                                                                         solutionRestrictionOperator,
+                                                                         prolongationOperator,
+                                                                         minLevel,
+                                                                         maxLevel,
+                                                                         3,
+                                                                         3 );
 
   auto gmgSolverTau = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
-    storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel - 1, 1, 1 );
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel - 1, 1, 1 );
 
   npoints_helper.interpolate( ones, maxLevel );
   const real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );

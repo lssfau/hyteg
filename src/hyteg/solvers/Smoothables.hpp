@@ -26,6 +26,7 @@
 namespace hyteg {
 
 using walberla::real_t;
+using walberla::uint_t;
 
 template < typename Function >
 class WeightedJacobiSmoothable

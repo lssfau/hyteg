@@ -122,8 +122,8 @@ template <>
 struct FE_Space< ElementType::P1, StencilType::NONE >
 {
    using Function     = hyteg::P1Function< real_t >;
-   using Restriction  = hyteg::P1toP1LinearRestriction;
-   using Prolongation = hyteg::P1toP1LinearProlongation;
+   using Restriction  = hyteg::P1toP1LinearRestriction<>;
+   using Prolongation = hyteg::P1toP1LinearProlongation<>;
 
    using Mass = hyteg::P1BlendingMassOperator;
    // using Mass = hyteg::P1ConstantMassOperator;
