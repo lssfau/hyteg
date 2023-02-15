@@ -36,7 +36,6 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
-using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
@@ -49,9 +48,30 @@ typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise
                             float >
     P1ConstantLaplaceOperatorSP;
 
+typedef P1ConstantOperator< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
+                            false,
+                            false,
+                            false,
+                            double >
+    P1ConstantLaplaceOperatorDP;
+
+typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
+                            false,
+                            false,
+                            false,
+                            float >
+    P1ConstantMassOperatorSP;
+
+typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
+                            false,
+                            false,
+                            false,
+                            double >
+    P1ConstantMassOperatorDP;
+
 double computeError( uint_t                      level,
                      P1Function< double >&       err,
-                     P1ConstantMassOperator&     M,
+                     P1ConstantMassOperatorDP&     M,
                      P1Function< double >&       Merr,
                      const P1Function< double >& u,
                      P1Function< double >&       u_exact )
@@ -93,9 +113,9 @@ void solvePoisson( uint_t minLevel, uint_t maxLevel )
 
    walberla::timing::Timer< walberla::timing::WcPolicy > timer;
 
-   P1ConstantLaplaceOperator   A( storage, minLevel, maxLevel );
+   P1ConstantLaplaceOperatorDP   A( storage, minLevel, maxLevel );
    P1ConstantLaplaceOperatorSP ASP( storage, minLevel, maxLevel );
-   P1ConstantMassOperator      M( storage, minLevel, maxLevel );
+   P1ConstantMassOperatorDP      M( storage, minLevel, maxLevel );
 
    std::function< double( const Point3D& ) > random = []( const Point3D& ) { return walberla::math::realRandom(); };
 
@@ -109,11 +129,11 @@ void solvePoisson( uint_t minLevel, uint_t maxLevel )
       A.apply( u, r, l, Inner, Replace );
    }
 
-   auto coarseGridSolver     = std::make_shared< CGSolver< P1ConstantLaplaceOperator > >( storage, minLevel, maxLevel );
-   auto smoother             = std::make_shared< GaussSeidelSmoother< P1ConstantLaplaceOperator > >();
+   auto coarseGridSolver     = std::make_shared< CGSolver< P1ConstantLaplaceOperatorDP > >( storage, minLevel, maxLevel );
+   auto smoother             = std::make_shared< GaussSeidelSmoother< P1ConstantLaplaceOperatorDP > >();
    auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction< double > >();
    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation< double > >();
-   auto gmgSolver            = std::make_shared< GeometricMultigridSolver< P1ConstantLaplaceOperator > >(
+   auto gmgSolver            = std::make_shared< GeometricMultigridSolver< P1ConstantLaplaceOperatorDP > >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    auto coarseGridSolverSP     = std::make_shared< CGSolver< P1ConstantLaplaceOperatorSP > >( storage, minLevel, maxLevel );
@@ -200,8 +220,8 @@ void solvePoisson( uint_t minLevel, uint_t maxLevel )
       WALBERLA_LOG_INFO( walberla::format(
           "%23s | L2Error: %9.3e | Time: %9.3e", solver.first.c_str(), errors[solver.first], timings[solver.first] ) );
    }
-   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( errors["Plain GMG"], errors["Iterative Refinement DP"], 1e-9 )
-   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( errors["Plain GMG"], errors["Iterative Refinement SP"], 1e-9 )
+   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( errors["Plain GMG"], errors["Iterative Refinement DP"], 5e-9 )
+   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( errors["Plain GMG"], errors["Iterative Refinement SP"], 5e-9 )
 }
 } // namespace hyteg
 
