@@ -442,7 +442,7 @@ endif ()
 waLBerla_compile_test(FILES composites/ConcatenatedOperator.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ConcatenatedOperator)
 
-waLBerla_compile_test(FILES composites/P0P1HelperFunctionsTest DEPENDS hyteg core)
+waLBerla_compile_test(FILES composites/P0P1HelperFunctionsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P0P1HelperFunctionsTest1 COMMAND $<TARGET_FILE:P0P1HelperFunctionsTest> PROCESSES 1)
 waLBerla_execute_test(NAME P0P1HelperFunctionsTest3 COMMAND $<TARGET_FILE:P0P1HelperFunctionsTest> PROCESSES 3)
 
