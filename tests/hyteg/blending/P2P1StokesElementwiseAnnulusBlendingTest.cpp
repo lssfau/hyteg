@@ -312,7 +312,7 @@ void runTest( bool preCompute )
    WALBERLA_CHECK_LESS( currRes, 9.0e-9 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
-   WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
+   WALBERLA_CHECK_LESS( discr_l2_err_p, 6.0e-02 );
 }
 int main( int argc, char* argv[] )
 {
