@@ -442,11 +442,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       // compute the current residual
       this->apply( src, dst, level, flag );
-      dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
+      dst.assign( { static_cast< ValueType >( 1 ), static_cast< ValueType >( -1 ) }, { rhs, dst }, level, flag );
 
       // perform Jacobi update step
       dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
-      dst.assign( { 1.0, relax }, { src, dst }, level, flag );
+      dst.assign( { static_cast< ValueType >( 1.0 ), relax }, { src, dst }, level, flag );
 
       this->stopTiming( "smooth_jac" );
    }

@@ -1186,6 +1186,7 @@ benchmark_build_time:
     - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -a -f "apps buildtime %e" make -j20
     - cd $CI_PROJECT_DIR/
     - cat BuildTiming.txt
+    - pip3 install gitpython
     - python3 $CI_PROJECT_DIR/data/scripts/upload.py
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:11
   tags:
