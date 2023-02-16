@@ -634,10 +634,11 @@ inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDa
    return localMin;
 }
 
+template< typename ValueType >
 inline void saveOperator( const uint_t&                                           level,
                           Edge&                                                   edge,
                           const PrimitiveStorage&                                 storage,
-                          const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
+                          const PrimitiveDataID< StencilMemory< ValueType >, Edge >& operatorId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
                           const std::shared_ptr< SparseMatrixProxy >&             mat )

@@ -28,7 +28,6 @@
 
 namespace hyteg {
 
-using walberla::real_t;
 using walberla::uint_t;
 
 template < class OperatorType >
@@ -44,7 +43,7 @@ class CGSolver : public Solver< OperatorType >
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
        uint_t                                     maxIter        = std::numeric_limits< uint_t >::max(),
-       real_t                                     tolerance      = 1e-16,
+       typename FunctionType::valueType           tolerance      = 1e-16,
        std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
@@ -79,9 +78,9 @@ class CGSolver : public Solver< OperatorType >
       ap_.copyBoundaryConditionFromFunction( x );
       r_.copyBoundaryConditionFromFunction( x );
 
-      real_t prsold = 0;
+      typename FunctionType::valueType prsold = 0;
       init( A, x, b, level, prsold );
-      real_t res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );
+      typename FunctionType::valueType res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );
 
       if ( res_start < tolerance_ )
       {
@@ -92,7 +91,7 @@ class CGSolver : public Solver< OperatorType >
          timingTree_->stop( "CG Solver" );
          return;
       }
-      real_t pAp, alpha, rsnew, sqrsnew, prsnew, beta;
+      typename FunctionType::valueType pAp, alpha, rsnew, sqrsnew, prsnew, beta;
 
       for ( size_t i = 0; i < maxIter_; ++i )
       {
@@ -172,15 +171,15 @@ class CGSolver : public Solver< OperatorType >
    /// \param numSteps   number of CG steps performed corresponds to dimension of matrix
    /// \param mainDiag   on return this vector containes the entries of T on the main diagonal
    /// \param subDiag    on return this vector containes the entries of T on the 1st sub-diagonal
-   void setupLanczosTriDiagMatrix( const OperatorType&    A,
-                                   const FunctionType&    x,
-                                   const FunctionType&    b,
-                                   const uint_t           level,
-                                   const uint_t           numSteps,
-                                   std::vector< real_t >& mainDiag,
-                                   std::vector< real_t >& subDiag )
+   void setupLanczosTriDiagMatrix( const OperatorType&                              A,
+                                   const FunctionType&                              x,
+                                   const FunctionType&                              b,
+                                   const uint_t                                     level,
+                                   const uint_t                                     numSteps,
+                                   std::vector< typename FunctionType::valueType >& mainDiag,
+                                   std::vector< typename FunctionType::valueType >& subDiag )
    {
-      real_t prsold, pAp, prsnew, alpha, alpha_old, beta;
+      typename FunctionType::valueType prsold, pAp, prsnew, alpha, alpha_old, beta;
 
       // ----------------
       //  initialisation
@@ -232,18 +231,22 @@ class CGSolver : public Solver< OperatorType >
       pAp = p_.dotGlobal( ap_, level, flag_ );
 
       alpha = prsold / pAp;
-      mainDiag.push_back( 1.0 / alpha + beta / alpha_old );
+      mainDiag.push_back( real_c( 1.0 ) / alpha + beta / alpha_old );
    }
 
    void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
 
  private:
-   void init( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, real_t& prsold ) const
+   void init( const OperatorType&               A,
+              const FunctionType&               x,
+              const FunctionType&               b,
+              const uint_t                      level,
+              typename FunctionType::valueType& prsold ) const
    {
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
+      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
       preconditioner_->solve( A, z_, r_, level );
-      p_.assign( {1.0}, {z_}, level, flag_ );
+      p_.assign( { 1.0 }, { z_ }, level, flag_ );
       prsold = r_.dotGlobal( z_, level, flag_ );
    }
 
@@ -253,11 +256,11 @@ class CGSolver : public Solver< OperatorType >
    FunctionType                              r_;
    std::shared_ptr< Solver< OperatorType > > preconditioner_;
 
-   hyteg::DoFType flag_;
-   bool           printInfo_;
-   real_t         tolerance_;
-   uint_t         restartFrequency_;
-   uint_t         maxIter_;
+   hyteg::DoFType                   flag_;
+   bool                             printInfo_;
+   typename FunctionType::valueType tolerance_;
+   uint_t                           restartFrequency_;
+   uint_t                           maxIter_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };

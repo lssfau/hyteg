@@ -162,8 +162,8 @@ int main( int argc, char* argv[] )
    typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseSolver;
    auto coarseLaplaceSolver  = std::make_shared< CoarseSolver >( storage, minLevel, minLevel, max_cg_iter );
    auto smoother             = std::make_shared< hyteg::GaussSeidelSmoother< P1ConstantLaplaceOperator > >();
-   auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
+   auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 
    typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > LaplaceSover;
    LaplaceSover                                                         laplaceSolver(

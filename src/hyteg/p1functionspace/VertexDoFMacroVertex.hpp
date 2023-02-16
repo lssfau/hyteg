@@ -282,12 +282,13 @@ inline ValueType
    return src[0];
 }
 
-inline void saveOperator( Vertex&                                                   vertex,
-                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >& operatorId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& srcId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&               mat,
-                          uint_t                                                    level )
+template < typename ValueType >
+inline void saveOperator( Vertex&                                                      vertex,
+                          const PrimitiveDataID< StencilMemory< ValueType >, Vertex >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&    srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&    dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&                  mat,
+                          uint_t                                                       level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );

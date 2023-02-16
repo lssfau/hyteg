@@ -198,18 +198,18 @@ int main( int argc, char* argv[] )
       auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
 
       ///// Geometric Multigrid A block preconditioner for MinRes /////
-      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >GMGSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > GMGSolver_T;
 
       auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
       //auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
-      auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+      auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
-
-      auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+      auto gmgSolver = std::make_shared< GMGSolver_T >(
+          storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
 
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
 

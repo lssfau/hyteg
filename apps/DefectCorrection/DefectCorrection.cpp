@@ -160,13 +160,12 @@ static void defectCorrection( int argc, char** argv )
    tmp.interpolate( rhsAnalytical, maxLevel, All );
    M_P1.apply( tmp, f, maxLevel, All );
 
-
    // solver
    // auto petscSolver           = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
    auto petscCoarseGridSolver = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, minLevel );
    auto smoother              = std::make_shared< GaussSeidelSmoother< P1ConstantLaplaceOperator > >();
-   auto restriction           = std::make_shared< P1toP1LinearRestriction >();
-   auto prolongation          = std::make_shared< P1toP1LinearProlongation >();
+   auto restriction           = std::make_shared< P1toP1LinearRestriction<> >();
+   auto prolongation          = std::make_shared< P1toP1LinearProlongation<> >();
    auto gmgSolver             = std::make_shared< GeometricMultigridSolver< P1ConstantLaplaceOperator > >(
        storage, smoother, petscCoarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3 );
 
@@ -175,9 +174,9 @@ static void defectCorrection( int argc, char** argv )
    if ( useGMG )
    {
       gmgSolver->solve( A_P1, u, f, maxLevel );
-     gmgSolver->solve( A_P1, u, f, maxLevel );
-     gmgSolver->solve( A_P1, u, f, maxLevel );
-     gmgSolver->solve( A_P1, u, f, maxLevel );
+      gmgSolver->solve( A_P1, u, f, maxLevel );
+      gmgSolver->solve( A_P1, u, f, maxLevel );
+      gmgSolver->solve( A_P1, u, f, maxLevel );
      gmgSolver->solve( A_P1, u, f, maxLevel );
      gmgSolver->solve( A_P1, u, f, maxLevel );
      gmgSolver->solve( A_P1, u, f, maxLevel );

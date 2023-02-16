@@ -175,8 +175,8 @@ adaptiveRefinement::ErrorVector solve( const std::shared_ptr< PrimitiveStorage >
    // operators
    using M_t = P1BlendingMassOperator;
    using A_t = P1BlendingDivkGradOperator;
-   using P_t = P1toP1LinearProlongation;
-   using R_t = P1toP1LinearRestriction;
+   using P_t = P1toP1LinearProlongation<>;
+   using R_t = P1toP1LinearRestriction<>;
 
    forms::p1_div_k_grad_blending_q3 form( pde.k, pde.k );
 

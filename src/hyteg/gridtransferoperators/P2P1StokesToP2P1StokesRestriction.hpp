@@ -30,7 +30,7 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
 {
  public:
    typedef P2toP2QuadraticRestriction VelocityRestriction_T;
-   typedef P1toP1LinearRestriction    PressureRestriction_T;
+   typedef P1toP1LinearRestriction<>    PressureRestriction_T;
 
    P2P1StokesToP2P1StokesRestriction()
    : projectMeanAfterRestriction_( false )
@@ -39,8 +39,9 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    : projectMeanAfterRestriction_( projectMeanAfterRestriction )
    {}
 
-   void
-       restrict( const P2P1TaylorHoodFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
+   void restrict( const P2P1TaylorHoodFunction< real_t >& function,
+                  const uint_t&                           sourceLevel,
+                  const DoFType&                          flag ) const override
    {
       for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
       {
@@ -56,7 +57,7 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
 
  private:
    P2toP2QuadraticRestriction quadraticRestrictionOperator_;
-   P1toP1LinearRestriction    linearRestrictionOperator_;
+   P1toP1LinearRestriction<>  linearRestrictionOperator_;
 
    bool projectMeanAfterRestriction_;
 };

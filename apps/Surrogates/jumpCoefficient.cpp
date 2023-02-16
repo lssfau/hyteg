@@ -441,14 +441,14 @@ int main( int argc, char** argv )
    {
       using M_t = P1ConstantMassOperator;
       using FE  = hyteg::P1Function< real_t >;
-      using R_t = hyteg::P1toP1LinearRestriction;
-      using P_t = hyteg::P1toP1LinearProlongation;
+      using R_t = hyteg::P1toP1LinearRestriction<>;
+      using P_t = hyteg::P1toP1LinearProlongation<>;
 
       using A_form = forms::p1_div_k_grad_affine_q1;
       A_form form( k, k );
 
-      P1VariableOperator< A_form > A1( storage, minLevel, maxLevel, form );
-      P1SurrogateOperator< A_form >    A1q( storage, minLevel, maxLevel, form );
+      P1VariableOperator< A_form >  A1( storage, minLevel, maxLevel, form );
+      P1SurrogateOperator< A_form > A1q( storage, minLevel, maxLevel, form );
       A1q.interpolateStencils( polyDegree, maxLevel );
 
       if ( surrogate_error )

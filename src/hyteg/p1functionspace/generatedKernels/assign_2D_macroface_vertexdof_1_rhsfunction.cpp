@@ -52,7 +52,30 @@ void assign_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1Face
         break;
     }
 }
-    
+
+static void assign_2D_macroface_vertexdof_1_rhs_function_level_any(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
+{
+    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
+    {
+        // inner triangle
+        for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
+        {
+         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = c*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+        }
+    }
+}
+
+
+void assign_2D_macroface_vertexdof_1_rhs_function(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
+{
+    switch( level )
+    {
+
+    default:
+        assign_2D_macroface_vertexdof_1_rhs_function_level_any(_data_p1FaceDst, _data_p1FaceSrc, c, level);
+        break;
+    }
+}
 
 } // namespace generated
 } // namespace macroface

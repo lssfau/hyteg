@@ -87,7 +87,7 @@ std::shared_ptr< RestrictionOperator< FunctionType > > getRestrictionOperator()
 template <>
 std::shared_ptr< RestrictionOperator< P1Function< real_t > > > getRestrictionOperator()
 {
-   return std::make_shared< P1toP1LinearRestriction >();
+   return std::make_shared< P1toP1LinearRestriction<> >();
 }
 
 template <>
@@ -105,7 +105,7 @@ std::shared_ptr< ProlongationOperator< FunctionType > > getProlongationOperator(
 template <>
 std::shared_ptr< ProlongationOperator< P1Function< real_t > > > getProlongationOperator()
 {
-   return std::make_shared< P1toP1LinearProlongation >();
+   return std::make_shared< P1toP1LinearProlongation<> >();
 }
 
 template <>

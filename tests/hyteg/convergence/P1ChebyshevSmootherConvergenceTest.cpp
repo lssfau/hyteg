@@ -70,8 +70,8 @@ void runTest()
 
       auto coarseGridSolver =
           std::make_shared< CGSolver< P1LaplaceOperatorType > >( storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
-      auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction >();
-      auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
+      auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
+      auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 
       auto multiGridSolver = GeometricMultigridSolver< P1LaplaceOperatorType >( storage,
                                                                                 smoother,

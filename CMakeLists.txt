@@ -107,10 +107,12 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-    find_package( PETSc REQUIRED )
-    include_directories ( ${PETSC_INCLUDES} )
-    link_directories    ( ${PETSC_LIBRARIES} )
-    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    find_package(PETSc REQUIRED)
+    add_library(PETSc::PETSc INTERFACE IMPORTED)
+    set_target_properties(PETSc::PETSc PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES "${PETSC_INCLUDES}"
+          INTERFACE_LINK_LIBRARIES "${PETSC_LIBRARIES}"
+          )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
