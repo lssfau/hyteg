@@ -1,6 +1,6 @@
 [submodule "walberla"]
 	path = walberla
-	url = ../../walberla/walberla
+	url = https://i10git.cs.fau.de/walberla/walberla.git
 [submodule "eigen"]
 	path = eigen
 	url = https://gitlab.com/libeigen/eigen.git
