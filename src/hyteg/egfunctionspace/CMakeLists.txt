@@ -12,6 +12,6 @@ target_sources( hyteg
     EGDivForm.hpp
     EGDivtForm.hpp
         EGOperatorsNitscheBC.hpp
-    EGVectorLaplaceFormNew.hpp
+    EGVectorLaplaceFormNitscheBC.hpp
     EGConvTestUtils.hpp
 )
