@@ -42,7 +42,7 @@ namespace hyteg {
 
 
     template<typename StokesOperatorType>
-    void MultiSinker(const std::string &name,
+    real_t MultiSinker(const std::string &name,
                      const uint_t &level,
                      const uint_t &nxy,
                      const uint_t &nSinkers,
@@ -55,7 +55,6 @@ namespace hyteg {
         real_t visc_max = std::pow(DR, 0.5);
 
         // storage and domain
-        //auto                  meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ),MeshInfo::CRISSCROSS,nxy, nxy);
         auto meshInfo = MeshInfo::meshCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), nxy, nxy, nxy);
 
         // auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh");
@@ -93,12 +92,10 @@ namespace hyteg {
         std::uniform_real_distribution<real_t> unif(0.0, 1.0);
         std::default_random_engine re;
         re.seed(25151);
-        //re.seed( 213512512 );
 
         std::vector<Point3D> centers;
         for (uint_t c = 0; c < nSinkers; c++) {
             centers.push_back(Point3D({unif(re), unif(re), unif(re)}));
-            //centers.push_back(Point3D({0.5, 0.5, 0.5}));
         }
 
         // characteristic function for sinkers
@@ -122,13 +119,11 @@ namespace hyteg {
         };
         btmp.uvw().interpolate({zero, zero, rhsV}, level, All);
         btmp.uvw().interpolate({zero, zero, rhsV}, level + 1, All);
-        //btmp.uvw().interpolate({zero, rhsV}, level, All);
 
         if constexpr (hyteg::dg::eg::isP2P1Discr<StokesOperatorType>()) {
             P2ConstantMassOperator M_vel(storage, level, level + 1);
             M_vel.apply(btmp.uvw()[2], b.uvw()[2], level, All);
             M_vel.apply(btmp.uvw()[2], b.uvw()[2], level + 1, All);
-            //M_vel.apply(btmp.uvw()[1], b.uvw()[1], level, All);
 
         } else if constexpr (hyteg::dg::eg::isEGP0Discr<StokesOperatorType>()) {
             hyteg::dg::eg::EGMassOperator M_vel(storage, level, level + 1);
@@ -158,8 +153,6 @@ namespace hyteg {
             vtkOutput.add(*xFiner.uvw().getDiscontinuousPart());
         }
 
-
-
         // Solve
         if(false) {
             {
@@ -172,7 +165,7 @@ namespace hyteg {
                 LU.setNullSpace(nullSpace, level);
                 LU.solve(Op, x, b, level);
             }
-            /*
+
             {
                 PETScLUSolver<StokesOperatorType> LUfiner(storage, level + 1, numerator);
                 LUfiner.disableApplicationBC(
@@ -183,12 +176,12 @@ namespace hyteg {
                 LUfiner.setNullSpace(nullSpace, level + 1);
                 LUfiner.solve(OpFiner, xFiner, b, level + 1);
             }
-             */
+
         }
 
         if(true) {
             {
-                x.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+               // x.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
                 PETScBlockPreconditionedStokesSolver<StokesOperatorType> solver(storage, level, 1e-3,
                                                                                 std::numeric_limits<PetscInt>::max(), 6,
                                                                                 1);
@@ -197,18 +190,16 @@ namespace hyteg {
                 solver.solve(Op, x, b, level);
             }
             WALBERLA_LOG_INFO_ON_ROOT("First solve done.");
-            /*
+
             {
-                xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+               // xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
                 PETScBlockPreconditionedStokesSolver<StokesOperatorType> solverFiner(storage, level + 1, 1e-5,
                                                                                      std::numeric_limits<PetscInt>::max(),
                                                                                      6, 1);
-                // PETScMinResSolver<StokesOperatorType> solver(storage, level);
-                //PETScMinResSolver<StokesOperatorType> solverFiner(storage, level+1);
                 solverFiner.disableApplicationBC(
                         std::is_same<StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC>::value);
                 solverFiner.solve(OpFiner, xFiner, b, level + 1);
-            }*/
+            }
         }
 
 
@@ -223,7 +214,7 @@ namespace hyteg {
             // hyteg::vertexdof::projectMean(x.p(), level+1);
         }
 
-/*
+
         // error equivalent
         if constexpr (hyteg::dg::eg::isP2P1Discr<StokesOperatorType>()) {
             P2toP2QuadraticProlongation P2P2ProlongationOp;
@@ -233,6 +224,7 @@ namespace hyteg {
             errEq.assign({1.0, -1.0}, {xFiner, x}, level + 1, Inner);
 
             WALBERLA_LOG_INFO_ON_ROOT("error equivalent u = " << errEq.uvw().getMaxComponentMagnitude(level+1, All));
+            return errEq.uvw().getMaxComponentMagnitude(level+1, All);
         } else if constexpr (hyteg::dg::eg::isEGP0Discr<StokesOperatorType>()) {
             P1toP1LinearProlongation P1P1ProlongationOp;
             for (uint_t k = 0; k < x.uvw().getConformingPart()->getDimension(); k++) {
@@ -241,10 +233,10 @@ namespace hyteg {
             errEq.uvw().getConformingPart()->assign({1.0, -1.0}, {*xFiner.uvw().getConformingPart(), *x.uvw().getConformingPart()}, level + 1, All);
 
             WALBERLA_LOG_INFO_ON_ROOT("error equivalent u = " << errEq.uvw().getMaxMagnitude(level+1));
+             return errEq.uvw().getMaxMagnitude(level+1);
         }
-*/
-        vtkOutput.write(level, 1);
-      //  vtkOutput.write(level+1, 1);
+
+        //vtkOutput.write(level, 1);
 
 
     }
@@ -260,26 +252,19 @@ int main(int argc, char *argv[]) {
 
     uint_t nSinkers = 1;
     if(true) {
-
-       // MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 2, 1, nSinkers, 1000, 200, 0.1);
-        //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 3, 1, nSinkers, 1000, 200, 0.1);
-        //  MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 3, 1, nSinkers, 1000, 200, 0.1);
-        MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 5, 1, nSinkers, 1000, 200, 0.1);
+        //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 2 , 1, nSinkers, 1000, 200, 0.1);
+       //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 3, 1, nSinkers, 1000, 200, 0.1);
+        MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 4, 1, nSinkers, 1000, 200, 0.1);
 
     }
 
-    if(true) {
-     //   MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 2, 1, nSinkers, 1000, 200, 0.1);
-      //  MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 3, 1, nSinkers, 1000, 200, 0.1);
-        MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 3, 1, nSinkers, 1000, 200, 0.1);
+    if(false) {
+
+        //MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 2, 1, nSinkers, 1000, 200, 0.1);
+        //MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 3, 1, nSinkers, 1000, 200, 0.1);
+        MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 4, 1, nSinkers, 1000, 200, 0.1);
 
     }
-
-    //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 5, 1, nSinkers, 1000, 200, 0.1);
-    //MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 5, 1, nSinkers, 1000, 200, 0.1);
-    //MultiSinker<P2P1ElementwiseAffineEpsilonStokesOperator>("MultiSinker_P2P1", 3, 1, 4, 1000, 200, 0.1);
-    //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 4, 1, 4, 1000, 200, 0.1);
-
 
     return EXIT_SUCCESS;
 }
