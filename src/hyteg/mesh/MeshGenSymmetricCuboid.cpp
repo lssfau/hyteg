@@ -56,7 +56,7 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
    if ( numCubesX == 0 || numCubesY == 0 || numCubesZ == 0 )
       return meshInfo;
 
-   auto subCubeWidth = upperRightBack - lowerLeftFront;
+   Point3D subCubeWidth = upperRightBack - lowerLeftFront;
    subCubeWidth[0] /= real_c( numCubesX );
    subCubeWidth[1] /= real_c( numCubesY );
    subCubeWidth[2] /= real_c( numCubesZ );

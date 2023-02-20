@@ -156,9 +156,9 @@ void runTest0( std::string tag ) {
     sample[k] = Point3D( { rad*std::cos(phi), rad*std::sin(phi), 0.0 } );
     myMap.evalF( sample[k], mapped[k] );
     WALBERLA_LOG_INFO_ON_ROOT( " " << k << std::scientific
-                               << ": " << std::sqrt(sample[k].normSq())
-                               << " -> " << std::sqrt(mapped[k].normSq()) );
-    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(sample[k].normSq()), std::sqrt(mapped[k].normSq()) );
+                               << ": " << std::sqrt(sample[k].squaredNorm())
+                               << " -> " << std::sqrt(mapped[k].squaredNorm()) );
+    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(sample[k].squaredNorm()), std::sqrt(mapped[k].squaredNorm()) );
   }
 
   // check 2
@@ -173,9 +173,9 @@ void runTest0( std::string tag ) {
     sample[k] = v2 + real_c(k) * delta;
     myMap.evalF( sample[k], mapped[k] );
     WALBERLA_LOG_INFO_ON_ROOT( " " << k << std::scientific
-                               << ": " << std::sqrt(sample[k].normSq())
-                               << " -> " << std::sqrt(mapped[k].normSq()) );
-    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(mapped[k].normSq()), rad );
+                               << ": " << std::sqrt(sample[k].squaredNorm())
+                               << " -> " << std::sqrt(mapped[k].squaredNorm()) );
+    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(mapped[k].squaredNorm()), rad );
   }
 
 }

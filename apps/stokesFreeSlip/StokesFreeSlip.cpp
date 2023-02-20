@@ -101,13 +101,13 @@ std::shared_ptr< SetupPrimitiveStorage >
 
    // Boundaries
    auto inflow = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rminSq - 1e-12 < normSq && normSq < rminSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rminSq - 1e-12 < squaredNorm && squaredNorm < rminSq + 1e-12;
    };
 
    auto freeslip = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rmaxSq - 1e-12 < normSq && normSq < rmaxSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rmaxSq - 1e-12 < squaredNorm && squaredNorm < rmaxSq + 1e-12;
    };
 
    setupStorage->setMeshBoundaryFlagsOnBoundary( 0, 0, true );
@@ -126,8 +126,8 @@ void applyDirichletBCAnnulus( const double rmin, const double, const uint_t leve
 
    // Boundaries
    auto inflow = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rminSq - 1e-12 < normSq && normSq < rminSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rminSq - 1e-12 < squaredNorm && squaredNorm < rminSq + 1e-12;
    };
 
    auto dirichletInterpolantX = [=]( auto p ) { return inflow( p ) ? -p[1] / rmin : 0; };
@@ -225,8 +225,8 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
    // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };
-   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( {p[0] / rmax, p[1] / rmax} ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( p[0] / rmax, p[1] / rmax, 0.0 ); };
 
    std::shared_ptr< ProjectNormalOperatorType > projection = nullptr;
    if ( useRectangleScenario )

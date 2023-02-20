@@ -50,9 +50,9 @@ class N1E1Form_mass : public N1E1Form
       // K = F(K') = Bx' + b
       // B is the Jacobian of the transformation
       hyteg::Matrix3r B;
-      B.col( 0 ) = coords[1].vector_ - coords[0].vector_;
-      B.col( 1 ) = coords[2].vector_ - coords[0].vector_;
-      B.col( 2 ) = coords[3].vector_ - coords[0].vector_;
+      B.col( 0 ) = coords[1] - coords[0];
+      B.col( 1 ) = coords[2] - coords[0];
+      B.col( 2 ) = coords[3] - coords[0];
 
       const real_t absDetB = std::abs( B.determinant() );
 

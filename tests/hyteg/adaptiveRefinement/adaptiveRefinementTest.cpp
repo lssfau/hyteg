@@ -113,7 +113,7 @@ void adaptiveRefinementTest()
    uint_t origin = 0; // (0, 0, 0)
    for ( uint_t i = 0; i < vertices_0.size(); ++i )
    {
-      if ( vertices_0[i].normSq() <= 0.0 )
+      if ( vertices_0[i].squaredNorm() <= 0.0 )
       {
          origin = i;
          break;

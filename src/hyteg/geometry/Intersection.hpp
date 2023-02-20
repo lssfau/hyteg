@@ -254,7 +254,7 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto intersectionRadius = std::sqrt( radius * radius - centreDistToPlane * centreDistToPlane );
 
    // We need to rotate our coordinate system -> normal component in z direction.
-   auto planeTangent0 = v2 - v1;
+   Point3D planeTangent0 = v2 - v1;
    planeTangent0 /= planeTangent0.norm();
    auto planeTangent1 = crossProduct( planeNormal, planeTangent0 );
 

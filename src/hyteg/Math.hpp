@@ -33,8 +33,8 @@ namespace math {
 
 using walberla::real_t;
 
-template < size_t M, size_t N >
-inline real_t det2( const std::array< PointND< real_t, M >, N >& m )
+template < int M, size_t N >
+inline real_t det2( const std::array< Eigen::Matrix< real_t, M, 1 >, N >& m )
 {
    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
 }

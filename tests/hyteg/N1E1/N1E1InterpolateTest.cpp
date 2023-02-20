@@ -32,8 +32,7 @@ using namespace hyteg;
 void test3D()
 {
    // order of vertices is important
-   MeshInfo meshInfo =
-       MeshInfo::singleTetrahedron( { Point3D{ { 0, 0, 0 } }, { { 1, 0, 0 } }, { { 0, 1, 0 } }, { { 0, 0, 1 } } } );
+   MeshInfo meshInfo = MeshInfo::singleTetrahedron( { Point3D{ { 0, 0, 0 } }, { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } } );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -59,7 +58,7 @@ void test3D()
          const auto  edgeData = edge.getData( dofs->getEdgeDataID() )->getPointer( level );
          const auto  nEdges   = real_c( levelinfo::num_microedges_per_edge( level ) );
 
-         const auto correct = c.dot( edge.getDirection().vector_ ) / nEdges;
+         const auto correct = c.dot( edge.getDirection() ) / nEdges;
 
          for ( const auto& it : edgedof::macroedge::Iterator( level ) )
          {
@@ -80,9 +79,9 @@ void test3D()
          const auto  faceData = face.getData( dofs->getFaceDataID() )->getPointer( level );
          const auto  nEdges   = real_c( levelinfo::num_microedges_per_edge( level ) );
 
-         const auto correctX  = c.dot( face.getCoordinates()[1].vector_ - face.getCoordinates()[0].vector_ ) / nEdges;
-         const auto correctY  = c.dot( face.getCoordinates()[2].vector_ - face.getCoordinates()[0].vector_ ) / nEdges;
-         const auto correctXY = c.dot( face.getCoordinates()[2].vector_ - face.getCoordinates()[1].vector_ ) / nEdges;
+         const auto correctX  = c.dot( face.getCoordinates()[1] - face.getCoordinates()[0] ) / nEdges;
+         const auto correctY  = c.dot( face.getCoordinates()[2] - face.getCoordinates()[0] ) / nEdges;
+         const auto correctXY = c.dot( face.getCoordinates()[2] - face.getCoordinates()[1] ) / nEdges;
 
          for ( const auto& it : edgedof::macroface::Iterator( level ) )
          {

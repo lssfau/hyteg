@@ -25,6 +25,11 @@ hyteg::PointND< _Scalar, _Rows > mul( const hyteg::PointND< _Scalar, _Cols >& rh
    return out;
 }
 
+Eigen::Matrix< _Scalar, _Cols, 1 > mul( const Eigen::Matrix< _Scalar, _Cols, 1 >& rhs ) const
+{
+   return this->derived() * rhs;
+}
+
 void setAll( _Scalar scalar)
 {
    this->setConstant( scalar );

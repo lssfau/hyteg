@@ -169,8 +169,6 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
 
    WALBERLA_ASSERT( !storage_->hasGlobalCells() )
 
-   Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
    WALBERLA_ASSERT( storage_->faceExistsLocally( faceID ) )
    const Face& face = *storage_->getFace( faceID );
 

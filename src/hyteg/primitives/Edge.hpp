@@ -54,8 +54,8 @@ class Edge : public Primitive
       length_    = direction_.norm();
       tangent_   = direction_ / length_;
 
-      const std::array< walberla::real_t, 3 > init{ { tangent_[1], -tangent_[0], 0.0 } };
-      normal2D_ = Point3D( init );
+      //const std::array< walberla::real_t, 3 > init{ { tangent_[1], -tangent_[0], 0.0 } };
+      normal2D_ = Point3D( tangent_[1], -tangent_[0], 0.0 );
    }
 
    Edge( walberla::mpi::RecvBuffer& recvBuffer )

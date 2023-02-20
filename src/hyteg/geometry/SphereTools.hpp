@@ -223,9 +223,9 @@ void icosahedralSurfaceTriangles( real_t                                  radius
          const auto v1 = tmpVertices[v1_idx];
          const auto v2 = tmpVertices[v2_idx];
 
-         auto v3 = 0.5 * ( v0 + v1 );
-         auto v4 = 0.5 * ( v1 + v2 );
-         auto v5 = 0.5 * ( v2 + v0 );
+         Point3D v3 = 0.5 * ( v0 + v1 );
+         Point3D v4 = 0.5 * ( v1 + v2 );
+         Point3D v5 = 0.5 * ( v2 + v0 );
 
          v3 /= v3.norm();
          v4 /= v4.norm();

@@ -93,70 +93,50 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
   //  generate vertices
   // -------------------
   IDType id;
-  std::array<real_t,3> node;
-  node[2] = (real_t)0.0;
 
   // interior nodes
   for ( uint_t i = 1; i < nx; ++i )
     {
       for ( uint_t j = 1; j < ny; ++j )
-        {
-          id = rectMap(i,j);
-          node[0] = llx + (real_t)i * hx;
-          node[1] = lly + (real_t)j * hy;
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
-        }
+      {
+         id                     = rectMap( i, j );
+         meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx + (real_t) i * hx, lly + (real_t) j * hy, 0.0 ), 0 );
+      }
     }
 
   for ( uint_t i = 1; i < nx; ++i )
     {
       // nodes on lower boundary
-      id = rectMap(i,0);
-      node[0] = llx + (real_t)i * hx;
-      node[1] = lly;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      id                     = rectMap( i, 0 );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx + (real_t) i * hx, lly, 0.0 ), 1 );
 
       // nodes on upper boundary
-      id = rectMap(i,ny);
-      node[0] = llx + (real_t)i * hx;
-      node[1] = ury;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      id                     = rectMap( i, ny );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx + (real_t) i * hx, ury, 0.0 ), 1 );
     }
 
   for ( uint_t j = 1; j < ny; ++j )
     {
       // nodes on left boundary
-      id = rectMap(0,j);
-      node[0] = llx;
-      node[1] = lly + (real_t)j * hy;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      id                     = rectMap( 0, j );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx, lly + (real_t) j * hy, 0.0 ), 1 );
 
       // nodes on upper boundary
-      id = rectMap(nx,j);
-      node[0] = urx;
-      node[1] = lly + (real_t)j * hy;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+      id                     = rectMap( nx, j );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( urx, lly + (real_t) j * hy, 0.0 ), 1 );
     }
 
   // four corners
-  id = rectMap(0,0);
-  node[0] = llx;
-  node[1] = lly;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
-  id = rectMap(nx,0);
-  node[0] = urx;
-  node[1] = lly;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
-  id = rectMap(nx,ny);
-  node[0] = urx;
-  node[1] = ury;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
-  id = rectMap(0,ny);
-  node[0] = llx;
-  node[1] = ury;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
+    id                     = rectMap( 0, 0 );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx, lly, 0.0 ), 1 );
+    id                     = rectMap( nx, 0 );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( urx, lly, 0.0 ), 1 );
+    id                     = rectMap( nx, ny );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( urx, ury, 0.0 ), 1 );
+    id                     = rectMap( 0, ny );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( llx, ury, 0.0 ), 1 );
 
-  // --------------------
+    // --------------------
   //  generate triangles
   // --------------------
   switch( flavour )
@@ -259,8 +239,6 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
   IDType id = 0;
   int32_t i, j;
   uint_t boundaryFlag;
-  std::array<real_t,3> node;
-  node[2] = (real_t)0.0;
   std::map< std::array<int32_t,2>, IDType > indices2id;
 
   // vertices
@@ -268,12 +246,11 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
     {
       for ( i = j%2; i <= 2*nx - j%2; i += 2 )
         {
-          boundaryFlag = ( i == 0 || i == 2*nx || j == 0 || j == 2*ny ) ? 1 : 0;
-          node[0] = llx + (real_t)i * hx;
-          node[1] = lly + (real_t)j * hy;
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), boundaryFlag );
-          indices2id.insert( { {i,j}, id } );
-          ++id;
+              boundaryFlag = ( i == 0 || i == 2 * nx || j == 0 || j == 2 * ny ) ? 1 : 0;
+              meshInfo.vertices_[id] =
+                  MeshInfo::Vertex( id, Point3D( llx + (real_t) i * hx, lly + (real_t) j * hy, 0.0 ), boundaryFlag );
+              indices2id.insert( { { i, j }, id } );
+              ++id;
         }
     }
 

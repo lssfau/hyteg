@@ -295,7 +295,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
    for ( uint_t k = 0; k < 3; ++k )
@@ -333,7 +333,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply3D( const
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
    for ( uint_t k = 0; k < 4; ++k )

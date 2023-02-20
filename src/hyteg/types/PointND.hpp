@@ -235,20 +235,23 @@ inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointn
    return os;
 }
 
-typedef PointND< real_t, 2 >  Point2D;
-typedef PointND< real_t, 3 >  Point3D;
-typedef PointND< real_t, 4 >  Point4D;
-typedef PointND< real_t, 6 >  Point6D;
-typedef PointND< real_t, 10 > Point10D;
+using Point2D    = Eigen::Matrix< walberla::real_t, 2, 1 >;
+using Point3D    = Eigen::Matrix< walberla::real_t, 3, 1 >;
+using Point4D    = Eigen::Matrix< walberla::real_t, 4, 1 >;
+using Point6D    = Eigen::Matrix< walberla::real_t, 6, 1 >;
+using Point10D    = Eigen::Matrix< walberla::real_t, 10, 1 >;
+//typedef PointND< real_t, 2 >  Point2D;
+//typedef PointND< real_t, 3 >  Point3D;
+//typedef PointND< real_t, 4 >  Point4D;
+//typedef PointND< real_t, 6 >  Point6D;
+//typedef PointND< real_t, 10 > Point10D;
 
 template < size_t N >
 using PointNDr = PointND< real_t, N >;
 
 inline Point3D crossProduct( const Point3D& a, const Point3D& b )
 {
-   Point3D cross;
-   cross.vector_ = a.vector_.cross( b.vector_ );
-   return cross;
+   return a.cross( b );
 }
 
 walberla::math::Vector3< real_t > toVec3( const Point3D& p );

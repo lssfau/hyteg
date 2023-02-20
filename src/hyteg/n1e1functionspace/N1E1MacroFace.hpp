@@ -66,9 +66,9 @@ inline void add( const uint_t&                                            level,
    const Point3D diagonalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::XY );
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalarHorizontal = vector.dot( horizontalMicroEdgeDirection.vector_ );
-   const ValueType dofScalarVertical   = vector.dot( verticalMicroEdgeDirection.vector_ );
-   const ValueType dofScalarDiagonal   = vector.dot( diagonalMicroEdgeDirection.vector_ );
+   const ValueType dofScalarHorizontal = vector.dot( horizontalMicroEdgeDirection );
+   const ValueType dofScalarVertical   = vector.dot( verticalMicroEdgeDirection );
+   const ValueType dofScalarDiagonal   = vector.dot( diagonalMicroEdgeDirection );
 
    auto dstData = face.getData( dstId )->getPointer( level );
 
@@ -112,9 +112,9 @@ inline void interpolate( const uint_t&                                          
    const Point3D diagonalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::XY );
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalarHorizontal = constant.dot( horizontalMicroEdgeDirection.vector_ );
-   const ValueType dofScalarVertical   = constant.dot( verticalMicroEdgeDirection.vector_ );
-   const ValueType dofScalarDiagonal   = constant.dot( diagonalMicroEdgeDirection.vector_ );
+   const ValueType dofScalarHorizontal = constant.dot( horizontalMicroEdgeDirection );
+   const ValueType dofScalarVertical   = constant.dot( verticalMicroEdgeDirection );
+   const ValueType dofScalarDiagonal   = constant.dot( diagonalMicroEdgeDirection );
 
    for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
    {
@@ -182,7 +182,7 @@ inline void
          }
 
          const VectorType< ValueType > vector    = expr( xBlend, srcVector );
-         const ValueType               dofScalar = vector.dot( horizontalMicroEdgeDirection.vector_ );
+         const ValueType               dofScalar = vector.dot( horizontalMicroEdgeDirection );
 
          faceData[edgedof::macroface::horizontalIndex( level, it.col(), it.row() )] = dofScalar;
       }
@@ -198,7 +198,7 @@ inline void
          }
 
          const VectorType< ValueType > vector    = expr( xBlend, srcVector );
-         const ValueType               dofScalar = vector.dot( verticalMicroEdgeDirection.vector_ );
+         const ValueType               dofScalar = vector.dot( verticalMicroEdgeDirection );
 
          faceData[edgedof::macroface::verticalIndex( level, it.col(), it.row() )] = dofScalar;
       }
@@ -214,7 +214,7 @@ inline void
          }
 
          const VectorType< ValueType > vector    = expr( xBlend, srcVector );
-         const ValueType               dofScalar = vector.dot( diagonalMicroEdgeDirection.vector_ );
+         const ValueType               dofScalar = vector.dot( diagonalMicroEdgeDirection );
 
          faceData[edgedof::macroface::diagonalIndex( level, it.col(), it.row() )] = dofScalar;
       }
