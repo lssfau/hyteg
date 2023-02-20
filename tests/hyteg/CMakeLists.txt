@@ -835,6 +835,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGStokesConvergenceTest COMMAND $<TARGET_FILE:EGStokesConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
 
+    waLBerla_compile_test(FILES egfunctionspace/EGNietscheBCTests.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME EGNietscheBCTests )
+
     waLBerla_compile_test(FILES egfunctionspace/EGEpsilonConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space)
 
@@ -852,10 +855,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     ## SolVi benchmark
     waLBerla_compile_test(FILES varvisc/SolViBenchmark.cpp DEPENDS hyteg core )
     waLBerla_execute_test(NAME SolViBenchmark)
-
-    ## P1P0 convergence
-    waLBerla_compile_test(FILES varvisc/P1P0EpsilonConvergenceTest.cpp DEPENDS hyteg core )
-    waLBerla_execute_test(NAME P1P0EpsilonConvergenceTest)
 
     waLBerla_compile_test(FILES varvisc/MultiSinkerBenchmark.cpp DEPENDS hyteg core )
     waLBerla_execute_test(NAME MultiSinkerBenchmark)
