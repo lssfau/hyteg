@@ -19,11 +19,13 @@
  */
 #pragma once
 
+#include <hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp>
+
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 
 namespace hyteg {
 
@@ -33,10 +35,11 @@ class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
  public:
    P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage,
                                                           uint_t                                     minLevel,
-                                                          uint_t                                     maxLevel )
+                                                          uint_t                                     maxLevel,
+                                                          std::function< real_t( const Point3D& ) >  mu )
    : Operator( storage, minLevel, maxLevel )
-   , viscOp( storage, minLevel, maxLevel )
-   , P( storage, minLevel, maxLevel, std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_affine_qe >() ) )
+   , viscOp( storage, minLevel, maxLevel, mu )
+   , P( storage, minLevel, maxLevel, std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( mu, mu ) ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -50,7 +53,7 @@ class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
       P.toMatrix( mat, src.p(), dst.p(), level, flag );
    }
 
-   P2ConstantEpsilonOperator viscOp;
+   P2ElementwiseAffineEpsilonOperator viscOp;
    P1BlendingLumpedDiagonalOperator P;
 
    bool hasGlobalCells_;
