@@ -46,6 +46,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
            , energyNormOp( Lapl )
+    ,blockPrec( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -80,6 +81,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    P1ToP2ConstantDivTOperator divT;
 
     EnergyNormOperator_T&               energyNormOp;
+    BlockPreconditioner_T blockPrec;
    // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
