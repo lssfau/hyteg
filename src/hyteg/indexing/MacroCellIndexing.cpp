@@ -145,7 +145,7 @@ CellIterator& CellIterator::operator++() // prefix
       internalCoordinates_.col() = 0;
    }
 
-   coordinates_ = internalCoordinates_ + IndexIncrement( (int) offsetToCenter_, (int) offsetToCenter_, (int) offsetToCenter_ );
+   coordinates_ = internalCoordinates_ + Index( (int) offsetToCenter_, (int) offsetToCenter_, (int) offsetToCenter_ );
 
    return *this;
 }

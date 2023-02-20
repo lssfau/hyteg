@@ -115,7 +115,7 @@ void smoothSOR3D(
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
-            const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+            const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
 
             const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
             const auto onCellEdgesSet = edgedof::macrocell::isOnCellEdges( level, leafIndexInCell, leafOrientationInCell );

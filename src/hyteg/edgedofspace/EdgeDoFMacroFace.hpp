@@ -128,7 +128,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
-   Point2D xRelMacro = transform.mul( x );
+   Point2D xRelMacro = transform * x;
 
    // Determine lower-left corner index of the quad where the evaluation point lies in
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
@@ -692,10 +692,10 @@ inline void apply( const uint_t&                                            Leve
       if ( it.row() != 0 )
       {
          tmp = 0.0;
-         for ( uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k )
+         for ( auto k : neighborsFromHorizontalEdge )
          {
-            tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge( neighborsFromHorizontalEdge[k] )] *
-                   src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
+            tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge( k )] *
+                   src[indexFromHorizontalEdge( Level, it.col(), it.row(), k )];
          }
          if ( update == Replace )
          {
@@ -709,10 +709,10 @@ inline void apply( const uint_t&                                            Leve
       if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          tmp = 0.0;
-         for ( uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k )
+         for ( auto k : neighborsFromDiagonalEdge )
          {
-            tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge( neighborsFromDiagonalEdge[k] )] *
-                   src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
+            tmp +=
+                opr_data[edgedof::stencilIndexFromDiagonalEdge( k )] * src[indexFromDiagonalEdge( Level, it.col(), it.row(), k )];
          }
          if ( update == Replace )
          {
@@ -726,10 +726,10 @@ inline void apply( const uint_t&                                            Leve
       if ( it.col() != 0 )
       {
          tmp = 0.0;
-         for ( uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k )
+         for ( auto k : neighborsFromVerticalEdge )
          {
-            tmp += opr_data[edgedof::stencilIndexFromVerticalEdge( neighborsFromVerticalEdge[k] )] *
-                   src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
+            tmp +=
+                opr_data[edgedof::stencilIndexFromVerticalEdge( k )] * src[indexFromVerticalEdge( Level, it.col(), it.row(), k )];
          }
 
          if ( update == Replace )
@@ -796,7 +796,7 @@ inline void apply3D( const uint_t&                                              
                   const auto leafOrientationInFace =
                       macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
-                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+                  const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
                   const auto leafIndexInFace =
                       leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                           macrocell::getIndexInNeighboringMacroFaceXYZ(

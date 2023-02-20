@@ -128,7 +128,9 @@ inline std::pair< Index, FaceType > getMicroFaceFromMicroVertices( const std::ar
    }
    else if ( v == blue )
    {
-      ret = { v0 - Index( 1, 0, 0 ), FaceType::BLUE };
+      Index tmp( v0 );
+      tmp -= Index( 1, 0, 0 );
+      ret = { tmp, FaceType::BLUE };
    }
    else
    {

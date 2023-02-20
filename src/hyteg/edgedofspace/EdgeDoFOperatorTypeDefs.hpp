@@ -25,9 +25,6 @@
 
 namespace hyteg {
 
-namespace indexing {
-class IndexIncrement;
-}
 
 namespace edgedof {
 

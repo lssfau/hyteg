@@ -113,7 +113,7 @@ inline void projectNormal3D( uint_t                                             
          in[1] = dstV[idx];
          in[2] = dstW[idx];
 
-         out = projection.mul( in );
+         out = projection * in;
 
          dstU[idx] = out[0];
          dstV[idx] = out[1];
@@ -133,7 +133,7 @@ inline void projectNormal3D( uint_t                                             
          in[1] = dstV[idx];
          in[2] = dstW[idx];
 
-         out = projection.mul( in );
+         out = projection * in;
 
          dstU[idx] = out[0];
          dstV[idx] = out[1];
@@ -153,7 +153,7 @@ inline void projectNormal3D( uint_t                                             
          in[1] = dstV[idx];
          in[2] = dstW[idx];
 
-         out = projection.mul( in );
+         out = projection * in;
 
          dstU[idx] = out[0];
          dstV[idx] = out[1];
@@ -202,7 +202,7 @@ inline void projectNormal2D( uint_t                                             
       in[0] = dstU[idx];
       in[1] = dstV[idx];
 
-      out = projection.mul( in );
+      out = projection * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];
@@ -248,7 +248,7 @@ inline void projectNormal3D( uint_t                                             
       in[1] = dstV[idx];
       in[2] = dstW[idx];
 
-      out = projection.mul( in );
+      out = projection * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];

@@ -19,13 +19,12 @@
  */
 #pragma once
 
-
-
 #include <array>
 
 #include "core/OpenMP.h"
 
-#include "hyteg/Stencil.hpp" 
+#include "hyteg/Stencil.hpp"
+#include "hyteg/indexing/Common.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -1139,7 +1138,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
                auto weight               = stencilIt.second;
-               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first.cast< idx_t >();
                auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), *storage_, level );
 
@@ -1475,7 +1474,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                   continue;
 
                auto weight               = stencilIt.second;
-               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first.cast<idx_t>();
                auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), *storage_, level );
 

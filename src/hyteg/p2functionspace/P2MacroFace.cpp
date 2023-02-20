@@ -100,7 +100,7 @@ void evaluateGradient( const uint_t&                                            
    gradient_[1] += ( real_c( -4.0 ) * x - real_c( 8.0 ) * y + real_c( 4.0 ) ) * localEdgeDoFs[1];
    gradient_[1] += ( real_c( -4.0 ) * x ) * localEdgeDoFs[2];
 
-   gradient_   = transform.mul( gradient_ );
+   gradient_   = transform * gradient_;
    gradient[0] = gradient_[0];
    gradient[1] = gradient_[1];
 }
@@ -416,7 +416,7 @@ void smoothSOR3D(
                continue;
 
             auto weight               = stencilIt.second;
-            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first.cast<idx_t>();
             auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, level );
 
@@ -458,7 +458,7 @@ void smoothSOR3D(
                const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
                    leafOrientation, neighborCell, localFaceID, storage );
 
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
                const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                                                 edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
                                                     leafIndexInCell, neighborCell, localFaceID, storage, level ) :
@@ -525,7 +525,7 @@ void smoothSOR3D(
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
                const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInCell, neighborCell, localFaceID, storage, level );
 
@@ -562,7 +562,7 @@ void smoothSOR3D(
                   const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
                       leafOrientation, neighborCell, localFaceID, storage );
 
-                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+                  const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
                   const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                                                    edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
                                                        leafIndexInCell, neighborCell, localFaceID, storage, level ) :

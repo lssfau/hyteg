@@ -96,7 +96,7 @@ void smoothSOR(
          const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
          for ( const auto& neighbor : edgeDoFNeighbors )
          {
-            const auto srcIdx      = it + neighbor;
+            const auto srcIdx      = it + neighbor.cast< idx_t >();
             const auto srcArrayIdx = edgedof::macrocell::index( level, srcIdx.x(), srcIdx.y(), srcIdx.z(), orientation );
             tmp -= e2v_operator[orientation][neighbor] * edgeDoFDst[srcArrayIdx];
          }
@@ -126,7 +126,7 @@ void smoothSOR(
              P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
          for ( const auto& neighbor : vertexDoFNeighbors )
          {
-            const auto srcIdx      = it + neighbor;
+            const auto srcIdx      = it + neighbor.cast< idx_t >();
             const auto srcArrayIdx = vertexdof::macrocell::index( level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
             tmp -= v2e_operator[centerOrientation][neighbor] * vertexDoFDst[srcArrayIdx];
          }
@@ -142,7 +142,7 @@ void smoothSOR(
                if ( centerOrientation == leafOrientation && neighbor == IndexIncrement( 0, 0, 0 ) )
                   continue;
 
-               const auto   srcIdx      = it + neighbor;
+               const auto   srcIdx      = it + neighbor.cast< idx_t >();
                const auto   srcArrayIdx = edgedof::macrocell::index( level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
                const real_t stencilWeight = e2e_operator[centerOrientation][leafOrientation][neighbor];
                tmp -= stencilWeight * edgeDoFDst[srcArrayIdx];
@@ -165,7 +165,7 @@ void smoothSOR(
           P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
       for ( const auto& neighbor : vertexDoFNeighbors )
       {
-         const auto srcIdx      = it + neighbor;
+         const auto srcIdx      = it + neighbor.cast< idx_t >();
          const auto srcArrayIdx = vertexdof::macrocell::index( level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
          tmp -= v2e_operator[centerOrientation][neighbor] * vertexDoFDst[srcArrayIdx];
       }
@@ -181,7 +181,7 @@ void smoothSOR(
             if ( centerOrientation == leafOrientation && neighbor == IndexIncrement( 0, 0, 0 ) )
                continue;
 
-            const auto   srcIdx        = it + neighbor;
+            const auto   srcIdx        = it + neighbor.cast< idx_t >();
             const auto   srcArrayIdx   = edgedof::macrocell::index( level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
             const real_t stencilWeight = e2e_operator[centerOrientation][leafOrientation][neighbor];
             tmp -= stencilWeight * edgeDoFDst[srcArrayIdx];

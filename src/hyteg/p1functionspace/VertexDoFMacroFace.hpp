@@ -61,7 +61,7 @@ inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  v
          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) } );
 
-   const auto indexInMacroCell = indexing::basisConversion(
+   Index indexInMacroCell = indexing::basisConversion(
        vertexDoFIndexInMacroFace, localVertexIDsAtCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
    return indexInMacroCell;
 }
@@ -158,7 +158,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
-   Point2D xRelMacro = transform.mul( x );
+   Point2D xRelMacro = transform * x;
 
    // Determine lower-left corner index of the quad where the evaluation point lies in
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
@@ -319,7 +319,7 @@ inline void evaluateGradient( const uint_t&                                     
    Point2D gradient_;
    gradient_[0] = localDoFs[1] - localDoFs[0];
    gradient_[1] = localDoFs[2] - localDoFs[0];
-   gradient_    = transform.mul( gradient_ );
+   gradient_    = transform * gradient_;
    gradient[0]  = gradient_[0];
    gradient[1]  = gradient_[1];
 }
@@ -522,9 +522,9 @@ inline void apply( const uint_t&                                               L
 
    ValueType tmp = real_c( 0 );
 
-   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( int j = 1; j < rowsize - 2; ++j )
    {
-      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( int i = 1; i < inner_rowsize - 2; ++i )
       {
          if ( face.getNumNeighborCells() == 0 )
          {
@@ -592,10 +592,11 @@ inline void apply3D( const uint_t&                                              
          auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
          auto centerIndexInCell =
              vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
-         for ( auto stencilIt : opr_data[neighborCellIdx] )
+         for ( const auto& stencilIt : opr_data[neighborCellIdx] )
          {
-            auto weight               = stencilIt.second;
-            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+            auto  weight = stencilIt.second;
+            Index leafIndexInMacroCell( centerIndexInCell );
+            leafIndexInMacroCell += stencilIt.first;
             auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
 
@@ -645,9 +646,9 @@ inline void smooth_gs( const uint_t&                                            
 
    ValueType tmp;
 
-   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( int j = 1; j < rowsize - 2; ++j )
    {
-      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( int i = 1; i < inner_rowsize - 2; ++i )
       {
          tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
@@ -770,17 +771,18 @@ inline void smoothSOR3D( const uint_t&                                          
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
-         auto centerIndexInCell =
+         auto  neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         Index centerIndexInCell =
              vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
-         for ( auto stencilIt : opr_data[neighborCellIdx] )
+         for ( const auto& stencilIt : opr_data[neighborCellIdx] )
          {
             if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                continue;
 
-            auto weight               = stencilIt.second;
-            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
-            auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
+            auto  weight = stencilIt.second;
+            Index leafIndexInMacroCell( centerIndexInCell );
+            leafIndexInMacroCell += stencilIt.first;
+            Index leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
 
             uint_t leafArrayIndexInMacroFace;
@@ -1042,14 +1044,14 @@ inline void saveOperator3D( const uint_t&                                       
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
-         auto centerIndexInCell =
+         auto  neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         Index centerIndexInCell =
              vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
          for ( const auto& stencilIt : opr_data[neighborCellIdx] )
          {
-            auto weight               = stencilIt.second;
-            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
-            auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
+            auto  weight = stencilIt.second;
+            Index leafIndexInMacroCell( centerIndexInCell + stencilIt.first.cast< idx_t >() );
+            auto  leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
 
             uint_t leafArrayIndexInMacroFace;

@@ -207,7 +207,7 @@ inline std::pair< Index, CellType > getMicroCellFromMicroVertices( const std::ar
    auto v = vertices;
    std::sort( v.begin(), v.end() );
 
-   auto v0 = v[0];
+   Index v0( v[0] );
    for ( uint_t i = 0; i < 4; i++ )
    {
       v[i] -= v0;
@@ -228,23 +228,33 @@ inline std::pair< Index, CellType > getMicroCellFromMicroVertices( const std::ar
    }
    else if ( v == white_down )
    {
-      ret = { v0 - Index( 1, 1, 0 ), CellType::WHITE_DOWN };
+      Index tmp( v0 );
+      tmp -= Index( 1, 1, 0 );
+      ret = { tmp, CellType::WHITE_DOWN };
    }
    else if ( v == blue_up )
    {
-      ret = { v0 - Index( 1, 0, 0 ), CellType::BLUE_UP };
+      Index tmp( v0 );
+      tmp -= Index( 1, 0, 0 );
+      ret = { tmp, CellType::BLUE_UP };
    }
    else if ( v == blue_down )
    {
-      ret = { v0 - Index( 0, 1, 0 ), CellType::BLUE_DOWN };
+      Index tmp( v0 );
+      tmp -= Index( 0, 1, 0 );
+      ret = { tmp, CellType::BLUE_DOWN };
    }
    else if ( v == green_up )
    {
-      ret = { v0 - Index( 1, 0, 0 ), CellType::GREEN_UP };
+      Index tmp( v0 );
+      tmp -= Index( 1, 0, 0 );
+      ret = { tmp, CellType::GREEN_UP };
    }
    else if ( v == green_down )
    {
-      ret = { v0 - Index( 0, 1, 0 ), CellType::GREEN_DOWN };
+      Index tmp( v0 );
+      tmp -= Index( 0, 1, 0 );
+      ret = { tmp, CellType::GREEN_DOWN };
    }
    else
    {

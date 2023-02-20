@@ -59,7 +59,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
                {
                   Matrixr< 10, 4 >& elMat = localElementMatrix3D( *cell, level, micro, cType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix3D( *cell, level, micro, cType, form, elMat );
                }
             }
@@ -88,7 +88,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
                {
                   Matrixr< 6, 3 >& elMat = localElementMatrix2D( *face, level, micro, fType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix2D( *face, level, micro, fType, form, elMat );
                }
             }
@@ -320,22 +320,22 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply2D( uint_
    // assemble local element vector
    Point3D elVecOld;
    Point6D elVecNew;
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
 
    // apply matrix (operator locally)
    elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
-   for ( uint_t k = 3; k < 6; ++k )
+   for ( int k = 3; k < 6; ++k )
    {
-      dstEdgeData[edgeDoFIndices[k - 3]] += elVecNew[k];
+      dstEdgeData[edgeDoFIndices[uint_c( k - 3 )]] += elVecNew[k];
    }
 }
 
@@ -358,22 +358,22 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply3D( const
    // assemble local element vector
    Point4D  elVecOld;
    Point10D elVecNew;
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
 
    // apply matrix (operator locally)
    elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
+      dstEdgeData[edgeDoFIndices[uint_c( k - 4 )]] += elVecNew[k];
    }
 }
 
@@ -547,9 +547,9 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );

@@ -120,8 +120,9 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
         const auto stencilOffset = stencilIt.first;
         const auto stencilWeight = stencilIt.second;
 
-        const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-        const auto leafIndexOnEdge = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
+        const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+        const auto leafIndexOnEdge = indexing::basisConversion(
+            leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
 
         const auto onCellFacesSet = vertexdof::macrocell::isOnCellFace( leafIndexInCell, level );
         const auto onCellFacesSetOnEdge = vertexdof::macrocell::isOnCellFace( leafIndexOnEdge, level );
@@ -274,8 +275,9 @@ inline void applyFace3D( const uint_t & level, Face &face,
           const auto stencilOffset = stencilIt.first;
           const auto stencilWeight = stencilIt.second;
 
-          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-          const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+          const auto leafIndexInFace =
+              vertexdof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
 
           WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
 
@@ -340,8 +342,8 @@ inline void applyCell(const uint_t & Level, Cell & cell,
       const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
       for ( const auto & neighbor : vertexDoFNeighbors )
       {
-        const auto   srcIdx      = it + neighbor;
-        const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
+        const auto srcIdx      = it + neighbor.cast< idx_t >();
+        const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
         tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
       }
 
@@ -366,8 +368,8 @@ inline void applyCell(const uint_t & Level, Cell & cell,
     const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
     for ( const auto & neighbor : vertexDoFNeighbors )
     {
-      const auto   srcIdx      = it + neighbor;
-      const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
+      const auto srcIdx      = it + neighbor.cast< idx_t >();
+      const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
       tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
     }
 

@@ -59,7 +59,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
                {
                   Matrixr< 4, 10 >& elMat = localElementMatrix3D( *cell, level, micro, cType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix3D( *cell, level, micro, cType, form, elMat );
                }
             }
@@ -88,7 +88,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
                {
                   Matrixr< 3, 6 >& elMat = localElementMatrix2D( *face, level, micro, fType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix2D( *face, level, micro, fType, form, elMat );
                }
             }
@@ -512,9 +512,9 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );

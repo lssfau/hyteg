@@ -334,8 +334,9 @@ static void smoothSOR3DUpdateVertexDoFs(
           const auto stencilOffset = stencilIt.first;
           const auto stencilWeight = stencilIt.second;
 
-          const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
-          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+          const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace(
+              leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
 
           const auto leafIndexOnEdge = leafOrientationOnEdge == edgedof::EdgeDoFOrientation::XYZ
                                        ? edgedof::macrocell::getIndexInNeighboringMacroEdgeXYZ( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level )
@@ -470,9 +471,9 @@ static void smoothSOR3DUpdateEdgeDoFs(
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
-            const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+            const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
             const auto leafIndexOnEdge = indexing::basisConversion(
-                leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
+                leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
 
             const auto onCellFacesSet       = vertexdof::macrocell::isOnCellFace( leafIndexInCell, level );
             const auto onCellFacesSetOnEdge = vertexdof::macrocell::isOnCellFace( leafIndexOnEdge, level );
@@ -532,7 +533,7 @@ static void smoothSOR3DUpdateEdgeDoFs(
 
                const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace(
                    leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
 
                const auto leafIndexOnEdge = indexing::basisConversion(
                    leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );

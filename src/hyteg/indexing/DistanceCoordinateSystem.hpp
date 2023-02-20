@@ -71,34 +71,32 @@ using indexing::Index;
 ///     (3, 2, 3, 4)_dist -> (5-1-3, 5-1-3, 5-1-4)_1203 = (1, 1, 0)_1203
 ///
 
-class DistanceIndex : protected PointND< uint_t, 4 >
+class DistanceIndex :  PointND< uint_t, 4 >
 {
 public:
 
     DistanceIndex() : PointND< uint_t, 4 >() {}
 
-    DistanceIndex( const DistanceIndex & other ) : PointND< uint_t, 4 >( other ) {}
-
     DistanceIndex( const uint_t & d0, const uint_t & d1, const uint_t & d2, const uint_t & d3 ) {
-      vector_[0] = d0;
-      vector_[1] = d1;
-      vector_[2] = d2;
-      vector_[3] = d3;
+      operator[](0) = d0;
+      operator[](1) = d1;
+      operator[](2) = d2;
+      operator[](3) = d3;
     }
 
     using PointND< uint_t, 4 >::operator[];
 
-    const uint_t & d0() const { return vector_[0]; }
-          uint_t & d0() { return vector_[0]; }
+    const uint_t & d0() const { return operator[](0); }
+          uint_t & d0() { return operator[](0); }
 
-    const uint_t & d1() const { return vector_[1]; }
-          uint_t & d1() { return vector_[1]; }
+    const uint_t & d1() const { return operator[](1); }
+          uint_t & d1() { return operator[](1); }
 
-    const uint_t & d2() const { return vector_[2]; }
-          uint_t & d2() { return vector_[2]; }
+    const uint_t & d2() const { return operator[](2); }
+          uint_t & d2() { return operator[](2); }
 
-    const uint_t & d3() const { return vector_[3]; }
-          uint_t & d3() { return vector_[3]; }
+    const uint_t & d3() const { return operator[](3); }
+          uint_t & d3() { return operator[](3); }
 };
 
 inline DistanceIndex toDistanceIndex( const Index & index, const std::array< uint_t, 4 > & basis, const uint_t & cellWidth )

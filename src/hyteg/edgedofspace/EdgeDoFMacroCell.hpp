@@ -685,7 +685,7 @@ inline void apply( const uint_t&                                                
                 P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
             for ( const auto& neighbor : edgeDoFNeighbors )
             {
-               const auto   srcIdx      = it + neighbor;
+               const auto   srcIdx      = it + neighbor.cast< idx_t >();
                const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
                const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
                tmp += stencilWeight * srcData[srcArrayIdx];
@@ -715,7 +715,7 @@ inline void apply( const uint_t&                                                
              P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
          for ( const auto& neighbor : edgeDoFNeighbors )
          {
-            const auto   srcIdx        = it + neighbor;
+            const auto   srcIdx        = it + neighbor.cast< idx_t >();
             const auto   srcArrayIdx   = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
             const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
             tmp += stencilWeight * srcData[srcArrayIdx];

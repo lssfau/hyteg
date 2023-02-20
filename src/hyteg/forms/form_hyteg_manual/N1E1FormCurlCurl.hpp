@@ -45,7 +45,7 @@ class N1E1Form_curl_curl : public N1E1Form
                       const std::array< int, 6 >&     edgeDirections,
                       Matrix6r&                       elMat ) const final
    {
-      elMat.setAll( real_c( 0 ) );
+      elMat.setZero();
 
       // F maps from reference tet K' to affine tet K
       // K = F(K') = Bx' + b

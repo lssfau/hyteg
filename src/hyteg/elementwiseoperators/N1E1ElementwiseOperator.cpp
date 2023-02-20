@@ -23,8 +23,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
-namespace hyteg {
-namespace n1e1 {
+namespace hyteg::n1e1 {
 
 template < class N1E1FormType >
 N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -69,23 +68,23 @@ void localMatrixVectorMultiply3D( uint_t                 level,
                                   const Matrix6r&        elMat )
 {
    // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 6 > edgeDoFIndices;
+   std::array< uint_t, 6 > edgeDoFIndices{};
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    // assemble local element vector
    Point6D elVecOld, elVecNew;
-   for ( uint_t k = 0; k < 6; ++k )
+   for ( int k = 0; k < 6; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k )]];
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 6; ++k )
+   for ( int k = 0; k < 6; ++k )
    {
-      dstEdgeData[edgeDoFIndices[k]] += elVecNew[k];
+      dstEdgeData[edgeDoFIndices[uint_c( k )]] += elVecNew[k];
    }
 }
 
@@ -204,7 +203,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
                Matrix6r& elMat = localElementMatrix3D( cell, level, micro, cType );
-               elMat.setAll( 0 );
+               elMat.setZero();
                assembleLocalElementMatrix3D( cell, level, micro, cType, form_, edgeDirsData, elMat );
             }
          }
@@ -368,7 +367,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell& 
    }
 
    // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 6 > edgeDoFIndices;
+   std::array< uint_t, 6 > edgeDoFIndices{};
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    // add contributions for central stencil weights
@@ -399,7 +398,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    }
 
    // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 6 > edgeDoFIndices;
+   std::array< uint_t, 6 > edgeDoFIndices{};
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    std::vector< uint_t > rowIdx( 6 );
@@ -431,5 +430,4 @@ template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
 // N1E1ElementwiseLinearFormOperatorQ6
 template class N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
 
-} // namespace n1e1
 } // namespace hyteg

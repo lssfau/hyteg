@@ -217,7 +217,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
       // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ ) {
-        logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
+        logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID ).cast< idx_t >();
       }
 
       // 5. Adding contribution to stencil
@@ -260,17 +260,19 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
                                                                                              const Cell & cell, const uint_t & level,
                                                                                              const UFCOperator & ufcGen )
 {
-  typedef stencilDirection sd;
+  typedef stencilDirection                     sd;
   std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
 
-  const auto offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
-  const auto neighboringVertex0 = offsetsToNeighborVertices.at(0);
-  const auto neighboringElementsAtVertex0 = P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0, level );
-  const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at(1) - offsetsToNeighborVertices.at(0) );
+  const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
+  const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
+  const auto  neighboringElementsAtVertex0 =
+      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0.cast< idx_t >(), level );
+  const auto secondDirectionInElements =
+      vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at( 1 ) - offsetsToNeighborVertices.at( 0 ) );
 
   // 1. Going over all neighboring cells of the first neighboring micro-vertex
   //    A neighboring cell is defined by a 4-tuple of (different) stencil directions.
-  for ( const auto & cellAtVertex : neighboringElementsAtVertex0 )
+  for ( const auto& cellAtVertex : neighboringElementsAtVertex0 )
   {
     WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
 
@@ -281,34 +283,37 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
     }
 
     const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[3] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[3] ),
     };
 
     // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex.
     //    The reference micro-index is the 'first' of the two indices that define the current edge.
     std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
-    for ( uint_t localID = 0; localID < 4; localID++ ) {
-      logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
+    for ( uint_t localID = 0; localID < 4; localID++ )
+    {
+      logicalOffsetsFromCenter[localID] =
+          microEdgeIndex + neighboringVertex0.cast< idx_t >() + elementAsIndices.at( localID ).cast< idx_t >();
     }
 
     // 5. Adding contribution to stencil
 
     // obtain micro cell coordinates
     std::array< Point3D, 4 > geometricCoordinates;
-    for ( uint_t localID = 0; localID < 4; localID++ ) {
+    for ( uint_t localID = 0; localID < 4; localID++ )
+    {
       geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
     }
 
     // find vertices of centerEdge
     auto centerEdge = edgeWithOrientationFromElement( elementAsIndices, centerOrientation ).value();
 
-    if( std::is_same<UFCOperator, P2Form >::value ) {
-
+    if ( std::is_same< UFCOperator, P2Form >::value )
+    {
       // obtain weights from local element matrix
-      std::vector<P2Form::dofPosByVertexPair3D > leafPos = {{ {0,0}, {1,1}, {2,2}, {3,3} }};
+      std::vector< P2Form::dofPosByVertexPair3D > leafPos = { { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 } } };
       std::vector<real_t> weights = ufcGen.integrate( geometricCoordinates, centerEdge, leafPos );
       
       // add values at correct index position into stencil
@@ -359,55 +364,61 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
                                                                                            const edgedof::EdgeDoFOrientation & leafOrientation,
                                                                                            const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
 {
-  typedef stencilDirection sd;
+  typedef stencilDirection                     sd;
   std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
 
-  const auto offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
-  const auto neighboringVertex0 = offsetsToNeighborVertices.at(0);
-  const auto neighboringElementsAtVertex0 = P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0, level );
-  const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at(1) - offsetsToNeighborVertices.at(0) );
+  const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
+  const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
+  const auto  neighboringElementsAtVertex0 =
+      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0.cast< idx_t >(), level );
+  const auto secondDirectionInElements =
+      vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at( 1 ) - offsetsToNeighborVertices.at( 0 ) );
 
   // 1. Going over all neighboring cells of the first neighboring micro-vertex
   //    A neighboring cell is defined by a 4-tuple of (different) stencil directions.
-  for ( const auto & cellAtVertex : neighboringElementsAtVertex0 )
+  for ( const auto& cellAtVertex : neighboringElementsAtVertex0 )
   {
     WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
 
     // Exclude elements that do not contain the second vertex that defines the current edge.
     if ( std::find( cellAtVertex.begin(), cellAtVertex.end(), secondDirectionInElements ) == cellAtVertex.end() )
     {
-      continue;
+        continue;
     }
 
     const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
-      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[3] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
+        vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[3] ),
     };
 
     // Since there are no parallel edges in the same element, there is at most one edge with the specified orientation in the current element.
     // If there is none, we don't do anything with this element.
     if ( const auto optLeafEdge = edgeWithOrientationFromElement( elementAsIndices, leafOrientation ))
     {
-      const auto leafEdge = optLeafEdge.value();
+        const auto leafEdge = optLeafEdge.value();
 
-      // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex.
-      //    The reference micro-index is the 'first' of the two indices that define the current edge.
-      std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
-      }
+        // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex.
+        //    The reference micro-index is the 'first' of the two indices that define the current edge.
+        std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
+        for ( uint_t localID = 0; localID < 4; localID++ )
+        {
+          logicalOffsetsFromCenter[localID] =
+              microEdgeIndex + neighboringVertex0.cast< idx_t >() + elementAsIndices.at( localID ).cast< idx_t >();
+        }
 
-      // 5. Adding contribution to stencil
+        // 5. Adding contribution to stencil
 
-      // obtain micro cell coordinates
-      std::array< Point3D, 4 > geometricCoordinates;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
-      }
+        // obtain micro cell coordinates
+        std::array< Point3D, 4 > geometricCoordinates;
+        for ( uint_t localID = 0; localID < 4; localID++ )
+        {
+          geometricCoordinates[localID] =
+              vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+        }
 
-      // find index into stencil
+        // find index into stencil
       const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( neighboringVertex0 + elementAsIndices.at( leafEdge.at(0) ),
                                                            neighboringVertex0 + elementAsIndices.at( leafEdge.at(1) ) );
 

@@ -24,6 +24,7 @@
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/fenics/fenics.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
+#include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -320,7 +321,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ )
       {
-         logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+         logicalOffsetsFromCenter[localID]( microVertexIndex +
+                                            indexing::Index( vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] ) ) );
       }
 
       // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -403,7 +405,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ )
       {
-         logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+         logicalOffsetsFromCenter[localID]( microVertexIndex +
+                                            indexing::Index( vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] ) ) );
       }
 
       // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -480,7 +483,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm_new(
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ )
       {
-         logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+         logicalOffsetsFromCenter[localID]( microVertexIndex +
+                                            vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] ).cast< idx_t >() );
       }
 
       // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -671,8 +675,9 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
       {
          const auto cellLocalDir        = it.first;
          const auto stencilWeight       = it.second;
-         const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto onLocalEdgesDir     = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+         const auto cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir ).template cast< idx_t >();
+         const auto onLocalEdgesDir    = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
          const auto onLocalVerticesDir  = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
          if ( onLocalEdgesDir.size() == 1 )
          {
@@ -927,9 +932,10 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
 
-         const auto            cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto            onLocalFacesCenter  = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
-         const auto            onLocalFacesDir     = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
+         const auto cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir ).template cast< idx_t >();
+         const auto            onLocalFacesCenter = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+         const auto            onLocalFacesDir    = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
          std::vector< uint_t > intersectingFaces;
          std::set_intersection( onLocalFacesCenter.begin(),
                                 onLocalFacesCenter.end(),

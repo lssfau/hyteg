@@ -329,7 +329,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
-   Point2D xRelMacro = transform.mul( x );
+   Point2D xRelMacro = transform * x;
 
    // Determine lower-left corner index of the quad where the evaluation point lies in
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );

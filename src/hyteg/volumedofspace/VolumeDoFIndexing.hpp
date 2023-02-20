@@ -383,10 +383,10 @@ inline void getFineMicroElementsFromCoarseMicroElement( const hyteg::indexing::I
 
    if ( coarseFaceType == facedof::FaceType::GRAY )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
-      fineElementIdx[3] = 2 * coarseElementIdx;
+      fineElementIdx[0].array() = coarseElementIdx * 2;
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx;
 
       fineFaceType[0] = facedof::FaceType::GRAY;
       fineFaceType[1] = facedof::FaceType::GRAY;
@@ -395,10 +395,10 @@ inline void getFineMicroElementsFromCoarseMicroElement( const hyteg::indexing::I
    }
    else
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
 
       fineFaceType[0] = facedof::FaceType::BLUE;
       fineFaceType[1] = facedof::FaceType::BLUE;
@@ -422,116 +422,116 @@ inline void getFineMicroElementsFromCoarseMicroElement( const hyteg::indexing::I
 
    if ( coarseCellType == celldof::CellType::WHITE_UP )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[0]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[1]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[2]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[3]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[4]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[5]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[6]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[7]   = celldof::CellType::GREEN_DOWN;
    }
    else if ( coarseCellType == celldof::CellType::WHITE_DOWN )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[0]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[1]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[2]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[3]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[4]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[5]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[6]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[7]   = celldof::CellType::GREEN_DOWN;
    }
    else if ( coarseCellType == celldof::CellType::BLUE_UP )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[0]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[1]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[2]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[3]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[4]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[5]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[6]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[7]   = celldof::CellType::GREEN_DOWN;
    }
    else if ( coarseCellType == celldof::CellType::BLUE_DOWN )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[0]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[1]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[2]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[3]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[4]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[5]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[6]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[7]   = celldof::CellType::GREEN_DOWN;
    }
    else if ( coarseCellType == celldof::CellType::GREEN_UP )
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[0]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 0 );
       fineCellType[1]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[2]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[3]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 0 );
       fineCellType[4]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[5]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 0, 1 );
       fineCellType[6]   = celldof::CellType::GREEN_UP;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[7]   = celldof::CellType::GREEN_UP;
    }
    else
    {
-      fineElementIdx[0] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
+      fineElementIdx[0].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 1 );
       fineCellType[0]   = celldof::CellType::WHITE_UP;
-      fineElementIdx[1] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[1].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[1]   = celldof::CellType::WHITE_DOWN;
-      fineElementIdx[2] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[2].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[2]   = celldof::CellType::BLUE_UP;
-      fineElementIdx[3] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[3].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[3]   = celldof::CellType::BLUE_DOWN;
-      fineElementIdx[4] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
+      fineElementIdx[4].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 0 );
       fineCellType[4]   = celldof::CellType::GREEN_DOWN;
-      fineElementIdx[5] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
+      fineElementIdx[5].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 1, 0 );
       fineCellType[5]   = celldof::CellType::GREEN_DOWN;
-      fineElementIdx[6] = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
+      fineElementIdx[6].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 1, 0, 1 );
       fineCellType[6]   = celldof::CellType::GREEN_DOWN;
-      fineElementIdx[7] = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
+      fineElementIdx[7].array() = 2 * coarseElementIdx + hyteg::indexing::Index( 0, 1, 1 );
       fineCellType[7]   = celldof::CellType::GREEN_DOWN;
    }
 }

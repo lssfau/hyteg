@@ -154,6 +154,42 @@ void P1toP1LinearProlongation< ValueType >::prolongate2DAdditively( const P1Func
    function.template communicateAdditively< Face, Vertex >( destinationLevel, excludeFlag, *storage, updateType == Replace );
 }
 
+
+template < typename ValueType >
+static ValueType calculateInverseFactorToScaleNeighborhoodContribution( const std::array< ValueType, 4 >& invNumNeighborsOfVertex,
+                                                                        const std::array< ValueType, 6 >& invNumNeighborsOfEdge,
+                                                                        const std::array< ValueType, 4 >  invNumNeighborsOfFace,
+                                                                        const indexing::Index&            index,
+                                                                        const uint_t&                     level )
+{
+   const auto stencilLeafOnCellVertices = vertexdof::macrocell::isOnCellVertex( index, level );
+   const auto stencilLeafOnCellEdges    = vertexdof::macrocell::isOnCellEdge( index, level );
+   const auto stencilLeafOnCellFaces    = vertexdof::macrocell::isOnCellFace( index, level );
+
+   auto invFactorDueToNeighborhood = ValueType( 1 );
+
+   if ( !stencilLeafOnCellVertices.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellVertices.size(), 1 );
+      const auto localVertexID   = *stencilLeafOnCellVertices.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfVertex[localVertexID];
+   }
+   else if ( !stencilLeafOnCellEdges.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellEdges.size(), 1 );
+      const auto localEdgeID     = *stencilLeafOnCellEdges.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfEdge[localEdgeID];
+   }
+   else if ( !stencilLeafOnCellFaces.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellFaces.size(), 1 );
+      const auto localFaceID     = *stencilLeafOnCellFaces.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfFace[localFaceID];
+   }
+
+   return invFactorDueToNeighborhood;
+}
+
 template < typename ValueType >
 void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Function< ValueType >& function,
                                                                     const uint_t&                  sourceLevel,
@@ -303,7 +339,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
             dstData[arrayIdxDstCenter] += invFactorToScaleContributionCenter * srcData[arrayIdxSrc];
 
             // update new points depending on location in macro-cell
-            if ( onCellVertices.size() > 0 )
+            if ( !onCellVertices.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
                const auto localVertexID = *onCellVertices.begin();
@@ -311,7 +347,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
 
@@ -320,7 +356,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                   dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
-            else if ( onCellEdges.size() > 0 )
+            else if ( !onCellEdges.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
                const auto localEdgeID = *onCellEdges.begin();
@@ -328,7 +364,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx.cast<idx_t>() + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
@@ -336,7 +372,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                   dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
-            else if ( onCellFaces.size() > 0 )
+            else if ( !onCellFaces.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
                const auto localFaceID = *onCellFaces.begin();
@@ -344,7 +380,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
@@ -448,40 +484,6 @@ void P1toP1LinearProlongation< ValueType >::prolongateMacroFace2D( const ValueTy
    }
 }
 
-template < typename ValueType >
-static ValueType calculateInverseFactorToScaleNeighborhoodContribution( const std::array< ValueType, 4 >& invNumNeighborsOfVertex,
-                                                                        const std::array< ValueType, 6 >& invNumNeighborsOfEdge,
-                                                                        const std::array< ValueType, 4 >  invNumNeighborsOfFace,
-                                                                        const indexing::Index&            index,
-                                                                        const uint_t&                     level )
-{
-   const auto stencilLeafOnCellVertices = vertexdof::macrocell::isOnCellVertex( index, level );
-   const auto stencilLeafOnCellEdges    = vertexdof::macrocell::isOnCellEdge( index, level );
-   const auto stencilLeafOnCellFaces    = vertexdof::macrocell::isOnCellFace( index, level );
-
-   auto invFactorDueToNeighborhood = ValueType( 1 );
-
-   if ( !stencilLeafOnCellVertices.empty() )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellVertices.size(), 1 );
-      const auto localVertexID   = *stencilLeafOnCellVertices.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfVertex[localVertexID];
-   }
-   else if ( !stencilLeafOnCellEdges.empty() )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellEdges.size(), 1 );
-      const auto localEdgeID     = *stencilLeafOnCellEdges.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfEdge[localEdgeID];
-   }
-   else if ( !stencilLeafOnCellFaces.empty() )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellFaces.size(), 1 );
-      const auto localFaceID     = *stencilLeafOnCellFaces.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfFace[localFaceID];
-   }
-
-   return invFactorDueToNeighborhood;
-}
 
 template class P1toP1LinearProlongation< double >;
 template class P1toP1LinearProlongation< float >;

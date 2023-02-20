@@ -30,11 +30,6 @@
 #include "core/mpi/SendBuffer.h"
 
 
-namespace hyteg {
-template < typename T, size_t N >
-class PointND;
-}
-
 #include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace walberla::math {
@@ -54,167 +49,169 @@ using walberla::uint_t;
 /// switch to that representation altogether
 /// \tparam T Vector data type
 /// \tparam N Dimension of vector
-template < typename T, size_t N >
-class PointND
-{
- public:
-   /// Constructor setting all components to zero
-   PointND() { vector_.setZero(); }
-
-   /// Constructs the vector using values from n-dimensional array \p _x
-   /// \param _x Pointer to N-dimensional array
-   PointND( T _x[N] )
-   {
-      for ( size_t i = 0; i < N; ++i )
-      {
-         vector_[i] = _x[i];
-      }
-   }
-
-   /// Constructs the vector using values from n-dimensional array \p list, required for list initializer
-   /// \param list N-dimensional array
-   PointND( std::array< T, N > list )
-   {
-      for ( uint_t i = 0; i < N; ++i )
-      {
-         vector_[walberla::int_c( i )] = list[i];
-      }
-   }
-
-   /// Computes the dot product between two PointND vectors
-   /// \param b Right hand side of dot operator
-   /// \returns Dot product between \p this and \p b
-   T dot( const PointND& other ) const { return vector_.dot( other.vector_ ); }
-
-   /// Computes the (rightward pointing) 2D normal of this PointND
-   /// \returns 2D Point normal to this PointND
-   PointND< T, 2 > normal2D() { return PointND< T, 2 >( { this->vector_[1], -this->vector_[0] } ); }
-
-   /// Computes the squared Euclidean norm of \p this
-   /// \returns Squared Euclidean norm of \p this
-   T normSq() const { return vector_.dot( vector_ ); }
-
-   /// Computes the Euclidean norm of \p this
-   /// \returns Euclidean norm of \p this
-   T norm() const { return vector_.norm(); }
-
-   /// Add another PointND component wise to \p this
-   /// \param rhs Reference to PointND that will be added to \p this
-   /// \returns Reference to \p this after addition
-   PointND& operator+=( const PointND& rhs )
-   {
-      vector_ += rhs.vector_;
-      return *this;
-   }
-
-   /// Subtract another PointND component wise from \p this
-   /// \param rhs Reference to PointND that will be subtracted from \p this
-   /// \returns Reference to \p this after subtraction
-   PointND& operator-=( const PointND& rhs )
-   {
-      vector_ -= rhs.vector_;
-      return *this;
-   }
-
-   /// Multiply \p this with scalar value
-   /// \param scalar Scalar value that \p this gets multiplied with
-   /// \returns Reference to \p this after multiplication with \p scalar
-   PointND& operator*=( T scalar )
-   {
-      vector_ *= scalar;
-      return *this;
-   }
-
-   /// Divide \p this with scalar value
-   /// \param scalar Scalar value that \p gets divided by
-   /// \returns Reference to \p this after division by \p scalar
-   PointND& operator/=( T scalar )
-   {
-      vector_ /= scalar;
-      return *this;
-   }
-
-   /// Return negated copy of \p this
-   /// \returns Copy of \p this with negated components
-   PointND operator-() const { return static_cast< T >( -1 ) * ( *this ); }
-
-   /// Reference to component of vector at position \p index
-   /// \param index The index of the component to access
-   /// \returns Reference to component at position \p index
-   T& operator[]( const uint_t index )
-   {
-      WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
-      return vector_( walberla::int_c( index ) );
-   }
-
-   /// Value of component of vector at position \p index
-   /// \param index The index of the component to access
-   /// \returns Value of component at position \p index
-   T operator[]( const uint_t index ) const
-   {
-      WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
-      return vector_( walberla::int_c( index ) );
-   }
-
-   void setAll( const T& scalar ) { vector_.array() = scalar; }
-
-#ifndef _MSC_VER
-   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << vector_; }
-
-   void deserialize( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> vector_; }
-#else
-   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
-   {
-      for ( int k = 0; k < N; ++k )
-      {
-         sendBuffer << vector_( k );
-      }
-   }
-
-   void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
-   {
-      for ( int k = 0; k < N; ++k )
-      {
-         recvBuffer >> vector_( k );
-      }
-   }
-#endif
-
-   Eigen::Matrix< T, static_cast< int >(N), 1 > vector_;
-};
-
-template < typename T, size_t N >
-inline PointND< T, N > operator+( PointND< T, N > lhs, const PointND< T, N >& rhs )
-{
-   return lhs += rhs;
-}
-
-template < typename T, size_t N >
-inline PointND< T, N > operator-( PointND< T, N > lhs, const PointND< T, N >& rhs )
-{
-   return lhs -= rhs;
-}
-
-template < typename T, size_t N >
-inline PointND< T, N > operator*( real_t scalar, PointND< T, N > rhs )
-{
-   rhs *= scalar;
-   return rhs;
-}
-
-template < typename T, size_t N >
-inline PointND< T, N > operator*( PointND< T, N > lhs, real_t scalar )
-{
-   lhs *= scalar;
-   return lhs;
-}
-
-template < typename T, size_t N >
-inline PointND< T, N > operator/( PointND< T, N > lhs, real_t scalar )
-{
-   lhs /= scalar;
-   return lhs;
-}
+template < typename ValueType, int N >
+using PointND = Eigen::Matrix< ValueType, N, 1 >;
+//template < typename T, size_t N >
+//class PointND
+//{
+// public:
+//   /// Constructor setting all components to zero
+//   PointND() { vector_.setZero(); }
+//
+//   /// Constructs the vector using values from n-dimensional array \p _x
+//   /// \param _x Pointer to N-dimensional array
+//   PointND( T _x[N] )
+//   {
+//      for ( size_t i = 0; i < N; ++i )
+//      {
+//         vector_[i] = _x[i];
+//      }
+//   }
+//
+//   /// Constructs the vector using values from n-dimensional array \p list, required for list initializer
+//   /// \param list N-dimensional array
+//   PointND( std::array< T, N > list )
+//   {
+//      for ( uint_t i = 0; i < N; ++i )
+//      {
+//         vector_[walberla::int_c( i )] = list[i];
+//      }
+//   }
+//
+//   /// Computes the dot product between two PointND vectors
+//   /// \param b Right hand side of dot operator
+//   /// \returns Dot product between \p this and \p b
+//   T dot( const PointND& other ) const { return vector_.dot( other.vector_ ); }
+//
+//   /// Computes the (rightward pointing) 2D normal of this PointND
+//   /// \returns 2D Point normal to this PointND
+//   PointND< T, 2 > normal2D() { return PointND< T, 2 >( { this->vector_[1], -this->vector_[0] } ); }
+//
+//   /// Computes the squared Euclidean norm of \p this
+//   /// \returns Squared Euclidean norm of \p this
+//   T normSq() const { return vector_.dot( vector_ ); }
+//
+//   /// Computes the Euclidean norm of \p this
+//   /// \returns Euclidean norm of \p this
+//   T norm() const { return vector_.norm(); }
+//
+//   /// Add another PointND component wise to \p this
+//   /// \param rhs Reference to PointND that will be added to \p this
+//   /// \returns Reference to \p this after addition
+//   PointND& operator+=( const PointND& rhs )
+//   {
+//      vector_ += rhs.vector_;
+//      return *this;
+//   }
+//
+//   /// Subtract another PointND component wise from \p this
+//   /// \param rhs Reference to PointND that will be subtracted from \p this
+//   /// \returns Reference to \p this after subtraction
+//   PointND& operator-=( const PointND& rhs )
+//   {
+//      vector_ -= rhs.vector_;
+//      return *this;
+//   }
+//
+//   /// Multiply \p this with scalar value
+//   /// \param scalar Scalar value that \p this gets multiplied with
+//   /// \returns Reference to \p this after multiplication with \p scalar
+//   PointND& operator*=( T scalar )
+//   {
+//      vector_ *= scalar;
+//      return *this;
+//   }
+//
+//   /// Divide \p this with scalar value
+//   /// \param scalar Scalar value that \p gets divided by
+//   /// \returns Reference to \p this after division by \p scalar
+//   PointND& operator/=( T scalar )
+//   {
+//      vector_ /= scalar;
+//      return *this;
+//   }
+//
+//   /// Return negated copy of \p this
+//   /// \returns Copy of \p this with negated components
+//   PointND operator-() const { return static_cast< T >( -1 ) * ( *this ); }
+//
+//   /// Reference to component of vector at position \p index
+//   /// \param index The index of the component to access
+//   /// \returns Reference to component at position \p index
+//   T& operator[]( const uint_t index )
+//   {
+//      WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
+//      return vector_( walberla::int_c( index ) );
+//   }
+//
+//   /// Value of component of vector at position \p index
+//   /// \param index The index of the component to access
+//   /// \returns Value of component at position \p index
+//   T operator[]( const uint_t index ) const
+//   {
+//      WALBERLA_ASSERT( index < N, "PointND index out of bounds: index = " << index << " but N = " << N );
+//      return vector_( walberla::int_c( index ) );
+//   }
+//
+//   void setAll( const T& scalar ) { vector_.array() = scalar; }
+//
+//#ifndef _MSC_VER
+//   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << vector_; }
+//
+//   void deserialize( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> vector_; }
+//#else
+//   void serialize( walberla::mpi::SendBuffer& sendBuffer ) const
+//   {
+//      for ( int k = 0; k < N; ++k )
+//      {
+//         sendBuffer << vector_( k );
+//      }
+//   }
+//
+//   void deserialize( walberla::mpi::RecvBuffer& recvBuffer )
+//   {
+//      for ( int k = 0; k < N; ++k )
+//      {
+//         recvBuffer >> vector_( k );
+//      }
+//   }
+//#endif
+//
+//   Eigen::Matrix< T, static_cast< int >(N), 1 > vector_;
+//};
+//
+//template < typename T, size_t N >
+//inline PointND< T, N > operator+( PointND< T, N > lhs, const PointND< T, N >& rhs )
+//{
+//   return lhs += rhs;
+//}
+//
+//template < typename T, size_t N >
+//inline PointND< T, N > operator-( PointND< T, N > lhs, const PointND< T, N >& rhs )
+//{
+//   return lhs -= rhs;
+//}
+//
+//template < typename T, size_t N >
+//inline PointND< T, N > operator*( real_t scalar, PointND< T, N > rhs )
+//{
+//   rhs *= scalar;
+//   return rhs;
+//}
+//
+//template < typename T, size_t N >
+//inline PointND< T, N > operator*( PointND< T, N > lhs, real_t scalar )
+//{
+//   lhs *= scalar;
+//   return lhs;
+//}
+//
+//template < typename T, size_t N >
+//inline PointND< T, N > operator/( PointND< T, N > lhs, real_t scalar )
+//{
+//   lhs /= scalar;
+//   return lhs;
+//}
 
 template < typename T, size_t N >
 inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointnd )
