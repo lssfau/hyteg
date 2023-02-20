@@ -44,7 +44,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    , viscOp( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , energyNormOp( viscOp )
+   , energyNormOp( viscOp ),
+   blockPrec( storage, minLevel, maxLevel, mu )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -83,6 +84,7 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    P2ToP1ElementwiseDivOperator       div;
    P1ToP2ElementwiseDivTOperator      divT;
    EnergyNormOperator_T&               energyNormOp;
+   BlockPreconditioner_T blockPrec;
 
    bool hasGlobalCells_;
 };
