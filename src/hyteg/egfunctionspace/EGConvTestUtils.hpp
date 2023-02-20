@@ -25,8 +25,10 @@
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
 
-#include <limits>
 #include <fstream>
+#include <hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp>
+#include <limits>
+
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
@@ -36,6 +38,7 @@ WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -52,7 +55,8 @@ WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
-#include "../tests/hyteg/egfunctionspace/EGNietscheBCTests.cpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
 
 namespace hyteg {
     namespace dg {
@@ -76,19 +80,20 @@ namespace hyteg {
                 return std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
                        std::is_same<StokesOperatorType, EGP0StokesOperator>::value ||
                        std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value ||
-                       std::is_same<StokesOperatorType, EGP0IIPGStokesOperator>::value||
+                       std::is_same<StokesOperatorType, EGP0IIPGStokesOperator>::value ||
                        std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value;
             }
 
             template<typename StokesOperatorType>
             constexpr bool usesNitscheBCs() {
                 return std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value ||
-                        std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value;
+                       std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value;
             }
 
             template<typename StokesOperatorType>
             constexpr bool isEpsilonOp() {
                 return std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
+                       std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value ||
                        std::is_same<StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator>::value;
             }
 
@@ -101,7 +106,7 @@ namespace hyteg {
             template<typename StokesOperatorType>
             constexpr bool isP1P0Discr() {
                 return std::is_same<StokesOperatorType, hyteg::P1P0StokesOperator>::value;
-                }
+            }
 
 // check for data member energyOp
             template<typename, typename = void>
@@ -120,26 +125,30 @@ namespace hyteg {
                 StokesConvergenceOrderTest(const std::string &testName,
                                            LambdaTuple solTuple,
                                            LambdaTuple rhsTuple,
-                                           StokesOperatorType &Op,
+                                           const std::shared_ptr<StokesOperatorType> &Op,
                                            const std::shared_ptr<PrimitiveStorage> &storage,
                                            const uint_t minLevel,
                                            const uint_t maxLevel,
                                            const uint_t &solverType = 5,
                                            bool writeVTK = false,
-                                           std::shared_ptr<checkFunctionType> checkSolution = nullptr
-                )
+                                           bool runUntilErrorNorm = false,
+                                           std::shared_ptr<std::vector<real_t> > discrErrors = nullptr,
+                                           std::shared_ptr<std::vector<real_t> > resNorms = nullptr,
+                                           std::shared_ptr<checkFunctionType> checkSolution = nullptr,
+                                           real_t expectedL2VeloRate = 2.0)
                         : testName_(testName), maxLevel_(maxLevel), solTuple_(solTuple), rhsTuple_(rhsTuple), Op_(Op),
                           storage_(storage), solverType_(solverType), writeVTK_(writeVTK),
-                          checkSolution_(checkSolution) {
-                    // std::vector<std::tuple<real_t, real_t, real_t> > errors_per_h;
+                          runUntilErrorNorm_(runUntilErrorNorm), checkSolution_(checkSolution),
+                          discrErrors_(discrErrors), resNorms_(resNorms) {
                     WALBERLA_LOG_INFO_ON_ROOT("Running " << testName);
-                    auto ratesCounter = EGConvRatesCounter();
+                    auto ratesCounter = EGConvRatesCounter(expectedL2VeloRate);
                     ratesCounter.printHeader();
 
                     for (uint_t level = minLevel; level <= maxLevel; level++) {
                         ratesCounter.update(RunStokesTestOnLevel(level),
                                             MeshQuality::getMaximalEdgeLength(storage_, level), testName);
                         ratesCounter.printCurrentRates(level);
+                        if(level > minLevel) ratesCounter.checkL2VeloRate(level);
                     }
                     ratesCounter.printMeanRates();
                 }
@@ -148,14 +157,14 @@ namespace hyteg {
                 // subclass handling the computation of convergence rates
                 class EGConvRatesCounter {
                 public:
-                    EGConvRatesCounter()
-                            : h_old(std::numeric_limits<real_t>::max()), nUpdates_(0) {
+                    EGConvRatesCounter(real_t expectedL2VeloRate)
+                            : h_old(std::numeric_limits<real_t>::max()), nUpdates_(0), expectedL2VeloRate_(expectedL2VeloRate) {
                         errors_ = {0., 0., 0.};
                         rates_ = {0., 0., 0.};
                         sumRates_ = {0., 0., 0.};
                     }
 
-                    void update(const ErrorArray &newErrors, real_t h_new, const std::string& fname) {
+                    void update(const ErrorArray &newErrors, real_t h_new, const std::string &fname) {
                         currentDoFs_ = newErrors[0];
                         currentIts_ = newErrors[1];
                         std::transform(newErrors.begin() + 2, newErrors.end(), errors_.begin(), rates_.begin(),
@@ -173,10 +182,10 @@ namespace hyteg {
                         writeErrors(h_new, errors_[0], errors_[2], fname);
                     }
 
-                    void writeErrors(real_t h_new, real_t l2VelError,real_t l2pError, const std::string& fname) {
+                    void writeErrors(real_t h_new, real_t l2VelError, real_t l2pError, const std::string &fname) {
                         std::ofstream err_file;
                         auto fpath = "/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg-plots/EG_ConvOrders/" + fname + ".txt";
-                        err_file.open( fpath, std::ios_base::app );
+                        err_file.open(fpath, std::ios_base::app);
                         err_file << h_new << ", " << l2VelError << ", " << l2pError << "\n";
                         err_file.close();
                     }
@@ -218,6 +227,26 @@ namespace hyteg {
                                                  rates_[2]));
                     }
 
+                    void checkL2VeloRate(uint_t level) {
+                        WALBERLA_LOG_INFO_ON_ROOT(
+                                "Convergence L2 rate on level " << level << ": " << rates_[0] << ", expected rate: ["
+                                                                << expectedL2VeloRate_-0.05 << ", " << expectedL2VeloRate_+0.05<<"]");
+                       /* WALBERLA_CHECK_LESS_EQUAL(rates_[0],
+                                                  expectedL2VeloRate_ + 0.1,
+                                                  "Convergence L2 rate on level " << level << " too large (computed: "
+                                                                                  << rates_[0]
+                                                                                  << ", expected + eps: "
+                                                                                  << expectedL2VeloRate_ + 0.1 << ")");*/
+                        WALBERLA_CHECK_GREATER_EQUAL(rates_[0],
+                                                     expectedL2VeloRate_ - 0.1,
+                                                     "Convergence L2 rate on level " << level
+                                                                                     << " too small (computed: "
+                                                                                     << rates_[0]
+                                                                                     << ", expected - eps: "
+                                                                                     << expectedL2VeloRate_ - 0.1
+                                                                                     << ")");
+                    }
+
                 private:
                     // e_v e_v_conf e_v_disc e_p
                     ErrorArray errors_;
@@ -227,6 +256,7 @@ namespace hyteg {
                     real_t h_old;
                     real_t currentDoFs_;
                     real_t currentIts_;
+                    real_t expectedL2VeloRate_;
                 };
 
                 // subclass handling the computation of error norms
@@ -234,13 +264,13 @@ namespace hyteg {
                 public:
                     EGNormComputer(uint_t level, StokesFunctionType &err,
                                    const std::shared_ptr<PrimitiveStorage> &storage)
-                            : level_(level), storage_(storage), err_(err), tmpErr_("tmpErr", storage, level, level) {}
+                            : level_(level), storage_(storage), err_(err),
+                              tmpErr_("tmpErr", storage, level, level + 1) {}
 
                     ErrorArray compute(typename StokesOperatorType::EnergyNormOperator_T &energyNormOp) {
                         return {L2VeloError(), EnergyVeloError(energyNormOp), L2PressureError()};
                     }
 
-                private:
                     real_t L2PressureError() {
                         if constexpr (isEGP0Discr<StokesOperatorType>() || isP1P0Discr<StokesOperatorType>()) {
                             auto mass_form = std::make_shared<dg::P0P0MassForm>();
@@ -253,7 +283,7 @@ namespace hyteg {
                         } else {
                             WALBERLA_ABORT("Not implemented.");
                         }
-                        return sqrt(err_.p().dotGlobal(tmpErr_.p(), level_, All));
+                        return sqrt(err_.p().dotGlobal(tmpErr_.p(), level_, Inner));
                     }
 
                     real_t EnergyVeloError(typename StokesOperatorType::EnergyNormOperator_T &energyNormOp) {
@@ -263,40 +293,25 @@ namespace hyteg {
 
                     real_t L2VeloError() {
                         if constexpr (isEGP0Discr<StokesOperatorType>()) {
-                            EGMassOperator M_vel(storage_, level_, level_);
+                            EGMassOperator M_vel(storage_, level_, level_ + 1);
                             M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
+                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
                         } else if constexpr (isP1P0Discr<StokesOperatorType>()) {
                             P1ConstantVectorMassOperator M_vel(storage_, level_, level_);
                             M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
                         } else if constexpr (isP2P1Discr<StokesOperatorType>()) {
-                            return
-                                    sqrt(err_.uvw().dotGlobal(err_.uvw(), level_, All) /
-                                         real_c(numberOfGlobalDoFs(err_.uvw(), level_)));
-                            /*
-                            P2ConstantMassOperator M_vel(storage_, level_, level_);
+                            P2ConstantMassOperator M_vel(storage_, level_, level_ + 1);
                             if (!storage_->hasGlobalCells()) {
-                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_, Inner, Replace);
-                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_, Inner, Replace);
+                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_ + 1, Inner, Replace);
+                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_ + 1, Inner, Replace);
                             } else {
-                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_, Inner, Replace);
-                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_, Inner, Replace);
-                                M_vel.apply(err_.uvw()[2], tmpErr_.uvw()[2], level_, Inner, Replace);
+                                M_vel.apply(err_.uvw()[0], tmpErr_.uvw()[0], level_ + 1, Inner, Replace);
+                                M_vel.apply(err_.uvw()[1], tmpErr_.uvw()[1], level_ + 1, Inner, Replace);
+                                M_vel.apply(err_.uvw()[2], tmpErr_.uvw()[2], level_ + 1, Inner, Replace);
                             }
-                             TODO map to finer grid to counter superconvergence
-                                          P2toP2QuadraticProlongation P2P2ProlongationOp;
-
-                                          P1toP1LinearProlongation P1P1ProlongationOp;
-                                          for (uint_t k = 0; k < err.uvw().getDimension(); k++) {
-                                              P2P2ProlongationOp.prolongate(err.uvw()[k], level, Inner);
-                                          }
-                                          P1P1ProlongationOp.prolongate(err.p(), level, Inner);
-                                          //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
-                                          //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
-                                          //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
-                                          discrL2_velocity_err =
-                                                  sqrt(err.uvw().dotGlobal(err.uvw(), level + 1, Inner) /
-                                                       real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
-                    */
+                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_ + 1, All));
+                        } else {
+                            WALBERLA_ABORT("Not implemented.");
                         }
                         return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
                     }
@@ -320,22 +335,6 @@ namespace hyteg {
                     StokesFunctionType tmpErr_;
                 };
 
-                /*
-                                              P2toP2QuadraticProlongation P2P2ProlongationOp;
-
-                                              P1toP1LinearProlongation P1P1ProlongationOp;
-                                              for (uint_t k = 0; k < err.uvw().getDimension(); k++) {
-                                                  P2P2ProlongationOp.prolongate(err.uvw()[k], level, Inner);
-                                              }
-                                              P1P1ProlongationOp.prolongate(err.p(), level, Inner);
-                                              //     P2ConstantMassOperator M_vel( storage, level+1, level+1 );
-                                              //    M_vel.apply( err.uvw()[0], Merr.uvw()[0], level+1, Inner, Replace );
-                                              //    M_vel.apply( err.uvw()[1], Merr.uvw()[1], level+1, Inner, Replace );
-                                              discrL2_velocity_err =
-                                                      sqrt(err.uvw().dotGlobal(err.uvw(), level + 1, Inner) /
-                                                           real_c(numberOfGlobalDoFs(u.uvw(), level + 1)));
-                        */
-
 
                 void setupRHSinexact(uint_t level, const StokesFunctionType &f, StokesFunctionType &rhs) {
                     // solution, rhs as a lambda function
@@ -345,12 +344,12 @@ namespace hyteg {
                     if constexpr (isP2P1Discr<StokesOperatorType>()) {
                         P2ConstantMassOperator M_vel(storage_, level, level);
                         if (!storage_->hasGlobalCells()) {
-                            M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All);
-                            M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All);
+                            M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All, Replace);
+                            M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All, Replace);
                         } else {
-                            M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All);
-                            M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All);
-                            M_vel.apply(f.uvw()[2], rhs.uvw()[2], level, All);
+                            M_vel.apply(f.uvw()[0], rhs.uvw()[0], level, All, Replace);
+                            M_vel.apply(f.uvw()[1], rhs.uvw()[1], level, All, Replace);
+                            M_vel.apply(f.uvw()[2], rhs.uvw()[2], level, All, Replace);
                         }
                         P1ConstantMassOperator M_pressure(storage_, level, level);
                         M_pressure.apply(f.p(), rhs.p(), level, All, Replace);
@@ -392,7 +391,8 @@ namespace hyteg {
 
                 // integrate the rhs directly and apply the boundary values corresponding to the used operator to the rhs
                 void integrateRHS(uint_t level, StokesFunctionType &rhs) {
-                    static_assert(std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value || std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value,
+                    static_assert(std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value ||
+                                  std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value,
                                   "Not implemented for any other operator.");
                     WALBERLA_LOG_INFO_ON_ROOT("Not implemented for non divergence-free solutions!");
 
@@ -403,7 +403,6 @@ namespace hyteg {
                     if constexpr (std::is_same<StokesOperatorType, EGP0StokesOperatorNitscheBC>::value) {
                         if (!storage_->hasGlobalCells()) {
                             // corresponding operator forms for application of bcs to rhs
-                            auto basis = std::make_shared<DGBasisLinearLagrange_Example>();
                             auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
                             auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
                             auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_EE>();
@@ -415,10 +414,10 @@ namespace hyteg {
                             laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
                             // Assemble RHS by integration, apply bcs weakly
-                            rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, level);
+                            // rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, level );
                             rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceFormDG,
                                                                        level);
-                         } else {
+                        } else {
                             // corresponding operator forms for application of bcs to rhs
                             auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
                             auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
@@ -434,41 +433,61 @@ namespace hyteg {
                             laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
 
                             // Assemble RHS by integration, apply bcs weakly
-                            rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
+                            // rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
                             rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceForm2,
                                                                        laplaceFormDG, level);
                         }
                     } else {
-                        if (!storage_->hasGlobalCells()) WALBERLA_ABORT("Not implemented.")
+                        if (!storage_->hasGlobalCells()) {
+                            // corresponding operator forms for application of bcs to rhs
+                            auto viscosity = Op_->velocityBlockOp.viscosity_;
+                            auto epsForm00 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_00>(viscosity);
+                            auto epsForm11 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_11>(viscosity);
+                            auto epsFormDG = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_EE>(viscosity);
 
-                        // corresponding operator forms for application of bcs to rhs
-                        auto viscosity = Op_.velocityBlockOp.viscosity_;
-                        auto epsForm00 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_00>();
-                        auto epsForm11 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_11>();
-                        auto epsForm22 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_22>();
-                        auto epsFormDG = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_EE>();
+                            // check in solution functions
+                            epsForm00->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+                            epsForm00->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
-                        // check in solution functions
-                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        epsForm00->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+                            epsForm11->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+                            epsForm11->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
-                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        epsForm11->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+                            epsFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+                            epsFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
-                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        epsForm22->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+                            // Assemble RHS by integration, apply bcs weakly
+                            //rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
+                            rhs.uvw().applyDirichletBoundaryConditions(epsForm00, epsForm11, epsFormDG, level);
+                        } else {
+                            // corresponding operator forms for application of bcs to rhs
+                            auto viscosity = Op_->velocityBlockOp.viscosity_;
+                            auto epsForm00 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_00>(viscosity);
+                            auto epsForm11 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_11>(viscosity);
+                            auto epsForm22 = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_P1P1_22>(viscosity);
+                            auto epsFormDG = std::make_shared<dg::eg::EGEpsilonFormNitscheBC_EE>(viscosity);
 
-                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-                        epsFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+                            // check in solution functions
+                            epsForm00->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            epsForm00->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            epsForm00->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
 
-                        // Assemble RHS by integration, apply bcs weakly
-                        rhs.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
-                        rhs.uvw().applyDirichletBoundaryConditions(epsForm00, epsForm11, epsForm22,
-                                                                   epsFormDG, level);
+                            epsForm11->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            epsForm11->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            epsForm11->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                            epsForm22->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            epsForm22->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            epsForm22->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                            epsFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+                            epsFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+                            epsFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+
+                            // Assemble RHS by integration, apply bcs weakly
+                            //   rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
+                            rhs.uvw().applyDirichletBoundaryConditions(epsForm00, epsForm11, epsForm22, epsFormDG,
+                                                                       level);
+                        }
                     }
 
                     // weakly/Nitsche type apply of div BCs
@@ -476,7 +495,7 @@ namespace hyteg {
                     if (!storage_->hasGlobalCells()) {
                         divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
                         divForm->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
-                    }else{
+                    } else {
                         divForm->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
                         divForm->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
                         divForm->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
@@ -490,15 +509,20 @@ namespace hyteg {
                     numerator.enumerate(level);
                     uint_t globalDoFs = numberOfGlobalDoFs(numerator, level);
                     WALBERLA_LOG_INFO_ON_ROOT("Global DoFs: " << globalDoFs);
+                    if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                        WALBERLA_LOG_INFO_ON_ROOT("EG DoFs: " << numberOfGlobalDoFs(numerator.uvw(), level));
+                        WALBERLA_LOG_INFO_ON_ROOT(
+                                "P1 DoFs: " << numberOfGlobalDoFs(*numerator.uvw().getConformingPart(), level));
+                    }
 
                     // solution, rhs as a lambda function
                     auto [u_x_expr, u_y_expr, u_z_expr, p_expr] = solTuple_;
                     auto [f_x_expr, f_y_expr, f_z_expr, g_expr] = rhsTuple_;
 
-                    StokesFunctionType u("u", storage_, level, level);
+                    StokesFunctionType u("u", storage_, level, level + 1);
                     StokesFunctionType f("f", storage_, level, level);
                     StokesFunctionType rhs("rhs", storage_, level, level);
-                    StokesFunctionType sol("sol", storage_, level, level);
+                    StokesFunctionType sol("sol", storage_, level, level + 1);
                     StokesFunctionType err("err", storage_, level, level + 1);
                     StokesFunctionType Merr("Merr", storage_, level, level + 1);
 
@@ -514,21 +538,28 @@ namespace hyteg {
                     // interpolate analytical solution and rhs
                     if (!storage_->hasGlobalCells()) {
                         sol.uvw().interpolate({u_x_expr, u_y_expr}, level, All);
+                        sol.uvw().interpolate({u_x_expr, u_y_expr}, level + 1, All);
                         f.uvw().interpolate({f_x_expr, f_y_expr}, level, All);
                     } else {
                         sol.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, All);
+                        sol.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level + 1, All);
                         f.uvw().interpolate({f_x_expr, f_y_expr, f_z_expr}, level, All);
                     }
                     sol.p().interpolate(p_expr, level, All);
+                    sol.p().interpolate(p_expr, level + 1, All);
                     f.p().interpolate(g_expr, level, All);
 
                     // setup rhs linear form: with mass matrix inexactly or by numerical integration
                     if constexpr (usesNitscheBCs<StokesOperatorType>()) {
+                        setupRHSinexact(level, f, rhs);
                         integrateRHS(level, rhs);
                     } else {
                         setupRHSinexact(level, f, rhs);
                         setupBC(level, u);
                     }
+
+
+
 
                     // solve
                     int iterNumber = 0;
@@ -536,26 +567,156 @@ namespace hyteg {
                         case 0: {
                             MinResSolver<StokesOperatorType> solver(storage_, level, level);
                             solver.setPrintInfo(true);
-                            solver.solve(Op_, u, rhs, level);
+                            solver.solve(*Op_, u, rhs, level);
                             break;
                         }
                         case 1: {
                             PETScLUSolver<StokesOperatorType> solver(storage_, level, numerator);
+                            solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
                             StokesFunctionType nullSpace("ns", storage_, level, level);
                             nullSpace.uvw().interpolate(0, level, All);
                             nullSpace.p().interpolate(1, level, All);
-                            solver.setNullSpace(nullSpace);
-
-                            solver.solve(Op_, u, rhs, level);
+                            solver.setNullSpace(nullSpace, level);
+                            solver.solve(*Op_, u, rhs, level);
                             iterNumber = 1;
                             break;
                         }
+
+                        case 2: {
+                            PETScBlockPreconditionedStokesSolver<StokesOperatorType> solver(
+                                    storage_, level, resNorms_->at(level - 2), std::numeric_limits<PetscInt>::max(), 6,
+                                    1);
+                            solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
+                            solver.solve(*Op_, u, rhs, level);
+                            if (runUntilErrorNorm_) {
+                                err.assign({1.0, -1.0}, {u, sol}, level, Inner);
+                                if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                                    // map to finer grid to counter superconvergence
+                                    P2toP2QuadraticProlongation P2P2ProlongationOp;
+                                    for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
+                                        P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
+                                    }
+                                    P1toP1LinearProlongation P1P1ProlongationOp;
+                                    P1P1ProlongationOp.prolongate(u.p(), level, Inner);
+                                    hyteg::vertexdof::projectMean(u.p(), level + 1);
+                                    err.assign({1.0, -1.0}, {u, sol}, level + 1, All);
+                                }
+                                real_t L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
+                                uint_t attempts = 0;
+                                WALBERLA_LOG_INFO_ON_ROOT("Discretization error is " << discrErrors_->at(level - 4)
+                                                                                     << ", current error is "
+                                                                                     << L2VeloError << ".");
+
+                                while (attempts < 100 &&
+                                       L2VeloError > discrErrors_->at(level - 4) + discrErrors_->at(level - 4) / 2) {
+                                    WALBERLA_LOG_INFO_ON_ROOT(
+                                            "Discretization error (" << discrErrors_->at(level - 4) << ") not reached ("
+                                                                     << L2VeloError << "), trying again...");
+                                    if (!storage_->hasGlobalCells()) {
+                                        u.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
+                                    } else {
+                                        u.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
+                                    }
+                                    //PETScBlockPreconditionedStokesSolver< StokesOperatorType > solverInner(
+                                    //    storage_, level, 1e-6, 3, 2, 2 );
+                                    solver.setTolerance(1e-7);
+                                    solver.setMaxIt(50);
+                                    solver.solve(*Op_, u, rhs, level);
+                                    err.assign({1.0, -1.0}, {u, sol}, level, All);
+                                    if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                                        // map to finer grid to counter superconvergence
+                                        P2toP2QuadraticProlongation P2P2ProlongationOp;
+                                        for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
+                                            P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
+                                        }
+                                        P1toP1LinearProlongation P1P1ProlongationOp;
+                                        P1P1ProlongationOp.prolongate(u.p(), level, Inner);
+                                        err.assign({1.0, -1.0}, {u, sol}, level + 1, Inner);
+                                    }
+                                    L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
+                                    attempts++;
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case 3: {
+                            /*
+                            if constexpr (std::is_same<StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator>::value) {
+                                auto solver = hyteg::solvertemplates::varViscStokesMinResSolver<StokesOperatorType>(
+                                        storage_, level, Op_->viscOp.viscosity_, 1, 1e-5,
+                                        std::numeric_limits<PetscInt>::max(), true);
+                                solver->solve(*Op_, u, rhs, level);
+                            } else if constexpr (std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
+                                                 std::is_same<StokesOperatorType, eg::EGP0EpsilonOperatorStokesNitscheBC>::value) {
+                                auto solver = hyteg::solvertemplates::varViscStokesMinResSolver<StokesOperatorType>(
+                                        storage_, level, Op_->velocityBlockOp.viscosity_, 1, 1e-5,
+                                        std::numeric_limits<PetscInt>::max(), true);
+                                solver->solve(*Op_, u, rhs, level);
+                            } else {
+                                WALBERLA_ABORT("not implemented.")
+                            }
+                            break;*/
+                        }
+
                         default: {
-                            PETScMinResSolver<StokesOperatorType> solver(storage_, level);
+                            PETScMinResSolver<StokesOperatorType> solver(storage_, level, numerator, 1e-7, 1e-7);
                             solver.setFromOptions(true);
-                            solver.disableApplicationBC( usesNitscheBCs<StokesOperatorType>() );
-                            solver.solve(Op_, u, rhs, level);
+                            solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
+
+                            solver.solve(*Op_, u, rhs, level);
+
                             iterNumber = solver.getIterNumber();
+                            if (runUntilErrorNorm_) {
+                                err.assign({1.0, -1.0}, {u, sol}, level, Inner);
+                                if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                                    // map to finer grid to counter superconvergence
+                                    P2toP2QuadraticProlongation P2P2ProlongationOp;
+                                    for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
+                                        P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
+                                    }
+                                    P1toP1LinearProlongation P1P1ProlongationOp;
+                                    P1P1ProlongationOp.prolongate(u.p(), level, Inner);
+                                    hyteg::vertexdof::projectMean(u.p(), level + 1);
+                                    err.assign({1.0, -1.0}, {u, sol}, level + 1, All);
+                                }
+                                real_t L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
+                                uint_t attempts = 0;
+                                WALBERLA_LOG_INFO_ON_ROOT("Discretization error is " << discrErrors_->at(level - 3)
+                                                                                     << ", current error is "
+                                                                                     << L2VeloError << ".");
+
+                                while (attempts < 100 &&
+                                       L2VeloError > discrErrors_->at(level - 3) + discrErrors_->at(level - 3) / 2) {
+                                    WALBERLA_LOG_INFO_ON_ROOT(
+                                            "Discretization error (" << discrErrors_->at(level - 3) << ") not reached ("
+                                                                     << L2VeloError << "), trying again...");
+                                    if (!storage_->hasGlobalCells()) {
+                                        u.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
+                                    } else {
+                                        u.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
+                                    }
+                                    PETScMinResSolver<StokesOperatorType> solverInner(storage_, level, 1e-10, 1e-10,
+                                                                                      2000);
+                                    solverInner.setFromOptions(true);
+                                    solverInner.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
+                                    solverInner.solve(*Op_, u, rhs, level);
+                                    err.assign({1.0, -1.0}, {u, sol}, level, All);
+                                    if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                                        // map to finer grid to counter superconvergence
+                                        P2toP2QuadraticProlongation P2P2ProlongationOp;
+                                        for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
+                                            P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
+                                        }
+                                        P1toP1LinearProlongation P1P1ProlongationOp;
+                                        P1P1ProlongationOp.prolongate(u.p(), level, Inner);
+                                        err.assign({1.0, -1.0}, {u, sol}, level + 1, Inner);
+                                    }
+                                    L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
+                                    attempts++;
+                                }
+                            }
                             break;
                         }
                     }
@@ -573,10 +734,27 @@ namespace hyteg {
                     if (maxLevel_ == level && checkSolution_ != nullptr)
                         (*checkSolution_)(u, MeshQuality::getMaximalEdgeLength(storage_, level));
 
+                    // compute error
                     err.assign({1.0, -1.0}, {u, sol}, level, All);
 
+
+                    if constexpr (isP2P1Discr<StokesOperatorType>()) {
+                        // map to finer grid to counter superconvergence
+                        P2toP2QuadraticProlongation P2P2ProlongationOp;
+                        for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
+                            P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
+                        }
+                        err.assign({1.0, -1.0}, {u, sol}, level + 1, Inner);
+                    } else if constexpr (isEGP0Discr<StokesOperatorType>()) {
+                        P1toP1LinearProlongation P1P1ProlongationOp;
+                        for (uint_t k = 0; k < u.uvw().getConformingPart()->getDimension(); k++) {
+                            P1P1ProlongationOp.prolongate((*u.uvw().getConformingPart())[k], level, Inner);
+                        }
+                        err.assign({1.0, -1.0}, {u, sol}, level + 1, All);
+                    }
+
                     if (writeVTK_) {
-                        VTKOutput vtk("/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg_premerge/hyteg-build/output",
+                        VTKOutput vtk("/mnt/c/Users/Fabia/OneDrive/Desktop/hyteg_premerge_2/hyteg/output",
                                       testName_, storage_);
                         if constexpr (isEGP0Discr<StokesOperatorType>()) {
                             vtk.add(u);
@@ -596,6 +774,10 @@ namespace hyteg {
                             vtk.add(*err.uvw().getDiscontinuousPart());
                             vtk.add(f);
                         } else {
+
+                            // P2Function<real_t> viscosity("viscosity", storage_, level, level);
+                            //viscosity.interpolate(Op_->viscOp.viscosity_, level, All);
+                            //vtk.add(viscosity);
                             vtk.add(u);
                             vtk.add(sol);
                             vtk.add(err);
@@ -612,21 +794,23 @@ namespace hyteg {
 
                     // pack returns: DoFs, iteration number, error norms
                     std::vector<real_t> ret = {real_c(globalDoFs), real_c(iterNumber)};
-                    auto norms = EGNormComputer(level, err, storage_).compute(Op_.energyNormOp);
+                    auto norms = EGNormComputer(level, err, storage_).compute(Op_->energyNormOp);
                     ret.insert(ret.end(), norms.begin(), norms.end());
                     return ret;
                 }
-
 
                 std::string testName_;
                 uint_t maxLevel_;
                 LambdaTuple solTuple_;
                 LambdaTuple rhsTuple_;
-                StokesOperatorType Op_;
+                std::shared_ptr<StokesOperatorType> Op_;
                 std::shared_ptr<PrimitiveStorage> storage_;
                 uint_t solverType_;
                 bool writeVTK_;
+                bool runUntilErrorNorm_;
                 std::shared_ptr<checkFunctionType> checkSolution_;
+                std::shared_ptr<std::vector<real_t> > discrErrors_;
+                std::shared_ptr<std::vector<real_t> > resNorms_;
             };
 
         } // namespace eg

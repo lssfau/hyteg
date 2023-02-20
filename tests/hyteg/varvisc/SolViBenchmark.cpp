@@ -9,6 +9,7 @@
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
@@ -54,11 +55,10 @@ by Daniel W. Schmid and Yuri Yu. Podladchikov
 */
 
 // check for evaluate function: for investigating pressure jump
-    template<typename, typename = void>
-    constexpr bool hasEvaluate = false;
-    template<typename T>
-    constexpr bool hasEvaluate<T, std::void_t<decltype(std::declval<T>().evaluate)> > = true;
-
+template < typename, typename = void >
+constexpr bool hasEvaluate = false;
+template < typename T >
+constexpr bool hasEvaluate< T, std::void_t< decltype( std::declval< T >().evaluate ) > > = true;
 
 // returns (u,p) analytical solution, (f,g) rhs and mu viscosity function of the SolVi problem
 std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
@@ -105,7 +105,7 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
           else
           {
              //outside the inclusion
-                         phi  = -2 * A * r2_inclusion / z;
+             phi  = -2 * A * r2_inclusion / z;
              dphi = -phi / z;
              psi  = -2.0 * ( visc_matrix * z + A * r2_inclusion * r2_inclusion / ( z * z * z ) );
           }
@@ -221,23 +221,24 @@ std::tuple< LambdaTuple, LambdaTuple, ScalarLambda >
    return std::make_tuple( solTuple, rhsTuple, viscosity );
 }
 
-template<typename StokesFunctionType>
-void printPressureJump(const StokesFunctionType& num_sol, real_t h) {
+template < typename StokesFunctionType >
+void printPressureJump( const StokesFunctionType& num_sol, real_t h )
+{
    // static_assert(hasEvaluate<typename StokesFunctionType::PressureFunction_T>(), "The type of pressure function must posess an evaluate() function.");
 
-   auto p = num_sol.p();
-    std::ofstream file;
-    auto          filename = "./pressureJump.txt";
-    file.open( filename );
+   auto          p = num_sol.p();
+   std::ofstream file;
+   auto          filename = "./pressureJump_EGP0_noAvg_noNitsche.txt";
+   file.open( filename );
 
-    for(real_t x = 1.; x < 2.; x += h) {
-        auto pos = Point3D ({x,1.,0.});
-        real_t val = 0.;
-        p.evaluate(pos, 7, val, 1e-3);
-        file << x << " " << val << "\n";
-    }
-    file.close();
-
+   for ( real_t x = 1.; x < 2.; x += h )
+   {
+      auto   pos = Point3D( { x, 1., 0. } );
+      real_t val = 0.;
+      p.evaluate( pos, 7, val, 1e-1 );
+      file << x << " " << val << "\n";
+   }
+   file.close();
 }
 } // namespace hyteg
 
@@ -251,8 +252,8 @@ int main( int argc, char* argv[] )
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
-   uint_t minLevel = 3;
-   uint_t maxLevel = 7;
+   uint_t minLevel = 4;
+   uint_t maxLevel = 5;
 
    // storage setup
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISS, 2, 2 );
@@ -264,24 +265,65 @@ int main( int argc, char* argv[] )
    // SolVi solution setup
    auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
 
-   if ( true )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0 ###" );
 
-      EGP0EpsilonStokesOperator EGP0EpsilonOp( storage, minLevel, maxLevel, viscosity );
+   auto resNormsEGP0 = { 1e-5, 1e-5, 1e-6, 1e-7, 1e-7, 1e-7,1e-7, 1e-7   };
 
-      StokesConvergenceOrderTest< EGP0EpsilonStokesOperator >(
-          "SolVi_EGP0", solTuple, rhsTuple, EGP0EpsilonOp, storage, minLevel, maxLevel, 1, true, std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
-   }
 
-   if ( false )
+    if ( false )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
 
-      P2P1ElementwiseAffineEpsilonStokesOperator P2P1EpsilonOp( storage, minLevel, maxLevel, viscosity );
-
       StokesConvergenceOrderTest< P2P1ElementwiseAffineEpsilonStokesOperator >(
-          "SolVi_P2P1", solTuple, rhsTuple, P2P1EpsilonOp, storage, minLevel, maxLevel, 1, true, std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
+          "SolVi_P2P1_noAvg",
+          solTuple,
+          rhsTuple,
+          std::make_shared< P2P1ElementwiseAffineEpsilonStokesOperator >( storage, minLevel, maxLevel, viscosity ),
+          storage,
+          minLevel,
+          maxLevel,
+          2,
+          false,
+          false, NULL,  std::make_shared<std::vector<real_t>>(resNormsEGP0));
+      //,std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
    }
+
+
+
+   if ( false )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0  ###" );
+
+      StokesConvergenceOrderTest< eg::EGP0EpsilonStokesOperator >(
+          "SolVi_EGP0",
+          solTuple,
+          rhsTuple,
+          std::make_shared< eg::EGP0EpsilonStokesOperator >( storage, minLevel, maxLevel, viscosity ),
+          storage,
+          minLevel,
+          maxLevel,
+          2,
+          false,
+          false, NULL, std::make_shared<std::vector<real_t>>(resNormsEGP0),
+          std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
+   }
+
+   if ( true )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0 Nitsche ###" );
+
+      StokesConvergenceOrderTest< eg::EGP0EpsilonOperatorStokesNitscheBC >(
+          "SolVi_EGP0_Nitsche",
+          solTuple,
+          rhsTuple,
+          std::make_shared< eg::EGP0EpsilonOperatorStokesNitscheBC >( storage, minLevel, maxLevel, viscosity ),
+          storage,
+          minLevel,
+          maxLevel,
+          1,
+          false,
+          false, NULL, std::make_shared<std::vector<real_t>>(resNormsEGP0), NULL, 1 );
+   }
+
+
    return EXIT_SUCCESS;
 }
