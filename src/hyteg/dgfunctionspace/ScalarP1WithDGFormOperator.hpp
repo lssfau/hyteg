@@ -94,6 +94,7 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
    {
       opP1ToDGIdx.apply( src, srcIdx_, level, All, Replace );
       opP1ToDGIdx.apply( dst, dstIdx_, level, All, Replace );
+
       opMain.toMatrix( mat, srcIdx_, dstIdx_, level, flag );
    }
 
@@ -138,15 +139,15 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
                 , dstReal_1( "dst_1", storage, minLevel, maxLevel, std::make_shared< DGBasisLinearLagrange_Example >(), 1 )
                 , dstReal_2( "dst_2", storage, minLevel, maxLevel, std::make_shared< DGBasisLinearLagrange_Example >(), 1 )
 
-                , eps_00( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_00 >() )
-                , eps_01( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_01>() )
-                , eps_02( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_02>() )
-                , eps_10( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_10>() )
-                , eps_11( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_11>() )
-                , eps_12( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_12>() )
-                , eps_20( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_20>() )
-                , eps_21( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_21>() )
-                , eps_22( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_22>() )
+                , eps_00( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_00 >(viscosity) )
+                , eps_01( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_01>(viscosity) )
+                , eps_02( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_02>(viscosity) )
+                , eps_10( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_10>(viscosity) )
+                , eps_11( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_11>(viscosity) )
+                , eps_12( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_12>(viscosity) )
+                , eps_20( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_20>(viscosity) )
+                , eps_21( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_21>(viscosity) )
+                , eps_22( storage, minLevel, maxLevel,  std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_22>(viscosity) )
 
                 , opP1ToDGIdx( storage, minLevel, maxLevel, std::make_shared< P1ToDG1InterpolationForm >() )
                 , opP1ToDGReal( storage, minLevel, maxLevel, std::make_shared< P1ToDG1InterpolationForm >() )
