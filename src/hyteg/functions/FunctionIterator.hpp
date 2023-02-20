@@ -241,6 +241,13 @@ inline std::string FunctionIteratorDoF< FunctionType >::toString() const
    return os.str();
 }
 
+
+template <  >
+inline long int& FunctionIteratorDoF< hyteg::P0Function<long int> >::value()
+{
+   return *function_.getDGFunction()->volumeDoFFunction()->dofMemory( primitiveID(), level() );
+}
+
 template < typename FunctionType >
 inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
 {
