@@ -80,7 +80,7 @@ void adaptiveRefinementTest()
 
    // test Simplex::barycenter()
    auto barycenter = simplex_0->barycenter( vertices_0 );
-   for ( uint_t i = 0; i < 3; ++i )
+   for ( int i = 0; i < 3; ++i )
       WALBERLA_CHECK_FLOAT_EQUAL( barycenter[i], barycenter_0[i] );
 
    // test Simplex::volume()

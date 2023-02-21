@@ -325,8 +325,8 @@ int main( int argc, char* argv[] )
    expression surrogate = [&poly, &Phi, &vertices]( const hyteg::Point3D& x ) {
       // polynomial is given in barycentric coordinates, so we must map x
       // to the reference element here
-      Point2D aux( {x[0] - vertices[0][0], x[1] - vertices[0][1]} );
-      Point2D pnt = Phi.mul( aux );
+      Point2D aux( { x[0] - vertices[0][0], x[1] - vertices[0][1] } );
+      Point2D pnt = Phi * aux;
       return poly.eval( pnt );
    };
 

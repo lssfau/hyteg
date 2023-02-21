@@ -52,7 +52,7 @@ inline constexpr uint_t tup4( const uint_t& a, const uint_t& b, const uint_t& c 
    return a << 8 | b << 4 | c;
 }
 
-using IndexIncrement = PointND< int, 3 >;
+using IndexIncrement = PointND< idx_t, 3 >;
 
 /// Wrapper around Point3D for convenient access to logical indices.
 class Index : public PointND< idx_t, 3 >
@@ -100,40 +100,6 @@ inline bool operator<( const Index& lhs, const Index& rhs )
           ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
 }
 
-inline bool operator<( const Eigen::Matrix< int, 3, 1, 0 > lhs, const Eigen::Matrix< int, 3, 1, 0 > rhs )
-{
-   return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
-          ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
-}
-
-//inline Index operator+( Index lhs, const Index& rhs )
-//{
-//   lhs += rhs;
-//   return lhs;
-//}
-//
-//inline Index operator+( Index lhs, const IndexIncrement& rhs )
-//{
-//   lhs += rhs;
-//   return lhs;
-//}
-//
-//inline Index operator+( const IndexIncrement& lhs, Index rhs )
-//{
-//   rhs += lhs;
-//   return rhs;
-//}
-
-//inline Index operator-( const Index& lhs, const Index& rhs )
-//{
-//   return Index( (idx_t) lhs.x() - (idx_t) rhs.x(), (idx_t) lhs.y() - (idx_t) rhs.y(), (idx_t) lhs.z() - (idx_t) rhs.z() );
-//}
-//
-//inline IndexIncrement operator-( const IndexIncrement& lhs, const IndexIncrement& rhs )
-//{
-//   return IndexIncrement( (int) lhs.x() - (int) rhs.x(), (int) lhs.y() - (int) rhs.y(), (int) lhs.z() - (int) rhs.z() );
-//}
-
 inline std::ostream& operator<<( std::ostream& os, const Index& index )
 {
    os << "( " << index.x() << ", " << index.y() << ", " << index.z() << " )";
@@ -151,9 +117,9 @@ inline std::ostream& operator<<( std::ostream& os, const IndexIncrement& indexIn
 
 namespace std {
 template <>
-struct less< Eigen::Matrix< int, 3, 1, 0 > >
+struct less< Eigen::Matrix< hyteg::idx_t, 3, 1, 0 > >
 {
-   bool operator()( const Eigen::Matrix< int, 3, 1, 0 >& lhs, const Eigen::Matrix< int, 3, 1, 0 >& rhs ) const
+   bool operator()( const Eigen::Matrix< hyteg::idx_t, 3, 1, 0 >& lhs, const Eigen::Matrix< hyteg::idx_t, 3, 1, 0 >& rhs ) const
    {
       return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
              ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );

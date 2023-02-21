@@ -198,7 +198,7 @@ void benchmark( int argc, char** argv )
          m(1, 0) = std::sin(alpha);
          m(1, 1) = std::cos(alpha);
          m(2, 2) = 1;
-         auto pShiftRotated = m.mul(pShift);
+         Point3D pShiftRotated = m * pShift;
          if ( pShiftRotated[1] < pShift[1] )
          {
             pShiftRotated[1] = pShift[1];
@@ -218,7 +218,7 @@ void benchmark( int argc, char** argv )
         m(1, 0) = std::sin(-alpha);
         m(1, 1) = std::cos(-alpha);
         m(2, 2) = 1;
-        auto pShiftRotated = m.mul(pShift);
+        Point3D pShiftRotated = m * pShift;
         if ( pShiftRotated[1] < pShift[1] )
         {
            pShiftRotated[1] = pShift[1];

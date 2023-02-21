@@ -166,7 +166,7 @@ void benchmark( int argc, char** argv )
 
          Point3D q;
 
-         for ( uint_t j = 0; j < 3; j++ )
+         for ( int j = 0; j < 3; j++ )
          {
             q[j] = p[i] * p[j] * rInv * rInv * rInv;
          }
@@ -186,7 +186,7 @@ void benchmark( int argc, char** argv )
 
         Point3D q;
 
-        for ( uint_t j = 0; j < 3; j++ )
+        for ( int j = 0; j < 3; j++ )
         {
            q[j] = p[i] * p[j] * rInv * rInv * rInv;
         }
@@ -206,7 +206,7 @@ void benchmark( int argc, char** argv )
 
         Point3D q;
 
-        for ( uint_t j = 0; j < 3; j++ )
+        for ( int j = 0; j < 3; j++ )
         {
            q[j] = p[i] * p[j] * rInv * rInv * rInv;
         }

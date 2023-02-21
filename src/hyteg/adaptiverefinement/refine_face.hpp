@@ -87,7 +87,7 @@ inline std::set< std::shared_ptr< Simplex2 > > refine_face_red( std::vector< Poi
          Point3D x0 = vertices[edge->get_vertices()[0]];
          Point3D x1 = vertices[edge->get_vertices()[1]];
          Point3D mid;
-         for ( uint_t j = 0; j < 3; ++j )
+         for ( int j = 0; j < 3; ++j )
          {
             mid[j] = ( x0[j] + x1[j] ) / 2;
          }

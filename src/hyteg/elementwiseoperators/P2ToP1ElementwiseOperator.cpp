@@ -285,22 +285,22 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_
    // assemble local element vector
    Point6D elVecOld;
    Point3D elVecNew;
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 3; k < 6; ++k )
+   for ( int k = 3; k < 6; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 3]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 3 )]];
    }
 
    // apply matrix (operator locally)
    elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
 }
 
@@ -323,22 +323,22 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply3D( const
    // assemble local element vector
    Point10D elVecOld;
    Point4D  elVecNew;
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 4 )]];
    }
 
    // apply matrix (operator locally)
    elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c(k)]] += elVecNew[k];
    }
 }
 
