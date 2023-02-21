@@ -120,7 +120,7 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
         const auto stencilOffset = stencilIt.first;
         const auto stencilWeight = stencilIt.second;
 
-        const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+        const auto leafIndexInCell = centerIndexInCell + stencilOffset;
         const auto leafIndexOnEdge = indexing::basisConversion(
             leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
 
@@ -275,7 +275,7 @@ inline void applyFace3D( const uint_t & level, Face &face,
           const auto stencilOffset = stencilIt.first;
           const auto stencilWeight = stencilIt.second;
 
-          const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
           const auto leafIndexInFace =
               vertexdof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
 
@@ -342,7 +342,7 @@ inline void applyCell(const uint_t & Level, Cell & cell,
       const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
       for ( const auto & neighbor : vertexDoFNeighbors )
       {
-        const auto srcIdx      = it + neighbor.cast< idx_t >();
+        const auto srcIdx      = it + neighbor;
         const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
         tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
       }
@@ -368,7 +368,7 @@ inline void applyCell(const uint_t & Level, Cell & cell,
     const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
     for ( const auto & neighbor : vertexDoFNeighbors )
     {
-      const auto srcIdx      = it + neighbor.cast< idx_t >();
+      const auto srcIdx      = it + neighbor;
       const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
       tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
     }

@@ -547,9 +547,9 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );

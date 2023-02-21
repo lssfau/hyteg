@@ -217,7 +217,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
       // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ ) {
-        logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID ).cast< idx_t >();
+        logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
       }
 
       // 5. Adding contribution to stencil
@@ -266,7 +266,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
   const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
   const auto  neighboringElementsAtVertex0 =
-      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0.cast< idx_t >(), level );
+      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0, level );
   const auto secondDirectionInElements =
       vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at( 1 ) - offsetsToNeighborVertices.at( 0 ) );
 
@@ -294,8 +294,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
     std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
     for ( uint_t localID = 0; localID < 4; localID++ )
     {
-      logicalOffsetsFromCenter[localID] =
-          microEdgeIndex + neighboringVertex0.cast< idx_t >() + elementAsIndices.at( localID ).cast< idx_t >();
+      logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
     }
 
     // 5. Adding contribution to stencil
@@ -370,7 +369,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
   const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
   const auto  neighboringElementsAtVertex0 =
-      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0.cast< idx_t >(), level );
+      P1Elements::P1Elements3D::getNeighboringElements( microEdgeIndex + neighboringVertex0, level );
   const auto secondDirectionInElements =
       vertexdof::stencilDirectionFromLogicalOffset( offsetsToNeighborVertices.at( 1 ) - offsetsToNeighborVertices.at( 0 ) );
 
@@ -404,8 +403,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
         for ( uint_t localID = 0; localID < 4; localID++ )
         {
-          logicalOffsetsFromCenter[localID] =
-              microEdgeIndex + neighboringVertex0.cast< idx_t >() + elementAsIndices.at( localID ).cast< idx_t >();
+          logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
         }
 
         // 5. Adding contribution to stencil

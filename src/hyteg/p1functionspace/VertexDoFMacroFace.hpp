@@ -1050,7 +1050,7 @@ inline void saveOperator3D( const uint_t&                                       
          for ( const auto& stencilIt : opr_data[neighborCellIdx] )
          {
             auto  weight = stencilIt.second;
-            Index leafIndexInMacroCell( centerIndexInCell + stencilIt.first.cast< idx_t >() );
+            Index leafIndexInMacroCell( centerIndexInCell + stencilIt.first );
             auto  leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
 

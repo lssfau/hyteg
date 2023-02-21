@@ -109,7 +109,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
-            const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+            const auto leafIndexInCell = centerIndexInCell + stencilOffset;
             const auto leafIndexOnEdge = indexing::basisConversion(
                 leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
 
@@ -252,7 +252,7 @@ inline void saveFaceOperator3D( const uint_t&                                   
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInCell, neighborCell, localFaceID, storage, level );
 
@@ -315,7 +315,7 @@ inline void saveCellOperator( const uint_t&                                     
 
          for ( const auto& neighbor : vertexDoFNeighbors )
          {
-            const auto srcIdx      = it + neighbor.cast< idx_t >();
+            const auto srcIdx      = it + neighbor;
             const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
             const auto srcInt      = src[srcArrayIdx];
             mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[centerOrientation][neighbor] );
@@ -335,7 +335,7 @@ inline void saveCellOperator( const uint_t&                                     
 
       for ( const auto& neighbor : vertexDoFNeighbors )
       {
-         const auto srcIdx      = it + neighbor.cast< idx_t >();
+         const auto srcIdx      = it + neighbor;
          const auto srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
          const auto srcInt      = src[srcArrayIdx];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[centerOrientation][neighbor] );

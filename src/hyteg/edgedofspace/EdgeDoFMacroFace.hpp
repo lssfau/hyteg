@@ -796,7 +796,7 @@ inline void apply3D( const uint_t&                                              
                   const auto leafOrientationInFace =
                       macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
-                  const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                   const auto leafIndexInFace =
                       leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                           macrocell::getIndexInNeighboringMacroFaceXYZ(

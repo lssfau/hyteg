@@ -107,7 +107,7 @@ inline void applyVertex3D( const uint_t & level, const Vertex & vertex,
         const auto stencilOffset = stencilIt.first;
         const auto stencilWeight = stencilIt.second;
 
-        const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+        const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
         const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
         const auto onCellEdgesSet = edgedof::macrocell::isOnCellEdges( level, leafIndexInCell, leafOrientationInCell );
@@ -256,7 +256,7 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
 
           const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace(
               leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
-          const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
           const auto leafIndexOnEdge = leafOrientationOnEdge == edgedof::EdgeDoFOrientation::XYZ ?
                                            edgedof::macrocell::getIndexInNeighboringMacroEdgeXYZ(
@@ -417,7 +417,7 @@ inline void applyFace3D( const uint_t & level, Face &face,
 
           const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
-          const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
           const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                                            edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
                                                leafIndexInCell, neighborCell, localFaceID, storage, level ) :
@@ -485,7 +485,7 @@ inline void applyCell(const uint_t & Level, Cell & cell,
       const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
       for ( const auto & neighbor : edgeDoFNeighbors )
       {
-        const auto srcIdx      = it + neighbor.cast< idx_t >();
+        const auto srcIdx      = it + neighbor;
         const auto srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), orientation );
         tmp += opr_data[orientation][neighbor] * src[srcArrayIdx];
       }

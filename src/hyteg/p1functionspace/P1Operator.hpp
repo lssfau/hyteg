@@ -1138,7 +1138,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
                auto weight               = stencilIt.second;
-               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first.cast< idx_t >();
+               auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
                auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), *storage_, level );
 

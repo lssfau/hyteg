@@ -363,7 +363,7 @@ inline void apply3D( const uint_t&                                              
 
                const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace(
                    leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast< idx_t >();
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
                const auto leafIndexOnEdge = indexing::basisConversion(
                    leafIndexInCell, { 0, 1, 2, 3 }, basisInCell, levelinfo::num_microedges_per_edge( level ) );

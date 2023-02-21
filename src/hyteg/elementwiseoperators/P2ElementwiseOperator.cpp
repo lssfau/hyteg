@@ -582,9 +582,9 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
@@ -810,9 +810,9 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
    v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
    offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset.cast< idx_t >() );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
