@@ -672,11 +672,12 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
       // 3. translate coordinates / stencil directions back to vertex-local coordinate system
       for ( const auto it : cellLocalStencilWeights )
       {
-         const auto cellLocalDir        = it.first;
-         const auto stencilWeight       = it.second;
-         const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto onLocalEdgesDir     = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
-         const auto onLocalVerticesDir  = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
+         const auto                            cellLocalDir  = it.first;
+         const auto                            stencilWeight = it.second;
+         const hyteg::indexing::IndexIncrement cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const auto onLocalEdgesDir    = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+         const auto onLocalVerticesDir = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
          if ( onLocalEdgesDir.size() == 1 )
          {
             const auto cellLocalEdgeID   = *onLocalEdgesDir.begin();
@@ -930,9 +931,10 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
 
-         const auto            cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto            onLocalFacesCenter  = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
-         const auto            onLocalFacesDir     = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
+         const hyteg::indexing::Index cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const auto            onLocalFacesCenter = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+         const auto            onLocalFacesDir    = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
          std::vector< uint_t > intersectingFaces;
          std::set_intersection( onLocalFacesCenter.begin(),
                                 onLocalFacesCenter.end(),
