@@ -305,7 +305,7 @@ class MeshInfo
     public:
       Vertex()
       : id_( 0 )
-      , coordinates_( Point3D() )
+      , coordinates_( Point3D::Zero() )
       , boundaryFlag_( 0 ){};
 
       Vertex( const IDType& id, const Point3D& coordinates, const uint_t& boundaryFlag )

@@ -228,33 +228,23 @@ inline std::pair< Index, CellType > getMicroCellFromMicroVertices( const std::ar
    }
    else if ( v == white_down )
    {
-      Index tmp( v0 );
-      tmp -= Index( 1, 1, 0 );
-      ret = { tmp, CellType::WHITE_DOWN };
+      ret = { v0 - Index( 1, 1, 0 ), CellType::WHITE_DOWN };
    }
    else if ( v == blue_up )
    {
-      Index tmp( v0 );
-      tmp -= Index( 1, 0, 0 );
-      ret = { tmp, CellType::BLUE_UP };
+      ret = { v0 - Index( 1, 0, 0 ), CellType::BLUE_UP };
    }
    else if ( v == blue_down )
    {
-      Index tmp( v0 );
-      tmp -= Index( 0, 1, 0 );
-      ret = { tmp, CellType::BLUE_DOWN };
+      ret = { v0 - Index( 0, 1, 0 ), CellType::BLUE_DOWN };
    }
    else if ( v == green_up )
    {
-      Index tmp( v0 );
-      tmp -= Index( 1, 0, 0 );
-      ret = { tmp, CellType::GREEN_UP };
+      ret = { v0 - Index( 1, 0, 0 ), CellType::GREEN_UP };
    }
    else if ( v == green_down )
    {
-      Index tmp( v0 );
-      tmp -= Index( 0, 1, 0 );
-      ret = { tmp, CellType::GREEN_DOWN };
+      ret = { v0 - Index( 0, 1, 0 ), CellType::GREEN_DOWN };
    }
    else
    {

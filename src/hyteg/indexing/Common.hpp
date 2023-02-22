@@ -73,25 +73,6 @@ class Index : public PointND< idx_t, 3 >
 
    const idx_t& dep() const { return z(); }
    idx_t&       dep() { return z(); }
-
-   Index& operator+=( const IndexIncrement& increment )
-   {
-      WALBERLA_ASSERT_GREATER_EQUAL( (idx_t) x() + increment.x(), 0 );
-      WALBERLA_ASSERT_GREATER_EQUAL( (idx_t) y() + increment.y(), 0 );
-      WALBERLA_ASSERT_GREATER_EQUAL( (idx_t) z() + increment.z(), 0 );
-      x() += increment.x();
-      y() += increment.y();
-      z() += increment.z();
-      return *this;
-   }
-
-   Index& operator+=( const Index& other )
-   {
-      x() += other.x();
-      y() += other.y();
-      z() += other.z();
-      return *this;
-   }
 };
 
 inline bool operator<( const Index& lhs, const Index& rhs )

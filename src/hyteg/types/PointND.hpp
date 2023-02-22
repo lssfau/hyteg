@@ -29,7 +29,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-
 #include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace walberla::math {
@@ -71,11 +70,11 @@ inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointn
    return os;
 }
 
-using Point2D    = Eigen::Matrix< walberla::real_t, 2, 1 >;
-using Point3D    = Eigen::Matrix< walberla::real_t, 3, 1 >;
-using Point4D    = Eigen::Matrix< walberla::real_t, 4, 1 >;
-using Point6D    = Eigen::Matrix< walberla::real_t, 6, 1 >;
-using Point10D    = Eigen::Matrix< walberla::real_t, 10, 1 >;
+using Point2D  = Eigen::Matrix< walberla::real_t, 2, 1 >;
+using Point3D  = Eigen::Matrix< walberla::real_t, 3, 1 >;
+using Point4D  = Eigen::Matrix< walberla::real_t, 4, 1 >;
+using Point6D  = Eigen::Matrix< walberla::real_t, 6, 1 >;
+using Point10D = Eigen::Matrix< walberla::real_t, 10, 1 >;
 
 inline Point3D crossProduct( const Point3D& a, const Point3D& b )
 {

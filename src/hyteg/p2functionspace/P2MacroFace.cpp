@@ -416,7 +416,7 @@ void smoothSOR3D(
                continue;
 
             auto weight               = stencilIt.second;
-            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first.cast<idx_t>();
+            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
             auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                 leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, level );
 
@@ -458,7 +458,7 @@ void smoothSOR3D(
                const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
                    leafOrientation, neighborCell, localFaceID, storage );
 
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                                                 edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
                                                     leafIndexInCell, neighborCell, localFaceID, storage, level ) :
@@ -525,7 +525,7 @@ void smoothSOR3D(
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInCell, neighborCell, localFaceID, storage, level );
 
@@ -562,7 +562,7 @@ void smoothSOR3D(
                   const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
                       leafOrientation, neighborCell, localFaceID, storage );
 
-                  const auto leafIndexInCell = centerIndexInCell + stencilOffset.cast<idx_t>();
+                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                   const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
                                                    edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
                                                        leafIndexInCell, neighborCell, localFaceID, storage, level ) :
