@@ -112,7 +112,7 @@ class P1ToP2SurrogateOperator : public Operator< P1Function< real_t >, P2Functio
                real_t c = walberla::real_c( it.col() ) * H;
                x        = x0 + ( r * D2 + c * D0 );
                // corresponding point on reference element
-               Point2D xi( {c, r} );
+               Point2D xi( c, r );
 
                P1toP2::variablestencil::macroface::assembleStencil(
                    form_, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE, vertexToVertexStencil, vertexToEdgeStencil );

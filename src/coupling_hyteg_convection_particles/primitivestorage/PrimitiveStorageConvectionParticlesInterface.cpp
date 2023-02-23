@@ -53,7 +53,7 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
          auto faceID = faceIt.first;
          auto face   = faceIt.second;
 
-         Point2D pointOfInterest( {pt[0], pt[1]} );
+         Point2D pointOfInterest( pt[0], pt[1] );
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           1e-05,
@@ -76,7 +76,7 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
          auto cellID = cellIt.first;
          auto cell   = cellIt.second;
 
-         Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
+         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
 
          if ( sphereTetrahedronIntersection( pointOfInterest,
                                              1e-05,
@@ -146,7 +146,7 @@ bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomai
       {
          auto face   = faceIt.second;
 
-         Point2D pointOfInterest( {pt[0], pt[1]} );
+         Point2D pointOfInterest( pt[0], pt[1] );
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           radius,
@@ -164,7 +164,7 @@ bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomai
       {
          auto cell   = cellIt.second;
 
-         Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
+         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
 
          if ( sphereTetrahedronIntersection( pointOfInterest,
                                              radius,

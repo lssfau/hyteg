@@ -226,7 +226,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
     *
     */
 
-   const Point3D subCubeWidth( {cubeSideLength, cubeSideLength, cubeSideLength} );
+   const Point3D subCubeWidth( cubeSideLength, cubeSideLength, cubeSideLength );
 
    std::vector< Point3D > subCubeVertexCoordinates( 14 );
 
@@ -301,7 +301,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
                      const auto    xPos = static_cast< real_t >( x + xInc ) * cubeSideLength;
                      const auto    yPos = static_cast< real_t >( y + yInc ) * cubeSideLength;
                      const auto    zPos = static_cast< real_t >( z + zInc ) * cubeSideLength;
-                     const Point3D vertexCoords( {xPos, yPos, zPos} );
+                     const Point3D vertexCoords( xPos, yPos, zPos );
                      meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
                   }
                }

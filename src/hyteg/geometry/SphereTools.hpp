@@ -141,7 +141,7 @@ void uvSphereSurfaceVertices( real_t                  radius,
       {
          const auto phi   = phiInc * real_c( meridian_idx );
          const auto theta = thetaInc * real_c( parallel_idx );
-         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
+         Point3D    coords( radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) );
 
          vertices.push_back( coords );
          meridians.push_back( meridian_idx );

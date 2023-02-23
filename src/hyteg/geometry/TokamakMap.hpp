@@ -419,7 +419,7 @@ class TokamakMap : public GeometryMap
       poloidalAngleIncrement_ = 2 * pi / real_c( numPoloidalSlices_ );
 
       auto    coords = cell.getCoordinates();
-      Point3D centroid( { 0, 0, 0 } );
+      Point3D centroid( 0, 0, 0 );
       for ( uint_t i = 0; i < 4; i++ )
       {
          centroid += coords[i];

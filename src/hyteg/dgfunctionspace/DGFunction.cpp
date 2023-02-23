@@ -96,7 +96,7 @@ bool DGFunction< ValueType >::evaluate( const Point3D& physicalCoords,
          const auto        ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
          indexing::Index   elementIndex(indexing::Index::Zero());
          facedof::FaceType faceType;
-         Point2D           coordinates2D( { computationalCoords[0], computationalCoords[1] } );
+         Point2D           coordinates2D( computationalCoords[0], computationalCoords[1] );
          Point2D           localCoordinates;
 
          Face& face = *( this->getStorage()->getFace( faceID ) );

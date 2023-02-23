@@ -252,7 +252,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
          auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
          auto s  = xl[0] + xl[1] + xl[2];
 
-         Point4D rel( { xl[0], xl[1], xl[2], s } );
+         Point4D rel( xl[0], xl[1], xl[2], s );
 
          real_t distSum  = 0;
          bool   contains = true;
