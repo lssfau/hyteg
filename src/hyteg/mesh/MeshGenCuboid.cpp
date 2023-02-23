@@ -73,10 +73,10 @@ MeshInfo MeshInfo::meshCuboid( const Point3D lowerLeftFront,
     for ( uint_t iy = 0; iy <= ny; ++iy ) {
       ypos = y0 + static_cast<real_t>( iy ) * hy;
       for ( uint_t ix = 0; ix <= nx; ++ix ) {
-        xpos = x0 + static_cast<real_t>( ix ) * hx;
-        vertexCoords = Point3D( { xpos, ypos, zpos } );
-        meshInfo.vertices_[ vertexID ] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
-        ++vertexID;
+         xpos                         = x0 + static_cast< real_t >( ix ) * hx;
+         vertexCoords                 = Point3D( xpos, ypos, zpos );
+         meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
+         ++vertexID;
       }
     }
   }

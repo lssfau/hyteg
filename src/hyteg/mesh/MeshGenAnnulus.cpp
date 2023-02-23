@@ -48,8 +48,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t      rhoMin,
    WALBERLA_ASSERT_GREATER( nRad, 0 );
 
    // mesh partial annulus in polar coordinates
-   MeshInfo meshInfo =
-       MeshInfo::meshRectangle( Point2D( {rhoMin, phiLeft} ), Point2D( {rhoMax, phiRight} ), flavour, nRad, nTan );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( rhoMax, phiRight ), flavour, nRad, nTan );
 
    // map vertex coordinates to cartesian domain
    Point3D node;
@@ -78,8 +77,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
    WALBERLA_ASSERT_GREATER( nRad, 0 );
 
    // mesh a rectangle representing the annulus in polar coordinates
-   MeshInfo meshInfo = MeshInfo::meshRectangle(
-       Point2D( {rhoMin, real_c( 0.0 )} ), Point2D( {rhoMax, real_c( 2.0 ) * pi} ), flavour, nRad, nTan );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( rhoMax, real_c( 2.0 ) * pi ), flavour, nRad, nTan );
 
    // determine some tolerances for further operations
    const real_t tolFactor  = real_c( 0.1 );

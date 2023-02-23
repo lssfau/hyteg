@@ -178,8 +178,8 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
               {
                 // add new central vertex
                 midx = llx + ( (real_t)i + real_c( 0.5 ) ) * hx;
-                midy = lly + ( (real_t)j + real_c( 0.5 ) ) * hy;
-                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, real_c( 0.0 ) } ), 0 );
+                midy                    = lly + ( (real_t) j + real_c( 0.5 ) ) * hy;
+                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( midx, midy, real_c( 0.0 ) ), 0 );
 
                 meshInfo.addFace( Face( { rectMap(  i ,  j  ), idx, rectMap( i+1,  j  ) }, 0 ) );
                 meshInfo.addFace( Face( { rectMap( i+1,  j  ), idx, rectMap( i+1, j+1 ) }, 0 ) );

@@ -327,7 +327,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
    A( 1, 1 )          = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[1];
    Matrix2r transform = A.inverse();
 
-   Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
+   Point2D x( coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] );
 
    Point2D xRelMacro = transform * x;
 
@@ -481,7 +481,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
          auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
          auto s  = xl[0] + xl[1] + xl[2];
 
-         Point4D rel( { xl[0], xl[1], xl[2], s } );
+         Point4D rel( xl[0], xl[1], xl[2], s );
 
          real_t distSum  = 0;
          bool   contains = true;

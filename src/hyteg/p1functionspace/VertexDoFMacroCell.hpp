@@ -177,7 +177,7 @@ inline Point3D transformToLocalTet( const Point3D& tet0,
    walberla::Vector3< real_t > x( globalPoint[0] - tet0[0], globalPoint[1] - tet0[1], globalPoint[2] - tet0[2] );
 
    auto result = A * x;
-   return Point3D( { result[0], result[1], result[2] } );
+   return Point3D( result[0], result[1], result[2] );
 }
 
 inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cell& cell, const Point3D& coordinates )

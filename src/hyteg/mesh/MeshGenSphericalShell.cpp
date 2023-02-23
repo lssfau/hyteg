@@ -328,7 +328,7 @@ static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t            
       real_t x = nodeCoords[is1][is2][id][0] * layers[ir];
       real_t y = nodeCoords[is1][is2][id][1] * layers[ir];
       real_t z = nodeCoords[is1][is2][id][2] * layers[ir];
-      vertex   = Point3D( { x, y, z } );
+      vertex   = Point3D( x, y, z );
       break;
    }
 

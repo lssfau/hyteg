@@ -148,7 +148,7 @@ class P0Function : public Function< P0Function< ValueType > >
                   const Eigen::Matrix< real_t, 2, 1 > centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
 
-                  const auto val = expr( Point3D( { centroid( 0 ), centroid( 1 ), 0 } ) );
+                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
 
                   dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
                       ValueType( val );
@@ -226,7 +226,7 @@ class P0Function : public Function< P0Function< ValueType > >
                          dofs[k+1][volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[k+1] )];
                   }
 
-                  const auto newValue = expression( Point3D( { centroid( 0 ), centroid( 1 ), 0 } ), srcValues );
+                  const auto newValue = expression( Point3D( centroid( 0 ), centroid( 1 ), 0 ), srcValues );
 
                   dofs[0][volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[0] )] =
                       ValueType( newValue );

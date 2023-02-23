@@ -62,32 +62,32 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
    subCubeWidth[2] /= real_c( numCubesZ );
 
    std::vector< Point3D > subCubeVertexCoordinates( 14 );
-   subCubeVertexCoordinates[0] = Point3D( {0, 0, 0} );
-   subCubeVertexCoordinates[1] = Point3D( {subCubeWidth[0], 0, 0} );
-   subCubeVertexCoordinates[2] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1] / 2, 0} );
-   subCubeVertexCoordinates[3] = Point3D( {0, subCubeWidth[1], 0} );
-   subCubeVertexCoordinates[4] = Point3D( {subCubeWidth[0], subCubeWidth[1], 0} );
+   subCubeVertexCoordinates[0] = Point3D( 0, 0, 0 );
+   subCubeVertexCoordinates[1] = Point3D( subCubeWidth[0], 0, 0 );
+   subCubeVertexCoordinates[2] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1] / 2, 0 );
+   subCubeVertexCoordinates[3] = Point3D( 0, subCubeWidth[1], 0 );
+   subCubeVertexCoordinates[4] = Point3D( subCubeWidth[0], subCubeWidth[1], 0 );
 
-   subCubeVertexCoordinates[5] = Point3D( {subCubeWidth[0] / 2, 0, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[6] = Point3D( {0, subCubeWidth[1] / 2, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[7] = Point3D( {subCubeWidth[0], subCubeWidth[1] / 2, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[8] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1], subCubeWidth[2] / 2} );
+   subCubeVertexCoordinates[5] = Point3D( subCubeWidth[0] / 2, 0, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[6] = Point3D( 0, subCubeWidth[1] / 2, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[7] = Point3D( subCubeWidth[0], subCubeWidth[1] / 2, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[8] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1], subCubeWidth[2] / 2 );
 
-   subCubeVertexCoordinates[9]  = Point3D( {0, 0, subCubeWidth[2]} );
-   subCubeVertexCoordinates[10] = Point3D( {subCubeWidth[0], 0, subCubeWidth[2]} );
-   subCubeVertexCoordinates[11] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1] / 2, subCubeWidth[2]} );
-   subCubeVertexCoordinates[12] = Point3D( {0, subCubeWidth[1], subCubeWidth[2]} );
-   subCubeVertexCoordinates[13] = Point3D( {subCubeWidth[0], subCubeWidth[1], subCubeWidth[2]} );
+   subCubeVertexCoordinates[9]  = Point3D( 0, 0, subCubeWidth[2] );
+   subCubeVertexCoordinates[10] = Point3D( subCubeWidth[0], 0, subCubeWidth[2] );
+   subCubeVertexCoordinates[11] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1] / 2, subCubeWidth[2] );
+   subCubeVertexCoordinates[12] = Point3D( 0, subCubeWidth[1], subCubeWidth[2] );
+   subCubeVertexCoordinates[13] = Point3D( subCubeWidth[0], subCubeWidth[1], subCubeWidth[2] );
 
    std::vector< std::vector< int > > cellVertices;
-   cellVertices.push_back( {{0, 1, 2, 5}} );
-   cellVertices.push_back( {{0, 3, 2, 6}} );
-   cellVertices.push_back( {{1, 2, 4, 7}} );
-   cellVertices.push_back( {{2, 4, 3, 8}} );
+   cellVertices.push_back( { { 0, 1, 2, 5 } } );
+   cellVertices.push_back( { { 0, 3, 2, 6 } } );
+   cellVertices.push_back( { { 1, 2, 4, 7 } } );
+   cellVertices.push_back( { { 2, 4, 3, 8 } } );
 
-   cellVertices.push_back( {{2, 0, 5, 6}} );
-   cellVertices.push_back( {{2, 1, 5, 7}} );
-   cellVertices.push_back( {{2, 3, 6, 8}} );
+   cellVertices.push_back( { { 2, 0, 5, 6 } } );
+   cellVertices.push_back( { { 2, 1, 5, 7 } } );
+   cellVertices.push_back( { { 2, 3, 6, 8 } } );
    cellVertices.push_back( {{2, 4, 7, 8}} );
 
    cellVertices.push_back( {{0, 9, 5, 6}} );

@@ -170,18 +170,18 @@ void icosahedralSurfaceTriangles( real_t                                  radius
    const real_t s = ( real_c( 1.0 ) + std::sqrt( 5.0 ) ) / real_c( 2.0 );
 
    // Vertices
-   tmpVertices.push_back( Point3D( { -1.0, s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 1.0, s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { -1.0, -s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 1.0, -s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 0.0, -1.0, s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, 1.0, s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, -1.0, -s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, 1.0, -s } ) );
-   tmpVertices.push_back( Point3D( { s, 0.0, -1.0 } ) );
-   tmpVertices.push_back( Point3D( { s, 0.0, 1.0 } ) );
-   tmpVertices.push_back( Point3D( { -s, 0.0, -1.0 } ) );
-   tmpVertices.push_back( Point3D( { -s, 0.0, 1.0 } ) );
+   tmpVertices.push_back( Point3D( -1.0, s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 1.0, s, 0.0 ) );
+   tmpVertices.push_back( Point3D( -1.0, -s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 1.0, -s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 0.0, -1.0, s ) );
+   tmpVertices.push_back( Point3D( 0.0, 1.0, s ) );
+   tmpVertices.push_back( Point3D( 0.0, -1.0, -s ) );
+   tmpVertices.push_back( Point3D( 0.0, 1.0, -s ) );
+   tmpVertices.push_back( Point3D( s, 0.0, -1.0 ) );
+   tmpVertices.push_back( Point3D( s, 0.0, 1.0 ) );
+   tmpVertices.push_back( Point3D( -s, 0.0, -1.0 ) );
+   tmpVertices.push_back( Point3D( -s, 0.0, 1.0 ) );
 
    for ( auto& v : tmpVertices )
    {

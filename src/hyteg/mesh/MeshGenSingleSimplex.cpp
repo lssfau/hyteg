@@ -38,15 +38,15 @@ MeshInfo MeshInfo::singleTriangle( const Point2D& v1, const Point2D& v2, const P
 {
    MeshInfo meshInfo;
 
-   meshInfo.vertices_[0] = MeshInfo::Vertex( 0, Point3D( {v1[0], v1[1], real_c( 0 )} ), 1 );
-   meshInfo.vertices_[1] = MeshInfo::Vertex( 1, Point3D( {v2[0], v2[1], real_c( 0 )} ), 1 );
-   meshInfo.vertices_[2] = MeshInfo::Vertex( 2, Point3D( {v3[0], v3[1], real_c( 0 )} ), 1 );
+   meshInfo.vertices_[0] = MeshInfo::Vertex( 0, Point3D( v1[0], v1[1], real_c( 0 ) ), 1 );
+   meshInfo.vertices_[1] = MeshInfo::Vertex( 1, Point3D( v2[0], v2[1], real_c( 0 ) ), 1 );
+   meshInfo.vertices_[2] = MeshInfo::Vertex( 2, Point3D( v3[0], v3[1], real_c( 0 ) ), 1 );
 
-   meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{0, 1}} ), 1 ) );
-   meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{0, 2}} ), 1 ) );
-   meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{1, 2}} ), 1 ) );
+   meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { 0, 1 } } ), 1 ) );
+   meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { 0, 2 } } ), 1 ) );
+   meshInfo.addEdge( Edge( std::array< IDType, 2 >( { { 1, 2 } } ), 1 ) );
 
-   meshInfo.addFace( Face( std::vector< IDType >( {{0, 1, 2}} ), 0 ) );
+   meshInfo.addFace( Face( std::vector< IDType >( { { 0, 1, 2 } } ), 0 ) );
 
    return meshInfo;
 }

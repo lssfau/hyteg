@@ -57,9 +57,9 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           1e-05,
-                                          Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
          {
             containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( faceID ) ) );
          }
@@ -150,9 +150,9 @@ bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomai
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           radius,
-                                          Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
          {
             return true;
          }

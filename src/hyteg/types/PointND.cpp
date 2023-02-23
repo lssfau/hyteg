@@ -29,7 +29,7 @@ walberla::math::Vector3< walberla::real_t > hyteg::toVec3( const Point3D& p )
 
 hyteg::Point3D hyteg::toPoint3D( const walberla::math::Vector3< real_t >& v )
 {
-   return Point3D( { v[0], v[1], v[2] } );
+   return Point3D( v[0], v[1], v[2] );
 }
 
 template class hyteg::PointND< walberla::real_t, 2 >;

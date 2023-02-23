@@ -151,9 +151,9 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
          Point2D computationalLocation2D( { computationalLocation[0], computationalLocation[1] } );
 
          if ( isPointInTriangle( computationalLocation2D,
-                                 Point2D( { face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] } ),
-                                 Point2D( { face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] } ),
-                                 Point2D( { face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] } ) ) )
+                                 Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                 Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                 Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
          {
             p->setContainingPrimitive( faceID );
             foundByPointLocation = true;
@@ -173,9 +173,9 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
 
                if ( isPointInTriangle(
                         computationalLocationNeighbor2D,
-                        Point2D( { neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1] } ),
-                        Point2D( { neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1] } ),
-                        Point2D( { neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1] } ) ) )
+                        Point2D( neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1] ),
+                        Point2D( neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1] ),
+                        Point2D( neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1] ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborFaceID );
