@@ -225,7 +225,7 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
    // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( 0, -1, 0 ); };
    auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( p[0] / rmax, p[1] / rmax, 0.0 ); };
 
    std::shared_ptr< ProjectNormalOperatorType > projection = nullptr;

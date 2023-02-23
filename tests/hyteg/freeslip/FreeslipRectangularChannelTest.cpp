@@ -114,7 +114,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( 0, -1, 0 ); };
 
    auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
 

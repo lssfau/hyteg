@@ -266,10 +266,10 @@ inline void projectNormal2D( uint_t                                             
 
    Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
 
-   Point3D xPhy;
+   Point3D xPhy( Point3D::Zero() );
    faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
 
-   Point3D normal;
+   Point3D normal( Point3D::Zero() );
    normal_function( xPhy, normal );
 
    Matrix2r projection;
