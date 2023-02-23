@@ -100,29 +100,3 @@ walberla::math::Vector3< real_t > toVec3( const Point3D& p );
 Point3D toPoint3D( const walberla::math::Vector3< real_t >& v );
 
 } // namespace hyteg
-
-namespace walberla {
-namespace mpi {
-
-template < typename T, // Element type of SendBuffer
-           typename G, // Growth policy of SendBuffer
-           typename PointNDDataType,
-           size_t PointNDDimension >
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >&                                 buf,
-                                       const hyteg::PointND< PointNDDataType, PointNDDimension >& pointND )
-{
-   pointND.serialize( buf );
-   return buf;
-}
-
-template < typename T, // Element type  of RecvBuffer
-           typename PointNDDataType,
-           size_t PointNDDimension >
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::PointND< PointNDDataType, PointNDDimension >& pointND )
-{
-   pointND.deserialize( buf );
-   return buf;
-}
-
-} // namespace mpi
-} // namespace walberla
