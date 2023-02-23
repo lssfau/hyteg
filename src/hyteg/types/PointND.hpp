@@ -49,7 +49,15 @@ using walberla::uint_t;
 /// \tparam T Vector data type
 /// \tparam N Dimension of vector
 template < typename ValueType, int N >
-using PointND = Eigen::Matrix< ValueType, N, 1 >;
+class PointND : public Eigen::Matrix< ValueType, N, 1 >
+{
+   using Eigen::Matrix< ValueType, N, 1 >::Matrix;
+
+ public:
+   PointND()
+   : Eigen::Matrix< ValueType, N, 1 >( Eigen::Matrix< ValueType, N, 1 >::Zero() )
+   {}
+};
 
 template < typename T, size_t N >
 inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointnd )
@@ -70,11 +78,17 @@ inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointn
    return os;
 }
 
-using Point2D  = Eigen::Matrix< walberla::real_t, 2, 1 >;
-using Point3D  = Eigen::Matrix< walberla::real_t, 3, 1 >;
-using Point4D  = Eigen::Matrix< walberla::real_t, 4, 1 >;
-using Point6D  = Eigen::Matrix< walberla::real_t, 6, 1 >;
-using Point10D = Eigen::Matrix< walberla::real_t, 10, 1 >;
+using Point2D  = PointND< walberla::real_t, 2 >;
+using Point3D  = PointND< walberla::real_t, 3 >;
+using Point4D  = PointND< walberla::real_t, 4 >;
+using Point6D  = PointND< walberla::real_t, 6 >;
+using Point10D = PointND< walberla::real_t, 10 >;
+
+extern template class PointND< walberla::real_t, 2 >;
+extern template class PointND< walberla::real_t, 3 >;
+extern template class PointND< walberla::real_t, 4 >;
+extern template class PointND< walberla::real_t, 6 >;
+extern template class PointND< walberla::real_t, 10 >;
 
 inline Point3D crossProduct( const Point3D& a, const Point3D& b )
 {

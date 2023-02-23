@@ -332,7 +332,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
    Point2D xRelMacro = transform * x;
 
    // Determine lower-left corner index of the quad where the evaluation point lies in
-   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+   int    rowsize = static_cast< int >( levelinfo::num_microvertices_per_edge( level ) );
    real_t hInv    = walberla::real_c( rowsize - 1 );
    real_t h       = walberla::real_c( 1.0 / hInv );
    int    binX    = static_cast< int >( std::floor( xRelMacro[0] * ( rowsize - 1 ) ) );
@@ -367,17 +367,17 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
       binY -= binYDec;
    }
 
-   hyteg::indexing::Index index;
-   index.x() = uint_c( binX );
-   index.y() = uint_c( binY );
+   hyteg::indexing::Index index( hyteg::indexing::Index::Zero() );
+   index.x() = binX;
+   index.y() = binY;
 
    WALBERLA_ASSERT_LESS( index.x(), rowsize - 1 );
    WALBERLA_ASSERT_LESS( index.y(), rowsize - 1 );
    WALBERLA_ASSERT_LESS( index.x() + index.y(), rowsize - 1, "index.x(): " << index.x() << ", index.y()" << index.y() );
 
    Point2D localCoords;
-   localCoords[0] = xRelMacro[0] - index.x() * h;
-   localCoords[1] = xRelMacro[1] - index.y() * h;
+   localCoords[0] = xRelMacro[0] - real_c( index.x() ) * h;
+   localCoords[1] = xRelMacro[1] - real_c( index.y() ) * h;
    localCoords *= hInv;
 
    // decide if up or down triangle

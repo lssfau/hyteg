@@ -82,7 +82,7 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      Point3D coordinates;
+      Point3D coordinates(Point3D::Zero());
       coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
       coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
       coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );

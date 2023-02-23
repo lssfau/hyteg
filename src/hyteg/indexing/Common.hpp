@@ -96,11 +96,12 @@ inline std::ostream& operator<<( std::ostream& os, const IndexIncrement& indexIn
 } // namespace indexing
 } // namespace hyteg
 
+// this can be changed to Index once IndexIncrement is same as Index
 namespace std {
 template <>
-struct less< Eigen::Matrix< hyteg::idx_t, 3, 1, 0 > >
+struct less< hyteg::PointND< hyteg::idx_t, 3 > >
 {
-   bool operator()( const Eigen::Matrix< hyteg::idx_t, 3, 1, 0 >& lhs, const Eigen::Matrix< hyteg::idx_t, 3, 1, 0 >& rhs ) const
+   bool operator()( const hyteg::PointND< hyteg::idx_t, 3 >& lhs, const hyteg::PointND< hyteg::idx_t, 3 >& rhs ) const
    {
       return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
              ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
