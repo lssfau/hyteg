@@ -157,10 +157,10 @@ void test( const uint_t lvl, const MeshInfo meshInfo, const bool print = false )
 
       for ( ; itL && itGT; ++itL, ++itGT )
       {
-         WALBERLA_CHECK_EQUAL( itL.y(), itGT.y() );
-         WALBERLA_CHECK_EQUAL( itL.x(), itGT.x() );
+         WALBERLA_CHECK_EQUAL( itL.row(), itGT.row() );
+         WALBERLA_CHECK_EQUAL( itL.col(), itGT.col() );
          WALBERLA_CHECK_FLOAT_EQUAL(
-             itL.value(), itGT.value(), "Mismatch at lifting (row, col): (" << itL.y() << ", " << itL.x() << ")" );
+             itL.value(), itGT.value(), "Mismatch at lifting (row, col): (" << itL.row() << ", " << itL.col() << ")" );
       }
    }
 }
