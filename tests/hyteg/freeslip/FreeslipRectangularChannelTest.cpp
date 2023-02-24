@@ -50,8 +50,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
 {
-   Point2D left( { real_c( -channelLength / 2 ), 0 } );
-   Point2D right( { real_c( channelLength / 2 ), real_c( channelHeight ) } );
+   Point2D left(  real_c( -channelLength / 2 ), 0  );
+   Point2D right(  real_c( channelLength / 2 ), real_c( channelHeight )  );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );

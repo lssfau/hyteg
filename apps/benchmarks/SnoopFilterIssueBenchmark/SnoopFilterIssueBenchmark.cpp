@@ -66,7 +66,7 @@ void runBenchmark( uint_t      level,
 
    const auto nx = ( ( numCellsPerProcess * numProcesses ) / 6 ) + 1;
 
-   const MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), nx, 1, 1 );
+   const MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), nx, 1, 1 );
    const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

@@ -93,11 +93,11 @@ std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D
 
 void runBenchmark( uint_t benchmark )
 {
-   Point2D leftBottom( {0, 0} );
+   Point2D leftBottom( 0, 0 );
    if ( benchmark == 0 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Poiseuille flow benchmark" )
-      leftBottom = Point2D( {-1, -1} );
+      leftBottom = Point2D( -1, -1 );
    }
    else if ( benchmark == 1 )
    {
@@ -126,7 +126,7 @@ void runBenchmark( uint_t benchmark )
    WALBERLA_LOG_INFO_ON_ROOT( "Jacobi omega:        " << jacobiOmega )
 
    //create a Rectangle as mesh with 4 triangles
-   auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), MeshInfo::CRISSCROSS, 1, 1 );
+   auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( 1, 1 ), MeshInfo::CRISSCROSS, 1, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

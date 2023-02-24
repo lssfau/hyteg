@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    const uint_t minLevel = 2;
@@ -60,7 +60,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > conicalBody = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( { 0.5, 0.25, 0.0 } );
+      const Point3D x0(  0.5, 0.25, 0.0  );
       const real_t  r0 = 0.15;
       if ( r( x, x0, r0 ) <= 1. )
          return 1 - r( x, x0, r0 );
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > gaussianCone = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( { 0.25, 0.5, 0.0 } );
+      const Point3D x0(  0.25, 0.5, 0.0  );
       const real_t  r0 = 0.15;
       if ( r( x, x0, r0 ) <= 1. )
          return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
@@ -78,7 +78,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( { 0.5, 0.75, 0.0 } );
+      const Point3D x0(  0.5, 0.75, 0.0  );
       const real_t  r0 = 0.15;
       if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
          return 1;

@@ -537,7 +537,7 @@ int main( int argc, char* argv[] )
    c_function rhs      = []( const hyteg::Point3D& x ) { return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ); };
    c_function coeff    = []( const hyteg::Point3D& ) { return 0.; };
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, nX, nY );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, nX, nY );
 
    /// case cube
    if ( nZ > 0 )
@@ -546,7 +546,7 @@ int main( int argc, char* argv[] )
       rhs   = []( const hyteg::Point3D& x ) { return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
 
       // boundary = exact;
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0.0, 0.0, 0.0 } ), Point3D( { 1.0, 1.0, 1.0 } ), nX, nY, nZ );
+      meshInfo = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), nX, nY, nZ );
    }
 
    /// case annulus

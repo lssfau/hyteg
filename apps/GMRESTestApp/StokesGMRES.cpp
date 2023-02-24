@@ -86,7 +86,7 @@ int main( int argc, char* argv[] )
    const real_t rmin = layers.front();
    const real_t rmax = layers.back();
 
-   const Point3D sourcePoint  = Point3D( { rmin, 0, 0 } ) + real_c( 0.5 ) * Point3D( { rmax - rmin, 0, 0 } );
+   const Point3D sourcePoint  = Point3D(  rmin, 0, 0  ) + real_c( 0.5 ) * Point3D(  rmax - rmin, 0, 0  );
    const real_t  sourceRadius = real_c( 0.5 );
 
    const uint_t minLevel       = mainConf.getParameter< uint_t >( "minLevel" );

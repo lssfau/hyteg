@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
   real_t rmin = 1.0;
   real_t rmax = 2.0;
 
-  Point2D cornerLL( { rmin, 0.0 } );
-  Point2D cornerUR( { rmax, 2.0*pi } );
+  Point2D cornerLL(  rmin, 0.0  );
+  Point2D cornerUR(  rmax, 2.0*pi  );
 
   MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 1, 6 );
   WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );

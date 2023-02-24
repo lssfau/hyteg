@@ -1934,13 +1934,13 @@ void setup( int argc, char** argv )
 
    bool projectPressure = true;
 
-   Point2D leftBottom( {0, 0} );
-   Point3D leftBottom3D( {0, 0, 0} );
+   Point2D leftBottom( 0, 0 );
+   Point3D leftBottom3D( 0, 0, 0 );
 
    if ( equation == "stokes" && ( NEUMANN_PROBLEM || COLLIDING_FLOW ) )
    {
-      leftBottom   = Point2D( {-1, -1} );
-      leftBottom3D = Point3D( {-1, -1, -1} );
+      leftBottom   = Point2D( -1, -1 );
+      leftBottom3D = Point3D( -1, -1, -1 );
    }
 
    std::shared_ptr< PrimitiveStorage > storage;
@@ -2051,7 +2051,7 @@ void setup( int argc, char** argv )
       auto inflowBC = [eps, tDomainDiameter]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps )
          {
-            const Point3D center( {0, real_c( 0.5 ) * real_c( tDomainDiameter ), real_c( 0.5 ) * real_c( tDomainDiameter )} );
+            const Point3D center( 0, real_c( 0.5 ) * real_c( tDomainDiameter ), real_c( 0.5 ) * real_c( tDomainDiameter ) );
             const auto    radius  = real_c( 0.5 ) * real_c( tDomainDiameter );
             const auto    shifted = ( p - center ) / radius;
 #if 0
@@ -2135,7 +2135,7 @@ void setup( int argc, char** argv )
       auto inflowBC = [eps]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps && p[1] > -eps && p[1] < 1 + eps )
          {
-            const Point3D center( {0, real_c( 0.5 ), real_c( 0.5 )} );
+            const Point3D center( 0, real_c( 0.5 ), real_c( 0.5 ) );
             const auto    radius  = real_c( 0.5 );
             const auto    shifted = ( p - center ) / radius;
 #if 0
@@ -2192,7 +2192,7 @@ void setup( int argc, char** argv )
       rhsW = shellRhsW;
 
       auto meshInfo =
-          MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+          MeshInfo::meshCuboid( leftBottom3D, Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -2217,7 +2217,7 @@ void setup( int argc, char** argv )
       rhsW = shellRhsW;
 
       auto meshInfo =
-          MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+          MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -2254,7 +2254,7 @@ void setup( int argc, char** argv )
       else
          WALBERLA_ABORT( "Invalid mesh layout." );
 
-      auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numEdgesPerSide, numEdgesPerSide );
+      auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( 1, 1 ), meshFlavour, numEdgesPerSide, numEdgesPerSide );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

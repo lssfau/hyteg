@@ -190,7 +190,7 @@ int main( int argc, char** argv )
 
    const std::string smootherType = parameters.getParameter< std::string >( "smootherType" );
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 4, 4 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 4, 4 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

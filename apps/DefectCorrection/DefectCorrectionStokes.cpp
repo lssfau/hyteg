@@ -101,10 +101,10 @@ static void defectCorrection( int argc, char** argv )
    // domain
 #if 0
    auto meshInfo =
-       MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1, 1 ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
 #else
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+       MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
 #endif
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

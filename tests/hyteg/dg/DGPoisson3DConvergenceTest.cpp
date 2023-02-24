@@ -178,7 +178,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
@@ -196,7 +196,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs = 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
@@ -209,7 +209,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( x[0] ) * sin( x[1] ) * sin( x[2] );

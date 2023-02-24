@@ -153,7 +153,7 @@ void runTest0( std::string tag ) {
   real_t deltaRad = (rMax - rMin)/real_c(nSamples-1);
   for( uint_t k = 0; k < nSamples; k++ ) {
     real_t rad = rMin + real_c(k)*deltaRad;
-    sample[k] = Point3D( { rad*std::cos(phi), rad*std::sin(phi), 0.0 } );
+    sample[k] = Point3D(  rad*std::cos(phi), rad*std::sin(phi), 0.0  );
     myMap.evalF( sample[k], mapped[k] );
     WALBERLA_LOG_INFO_ON_ROOT( " " << k << std::scientific
                                << ": " << std::sqrt(sample[k].squaredNorm())
@@ -165,8 +165,8 @@ void runTest0( std::string tag ) {
   WALBERLA_LOG_INFO_ON_ROOT( " Checking radius on [rayVertex,thrVertex]:" );
   real_t rad = tag.compare( "Outward" ) == 0 ? rMin : rMax;
 
-  Point3D v1 = Point3D( {rad*std::cos(phiLeft), rad*std::sin(phiLeft), 0.0 } );
-  Point3D v2    = Point3D( { rad * std::cos( phiRght ), rad * std::sin( phiRght ), 0.0 } );
+  Point3D v1 = Point3D( rad*std::cos(phiLeft), rad*std::sin(phiLeft), 0.0  );
+  Point3D v2    = Point3D(  rad * std::cos( phiRght ), rad * std::sin( phiRght ), 0.0  );
   Point3D delta = real_c( 1.0 ) / real_c( nSamples - 1 ) * ( v1 - v2 );
 
   for( uint_t k = 0; k < nSamples; k++ ) {

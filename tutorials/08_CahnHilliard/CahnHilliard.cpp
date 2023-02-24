@@ -853,8 +853,8 @@ std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 
    if ( use3D )
    {
-      const hyteg::Point3D lowerRight( { -1, -1, -1 } );
-      const hyteg::Point3D upperLeft( { +1, +1, +1 } );
+      const hyteg::Point3D lowerRight(  -1, -1, -1  );
+      const hyteg::Point3D upperLeft(  +1, +1, +1  );
 
       auto meshInfo = hyteg::MeshInfo::meshCuboid( lowerRight, upperLeft, 2, 2, 2 );
       setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
@@ -862,8 +862,8 @@ std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
    else
    {
       /// [create_storage rectangle]
-      hyteg::Point2D lowerRight( { -1, -1 } );
-      hyteg::Point2D upperLeft( { +1, +1 } );
+      hyteg::Point2D lowerRight(  -1, -1  );
+      hyteg::Point2D upperLeft(  +1, +1  );
 
       auto meshInfo = hyteg::MeshInfo::meshRectangle( lowerRight, upperLeft, hyteg::MeshInfo::CROSS, 2, 2 );
       setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );

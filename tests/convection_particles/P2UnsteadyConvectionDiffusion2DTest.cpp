@@ -117,7 +117,7 @@ real_t errorE2( const uint_t&                 level,
 
 void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map<uint_t, std::pair<real_t,real_t>> checks )
 {
-   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {5, 1} ), MeshInfo::CRISS, 6, 1 );
+   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 5, 1 ), MeshInfo::CRISS, 6, 1 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
@@ -130,7 +130,7 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map
    const real_t  hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t  hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t  t0       = 0.5 * pi;
-   const Point3D p0( {-0.5, 0, 0} );
+   const Point3D p0( -0.5, 0, 0 );
    const bool    vtk   = false;
    const real_t  tFinal = 1.0;
    const real_t dt = tFinal / real_c(steps);

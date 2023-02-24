@@ -190,7 +190,7 @@ void benchmark( int argc, char** argv )
       if ( p[0] > tDist - eps && p[1] > -eps )
       {
          // right anchor
-         Point3D anchorRight( {tDist, 0, 0} );
+         Point3D anchorRight( tDist, 0, 0 );
          auto     pShift = p - anchorRight;
          Matrix3r m( Matrix3r::Zero() );
          m(0, 0) = std::cos(alpha);
@@ -210,7 +210,7 @@ void benchmark( int argc, char** argv )
      if ( p[0] < eps - tDist + 1 && p[1] > -eps )
      {
         // left anchor
-        Point3D anchorLeft( {-tDist + 1, 0, 0} );
+        Point3D anchorLeft( -tDist + 1, 0, 0 );
         auto     pShift = p - anchorLeft;
         Matrix3r m( Matrix3r::Zero() );
         m(0, 0) = std::cos(-alpha);
@@ -239,7 +239,7 @@ void benchmark( int argc, char** argv )
    std::function< real_t( const hyteg::Point3D& ) > exactV = [&]( const hyteg::Point3D& p ) {
      if ( std::abs( p[1] - real_c( -tBase + 1 ) ) < eps && p[0] > -eps && p[0] < 1 + eps )
      {
-        const Point3D center( {0.5, real_c( -tBase + 1 ), 0.5} );
+        const Point3D center( 0.5, real_c( -tBase + 1 ), 0.5 );
         const auto    radius  = 0.5;
         const auto    shifted = ( p - center ) / radius;
 

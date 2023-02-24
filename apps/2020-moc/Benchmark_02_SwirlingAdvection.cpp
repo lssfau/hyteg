@@ -54,7 +54,7 @@ auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0
 };
 
 auto conicalBody = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.5, 0.25, 0.0} );
+   const Point3D x0( 0.5, 0.25, 0.0 );
    const real_t  r0 = 0.15;
    if ( r( x, x0, r0 ) <= 1. )
       return 1 - r( x, x0, r0 );
@@ -63,7 +63,7 @@ auto conicalBody = []( const hyteg::Point3D& x ) -> real_t {
 };
 
 auto gaussianCone = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.25, 0.5, 0.0} );
+   const Point3D x0( 0.25, 0.5, 0.0 );
    const real_t  r0 = 0.15;
    if ( r( x, x0, r0 ) <= 1. )
       return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
@@ -72,7 +72,7 @@ auto gaussianCone = []( const hyteg::Point3D& x ) -> real_t {
 };
 
 auto slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.5, 0.75, 0.0} );
+   const Point3D x0( 0.5, 0.75, 0.0 );
    const real_t  r0 = 0.15;
    if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
       return 1;
@@ -284,11 +284,11 @@ void benchmark( int argc, char** argv )
    if ( threeDim )
    {
       meshInfo =
-          MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+          MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
    }
    else
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1, 1 ), MeshInfo::CRISS, 1, 1 );
    }
 
    const real_t tEnd = 1.5;

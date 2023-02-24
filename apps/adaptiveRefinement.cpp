@@ -95,8 +95,8 @@ PDE_data functions( uint_t dim, uint_t shape, real_t alpha, real_t beta )
       pde.f = [=]( const hyteg::Point3D& ) { return 0; };
 
       auto R_mid   = ( R_min + R_max ) / 2.0;
-      auto u_inner = pde.u_anal( Point3D( { R_min, 0, 0 } ) );
-      auto u_outer = pde.u_anal( Point3D( { R_max, 0, 0 } ) );
+      auto u_inner = pde.u_anal( Point3D(  R_min, 0, 0  ) );
+      auto u_outer = pde.u_anal( Point3D(  R_max, 0, 0  ) );
 
       pde.u_D = [=]( const hyteg::Point3D& x ) { return ( x.norm() < R_mid ) ? u_inner : u_outer; };
    }
@@ -117,12 +117,12 @@ SetupPrimitiveStorage domain( uint_t dim, uint_t shape, uint_t N1, uint_t N2, ui
    {
       if ( dim == 3 )
       {
-         Point3D n( { 1, 1, 1 } );
+         Point3D n(  1, 1, 1  );
          meshInfo = MeshInfo::meshCuboid( -n, n, N1, N2, N3 );
       }
       else
       {
-         Point2D n( { 1, 1 } );
+         Point2D n(  1, 1  );
          meshInfo = MeshInfo::meshRectangle( -n, n, MeshInfo::CRISS, N1, N2 );
       }
    }

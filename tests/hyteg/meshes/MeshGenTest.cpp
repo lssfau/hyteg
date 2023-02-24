@@ -58,7 +58,7 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
    {
    case RECTANGLE:
       meshInfo = std::make_shared< MeshInfo >(
-          MeshInfo::meshRectangle( Point2D( { -2.0, 1.0 } ), Point2D( { 0.0, 3.0 } ), flavour, 3, 2 ) );
+          MeshInfo::meshRectangle( Point2D(  -2.0, 1.0  ), Point2D(  0.0, 3.0  ), flavour, 3, 2 ) );
       break;
 
    case PARTIAL_ANNULUS:

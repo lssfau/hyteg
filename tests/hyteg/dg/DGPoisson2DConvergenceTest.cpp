@@ -204,7 +204,7 @@ int main( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
 
       MeshInfo meshInfo =
-          hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 );
+          hyteg::MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1, 1  ), hyteg::MeshInfo::CRISS, 2, 2 );
 
       std::function< real_t( const hyteg::Point3D& ) > solFunc = []( const hyteg::Point3D& x ) {
          return std::exp( -x[0] - ( x[1] * x[1] ) );

@@ -63,8 +63,8 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
 
   // mesh, primitives, ...
-  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ),
-                                               Point2D( {1.0, 1.0} ),
+  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ),
+                                               Point2D( 1.0, 1.0 ),
                                                MeshInfo::CROSS, 1, 1 );
   SetupPrimitiveStorage setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   loadbalancing::greedy( setupStorage );

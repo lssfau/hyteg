@@ -267,8 +267,8 @@ void run2DTestsWithoutBlending()
 {
    // define our test triangle
    std::array< Point3D, 3 > triangle{
-       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
-   // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
+       Point3D(  -0.7, -2.0, 0.0  ), Point3D(  1.0, 1.0, 0.0  ), Point3D(  -1.0, 0.5, 0.0  ) };
+   // std::array< Point3D, 3 > triangle{Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 0.0, 0.0 ), Point3D( 0.0, 1.0, 0.0 )};
 
    logSectionHeader( "P1 DivX Forms" );
    compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p1_div_0_affine_q1, Matrix3r, 2 >(
@@ -434,13 +434,13 @@ void run2DTestsWithAffineMap()
    mat( 0, 1 )  = -std::sin( phi );
    mat( 1, 0 )  = +std::sin( phi ) * 2.25;
    mat( 1, 1 )  = +std::cos( phi ) * 2.25;
-   Point2D vec( { -7.0, 3.0 } );
+   Point2D vec(  -7.0, 3.0  );
    auto    map = std::make_shared< AffineMap2D >( mat, vec );
 
    // define our test triangle
    std::array< Point3D, 3 > triangle{
-       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
-   // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
+       Point3D(  -0.7, -2.0, 0.0  ), Point3D(  1.0, 1.0, 0.0  ), Point3D(  -1.0, 0.5, 0.0  ) };
+   // std::array< Point3D, 3 > triangle{Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 0.0, 0.0 ), Point3D( 0.0, 1.0, 0.0 )};
 
    logSectionHeader( "P2ToP1 DivX Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
@@ -606,14 +606,14 @@ void run3DTestsWithoutBlending()
 {
    // define our test tetrahedron
    // std::array< Point3D, 4 > theTet{
-   //    Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
+   //    Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 0.0 ), Point3D( -1.0, 0.5, 0.0 ), Point3D( 0.3, 0.21, -1.2 )};
 
-   // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
+   // std::array<Point3D,4> theTet{ Point3D( 0.0, 0.0, 0.0), Point3D( 1.0, 0.0, 0.0), Point3D( 0.0, 1.0, 0.0), Point3D( 0.0, 0.0, 1.0) };
 
-   std::array< Point3D, 4 > theTet{ Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 8.61803398874989e-01 } ),
-                                    Point3D( { 1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01 } ),
-                                    Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00 } ),
-                                    Point3D( { 0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00 } ) };
+   std::array< Point3D, 4 > theTet{ Point3D(  1.80901699437495e-01, 1.31432778029783e-01, 8.61803398874989e-01  ),
+                                    Point3D(  1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01  ),
+                                    Point3D(  1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00  ),
+                                    Point3D(  0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00  ) };
 
    logSectionHeader( "P2ToP1 DivX Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
@@ -904,14 +904,14 @@ void run3DTestsWithAffineMap()
 #endif
 #undef CHALLENGING
 
-   Point3D vec( { -7.0, 3.0, 2.0 } );
+   Point3D vec(  -7.0, 3.0, 2.0  );
    auto    map = std::make_shared< AffineMap3D >( mat, vec );
 
    // define our test tetrahedrons
-   Point3D                  v1( { 0.0, 0.00, 0.0 } );
-   Point3D                  v2( { 1.0, 1.00, 0.0 } );
-   Point3D                  v3( { -1.0, 0.50, 0.0 } );
-   Point3D                  v4( { 0.3, 0.21, -1.2 } );
+   Point3D                  v1(  0.0, 0.00, 0.0  );
+   Point3D                  v2(  1.0, 1.00, 0.0  );
+   Point3D                  v3(  -1.0, 0.50, 0.0  );
+   Point3D                  v4(  0.3, 0.21, -1.2  );
    std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
 
    logSectionHeader( "P2 Laplace Forms (3D)" );

@@ -231,7 +231,7 @@ int main( int argc, char** argv )
 
    /// [Flag_Boundaries_Parts]
    // generate mesh and setup storage
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, ny );
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1.5, 1 ), MeshInfo::CROSS, nx, ny );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

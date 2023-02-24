@@ -34,7 +34,7 @@ void runTest()
    const real_t coarse_tolerance = real_c( 1e-10 );
    const uint_t smoothingSteps   = 2;
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

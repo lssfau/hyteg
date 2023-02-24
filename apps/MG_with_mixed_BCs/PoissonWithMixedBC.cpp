@@ -132,8 +132,8 @@ int main( int argc, char* argv[] )
 
    // Generate unit square mesh
    WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );
-   Point2D  cornerLL( {real_c( 0 ), real_c( 0 )} );
-   Point2D  cornerUR( {real_c( 1 ), real_c( 1 )} );
+   Point2D  cornerLL( real_c( 0 ), real_c( 0 ) );
+   Point2D  cornerUR( real_c( 1 ), real_c( 1 ) );
    MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 2, 2 );
 
    // extract steering parameters

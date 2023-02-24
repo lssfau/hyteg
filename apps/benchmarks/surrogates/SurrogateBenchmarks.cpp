@@ -85,7 +85,7 @@ const std::map< KerType, std::string > kerTypeToStr = { { VARIABLE, "variable" }
 
 std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 {
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
 
    switch ( dim )
    {
@@ -96,7 +96,7 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
       }
       else // rectangle
       {
-         meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
+         meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
       }
       break;
    case 3:
@@ -106,7 +106,7 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
       }
       else // cube
       {
-         meshInfo = MeshInfo::meshCuboid( Point3D( { 0.0, 0.0, 0.0 } ), Point3D( { 1.0, 1.0, 1.0 } ), 1, 1, 1 );
+         meshInfo = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), 1, 1, 1 );
       }
       break;
 

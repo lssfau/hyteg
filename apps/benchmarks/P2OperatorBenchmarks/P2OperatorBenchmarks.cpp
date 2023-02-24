@@ -261,7 +261,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
 
    walberla::WcTimer timer;
 
-   const MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   const MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

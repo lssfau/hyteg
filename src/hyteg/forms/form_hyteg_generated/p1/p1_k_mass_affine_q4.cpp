@@ -365,12 +365,12 @@ namespace forms {
 
    void p1_k_mass_affine_q4::Scalar_Variable_Coefficient_2D_k( real_t in_0, real_t in_1, real_t * out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_2D_k( Point3D( {in_0, in_1, 0} ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_2D_k( Point3D( in_0, in_1, 0 ) );
    }
 
    void p1_k_mass_affine_q4::Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_3D_k( Point3D( {in_0, in_1, in_2} ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_3D_k( Point3D( in_0, in_1, in_2 ) );
    }
 
 } // namespace forms

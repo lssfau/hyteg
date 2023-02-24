@@ -61,8 +61,8 @@ int main( int argc, char* argv[] )
 
    // Generate a square mesh
    WALBERLA_LOG_INFO_ON_ROOT( " *** Generating square coarse mesh" );
-   Point2D cornerLL( { real_c( -1 ), real_c( -1 ) } );
-   Point2D cornerUR( { real_c( +1 ), real_c( +1 ) } );
+   Point2D cornerLL(  real_c( -1 ), real_c( -1 )  );
+   Point2D cornerUR(  real_c( +1 ), real_c( +1 )  );
 
    MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 2, 2 );
 

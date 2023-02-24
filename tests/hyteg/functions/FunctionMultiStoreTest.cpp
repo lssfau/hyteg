@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
 
   // Generate mesh around origin
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-  meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CROSS, 1, 1 );
+  meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CROSS, 1, 1 );
 
   // Generate primitives
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );

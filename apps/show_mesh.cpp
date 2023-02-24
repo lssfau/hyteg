@@ -313,7 +313,7 @@ int main( int argc, char* argv[] )
 
    case RECTANGLE:
       meshInfo =
-          new MeshInfo( MeshInfo::meshRectangle( Point2D( { -2.0, 1.0 } ), Point2D( { 0.0, 3.0 } ), rectMeshType, 16, 16 ) );
+          new MeshInfo( MeshInfo::meshRectangle( Point2D(  -2.0, 1.0  ), Point2D(  0.0, 3.0  ), rectMeshType, 16, 16 ) );
       break;
 
    case PARTIAL_ANNULUS:
@@ -338,12 +338,12 @@ int main( int argc, char* argv[] )
 
    case CUBOID:
       meshInfo = new MeshInfo(
-          MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ), Point3D( { 2.0, 0.0, 2.0 } ), nHint + 1, nHint + 1, nHint ) );
+          MeshInfo::meshCuboid( Point3D(  -1.0, -1.0, 0.0  ), Point3D(  2.0, 0.0, 2.0  ), nHint + 1, nHint + 1, nHint ) );
       break;
 
    case SYMM_CUBOID:
       meshInfo = new MeshInfo(
-          MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ), Point3D( { 1.0, 1.0, 1.0 } ), nHint, nHint, nHint ) );
+          MeshInfo::meshSymmetricCuboid( Point3D(  -1.0, -1.0, -1.0  ), Point3D(  1.0, 1.0, 1.0  ), nHint, nHint, nHint ) );
       break;
    case T_DOMAIN: {
       std::set< std::array< int, 3 > > cubes;

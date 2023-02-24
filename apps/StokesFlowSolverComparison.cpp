@@ -691,9 +691,9 @@ int main( int argc, char* argv[] )
     if ( meshType == "square" )
     {
       return hyteg::MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" ?
-                                                  hyteg::Point2D({-1, -1}) :
-                                                  hyteg::Point2D({0, 0}),
-                                              hyteg::Point2D({1, 1}),
+                                                  hyteg::Point2D( -1, -1) :
+                                                  hyteg::Point2D( 0, 0),
+                                              hyteg::Point2D( 1, 1),
                                               hyteg::MeshInfo::CRISSCROSS, 1, 1 );
     }
     else if ( meshType == "porous_coarse" )

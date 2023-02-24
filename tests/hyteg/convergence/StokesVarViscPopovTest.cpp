@@ -343,11 +343,11 @@ void popovBenchmark( uint_t          level,
 
    if ( popov.twoDim )
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { popov.xSize, popov.ySize } ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  popov.xSize, popov.ySize  ), MeshInfo::CRISS, 1, 1 );
    }
    else
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { popov.xSize, popov.ySize, popov.zSize } ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D(  0, 0, 0  ), Point3D(  popov.xSize, popov.ySize, popov.zSize  ), 1, 1, 1 );
    }
 
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
