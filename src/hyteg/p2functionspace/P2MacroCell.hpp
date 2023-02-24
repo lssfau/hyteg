@@ -37,7 +37,7 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::int_c;
 using indexing::Index;
-using indexing::IndexIncrement;
+using indexing::Index;
 
 template < typename ValueType >
 inline void evaluate( const uint_t&,
@@ -84,14 +84,14 @@ inline void evaluate( const uint_t&                                            l
    auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
    auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
 
-   IndexIncrement vertexIndex0 =
-       IndexIncrement( int_c( microCellIndices[0].x() ), int_c( microCellIndices[0].y() ), int_c( microCellIndices[0].z() ) );
-   IndexIncrement vertexIndex1 =
-       IndexIncrement( int_c( microCellIndices[1].x() ), int_c( microCellIndices[1].y() ), int_c( microCellIndices[1].z() ) );
-   IndexIncrement vertexIndex2 =
-       IndexIncrement( int_c( microCellIndices[2].x() ), int_c( microCellIndices[2].y() ), int_c( microCellIndices[2].z() ) );
-   IndexIncrement vertexIndex3 =
-       IndexIncrement( int_c( microCellIndices[3].x() ), int_c( microCellIndices[3].y() ), int_c( microCellIndices[3].z() ) );
+   Index vertexIndex0 =
+       Index( int_c( microCellIndices[0].x() ), int_c( microCellIndices[0].y() ), int_c( microCellIndices[0].z() ) );
+   Index vertexIndex1 =
+       Index( int_c( microCellIndices[1].x() ), int_c( microCellIndices[1].y() ), int_c( microCellIndices[1].z() ) );
+   Index vertexIndex2 =
+       Index( int_c( microCellIndices[2].x() ), int_c( microCellIndices[2].y() ), int_c( microCellIndices[2].z() ) );
+   Index vertexIndex3 =
+       Index( int_c( microCellIndices[3].x() ), int_c( microCellIndices[3].y() ), int_c( microCellIndices[3].z() ) );
 
    auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
    auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );

@@ -39,7 +39,7 @@ class N1E1VectorFunction;
 
 namespace macrocell {
 
-using indexing::IndexIncrement;
+using indexing::Index;
 using walberla::int_c;
 using walberla::uint_t;
 template < typename ValueType >

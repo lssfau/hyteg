@@ -51,7 +51,7 @@ int main( int argc, char** argv )
       std::vector< double > dst( tetSize );
       std::generate( dst.begin(), dst.end(), std::rand );
 
-      std::map< hyteg::indexing::IndexIncrement, double > stencil;
+      std::map< hyteg::indexing::Index, double > stencil;
       for ( const auto & neighbor : hyteg::vertexdof::macrocell::neighborsWithCenter )
         stencil[hyteg::vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = walberla::real_c( std::rand() );
 

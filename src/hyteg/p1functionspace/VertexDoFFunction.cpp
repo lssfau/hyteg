@@ -1540,7 +1540,7 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
                for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
                {
                   const uint_t idx =
-                      vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
+                      vertexdof::macroface::indexFromVertex( level, iter.x(), iter.y(), stencilDirection::VERTEX_C );
                   data[idx] = real_c( 1.0 ) / data[idx];
                }
             }

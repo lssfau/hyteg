@@ -371,15 +371,15 @@ uint_t indexFromBlueFace( const uint_t& level, const idx_t& x, const idx_t& y, c
 
 bool isVertexOnBoundary( const uint_t& level, const hyteg::indexing::Index& idx )
 {
-   if ( idx.row() == 0 )
+   if ( idx.y() == 0 )
    {
       return true;
    }
-   else if ( idx.col() == 0 )
+   else if ( idx.x() == 0 )
    {
       return true;
    }
-   else if ( ( idx.row() + idx.col() ) == idx_t( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
+   else if ( ( idx.y() + idx.x() ) == idx_t( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
    {
       return true;
    }
@@ -481,53 +481,53 @@ BoundaryIterator::BoundaryIterator( const uint_t& level,
 {}
 } // namespace macrocell
 
-indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirection& dir )
+indexing::Index logicalIndexOffsetFromVertex( const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
    switch ( dir )
    {
    case sD::VERTEX_C:
-      return indexing::IndexIncrement( 0, 0, 0 );
+      return indexing::Index( 0, 0, 0 );
    case sD::VERTEX_W:
-      return indexing::IndexIncrement( -1, 0, 0 );
+      return indexing::Index( -1, 0, 0 );
    case sD::VERTEX_E:
-      return indexing::IndexIncrement( 1, 0, 0 );
+      return indexing::Index( 1, 0, 0 );
    case sD::VERTEX_N:
-      return indexing::IndexIncrement( 0, 1, 0 );
+      return indexing::Index( 0, 1, 0 );
    case sD::VERTEX_S:
-      return indexing::IndexIncrement( 0, -1, 0 );
+      return indexing::Index( 0, -1, 0 );
    case sD::VERTEX_NW:
-      return indexing::IndexIncrement( -1, 1, 0 );
+      return indexing::Index( -1, 1, 0 );
    case sD::VERTEX_SE:
-      return indexing::IndexIncrement( 1, -1, 0 );
+      return indexing::Index( 1, -1, 0 );
    case sD::VERTEX_TC:
-      return indexing::IndexIncrement( 0, 0, 1 );
+      return indexing::Index( 0, 0, 1 );
    case sD::VERTEX_TW:
-      return indexing::IndexIncrement( -1, 0, 1 );
+      return indexing::Index( -1, 0, 1 );
    case sD::VERTEX_TS:
-      return indexing::IndexIncrement( 0, -1, 1 );
+      return indexing::Index( 0, -1, 1 );
    case sD::VERTEX_TSE:
-      return indexing::IndexIncrement( 1, -1, 1 );
+      return indexing::Index( 1, -1, 1 );
    case sD::VERTEX_BC:
-      return indexing::IndexIncrement( 0, 0, -1 );
+      return indexing::Index( 0, 0, -1 );
    case sD::VERTEX_BN:
-      return indexing::IndexIncrement( 0, 1, -1 );
+      return indexing::Index( 0, 1, -1 );
    case sD::VERTEX_BE:
-      return indexing::IndexIncrement( 1, 0, -1 );
+      return indexing::Index( 1, 0, -1 );
    case sD::VERTEX_BNW:
-      return indexing::IndexIncrement( -1, 1, -1 );
+      return indexing::Index( -1, 1, -1 );
    default:
       WALBERLA_ASSERT( false, "Invalid stencil direction" );
-      return indexing::IndexIncrement(
+      return indexing::Index(
           std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() );
    }
 }
 
-stencilDirection stencilDirectionFromLogicalOffset( const indexing::IndexIncrement& offset )
+stencilDirection stencilDirectionFromLogicalOffset( const indexing::Index& offset )
 {
    typedef stencilDirection         sD;
-   typedef indexing::IndexIncrement inc;
+   typedef indexing::Index inc;
 
    if ( offset == inc( 0, 0, 0 ) )
       return sD::VERTEX_C;
@@ -753,7 +753,7 @@ void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceInd
    for ( uint_t k = 0; k < 3; ++k )
    {
       vertexDoFIndices[k] =
-          vertexdof::macroface::indexFromVertex( level, verts[k].col(), verts[k].row(), stencilDirection::VERTEX_C );
+          vertexdof::macroface::indexFromVertex( level, verts[k].x(), verts[k].y(), stencilDirection::VERTEX_C );
    }
 }
 
@@ -766,7 +766,7 @@ void getVertexDoFDataIndicesFromMicroCell( const indexing::Index&   microCellInd
    for ( uint_t k = 0; k < 4; ++k )
    {
       vertexDoFIndices[k] = vertexdof::macrocell::indexFromVertex(
-          level, verts[k].col(), verts[k].row(), verts[k].dep(), stencilDirection::VERTEX_C );
+          level, verts[k].x(), verts[k].y(), verts[k].z(), stencilDirection::VERTEX_C );
    }
 }
 

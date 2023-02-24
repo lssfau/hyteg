@@ -776,7 +776,7 @@ inline void smoothSOR3D( const uint_t&                                          
              vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
          for ( const auto& stencilIt : opr_data[neighborCellIdx] )
          {
-            if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
+            if ( stencilIt.first == indexing::Index( { 0, 0, 0 } ) )
                continue;
 
             auto  weight = stencilIt.second;
@@ -1145,10 +1145,10 @@ inline void
    cout << face << std::left << setprecision( 1 ) << fixed << setfill( ' ' ) << endl << "Vertex DoFs: ";
    for ( const auto& it : vertexdof::macroface::Iterator( Level, 0 ) )
    {
-      if ( it.col() == 0 )
+      if ( it.x() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
-           << faceMemory[hyteg::vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )]
+           << faceMemory[hyteg::vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C )]
            << "|";
    }
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );

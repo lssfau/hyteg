@@ -60,31 +60,31 @@ void smoothSOR( const uint_t&                                            level,
    for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
-      if( it.col() != 0 )
+      if( it.x() != 0 )
       {
-         tmpVertex = rhsVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )];
+         tmpVertex = rhsVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )];
          /// on edge vertex dof
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
          {
-            tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// on edge edge dof
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnEdgeFromVertex )
          {
-            tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          /// south face vertex dof
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
          {
-            tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// south face edge
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromVertex )
          {
-            tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          if( edge.getNumNeighborFaces() == 2 )
@@ -92,38 +92,38 @@ void smoothSOR( const uint_t&                                            level,
             /// north face vertex dof
             for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
             {
-               tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+               tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                             vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
             }
             /// north face edge
             for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromVertex )
             {
-               tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+               tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                             edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
             }
          }
-         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             (real_c( 1.0 ) - relax) * dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
+         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )] =
+             (real_c( 1.0 ) - relax) * dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
-      tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )];
+      tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )];
       /// on edge
       for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
       {
-         tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
       /// on south face
       for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
       {
-         tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
 
       for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
       {
-         tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
       }
       /// on north face
@@ -131,17 +131,17 @@ void smoothSOR( const uint_t&                                            level,
       {
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
          {
-            tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+            tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
          }
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
          {
-            tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+            tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
       }
-      dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
-          (real_c( 1.0 ) - relax) * dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
+      dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] =
+          (real_c( 1.0 ) - relax) * dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] +
           relax * invEdgeXCenter * tmpEdgeHO;
    }
 }
@@ -163,7 +163,7 @@ static void smoothSOR3DUpdateVertexDoFsGenerated(
     const bool&                                                                                  backwards )
 {
    using edgedof::EdgeDoFOrientation;
-   using indexing::IndexIncrement;
+   using indexing::Index;
 
    auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getData( level );
    auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
@@ -178,7 +178,7 @@ static void smoothSOR3DUpdateVertexDoFsGenerated(
    real_t center = 0;
    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
    {
-      center += v2v_operator[neighborCellID][indexing::IndexIncrement( {0, 0, 0} )];
+      center += v2v_operator[neighborCellID][indexing::Index( {0, 0, 0} )];
    }
 
    const real_t vertexDoFRelaxOverCenter = relax / center;
@@ -263,7 +263,7 @@ static void smoothSOR3DUpdateVertexDoFs(
     const bool&                                                                                  backwards )
 {
   using edgedof::EdgeDoFOrientation;
-  using indexing::IndexIncrement;
+  using indexing::Index;
   typedef stencilDirection sD;
 
   auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getPointer( level );
@@ -421,7 +421,7 @@ static void smoothSOR3DUpdateEdgeDoFs(
     const bool&                                                                                  backwards )
 {
    using edgedof::EdgeDoFOrientation;
-   using indexing::IndexIncrement;
+   using indexing::Index;
 
    auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getPointer( level );
    auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
@@ -525,7 +525,7 @@ static void smoothSOR3DUpdateEdgeDoFs(
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               if ( leafOrientationInCell == cellCenterOrientation && stencilOffset == IndexIncrement( 0, 0, 0 ) )
+               if ( leafOrientationInCell == cellCenterOrientation && stencilOffset == Index( 0, 0, 0 ) )
                {
                   e2eDiagonalEntry += stencilWeight;
                   continue;
@@ -718,31 +718,31 @@ void smoothJacobi( const uint_t&                                            leve
    for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
-      if( it.col() != 0 )
+      if( it.x() != 0 )
       {
-         tmpVertex = rhsVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )];
+         tmpVertex = rhsVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )];
          /// on edge vertex dof
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
          {
-            tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// on edge edge dof
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnEdgeFromVertex )
          {
-            tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          /// south face vertex dof
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
          {
-            tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// south face edge
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromVertex )
          {
-            tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+            tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          if( edge.getNumNeighborFaces() == 2 )
@@ -750,38 +750,38 @@ void smoothJacobi( const uint_t&                                            leve
             /// north face vertex dof
             for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
             {
-               tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
+               tmpVertex -= srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), dir )] *
                             vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
             }
             /// north face edge
             for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromVertex )
             {
-               tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
+               tmpVertex -= srcEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.x(), dir )] *
                             edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
             }
          }
-         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             (real_c( 1.0 ) - relax) * srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
+         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )] =
+             (real_c( 1.0 ) - relax) * srcVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
-      tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )];
+      tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )];
       /// on edge
       for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
       {
-         tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
       /// on south face
       for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
       {
-         tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
 
       for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
       {
-         tmpEdgeHO -= srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+         tmpEdgeHO -= srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                       edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
       }
       /// on north face
@@ -789,17 +789,17 @@ void smoothJacobi( const uint_t&                                            leve
       {
          for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
          {
-            tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+            tmpEdgeHO -= srcVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
          }
          for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
          {
-            tmpEdgeHO -= srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+            tmpEdgeHO -= srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
       }
-      dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
-          (real_c( 1.0 ) - relax) * srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
+      dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] =
+          (real_c( 1.0 ) - relax) * srcEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] +
           relax * invEdgeXCenter * tmpEdgeHO;
    }
 }

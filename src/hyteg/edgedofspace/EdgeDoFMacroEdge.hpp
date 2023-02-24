@@ -64,7 +64,7 @@ inline void interpolate( const uint_t&                                          
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = constant;
+      edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )] = constant;
    }
 }
 
@@ -94,15 +94,15 @@ inline void interpolate( const uint_t&                                          
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * real_c( it.col() ) * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * real_c( it.x() ) * microEdgeOffset;
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-         srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.col() )];
+         srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.x() )];
       }
 
       edge.getGeometryMap()->evalF( currentCoordinates, xBlend );
-      edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] =
+      edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )] =
           expr( xBlend, srcVector );
    }
 }
@@ -134,7 +134,7 @@ inline void add( const uint_t&                                                  
    {
       auto tmp = static_cast< ValueType >( 0.0 );
 
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
 
       for ( uint_t i = 0; i < scalars.size(); i++ )
       {
@@ -158,7 +158,7 @@ inline void add( const uint_t&                                               Lev
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       dstData[idx] += scalar;
    }
 }
@@ -179,7 +179,7 @@ inline void assign( const uint_t&                                               
    {
       auto tmp = static_cast< ValueType >( 0.0 );
 
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
 
       for ( uint_t i = 0; i < scalars.size(); i++ )
       {
@@ -203,7 +203,7 @@ inline void multElementwise( const uint_t&                                      
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
       ValueType    tmp = edge.getData( srcIds[0] )->getPointer( level )[idx];
 
       for ( uint_t i = 1; i < srcIds.size(); ++i )
@@ -228,7 +228,7 @@ inline ValueType dot( const uint_t&                                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       scalarProduct += lhsData[idx] * rhsData[idx];
    }
 
@@ -247,7 +247,7 @@ inline ValueType sum( const uint_t&                                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       if ( absolute )
       {
          scalarProduct += std::abs( data[idx] );
@@ -521,7 +521,7 @@ inline ValueType getMaxValue( const uint_t& level, Edge& edge, const PrimitiveDa
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
       localMax         = std::max( localMax, src[idx] );
    }
 
@@ -536,7 +536,7 @@ inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDa
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
       localMin         = std::min( localMin, src[idx] );
    }
 
@@ -552,7 +552,7 @@ inline ValueType
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
       localMax         = std::max( localMax, std::abs( src[idx] ) );
    }
 
@@ -565,7 +565,7 @@ inline void
    real_t* data = edge.getData( edgeDataID )->getPointer( level );
    for ( const auto& iter : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, iter.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, iter.x(), stencilDirection::EDGE_HO_C );
       data[idx]        = real_c( 1.0 ) / data[idx];
    }
 }
@@ -582,7 +582,7 @@ inline void createVectorFromFunction( const uint_t&                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       vec->setValue( numerator[idx], src[idx] );
    }
 }
@@ -599,7 +599,7 @@ inline void createFunctionFromVector( const uint_t&                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       src[idx]         = vec->getValue( numerator[idx] );
    }
 }
@@ -613,7 +613,7 @@ inline void applyDirichletBC( const uint_t&                                     
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C );
       mat.push_back( static_cast< idx_t >( numerator[idx] ) );
    }
 }

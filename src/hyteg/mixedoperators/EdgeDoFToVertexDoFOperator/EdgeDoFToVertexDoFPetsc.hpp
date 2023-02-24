@@ -162,17 +162,17 @@ inline void saveEdgeOperator( const uint_t&                                     
 
    for ( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
    {
-      dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C )];
+      dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.x(), stencilDirection::VERTEX_C )];
 
       for ( const auto& neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
       {
-         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
 
       for ( const auto& neighbor : edgedof::macroedge::neighborsOnSouthFaceFromVertex )
       {
-         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
 
@@ -180,7 +180,7 @@ inline void saveEdgeOperator( const uint_t&                                     
       {
          for ( const auto& neighbor : edgedof::macroedge::neighborsOnNorthFaceFromVertex )
          {
-            srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+            srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
             mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
          }
       }
@@ -322,11 +322,11 @@ inline void saveFaceOperator( const uint_t&                                     
 
    for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
    {
-      dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )];
+      dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C )];
 
       for ( const auto& neighbor : edgedof::macroface::neighborsFromVertex )
       {
-         srcInt = src[edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor )];
+         srcInt = src[edgedof::macroface::indexFromVertex( Level, it.x(), it.y(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
    }

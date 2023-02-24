@@ -200,18 +200,18 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
          auto edgeIt = edgedof::macroface::Iterator( level, 0 );
 
          // Loop until first interior DoF is reached
-         while ( edgeIt->row() == 0 || edgeIt->col() == 0 ||
-                 edgeIt->col() + edgeIt->row() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+         while ( edgeIt->y() == 0 || edgeIt->x() == 0 ||
+                 edgeIt->x() + edgeIt->y() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
             edgeIt++;
          }
 
          const Point3D horizontalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 + 1 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 + 1 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 ) * verticalMicroEdgeOffset );
          const Point3D verticalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 + 1 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 + 1 ) * verticalMicroEdgeOffset );
          const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
          P2::variablestencil::assembleEdgeToEdgeStencil( form_,

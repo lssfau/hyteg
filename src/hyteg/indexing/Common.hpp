@@ -52,8 +52,6 @@ inline constexpr uint_t tup4( const uint_t& a, const uint_t& b, const uint_t& c 
    return a << 8 | b << 4 | c;
 }
 
-using IndexIncrement = PointND< idx_t, 3 >;
-
 /// Wrapper around Point3D for convenient access to logical indices.
 class Index : public PointND< idx_t, 3 >
 {
@@ -64,15 +62,6 @@ class Index : public PointND< idx_t, 3 >
    {
       return { std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max() };
    }
-
-   const idx_t& col() const { return x(); }
-   idx_t&       col() { return x(); }
-
-   const idx_t& row() const { return y(); }
-   idx_t&       row() { return y(); }
-
-   const idx_t& dep() const { return z(); }
-   idx_t&       dep() { return z(); }
 };
 
 inline bool operator<( const Index& lhs, const Index& rhs )
@@ -87,16 +76,10 @@ inline std::ostream& operator<<( std::ostream& os, const Index& index )
    return os;
 }
 
-inline std::ostream& operator<<( std::ostream& os, const IndexIncrement& indexIncrement )
-{
-   os << "( " << indexIncrement.x() << ", " << indexIncrement.y() << ", " << indexIncrement.z() << " )";
-   return os;
-}
-
 } // namespace indexing
 } // namespace hyteg
 
-// this can be changed to Index once IndexIncrement is same as Index
+// this can be changed to Index once Index is same as Index
 namespace std {
 template <>
 struct less< hyteg::PointND< hyteg::idx_t, 3 > >

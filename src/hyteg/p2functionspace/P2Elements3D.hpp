@@ -36,7 +36,7 @@ namespace P2Elements {
 namespace P2Elements3D {
 
 /// \brief Returns the (sorted) array indices of the two micro-vertices of the given element that span the edge with the specified orientation there are any.
-inline walberla::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElement( const std::array< indexing::IndexIncrement, 4 > & elementVertices,
+inline walberla::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElement( const std::array< indexing::Index, 4 > & elementVertices,
                                                                                      const edgedof::EdgeDoFOrientation & orientation )
 {
   for ( uint_t vertex0 = 0; vertex0 < 4; vertex0++ )
@@ -59,9 +59,9 @@ inline walberla::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElem
 ///
 /// \param edgeDoFOrientation the orientation of the edges that shall be reached from the vertexdof
 /// \return a set that contains all index offsets to neighboring edgedofs
-inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( const edgedof::EdgeDoFOrientation & edgeDoFOrientation )
+inline std::set< indexing::Index > getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( const edgedof::EdgeDoFOrientation & edgeDoFOrientation )
 {
-  std::set< indexing::IndexIncrement > neighborEdgeDoFs;
+  std::set< indexing::Index > neighborEdgeDoFs;
   for ( const auto & element : P1Elements::P1Elements3D::allCellsAtInnerVertex )
   {
     WALBERLA_ASSERT_EQUAL( element[0], stencilDirection::VERTEX_C );
@@ -97,10 +97,10 @@ inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromVertexDoFI
 /// \param centerOrientation the orientation of the edge from which the neighbor edges shall be reached
 /// \param leafOrientation the orientation of the edges that shall be reached
 /// \return a set that contains all index offsets to neighboring edgedofs with leafOrientation
-inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation,
+inline std::set< indexing::Index > getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation,
                                                                                           const edgedof::EdgeDoFOrientation & leafOrientation )
 {
-  std::set< indexing::IndexIncrement > neighborEdgeDoFs;
+  std::set< indexing::Index > neighborEdgeDoFs;
   const auto neighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( neighborVertices.at(1) - neighborVertices.at(0) );
 
@@ -144,9 +144,9 @@ inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromEdgeDoFInM
 ///
 /// \param centerOrientation the orientation of the edges from which the neighbor vertices shall be reached
 /// \return a set that contains all index offsets to neighboring vertexdofs
-inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation )
+inline std::set< indexing::Index > getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation )
 {
-  std::set< indexing::IndexIncrement > neighborVertexDoFs;
+  std::set< indexing::Index > neighborVertexDoFs;
   const auto neighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( neighborVertices.at(1) - neighborVertices.at(0) );
 
@@ -184,13 +184,13 @@ inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFI
 /// \return a (variable sized) map from index offsets to stencil weights
 ///
 template< typename UFCOperator >
-inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencilInMacroCell( const indexing::Index & microVertexIndex,
+inline std::map< indexing::Index, real_t > calculateEdgeToVertexStencilInMacroCell( const indexing::Index & microVertexIndex,
                                                                                              const edgedof::EdgeDoFOrientation & leafOrientation,
                                                                                              const Cell & cell, const uint_t & level,
                                                                                              const UFCOperator & ufcGen )
 {
   typedef stencilDirection sd;
-  std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
+  std::map< indexing::Index, real_t > macroCellStencilEntries;
 
   const auto neighboringElements = P1Elements::P1Elements3D::getNeighboringElements( microVertexIndex, level );
 
@@ -201,7 +201,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
   {
     WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
 
-    const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
+    const std::array< indexing::Index, 4 > elementAsIndices = {
       vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
       vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
       vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
@@ -255,13 +255,13 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
 /// \return a (variable sized) map from index offsets to stencil weights
 ///
 template< typename UFCOperator >
-inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencilInMacroCell( const indexing::Index & microEdgeIndex,
+inline std::map< indexing::Index, real_t > calculateVertexToEdgeStencilInMacroCell( const indexing::Index & microEdgeIndex,
                                                                                              const edgedof::EdgeDoFOrientation & centerOrientation,
                                                                                              const Cell & cell, const uint_t & level,
                                                                                              const UFCOperator & ufcGen )
 {
   typedef stencilDirection                     sd;
-  std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
+  std::map< indexing::Index, real_t > macroCellStencilEntries;
 
   const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
@@ -282,7 +282,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
       continue;
     }
 
-    const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
+    const std::array< indexing::Index, 4 > elementAsIndices = {
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
@@ -358,13 +358,13 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
 /// \return a (variable sized) map from index offsets to stencil weights
 ///
 template< typename UFCOperator >
-inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilInMacroCell( const indexing::Index & microEdgeIndex,
+inline std::map< indexing::Index, real_t > calculateEdgeToEdgeStencilInMacroCell( const indexing::Index & microEdgeIndex,
                                                                                            const edgedof::EdgeDoFOrientation & centerOrientation,
                                                                                            const edgedof::EdgeDoFOrientation & leafOrientation,
                                                                                            const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
 {
   typedef stencilDirection                     sd;
-  std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
+  std::map< indexing::Index, real_t > macroCellStencilEntries;
 
   const auto  offsetsToNeighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
   const auto& neighboringVertex0        = offsetsToNeighborVertices.at( 0 );
@@ -385,7 +385,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         continue;
     }
 
-    const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
+    const std::array< indexing::Index, 4 > elementAsIndices = {
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
         vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),

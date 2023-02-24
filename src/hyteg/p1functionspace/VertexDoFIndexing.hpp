@@ -111,7 +111,7 @@ class Iterator : public hyteg::indexing::EdgeIterator
 };
 
 /// map[neighborCellID][indexOffset] = weight
-typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
+typedef std::map< uint_t, std::map< indexing::Index, real_t > > StencilMap_T;
 
 } // namespace macroedge
 
@@ -269,7 +269,7 @@ class BoundaryIterator : public hyteg::indexing::FaceBoundaryIterator
 bool isVertexOnBoundary( const uint_t& level, const hyteg::indexing::Index& idx );
 
 // map[neighborCellID][indexOffset] = weight
-typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
+typedef std::map< uint_t, std::map< indexing::Index, real_t > > StencilMap_T;
 
 } // namespace macroface
 
@@ -490,7 +490,7 @@ std::set< uint_t > isOnCellEdge( const indexing::Index& index, const uint_t& lev
 std::set< uint_t > isOnCellVertex( const indexing::Index& index, const uint_t& level );
 
 /// map[indexOffset] = weight
-typedef std::map< indexing::IndexIncrement, real_t > StencilMap_T;
+typedef std::map< indexing::Index, real_t > StencilMap_T;
 
 } // namespace macrocell
 
@@ -499,10 +499,10 @@ typedef std::map< indexing::IndexIncrement, real_t > StencilMap_T;
 // ################
 
 /// Returns the logical index offset from a micro-vertex resulting from moving in the passed stencil direction
-indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirection& dir );
+indexing::Index logicalIndexOffsetFromVertex( const stencilDirection& dir );
 
 /// Returns the logical index offset from a micro-vertex resulting from moving in the passed stencil direction.
-stencilDirection stencilDirectionFromLogicalOffset( const indexing::IndexIncrement& offset );
+stencilDirection stencilDirectionFromLogicalOffset( const indexing::Index& offset );
 
 uint_t stencilIndexFromVertex( const stencilDirection dir );
 

@@ -277,7 +277,7 @@ void smooth_sor_macro_faces_impl(
             {
 #ifdef HYTEG_USE_GENERATED_KERNELS
                using edgedof::EdgeDoFOrientation;
-               using indexing::IndexIncrement;
+               using indexing::Index;
 
                auto v2v_operator = face->getData( v2VFaceStencil3DID )->getData( level );
                auto v2e_operator = face->getData( v2EFaceStencil3DID )->getData( level );

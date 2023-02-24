@@ -122,27 +122,27 @@ CellIterator& CellIterator::operator++() // prefix
 
    step_++;
 
-   const idx_t currentDep = internalCoordinates_.dep();
-   const idx_t currentRow = internalCoordinates_.row();
-   const idx_t currentCol = internalCoordinates_.col();
+   const idx_t currentDep = internalCoordinates_.z();
+   const idx_t currentRow = internalCoordinates_.y();
+   const idx_t currentCol = internalCoordinates_.x();
 
    const idx_t lengthOfCurrentRow   = idx_t( internalWidth_ ) - currentRow - currentDep;
    const idx_t heightOfCurrentSlice = idx_t( internalWidth_ ) - currentDep;
 
    if ( currentCol < lengthOfCurrentRow - 1 )
    {
-      internalCoordinates_.col()++;
+      internalCoordinates_.x()++;
    }
    else if ( currentRow < heightOfCurrentSlice - 1 )
    {
-      internalCoordinates_.row()++;
-      internalCoordinates_.col() = 0;
+      internalCoordinates_.y()++;
+      internalCoordinates_.x() = 0;
    }
    else
    {
-      internalCoordinates_.dep()++;
-      internalCoordinates_.row() = 0;
-      internalCoordinates_.col() = 0;
+      internalCoordinates_.z()++;
+      internalCoordinates_.y() = 0;
+      internalCoordinates_.x() = 0;
    }
 
    coordinates_ = internalCoordinates_ + Index( (int) offsetToCenter_, (int) offsetToCenter_, (int) offsetToCenter_ );
@@ -211,57 +211,57 @@ CellBoundaryIterator::CellBoundaryIterator( const uint_t&                  width
    // Front face
    case tup4( 0, 1, 2 ):
    case tup4( 0, 2, 1 ):
-      coordinates_ += IndexIncrement( 0, 0, (int) offsetToCenter );
+      coordinates_ += Index( 0, 0, (int) offsetToCenter );
       break;
    case tup4( 1, 0, 2 ):
    case tup4( 1, 2, 0 ):
-      coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, (int) offsetToCenter );
+      coordinates_ += Index( -(int) offsetToCenter, 0, (int) offsetToCenter );
       break;
    case tup4( 2, 0, 1 ):
    case tup4( 2, 1, 0 ):
-      coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, (int) offsetToCenter );
+      coordinates_ += Index( 0, -(int) offsetToCenter, (int) offsetToCenter );
       break;
 
    // Bottom face
    case tup4( 0, 1, 3 ):
    case tup4( 0, 3, 1 ):
-      coordinates_ += IndexIncrement( 0, (int) offsetToCenter, 0 );
+      coordinates_ += Index( 0, (int) offsetToCenter, 0 );
       break;
    case tup4( 1, 0, 3 ):
    case tup4( 1, 3, 0 ):
-      coordinates_ += IndexIncrement( -(int) offsetToCenter, (int) offsetToCenter, 0 );
+      coordinates_ += Index( -(int) offsetToCenter, (int) offsetToCenter, 0 );
       break;
    case tup4( 3, 0, 1 ):
    case tup4( 3, 1, 0 ):
-      coordinates_ += IndexIncrement( 0, (int) offsetToCenter, -(int) offsetToCenter );
+      coordinates_ += Index( 0, (int) offsetToCenter, -(int) offsetToCenter );
       break;
 
    // Left face
    case tup4( 0, 2, 3 ):
    case tup4( 0, 3, 2 ):
-      coordinates_ += IndexIncrement( (int) offsetToCenter, 0, 0 );
+      coordinates_ += Index( (int) offsetToCenter, 0, 0 );
       break;
    case tup4( 2, 0, 3 ):
    case tup4( 2, 3, 0 ):
-      coordinates_ += IndexIncrement( (int) offsetToCenter, -(int) offsetToCenter, 0 );
+      coordinates_ += Index( (int) offsetToCenter, -(int) offsetToCenter, 0 );
       break;
    case tup4( 3, 0, 2 ):
    case tup4( 3, 2, 0 ):
-      coordinates_ += IndexIncrement( (int) offsetToCenter, 0, -(int) offsetToCenter );
+      coordinates_ += Index( (int) offsetToCenter, 0, -(int) offsetToCenter );
       break;
 
    // Back/diagonal face
    case tup4( 3, 1, 2 ):
    case tup4( 3, 2, 1 ):
-      coordinates_ += IndexIncrement( 0, 0, -(int) offsetToCenter );
+      coordinates_ += Index( 0, 0, -(int) offsetToCenter );
       break;
    case tup4( 1, 3, 2 ):
    case tup4( 1, 2, 3 ):
-      coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, 0 );
+      coordinates_ += Index( -(int) offsetToCenter, 0, 0 );
       break;
    case tup4( 2, 3, 1 ):
    case tup4( 2, 1, 3 ):
-      coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, 0 );
+      coordinates_ += Index( 0, -(int) offsetToCenter, 0 );
       break;
    }
 
@@ -312,7 +312,7 @@ CellBoundaryIterator CellBoundaryIterator::operator++( int ) // postfix
    return tmp;
 }
 
-IndexIncrement CellBoundaryIterator::calculateIncrement( const uint_t& vertex0, const uint_t& vertex1 ) const
+Index CellBoundaryIterator::calculateIncrement( const uint_t& vertex0, const uint_t& vertex1 ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( vertex0, vertex1 );
    WALBERLA_ASSERT_LESS_EQUAL( vertex0, 3 );
@@ -321,34 +321,34 @@ IndexIncrement CellBoundaryIterator::calculateIncrement( const uint_t& vertex0, 
    switch ( tup4( vertex0, vertex1 ) )
    {
    case tup4( 0, 1 ):
-      return IndexIncrement( 1, 0, 0 );
+      return Index( 1, 0, 0 );
    case tup4( 1, 0 ):
-      return IndexIncrement( -1, 0, 0 );
+      return Index( -1, 0, 0 );
    case tup4( 0, 2 ):
-      return IndexIncrement( 0, 1, 0 );
+      return Index( 0, 1, 0 );
    case tup4( 2, 0 ):
-      return IndexIncrement( 0, -1, 0 );
+      return Index( 0, -1, 0 );
    case tup4( 1, 2 ):
-      return IndexIncrement( -1, 1, 0 );
+      return Index( -1, 1, 0 );
    case tup4( 2, 1 ):
-      return IndexIncrement( 1, -1, 0 );
+      return Index( 1, -1, 0 );
    case tup4( 0, 3 ):
-      return IndexIncrement( 0, 0, 1 );
+      return Index( 0, 0, 1 );
    case tup4( 3, 0 ):
-      return IndexIncrement( 0, 0, -1 );
+      return Index( 0, 0, -1 );
    case tup4( 1, 3 ):
-      return IndexIncrement( -1, 0, 1 );
+      return Index( -1, 0, 1 );
    case tup4( 3, 1 ):
-      return IndexIncrement( 1, 0, -1 );
+      return Index( 1, 0, -1 );
    case tup4( 2, 3 ):
-      return IndexIncrement( 0, -1, 1 );
+      return Index( 0, -1, 1 );
    case tup4( 3, 2 ):
-      return IndexIncrement( 0, 1, -1 );
+      return Index( 0, 1, -1 );
    default:
       WALBERLA_ASSERT( false, "Invalid tuple in increment calculation!" );
       break;
    }
-   return IndexIncrement( 0, 0, 0 );
+   return Index( 0, 0, 0 );
 }
 
 } // namespace indexing

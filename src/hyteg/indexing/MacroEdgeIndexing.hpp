@@ -79,16 +79,16 @@ public:
     WALBERLA_ASSERT_GREATER( width, 0, "Size of edge must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond edge width!" );
 
-    coordinates_.dep() = 0;
-    coordinates_.row() = 0;
+    coordinates_.z() = 0;
+    coordinates_.y() = 0;
 
     if ( backwards )
     {
-      coordinates_.col() = width - 1 - offsetToCenter;
+      coordinates_.x() = width - 1 - offsetToCenter;
     }
     else
     {
-      coordinates_.col() = offsetToCenter;
+      coordinates_.x() = offsetToCenter;
     }
 
 
@@ -121,11 +121,11 @@ public:
     step_++;
     if ( backwards_ )
     {
-      coordinates_.col()--;
+      coordinates_.x()--;
     }
     else
     {
-      coordinates_.col()++;
+      coordinates_.x()++;
     }
 
     return *this;

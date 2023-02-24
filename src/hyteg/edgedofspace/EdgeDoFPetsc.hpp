@@ -240,34 +240,34 @@ inline void saveFaceOperator( const uint_t&                                     
 
    for ( const auto& it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
    {
-      if ( it.row() != 0 )
+      if ( it.y() != 0 )
       {
-         dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
+         dstInt = dst[indexFromHorizontalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_HO_C )];
          for ( uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k )
          {
-            srcInt = src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
+            srcInt = src[indexFromHorizontalEdge( Level, it.x(), it.y(), neighborsFromHorizontalEdge[k] )];
             mat->addValue( uint_c( dstInt ),
                            uint_c( srcInt ),
                            opr_data[edgedof::stencilIndexFromHorizontalEdge( neighborsFromHorizontalEdge[k] )] );
          }
       }
-      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
-         dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
+         dstInt = dst[indexFromDiagonalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_DI_C )];
          for ( uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k )
          {
-            srcInt = src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
+            srcInt = src[indexFromDiagonalEdge( Level, it.x(), it.y(), neighborsFromDiagonalEdge[k] )];
             mat->addValue( uint_c( dstInt ),
                            uint_c( srcInt ),
                            opr_data[edgedof::stencilIndexFromDiagonalEdge( neighborsFromDiagonalEdge[k] )] );
          }
       }
-      if ( it.col() != 0 )
+      if ( it.x() != 0 )
       {
-         dstInt = dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
+         dstInt = dst[indexFromVerticalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_VE_C )];
          for ( uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k )
          {
-            srcInt = src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
+            srcInt = src[indexFromVerticalEdge( Level, it.x(), it.y(), neighborsFromVerticalEdge[k] )];
             mat->addValue( uint_c( dstInt ),
                            uint_c( srcInt ),
                            opr_data[edgedof::stencilIndexFromVerticalEdge( neighborsFromVerticalEdge[k] )] );
@@ -289,19 +289,19 @@ inline void saveFaceIdentityOperator( const uint_t&                             
 
    for ( const auto& it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
    {
-      if ( it.row() != 0 )
+      if ( it.y() != 0 )
       {
-         dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
+         dstInt = dst[indexFromHorizontalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_HO_C )];
          mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
       }
-      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
-         dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
+         dstInt = dst[indexFromDiagonalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_DI_C )];
          mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
       }
-      if ( it.col() != 0 )
+      if ( it.x() != 0 )
       {
-         dstInt = dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
+         dstInt = dst[indexFromVerticalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_VE_C )];
          mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
       }
    }

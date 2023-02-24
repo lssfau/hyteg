@@ -42,14 +42,14 @@ namespace hyteg {
 namespace EdgeDoFToVertexDoF {
 
 /// map[neighborCellID][leafOrientation][indexOffset] = weight
-typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > MacroVertexStencilMap_T;
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > > MacroVertexStencilMap_T;
 /// map[neighborCellID][leafOrientation][indexOffset] = weight
-typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > MacroEdgeStencilMap_T;
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > > MacroEdgeStencilMap_T;
 /// map[neighborCellID][leafOrientation][indexOffset] = weight
-typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > MacroFaceStencilMap_T;
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > > MacroFaceStencilMap_T;
 
 /// map[leafOrientation][indexOffset] = weight
-typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > MacroCellStencilMap_T;
+typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > MacroCellStencilMap_T;
 
 inline void applyVertex(uint_t level,
                   Vertex &vertex,

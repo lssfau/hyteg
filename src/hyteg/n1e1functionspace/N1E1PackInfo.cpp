@@ -57,21 +57,21 @@ void N1E1PackInfo< ValueType >::unpackFaceFromEdge( Face*                      r
       {
          ValueType tmp;
          buffer >> tmp;
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )] =
              sign * tmp;
       }
       else if ( edgeIndexOnFace == 2 )
       {
          ValueType tmp;
          buffer >> tmp;
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )] =
              sign * tmp;
       }
       else if ( edgeIndexOnFace == 1 )
       {
          ValueType tmp;
          buffer >> tmp;
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )] =
              sign * tmp;
       }
       else
@@ -99,19 +99,19 @@ void N1E1PackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sender, 
    {
       if ( edgeIndexOnFace == 0 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )] =
              sign *
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       }
       else if ( edgeIndexOnFace == 2 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )] =
              sign *
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       }
       else if ( edgeIndexOnFace == 1 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )] =
              sign *
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       }

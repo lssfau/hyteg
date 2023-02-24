@@ -160,10 +160,10 @@ void test( const uint_t fineLevel, const MeshInfo meshInfo, const bool print = f
 
       for ( ; itR && itPT; ++itR, ++itPT )
       {
-         WALBERLA_CHECK_EQUAL( itR.row(), itPT.row() );
-         WALBERLA_CHECK_EQUAL( itR.col(), itPT.col() );
+         WALBERLA_CHECK_EQUAL( itR.y(), itPT.y() );
+         WALBERLA_CHECK_EQUAL( itR.x(), itPT.x() );
          WALBERLA_CHECK_FLOAT_EQUAL(
-             itR.value(), itPT.value(), "Mismatch at restriction (row, col): (" << itR.row() << ", " << itR.col() << ")" );
+             itR.value(), itPT.value(), "Mismatch at restriction (row, col): (" << itR.y() << ", " << itR.x() << ")" );
       }
    }
 }

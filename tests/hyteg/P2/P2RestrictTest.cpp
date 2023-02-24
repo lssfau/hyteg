@@ -185,29 +185,29 @@ static void testP2Restrict2() {
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.x(), it.y(), sD::VERTEX_C)],
       13.,
-      it.col() << " " << it.row());
+      it.x() << " " << it.y());
   }
 
   for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel - 1, 0)) {
-    if(it.row() != 0) {
+    if(it.y() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.x(), it.y(), sD::EDGE_HO_E)],
         65.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
-    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+    if(it.x() + it.y() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.x(), it.y(), sD::EDGE_DI_NE)],
         65.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
-    if(it.col() != 0) {
+    if(it.x() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.x(), it.y(), sD::EDGE_VE_N)],
         65.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
   }
 
@@ -218,29 +218,29 @@ static void testP2Restrict2() {
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 2,it.x(), it.y(), sD::VERTEX_C)],
       13.,
-      it.col() << " " << it.row());
+      it.x() << " " << it.y());
   }
 
   for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel - 2, 0)) {
-    if(it.row() != 0) {
+    if(it.y() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.x(), it.y(), sD::EDGE_HO_E)],
         273.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
-    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
+    if(it.x() + it.y() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.x(), it.y(), sD::EDGE_DI_NE)],
         273.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
-    if(it.col() != 0) {
+    if(it.x() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.x(), it.y(), sD::EDGE_VE_N)],
         273.,
-        it.col() << " " << it.row());
+        it.x() << " " << it.y());
     }
   }
 

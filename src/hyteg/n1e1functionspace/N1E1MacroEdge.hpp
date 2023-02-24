@@ -54,7 +54,7 @@ inline void add( const uint_t&                                            level,
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::index( level, it.col() );
+      const uint_t idx = edgedof::macroedge::index( level, it.x() );
       dstData[idx] += dofScalar;
    }
 }
@@ -76,7 +76,7 @@ inline void interpolate( const uint_t&                                          
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const uint_t idx = edgedof::macroedge::index( level, it.col() );
+      const uint_t idx = edgedof::macroedge::index( level, it.x() );
       edgeData[idx]    = dofScalar;
    }
 }
@@ -104,7 +104,7 @@ inline void
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 * it.col() ) * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 * it.x() ) * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xBlend );
 
       for ( uint_t k = 0; k < srcFunctions.size(); ++k )
@@ -115,7 +115,7 @@ inline void
       const VectorType< ValueType > vector    = expr( xBlend, srcVector );
       const ValueType               dofScalar = vector.dot( microEdgeDirection );
 
-      edgeData[edgedof::macroedge::index( level, it.col() )] = dofScalar;
+      edgeData[edgedof::macroedge::index( level, it.x() )] = dofScalar;
    }
 }
 

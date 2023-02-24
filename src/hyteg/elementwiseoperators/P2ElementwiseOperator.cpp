@@ -227,7 +227,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< real_t >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
@@ -444,7 +444,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
             idx_t                    xIdx, yIdx;
             Point3D                  v0, v1, v2;
             indexing::Index          nodeIdx;
-            indexing::IndexIncrement offset;
+            indexing::Index offset;
 
             // get hold of the actual numerical data in the two functions
             PrimitiveDataID< FunctionMemory< real_t >, Face > vertexDoFIdx =
@@ -573,7 +573,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
 {
    Matrix6r                 elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2Form                   form( form_ );
@@ -714,7 +714,7 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
          idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
@@ -801,7 +801,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
 {
    Matrix6r                 elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2Form                   form( form_ );

@@ -41,17 +41,17 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
    // todo add polynomials for macro-faces in 3D
 
-   using StencilPoly_cell = std::map< indexing::IndexIncrement, Poly3D >;
+   using StencilPoly_cell = std::map< indexing::Index, Poly3D >;
    // using StencilPoly_face3D = std::map< uint_t, StencilPoly_cell > ;
    using StencilPoly_face = std::vector< Poly2D >;
 
    using Interpolator3D    = LSQPInterpolator3D< MonomialBasis3D, LSQPType::VERTEX >;
    using Interpolator2D    = LSQPInterpolator< MonomialBasis2D, LSQPType::VERTEX >;
-   using Interpolator_cell = std::map< indexing::IndexIncrement, Interpolator3D >;
+   using Interpolator_cell = std::map< indexing::Index, Interpolator3D >;
    // using Interpolator_face3D = std::map< uint_t, Interpolator_cell > ;
    using Interpolator_face = std::vector< Interpolator2D >;
 
-   using Evaluator_cell = std::map< indexing::IndexIncrement, Polynomial3DEvaluator >;
+   using Evaluator_cell = std::map< indexing::Index, Polynomial3DEvaluator >;
    // using Evaluator_face3D = std::map< uint_t, Evaluator_cell > ;
    using Evaluator_face = std::vector< Polynomial2DEvaluator >;
 

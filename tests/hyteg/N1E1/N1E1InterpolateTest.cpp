@@ -62,7 +62,7 @@ void test3D()
 
          for ( const auto& it : edgedof::macroedge::Iterator( level ) )
          {
-            const uint_t idx    = edgedof::macroedge::index( level, it.col() );
+            const uint_t idx    = edgedof::macroedge::index( level, it.x() );
             const auto   actual = edgeData[idx];
 
             WALBERLA_CHECK_FLOAT_EQUAL( actual,
@@ -85,9 +85,9 @@ void test3D()
 
          for ( const auto& it : edgedof::macroface::Iterator( level ) )
          {
-            const uint_t idxX  = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
-            const uint_t idxY  = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
-            const uint_t idxXY = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+            const uint_t idxX  = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
+            const uint_t idxY  = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
+            const uint_t idxXY = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
 
             const auto actualX  = faceData[idxX];
             const auto actualY  = faceData[idxY];

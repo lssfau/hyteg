@@ -222,7 +222,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Pr
       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
   for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
   {
-    buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -238,7 +238,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *send
       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
   for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
   {
-    faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
+    faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
   }
   this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Edge to Face" );
@@ -258,7 +258,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
 
   for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
   {
-    buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
   }
 
   // To pack DoFs on face ghost-layers, we use an iterator with a width reduced by 1
@@ -267,7 +267,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
   {
     for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
     {
-      buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
+      buffer << faceData[vertexdof::macroface::index( level_, it.x(), it.y(), 0 )];
     }
 
     // Bottom ghost-layer is only sent if there is a second neighboring cell
@@ -275,7 +275,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
     {
       for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
       {
-        buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
+        buffer << faceData[vertexdof::macroface::index( level_, it.x(), it.y(), 1 )];
       }
     }
   }
@@ -332,7 +332,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
   uint_t idx = 0;
   for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
   {
-    edgeData[ vertexdof::macroedge::indexOnNeighborFace( level_, idx, faceIdOnEdge ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    edgeData[ vertexdof::macroedge::indexOnNeighborFace( level_, idx, faceIdOnEdge ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
     idx++;
   }
 
@@ -345,7 +345,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
     idx = 0;
     for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
     {
-      edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localTopCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
+      edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localTopCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.x(), it.y(), 0 )];
       idx++;
     }
     // Bottom ghost-layer is only sent if there is a second neighboring cell
@@ -356,7 +356,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
       idx = 0;
       for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
       {
-        edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localBottomCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
+        edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localBottomCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.x(), it.y(), 1 )];
         idx++;
       }
     }

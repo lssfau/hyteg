@@ -75,7 +75,7 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       edgeDoFDstId )
 {
    using edgedof::EdgeDoFOrientation;
-   using indexing::IndexIncrement;
+   using indexing::Index;
 
    auto v2v_operator = vertex.getData( vertexToVertexOperatorId )->getPointer( level );
    auto e2v_operator = vertex.getData( edgeToVertexOperatorId )->getData( level );

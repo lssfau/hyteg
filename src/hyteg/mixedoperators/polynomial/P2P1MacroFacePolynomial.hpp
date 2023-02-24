@@ -54,12 +54,12 @@ inline void applyPolynomialTmpl(const PrimitiveDataID<P2toP1::FacePolynomialMemo
    P2toP1PolynomialStencil<PolyDegree> stencil(face.getData(polynomialId)->getPolynomial(PolyDegree));
 
    // loop over all DoFs on reference element
-   for (idx.row() = 0; idx.row() < N; ++idx.row())
+   for (idx.y() = 0; idx.y() < N; ++idx.y())
    {
-      stencil.setY(idx.row() * h);
+      stencil.setY(idx.y() * h);
       stencil.setStartX(0.0, h);
 
-      for (idx.col() = 0; idx.col() < N - idx.row(); ++idx.col())
+      for (idx.x() = 0; idx.x() < N - idx.y(); ++idx.x())
       {
          P2::macroface::applyStencil_DoF(level, idx,
                                          stencil.vertexToVertex(), stencil.edgeToVertex(),
@@ -105,12 +105,12 @@ inline void applyPolynomialTmpl(const PrimitiveDataID<P1toP2::FacePolynomialMemo
    P1toP2PolynomialStencil<PolyDegree> stencil(face.getData(polynomialId)->getPolynomial(PolyDegree));
 
    // loop over all DoFs on reference element
-   for (idx.row() = 0; idx.row() < N; ++idx.row())
+   for (idx.y() = 0; idx.y() < N; ++idx.y())
    {
-      stencil.setY(idx.row() * h);
+      stencil.setY(idx.y() * h);
       stencil.setStartX(0.0, h);
 
-      for (idx.col() = 0; idx.col() < N - idx.row(); ++idx.col())
+      for (idx.x() = 0; idx.x() < N - idx.y(); ++idx.x())
       {
          P2::macroface::applyStencil_DoF(level, idx,
                                          stencil.vertexToVertex(), nullptr,

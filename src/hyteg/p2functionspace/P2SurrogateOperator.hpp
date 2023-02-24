@@ -115,8 +115,8 @@ P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
             for (const auto& it : hyteg::edgedof::macroface::Iterator(interpolationLevel_, 0))
             {
                // position of vertex on macroface
-               real_t r = walberla::real_c(it.row()) * H;
-               real_t c = walberla::real_c(it.col()) * H;
+               real_t r = walberla::real_c(it.y()) * H;
+               real_t c = walberla::real_c(it.x()) * H;
                x = x0 + (r * D2 + c * D0);
                // corresponding point on reference element
                Point2D xi( c, r );

@@ -105,8 +105,8 @@ void N1E1toN1E1Prolongation::prolongateMacroFace( const real_t* src, real_t* dst
 
    for ( auto it : edgedof::macroface::Iterator( sourceLevel ) )
    {
-      const idx_t row = it.row();
-      const idx_t col = it.col();
+      const idx_t row = it.y();
+      const idx_t col = it.x();
 
       // horizontal edges
       real_t src_val = src[edgedof::macroface::horizontalIndex( sourceLevel, col, row )];

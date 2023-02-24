@@ -178,15 +178,15 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
       if( edgeIndexOnFace == 0 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 2 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )];
       } else if( edgeIndexOnFace == 1 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )];
       } else
       {
          WALBERLA_ABORT( "Wrong edgeIndexOnFace" )
@@ -210,15 +210,15 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
    {
       if( edgeIndexOnFace == 0 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 2 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 1 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else
       {
@@ -285,15 +285,15 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 1 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirOne )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirOne )];
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirTwo )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirTwo )];
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirThree )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirThree )];
    }
 
    //// DoFs on neighboring cells /////
@@ -481,7 +481,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, idx_t( edgeIndexCounter ), edgeLocalFaceID, edgeOriOnReferenceEdge );
-         uint_t idxOnFace    = edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace );
+         uint_t idxOnFace    = edgedof::macroface::index( level_, it.x(), it.y(), edgeOrientationOnFace );
          edgeData[idxOnEdge] = faceData[idxOnFace];
          ++edgeIndexCounter;
       }
@@ -496,7 +496,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, idx_t( edgeIndexCounter ), edgeLocalFaceID, edgeOriOnReferenceEdge );
-         edgeData[idxOnEdge] = faceData[edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace )];
+         edgeData[idxOnEdge] = faceData[edgedof::macroface::index( level_, it.x(), it.y(), edgeOrientationOnFace )];
          ++edgeIndexCounter;
       }
    }

@@ -94,20 +94,20 @@ inline void projectNormal3D( uint_t                                             
    {
       const Point3D horizontalMicroEdgePosition =
           faceBottomLeftCoords +
-          ( ( real_c( it.col() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.row() ) * 2 ) * verticalMicroEdgeOffset );
+          ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
       const Point3D verticalMicroEdgePosition =
           faceBottomLeftCoords +
-          ( ( real_c( it.col() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.row() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+          ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
       const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
       // Do not update horizontal DoFs at bottom
-      if ( it.row() != 0 )
+      if ( it.y() != 0 )
       {
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
          normal_function( xBlend, normal );
          projectionMatrix3D( normal, projection );
 
-         const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+         const uint_t idx = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
 
          in[0] = dstU[idx];
          in[1] = dstV[idx];
@@ -121,13 +121,13 @@ inline void projectNormal3D( uint_t                                             
       }
 
       // Do not update vertical DoFs at left border
-      if ( it.col() != 0 )
+      if ( it.x() != 0 )
       {
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
          normal_function( xBlend, normal );
          projectionMatrix3D( normal, projection );
 
-         const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+         const uint_t idx = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
 
          in[0] = dstU[idx];
          in[1] = dstV[idx];
@@ -141,13 +141,13 @@ inline void projectNormal3D( uint_t                                             
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
          normal_function( xBlend, normal );
          projectionMatrix3D( normal, projection );
 
-         const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+         const uint_t idx = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
 
          in[0] = dstU[idx];
          in[1] = dstV[idx];
@@ -191,13 +191,13 @@ inline void projectNormal2D( uint_t                                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.col() * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
       normal_function( xPhy, normal );
       projectionMatrix2D( normal, projection );
 
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
 
       in[0] = dstU[idx];
       in[1] = dstV[idx];
@@ -236,13 +236,13 @@ inline void projectNormal3D( uint_t                                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.col() * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
       normal_function( xPhy, normal );
       projectionMatrix3D( normal, projection );
 
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
 
       in[0] = dstU[idx];
       in[1] = dstV[idx];
@@ -281,13 +281,13 @@ inline void saveProjectNormalOperator2D( uint_t                                 
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.col() * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
       normal_function( xPhy, normal );
       projectionMatrix2D( normal, projection );
 
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
 
       const auto idxU = dstU[idx];
       const auto idxV = dstV[idx];

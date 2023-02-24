@@ -206,7 +206,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< real_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
@@ -437,7 +437,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::toMatrix( const std::shared_ptr< S
          idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
@@ -503,7 +503,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
 {
    Matrixr< 3, 6 >          elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2toP1Form               form;
