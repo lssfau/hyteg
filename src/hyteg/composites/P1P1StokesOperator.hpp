@@ -43,6 +43,7 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
    , divT( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
+           , blockPrec( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -84,9 +85,10 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
    P1ConstantDivTOperator          divT;
    P1PSPGOperator                  pspg;
    P1PSPGInvDiagOperator           pspg_inv_diag_;
-
+    BlockPreconditioner_T blockPrec;
    bool hasGlobalCells_;
 };
+
 
 template <>
 struct has_pspg_block< P1P1StokesOperator >
