@@ -72,10 +72,6 @@ class P1ToDG1InterpolationForm
       WALBERLA_UNUSED( trialDegree );
       WALBERLA_UNUSED( testDegree );
 
-      WALBERLA_ASSERT_EQUAL( trialBasis, 1, "trial basis has to be 1" );
-      WALBERLA_ASSERT_EQUAL( testBasis, 1, "test basis has to be 1" );
-      WALBERLA_ASSERT_EQUAL( trialDegree, 1, "trial degree has to be 1" );
-      WALBERLA_ASSERT_EQUAL( testDegree, 1, "trial degree has to be 1" );
 
       const auto size = dim + 1;
       elMat.resize( size, size );
