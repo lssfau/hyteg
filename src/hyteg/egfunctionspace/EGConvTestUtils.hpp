@@ -562,7 +562,6 @@ namespace hyteg {
 
 
                     // solve
-                    int iterNumber = 0;
                     switch (solverType_) {
                         case 0: {
                             MinResSolver<StokesOperatorType> solver(storage_, level, level);
@@ -578,7 +577,6 @@ namespace hyteg {
                             nullSpace.p().interpolate(1, level, All);
                             solver.setNullSpace(nullSpace, level);
                             solver.solve(*Op_, u, rhs, level);
-                            iterNumber = 1;
                             break;
                         }
 
@@ -617,9 +615,7 @@ namespace hyteg {
                                     } else {
                                         u.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
                                     }
-                                    //PETScBlockPreconditionedStokesSolver< StokesOperatorType > solverInner(
-                                    //    storage_, level, 1e-6, 3, 2, 2 );
-                                    solver.setTolerance(1e-7);
+                                     solver.setTolerance(1e-7);
                                     solver.setMaxIt(50);
                                     solver.solve(*Op_, u, rhs, level);
                                     err.assign({1.0, -1.0}, {u, sol}, level, All);
@@ -641,82 +637,13 @@ namespace hyteg {
                             break;
                         }
 
-                        case 3: {
-                            /*
-                            if constexpr (std::is_same<StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator>::value) {
-                                auto solver = hyteg::solvertemplates::varViscStokesMinResSolver<StokesOperatorType>(
-                                        storage_, level, Op_->viscOp.viscosity_, 1, 1e-5,
-                                        std::numeric_limits<PetscInt>::max(), true);
-                                solver->solve(*Op_, u, rhs, level);
-                            } else if constexpr (std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
-                                                 std::is_same<StokesOperatorType, eg::EGP0EpsilonOperatorStokesNitscheBC>::value) {
-                                auto solver = hyteg::solvertemplates::varViscStokesMinResSolver<StokesOperatorType>(
-                                        storage_, level, Op_->velocityBlockOp.viscosity_, 1, 1e-5,
-                                        std::numeric_limits<PetscInt>::max(), true);
-                                solver->solve(*Op_, u, rhs, level);
-                            } else {
-                                WALBERLA_ABORT("not implemented.")
-                            }
-                            break;*/
-                        }
+
 
                         default: {
                             PETScMinResSolver<StokesOperatorType> solver(storage_, level, numerator, 1e-7, 1e-7);
                             solver.setFromOptions(true);
                             solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
-
                             solver.solve(*Op_, u, rhs, level);
-
-                            iterNumber = solver.getIterNumber();
-                            if (runUntilErrorNorm_) {
-                                err.assign({1.0, -1.0}, {u, sol}, level, Inner);
-                                if constexpr (isP2P1Discr<StokesOperatorType>()) {
-                                    // map to finer grid to counter superconvergence
-                                    P2toP2QuadraticProlongation P2P2ProlongationOp;
-                                    for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
-                                        P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
-                                    }
-                                    P1toP1LinearProlongation P1P1ProlongationOp;
-                                    P1P1ProlongationOp.prolongate(u.p(), level, Inner);
-                                    hyteg::vertexdof::projectMean(u.p(), level + 1);
-                                    err.assign({1.0, -1.0}, {u, sol}, level + 1, All);
-                                }
-                                real_t L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
-                                uint_t attempts = 0;
-                                WALBERLA_LOG_INFO_ON_ROOT("Discretization error is " << discrErrors_->at(level - 3)
-                                                                                     << ", current error is "
-                                                                                     << L2VeloError << ".");
-
-                                while (attempts < 100 &&
-                                       L2VeloError > discrErrors_->at(level - 3) + discrErrors_->at(level - 3) / 2) {
-                                    WALBERLA_LOG_INFO_ON_ROOT(
-                                            "Discretization error (" << discrErrors_->at(level - 3) << ") not reached ("
-                                                                     << L2VeloError << "), trying again...");
-                                    if (!storage_->hasGlobalCells()) {
-                                        u.uvw().interpolate({u_x_expr, u_y_expr}, level, DirichletBoundary);
-                                    } else {
-                                        u.uvw().interpolate({u_x_expr, u_y_expr, u_z_expr}, level, DirichletBoundary);
-                                    }
-                                    PETScMinResSolver<StokesOperatorType> solverInner(storage_, level, 1e-10, 1e-10,
-                                                                                      2000);
-                                    solverInner.setFromOptions(true);
-                                    solverInner.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
-                                    solverInner.solve(*Op_, u, rhs, level);
-                                    err.assign({1.0, -1.0}, {u, sol}, level, All);
-                                    if constexpr (isP2P1Discr<StokesOperatorType>()) {
-                                        // map to finer grid to counter superconvergence
-                                        P2toP2QuadraticProlongation P2P2ProlongationOp;
-                                        for (uint_t k = 0; k < u.uvw().getDimension(); k++) {
-                                            P2P2ProlongationOp.prolongate(u.uvw()[k], level, Inner);
-                                        }
-                                        P1toP1LinearProlongation P1P1ProlongationOp;
-                                        P1P1ProlongationOp.prolongate(u.p(), level, Inner);
-                                        err.assign({1.0, -1.0}, {u, sol}, level + 1, Inner);
-                                    }
-                                    L2VeloError = EGNormComputer(level, err, storage_).L2VeloError();
-                                    attempts++;
-                                }
-                            }
                             break;
                         }
                     }
