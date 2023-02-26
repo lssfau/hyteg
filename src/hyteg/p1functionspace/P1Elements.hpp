@@ -24,6 +24,7 @@
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/fenics/fenics.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
+#include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -320,7 +321,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ )
       {
-         logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+         logicalOffsetsFromCenter[localID] =
+             microVertexIndex + indexing::Index( vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] ) );
       }
 
       // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -403,7 +405,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
       std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
       for ( uint_t localID = 0; localID < 4; localID++ )
       {
-         logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+         logicalOffsetsFromCenter[localID] =
+             microVertexIndex + indexing::Index( vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] ) );
       }
 
       // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -573,11 +576,11 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       // 3. translate coordinates / stencil directions back to vertex-local coordinate system
       for ( const auto it : cellLocalStencilWeights )
       {
-         const auto cellLocalDir        = it.first;
-         const auto stencilWeight       = it.second;
-         const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto onLocalEdgesDir     = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
-         const auto onLocalVerticesDir  = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
+         const auto            cellLocalDir        = it.first;
+         const auto            stencilWeight       = it.second;
+         const indexing::Index cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const auto            onLocalEdgesDir     = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+         const auto            onLocalVerticesDir  = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
          if ( onLocalEdgesDir.size() == 1 )
          {
             const auto cellLocalEdgeID   = *onLocalEdgesDir.begin();
@@ -669,11 +672,12 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
       // 3. translate coordinates / stencil directions back to vertex-local coordinate system
       for ( const auto it : cellLocalStencilWeights )
       {
-         const auto cellLocalDir        = it.first;
-         const auto stencilWeight       = it.second;
-         const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto onLocalEdgesDir     = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
-         const auto onLocalVerticesDir  = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
+         const auto                            cellLocalDir  = it.first;
+         const auto                            stencilWeight = it.second;
+         const hyteg::indexing::Index cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const auto onLocalEdgesDir    = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+         const auto onLocalVerticesDir = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
          if ( onLocalEdgesDir.size() == 1 )
          {
             const auto cellLocalEdgeID   = *onLocalEdgesDir.begin();
@@ -778,7 +782,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
 
-         const auto            cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const indexing::Index cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
          const auto            onLocalFacesCenter  = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
          const auto            onLocalFacesDir     = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
          std::vector< uint_t > intersectingFaces;
@@ -833,7 +837,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
             }
             else
             {
-               WALBERLA_ABORT( "[P1Elements][Edge] Invalid offsets" );
+               WALBERLA_ABORT( "[P1Elements][Edge] Invalid offsets" << xOffset );
             }
             stencil[vertexdof::macroedge::stencilIndexOnNeighborFace( faceLocalStencilDirection,
                                                                       edge.face_index( facePrimitiveID ) )] += stencilWeight;
@@ -927,9 +931,10 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
 
-         const auto            cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-         const auto            onLocalFacesCenter  = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
-         const auto            onLocalFacesDir     = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
+         const hyteg::indexing::Index cellLocalIndexInDir =
+             indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+         const auto            onLocalFacesCenter = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+         const auto            onLocalFacesDir    = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
          std::vector< uint_t > intersectingFaces;
          std::set_intersection( onLocalFacesCenter.begin(),
                                 onLocalFacesCenter.end(),
@@ -1201,7 +1206,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil_new( const st
 /// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
 ///
 template < class P1Form >
-inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( const std::shared_ptr< PrimitiveStorage >& storage,
+inline std::map< indexing::Index, real_t > assembleP1LocalStencilNew( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                                const Cell&                                cell,
                                                                                const indexing::Index& microVertexIndex,
                                                                                const uint_t&          level,
@@ -1218,7 +1223,7 @@ inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( c
       //    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
    }
    auto stencilMap = calculateStencilInMacroCellForm( microVertexIndex, cell, level, form );
-   std::map< indexing::IndexIncrement, real_t > convertedMap;
+   std::map< indexing::Index, real_t > convertedMap;
    for ( const auto& it : stencilMap )
    {
       convertedMap[vertexdof::logicalIndexOffsetFromVertex( it.first )] = it.second;
@@ -1238,7 +1243,7 @@ inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( c
 /// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
 ///
 template < class P1Form >
-inline std::map< indexing::IndexIncrement, real_t >
+inline std::map< indexing::Index, real_t >
     assembleP1LocalStencilNew_new( const std::shared_ptr< PrimitiveStorage >& storage,
                                    const Cell&                                cell,
                                    const indexing::Index&                     microVertexIndex,
@@ -1256,7 +1261,7 @@ inline std::map< indexing::IndexIncrement, real_t >
       //    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
    }
    auto stencilMap = calculateStencilInMacroCellForm_new( microVertexIndex, cell, level, form );
-   std::map< indexing::IndexIncrement, real_t > convertedMap;
+   std::map< indexing::Index, real_t > convertedMap;
    for ( const auto& it : stencilMap )
    {
       convertedMap[vertexdof::logicalIndexOffsetFromVertex( it.first )] = it.second;

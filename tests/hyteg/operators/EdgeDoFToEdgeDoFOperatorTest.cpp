@@ -200,7 +200,7 @@ static void testEdgeDoFToEdgeDoFOperator()
     for ( const auto & idxIt : edgedof::macroedge::Iterator( maxLevel ) )
     {
       auto ptr = edgeFunction->getPointer( maxLevel );
-      auto idx = edgedof::macroedge::indexFromHorizontalEdge( maxLevel, idxIt.col(), stencilDirection::EDGE_HO_C );
+      auto idx = edgedof::macroedge::indexFromHorizontalEdge( maxLevel, idxIt.x(), stencilDirection::EDGE_HO_C );
 
       const real_t expectedValue = edgeSrcValue * ( macroEdgeHorizontalStencilValue + real_c( edge->getNumNeighborFaces() ) * ( macroEdgeDiagonalStencilValue + macroEdgeVerticalStencilValue ) );
       WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
@@ -218,25 +218,25 @@ static void testEdgeDoFToEdgeDoFOperator()
 
     for ( const auto & idxIt : edgedof::macroface::Iterator( maxLevel ) )
     {
-      if ( idxIt.col() != 0 )
+      if ( idxIt.x() != 0 )
       {
-        const auto idx = edgedof::macroface::indexFromVerticalEdge( maxLevel, idxIt.col(), idxIt.row(), stencilDirection::EDGE_VE_C );
+        const auto idx = edgedof::macroface::indexFromVerticalEdge( maxLevel, idxIt.x(), idxIt.y(), stencilDirection::EDGE_VE_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceVerticalStencilValue + 2.0 * ( macroFaceDiagonalStencilValue + macroFaceHorizontalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
       }
 
-      if ( idxIt.row() != 0 )
+      if ( idxIt.y() != 0 )
       {
-        const auto idx = edgedof::macroface::indexFromHorizontalEdge( maxLevel, idxIt.col(), idxIt.row(), stencilDirection::EDGE_HO_C );
+        const auto idx = edgedof::macroface::indexFromHorizontalEdge( maxLevel, idxIt.x(), idxIt.y(), stencilDirection::EDGE_HO_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceHorizontalStencilValue + 2.0 * ( macroFaceDiagonalStencilValue + macroFaceVerticalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
       }
 
-      if ( idxIt.row() + idxIt.col() < idx_t( levelinfo::num_microedges_per_edge( maxLevel ) - 1 ) )
+      if ( idxIt.y() + idxIt.x() < idx_t( levelinfo::num_microedges_per_edge( maxLevel ) - 1 ) )
       {
-        const auto idx = edgedof::macroface::indexFromDiagonalEdge( maxLevel, idxIt.col(), idxIt.row(), stencilDirection::EDGE_DI_C );
+        const auto idx = edgedof::macroface::indexFromDiagonalEdge( maxLevel, idxIt.x(), idxIt.y(), stencilDirection::EDGE_DI_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceDiagonalStencilValue + 2.0 * ( macroFaceHorizontalStencilValue + macroFaceVerticalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );

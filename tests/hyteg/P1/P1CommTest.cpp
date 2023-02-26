@@ -81,12 +81,12 @@ int main (int argc, char ** argv )
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex( maxLevel, idxCounter, stencilDirection::VERTEX_SE )],
                                faceData[vertexdof::macroface::indexFromVertex(
-          maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
+          maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
           WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex( maxLevel, idxCounter, stencilDirection::VERTEX_N )],
                                faceData[vertexdof::macroface::indexFromVertex(
-          maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
+          maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -106,7 +106,7 @@ int main (int argc, char ** argv )
       {
         WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex( maxLevel, idxCounter, stencilDirection::VERTEX_C )],
                              faceData[vertexdof::macroface::indexFromVertex(
-        maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
+        maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )]);
         numberOfChecks++;
         idxCounter++;
       }

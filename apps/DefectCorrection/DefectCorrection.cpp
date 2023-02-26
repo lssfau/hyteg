@@ -92,8 +92,8 @@ static void defectCorrection( int argc, char** argv )
    // domain
 
    auto meshInfo =
-       // MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
-       MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+       // MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1, 1 ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );

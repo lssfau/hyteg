@@ -147,7 +147,7 @@ class System
    static System polynomialOnCube()
    {
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -174,7 +174,7 @@ class System
       using walberla::math::pi;
 
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];

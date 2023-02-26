@@ -33,7 +33,7 @@ using namespace hyteg;
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -50,10 +50,10 @@ void test3D()
    const Eigen::Vector3r                                    a          = { 1, 2, 3 };
    const Eigen::Vector3r                                    b          = { 4, 5, 6 };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFuncAB = [&]( const Point3D& x ) {
-      return ( a + b.cross( x.vector_ ) ).eval();
+      return ( a + b.cross( x ) ).eval();
    };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFuncBA = [&]( const Point3D& x ) {
-      return ( b + a.cross( x.vector_ ) ).eval();
+      return ( b + a.cross( x ) ).eval();
    };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );

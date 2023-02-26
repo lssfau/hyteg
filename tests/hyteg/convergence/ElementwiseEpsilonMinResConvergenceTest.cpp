@@ -124,7 +124,7 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    if ( ThreeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
 
       exactU = shellExactU;
       exactV = shellExactV;
@@ -137,7 +137,7 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    }
    else
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 1, 1 );
 
       exactU = plumeExactU;
       exactV = plumeExactV;

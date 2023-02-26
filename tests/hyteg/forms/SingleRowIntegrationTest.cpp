@@ -106,12 +106,12 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
 
    std::array< Point3D, 3 > element2D = {
-       Point3D( { 0.1, 0.345, 0 } ), Point3D( { 0.2, 0.083745, 0 } ), Point3D( { 0.985, 0.3, 0 } ) };
+       Point3D(  0.1, 0.345, 0  ), Point3D(  0.2, 0.083745, 0  ), Point3D(  0.985, 0.3, 0  ) };
 
-   std::array< Point3D, 4 > element3D = { Point3D( { 0.1, 0.345, 0.3 } ),
-                                          Point3D( { 0.2, 0.083745, 0.9 } ),
-                                          Point3D( { 0.985, 0.3, 0.48 } ),
-                                          Point3D( { 0.23, 0.434, 0.0001 } ) };
+   std::array< Point3D, 4 > element3D = { Point3D(  0.1, 0.345, 0.3  ),
+                                          Point3D(  0.2, 0.083745, 0.9  ),
+                                          Point3D(  0.985, 0.3, 0.48  ),
+                                          Point3D(  0.23, 0.434, 0.0001  ) };
 
    auto coeff = []( const hyteg::Point3D& x ) { return x[0] * x[1] * x[2]; };
 

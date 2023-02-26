@@ -846,7 +846,7 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsByCentroidLocation( const uint_t
 {
    auto centroid = [useGeometryMap]( const std::vector< Point3D >&         coordinates,
                                      const std::shared_ptr< GeometryMap >& map ) -> Point3D {
-      Point3D c( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
+      Point3D c( real_c( 0 ), real_c( 0 ), real_c( 0 ) );
       for ( const auto& p : coordinates )
       {
          c += p;

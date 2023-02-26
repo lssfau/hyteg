@@ -49,8 +49,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
-   Point2D left( { -channelLength / 2, 0 } );
-   Point2D right( { channelLength / 2, channelHeight } );
+   Point2D left(  -channelLength / 2, 0  );
+   Point2D right(  channelLength / 2, channelHeight  );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -104,7 +104,7 @@ void run( const real_t absErrorTolerance )
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( 0, -1, 0 ); };
 
    auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
 

@@ -53,13 +53,13 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
          auto faceID = faceIt.first;
          auto face   = faceIt.second;
 
-         Point2D pointOfInterest( {pt[0], pt[1]} );
+         Point2D pointOfInterest( pt[0], pt[1] );
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           1e-05,
-                                          Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
          {
             containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( faceID ) ) );
          }
@@ -76,7 +76,7 @@ int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( con
          auto cellID = cellIt.first;
          auto cell   = cellIt.second;
 
-         Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
+         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
 
          if ( sphereTetrahedronIntersection( pointOfInterest,
                                              1e-05,
@@ -146,13 +146,13 @@ bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomai
       {
          auto face   = faceIt.second;
 
-         Point2D pointOfInterest( {pt[0], pt[1]} );
+         Point2D pointOfInterest( pt[0], pt[1] );
 
          if ( circleTriangleIntersection( pointOfInterest,
                                           radius,
-                                          Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
          {
             return true;
          }
@@ -164,7 +164,7 @@ bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomai
       {
          auto cell   = cellIt.second;
 
-         Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
+         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
 
          if ( sphereTetrahedronIntersection( pointOfInterest,
                                              radius,

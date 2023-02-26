@@ -347,7 +347,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils()
             Point3D matrixRow;
             form_.integrateEdgeToVertex( { { x, x + d0, x + d2 } }, matrixRow );
 
-            uint_t i = 1;
+            int i = 1;
             // iterate over adjacent edges
             for ( auto& edgeId : adj_edges )
             {

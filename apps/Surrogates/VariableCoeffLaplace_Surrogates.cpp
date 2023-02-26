@@ -408,12 +408,12 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
     // loop over all DOFs
     for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
     {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       P2::variablestencil::macroface::assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                                                       VtVStencil, EtVStencil, VtEStencil, EtEStencil);
-      idx_t i = it.col();
-      idx_t j = it.row();
+      idx_t i = it.x();
+      idx_t j = it.y();
 
       // VERTEX DoF
       if (!vertexdof::macroface::isVertexOnBoundary(level, it))

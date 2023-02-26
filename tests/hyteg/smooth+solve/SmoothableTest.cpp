@@ -72,8 +72,8 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    bool ssorSmoothable = properties[4];
    bool chebSmoothable = properties[5];
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1., 1. } ), MeshInfo::CRISSCROSS, 2, 2 );
-   // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( {-1, -1, 0} ), Point3D( {1, 1, 2} ), 2, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1., 1.  ), MeshInfo::CRISSCROSS, 2, 2 );
+   // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( -1, -1, 0 ), Point3D( 1, 1, 2 ), 2, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage  = std::make_shared< PrimitiveStorage >( setupStorage );

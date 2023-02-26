@@ -25,9 +25,6 @@
 
 namespace hyteg {
 
-namespace indexing {
-class IndexIncrement;
-}
 
 namespace edgedof {
 
@@ -41,7 +38,7 @@ namespace macroedge {
 /// map[neighborCellID][centerOrientation][leafOrientation][indexOffset] = weight
 typedef std::map< uint_t,
                   std::map< edgedof::EdgeDoFOrientation,
-                            std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > >
+                            std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > > >
     StencilMap_T;
 
 } // namespace macroedge
@@ -51,7 +48,7 @@ namespace macroface {
 /// map[neighborCellID][centerOrientation][leafOrientation][indexOffset] = weight
 typedef std::map< uint_t,
                   std::map< edgedof::EdgeDoFOrientation,
-                            std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > >
+                            std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > > >
     StencilMap_T;
 
 } // namespace macroface
@@ -60,7 +57,7 @@ namespace macrocell {
 
 /// map[centerOrientation][leafOrientation][indexOffset] = weight
 typedef std::map< edgedof::EdgeDoFOrientation,
-                  std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > >
+                  std::map< edgedof::EdgeDoFOrientation, std::map< indexing::Index, real_t > > >
     StencilMap_T;
 
 } // namespace macrocell

@@ -630,7 +630,7 @@ namespace forms {
 
    void n1e1_linear_form_affine_q6::Vector_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const
    {
-      Eigen::Vector3r result_Vector_Variable_Coefficient_3D_k = callback_Vector_Variable_Coefficient_3D_k( Point3D( {in_0, in_1, in_2} ) );
+      Eigen::Vector3r result_Vector_Variable_Coefficient_3D_k = callback_Vector_Variable_Coefficient_3D_k( Point3D( in_0, in_1, in_2 ) );
       *out_0 = result_Vector_Variable_Coefficient_3D_k[0];
       *out_1 = result_Vector_Variable_Coefficient_3D_k[1];
       *out_2 = result_Vector_Variable_Coefficient_3D_k[2];

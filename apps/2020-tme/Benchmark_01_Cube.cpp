@@ -100,10 +100,10 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( { 0, 0, 0 } );
+   Point3D leftBottom3D(  0, 0, 0  );
 
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D(  1, 1, 1  ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

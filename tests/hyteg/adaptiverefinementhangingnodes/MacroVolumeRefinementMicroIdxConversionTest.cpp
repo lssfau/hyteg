@@ -40,7 +40,7 @@ namespace hyteg {
 /// There are two functions that perform these conversions - one from coarse to fine and one vice versa.
 void test2D()
 {
-   MeshInfo              meshInfo = MeshInfo::singleTriangle( Point2D( { 0, 0 } ), Point2D( { 1, 0 } ), Point2D( { 0, 1 } ) );
+   MeshInfo              meshInfo = MeshInfo::singleTriangle( Point2D(  0, 0  ), Point2D(  1, 0  ), Point2D(  0, 1  ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 

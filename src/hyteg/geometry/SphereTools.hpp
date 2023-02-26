@@ -141,7 +141,7 @@ void uvSphereSurfaceVertices( real_t                  radius,
       {
          const auto phi   = phiInc * real_c( meridian_idx );
          const auto theta = thetaInc * real_c( parallel_idx );
-         Point3D    coords( { radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) } );
+         Point3D    coords( radius * cos( phi ) * sin( theta ), radius * sin( phi ) * sin( theta ), radius * cos( theta ) );
 
          vertices.push_back( coords );
          meridians.push_back( meridian_idx );
@@ -170,18 +170,18 @@ void icosahedralSurfaceTriangles( real_t                                  radius
    const real_t s = ( real_c( 1.0 ) + std::sqrt( 5.0 ) ) / real_c( 2.0 );
 
    // Vertices
-   tmpVertices.push_back( Point3D( { -1.0, s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 1.0, s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { -1.0, -s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 1.0, -s, 0.0 } ) );
-   tmpVertices.push_back( Point3D( { 0.0, -1.0, s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, 1.0, s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, -1.0, -s } ) );
-   tmpVertices.push_back( Point3D( { 0.0, 1.0, -s } ) );
-   tmpVertices.push_back( Point3D( { s, 0.0, -1.0 } ) );
-   tmpVertices.push_back( Point3D( { s, 0.0, 1.0 } ) );
-   tmpVertices.push_back( Point3D( { -s, 0.0, -1.0 } ) );
-   tmpVertices.push_back( Point3D( { -s, 0.0, 1.0 } ) );
+   tmpVertices.push_back( Point3D( -1.0, s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 1.0, s, 0.0 ) );
+   tmpVertices.push_back( Point3D( -1.0, -s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 1.0, -s, 0.0 ) );
+   tmpVertices.push_back( Point3D( 0.0, -1.0, s ) );
+   tmpVertices.push_back( Point3D( 0.0, 1.0, s ) );
+   tmpVertices.push_back( Point3D( 0.0, -1.0, -s ) );
+   tmpVertices.push_back( Point3D( 0.0, 1.0, -s ) );
+   tmpVertices.push_back( Point3D( s, 0.0, -1.0 ) );
+   tmpVertices.push_back( Point3D( s, 0.0, 1.0 ) );
+   tmpVertices.push_back( Point3D( -s, 0.0, -1.0 ) );
+   tmpVertices.push_back( Point3D( -s, 0.0, 1.0 ) );
 
    for ( auto& v : tmpVertices )
    {
@@ -223,9 +223,9 @@ void icosahedralSurfaceTriangles( real_t                                  radius
          const auto v1 = tmpVertices[v1_idx];
          const auto v2 = tmpVertices[v2_idx];
 
-         auto v3 = 0.5 * ( v0 + v1 );
-         auto v4 = 0.5 * ( v1 + v2 );
-         auto v5 = 0.5 * ( v2 + v0 );
+         Point3D v3 = 0.5 * ( v0 + v1 );
+         Point3D v4 = 0.5 * ( v1 + v2 );
+         Point3D v5 = 0.5 * ( v2 + v0 );
 
          v3 /= v3.norm();
          v4 /= v4.norm();

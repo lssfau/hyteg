@@ -97,7 +97,7 @@ bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
 template < uint_t K, class K_Simplex >
 inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
 {
-   Point3D bc( { 0, 0, 0 } );
+   Point3D bc( 0, 0, 0 );
    for ( auto& vtx : vertices )
    {
       bc += vtx;

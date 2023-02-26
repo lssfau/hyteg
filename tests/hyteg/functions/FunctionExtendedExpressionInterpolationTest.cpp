@@ -218,7 +218,7 @@ int main( int argc, char* argv[] )
    // ------------
 
    // Generate mesh and primitive storage
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1.0, -1.0} ), Point2D( {2.0, 1.1} ), MeshInfo::CRISSCROSS, 3, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1.0, -1.0 ), Point2D( 2.0, 1.1 ), MeshInfo::CRISSCROSS, 3, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -245,7 +245,7 @@ int main( int argc, char* argv[] )
    //  3D Testing
    // ------------
    // Generate mesh and primitive storage
-   MeshInfo meshInfo3D = MeshInfo::meshSymmetricCuboid( Point3D( {-1.0, -1.0, -1.0} ), Point3D( {2.0, 1.0, 3.0} ), 3, 1, 2 );
+   MeshInfo meshInfo3D = MeshInfo::meshSymmetricCuboid( Point3D( -1.0, -1.0, -1.0 ), Point3D( 2.0, 1.0, 3.0 ), 3, 1, 2 );
    SetupPrimitiveStorage setupStorage3D( meshInfo3D, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3D );
    std::shared_ptr< PrimitiveStorage > storage3D = std::make_shared< PrimitiveStorage >( setupStorage3D );

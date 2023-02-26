@@ -165,7 +165,7 @@ void P2FenicsForm< UFCOperator2D, UFCOperator3D >::computeLocalStiffnessMatrix( 
    {
       for ( int dim = 0; dim < 3; ++dim )
       {
-         fenicsCoords[node * 3 + dim] = coords[walberla::uint_c( node )][walberla::uint_c( dim )];
+         fenicsCoords[node * 3 + dim] = coords[walberla::uint_c( node )][dim];
       }
    }
    UFCOperator3D                   gen;

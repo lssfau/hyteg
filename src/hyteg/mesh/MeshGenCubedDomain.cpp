@@ -226,26 +226,26 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
     *
     */
 
-   const Point3D subCubeWidth( {cubeSideLength, cubeSideLength, cubeSideLength} );
+   const Point3D subCubeWidth( cubeSideLength, cubeSideLength, cubeSideLength );
 
    std::vector< Point3D > subCubeVertexCoordinates( 14 );
 
-   subCubeVertexCoordinates[0] = Point3D( {0, 0, 0} );
-   subCubeVertexCoordinates[1] = Point3D( {subCubeWidth[0], 0, 0} );
-   subCubeVertexCoordinates[2] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1] / 2, 0} );
-   subCubeVertexCoordinates[3] = Point3D( {0, subCubeWidth[1], 0} );
-   subCubeVertexCoordinates[4] = Point3D( {subCubeWidth[0], subCubeWidth[1], 0} );
+   subCubeVertexCoordinates[0] = Point3D( 0, 0, 0 );
+   subCubeVertexCoordinates[1] = Point3D( subCubeWidth[0], 0, 0 );
+   subCubeVertexCoordinates[2] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1] / 2, 0 );
+   subCubeVertexCoordinates[3] = Point3D( 0, subCubeWidth[1], 0 );
+   subCubeVertexCoordinates[4] = Point3D( subCubeWidth[0], subCubeWidth[1], 0 );
 
-   subCubeVertexCoordinates[5] = Point3D( {subCubeWidth[0] / 2, 0, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[6] = Point3D( {0, subCubeWidth[1] / 2, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[7] = Point3D( {subCubeWidth[0], subCubeWidth[1] / 2, subCubeWidth[2] / 2} );
-   subCubeVertexCoordinates[8] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1], subCubeWidth[2] / 2} );
+   subCubeVertexCoordinates[5] = Point3D( subCubeWidth[0] / 2, 0, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[6] = Point3D( 0, subCubeWidth[1] / 2, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[7] = Point3D( subCubeWidth[0], subCubeWidth[1] / 2, subCubeWidth[2] / 2 );
+   subCubeVertexCoordinates[8] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1], subCubeWidth[2] / 2 );
 
-   subCubeVertexCoordinates[9]  = Point3D( {0, 0, subCubeWidth[2]} );
-   subCubeVertexCoordinates[10] = Point3D( {subCubeWidth[0], 0, subCubeWidth[2]} );
-   subCubeVertexCoordinates[11] = Point3D( {subCubeWidth[0] / 2, subCubeWidth[1] / 2, subCubeWidth[2]} );
-   subCubeVertexCoordinates[12] = Point3D( {0, subCubeWidth[1], subCubeWidth[2]} );
-   subCubeVertexCoordinates[13] = Point3D( {subCubeWidth[0], subCubeWidth[1], subCubeWidth[2]} );
+   subCubeVertexCoordinates[9]  = Point3D( 0, 0, subCubeWidth[2] );
+   subCubeVertexCoordinates[10] = Point3D( subCubeWidth[0], 0, subCubeWidth[2] );
+   subCubeVertexCoordinates[11] = Point3D( subCubeWidth[0] / 2, subCubeWidth[1] / 2, subCubeWidth[2] );
+   subCubeVertexCoordinates[12] = Point3D( 0, subCubeWidth[1], subCubeWidth[2] );
+   subCubeVertexCoordinates[13] = Point3D( subCubeWidth[0], subCubeWidth[1], subCubeWidth[2] );
 
    std::vector< std::vector< uint_t > > cellVertices;
    cellVertices.push_back( {{0, 1, 2, 5}} );
@@ -301,7 +301,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
                      const auto    xPos = static_cast< real_t >( x + xInc ) * cubeSideLength;
                      const auto    yPos = static_cast< real_t >( y + yInc ) * cubeSideLength;
                      const auto    zPos = static_cast< real_t >( z + zInc ) * cubeSideLength;
-                     const Point3D vertexCoords( {xPos, yPos, zPos} );
+                     const Point3D vertexCoords( xPos, yPos, zPos );
                      meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
                   }
                }
@@ -317,7 +317,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
                const auto    xPos           = static_cast< real_t >( x ) * cubeSideLength;
                const auto    yPos           = static_cast< real_t >( y ) * cubeSideLength;
                const auto    zPos           = static_cast< real_t >( z ) * cubeSideLength;
-               const Point3D vertexCoords   = Point3D( {xPos, yPos, zPos} ) + subCubeVertexCoordinates[localVertexID];
+               const Point3D vertexCoords   = Point3D( xPos, yPos, zPos ) + subCubeVertexCoordinates[localVertexID];
                meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
             }
          }

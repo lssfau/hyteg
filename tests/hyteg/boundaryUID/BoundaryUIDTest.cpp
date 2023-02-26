@@ -288,8 +288,8 @@ void centroidHardBlendingTest()
    real_t tol         = real_c( 1e-5 );
 
    MeshInfo meshInfo =
-       MeshInfo::meshRectangle( Point2D( {innerRad, phiMin} ), Point2D( {outerRad, phiMax} ), MeshInfo::CRISS, 3, 4 );
-   // MeshInfo::meshRectangle( Point2D( {innerRad, phiMin} ), Point2D( {outerRad, phiMax} ), MeshInfo::DIAMOND, 3, 2 );
+       MeshInfo::meshRectangle( Point2D( innerRad, phiMin ), Point2D( outerRad, phiMax ), MeshInfo::CRISS, 3, 4 );
+   // MeshInfo::meshRectangle( Point2D( innerRad, phiMin ), Point2D( outerRad, phiMax ), MeshInfo::DIAMOND, 3, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    PolarCoordsMap::setMap( setupStorage );
 

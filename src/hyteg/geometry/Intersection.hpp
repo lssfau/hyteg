@@ -254,7 +254,7 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto intersectionRadius = std::sqrt( radius * radius - centreDistToPlane * centreDistToPlane );
 
    // We need to rotate our coordinate system -> normal component in z direction.
-   auto planeTangent0 = v2 - v1;
+   Point3D planeTangent0 = v2 - v1;
    planeTangent0 /= planeTangent0.norm();
    auto planeTangent1 = crossProduct( planeNormal, planeTangent0 );
 
@@ -284,11 +284,11 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto v2PlaneBasis     = basisTrafo * v2OldBasis;
    auto v3PlaneBasis     = basisTrafo * v3OldBasis;
 
-   return circleTriangleIntersection( Point2D( { centrePlaneBasis[0], centrePlaneBasis[1] } ),
+   return circleTriangleIntersection( Point2D( centrePlaneBasis[0], centrePlaneBasis[1] ),
                                       intersectionRadius,
-                                      Point2D( { v1PlaneBasis[0], v1PlaneBasis[1] } ),
-                                      Point2D( { v2PlaneBasis[0], v2PlaneBasis[1] } ),
-                                      Point2D( { v3PlaneBasis[0], v3PlaneBasis[1] } ) );
+                                      Point2D( v1PlaneBasis[0], v1PlaneBasis[1] ),
+                                      Point2D( v2PlaneBasis[0], v2PlaneBasis[1] ),
+                                      Point2D( v3PlaneBasis[0], v3PlaneBasis[1] ) );
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.

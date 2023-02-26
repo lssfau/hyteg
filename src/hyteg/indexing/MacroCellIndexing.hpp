@@ -89,7 +89,7 @@ std::set< uint_t > isOnCellVertex( const indexing::Index & index, const uint_t &
 /// \code{.cpp}
 /// for ( const auto & it : CellIterator( 5, 0 ) )
 /// {
-///   WALBERLA_LOG_INFO_ON_ROOT( "col = " << it.col() << ", row = " << it.row() << ", depth = " << it.dep() );
+///   WALBERLA_LOG_INFO_ON_ROOT( "col = " << it.x() << ", row = " << it.y() << ", depth = " << it.z() );
 /// }
 /// \endcode
 ///
@@ -192,14 +192,14 @@ public:
 
 private:
 
-  IndexIncrement calculateIncrement( const uint_t & vertex0, const uint_t & vertex1 ) const;
+  Index calculateIncrement( const uint_t & vertex0, const uint_t & vertex1 ) const;
 
   const uint_t                  width_;
   const std::array< uint_t, 3 > vertices_;
   const uint_t                  offsetToCenter_;
   const uint_t                  totalNumberOfSteps_;
-  const IndexIncrement          firstDirIncrement_;
-  const IndexIncrement          secondDirIncrement_;
+  const Index          firstDirIncrement_;
+  const Index          secondDirIncrement_;
         uint_t                  step_;
         uint_t                  wrapAroundStep_;
         Index                   coordinates_;

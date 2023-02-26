@@ -94,9 +94,9 @@ bool DGFunction< ValueType >::evaluate( const Point3D& physicalCoords,
       {
          const auto        polyDegree = polyDegreesPerPrimitive_.at( faceID );
          const auto        ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
-         indexing::Index   elementIndex;
+         indexing::Index   elementIndex(indexing::Index::Zero());
          facedof::FaceType faceType;
-         Point2D           coordinates2D( { computationalCoords[0], computationalCoords[1] } );
+         Point2D           coordinates2D( computationalCoords[0], computationalCoords[1] );
          Point2D           localCoordinates;
 
          Face& face = *( this->getStorage()->getFace( faceID ) );
@@ -168,8 +168,6 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
    // 2D
 
    WALBERLA_ASSERT( !storage_->hasGlobalCells() )
-
-   Point2D coordinates2D( { coordinates[0], coordinates[1] } );
 
    WALBERLA_ASSERT( storage_->faceExistsLocally( faceID ) )
    const Face& face = *storage_->getFace( faceID );

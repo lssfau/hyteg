@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
 
    //create a Rectangle as mesh with 4 triangles
    auto meshInfo =
-       hyteg::MeshInfo::meshRectangle( hyteg::Point2D( {-1, -1} ), hyteg::Point2D( {1, 1} ), hyteg::MeshInfo::CRISSCROSS, 1, 1 );
+       hyteg::MeshInfo::meshRectangle( hyteg::Point2D( -1, -1 ), hyteg::Point2D( 1, 1 ), hyteg::MeshInfo::CRISSCROSS, 1, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

@@ -62,12 +62,12 @@ int main( int argc, char** argv )
    // works
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with point on edge" );
    Matrix2r jacMat;
-   Point3D myVertex1( { 0.0, 0.95, 0.0 } );
+   Point3D myVertex1(  0.0, 0.95, 0.0  );
    myMap.evalDF( myVertex1, jacMat );
 
    // fails
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with location of upper vertex" );
-   Point3D myVertex2( { 0.0, 1.0, 0.0 } );
+   Point3D myVertex2(  0.0, 1.0, 0.0  );
    myMap.evalDF( myVertex2, jacMat );
 
    WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" );

@@ -161,7 +161,7 @@ int main( int argc, char* argv[] )
    };
 
    // setup mesh and primitives
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CRISSCROSS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISSCROSS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

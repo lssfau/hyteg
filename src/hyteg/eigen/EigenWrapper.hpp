@@ -21,11 +21,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hyteg {
-template < typename T, size_t N >
-class PointND;
-}
-#define EIGEN_MATRIX_PLUGIN "hyteg/eigen/EigenMatrixPlugin.hpp"
+//#define EIGEN_MATRIX_PLUGIN "hyteg/eigen/EigenMatrixPlugin.hpp"
 #include <Eigen/Dense>
 
 #include "core/mpi/RecvBuffer.h"

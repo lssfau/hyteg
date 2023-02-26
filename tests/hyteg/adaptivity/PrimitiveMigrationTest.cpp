@@ -136,22 +136,22 @@ static void testPrimitiveMigrationMaps()
 
   writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_before_migration" );
 
-  PrimitiveDataID< LevelWiseMemory< std::map< indexing::IndexIncrement, uint_t > >, Cell > dataID;
+  PrimitiveDataID< LevelWiseMemory< std::map< indexing::Index, uint_t > >, Cell > dataID;
   auto cellDataHandling =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::map< indexing::IndexIncrement, uint_t > >, Cell > >(2, 4 );
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::map< indexing::Index, uint_t > >, Cell > >(2, 4 );
   storage->addCellData( dataID, cellDataHandling, "test data" );
 
   for ( auto it : storage->getCells() )
   {
      auto & cellData = it.second->getData( dataID )->getData( 2 );
-     cellData[ indexing::IndexIncrement( {0, 2, 3} ) ] = 3;
-     cellData[ indexing::IndexIncrement( {0, 2, 5} ) ] = 7;
+     cellData[ indexing::Index( {0, 2, 3} ) ] = 3;
+     cellData[ indexing::Index( {0, 2, 5} ) ] = 7;
   }
 
   for ( auto it : storage->getCells() )
   {
     auto cellData = it.second->getData( dataID )->getData( 2 );
-    WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::IndexIncrement( {0, 2, 5} ) )  )
+    WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::Index( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::Index( {0, 2, 5} ) )  )
   }
 
   WALBERLA_MPI_BARRIER()
@@ -179,9 +179,9 @@ static void testPrimitiveMigrationMaps()
     for ( auto it : storage->getCells() )
     {
       auto cellData = it.second->getData( dataID )->getData( 2 );
-      WALBERLA_CHECK_EQUAL( cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ), 3 );
-      WALBERLA_CHECK_EQUAL( cellData.at( indexing::IndexIncrement( {0, 2, 5} ) ), 7 );
-      WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::IndexIncrement( {0, 2, 5} ) )  )
+      WALBERLA_CHECK_EQUAL( cellData.at( indexing::Index( {0, 2, 3} ) ), 3 );
+      WALBERLA_CHECK_EQUAL( cellData.at( indexing::Index( {0, 2, 5} ) ), 7 );
+      WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::Index( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::Index( {0, 2, 5} ) )  )
     }
   }
 

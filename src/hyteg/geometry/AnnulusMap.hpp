@@ -194,7 +194,7 @@ class AnnulusMap : public GeometryMap
       std::array< real_t, 3 > radius{};
       for ( uint_t k = 0; k < 3; k++ )
       {
-         radius[k] = std::sqrt( coords[k].normSq() );
+         radius[k] = std::sqrt( coords[k].squaredNorm() );
          ANNULUS_MAP_LOG( "Vertex " << k << ": (" // << std::scientific
                                     << coords[k][0] << ", " << coords[k][1] << ", " << coords[k][2] << ")\n"
                                     << " radius = " << radius[k] );
@@ -261,8 +261,8 @@ class AnnulusMap : public GeometryMap
       }
 
       // swap classes in case we have a triangle pointing towards the origin
-      ANNULUS_MAP_LOG( "Critical value = " << std::abs( coords[intRef].normSq() - thrVertex_.normSq() ) );
-      if ( std::abs( coords[intRef].normSq() - thrVertex_.normSq() ) < tol )
+      ANNULUS_MAP_LOG( "Critical value = " << std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) );
+      if ( std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) < tol )
       {
          ANNULUS_MAP_LOG( "Detected inward pointing triangle" );
          uint_t aux = intRay;

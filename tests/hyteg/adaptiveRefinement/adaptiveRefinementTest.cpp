@@ -45,7 +45,7 @@ void adaptiveRefinementTest()
    if ( K == 2 )
    {
       meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
-      barycenter_0 = ( 1. / 3. ) * hyteg::Point3D( { 1, 1, 0 } );
+      barycenter_0 = ( 1. / 3. ) * hyteg::Point3D(  1, 1, 0  );
       volume       = 1. / 2.;
       n_el_1       = 4;
       n_el_2       = 8;
@@ -54,7 +54,7 @@ void adaptiveRefinementTest()
    else
    {
       meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-      barycenter_0 = ( 1. / 4. ) * hyteg::Point3D( { 1, 1, 1 } );
+      barycenter_0 = ( 1. / 4. ) * hyteg::Point3D(  1, 1, 1  );
       volume       = 1. / 6.;
       n_el_1       = 8;
       n_el_2       = 20;
@@ -80,7 +80,7 @@ void adaptiveRefinementTest()
 
    // test Simplex::barycenter()
    auto barycenter = simplex_0->barycenter( vertices_0 );
-   for ( uint_t i = 0; i < 3; ++i )
+   for ( int i = 0; i < 3; ++i )
       WALBERLA_CHECK_FLOAT_EQUAL( barycenter[i], barycenter_0[i] );
 
    // test Simplex::volume()
@@ -113,7 +113,7 @@ void adaptiveRefinementTest()
    uint_t origin = 0; // (0, 0, 0)
    for ( uint_t i = 0; i < vertices_0.size(); ++i )
    {
-      if ( vertices_0[i].normSq() <= 0.0 )
+      if ( vertices_0[i].squaredNorm() <= 0.0 )
       {
          origin = i;
          break;

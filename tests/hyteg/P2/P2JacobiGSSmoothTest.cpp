@@ -167,7 +167,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Generate a regular mesh of a square centered around the origin with a criss pattern and 18 triangles
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1.0, -1.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CRISS, 3, 3 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1.0, -1.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 3, 3 );
 
    // Prepare primitive storage
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

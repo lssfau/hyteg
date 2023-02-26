@@ -126,36 +126,36 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
 
          for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
          {
-            if ( it.row() % 2 == 0 )
+            if ( it.y() % 2 == 0 )
             {
-               if ( it.col() % 2 == 0 )
+               if ( it.x() % 2 == 0 )
                {
                   streamWriter << face.getData( function.getVertexDoFFunction().getFaceDataID() )
                                       ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                                          level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
                   streamWriter
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                                 level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
                }
             }
             else
             {
-               if ( it.col() % 2 == 0 )
+               if ( it.x() % 2 == 0 )
                {
                   streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                       ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                                          level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
                }
                else
                {
                   streamWriter
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
                }
             }
          }
@@ -236,15 +236,15 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
 
          for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
          {
-            if ( it.row() % 2 == 0 )
+            if ( it.y() % 2 == 0 )
             {
-               if ( it.col() % 2 == 0 )
+               if ( it.x() % 2 == 0 )
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
                      streamWriter << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
                                          ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                             level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                                             level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
                   }
                }
                else
@@ -254,20 +254,20 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                      streamWriter
                          << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
                   }
                }
             }
             else
             {
-               if ( it.col() % 2 == 0 )
+               if ( it.x() % 2 == 0 )
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
                      streamWriter
                          << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                                    level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
                   }
                }
                else
@@ -276,7 +276,7 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                   {
                      streamWriter << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
                                          ->getPointer( level )[edgedof::macroface::diagonalIndex(
-                                             level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                                             level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
                   }
                }
             }

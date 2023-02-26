@@ -58,11 +58,11 @@ void test2D()
    // IMPORTANT
    communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
-   Point3D coordinates( { 0.0, 0.5, 0.0 } );
+   Point3D coordinates(  0.0, 0.5, 0.0  );
    real_t  eval;
    auto    success = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
-   Point3D gradient;
+   Point3D gradient( Point3D::Zero() );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -125,7 +125,7 @@ void test2D()
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -147,7 +147,7 @@ void test3D()
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
-         Point3D coordinates;
+         Point3D coordinates( Point3D::Zero() );
          coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
          coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
          coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
@@ -187,7 +187,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       {
          real_t radius = walberla::math::realRandom( rMin, rMax );
          real_t angle  = walberla::math::realRandom( real_c( 0 ), real_c( 2 ) * pi );
-         samples.push_back( Point3D( { radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 ) } ) );
+         samples.push_back( Point3D(  radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 )  ) );
       }
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -209,7 +209,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-      Point2D  shift( { real_c( 4 ), real_c( -1.0 / 3.0 ) } );
+      Point2D  shift(  real_c( 4 ), real_c( -1.0 / 3.0 )  );
       real_t   angle = pi / real_c( 180.0 * 25.0 );
       Matrix2r mat;
       mat( 0, 0 ) = +std::cos( angle );
@@ -224,7 +224,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
          real_t yPos = walberla::math::realRandom( real_c( 0 ), real_c( 1 ) );
          real_t x    = mat( 0, 0 ) * xPos + mat( 0, 1 ) * yPos + shift[0];
          real_t y    = mat( 1, 0 ) * xPos + mat( 1, 1 ) * yPos + shift[1];
-         samples.push_back( Point3D( { x, y, real_c( 0 ) } ) );
+         samples.emplace_back( x, y, real_c( 0 ) );
       }
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );

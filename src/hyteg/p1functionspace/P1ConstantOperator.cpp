@@ -27,11 +27,16 @@
 
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P1WrapperForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
@@ -125,6 +130,75 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::
          for ( uint_t i = 0; i < vertex.getData( vertexStencilID_ )->getSize( level ); ++i )
          {
             vertex_stencil[i] *= scalar;
+         }
+      }
+   }
+}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::toMatrix(
+    const std::shared_ptr< SparseMatrixProxy >& mat,
+    const P1Function< idx_t >&                  src,
+    const P1Function< idx_t >&                  dst,
+    size_t                                      level,
+    DoFType                                     flag ) const
+{
+   for ( auto& it : storage_->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         vertexdof::macrovertex::saveOperator(
+             vertex, this->getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
+      }
+   }
+   if ( level >= 1 )
+   {
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::saveOperator(
+                level, edge, *storage_, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+      }
+   }
+   if ( level >= 2 )
+   {
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroface::saveOperator3D(
+                   level, face, *storage_, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+            else
+            {
+               vertexdof::macroface::saveOperator(
+                   level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+         }
+      }
+
+      for ( auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::saveOperator(
+                level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
          }
       }
    }

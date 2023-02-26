@@ -4426,7 +4426,7 @@ namespace forms {
 
    void p2_div_k_grad_blending_q4::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -4437,7 +4437,7 @@ namespace forms {
 
    void p2_div_k_grad_blending_q4::Blending_F_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const
    {
-      Point3D  in( {in_0, in_1, 0} );
+      Point3D  in( in_0, in_1, 0 );
       Point3D out;
       geometryMap_->evalF( in, out );
       *out_0 = out[0];
@@ -4446,12 +4446,12 @@ namespace forms {
 
    void p2_div_k_grad_blending_q4::Scalar_Variable_Coefficient_2D_k( real_t in_0, real_t in_1, real_t * out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_2D_k( Point3D( {in_0, in_1, 0} ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_2D_k( Point3D( in_0, in_1, 0 ) );
    }
 
    void p2_div_k_grad_blending_q4::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -4467,7 +4467,7 @@ namespace forms {
 
    void p2_div_k_grad_blending_q4::Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const
    {
-      Point3D  in( {in_0, in_1, in_2} );
+      Point3D  in( in_0, in_1, in_2 );
       Point3D out;
       geometryMap_->evalF( in, out );
       *out_0 = out[0];
@@ -4477,7 +4477,7 @@ namespace forms {
 
    void p2_div_k_grad_blending_q4::Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_3D_k( Point3D( {in_0, in_1, in_2} ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_3D_k( Point3D( in_0, in_1, in_2 ) );
    }
 
 } // namespace forms

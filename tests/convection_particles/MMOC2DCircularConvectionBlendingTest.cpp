@@ -131,7 +131,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > conicalBody = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( {0, -0.75, 0.0} );
+      const Point3D x0( 0, -0.75, 0.0 );
       const real_t  r0 = 0.15;
       if ( r( x, x0, r0 ) <= 1. )
          return 1 - r( x, x0, r0 );
@@ -140,7 +140,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > gaussianCone = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( {-0.75, 0.0, 0.0} );
+      const Point3D x0( -0.75, 0.0, 0.0 );
       const real_t  r0 = 0.15;
       if ( r( x, x0, r0 ) <= 1. )
          return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
@@ -149,7 +149,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = [&]( const hyteg::Point3D& x ) -> real_t {
-      const Point3D x0( {0.0, 0.75, 0.0} );
+      const Point3D x0( 0.0, 0.75, 0.0 );
       const real_t  r0 = 0.15;
       if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
          return 1;
@@ -186,7 +186,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > magnitude = []( const Point3D&,
                                                                                            const std::vector< real_t >& values ) {
-      return Point3D( {values[0], values[1], 0} ).norm();
+      return Point3D( values[0], values[1], 0 ).norm();
    };
 
    velocityMagnitude.interpolate( magnitude, {uv[0], uv[1]}, maxLevel, All );

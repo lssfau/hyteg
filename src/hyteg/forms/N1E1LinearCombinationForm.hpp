@@ -57,7 +57,7 @@ class N1E1LinearCombinationForm : public N1E1Form
                       const std::array< int, 6 >&     edgeDirections,
                       Matrix6r&                       elMat ) const override
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix6r tmpOut;

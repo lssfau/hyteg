@@ -524,7 +524,7 @@ namespace forms {
 
    void p1_div_k_grad_blending_q1::Blending_F_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const
    {
-      Point3D  in( {in_0, in_1, 0} );
+      Point3D  in( in_0, in_1, 0 );
       Point3D out;
       geometryMap_->evalF( in, out );
       *out_0 = out[0];
@@ -533,7 +533,7 @@ namespace forms {
 
    void p1_div_k_grad_blending_q1::Blending_DF_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -544,12 +544,12 @@ namespace forms {
 
    void p1_div_k_grad_blending_q1::Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const
    {
-      *out_0 = callback2D( Point3D( {in_0, in_1, 0} ) );
+      *out_0 = callback2D( Point3D( in_0, in_1, 0 ) );
    }
 
    void p1_div_k_grad_blending_q1::Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const
    {
-      Point3D  in( {in_0, in_1, in_2} );
+      Point3D  in( in_0, in_1, in_2 );
       Point3D out;
       geometryMap_->evalF( in, out );
       *out_0 = out[0];
@@ -559,7 +559,7 @@ namespace forms {
 
    void p1_div_k_grad_blending_q1::Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -575,7 +575,7 @@ namespace forms {
 
    void p1_div_k_grad_blending_q1::Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
    {
-      *out_0 = callback3D( Point3D( {in_0, in_1, in_2} ) );
+      *out_0 = callback3D( Point3D( in_0, in_1, in_2 ) );
    }
 
 } // namespace forms

@@ -295,16 +295,16 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   trilinosSolveScalarTest( 0, 0, 3, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 1e-14, 1e-04 );
+   trilinosSolveScalarTest( 0, 0, 3, MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), 1e-14, 1e-04 );
 
    //   trilinosSolveStokesTest(
-   //       0, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //       0, 0, 2, MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
    //   trilinosSolveStokesTest(
-   //       1, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //       1, 0, 2, MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
    //   trilinosSolveStokesTest(
-   //       2, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //       2, 0, 2, MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
    //   trilinosSolveStokesTest(
-   //       2, 1, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //       2, 1, 2, MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
 
    return EXIT_SUCCESS;
 }

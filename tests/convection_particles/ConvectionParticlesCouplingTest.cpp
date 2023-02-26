@@ -75,7 +75,7 @@ void testSetupPrimitiveStorageCoupling2D()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Primitive storage coupling 2D ..." )
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D({0, 0}), Point2D({10, 10}), MeshInfo::CRISS, 3, 3 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0, 0), Point2D( 10, 10), MeshInfo::CRISS, 3, 3 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
@@ -119,7 +119,7 @@ void testSetupPrimitiveStorageCoupling3D()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Primitive storage coupling 3D ..." )
 
-   MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D({0, 0, 0}), Point3D({10, 10, 10}), 1, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( 0, 0, 0), Point3D( 10, 10, 10), 1, 1, 1 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 

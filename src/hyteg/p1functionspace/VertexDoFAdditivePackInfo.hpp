@@ -197,7 +197,7 @@ void VertexDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*       
 
    for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0, 1 ) )
    {
-      buffer << faceData[vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C )];
+      buffer << faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )];
    }
 }
 
@@ -231,7 +231,7 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const F
    for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0, 1 ) )
    {
       edgeData[vertexdof::macroedge::index( level_, edgeIterator->x() )] +=
-          faceData[vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C )];
+          faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )];
       edgeIterator++;
    }
 }

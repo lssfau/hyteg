@@ -304,7 +304,7 @@ class IcosahedralShellMap : public GeometryMap
 
       for ( uint_t k = 0; k < 4; k++ )
       {
-         radius[k] = std::sqrt( coords[k].normSq() );
+         radius[k] = std::sqrt( coords[k].squaredNorm() );
          innerRad  = radius[k] < innerRad ? radius[k] : innerRad;
          outerRad  = radius[k] > outerRad ? radius[k] : outerRad;
       }
@@ -454,8 +454,8 @@ class IcosahedralShellMap : public GeometryMap
          thrVertex_ = coords[idxThrVertex];
          forVertex_ = coords[idxForVertex];
 
-         radRefVertex_ = std::sqrt( refVertex_.normSq() );
-         radRayVertex_ = std::sqrt( rayVertex_.normSq() );
+         radRefVertex_ = std::sqrt( refVertex_.squaredNorm() );
+         radRayVertex_ = std::sqrt( rayVertex_.squaredNorm() );
 
          SHELL_MAP_LOG( "refVertex = " << refVertex_ );
          SHELL_MAP_LOG( "rayVertex = " << rayVertex_ );

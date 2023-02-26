@@ -31,7 +31,6 @@
 namespace hyteg {
 
 using indexing::Index;
-using indexing::IndexIncrement;
 
 void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >& function,
                                                      const uint_t&               sourceLevel,

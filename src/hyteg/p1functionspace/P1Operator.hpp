@@ -19,13 +19,12 @@
  */
 #pragma once
 
-
-
 #include <array>
 
 #include "core/OpenMP.h"
 
-#include "hyteg/Stencil.hpp" 
+#include "hyteg/Stencil.hpp"
+#include "hyteg/indexing/Common.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -767,7 +766,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                         {
                            for ( auto stencilIt : stencilMap[neighborCellID] )
                            {
-                              if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
+                              if ( stencilIt.first == indexing::Index( { 0, 0, 0 } ) )
                               {
                                  centerValue += stencilIt.second;
                               }
@@ -810,7 +809,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                //       {
                //          for (auto stencilIt : stencilMap[neighborCellID])
                //          {
-               //             if (stencilIt.first == indexing::IndexIncrement({0, 0, 0}))
+               //             if (stencilIt.first == indexing::Index({0, 0, 0}))
                //             {
                //                centerValue += stencilIt.second;
                //             }
@@ -885,7 +884,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                            }
                         }
 
-                        ValueType centerValue = stencilMap[indexing::IndexIncrement( { 0, 0, 0 } )];
+                        ValueType centerValue = stencilMap[indexing::Index( { 0, 0, 0 } )];
 
                         targetMemory[vertexdof::macrocell::index( level, i, j, k )] = centerValue;
                      }
@@ -899,7 +898,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                //       assemble_stencil_cell(stencilMap, idx.x(), idx.y(), idx.z());
                //    }
 
-               //    ValueType centerValue = stencilMap[indexing::IndexIncrement({0, 0, 0})];
+               //    ValueType centerValue = stencilMap[indexing::Index({0, 0, 0})];
 
                //    targetMemory[vertexdof::macrocell::index(level, idx.x(), idx.y(), idx.z())] = centerValue;
                // }
@@ -1471,7 +1470,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
-               if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
+               if ( stencilIt.first == indexing::Index( { 0, 0, 0 } ) )
                   continue;
 
                auto weight               = stencilIt.second;
@@ -2086,7 +2085,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
          {
             for ( auto& stencilIt : face_stencil[neighborCellID] )
             {
-               if ( !( neighborCellID == 0 && stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) ) )
+               if ( !( neighborCellID == 0 && stencilIt.first == indexing::Index( { 0, 0, 0 } ) ) )
                {
                   face_stencil[0][{ 0, 0, 0 }] += stencilIt.second;
                   stencilIt.second = 0;
@@ -2100,7 +2099,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
          {
             for ( auto& stencilIt : face_stencil[neighborCellID] )
             {
-               if ( stencilIt.first != indexing::IndexIncrement( { 0, 0, 0 } ) )
+               if ( stencilIt.first != indexing::Index( { 0, 0, 0 } ) )
                {
                   stencilIt.second = 0;
                }
