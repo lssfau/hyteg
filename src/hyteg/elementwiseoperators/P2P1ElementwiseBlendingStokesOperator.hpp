@@ -50,6 +50,7 @@ class P2P1ElementwiseBlendingStokesOperator
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , blockPrec( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -114,6 +115,7 @@ class P2P1ElementwiseBlendingStokesOperator
    /// this operator is need in the uzawa smoother
    P1PSPGInvDiagOperator pspg_inv_diag_;
 
+    BlockPreconditioner_T blockPrec;
    bool hasGlobalCells_;
 };
 
