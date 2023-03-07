@@ -184,7 +184,7 @@ struct ModelProblem
          }
          else
          {
-            _f = [=]( const Point3D& x ) -> real_t { return std::exp( -0.5 * x.normSq() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 ); };
+            _f = [=]( const Point3D& x ) -> real_t { return std::exp( -0.5 * x.squaredNorm() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 ); };
             _u = [=]( const Point3D& x ) -> real_t {
                real_t r = x.norm();
                if ( r <= 0.0 )
@@ -392,8 +392,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    std::shared_ptr< A_t > A;
    auto                   M = std::make_shared< Mass >( storage, l_min, l_err );
-   auto                   P = std::make_shared< P1toP1LinearProlongation >();
-   auto                   R = std::make_shared< P1toP1LinearRestriction >();
+   auto                   P = std::make_shared< P1toP1LinearProlongation<> >();
+   auto                   R = std::make_shared< P1toP1LinearRestriction<> >();
 
    if constexpr ( std::is_same_v< A_t, DivkGrad > )
    {
