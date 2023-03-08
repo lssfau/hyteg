@@ -128,11 +128,19 @@ struct ModelProblem
    {
       if ( type == DIRAC )
       {
+         if ( offset <= real_t( 0.0 ) )
+         {
+            WALBERLA_ABORT( "Offset must be greater than zero!" )
+         }
          offset_err                   = offset;
          ignore_offset_for_refinement = refine_all;
       }
       if ( type == DIRAC_REGULARIZED )
       {
+         if ( sig <= real_t( 0.0 ) )
+         {
+            WALBERLA_ABORT( "Sigma must be greater than zero!" )
+         }
          sigma = sig;
       }
       // todo: add parameters when adding new problems
@@ -184,7 +192,9 @@ struct ModelProblem
          }
          else
          {
-            _f = [=]( const Point3D& x ) -> real_t { return std::exp( -0.5 * x.squaredNorm() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 ); };
+            _f = [=]( const Point3D& x ) -> real_t {
+               return std::exp( -0.5 * x.squaredNorm() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 );
+            };
             _u = [=]( const Point3D& x ) -> real_t {
                real_t r = x.norm();
                if ( r <= 0.0 )
@@ -845,7 +855,6 @@ int main( int argc, char* argv[] )
    }
 
    // read parameters
-   WALBERLA_LOG_INFO_ON_ROOT( "config = " << *cfg );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
    const uint_t mp         = parameters.getParameter< uint_t >( "modelProblem" );
@@ -855,7 +864,9 @@ int main( int argc, char* argv[] )
    const bool   refine_all = parameters.getParameter< bool >( "refine_all", false );
    // todo: add parameters when adding new problems
 
-   const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", 1 );
+   const uint_t N_default =
+       ( ModelProblem::Type( mp ) == ModelProblem::SLIT || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER ) ? 2 : 1;
+   const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", N_default );
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
    const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
@@ -883,14 +894,60 @@ int main( int argc, char* argv[] )
 
    // setup model problem
    ModelProblem problem( mp, dim );
-   WALBERLA_LOG_INFO_ON_ROOT( "Model Problem: " << problem.name() );
    if ( vtkname == "auto" )
    {
       vtkname = problem.name();
    }
    problem.set_params( sigma, offset, refine_all );
+
    // setup domain
    auto setupStorage = domain( problem, N );
+
+   // print parameters
+   WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d (%s)", "model problem", mp, problem.name().c_str() ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "spacial dimensions", dim ) );
+   if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC_REGULARIZED )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "sigma", sigma ) );
+   }
+   if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "offset", sigma ) );
+      if ( refine_all )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(but refine elements within offset)" ) );
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(also no refinement within offset)" ) );
+      }
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion to refine per step", p_refinement ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "initial guess", ( u0 ) ? "interpolated" : "zero" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       " %30s: %d", "additional final step", ( l_final > l_max || max_iter_final > max_iter || tol_final < tol ) ) );
+   if ( l_final > l_max || max_iter_final > max_iter || tol_final < tol )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "level (final solve)", l_final ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations (final solve)", max_iter_final ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "tolerance (final solve)", tol_final ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write vtk output", ( vtkname != "" ) ) );
+   if ( vtkname != "" )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "vtk name", vtkname.c_str() ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", writeMeshfile ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "use higher level for L2 error", accurate_error ) );
+
    // solve/refine iteratively
    solve_for_each_refinement( setupStorage,
                               problem,

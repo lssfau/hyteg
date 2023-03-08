@@ -5,46 +5,44 @@ Parameters
   // 1: regularized dirac on rhs
   // 2: slit domain
   // 3: domain with reentrant corner
-  modelProblem 2;
+  modelProblem 0;
   // spacial dimension of domain
   dim 3;
 
-  // offset from singularity where the error will be ignored (unused if there is no singularity)
-  offset 1e-10;
-  // only use offset for computation of total error but still consider the respective elements for refinement
-  // refine_all 0;
-  // standard deviation used when mp=1
-  sigma 0.1;
+  // offset 1e-10; // offset from singularity where the error will be ignored (unused if the solution has no singularity)
+  // refine_all 0; // only use offset for computation of total error but still consider the respective elements for refinement
+  // sigma 0.1; // standard deviation used when mp=1
 
-  // initial number of elements in each direction
-  initial_resolution 2;
+
+  // initial_resolution 10; // initial number of elements in each direction
 
   // adaptive refinement:
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 0; // number of refinement steps
+  n_refinements 5; // number of refinement steps
   percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
   // n_el_max 6144; // max number of macro elements
 
   // local regular refinement
   microlevel 2;
-  // use different micro level for final solve step
-  // microlevel_final 4;
+  // microlevel_final 4; // use different micro level for final solve step
 
-  // linear solver (GMG)
-  cg_level 0; // defaults to 0
-  initial_guess 1; // 0: zero, 1: u_h from previous refinement
-  n_iterations 50;
+
+  // // linear solver (GMG)
+
+  n_iterations 15;
+  // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-9;
+  // tolerance_final 1e-10; // use different tolerance for final solve step
+  // cg_level 2; // defaults to 0
   cg_tolerance 1e-12;
-  // use different number of iterations and tolerance for final solve step
-  // n_iterations_final 5;
-  // tolerance_final 1e-9;
+  // initial_guess 1; // 0: zero, 1: u_h from previous refinement
 
-  // misc
+  // // misc
+
   // vtkName auto;
   // writeDomainPartitioning 1;
-  writeMeshfile 1;
-  compute_error_on_higher_lvl 1;
+  // writeMeshfile 1;
+  // compute_error_on_higher_lvl 1;
 }
