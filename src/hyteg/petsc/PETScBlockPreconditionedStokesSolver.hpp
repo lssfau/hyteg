@@ -38,11 +38,18 @@
 
 namespace hyteg {
 
+    // check for data member blockPrec
+    template<typename, typename = void>
+    constexpr bool hasBlockPrec = false;
+    template<typename T>
+    constexpr bool hasBlockPrec<T, std::void_t<decltype(std::declval<T>().blockPrec)> > = true;
+
     template<class OperatorType>
     class PETScBlockPreconditionedStokesSolver : public Solver<OperatorType> {
     public:
         typedef typename OperatorType::srcType FunctionType;
         typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
+
 
         /// \brief PETSc-based block preconditioned Krylov solver for the Stokes problem.
         ///
@@ -169,7 +176,17 @@ namespace hyteg {
                 AmatNonEliminatedBC.zeroEntries();
                 Amat.createMatrixFromOperator(A, level, num, All);
                 AmatNonEliminatedBC.createMatrixFromOperator(A, level, num, All);
-                Pmat.createMatrixFromOperator(A.blockPrec, level, num, All);
+
+                // some operators offer their own blockpreconditioner as member:
+                // if the operator has a variable viscosity, the blockPrec cannot be constructed here
+                // but must be constructed with the construction of the operator, lablese only then the viscosity function is available
+                if constexpr (hasBlockPrec<OperatorType>) {
+                    Pmat.createMatrixFromOperator(A.blockPrec, level, num, All);
+                } else {
+                    BlockPreconditioner_T blockPrec(storage_, level, level);
+                    Pmat.createMatrixFromOperator( blockPrec, level, num, All );
+                }
+
                 x.getStorage()->getTimingTree()->stop("Matrix assembly");
 
                 x.getStorage()->getTimingTree()->start("Dirichlet BCs");
@@ -229,8 +246,8 @@ namespace hyteg {
                 KSPGetPC(sub_ksps_[1], &pc_p);
                 PCSetType(pc_u, PCLU);
                 PCSetType(pc_p, PCLU);
-                //KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
-                // KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+                KSPSetTolerances(sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
+                KSPSetTolerances(sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
             } else if (velocityPreconditionerType_ == 5) {
                 // Original system matrix A is used for the GKB preconditioner
                 KSPSetOperators(ksp, Amat.get(), Amat.get());
