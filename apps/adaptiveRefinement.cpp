@@ -128,19 +128,11 @@ struct ModelProblem
    {
       if ( type == DIRAC )
       {
-         if ( offset <= real_t( 0.0 ) )
-         {
-            WALBERLA_LOG_WARNING_ON_ROOT("Choosing an offset of zero will produce NaN error due to the singularity at (0,0,0)!")
-         }
          offset_err                   = offset;
          ignore_offset_for_refinement = refine_all;
       }
       if ( type == DIRAC_REGULARIZED )
       {
-         if ( sig <= real_t( 0.0 ) )
-         {
-            WALBERLA_LOG_WARNING_ON_ROOT("Sigma should be greater than zero to prevent singularity in the  solution at (0,0,0)!")
-         }
          sigma = sig;
       }
       // todo: add parameters when adding new problems
@@ -675,10 +667,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
 
    // update u_old
-   if ( u0 == 1 )
-   {
-      u_old.swap( u );
-   }
+   u_old.swap( u );
 
    return err_2_elwise_loc;
 }
@@ -924,10 +913,14 @@ int main( int argc, char* argv[] )
    if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC_REGULARIZED )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "sigma", sigma ) );
+      if ( sigma <= real_t( 0.0 ) )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "Sigma should be greater than zero to prevent singularity in the solution at (0,0,0)!" )
+      }
    }
    if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "offset", sigma ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "offset", offset ) );
       if ( refine_all )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(but refine elements within offset)" ) );
@@ -935,6 +928,10 @@ int main( int argc, char* argv[] )
       else
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(also no refinement within offset)" ) );
+      }
+      if ( offset <= real_t( 0.0 ) )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "Choosing an offset of zero will produce NaNs in the L2-error due to the singularity at (0,0,0)!" )
       }
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );

@@ -576,6 +576,14 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
       // all ranks have been assigned at least n_vol_max0 elements but there are still elements left
       fill_any = true;
    }
+
+   WALBERLA_DEBUG_SECTION()
+   {
+      for ( uint_t i = 0; i < n_vol_on_rnk.size(); ++i )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "elements on rank " << i << ": " << n_vol_on_rnk[i] );
+      }
+   }
 }
 
 template < class K_Simplex >
