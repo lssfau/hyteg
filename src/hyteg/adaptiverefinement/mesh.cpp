@@ -319,7 +319,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    }
    else if ( lb == GREEDY )
    {
-      WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
+      // WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
       loadbalancing_greedy( nbrHood );
    }
    else
@@ -466,6 +466,14 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
    bool                  fill_any       = false;
    auto                  random_element = _T.begin();
 
+   if ( n_vol_max0 < 4 )
+   {
+      WALBERLA_LOG_WARNING(
+          "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
+
+      return loadbalancing_roundRobin();
+   }
+
    std::map< PrimitiveID, K_Simplex* > id_to_el;
    for ( auto& el : _T )
    {
@@ -478,7 +486,8 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
       {
          std::queue< std::vector< K_Simplex* > > Q;
          std::unordered_map< K_Simplex*, bool >  visited;
-         auto                                    add_to_Q = [&]( K_Simplex* el ) -> bool {
+         // add element to queue
+         auto add_to_Q = [&]( K_Simplex* el ) -> bool {
             if ( visited[el] || el->getTargetRank() < _n_processes )
             {
                return false;

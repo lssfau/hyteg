@@ -130,7 +130,7 @@ struct ModelProblem
       {
          if ( offset <= real_t( 0.0 ) )
          {
-            WALBERLA_ABORT( "Offset must be greater than zero!" )
+            WALBERLA_LOG_WARNING_ON_ROOT("Choosing an offset of zero will produce NaN error due to the singularity at (0,0,0)!")
          }
          offset_err                   = offset;
          ignore_offset_for_refinement = refine_all;
@@ -139,7 +139,7 @@ struct ModelProblem
       {
          if ( sig <= real_t( 0.0 ) )
          {
-            WALBERLA_ABORT( "Sigma must be greater than zero!" )
+            WALBERLA_LOG_WARNING_ON_ROOT("Sigma should be greater than zero to prevent singularity in the  solution at (0,0,0)!")
          }
          sigma = sig;
       }
@@ -387,6 +387,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto l_err = ( accurate_error ) ? l_max + 1 : l_max;
 
    double t0, t1;
+   double t_loadbalancing = 0;
+   if ( u0 == 0 || u_old == nullptr )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "* apply Loadbalancing" );
+      // if u0 is initialized with zero, we apply loadbalancing before creating the storage.
+      // else, we first interpolate u before applying loadbalancing
+      t0 = walberla::timing::getWcTime();
+      mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
+      t1              = walberla::timing::getWcTime();
+      t_loadbalancing = t1 - t0;
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
    t0           = walberla::timing::getWcTime();
@@ -475,26 +486,29 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
+   double t_interpolate = 0;
+
    // initialize u_h
-   t0 = walberla::timing::getWcTime();
    if ( u0 == 1 && u_old != nullptr )
    {
+      // interpolate old solution to new mesh
+      t0 = walberla::timing::getWcTime();
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
       u->interpolate( *u_old, l_max, l_interpolate );
+      t1            = walberla::timing::getWcTime();
+      t_interpolate = t1 - t0;
+      // apply loadbalancing
+      WALBERLA_LOG_INFO_ON_ROOT( " -> apply Loadbalancing" );
+      t0                 = walberla::timing::getWcTime();
+      auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
+      storage->migratePrimitives( migrationInfo );
+      t1              = walberla::timing::getWcTime();
+      t_loadbalancing = t1 - t0;
    }
    else
    {
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=0" );
    }
-   t1                 = walberla::timing::getWcTime();
-   auto t_interpolate = t1 - t0;
-
-   // apply loadbalancing
-   t0                 = walberla::timing::getWcTime();
-   auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
-   storage->migratePrimitives( migrationInfo );
-   t1                   = walberla::timing::getWcTime();
-   auto t_loadbalancing = t1 - t0;
 
    // solver
    t0 = walberla::timing::getWcTime();

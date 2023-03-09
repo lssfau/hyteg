@@ -75,6 +75,9 @@ class SimplexData
    inline bool                               isLocal() const { return _locality == LOCAL; }
    inline void                               setLocality( Locality loc ) { _locality = loc; }
 
+   // count number of vertices that are not shared between this and other, i.e.,
+   // return d = (J+1) - n_shared
+   // e.g., if *this==other, then d=0; if other is a direct neighbor of this, then d=1;
    inline uint_t diff( const SimplexData& other ) const
    {
       uint_t d = 0;
