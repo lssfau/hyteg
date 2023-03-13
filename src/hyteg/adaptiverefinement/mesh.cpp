@@ -319,13 +319,14 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
    }
    else if ( lb == GREEDY )
    {
-      // WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
+      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme GREEDY might lead to some processes not being assigned any work!" );
       loadbalancing_greedy( nbrHood );
    }
    else
    {
       // todo: implement better loadbalancing
-      WALBERLA_ABORT( "loadbalancing scheme not implemented!" );
+      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme not implemented! Using Round Robin instead" );
+      loadbalancing_roundRobin();
    }
 
    // extract data with new targetRank

@@ -41,9 +41,10 @@ struct RefinedElements
 
 enum Loadbalancing
 {
-   ROUND_ROBIN, // cheap loadbalancer
-   CLUSTERING,  // assign clusters of primitives to each process
-   GREEDY       // assign elements to processes using greedy algorithm
+   ROUND_ROBIN,  // cheap loadbalancer
+   GREEDY,       // assign elements to processes using greedy algorithm
+   SFC,          // use space filling curve for loadbalancing (NOT IMPLEMENTED YET)
+   SFC_VISUALIZE // use space filling curve for loadbalancing. Also export the sfc to vtk (NOT IMPLEMENTED YET)
 };
 
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;

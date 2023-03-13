@@ -386,7 +386,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       // if u0 is initialized with zero, we apply loadbalancing before creating the storage.
       // else, we first interpolate u before applying loadbalancing
       t0 = walberla::timing::getWcTime();
-      mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
+      mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       t1              = walberla::timing::getWcTime();
       t_loadbalancing = t1 - t0;
    }
@@ -931,7 +931,8 @@ int main( int argc, char* argv[] )
       }
       if ( offset <= real_t( 0.0 ) )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "Choosing an offset of zero will produce NaNs in the L2-error due to the singularity at (0,0,0)!" )
+         WALBERLA_LOG_WARNING_ON_ROOT(
+             "Choosing an offset of zero will produce NaNs in the L2-error due to the singularity at (0,0,0)!" )
       }
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
