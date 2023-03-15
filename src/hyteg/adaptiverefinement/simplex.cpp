@@ -198,8 +198,9 @@ Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
                     std::shared_ptr< Simplex2 >                         parent,
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag )
+                    uint_t                                              boundaryFlag,
+                    uint_t                                              targetRank )
+: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
 , _edges( edges )
 {
    for ( uint_t i = 0; i < 3; ++i )
@@ -297,34 +298,32 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
                     std::shared_ptr< Simplex3 >                         parent,
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag )
+                    uint_t                                              boundaryFlag,
+                    uint_t                                              targetRank )
+: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
 , _edges( edges )
 , _faces( faces )
 {
-   // check edges
-   for ( uint_t i = 0; i < 3; ++i )
+   // check ordering of edges and faces
+   // should be: E = [01 02 03 12 13 23]
+   //            F = [012 013 023 123]
+   uint_t e = 0, f = 0;
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      // edge 0--2
-      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
-      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
-      // edge 3--5
-      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[i] ) );
-      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[3] ) );
-   }
+      for ( uint_t j = i + 1; j < 4; ++j )
+      {
+         WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[i] ) );
+         WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[j] ) );
+         ++e;
 
-   // check faces
-   // face 0
-   for ( uint_t j = 0; j < 3; ++j )
-   {
-      WALBERLA_ASSERT( _faces[0]->has_vertex( _vertices[j] ) );
-   }
-   // face 1--3
-   for ( uint_t i = 1; i < 4; ++i )
-   {
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i - 1] ) );
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i % 3] ) );
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[3] ) );
+         for ( uint_t k = j + 1; k < 4; ++k )
+         {
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[i] ) );
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[j] ) );
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[k] ) );
+            ++f;
+         }
+      }
    }
 }
 
