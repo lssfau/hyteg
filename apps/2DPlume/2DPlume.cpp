@@ -86,6 +86,7 @@ void runPlume( walberla::Environment& env )
 
    const auto numDofsStokes      = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    const auto numDofsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT( mainConf )
    WALBERLA_LOG_INFO_ON_ROOT( storage->getGlobalInfo() )
    WALBERLA_LOG_INFO_ON_ROOT( "Number of DoFs:" );
    WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Stokes system (velocity + pressure):" << std::scientific
@@ -93,7 +94,7 @@ void runPlume( walberla::Environment& env )
    WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Temperature:" << std::scientific
                                         << real_c( numDofsTemperature ) );
    WALBERLA_LOG_INFO_ON_ROOT( std::left << std::setw( 40 ) << "- Total:" << std::scientific
-                                        << real_c( numDofsTemperature + numDofsTemperature ) );
+                                        << real_c( numDofsTemperature + numDofsStokes ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    std::function< real_t( const Point3D& ) > initialTemperature = []( const Point3D& x ) {
