@@ -59,25 +59,6 @@ class PointND : public Eigen::Matrix< ValueType, N, 1 >
    {}
 };
 
-template < typename T, size_t N >
-inline std::ostream& operator<<( std::ostream& os, const PointND< T, N >& pointnd )
-{
-   os << "[";
-
-   for ( size_t i = 0; i < N; ++i )
-   {
-      os << pointnd[i];
-      if ( i != N - 1 )
-      {
-         os << ", ";
-      }
-   }
-
-   os << "]";
-
-   return os;
-}
-
 using Point2D  = PointND< walberla::real_t, 2 >;
 using Point3D  = PointND< walberla::real_t, 3 >;
 using Point4D  = PointND< walberla::real_t, 4 >;
