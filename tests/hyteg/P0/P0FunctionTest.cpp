@@ -35,10 +35,9 @@ using walberla::real_t;
 
 using namespace hyteg;
 
-void test_dotLocalGlobal_2D()
+void test_dotLocalGlobal(std::string meshFileName)
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_4el.msh" );
-   // MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
@@ -47,15 +46,11 @@ void test_dotLocalGlobal_2D()
 
    walberla::math::seedRandomGenerator( 12345678 );
 
-   const uint_t numRandomEvaluations = 100;
+   const uint_t numRandomEvaluations = 1;
 
    P0Function< real_t > x( "x", storage, minLevel, maxLevel );
 
    P0Function< real_t > y( "x", storage, minLevel, maxLevel );
-
-   // IMPORTANT
-   // communication::syncFunctionBetweenPrimitives( x, maxLevel );
-   // communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    const uint_t numGlobalDoFs = x.getNumberOfGlobalDoFs(maxLevel);
 
@@ -63,27 +58,42 @@ void test_dotLocalGlobal_2D()
 
    // const int rank = walberla::mpi::MPIManager::instance()->rank();
 
+   /* This tests using the constant interpolate function */
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      real_t test_func_1_val = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-      real_t test_func_2_val = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      real_t testFuncValX = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      real_t testFuncValY = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
-      auto testFunc_1            = [&test_func_1_val]( const Point3D& ) { return real_c( test_func_1_val ); };
-      auto testFunc_2            = [&test_func_2_val]( const Point3D& ) { return real_c( test_func_2_val ); };
+      x.interpolate( testFuncValX, maxLevel );
+      y.interpolate( testFuncValY, maxLevel );
 
-      x.interpolate( testFunc_1, maxLevel );
-      y.interpolate( testFunc_2, maxLevel );
-
-      // Learnt that this is essential! 
-      x.communicate(maxLevel);
-      y.communicate(maxLevel);
-
-      real_t dotvalue_local = x.dotLocal(y, maxLevel);
-      real_t dotvalue_global = x.dotGlobal(y, maxLevel);
+      real_t dotValueLocal = x.dotLocal(y, maxLevel);
+      real_t dotValueGlobal = x.dotGlobal(y, maxLevel);
 
       /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
-      WALBERLA_CHECK_FLOAT_EQUAL( dotvalue_local, ((real_t)numLocalDoFs) * test_func_1_val * test_func_2_val );
-      WALBERLA_CHECK_FLOAT_EQUAL( dotvalue_global, ((real_t)numGlobalDoFs) * test_func_1_val * test_func_2_val );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
+
+   }
+
+   /* This tests using the expression interpolate function (in turn tests the 2D and 3D expr interpolate functions also) */
+   for ( uint_t i = 0; i < numRandomEvaluations; ++i )
+   {
+      real_t testFuncValX = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      real_t testFuncValY = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+
+      auto testFuncX            = [&testFuncValX]( const Point3D& ) { return real_c( testFuncValX ); };
+      auto testFuncY            = [&testFuncValY]( const Point3D& ) { return real_c( testFuncValY ); };
+
+      x.interpolate( testFuncX, maxLevel );
+      y.interpolate( testFuncY, maxLevel );
+
+      real_t dotValueLocal = x.dotLocal(y, maxLevel);
+      real_t dotValueGlobal = x.dotGlobal(y, maxLevel);
+
+      /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
 
    }
    
@@ -95,7 +105,8 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test_dotLocalGlobal_2D();
+   test_dotLocalGlobal("../../data/meshes/tri_4el.msh"); // 2D
+   test_dotLocalGlobal("../../data/meshes/3D/pyramid_4el.msh"); // 3D
 
    return EXIT_SUCCESS;
 }

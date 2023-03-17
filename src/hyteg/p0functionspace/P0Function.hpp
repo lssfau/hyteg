@@ -79,12 +79,31 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType ) const
+   void interpolate( ValueType constant, uint_t level, DoFType dofType = All) const
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto cellID = it.first;
+            const auto& cell   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( cellID ), 0 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 3, 0 ), 1 );
+
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      constant;
+               }
+            }
+         }
       }
       else
       {
@@ -116,7 +135,42 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto cellID = it.first;
+            const auto& cell   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( cellID ), 0 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 3, 0 ), 1 );
+
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  const std::array< indexing::Index, 4 > vertexIndices =
+                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                  std::array< Eigen::Matrix< real_t, 3, 1 >, 3 > elementVertices;
+                  for ( uint_t i = 0; i < 4; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                     elementVertices[i]( 2 )  = elementVertex[2];
+                  }
+
+                  const Eigen::Matrix< real_t, 3, 1 > centroid =
+                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / 3.;
+
+                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ) );
+
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      ValueType( val );
+               }
+            }
+         }
       }
       else
       {
