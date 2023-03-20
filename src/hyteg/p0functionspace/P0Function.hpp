@@ -152,7 +152,7 @@ class P0Function : public Function< P0Function< ValueType > >
                {
                   const std::array< indexing::Index, 4 > vertexIndices =
                       celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-                  std::array< Eigen::Matrix< real_t, 3, 1 >, 3 > elementVertices;
+                  std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
                   for ( uint_t i = 0; i < 4; i++ )
                   {
                      const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
@@ -370,6 +370,24 @@ class P0Function : public Function< P0Function< ValueType > >
          WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxMagnitude -> DoFType flag will be ignored!" );
       }
       return dgFunction_->getMaxMagnitude( level, mpiReduce );
+   }
+
+   ValueType getMax( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   {
+      if ( flag != All && flag != Inner )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMax -> DoFType flag will be ignored!" );
+      }
+      return dgFunction_->getMax( level, mpiReduce );
+   }
+
+   ValueType getMin( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   {
+      if ( flag != All && flag != Inner )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMin -> DoFType flag will be ignored!" );
+      }
+      return dgFunction_->getMin( level, mpiReduce );
    }
 
  private:
