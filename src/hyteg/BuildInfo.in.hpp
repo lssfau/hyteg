@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include <mpi.h>
+#include <sstream>
+
 #include "core/logging/Logging.h"
 
 namespace hyteg {
@@ -41,7 +44,23 @@ std::string compilerInfo()
 
 std::string mpiVersion()
 {
-   return "@HYTEG_MPI_VERSION@";
+   std::stringstream mpiLibraryVersion{ "Unknown MPI Library" };
+
+   // Check for OpenMPI
+#ifdef OMPI_MAJOR_VERSION
+   mpiLibraryVersion.str( std::string() );
+   mpiLibraryVersion << "OpenMPI " << OMPI_MAJOR_VERSION << '.' << OMPI_MINOR_VERSION << '.' << OMPI_RELEASE_VERSION;
+#endif
+
+   // Check for IntelMPI
+#ifdef I_MPI_VERSION
+   mpiLibraryVersion.str( std::string() );
+   mpiLibraryVersion << "IntelMPI " << I_MPI_VERSION;
+#endif
+
+   // MPICH ????
+
+   return mpiLibraryVersion.str();
 }
 
 void printBuildInfo()
@@ -53,4 +72,4 @@ void printBuildInfo()
    WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
 }
 
-}
+} // namespace hyteg
