@@ -20,7 +20,10 @@
 
 #pragma once
 
+#ifdef WALBERLA_BUILD_WITH_MPI
 #include <mpi.h>
+#endif
+
 #include <sstream>
 
 #include "core/logging/Logging.h"
@@ -44,11 +47,13 @@ std::string compilerInfo()
 
 std::string mpiVersion()
 {
+#ifdef WALBERLA_BUILD_WITH_MPI
+
    // We need to do some C-style string handling here
    char mpiLibraryVersion[MPI_MAX_LIBRARY_VERSION_STRING];
    int  stringLength{ 0 };
    int  status{ 0 };
-   
+
    // Run the query
    status = MPI_Get_library_version( mpiLibraryVersion, &stringLength );
 
@@ -59,6 +64,12 @@ std::string mpiVersion()
    }
 
    return std::string( mpiLibraryVersion );
+
+#else
+
+   return std::string( "no MPI library info; sequential build!" );
+
+#endif
 }
 
 void printBuildInfo()
