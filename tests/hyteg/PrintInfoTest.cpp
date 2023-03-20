@@ -37,13 +37,14 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string separator{"--------------------------------------------------"};
+   std::string separator{ "--------------------------------------------------" };
 
    printBuildInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
    WALBERLA_LOG_INFO_ON_ROOT( "buildType() returned ........ " << buildType() );
    WALBERLA_LOG_INFO_ON_ROOT( "compilerInfo() returned ..... " << compilerInfo() );
    WALBERLA_LOG_INFO_ON_ROOT( "compilerFlags() returned .... " << compilerFlags() );
+   WALBERLA_LOG_INFO_ON_ROOT( "mpiVersion() returned ....... " << mpiVersion() );
 
    WALBERLA_LOG_INFO_ON_ROOT( separator );
    printGitInfo();
