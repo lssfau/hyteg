@@ -44,23 +44,21 @@ std::string compilerInfo()
 
 std::string mpiVersion()
 {
-   std::stringstream mpiLibraryVersion{ "Unknown MPI Library" };
+   // We need to do some C-style string handling here
+   char mpiLibraryVersion[MPI_MAX_LIBRARY_VERSION_STRING];
+   int  stringLength{ 0 };
+   int  status{ 0 };
+   
+   // Run the query
+   status = MPI_Get_library_version( mpiLibraryVersion, &stringLength );
 
-   // Check for OpenMPI
-#ifdef OMPI_MAJOR_VERSION
-   mpiLibraryVersion.str( std::string() );
-   mpiLibraryVersion << "OpenMPI " << OMPI_MAJOR_VERSION << '.' << OMPI_MINOR_VERSION << '.' << OMPI_RELEASE_VERSION;
-#endif
+   // Process results
+   if ( status != MPI_SUCCESS )
+   {
+      WALBERLA_ABORT( "Problem with MPI_Get_library_version() detected!" );
+   }
 
-   // Check for IntelMPI
-#ifdef I_MPI_VERSION
-   mpiLibraryVersion.str( std::string() );
-   mpiLibraryVersion << "IntelMPI " << I_MPI_VERSION;
-#endif
-
-   // MPICH ????
-
-   return mpiLibraryVersion.str();
+   return std::string( mpiLibraryVersion );
 }
 
 void printBuildInfo()

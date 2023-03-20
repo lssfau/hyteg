@@ -36,8 +36,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 
 find_package(waLBerla)
 
-execute_process(COMMAND ${MPIEXEC_EXECUTABLE} --version RESULT_VARIABLE mpi_version_result OUTPUT_VARIABLE mpi_version_output)
-string(REGEX REPLACE "\n.*" "" HYTEG_MPI_VERSION ${mpi_version_output})
 if (NOT WALBERLA_DOUBLE_ACCURACY)
    set(HYTEG_USE_GENERATED_KERNELS OFF)
    message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF")
