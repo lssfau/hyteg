@@ -44,7 +44,7 @@ void test_dotLocalGlobal(std::string meshFileName)
    const size_t minLevel = 0;
    const size_t maxLevel = 5;
 
-   walberla::math::seedRandomGenerator( 12345678 );
+   // walberla::math::seedRandomGenerator( 12345678 );
 
    const uint_t numRandomEvaluations = 1;
 
@@ -56,14 +56,14 @@ void test_dotLocalGlobal(std::string meshFileName)
 
    const uint_t numLocalDoFs = x.getNumberOfLocalDoFs(maxLevel);
 
+   real_t testFuncValX = 12.0;
+   real_t testFuncValY = 27.0;
+
    // const int rank = walberla::mpi::MPIManager::instance()->rank();
 
    /* This tests using the constant interpolate function */
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      real_t testFuncValX = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-      real_t testFuncValY = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-
       x.interpolate( testFuncValX, maxLevel );
       y.interpolate( testFuncValY, maxLevel );
 
@@ -73,15 +73,11 @@ void test_dotLocalGlobal(std::string meshFileName)
       /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
       WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
       WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
-
    }
 
    /* This tests using the expression interpolate function (in turn tests the 2D and 3D expr interpolate functions also) */
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      real_t testFuncValX = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-      real_t testFuncValY = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-
       auto testFuncX            = [&testFuncValX]( const Point3D& ) { return real_c( testFuncValX ); };
       auto testFuncY            = [&testFuncValY]( const Point3D& ) { return real_c( testFuncValY ); };
 
@@ -94,7 +90,6 @@ void test_dotLocalGlobal(std::string meshFileName)
       /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
       WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
       WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
-
    }
    
 }

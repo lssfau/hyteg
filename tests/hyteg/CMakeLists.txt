@@ -331,7 +331,7 @@ waLBerla_execute_test(NAME ViscousOperatorsTest)
 #################### P0 ####################
 
 waLBerla_compile_test(FILES P0/P0FunctionTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P0FunctionTest PROCESSES 1)
+waLBerla_execute_test(NAME P0FunctionTest)
 
 #################### P1 ####################
 
