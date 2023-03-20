@@ -40,6 +40,7 @@
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/operators/VectorToScalarOperator.hpp"
+#include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1EpsilonOperator.hpp"

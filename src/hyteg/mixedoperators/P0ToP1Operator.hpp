@@ -34,6 +34,8 @@
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
+
+#include "hyteg/egfunctionspace/EGIIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/functions/Function.hpp"
@@ -670,11 +672,9 @@ namespace hyteg {
     typedef P0ToP1Operator<dg::eg::EGNIPGVectorLaplaceFormP1E_1> EGNIPGVectorLaplaceP0ToP1Coupling_Y;
     typedef P0ToP1Operator<dg::eg::EGNIPGVectorLaplaceFormP1E_2> EGNIPGVectorLaplaceP0ToP1Coupling_Z;
 
-
     typedef P0ToP1Operator<dg::eg::EGIIPGVectorLaplaceFormP1E_0> EGIIPGVectorLaplaceP0ToP1Coupling_X;
     typedef P0ToP1Operator<dg::eg::EGIIPGVectorLaplaceFormP1E_1> EGIIPGVectorLaplaceP0ToP1Coupling_Y;
     typedef P0ToP1Operator<dg::eg::EGIIPGVectorLaplaceFormP1E_2> EGIIPGVectorLaplaceP0ToP1Coupling_Z;
-//typedef P0ToP1Operator<  dg::DGFormAbort > EGVectorLaplaceP0ToP1Coupling_Z;
 
     // EG Epsilon operator couplings
     typedef P0ToP1Operator<dg::eg::EGConstEpsilonFormP1E_0> EGConstantEpsilonP0ToP1Coupling_X;

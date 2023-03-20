@@ -18,7 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <hyteg/dgfunctionspace/P1WithDGFormOperator.hpp>
+#include <hyteg/dgfunctionspace/ScalarP1WithDGFormOperator.hpp>
 
 #include "core/Environment.h"
 #include "core/math/Constants.h"

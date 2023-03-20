@@ -190,7 +190,7 @@ namespace hyteg {
                 solver.solve(Op, x, b, level);
             }
             WALBERLA_LOG_INFO_ON_ROOT("First solve done.");
-
+/*
             {
                // xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
                 PETScBlockPreconditionedStokesSolver<StokesOperatorType> solverFiner(storage, level + 1, 1e-5,
@@ -199,7 +199,7 @@ namespace hyteg {
                 solverFiner.disableApplicationBC(
                         std::is_same<StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC>::value);
                 solverFiner.solve(OpFiner, xFiner, b, level + 1);
-            }
+            }*/
         }
 
 
@@ -236,7 +236,7 @@ namespace hyteg {
              return errEq.uvw().getMaxMagnitude(level+1);
         }
 
-        //vtkOutput.write(level, 1);
+        vtkOutput.write(level, 1);
 
 
     }
@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
     if(true) {
         //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 2 , 1, nSinkers, 1000, 200, 0.1);
        //MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 3, 1, nSinkers, 1000, 200, 0.1);
-        MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 4, 1, nSinkers, 1000, 200, 0.1);
+        MultiSinker<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>("MultiSinker_EGP0", 4, 1, 3, 1000, 200, 0.1);
 
     }
 

@@ -52,7 +52,6 @@ using walberla::math::pi;
 
 using hyteg::dg::eg::EGSIPGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
-using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
 using hyteg::dg::eg::EGP0StokesOperator;
 
 // scalar lambda for one component of analytical solution and rhs

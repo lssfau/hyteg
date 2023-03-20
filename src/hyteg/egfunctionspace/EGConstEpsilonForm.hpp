@@ -35,6 +35,8 @@ namespace hyteg {
 namespace dg{
 namespace eg{
 
+    using walberla::uint_c;
+
 class EGConstEpsilonFormEP1_0 : public hyteg::dg::DGForm
 {
  protected:

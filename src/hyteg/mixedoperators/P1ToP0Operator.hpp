@@ -450,7 +450,6 @@ namespace hyteg {
                                         // local to the dst macro. One of those is _not_ located on the macro-macro-boundary. This is the
                                         // micro-vertex that must be taken from the ghost-layer.
 
-                                        //std::cout << "start macromacro boundary handling" << std::endl;
                                         Eigen::Matrix<real_t, Eigen::Dynamic, 1> nSrcDofs;
                                         nSrcDofs.resize(numSrcDofs, Eigen::NoChange_t::NoChange);
                                         std::vector<uint_t> nSrcDoFArrIndices(numSrcDofs);
@@ -656,14 +655,12 @@ namespace hyteg {
                                             }
                                         }
 
-                                        //std::cout << "end macromacro boundary handling" << std::endl;
                                         // --- END vertex DoF GL handling at macro-macro boundary ---------------------------------------------
 
                                         if (mat == nullptr) {
                                             // Matrix-vector multiplication.
                                             dstDofs += localMat * nSrcDofs;
                                         } else {
-                                            //std::cout << "start assembly macromacro boundary " << std::endl;
                                             // Sparse assembly.
                                             for (uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++) {
                                                 uint_t globalColIdx, globalRowIdx;

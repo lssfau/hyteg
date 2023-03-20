@@ -30,6 +30,8 @@
 using walberla::real_t;
 using walberla::uint_t;
 
+using walberla::uint_c;
+
 namespace hyteg {
 
 void testDivForm()
@@ -55,7 +57,7 @@ void testDivForm()
 
    // checking inner and outer facet integrals:
    {
-      hyteg::dg::eg::EGDivtFormEP0 form;
+      hyteg::dg::eg::EGDivtForm_EP0 form;
 
       elMat.resize( 1, 1 );
 
@@ -106,7 +108,7 @@ void testDivForm()
    }
 
    {
-      hyteg::dg::eg::EGDivFormP0E form;
+      hyteg::dg::eg::EGDivForm_P0E form;
 
       elMat.resize( 1, 1 );
 
@@ -126,7 +128,7 @@ void testDivForm()
    }
 
    {
-      hyteg::dg::eg::EGDivFormP0E form;
+      hyteg::dg::eg::EGDivForm_P0E form;
 
       elMat.resize( 1, 1 );
 
@@ -254,7 +256,7 @@ void testLaplaceForm()
 
    // check inner facet integral EDG-EDG
    {
-      hyteg::dg::eg::EGVectorLaplaceFormEE form;
+      hyteg::dg::eg::EGVectorLaplaceForm_EE form;
 
       elMat.resize( 1, 1 );
       form.integrateFacetInner( 2, { p0, p1, p2 }, { p0, p2 }, p1, n1, basis, basis, 0, 0, elMat );
@@ -268,7 +270,7 @@ void testLaplaceForm()
 
    // check outer facet integral EDG-EDG
    {
-      hyteg::dg::eg::EGVectorLaplaceFormEE form;
+      hyteg::dg::eg::EGVectorLaplaceForm_EE form;
 
       elMat.resize( 1, 1 );
       form.integrateFacetCoupling( 2, { p0, p1, p2 }, { p0, p2, p3 }, { p0, p2 }, p1, p3, n1, basis, basis, 0, 0, elMat );
@@ -282,7 +284,7 @@ void testLaplaceForm()
 
    // facets: in notebook: P1E, here: EP1 inner
    {
-      hyteg::dg::eg::EGVectorLaplaceFormEP1_0 form;
+      hyteg::dg::eg::EGVectorLaplaceForm_EP1_0 form;
 
       elMat.resize( 3, 1 );
 
@@ -320,7 +322,7 @@ void testLaplaceForm()
 
    // facets: P1E outer
    {
-      hyteg::dg::eg::EGVectorLaplaceFormEP1_0 form;
+      hyteg::dg::eg::EGVectorLaplaceForm_EP1_0 form;
 
       elMat.resize( 3, 1 );
 

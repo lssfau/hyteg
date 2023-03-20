@@ -166,7 +166,6 @@ namespace hyteg {
 
                     void update(const ErrorArray &newErrors, real_t h_new, const std::string &fname) {
                         currentDoFs_ = newErrors[0];
-                        currentIts_ = newErrors[1];
                         std::transform(newErrors.begin() + 2, newErrors.end(), errors_.begin(), rates_.begin(),
                                        std::divides<real_t>());
                         std::transform(rates_.begin(), rates_.end(), rates_.begin(), [h_new, this](real_t x) {
@@ -194,7 +193,6 @@ namespace hyteg {
                         WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|",
                                                                    "level",
                                                                    "DoFs",
-                                                                   "its",
                                                                    "L2Norm(e_v)",
                                                                    "ENorm(e_v)",
                                                                    "L2Norm(e_p)",
@@ -218,7 +216,6 @@ namespace hyteg {
                                 walberla::format("%6d|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|",
                                                  level,
                                                  currentDoFs_,
-                                                 currentIts_,
                                                  errors_[0],
                                                  errors_[1],
                                                  errors_[2],
@@ -255,7 +252,6 @@ namespace hyteg {
                     int nUpdates_;
                     real_t h_old;
                     real_t currentDoFs_;
-                    real_t currentIts_;
                     real_t expectedL2VeloRate_;
                 };
 
@@ -720,7 +716,7 @@ namespace hyteg {
                                   "Member energyOp must be implemented in the used Stokes operator type.");
 
                     // pack returns: DoFs, iteration number, error norms
-                    std::vector<real_t> ret = {real_c(globalDoFs), real_c(iterNumber)};
+                    std::vector<real_t> ret = {real_c(globalDoFs)};
                     auto norms = EGNormComputer(level, err, storage_).compute(Op_->energyNormOp);
                     ret.insert(ret.end(), norms.begin(), norms.end());
                     return ret;

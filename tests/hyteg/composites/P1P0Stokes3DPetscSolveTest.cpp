@@ -95,8 +95,6 @@ using walberla::uint_t;
 
 using hyteg::dg::eg::EGSIPGLaplaceOperator;
 using hyteg::dg::eg::EGMassOperator;
-using hyteg::dg::eg::EGP0ConstEpsilonStokesOperator;
-using hyteg::dg::eg::EGP0EpsilonStokesOperator;
 using hyteg::dg::eg::EGP0StokesOperator;
 using hyteg::EGP0StokesFunction;
 
