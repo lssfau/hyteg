@@ -26,26 +26,28 @@ set(WALBERLA_BUILD_SHOWCASES        OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
-include_directories ( SYSTEM ${EIGEN_DIR} )
-link_directories    ( ${EIGEN_DIR} )
+include_directories(SYSTEM ${EIGEN_DIR})
+link_directories(${EIGEN_DIR})
 
-include_directories ( src )
+include_directories(src)
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 
-find_package( waLBerla )
+find_package(waLBerla)
 
-if ( NOT WALBERLA_DOUBLE_ACCURACY )
-   set( HYTEG_USE_GENERATED_KERNELS OFF)
-   message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF" )
-endif()
+execute_process(COMMAND ${MPIEXEC_EXECUTABLE} --version RESULT_VARIABLE mpi_version_result OUTPUT_VARIABLE mpi_version_output)
+string(REGEX REPLACE "\n.*" "" HYTEG_MPI_VERSION ${mpi_version_output})
+if (NOT WALBERLA_DOUBLE_ACCURACY)
+   set(HYTEG_USE_GENERATED_KERNELS OFF)
+   message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF")
+endif ()
 
-if ( HYTEG_USE_GENERATED_KERNELS )
+if (HYTEG_USE_GENERATED_KERNELS)
    message(STATUS "Using generated HyTeG kernels.")
-else()
+else ()
    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
-endif()
+endif ()
 
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
@@ -262,8 +264,9 @@ string( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER )
 
 set      ( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
 set      ( HYTEG_COMPILER_INFO   "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" )
-set      ( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}" )
-string   ( REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS} )
+set(HYTEG_COMPILER_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}")
+set(HYTEG_MPI_VERSION ${HYTEG_MPI_VERSION})
+string(REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS})
 
 configure_file(
         ${CMAKE_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp
