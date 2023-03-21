@@ -627,12 +627,13 @@ namespace hyteg {
 
                                                     std::array<uint_t, 4> srcBasis = {0, 1, 2, 3};
                                                     std::array<uint_t, 4> dstBasis;
-                                                    for (uint_t ii = 0; ii < 4; ii++) {
+                                                    for (uint_t ii = 0; ii < 3; ii++) {
                                                         auto tmp1 = cell->neighborVertices();
                                                         auto tmp2 = tmp1.at(localCellLocalVertexIDs[ii]);
                                                         dstBasis[ii] = neighborCell->getLocalVertexID(
                                                                 tmp2);
                                                     }
+                                                    dstBasis[3] = 6 - (dstBasis[0] + dstBasis[1] + dstBasis[2]);
 
                                                     const auto pseudoLocalIndex = indexing::basisConversion(
                                                             nElementVertexIdx, srcBasis, dstBasis,

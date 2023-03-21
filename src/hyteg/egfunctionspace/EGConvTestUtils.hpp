@@ -190,7 +190,7 @@ namespace hyteg {
                     }
 
                     void printHeader() {
-                        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|",
+                        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%15s|%15s|%15s|%15s|%15s|%15s|%15s|",
                                                                    "level",
                                                                    "DoFs",
                                                                    "L2Norm(e_v)",
@@ -227,7 +227,7 @@ namespace hyteg {
                     void checkL2VeloRate(uint_t level) {
                         WALBERLA_LOG_INFO_ON_ROOT(
                                 "Convergence L2 rate on level " << level << ": " << rates_[0] << ", expected rate: ["
-                                                                << expectedL2VeloRate_-0.05 << ", " << expectedL2VeloRate_+0.05<<"]");
+                                                                << expectedL2VeloRate_-0.1 << ", " << expectedL2VeloRate_+0.1<<"]");
                        /* WALBERLA_CHECK_LESS_EQUAL(rates_[0],
                                                   expectedL2VeloRate_ + 0.1,
                                                   "Convergence L2 rate on level " << level << " too large (computed: "
