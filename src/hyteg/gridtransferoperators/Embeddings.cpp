@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/mixedoperators/Embeddings.hpp"
+#include "hyteg/gridtransferoperators/Embeddings.hpp"
 
 namespace hyteg {
 

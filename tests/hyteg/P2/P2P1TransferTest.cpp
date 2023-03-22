@@ -120,6 +120,10 @@ static void testP2P1Transfer()
 
 }
 
+} // namespace hyteg
+
+using namespace hyteg;
+
 void logSectionHeader( const char* header )
 {
    std::string hdr( header );
@@ -169,8 +173,6 @@ void run2dP1ToP2EmbeddingTest()
    WALBERLA_CHECK_LESS( errorMeasure, tol );
 }
 
-} // namespace hyteg
-
 
 int main( int argc, char* argv[] )
 {
@@ -184,7 +186,7 @@ int main( int argc, char* argv[] )
    hyteg::testP2P1Transfer();
 
    logSectionHeader( "Testing embedding in 2D" );
-   run2dP1ToP2EmbeddingTest()
+   run2dP1ToP2EmbeddingTest();
 
    return EXIT_SUCCESS;
 }
