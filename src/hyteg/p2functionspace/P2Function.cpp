@@ -379,7 +379,7 @@ void P2Function< ValueType >::prolongateP1ToP2( const hyteg::P1Function< ValueTy
 {
    // Note: 'this' is the dst function - therefore we test this' boundary conditions
 
-   if ( !this->getStorage()->hasGlobalCells() )
+   if ( this->getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "See issue #205 at https://i10git.cs.fau.de/hyteg/hyteg/-/issues/205" );
    }
@@ -440,7 +440,7 @@ void P2Function< ValueType >::restrictP2ToP1( const P1Function< ValueType >& p1F
                                               const uint_t&                  level,
                                               const DoFType&                 flag ) const
 {
-   if ( !this->getStorage()->hasGlobalCells() )
+   if ( this->getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "See issue #205 at https://i10git.cs.fau.de/hyteg/hyteg/-/issues/205" );
    }
@@ -517,7 +517,7 @@ template < typename ValueType >
 void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType flag ) const
 {
 
-   if ( !this->getStorage()->hasGlobalCells() )
+   if ( this->getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "See issue #205 at https://i10git.cs.fau.de/hyteg/hyteg/-/issues/205" );
    }
