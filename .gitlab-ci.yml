@@ -247,9 +247,9 @@ gcc_12_mpionly_eigen_petsc_trilinos_no_werror:
    tags:
       - docker
 
-clang_13.0_serial:
+clang_13_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -260,9 +260,9 @@ clang_13.0_serial:
    tags:
       - docker
 
-clang_13.0_mpionly:
+clang_13_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -271,9 +271,9 @@ clang_13.0_mpionly:
    tags:
       - docker
 
-clang_13.0_serial_dbg_sp:
+clang_13_serial_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
    stage: pretest
    before_script:
       - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
@@ -290,9 +290,9 @@ clang_13.0_serial_dbg_sp:
    tags:
       - docker
 
-clang_13.0_mpionly_dbg_petsc-complex_trilinos:
+clang_13_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
    stage: pretest
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -305,9 +305,9 @@ clang_13.0_mpionly_dbg_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_13.0_mpionly_petsc_trilinos:
+clang_13_mpionly_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -319,9 +319,9 @@ clang_13.0_mpionly_petsc_trilinos:
    tags:
       - docker
 
-clang_14.0_serial:
+clang_14_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -332,9 +332,9 @@ clang_14.0_serial:
    tags:
       - docker
 
-clang_14.0_mpionly:
+clang_14_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -343,9 +343,9 @@ clang_14.0_mpionly:
    tags:
       - docker
 
-clang_14.0_serial_dbg_sp:
+clang_14_serial_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
    stage: pretest
    before_script:
       - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
@@ -362,9 +362,9 @@ clang_14.0_serial_dbg_sp:
    tags:
       - docker
 
-clang_14.0_mpionly_dbg_petsc-complex_trilinos:
+clang_14_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
    stage: pretest
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -377,9 +377,9 @@ clang_14.0_mpionly_dbg_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_14.0_mpionly_petsc_trilinos:
+clang_14_mpionly_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -391,9 +391,9 @@ clang_14.0_mpionly_petsc_trilinos:
    tags:
       - docker
 
-clang_15.0_serial:
+clang_15_serial:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -404,9 +404,9 @@ clang_15.0_serial:
    tags:
       - docker
 
-clang_15.0_mpionly:
+clang_15_mpionly:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -415,9 +415,9 @@ clang_15.0_mpionly:
    tags:
       - docker
 
-clang_15.0_serial_dbg_sp:
+clang_15_serial_dbg_sp:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: pretest
    before_script:
       - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
@@ -434,9 +434,9 @@ clang_15.0_serial_dbg_sp:
    tags:
       - docker
 
-clang_15.0_mpionly_dbg_petsc-complex_trilinos:
+clang_15_mpionly_dbg_petsc-complex_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: pretest
    variables:
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -449,9 +449,9 @@ clang_15.0_mpionly_dbg_petsc-complex_trilinos:
    tags:
       - docker
 
-clang_15.0_mpionly_petsc_trilinos:
+clang_15_mpionly_petsc_trilinos:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: pretest
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -463,9 +463,9 @@ clang_15.0_mpionly_petsc_trilinos:
    tags:
       - docker
 
-clang_15.0_mpionly_eigen_petsc_trilinos_no_werror:
+clang_15_mpionly_eigen_petsc_trilinos_no_werror:
    extends: .build_template
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
    stage: no_werror
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
