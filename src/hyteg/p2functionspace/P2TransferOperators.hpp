@@ -127,24 +127,18 @@ inline void prolongateP1ToP2( const uint_t&                                     
 
    const auto p1Vertices = edge.getData( p1VertexDoFMemoryID )->getPointer( level );
 
-   for ( const auto& it : edgedof::macroedge::Iterator( level, 0 ) )
-   {
-      p2Edges[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] = ValueType( 0 );
-   }
-
    for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
    {
-      const uint_t    idx               = vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C );
-      const ValueType p1VertexValue     = p1Vertices[idx];
-      const ValueType p1VertexValueHalf = ValueType( 0.5 ) * p1VertexValue;
+      const uint_t idx = vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C );
+      p2Vertices[idx]  = p1Vertices[idx];
+   }
 
-      p2Vertices[idx] = p1VertexValue;
-
-      for ( const auto& neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
-      {
-         const uint_t neighborEdgeIdx = edgedof::macroedge::indexFromVertex( level, it.x(), neighbor );
-         p2Edges[neighborEdgeIdx] += p1VertexValueHalf;
-      }
+   for ( const auto& it : edgedof::macroedge::Iterator( level, 0 ) )
+   {
+      p2Edges[edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C )] =
+          ValueType( 0.5 ) *
+          ( p1Vertices[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::VERTEX_W )] +
+            p1Vertices[vertexdof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::VERTEX_E )] );
    }
 }
 

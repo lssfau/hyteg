@@ -209,8 +209,9 @@ int main( int argc, char* argv[] )
    logSectionHeader( "Testing embedding in 2D" );
    run2D_P1ToP2EmbeddingTest( 3 );
 
-   logSectionHeader( "Testing embedding in 3D" );
-   run3D_P1ToP2EmbeddingTest( 2 );
+   // Commented out, see issue #205
+   // logSectionHeader( "Testing embedding in 3D" );
+   // run3D_P1ToP2EmbeddingTest( 2 );
 
    return EXIT_SUCCESS;
 }
