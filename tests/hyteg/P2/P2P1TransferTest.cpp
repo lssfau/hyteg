@@ -24,6 +24,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/gridtransferoperators/Embeddings.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -119,6 +120,55 @@ static void testP2P1Transfer()
 
 }
 
+void logSectionHeader( const char* header )
+{
+   std::string hdr( header );
+   size_t      len = hdr.length();
+   std::string separator( len + 2, '-' );
+   WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
+}
+
+void run2dP1ToP2EmbeddingTest()
+{
+   uint_t level = 3;
+
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, -1.0 ), Point2D( 2.0, 3.0 ), MeshInfo::CRISS, 1, 2 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // auto linearPolynomial = []( const Point3D& x ) { return real_c( 3 ) * x[0] + real_c( 0.5 ) * x[1] - real_c( 1 ); };
+   auto linearPolynomial = []( const Point3D& ) { return real_c( 1 ); };
+
+   P1Function< real_t > p1Func( "p1", storage, level, level );
+   P2Function< real_t > p2FuncDirect( "direct", storage, level, level );
+   P2Function< real_t > p2FuncEmbedded( "via P1", storage, level, level );
+   P2Function< real_t > p2FuncError( "error", storage, level, level );
+
+   p1Func.interpolate( linearPolynomial, level, All );
+   p2FuncDirect.interpolate( linearPolynomial, level, All );
+
+   embedP1IntoP2( p1Func, p2FuncEmbedded, level, All );
+
+   p2FuncError.assign( { real_c( 1 ), real_c( -1 ) }, { p2FuncDirect, p2FuncEmbedded }, level, All );
+
+   bool outputVTK{ true };
+
+   if ( outputVTK )
+   {
+      VTKOutput vtkOutput( "../../output", "P1ToP2EmbeddingOperatorTest", storage );
+      vtkOutput.add( p1Func );
+      vtkOutput.add( p2FuncDirect );
+      vtkOutput.add( p2FuncEmbedded );
+      vtkOutput.add( p2FuncError );
+      vtkOutput.write( level );
+   }
+
+   real_t errorMeasure = p2FuncError.getMaxMagnitude( level, All );
+   WALBERLA_LOG_INFO_ON_ROOT( " measure of error = " << errorMeasure );
+   real_t tol{ std::is_same< double, real_t >() ? 1e-12 : 1e-6f };
+   WALBERLA_CHECK_LESS( errorMeasure, tol );
+}
+
 } // namespace hyteg
 
 
@@ -129,7 +179,12 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
+
+   logSectionHeader( "Testing transfers in 2D" );
    hyteg::testP2P1Transfer();
+
+   logSectionHeader( "Testing embedding in 2D" );
+   run2dP1ToP2EmbeddingTest()
 
    return EXIT_SUCCESS;
 }
