@@ -27,7 +27,7 @@ variables:
       - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
       - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
       - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
-      - /opt/view/cmake --version
+      - /opt/view/bin/cmake --version
       - ccache --version
       - mpirun --version
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
