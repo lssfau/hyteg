@@ -35,6 +35,68 @@ namespace P2 {
 
 using walberla::uint_t;
 
+namespace macrocell {
+
+template < typename ValueType >
+inline void prolongateP1ToP2( const uint_t&                                               level,
+                              const Cell&                                                 cell,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& p2VertexDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& p2EdgeDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& p1VertexDoFMemoryID )
+{
+   auto p2Vertices = cell.getData( p2VertexDoFMemoryID )->getPointer( level );
+   auto p2Edges    = cell.getData( p2EdgeDoFMemoryID )->getPointer( level );
+
+   const auto p1Vertices = cell.getData( p1VertexDoFMemoryID )->getPointer( level );
+
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, 0 ) )
+   {
+      const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      p2Vertices[idx]  = p1Vertices[idx];
+   }
+
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+      {
+         const auto vertexNeighbors = edgedof::calcNeighboringVertexDoFIndices( orientation );
+         const auto nbrOne          = it + vertexNeighbors[0];
+         const auto nbrTwo          = it + vertexNeighbors[1];
+
+         uint_t arrayIdx   = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation );
+         p2Edges[arrayIdx] = ValueType( 0.5 ) * ( p1Vertices[vertexdof::macrocell::indexFromVertex(
+                                                      level, nbrOne.x(), nbrOne.y(), nbrOne.z(), stencilDirection::VERTEX_C )] +
+                                                  p1Vertices[vertexdof::macrocell::indexFromVertex(
+                                                      level, nbrTwo.x(), nbrTwo.y(), nbrTwo.z(), stencilDirection::VERTEX_C )] );
+         // WALBERLA_LOG_INFO_ON_ROOT( "nbrOne: (" << nbrOne.x() << ", " <<  nbrOne.y() << ", " <<  nbrOne.z() << ")" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "nbrTwo: (" << nbrTwo.x() << ", " <<  nbrTwo.y() << ", " <<  nbrTwo.z() << ")" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "orientation: " << edgedof::edgeDoFOrientationToString.at( orientation )
+         //                                            << ", value = " << p2Edges[arrayIdx] );
+      }
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      const auto orientation = edgedof::EdgeDoFOrientation::XYZ;
+
+      const auto vertexNeighbors = edgedof::calcNeighboringVertexDoFIndices( orientation );
+      const auto nbrOne          = it + vertexNeighbors[0];
+      const auto nbrTwo          = it + vertexNeighbors[1];
+
+      uint_t arrayIdx   = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation );
+      p2Edges[arrayIdx] = ValueType( 0.5 ) * ( p1Vertices[vertexdof::macrocell::indexFromVertex(
+                                                   level, nbrOne.x(), nbrOne.y(), nbrOne.z(), stencilDirection::VERTEX_C )] +
+                                               p1Vertices[vertexdof::macrocell::indexFromVertex(
+                                                   level, nbrTwo.x(), nbrTwo.y(), nbrTwo.z(), stencilDirection::VERTEX_C )] );
+      // WALBERLA_LOG_INFO_ON_ROOT( "nbrOne: (" << nbrOne.x() << ", " <<  nbrOne.y() << ", " <<  nbrOne.z() << ")" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "nbrTwo: (" << nbrTwo.x() << ", " <<  nbrTwo.y() << ", " <<  nbrTwo.z() << ")" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "orientation: " << edgedof::edgeDoFOrientationToString.at( orientation )
+      //                                            << ", value = " << p2Edges[arrayIdx] );
+   }
+}
+
+} // namespace macrocell
+
 namespace macroface {
 
 template < typename ValueType >

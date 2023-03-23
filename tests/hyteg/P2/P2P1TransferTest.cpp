@@ -144,8 +144,7 @@ void logSectionHeader( const char* header )
 
 void run_P1ToP2EmbeddingTest( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
 {
-   // auto linearPolynomial = []( const Point3D& x ) { return real_c( 3 ) * x[0] + real_c( 0.5 ) * x[1] - real_c( 1 ); };
-   auto linearPolynomial = []( const Point3D& ) { return real_c( 1 ); };
+   auto linearPolynomial = []( const Point3D& x ) { return real_c( 3 ) * x[0] + real_c( 0.5 ) * x[1] + real_c( 2 ) * x[2] - real_c( 1 ); };
 
    P1Function< real_t > p1Func( "p1", storage, level, level );
    P2Function< real_t > p2FuncDirect( "direct", storage, level, level );
@@ -154,12 +153,13 @@ void run_P1ToP2EmbeddingTest( const std::shared_ptr< PrimitiveStorage >& storage
 
    p1Func.interpolate( linearPolynomial, level, All );
    p2FuncDirect.interpolate( linearPolynomial, level, All );
+   p2FuncEmbedded.interpolate( real_t( -100 ), level, All );
 
    embedP1IntoP2( p1Func, p2FuncEmbedded, level, All );
 
    p2FuncError.assign( { real_c( 1 ), real_c( -1 ) }, { p2FuncDirect, p2FuncEmbedded }, level, All );
 
-   bool outputVTK{ true };
+   bool outputVTK{ false };
 
    if ( outputVTK )
    {
@@ -172,7 +172,7 @@ void run_P1ToP2EmbeddingTest( const std::shared_ptr< PrimitiveStorage >& storage
    }
 
    real_t errorMeasure = p2FuncError.getMaxMagnitude( level, All );
-   WALBERLA_LOG_INFO_ON_ROOT( " measure of error = " << errorMeasure );
+   WALBERLA_LOG_INFO_ON_ROOT( " measure of error = " << std::scientific << errorMeasure );
    real_t tol{ std::is_same< double, real_t >() ? 1e-12 : 1e-6f };
    WALBERLA_CHECK_LESS( errorMeasure, tol );
 }
@@ -209,9 +209,8 @@ int main( int argc, char* argv[] )
    logSectionHeader( "Testing embedding in 2D" );
    run2D_P1ToP2EmbeddingTest( 3 );
 
-   // Commented out, see issue #205
-   // logSectionHeader( "Testing embedding in 3D" );
-   // run3D_P1ToP2EmbeddingTest( 2 );
+   logSectionHeader( "Testing embedding in 3D" );
+   run3D_P1ToP2EmbeddingTest( 2 );
 
    return EXIT_SUCCESS;
 }
