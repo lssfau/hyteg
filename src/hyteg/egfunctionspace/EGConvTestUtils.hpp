@@ -166,7 +166,7 @@ namespace hyteg {
 
                     void update(const ErrorArray &newErrors, real_t h_new, const std::string &fname) {
                         currentDoFs_ = newErrors[0];
-                        std::transform(newErrors.begin() + 2, newErrors.end(), errors_.begin(), rates_.begin(),
+                        std::transform(newErrors.begin() + 1, newErrors.end(), errors_.begin(), rates_.begin(),
                                        std::divides<real_t>());
                         std::transform(rates_.begin(), rates_.end(), rates_.begin(), [h_new, this](real_t x) {
                             return std::log(x) / std::log(h_new / h_old);
@@ -176,7 +176,7 @@ namespace hyteg {
                                            std::plus<real_t>());
                         nUpdates_++;
                         h_old = h_new;
-                        errors_.assign(newErrors.begin() + 2, newErrors.end());
+                        errors_.assign(newErrors.begin() + 1, newErrors.end());
 
                         writeErrors(h_new, errors_[0], errors_[2], fname);
                     }
@@ -213,7 +213,7 @@ namespace hyteg {
 
                     void printCurrentRates(uint_t level) {
                         WALBERLA_LOG_INFO_ON_ROOT(
-                                walberla::format("%6d|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|",
+                                walberla::format("%6d|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|%15.2e|",
                                                  level,
                                                  currentDoFs_,
                                                  errors_[0],
@@ -290,8 +290,8 @@ namespace hyteg {
                     real_t L2VeloError() {
                         if constexpr (isEGP0Discr<StokesOperatorType>()) {
                             EGMassOperator M_vel(storage_, level_, level_ + 1);
-                            M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
-                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
+                            M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace);
+                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, Inner));
                         } else if constexpr (isP1P0Discr<StokesOperatorType>()) {
                             P1ConstantVectorMassOperator M_vel(storage_, level_, level_);
                             M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
@@ -410,7 +410,7 @@ namespace hyteg {
                             laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
                             // Assemble RHS by integration, apply bcs weakly
-                            // rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, level );
+                            //rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, level );
                             rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceFormDG,
                                                                        level);
                         } else {
@@ -429,7 +429,7 @@ namespace hyteg {
                             laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
 
                             // Assemble RHS by integration, apply bcs weakly
-                            // rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
+                            //rhs.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
                             rhs.uvw().applyDirichletBoundaryConditions(laplaceForm0, laplaceForm1, laplaceForm2,
                                                                        laplaceFormDG, level);
                         }
@@ -568,18 +568,17 @@ namespace hyteg {
                         case 1: {
                             PETScLUSolver<StokesOperatorType> solver(storage_, level, numerator);
                             solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
-                            StokesFunctionType nullSpace("ns", storage_, level, level);
+                            /*StokesFunctionType nullSpace("ns", storage_, level, level);
                             nullSpace.uvw().interpolate(0, level, All);
                             nullSpace.p().interpolate(1, level, All);
-                            solver.setNullSpace(nullSpace, level);
+                            solver.setNullSpace(nullSpace, level);*/
                             solver.solve(*Op_, u, rhs, level);
                             break;
                         }
 
                         case 2: {
                             PETScBlockPreconditionedStokesSolver<StokesOperatorType> solver(
-                                    storage_, level, resNorms_->at(level - 2), std::numeric_limits<PetscInt>::max(), 6,
-                                    1);
+                                    storage_, level, resNorms_->at(level - 2), std::numeric_limits<PetscInt>::max(), 6, 1);
                             solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
                             solver.solve(*Op_, u, rhs, level);
                             if (runUntilErrorNorm_) {
@@ -632,8 +631,6 @@ namespace hyteg {
 
                             break;
                         }
-
-
 
                         default: {
                             PETScMinResSolver<StokesOperatorType> solver(storage_, level, numerator, 1e-7, 1e-7);

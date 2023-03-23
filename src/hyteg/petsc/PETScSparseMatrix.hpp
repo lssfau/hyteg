@@ -319,7 +319,7 @@ class PETScSparseMatrix
                       static_cast< PetscInt >( globalCols ) );
 
          // Roughly overestimate number of non-zero entries for faster assembly of matrix
-         MatMPIAIJSetPreallocation( mat, 250, NULL, 250, NULL );
+         MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
          setName( name_.c_str() );
          reset();
          allocated_ = true;

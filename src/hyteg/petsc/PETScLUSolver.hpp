@@ -193,8 +193,8 @@ namespace hyteg {
             storage_->getTimingTree()->start("PETSc LU Solver");
             storage_->getTimingTree()->start("Setup");
 
-            //  num.copyBoundaryConditionFromFunction(x);
-            //num.enumerate(level);
+            num.copyBoundaryConditionFromFunction(x);
+            num.enumerate(level);
 
             if (!disableApplicationBC_) {
                 b.assign({1.0}, {x}, level, DirichletBoundary);
@@ -299,14 +299,14 @@ namespace hyteg {
 
             storage_->getTimingTree()->start("RHS vector setup");
 
-            /* if (assumeSymmetry_) {
+            if (assumeSymmetry_) {
                  AmatTmp.zeroEntries();
                  MatCopy(AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN);
                  if (!disableApplicationBC_) {
                      AmatTmp.applyDirichletBCSymmetrically(x, num, bVec, allocatedLevel_);
-                    // KSPSetOperators(ksp, AmatTmp.get(), AmatTmp.get());
+                     KSPSetOperators(ksp, AmatTmp.get(), AmatTmp.get());
                  }
-             }*/
+             }
 
             storage_->getTimingTree()->stop("RHS vector setup");
 

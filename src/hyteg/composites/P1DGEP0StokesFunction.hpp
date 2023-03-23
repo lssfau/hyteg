@@ -59,7 +59,7 @@ class EGP0StokesFunction : public BlockFunction< ValueType >
       this->subFunc_.push_back( std::make_shared< FunctionWrapper< EGFunction< ValueType > > >(
           _name + "_uvw", storage, minLevel, maxLevel, velocityBC ) );
       this->subFunc_.push_back( std::make_shared< FunctionWrapper< P0Function< ValueType > > >(
-          _name + "_p", storage, minLevel, maxLevel, velocityBC ) );
+          _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
    [[nodiscard]] const EGFunction< ValueType >& uvw() const

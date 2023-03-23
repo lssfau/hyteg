@@ -83,7 +83,7 @@ namespace hyteg {
                   pressurePreconditionerType_(pressurePreconditionerType), krylovSolverType_(krylovSolverType),
                   verbose_(false), reassembleMatrix_(false), matrixWasAssembledOnce_(false),
                   disableApplicationBC_(false), setFromOptions_(false) {
-            //num.enumerate(level);
+            num.enumerate(level);
         }
 
         ~PETScBlockPreconditionedStokesSolver() = default;
@@ -209,13 +209,9 @@ namespace hyteg {
             if (nullSpaceSet_) {
                 MatSetNullSpace(Amat.get(), nullspace_);
             }
-/*s
-            std::string Aname;
-            Aname.append("FOR_MATLAB_ORDERS_level");
-            Aname.append(std::to_string(level));
-            Aname.append(".m");
-            Amat.print(Aname, false, PETSC_VIEWER_ASCII_MATLAB);
 
+
+/*
        std::string Pname;
 
       Pname.append("FOR_MATLAB_PETSCBLOCKPREC_ORDERS_P");
