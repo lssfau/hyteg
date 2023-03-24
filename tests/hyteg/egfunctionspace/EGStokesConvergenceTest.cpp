@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
    */
 
 
-    if constexpr (false) {
+    if constexpr (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing 2D ###")
 
         hyteg::dg::eg::Stokes2D(4, 5);
@@ -159,7 +159,6 @@ namespace hyteg {
                     auto discrErrorsEGP0Nitsche = {0.0187979, 0.00489507, 0.00124212, 0.00031431, 7.83271e-05};
 
                     auto resNormsEGP0 = {1e-5, 1e-5, 1e-5, 1e-5, 1e-6, 1e-6};
-
                     auto resNormsP2P1 = {1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-6};
 
 
@@ -245,7 +244,7 @@ namespace hyteg {
                                 minLevel,
                                 maxLevel,
                                 1,
-                                false, false, NULL,
+                                true, false, NULL,
                                 std::make_shared<std::vector<real_t>>(resNormsEGP0));
                     }
                 }
@@ -1143,7 +1142,7 @@ namespace hyteg {
                             storage,
                             minLevel,
                             maxLevel,
-                            5,
+                            2,
                             false,
                             false);
                 }
@@ -1196,10 +1195,10 @@ namespace hyteg {
                                 storage,
                                 minLevel,
                                 maxLevel,
-                                2,
+                                1,
                                 false,
                                 false, NULL, std::make_shared<std::vector<real_t>>(
-                                        resNormsP2P1));
+                                        resNormsP2P1), NULL);
                     }
 
                     // P1P0

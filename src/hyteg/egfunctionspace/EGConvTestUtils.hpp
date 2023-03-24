@@ -292,6 +292,10 @@ namespace hyteg {
                             EGMassOperator M_vel(storage_, level_, level_ + 1);
                             M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace);
                             return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, Inner));
+                           /* real_t e_v_disc = sqrt(
+                                    err_.uvw().dotGlobal(err_.uvw(), level_, All) /
+                                    real_c(numberOfGlobalDoFs(err_.uvw(), level_)));
+                            return e_v_disc;*/
                         } else if constexpr (isP1P0Discr<StokesOperatorType>()) {
                             P1ConstantVectorMassOperator M_vel(storage_, level_, level_);
                             M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
@@ -312,18 +316,6 @@ namespace hyteg {
                         return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
                     }
 
-                    // returns the split velocity error for an EG discretization: conforming and discontinuous parts
-                    std::tuple<real_t, real_t> L2VeloSplitError() {
-                        real_t e_v_disc = sqrt(
-                                err_.uvw().getDiscontinuousPart()->dotGlobal(*err_.uvw().getDiscontinuousPart(), level_,
-                                                                             All) /
-                                real_c(numberOfGlobalDoFs(*err_.uvw().getDiscontinuousPart(), level_)));
-                        real_t e_v_conf = sqrt(
-                                err_.uvw().getConformingPart()->dotGlobal(*err_.uvw().getConformingPart(), level_,
-                                                                          All) /
-                                real_c(numberOfGlobalDoFs(*err_.uvw().getConformingPart(), level_)));
-                        return std::make_tuple(e_v_conf, e_v_disc);
-                    }
 
                     const uint_t level_;
                     const std::shared_ptr<PrimitiveStorage> &storage_;
@@ -505,11 +497,6 @@ namespace hyteg {
                     numerator.enumerate(level);
                     uint_t globalDoFs = numberOfGlobalDoFs(numerator, level);
                     WALBERLA_LOG_INFO_ON_ROOT("Global DoFs: " << globalDoFs);
-                    if constexpr (isEGP0Discr<StokesOperatorType>()) {
-                        WALBERLA_LOG_INFO_ON_ROOT("EG DoFs: " << numberOfGlobalDoFs(numerator.uvw(), level));
-                        WALBERLA_LOG_INFO_ON_ROOT(
-                                "P1 DoFs: " << numberOfGlobalDoFs(*numerator.uvw().getConformingPart(), level));
-                    }
 
                     // solution, rhs as a lambda function
                     auto [u_x_expr, u_y_expr, u_z_expr, p_expr] = solTuple_;
