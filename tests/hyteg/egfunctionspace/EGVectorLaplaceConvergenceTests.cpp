@@ -208,7 +208,6 @@ int main(int argc, char **argv) {
     hyteg::PETScManager petscManager(&argc, &argv);
     uint_t minLevel = 3;
     uint_t maxLevel3D = 5;
-    uint_t maxLevel2D = 6;
     const bool writeVTK = true;
 
     for (uint_t solverType = 0; solverType < 1; solverType++) {

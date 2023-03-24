@@ -156,8 +156,6 @@ namespace hyteg {
 
 
                     auto discrErrorsP2P1 = {0.000454598, 5.78939e-05, 7.31194e-06, 9.18941e-07, 1.15185e-07};
-                    auto discrErrorsEGP0Nitsche = {0.0187979, 0.00489507, 0.00124212, 0.00031431, 7.83271e-05};
-
                     auto resNormsEGP0 = {1e-5, 1e-5, 1e-5, 1e-5, 1e-6, 1e-6};
                     auto resNormsP2P1 = {1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-6};
 
