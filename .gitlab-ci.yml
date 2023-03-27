@@ -139,7 +139,7 @@ gcc_11_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -153,7 +153,7 @@ gcc_11_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -211,7 +211,7 @@ gcc_12_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -225,7 +225,7 @@ gcc_12_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -239,7 +239,7 @@ gcc_12_mpionly_eigen_petsc_trilinos_no_werror:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
@@ -298,7 +298,7 @@ clang_13_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -312,7 +312,7 @@ clang_13_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -370,7 +370,7 @@ clang_14_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -384,7 +384,7 @@ clang_14_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -442,7 +442,7 @@ clang_15_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -456,7 +456,7 @@ clang_15_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       HYTEG_TERRANEO_MODULE: "ON"
       HYTEG_DOWNLOAD_BOOST: "ON"
    tags:
@@ -470,7 +470,7 @@ clang_15_mpionly_eigen_petsc_trilinos_no_werror:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
-      PETSC_DIR: "/opt/spack/install"
+      PETSC_DIR: "/opt/view"
       WARNING_ERROR: "OFF"
    when: manual
    needs: [ ]
