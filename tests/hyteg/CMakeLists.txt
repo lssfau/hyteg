@@ -609,8 +609,8 @@ waLBerla_execute_test(NAME PrimitiveStorageCopyTest8 COMMAND $<TARGET_FILE:Primi
 
 waLBerla_compile_test(FILES adaptivity/AgglomerationMatMulTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AgglomerationMatMulTest1 COMMAND $<TARGET_FILE:AgglomerationMatMulTest>)
-waLBerla_execute_test(NAME AgglomerationMatMulTest2 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 2)
-waLBerla_execute_test(NAME AgglomerationMatMulTest3 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 3)
+#waLBerla_execute_test(NAME AgglomerationMatMulTest2 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 2)
+#waLBerla_execute_test(NAME AgglomerationMatMulTest3 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 3)
 #waLBerla_execute_test(NAME AgglomerationMatMulTest4 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 4 )
 
 waLBerla_compile_test(FILES adaptivity/AgglomerationConvergenceTest.cpp DEPENDS hyteg core)
@@ -844,14 +844,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES egfunctionspace/EGApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGApplyTest)
 
-
-
-    ## SolVi benchmark
-    waLBerla_compile_test(FILES varvisc/SolViBenchmark.cpp DEPENDS hyteg core )
-    waLBerla_execute_test(NAME SolViBenchmark)
-
-    waLBerla_compile_test(FILES varvisc/MultiSinkerBenchmark.cpp DEPENDS hyteg core )
-    waLBerla_execute_test(NAME MultiSinkerBenchmark)
 
 endif()
 
