@@ -7,7 +7,7 @@ waLBerla_add_executable( NAME SolViBenchmark
         FILES SolViBenchmark.cpp
         DEPENDS hyteg )
 
-waLBerla_add_executable( NAME SmoothViscTests
+waLBerla_add_executable( NAME EGSmoothViscTests
         FILES EGSmoothViscTests.cpp
         DEPENDS hyteg )
 
