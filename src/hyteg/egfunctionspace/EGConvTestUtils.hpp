@@ -290,8 +290,8 @@ namespace hyteg {
                     real_t L2VeloError() {
                         if constexpr (isEGP0Discr<StokesOperatorType>()) {
                             EGMassOperator M_vel(storage_, level_, level_ + 1);
-                            M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, Inner, Replace);
-                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, Inner));
+                            M_vel.apply(err_.uvw(), tmpErr_.uvw(), level_, All, Replace);
+                            return sqrt(err_.uvw().dotGlobal(tmpErr_.uvw(), level_, All));
                            /* real_t e_v_disc = sqrt(
                                     err_.uvw().dotGlobal(err_.uvw(), level_, All) /
                                     real_c(numberOfGlobalDoFs(err_.uvw(), level_)));
