@@ -81,9 +81,9 @@ namespace hyteg {
                   maxIterations_(maxIterations), flag_(hyteg::All), nullSpaceSet_(false),
                   velocityPreconditionerType_(velocityPreconditionerType),
                   pressurePreconditionerType_(pressurePreconditionerType), krylovSolverType_(krylovSolverType),
-                  verbose_(false), reassembleMatrix_(false), matrixWasAssembledOnce_(false),
+                  verbose_(false), reassembleMatrix_(true), matrixWasAssembledOnce_(false),
                   disableApplicationBC_(false), setFromOptions_(false) {
-            num.enumerate(level);
+            //num.enumerate(level);
         }
 
         ~PETScBlockPreconditionedStokesSolver() = default;
@@ -160,8 +160,8 @@ namespace hyteg {
                 default: WALBERLA_ABORT("Invalid solver type for PETSc block prec MinRes solver.")
             }
 
-            KSPSetTolerances(ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_);
-            KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
+            KSPSetTolerances(ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_);
+            KSPSetInitialGuessNonzero(ksp, PETSC_FALSE);
             KSPSetFromOptions(ksp);
 
             x.getStorage()->getTimingTree()->start("Vector copy");
@@ -240,8 +240,8 @@ namespace hyteg {
                 PC pc_u, pc_p;
                 KSPGetPC(sub_ksps_[0], &pc_u);
                 KSPGetPC(sub_ksps_[1], &pc_p);
-                PCSetType(pc_u, PCLU);
-                PCSetType(pc_p, PCLU);
+                PCSetType(pc_u, KSPCG);
+                PCSetType(pc_p, KSPCG);
                 KSPSetTolerances(sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
                 KSPSetTolerances(sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
             } else if (velocityPreconditionerType_ == 5) {
