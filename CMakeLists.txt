@@ -14,6 +14,7 @@ option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if avail
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
 option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for plates"  OFF)
+option ( HYTEG_BUILD_DOC              "Build Documentation"                           ON)
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
@@ -183,25 +184,28 @@ add_subdirectory( tutorials )
 #
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
-find_package ( Doxygen  )
-find_package ( HTMLHelp )
+if (HYTEG_BUILD_DOC)
 
-if ( HTML_HELP_COMPILER EQUAL "" )
-   set ( HTML_HELP_FOUND "NO" )
-else ( )
-   set ( HTML_HELP_FOUND "YES" )
-endif ( )
+  find_package ( Doxygen  )
+  find_package ( HTMLHelp )
 
-if ( DOXYGEN_FOUND )
-   set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
-   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
-   set ( DOXYGEN_HTML_OUTPUT "html" )
+  if ( HTML_HELP_COMPILER EQUAL "" )
+    set ( HTML_HELP_FOUND "NO" )
+  else ( )
+    set ( HTML_HELP_FOUND "YES" )
+  endif ( )
 
-   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
+  if ( DOXYGEN_FOUND )
+    set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
+    set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
+    set ( DOXYGEN_HTML_OUTPUT "html" )
 
-   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
-                       COMMENT "Generating API documentation with Doxygen" VERBATIM )
+    configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
+    add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
+      COMMENT "Generating API documentation with Doxygen" VERBATIM )
+
+  endif ( )
 endif ( )
 ############################################################################################################################
 
