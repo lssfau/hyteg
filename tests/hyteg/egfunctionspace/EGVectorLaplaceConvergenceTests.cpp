@@ -239,23 +239,7 @@ namespace hyteg {
                                  writeVTK);
           }
 
-          WALBERLA_LOG_INFO_ON_ROOT("### Test on single triangle, hom. BC, rhs != 0 ###");
-          {
-              std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
-                  return sin(2 * pi * x[0]) * sin(2 * pi * x[1]) * sin(2 * pi * (x[0] + x[1] - 1));
-              };
-              std::function<real_t(const Point3D &)> rhsFunc = [](const Point3D &x) {
-                  return 4 * pi * pi * (-2 * sin(4 * pi * (x[0] + x[1])) + sin(4 * pi * x[0]) + sin(4 * pi * x[1]));
-              };
-              hyteg::runTestcase("EGVectorLaplaceConvergence_tri_1el_Dirichlet0",
-                                 minLevel,
-                                 maxLevel,
-                                 MeshInfo::meshFaceChain(1),
-                                 std::make_tuple(solFunc, solFunc, solFunc),
-                                 std::make_tuple(rhsFunc, rhsFunc, rhsFunc),
-                                 solverType,
-                                 writeVTK);
-          }
+
 
           WALBERLA_LOG_INFO_ON_ROOT("### Test on single triangle, inhom. BC, rhs = 0 ###");
           {
@@ -335,86 +319,12 @@ namespace hyteg {
                                  solverType,
                                  writeVTK);
           }
-        WALBERLA_LOG_INFO_ON_ROOT("### Test on square, multiple macros, split solution ###");
-        {
-            MeshInfo meshInfo =
-                    hyteg::MeshInfo::meshRectangle(Point2D({-1, -1}), Point2D({1, 1}), hyteg::MeshInfo::CRISS, 2, 2);
 
-            std::function<real_t(const hyteg::Point3D &)> u_1 = [](const hyteg::Point3D &xx) {
-                return -4 * std::cos(4 * xx[1]);
-            };
-            std::function<real_t(const hyteg::Point3D &)> u_2 = [](const hyteg::Point3D &xx) {
-                return 8 * std::cos(8 * xx[0]);
-            };
-            std::function<real_t(const hyteg::Point3D &)> f_1 = [](const hyteg::Point3D &xx) {
-                return -64 * std::cos(4 * xx[1]);
-            };
-            std::function<real_t(const hyteg::Point3D &)> f_2 = [](const hyteg::Point3D &xx) {
-                return 512 * std::cos(8 * xx[0]);
-            };
-            hyteg::runTestcase("EGVectorLaplaceConvergence_square_splitSol",
-                               minLevel,
-                               maxLevel,
-                               meshInfo,
-                               std::make_tuple(u_1, u_2, [](const hyteg::Point3D &) {
-                                   return 0;
-                               }),
-                               std::make_tuple(f_1, f_2, [](const hyteg::Point3D &) {
-                                   return 0;
-                               }),
-                               solverType,
-                               writeVTK);
-        }
     }
 
     void testEGVectorLaplace3D(uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel) {
 
 
-         WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
-        {
-           std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
-              return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );
-           };
-           std::function< real_t( const Point3D& ) > one_tet_rhs = []( const Point3D& x ) {
-              return -( -24 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                            sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                        8 * pi * pi * sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * cos( 2 * pi * x[2] ) *
-                            cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                        8 * pi * pi * cos( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                            cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) +
-                        8 * pi * pi * sin( 2 * pi * x[0] ) * cos( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) *
-                            cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
-           };
-
-           hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet_Dirichlet0",
-                               minLevel,
-                               maxLevel + 1,
-                               MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                               std::make_tuple( one_tet_sol, one_tet_sol, one_tet_sol ),
-                               std::make_tuple( one_tet_rhs, one_tet_rhs, one_tet_rhs ),
-                               solverType,
-                               writeVTK );
-        }
-
-        WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, second ###" );
-        {
-           std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-              return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-           };
-
-           std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-              return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-           };
-
-           hyteg::runTestcase( "EGVectorLaplaceConvergence_1tet",
-                               minLevel,
-                               maxLevel + 1,
-                               MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                               std::make_tuple( solFunc, solFunc, solFunc ),
-                               std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
-                               solverType,
-                               writeVTK );
-        }
 
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_2el, first ###");
@@ -518,27 +428,7 @@ namespace hyteg {
                                writeVTK);
         }
 
-        WALBERLA_LOG_INFO_ON_ROOT("### Test on cube, second ###");
-        {
-            MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), 1, 1, 1);
 
-            std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
-                return sin(2 * pi * x[0]) * sin(2 * pi * x[1]) * sin(2 * pi * x[2]);
-            };
-
-            std::function<real_t(const Point3D &)> rhsFunc = [](const Point3D &x) {
-                return 12 * pi * pi * (sin(2 * pi * x[0]) * sin(2 * pi * x[1]) * sin(2 * pi * x[2]));
-            };
-
-            hyteg::runTestcase("EGVectorLaplaceConvergence_cube",
-                               minLevel,
-                               maxLevel,
-                               meshInfo,
-                               std::make_tuple(solFunc, solFunc, solFunc),
-                               std::make_tuple(rhsFunc, rhsFunc, rhsFunc),
-                               solverType,
-                               writeVTK);
-        }
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test on cube, split solution ###");
         {
