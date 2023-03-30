@@ -73,9 +73,12 @@ struct P2conf
 template < typename config >
 static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles )
 {
-   const uint_t numEdgesPerSide = 1;
-   auto         meshInfo =
+   const uint_t numEdgesPerSide   = 1;
+   const uint_t coarseRefinements = 0;
+
+   auto meshInfo =
        MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+   meshInfo = MeshInfo::refinedCoarseMesh( meshInfo, coarseRefinements );
 
    std::function< real_t( const hyteg::Point3D& ) > random = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
 
