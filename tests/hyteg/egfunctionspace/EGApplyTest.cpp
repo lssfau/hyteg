@@ -357,7 +357,7 @@ int main(int argc, char *argv[]) {
 
     using hyteg::Point3D;
     using walberla::math::pi;
-    //const bool writeVTK = true;
+    const bool writeVTK = false;
 
 
     /*
@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
         "EGApplyDivT3D", 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), true );
 
     EGApplyTestDivt( "EGApplyDivT2D", 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), true );
-*/
+
 
     // test div operator
     EGApplyTestDiv("EGApplyDiv_2D_Ones", 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh"), 0, true);
@@ -384,8 +384,8 @@ int main(int argc, char *argv[]) {
       EGApplyTestDiv(
             "EGApplyDiv_3D_Sinusoidal", 3,
             hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 2, true);
+*/
 
-/*
 
     ScalarLambda srcLambda1 = []( const hyteg::Point3D& x ) { return std::sin( 3 * pi * x[0] ) * std::sin( 3 * pi * x[1] ); };
    ScalarLambda srcLambda2 = []( const hyteg::Point3D& ) { return 1; };
@@ -457,6 +457,6 @@ int main(int argc, char *argv[]) {
                        hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ),
                        1.0e-15,
                        writeVTK );
-*/
+
     return EXIT_SUCCESS;
 }
