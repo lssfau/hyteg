@@ -56,11 +56,11 @@ namespace hyteg {
                       const typename OperatorType::srcType::template FunctionType<idx_t> &numerator)
                 : storage_(storage), allocatedLevel_(level),
                   petscCommunicator_(storage->getSplitCommunicatorByPrimitiveDistribution()),
-                  num(numerator),
+                  num(numerator),  Amat( "Amat", petscCommunicator_ ),
                   AmatUnsymmetric("AmatUnsymmetric", petscCommunicator_), AmatTmp("AmatTmp", petscCommunicator_),
                   nullspaceVec_("nullspaceVec", petscCommunicator_), xVec("LU_x", petscCommunicator_),
                   bVec("LU_b", petscCommunicator_), nullSpaceSet_(false), flag_(hyteg::All), verbose_(false),
-                  manualAssemblyAndFactorization_(false), reassembleMatrix_(false), assumeSymmetry_(false),
+                  manualAssemblyAndFactorization_(false), reassembleMatrix_(false), assumeSymmetry_(true),
                   disableApplicationBC_(false), solverType_(PETScDirectSolverType::MUMPS) {
             num.enumerate(level);
             KSPCreate(petscCommunicator_, &ksp);
@@ -111,26 +111,24 @@ namespace hyteg {
                 AmatUnsymmetric.createMatrixFromOperator(A, allocatedLevel_, num, All);
                 matrixAssembledForTheFirstTime = true;
             } else {
-                matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce(A, allocatedLevel_, num,
-                                                                                              All);
+                matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce(A, allocatedLevel_,
+                                                                                              num, All);
             }
 
             storage_->getTimingTree()->stop("Matrix assembly");
 
             if (matrixAssembledForTheFirstTime) {
                 Amat.zeroEntries();
-                Amat.createMatrixFromOperator(A, allocatedLevel_, num, All);
+                Amat.createMatrixFromOperatorOnce(A, allocatedLevel_, num, All);
                 AmatTmp.zeroEntries();
-                AmatTmp.createMatrixFromOperator(A, allocatedLevel_, num, All);
+                AmatTmp.createMatrixFromOperatorOnce(A, allocatedLevel_, num, All);
 
-                MatCopy(AmatUnsymmetric.get(), Amat.get(), SAME_NONZERO_PATTERN);
+                MatCopy(AmatUnsymmetric.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
 
                 if (!disableApplicationBC_) {
-                    //Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
 
                     if (assumeSymmetry_) {
-                        //  Amat.applyDirichletBCSymmetrically( x, num, bVec, allocatedLevel_ );
-
+                        //   Amat.applyDirichletBCSymmetrically(x, num, bVec, allocatedLevel_);
                         Amat.applyDirichletBCSymmetrically(num, allocatedLevel_);
                     } else {
                         Amat.applyDirichletBC(num, allocatedLevel_);
@@ -193,120 +191,32 @@ namespace hyteg {
             storage_->getTimingTree()->start("PETSc LU Solver");
             storage_->getTimingTree()->start("Setup");
 
-            num.copyBoundaryConditionFromFunction(x);
-            num.enumerate(level);
+            timer.start();
+            if (!manualAssemblyAndFactorization_) {
+                assembleAndFactorize( A );
+            }
+            timer.end();
+            const double matrixAssemblyAndFactorizationTime = timer.last();
+
+
+            storage_->getTimingTree()->start("RHS vector setup");
+
+            //num.copyBoundaryConditionFromFunction(x);
+            //num.enumerate(level);
 
             if (!disableApplicationBC_) {
                 b.assign({1.0}, {x}, level, DirichletBoundary);
             }
-
-            xVec.createVectorFromFunction(x, num, level, All);
             bVec.createVectorFromFunction(b, num, level, All);
+            xVec.createVectorFromFunction(x, num, level, All);
             if (assumeSymmetry_) {
                 AmatTmp.zeroEntries();
                 MatCopy(AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN);
                 if (!disableApplicationBC_) {
                     AmatTmp.applyDirichletBCSymmetrically(x, num, bVec, allocatedLevel_);
-                    // KSPSetOperators(ksp, AmatTmp.get(), AmatTmp.get());
                 }
             }
 
-            timer.start();
-            if (!manualAssemblyAndFactorization_) {
-                storage_->getTimingTree()->start("Matrix assembly");
-
-                bool matrixAssembledForTheFirstTime;
-                if (reassembleMatrix_) {
-                    AmatUnsymmetric.zeroEntries();
-                    AmatUnsymmetric.createMatrixFromOperator(A, allocatedLevel_, num, All);
-                    matrixAssembledForTheFirstTime = true;
-                } else {
-                    matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce(A, allocatedLevel_,
-                                                                                                  num, All);
-                }
-
-                storage_->getTimingTree()->stop("Matrix assembly");
-
-                if (matrixAssembledForTheFirstTime) {
-                    Amat.zeroEntries();
-                    Amat.createMatrixFromOperatorOnce(A, allocatedLevel_, num, All);
-                    AmatTmp.zeroEntries();
-                    AmatTmp.createMatrixFromOperatorOnce(A, allocatedLevel_, num, All);
-
-                    MatCopy(AmatUnsymmetric.get(), Amat.get(), SAME_NONZERO_PATTERN);
-
-                    if (!disableApplicationBC_) {
-                        //Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
-
-                        if (assumeSymmetry_) {
-                            //   Amat.applyDirichletBCSymmetrically(x, num, bVec, allocatedLevel_);
-
-                            Amat.applyDirichletBCSymmetrically(num, allocatedLevel_);
-                        } else {
-                            Amat.applyDirichletBC(num, allocatedLevel_);
-                        }
-                    }
-
-                    if (nullSpaceSet_) {
-                        MatSetNullSpace(Amat.get(), nullspace_);
-                        MatNullSpaceRemove(nullspace_, bVec.get());
-                    }
-
-                    KSPSetOperators(ksp, Amat.get(), Amat.get());
-                    KSPGetPC(ksp, &pc);
-
-                    if (assumeSymmetry_) {
-                        PCSetType(pc, PCCHOLESKY);
-                    } else {
-                        PCSetType(pc, PCLU);
-                    }
-
-                    MatSolverType petscSolverType;
-                    switch (solverType_) {
-                        case PETScDirectSolverType::MUMPS:
-#ifdef PETSC_HAVE_MUMPS
-                            petscSolverType = MATSOLVERMUMPS;
-                            break;
-#else
-                            WALBERLA_ABORT( "PETSc is not build with MUMPS support." )
-#endif
-                        case PETScDirectSolverType::SUPER_LU:
-                            petscSolverType = MATSOLVERSUPERLU_DIST;
-                            break;
-                        default: WALBERLA_ABORT("Invalid PETSc solver type.")
-                    }
-                    HYTEG_PCFactorSetMatSolverType(pc, petscSolverType);
-
-                    if (solverType_ == PETScDirectSolverType::MUMPS) {
-                        PCFactorSetUpMatSolverType(pc);
-                        PCFactorGetMatrix(pc, &F);
-#ifdef PETSC_HAVE_MUMPS
-                        for (auto it: mumpsIcntrl_) {
-                            MatMumpsSetIcntl(F, it.first, it.second);
-                        }
-                        for (auto it: mumpsCntrl_) {
-                            MatMumpsSetCntl(F, it.first, it.second);
-                        }
-#endif
-                    }
-                    storage_->getTimingTree()->start("Factorization");
-                    PCSetUp(pc);
-                    storage_->getTimingTree()->stop("Factorization");
-                }
-            }
-            timer.end();
-            const double matrixAssemblyAndFactorizationTime = timer.last();
-
-            storage_->getTimingTree()->start("RHS vector setup");
-
-            if (assumeSymmetry_) {
-                 AmatTmp.zeroEntries();
-                 MatCopy(AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN);
-                 if (!disableApplicationBC_) {
-                     AmatTmp.applyDirichletBCSymmetrically(x, num, bVec, allocatedLevel_);
-                     KSPSetOperators(ksp, AmatTmp.get(), AmatTmp.get());
-                 }
-             }
 
             storage_->getTimingTree()->stop("RHS vector setup");
 
@@ -318,7 +228,6 @@ namespace hyteg {
 
             //Amat.print("LU_A.m", false,PETSC_VIEWER_ASCII_MATLAB);
             //WALBERLA_ABORT("byse.")
-
 
             KSPSolve(ksp, bVec.get(), xVec.get());
             timer.end();
