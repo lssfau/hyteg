@@ -206,40 +206,16 @@ int main(int argc, char **argv) {
     walberla::MPIManager::instance()->useWorldComm();
 
     hyteg::PETScManager petscManager(&argc, &argv);
-    uint_t minLevel = 3;
-    uint_t maxLevel3D = 5;
+
     const bool writeVTK = false;
 
     for (uint_t solverType = 0; solverType < 1; solverType++) {
         WALBERLA_LOG_INFO_ON_ROOT("### " << (solverType == 0 ? "PETScCG: " : "HytegCG: ") << " ###");
 
-        //hyteg::testEGVectorLaplace2D(solverType, writeVTK, minLevel, maxLevel2D);
+        hyteg::testEGVectorLaplace2D(solverType, writeVTK, 3, 4);
 
-        hyteg::testEGVectorLaplace3D(solverType, writeVTK, minLevel, maxLevel3D);
+        hyteg::testEGVectorLaplace3D(solverType, writeVTK, 3, 4);
 
-        WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, simple ###" );
-        {
-
-            hyteg::runTestcase( "EGVectorLaplaceConvergence_tet_1el_simple",
-                                2,
-                                5,
-                                MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
-                                std::make_tuple([](const Point3D &xx) -> real_t { return 2 * xx[0]; },
-                                                [](const Point3D &xx) -> real_t { return -3 * xx[1]; },
-                                                [](const Point3D &xx) -> real_t { return 1 * xx[2]; }),
-                                std::make_tuple(
-                                        [](const Point3D &) -> real_t {
-                                            return 0;
-                                        },
-                                        [](const Point3D &) -> real_t {
-                                            return 0;
-                                        },
-                                        [](const Point3D &) -> real_t {
-                                            return 0;
-                                        }),
-                                solverType,
-                                writeVTK );
-        }
     }
     return EXIT_SUCCESS;
 }
@@ -393,7 +369,7 @@ namespace hyteg {
 
     void testEGVectorLaplace3D(uint_t solverType, bool writeVTK, uint_t minLevel, uint_t maxLevel) {
 
-        /*
+
          WALBERLA_LOG_INFO_ON_ROOT( "### Test on one tet, first ###" );
         {
            std::function< real_t( const Point3D& ) > one_tet_sol = []( const Point3D& x ) {
@@ -439,7 +415,7 @@ namespace hyteg {
                                solverType,
                                writeVTK );
         }
-        */
+
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_2el, first ###");
         {

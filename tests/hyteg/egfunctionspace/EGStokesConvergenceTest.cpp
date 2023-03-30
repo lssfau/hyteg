@@ -242,7 +242,7 @@ namespace hyteg {
                                 minLevel,
                                 maxLevel,
                                 2,
-                                true, false, NULL,
+                                false, false, NULL,
                                 std::make_shared<std::vector<real_t>>(resNormsEGP0));
                     }
                 }
