@@ -241,7 +241,7 @@ namespace hyteg {
                                 storage,
                                 minLevel,
                                 maxLevel,
-                                1,
+                                2,
                                 true, false, NULL,
                                 std::make_shared<std::vector<real_t>>(resNormsEGP0));
                     }
@@ -1193,7 +1193,7 @@ namespace hyteg {
                                 storage,
                                 minLevel,
                                 maxLevel,
-                                1,
+                                2,
                                 false,
                                 false, NULL, std::make_shared<std::vector<real_t>>(
                                         resNormsP2P1), NULL);
