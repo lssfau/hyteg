@@ -180,6 +180,11 @@ waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.c
 waLBerla_compile_test(FILES dataexport/VTKOutputTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VTKOutputTest)
 
+if (HYTEG_BUILD_WITH_ADIOS2)
+  waLBerla_compile_test(FILES dataexport/BasicADIOSTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME BasicADIOSTest)
+endif ()
+
 ## Forms ##
 
 waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
