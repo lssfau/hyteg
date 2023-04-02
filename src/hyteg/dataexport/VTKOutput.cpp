@@ -114,6 +114,10 @@ void VTKOutput::add( const GenericFunction< value_t >& function )
       matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGFunction< value_t > > >( function );
       break;
 
+   case functionTraits::N1E1_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< n1e1::N1E1VectorFunction< value_t > > >( function );
+      break;
+
    default:
       matchFound = false;
    }
@@ -135,6 +139,7 @@ const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
     { vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF" },
     { vtk::DoFType::DG, "DGDoF" },
     { vtk::DoFType::P2, "P2" },
+    { vtk::DoFType::N1E1, "N1E1" },
     { vtk::DoFType::P1DGE, "P1DGE" },
 };
 
@@ -165,6 +170,9 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
       break;
+   case vtk::DoFType::N1E1:
+      VTKN1E1Writer::write( *this, output, level );
+      break;
    case vtk::DoFType::P1DGE:
       VTKP1DGEWriter::write( *this, output, level );
       break;
@@ -194,6 +202,10 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
       return p2Functions_.size() + p2VecFunctions_.size();
    case vtk::DoFType::P1DGE:
       return p1dgeVecFunctions_.size();
+      break;
+   case vtk::DoFType::N1E1:
+      return n1e1Functions_.size();
+      break;
    default:
       WALBERLA_ABORT( "[VTK] DoFType not supported!" );
       return 0;
@@ -230,7 +242,8 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
                                                        vtk::DoFType::EDGE_YZ,
                                                        vtk::DoFType::EDGE_XYZ,
                                                        vtk::DoFType::DG,
-                                                       vtk::DoFType::P2 };
+                                                       vtk::DoFType::P2,
+                                                       vtk::DoFType::N1E1 };
 
       auto dofTypes = write2D_ ? dofTypes2D : dofTypes3D;
 
@@ -358,6 +371,25 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
 
    // no communication necessary
+
+   // -----------------------------------------------
+   //  N1E1VectorFunction [double, int32_t, int64_t]
+   // -----------------------------------------------
+   for ( const auto& function : n1e1Functions_.getFunctions< double >() )
+   {
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
+   }
+   for ( const auto& function : n1e1Functions_.getFunctions< int32_t >() )
+   {
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
+   }
+   for ( const auto& function : n1e1Functions_.getFunctions< int64_t >() )
+   {
+      function.communicate< Face, Cell >( level );
+      function.communicate< Edge, Cell >( level );
+   }
 
    // ---------------------------------------------
    //  EGFunction [double, int32_t, int64_t]

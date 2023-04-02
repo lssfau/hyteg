@@ -221,22 +221,16 @@ void VertexDoFPackInfo< ValueType >::packEdgeForVertex( const Edge*             
                                                         const PrimitiveID&         receiver,
                                                         walberla::mpi::SendBuffer& buffer ) const
 {
-   ValueType*   edgeData       = sender->getData( dataIDEdge_ )->getPointer( level_ );
-   const uint_t vertexIdOnEdge = sender->vertex_index( receiver );
-   //the last element would be the vertex itself so we have to send the next one
-   if ( vertexIdOnEdge == 0 )
-   {
-      buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, 1u, stencilDirection::VERTEX_C )];
-   }
-   else if ( vertexIdOnEdge == 1 )
-   {
-      buffer << edgeData[vertexdof::macroedge::indexFromVertex(
-          level_, levelinfo::num_microvertices_per_edge( level_ ) - 2, stencilDirection::VERTEX_C )];
-   }
-   else
-   {
-      WALBERLA_LOG_WARNING( "Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender );
-   }
+  ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
+  const uint_t vertexIdOnEdge = sender->vertex_index(receiver);
+  //the last element would be the vertex itself so we have to send the next one
+  if(vertexIdOnEdge == 0){
+    buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, 1u, stencilDirection::VERTEX_C ) ];
+  } else if(vertexIdOnEdge == 1){
+    buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, levelinfo::num_microvertices_per_edge(level_)-2 ,stencilDirection::VERTEX_C ) ];
+  } else {
+    WALBERLA_LOG_WARNING("Vertex with ID: " << receiver << " is not in Edge: " << sender);
+  }
 }
 
 template < typename ValueType >

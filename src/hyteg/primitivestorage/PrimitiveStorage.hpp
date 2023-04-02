@@ -42,7 +42,7 @@ class Edge;
 class Face;
 class Cell;
 
-typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
+typedef std::map< PrimitiveID, uint_t > MigrationMap_T;
 
 /// \brief Returns on each process the number of expected primitives after migration.
 ///
@@ -51,16 +51,16 @@ typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
 ///
 /// Usually, the number of receiving primitives should be calculated
 /// individually for each distribution strategy for performance reasons.
-inline uint_t getNumReceivingPrimitives(const MigrationMap_T & migrationMap )
+inline uint_t getNumReceivingPrimitives( const MigrationMap_T& migrationMap )
 {
-   const auto rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const auto            rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    std::vector< uint_t > expectedPrimitives( uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), 0 );
-   for ( const auto & it : migrationMap )
+   for ( const auto& it : migrationMap )
    {
       expectedPrimitives[it.second]++;
    }
 
-   walberla::mpi::allReduceInplace(expectedPrimitives, walberla::mpi::SUM );
+   walberla::mpi::allReduceInplace( expectedPrimitives, walberla::mpi::SUM );
 
    return expectedPrimitives[rank];
 }
@@ -70,8 +70,9 @@ inline uint_t getNumReceivingPrimitives(const MigrationMap_T & migrationMap )
 class MigrationInfo
 {
  public:
-
-   MigrationInfo() : numReceivingPrimitives_( 0 ) {}
+   MigrationInfo()
+   : numReceivingPrimitives_( 0 )
+   {}
 
    /// \brief Constructs migration info to be passed to a PrimitiveStorage.
    ///
@@ -82,8 +83,8 @@ class MigrationInfo
    ///                               is equal to the number of local primitives after migration).
    ///
    MigrationInfo( const MigrationMap_T& map, uint_t numReceivingPrimitives )
-       : map_( map )
-       , numReceivingPrimitives_( numReceivingPrimitives )
+   : map_( map )
+   , numReceivingPrimitives_( numReceivingPrimitives )
    {}
 
    /// Returns the mapping (local ID -> receiving process) for the primitive migration
@@ -96,28 +97,27 @@ class MigrationInfo
    uint_t         numReceivingPrimitives_;
 };
 
-inline std::ostream& operator<<(std::ostream &os, const MigrationInfo & migrationInfo)
+inline std::ostream& operator<<( std::ostream& os, const MigrationInfo& migrationInfo )
 {
    os << "MigrationInfo:\n";
    os << "Expecting " << migrationInfo.getNumReceivingPrimitives() << " primitives.\n";
-   for ( const auto & it : migrationInfo.getMap() )
+   for ( const auto& it : migrationInfo.getMap() )
    {
       os << "pID " << it.first << " -> rank " << it.second << "\n";
    }
    return os;
 }
 
-
 class PrimitiveStorage : private walberla::NonCopyable
 {
  public:
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
-   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Primitive > > PrimitiveMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Vertex > >    VertexMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
+   typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
-   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0  );
+   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
                      const uint_t&                                    additionalHaloDepth = 0 );
@@ -152,17 +152,33 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    void checkConsistency();
 
+   /// \brief Returns the currently maximum number that a primitive is refined locally.
+   uint_t getCurrentLocalMaxRefinement() const;
+
+   /// \brief Returns the currently maximum number that a primitive is refined globally (involves global reduction).
+   uint_t getCurrentGlobalMaxRefinement() const;
+
+   /// \brief Returns the refinement level of the corresponding primitive.
+   uint_t getRefinementLevel( const PrimitiveID& pid ) const;
+
    /// @name \ref Primitive access methods
    /// Various methods to obtain primitives or IDs.
    ///@{
+
+   /// Returns the number of primitives with no children.
    uint_t getNumberOfLocalPrimitives() const
    {
       return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces() + getNumberOfLocalCells();
    }
-   uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
-   uint_t getNumberOfLocalEdges() const { return edges_.size(); }
-   uint_t getNumberOfLocalFaces() const { return faces_.size(); }
-   uint_t getNumberOfLocalCells() const { return cells_.size(); }
+
+   /// Returns the number of vertices with no children.
+   uint_t getNumberOfLocalVertices() const;
+   /// Returns the number of edges with no children.
+   uint_t getNumberOfLocalEdges() const;
+   /// Returns the number of faces with no children.
+   uint_t getNumberOfLocalFaces() const;
+   /// Returns the number of cells with no children.
+   uint_t getNumberOfLocalCells() const;
 
    /// Returns true if there are cell-primitives globally (even if there are none on the process that calls this function).
    bool hasGlobalCells() const { return hasGlobalCells_; }
@@ -173,13 +189,13 @@ class PrimitiveStorage : private walberla::NonCopyable
       return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ) || cellExistsLocally( id );
    }
    /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
-   bool vertexExistsLocally( const PrimitiveID& id ) const { return vertices_.count( id.getID() ) > 0; }
+   bool vertexExistsLocally( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists locally.
-   bool edgeExistsLocally( const PrimitiveID& id ) const { return edges_.count( id.getID() ) > 0; }
+   bool edgeExistsLocally( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
-   bool faceExistsLocally( const PrimitiveID& id ) const { return faces_.count( id.getID() ) > 0; }
+   bool faceExistsLocally( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists locally.
-   bool cellExistsLocally( const PrimitiveID& id ) const { return cells_.count( id.getID() ) > 0; }
+   bool cellExistsLocally( const PrimitiveID& id ) const;
 
    /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
    bool primitiveExistsInNeighborhood( const PrimitiveID& id ) const
@@ -188,13 +204,13 @@ class PrimitiveStorage : private walberla::NonCopyable
              cellExistsInNeighborhood( id );
    }
    /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool vertexExistsInNeighborhood( const PrimitiveID& id ) const { return neighborVertices_.count( id.getID() ) > 0; }
+   bool vertexExistsInNeighborhood( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool edgeExistsInNeighborhood( const PrimitiveID& id ) const { return neighborEdges_.count( id.getID() ) > 0; }
+   bool edgeExistsInNeighborhood( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool faceExistsInNeighborhood( const PrimitiveID& id ) const { return neighborFaces_.count( id.getID() ) > 0; }
+   bool faceExistsInNeighborhood( const PrimitiveID& id ) const;
    /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-   bool cellExistsInNeighborhood( const PrimitiveID& id ) const { return neighborCells_.count( id.getID() ) > 0; }
+   bool cellExistsInNeighborhood( const PrimitiveID& id ) const;
 
    /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
    template < typename PrimitiveType >
@@ -265,49 +281,52 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
    ///@}
 
-   /// Returns a vector of all locally existing primitives
+   /// Returns a vector of all locally existing primitives without children.
    std::vector< PrimitiveID > getPrimitiveIDs() const;
 
-   /// Returns a vector of all locally existing vertices
+   /// Returns a vector of all locally existing vertices without children.
    std::vector< PrimitiveID > getVertexIDs() const;
 
-   /// Returns a vector of all locally existing edges
+   /// Returns a vector of all locally existing edges without children.
    std::vector< PrimitiveID > getEdgeIDs() const;
 
-   /// Returns a vector of all locally existing faces
+   /// Returns a vector of all locally existing faces without children.
    std::vector< PrimitiveID > getFaceIDs() const;
 
-   /// Returns a vector of all locally existing cells
+   /// Returns a vector of all locally existing cells without children.
    std::vector< PrimitiveID > getCellIDs() const;
 
-   /// Fills the passed vector with the IDs of the locally existing primitives
+   /// Returns a vector of all locally existing volumes (2D: faces, 3D colls) without children.
+   std::vector< PrimitiveID > getVolumeIDs() const;
+
+   /// Fills the passed vector with the IDs of the locally existing primitives without children.
    void getPrimitiveIDs( std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /// Fills the passed vector with the IDs of the locally existing vertices
+   /// Fills the passed vector with the IDs of the locally existing vertices without children.
    void getVertexIDs( std::vector< PrimitiveID >& vertexIDs ) const;
 
-   /// Fills the passed vector with the IDs of the locally existing edges
+   /// Fills the passed vector with the IDs of the locally existing edges without children.
    void getEdgeIDs( std::vector< PrimitiveID >& edgeIDs ) const;
 
-   /// Fills the passed vector with the IDs of the locally existing faces
+   /// Fills the passed vector with the IDs of the locally existing faces without children.
    void getFaceIDs( std::vector< PrimitiveID >& faceIDs ) const;
 
-   /// Fills the passed vector with the IDs of the locally existing cells
+   /// Fills the passed vector with the IDs of the locally existing cells without children.
    void getCellIDs( std::vector< PrimitiveID >& cellIDs ) const;
 
-   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost primitives
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost primitives without children.
    void getNeighboringPrimitiveIDs( std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost vertices
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost vertices without children.
    void getNeighboringVertexIDs( std::vector< PrimitiveID >& vertexIDs ) const;
 
-   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost edges
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost edges without children.
    void getNeighboringEdgeIDs( std::vector< PrimitiveID >& edgeIDs ) const;
 
-   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost faces
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost faces without children.
    void getNeighboringFaceIDs( std::vector< PrimitiveID >& faceIDs ) const;
 
-   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost cells
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost cells without children.
    void getNeighboringCellIDs( std::vector< PrimitiveID >& cellIDs ) const;
 
    /// Fills the passed vector with the IDs of the primitives of the type provided via the
@@ -326,32 +345,32 @@ class PrimitiveStorage : private walberla::NonCopyable
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
 
-   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
+   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives without children.
    void getPrimitives( PrimitiveMap& primitiveMap ) const;
 
-   /// Returns a reference to a map of the locally existing \ref Vertex instances
-   const VertexMap& getVertices() const { return vertices_; }
+   /// Returns a map of the locally existing \ref Vertex instances without children.
+   VertexMap getVertices() const;
 
-   /// Returns a reference to a map of the locally existing \ref Edge instances
-   const EdgeMap& getEdges() const { return edges_; }
+   /// Returns a map of the locally existing \ref Edge instances without children.
+   EdgeMap getEdges() const;
 
-   /// Returns a reference to a map of the locally existing \ref Face instances
-   const FaceMap& getFaces() const { return faces_; }
+   /// Returns a map of the locally existing \ref Face instances without children.
+   FaceMap getFaces() const;
 
-   /// Returns a reference to a map of the locally existing \ref Cell instances
-   const CellMap& getCells() const { return cells_; }
+   /// Returns a map of the locally existing \ref Cell instances without children.
+   CellMap getCells() const;
 
-   /// Returns a reference to a map of the neighborhood \ref Vertex instances
-   const VertexMap& getNeighborVertices() const { return neighborVertices_; }
+   /// Returns a map of the neighborhood \ref Vertex instances without children.
+   VertexMap getNeighborVertices() const;
 
-   /// Returns a reference to a map of the neighborhood \ref Edge instances
-   const EdgeMap& getNeighborEdges() const { return neighborEdges_; }
+   /// Returns a map of the neighborhood \ref Edge instances without children.
+   EdgeMap getNeighborEdges() const;
 
-   /// Returns a reference to a map of the neighborhood \ref Face instances
-   const FaceMap& getNeighborFaces() const { return neighborFaces_; }
+   /// Returns a map of the neighborhood \ref Face instances without children.
+   FaceMap getNeighborFaces() const;
 
-   /// Returns a reference to a map of the neighborhood \ref Cell instances
-   const CellMap& getNeighborCells() const { return neighborCells_; }
+   /// Returns a map of the neighborhood \ref Cell instances without children.
+   CellMap getNeighborCells() const;
 
    ///@}
 
@@ -368,14 +387,9 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns the correct rank if the primitive lies in the direct neighborhood.
    /// Should not be called for other primitives.
-   uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const
-   {
-      WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ), "Primitive with ID " << id << " does not exist in neighborhood." );
-      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id.getID() ), 0, "Primitive with ID " << id << " could not be found in neighbor ranks." )
-      return neighborRanks_.at( id.getID() );
-   }
+   uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const;
 
-   /// @name Primitive data methods
+   /// @name Primitive data methods (add)
    /// Use these methods to add data to all primitives of a certain type using a respective \ref PrimitiveDataHandling implementation.
    /// \param dataID (out) the method creates a data ID and writes it to this parameter, the data can be obtained through a \ref Primitive using this ID
    /// \param dataHandling a pointer to the \ref PrimitiveDataHandling that shall be used to treat the data item
@@ -414,6 +428,26 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
    ///@}
 
+   /// @name Primitive data methods (delete)
+   /// Use these methods to delete data of a certain type from all primitives.
+   /// \param dataID ID of the data to be deleted
+   ///@{
+   template < typename DataType >
+   inline void deletePrimitiveData( PrimitiveDataID< DataType, Primitive >& dataID );
+
+   template < typename DataType >
+   inline void deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID );
+
+   template < typename DataType >
+   inline void deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID );
+
+   template < typename DataType >
+   inline void deleteFaceData( PrimitiveDataID< DataType, Face >& dataID );
+
+   template < typename DataType >
+   inline void deleteCellData( PrimitiveDataID< DataType, Cell >& dataID );
+   ///@}
+
    /// Migrates the passed local primitives to the respective target process.
    /// Must be called collectively, even if a processes does not send any primitives.
    /// Calls the serialization and deserialization methods of the data handling instances of all registered data items
@@ -421,7 +455,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Automatically refreshes the neighborhood information.
    /// \param migrationInfo initialized with a map that maps all local primitives to a target process, and the number of expected
    ///                      primitives after migration
-   void migratePrimitives( const MigrationInfo & migrationInfo );
+   void migratePrimitives( const MigrationInfo& migrationInfo );
 
    /// \brief Returns the global Primitive rank assignment.
    std::map< PrimitiveID, uint_t > getGlobalPrimitiveRanks() const;
@@ -432,17 +466,17 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Fills the passed set with all neighboring ranks (== all ranks from primitives that are located in the direct neighborhood)
    std::set< uint_t > getNeighboringRanks() const;
-   void getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const;
-   void getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const;
+   void               getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const;
+   void               getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const;
 
    /// Returns the neighboring ranks of the passed primitive that has the same primitive type.
    /// Two primitives of same type are considered neighbors if they share at least one vertex.
    /// This means, that the neighborhood must be extended by at least 1 during construction of the distributed PrimitiveStorage.
-   std::set< uint_t > getNeighboringFaceRanksOfFace( const PrimitiveID & facePrimitiveID ) const;
+   std::set< uint_t > getNeighboringFaceRanksOfFace( const PrimitiveID& facePrimitiveID ) const;
    std::set< uint_t > getNeighboringFaceRanksOfAllFaces() const;
-   std::set< uint_t > getNeighboringCellRanksOfCell( const PrimitiveID & cellPrimitiveID ) const;
+   std::set< uint_t > getNeighboringCellRanksOfCell( const PrimitiveID& cellPrimitiveID ) const;
    std::set< uint_t > getNeighboringCellRanksOfAllCells() const;
-   std::set< uint_t > getNeighboringVolumeRanksOfVolume( const PrimitiveID & volumePrimitiveID ) const;
+   std::set< uint_t > getNeighboringVolumeRanksOfVolume( const PrimitiveID& volumePrimitiveID ) const;
    std::set< uint_t > getNeighboringVolumeRanksOfAllVolumes() const;
 
    inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const { return timingTree_; }
@@ -463,34 +497,22 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// \brief Returns the global number of vertices.
    ///
    /// Involves global communication.
-   uint_t getNumberOfGlobalVertices() const
-   {
-      return walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::SUM );
-   }
+   uint_t getNumberOfGlobalVertices() const { return walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::SUM ); }
 
    /// \brief Returns the global number of edges.
    ///
    /// Involves global communication.
-   uint_t getNumberOfGlobalEdges() const
-   {
-      return walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::SUM );
-   }
+   uint_t getNumberOfGlobalEdges() const { return walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::SUM ); }
 
    /// \brief Returns the global number of faces.
    ///
    /// Involves global communication.
-   uint_t getNumberOfGlobalFaces() const
-   {
-      return walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::SUM );
-   }
+   uint_t getNumberOfGlobalFaces() const { return walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::SUM ); }
 
    /// \brief Returns the global number of cells.
    ///
    /// Involves global communication.
-   uint_t getNumberOfGlobalCells() const
-   {
-      return walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::SUM );
-   }
+   uint_t getNumberOfGlobalCells() const { return walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::SUM ); }
 
    /// \brief Returns the number of processes without any primitives.
    ///
@@ -513,9 +535,44 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// This is useful to obtain a subcommunicator in settings where agglomeration is performed.
    /// Especially needed for some external libraries (e.g. PETSc).
    ///
-   MPI_Comm getSplitCommunicatorByPrimitiveDistribution() const
+   MPI_Comm getSplitCommunicatorByPrimitiveDistribution() const { return splitComm_; }
+
+   /// \brief Triggers primitive refinement and coarsening.
+   ///
+   /// This does not delete parent primitives during refinement. But it deletes child primitives after coarsening.
+   ///
+   /// See PrimitiveStorage::queryRefinementAndCoarseningHanging() for how the primitives are selected.
+   ///
+   /// Refinement is triggered first, then coarsening.
+   ///
+   /// \param volumePIDsRefine        [in] vector of volume PrimitiveIDs that shall be refined
+   /// \param volumePIDsCoarsen       [in] vector of volume PrimitiveIDs that shall be coarsened
+   /// \param volumePIDsRefineResult  [out] vector of volume PrimitiveIDs that are going to be refined to maintain the 2:1
+   ///                                      balance, the number of primitives is equal or greater than the input
+   /// \param volumePIDsCoarsenResult [out] vector of volume PrimitiveIDs that are going to be coarsened to maintain the 2:1
+   ///                                      balance, the number of primitives is equal or less than the input
+   void refinementAndCoarseningHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
+                                        const std::vector< PrimitiveID >& volumePIDsCoarsen,
+                                        std::vector< PrimitiveID >&       volumePIDsRefineResult,
+                                        std::vector< PrimitiveID >&       volumePIDsCoarsenResult );
+
+   void refinementAndCoarseningHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
+                                        const std::vector< PrimitiveID >& volumePIDsCoarsen )
    {
-      return splitComm_;
+      std::vector< PrimitiveID > refineResultThrowAway, coarsenResultThrowAway;
+      refinementAndCoarseningHanging( volumePIDsRefine, volumePIDsCoarsen, refineResultThrowAway, coarsenResultThrowAway );
+   }
+
+   void refinementHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
+                           std::vector< PrimitiveID >&       volumePIDsRefineResult )
+   {
+      std::vector< PrimitiveID > coarsenResultThrowAway;
+      refinementAndCoarseningHanging( volumePIDsRefine, {}, volumePIDsRefineResult, coarsenResultThrowAway );
+   }
+
+   void refinementHanging( const std::vector< PrimitiveID >& volumePIDsRefine )
+   {
+      refinementAndCoarseningHanging( volumePIDsRefine, {} );
    }
 
  private:
@@ -557,6 +614,33 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns invalid if the primitive is not locally availably.
    PrimitiveTypeEnum getPrimitiveType( const PrimitiveID& primitiveID ) const;
 
+   /// \brief Given (volume-)PrimitiveIDs of local primitives that shall be refined or coarsened,
+   ///        this method returns the local (volume-) primitives that are actually refined or coarsened in a subsequent step.
+   ///
+   /// Note that this function does _not_ modify the PrimitiveStorage.
+   ///
+   /// Refinement is triggered first, then coarsening.
+   ///
+   /// Step 1: refinement
+   ///   The marked volume primitives are guaranteed to be refined. To maintain the 2:1 balance, neighboring primitives are
+   ///   potentially forced to be refined, too.
+   ///
+   /// Step 2: coarsening
+   ///   Coarsening is only executed if all child volume primitives of a parent volume primitive are marked for coarsening
+   ///   and if the 2:1 balance is not violated. Coarsening is not triggered for primitives that are not meant to be coarsened
+   ///   by the user.
+   ///
+   /// \param volumePIDsRefine        [in] vector of volume PrimitiveIDs that shall be refined
+   /// \param volumePIDsCoarsen       [in] vector of volume PrimitiveIDs that shall be coarsened
+   /// \param volumePIDsRefineResult  [out] vector of volume PrimitiveIDs that are going to be refined to maintain the 2:1
+   ///                                      balance, the number of primitives is equal or greater than the input
+   /// \param volumePIDsCoarsenResult [out] vector of volume PrimitiveIDs that are going to be coarsened to maintain the 2:1
+   ///                                      balance, the number of primitives is equal or less than the input
+   void queryRefinementAndCoarseningHanging( const std::vector< PrimitiveID >& volumePIDsRefine,
+                                             const std::vector< PrimitiveID >& volumePIDsCoarsen,
+                                             std::vector< PrimitiveID >&       volumePIDsRefineResult,
+                                             std::vector< PrimitiveID >&       volumePIDsCoarsenResult ) const;
+
    /// Deserializes a primitive from the receive buffer and adds it to the storage.
    /// Reads:
    ///   - PrimitiveType
@@ -578,20 +662,27 @@ class PrimitiveStorage : private walberla::NonCopyable
               typename PrimitiveType,
               typename DataHandlingType,
               typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
-   inline void addPrimitiveData( const std::shared_ptr< DataHandlingType >&                               dataHandling,
-                                 const std::string&                                                       identifier,
-                                 const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > >& primitives,
-                                 const PrimitiveDataID< DataType, PrimitiveType >&                        dataID );
+   inline void addPrimitiveData( const std::shared_ptr< DataHandlingType >&                       dataHandling,
+                                 const std::string&                                               identifier,
+                                 const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                 const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
-   VertexMap vertices_;
-   EdgeMap   edges_;
-   FaceMap   faces_;
-   CellMap   cells_;
+   template < typename DataType,
+              typename PrimitiveType,
+              typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
+   inline void deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                    const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
-   VertexMap neighborVertices_;
-   EdgeMap   neighborEdges_;
-   FaceMap   neighborFaces_;
-   CellMap   neighborCells_;
+   /// The first indirection specifies the hierarchy level.
+   std::map< uint_t, VertexMap > vertices_;
+   std::map< uint_t, EdgeMap >   edges_;
+   std::map< uint_t, FaceMap >   faces_;
+   std::map< uint_t, CellMap >   cells_;
+
+   std::map< uint_t, VertexMap > neighborVertices_;
+   std::map< uint_t, EdgeMap >   neighborEdges_;
+   std::map< uint_t, FaceMap >   neighborFaces_;
+   std::map< uint_t, CellMap >   neighborCells_;
 
    template < typename DataType >
    inline void addDataHandlingCallbacks(
@@ -653,6 +744,46 @@ class PrimitiveStorage : private walberla::NonCopyable
       cellDataDeserializationFunctions_[dataID] = deserializationFunction;
    }
 
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive >& dataID )
+   {
+      primitiveDataInitializationFunctions_.erase( dataID );
+      primitiveDataSerializationFunctions_.erase( dataID );
+      primitiveDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Vertex >& dataID )
+   {
+      vertexDataInitializationFunctions_.erase( dataID );
+      vertexDataSerializationFunctions_.erase( dataID );
+      vertexDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Edge >& dataID )
+   {
+      edgeDataInitializationFunctions_.erase( dataID );
+      edgeDataSerializationFunctions_.erase( dataID );
+      edgeDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Face >& dataID )
+   {
+      faceDataInitializationFunctions_.erase( dataID );
+      faceDataSerializationFunctions_.erase( dataID );
+      faceDataDeserializationFunctions_.erase( dataID );
+   }
+
+   template < typename DataType >
+   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell >& dataID )
+   {
+      cellDataInitializationFunctions_.erase( dataID );
+      cellDataSerializationFunctions_.erase( dataID );
+      cellDataDeserializationFunctions_.erase( dataID );
+   }
+
    // Maps from data ID to respective callback functions
 
    std::map< uint_t, std::function< void( const std::shared_ptr< Primitive >& ) > > primitiveDataInitializationFunctions_;
@@ -687,7 +818,9 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    uint_t primitiveDataHandlers_;
 
-   std::map< PrimitiveID::IDType, uint_t > neighborRanks_;
+   /// Stores the MPI ranks of neighboring primitives.
+   /// First indirection is the hierarchy level.
+   std::map< uint_t, std::map< PrimitiveID, uint_t > > neighborRanks_;
 
    void   wasModified() { modificationStamp_++; }
    uint_t modificationStamp_;
@@ -711,6 +844,8 @@ class PrimitiveStorage : private walberla::NonCopyable
 #include "PrimitiveStorage.tpp"
 ////////////////////////////////////////////////
 
+// Adding Primitive data
+
 template < typename DataType, typename DataHandlingType >
 void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&    dataID,
                                          const std::shared_ptr< DataHandlingType >& dataHandling,
@@ -718,10 +853,17 @@ void PrimitiveStorage::addPrimitiveData( PrimitiveDataID< DataType, Primitive >&
 {
    dataID = generateDataID< DataType, Primitive >();
    PrimitiveMap primitives;
-   primitives.insert( vertices_.begin(), vertices_.end() );
-   primitives.insert( edges_.begin(), edges_.end() );
-   primitives.insert( faces_.begin(), faces_.end() );
-   primitives.insert( cells_.begin(), cells_.end() );
+
+   auto vertices = getVertices();
+   auto edges    = getEdges();
+   auto faces    = getFaces();
+   auto cells    = getCells();
+
+   primitives.insert( vertices.begin(), vertices.end() );
+   primitives.insert( edges.begin(), edges.end() );
+   primitives.insert( faces.begin(), faces.end() );
+   primitives.insert( cells.begin(), cells.end() );
+
    addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 
@@ -731,7 +873,7 @@ void PrimitiveStorage::addVertexData( PrimitiveDataID< DataType, Vertex >&      
                                       const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Vertex >();
-   addPrimitiveData( dataHandling, identifier, vertices_, dataID );
+   addPrimitiveData( dataHandling, identifier, getVertices(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -740,7 +882,7 @@ void PrimitiveStorage::addEdgeData( PrimitiveDataID< DataType, Edge >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Edge >();
-   addPrimitiveData( dataHandling, identifier, edges_, dataID );
+   addPrimitiveData( dataHandling, identifier, getEdges(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -749,7 +891,7 @@ void PrimitiveStorage::addFaceData( PrimitiveDataID< DataType, Face >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Face >();
-   addPrimitiveData( dataHandling, identifier, faces_, dataID );
+   addPrimitiveData( dataHandling, identifier, getFaces(), dataID );
 }
 
 template < typename DataType, typename DataHandlingType >
@@ -758,15 +900,17 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
                                     const std::string&                         identifier )
 {
    dataID = generateDataID< DataType, Cell >();
-   addPrimitiveData( dataHandling, identifier, cells_, dataID );
+   addPrimitiveData( dataHandling, identifier, getCells(), dataID );
 }
 
 template < typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
-#ifndef NDEBUG
-   checkConsistency();
-#endif
+   WALBERLA_DEBUG_SECTION()
+   {
+      checkConsistency();
+   }
+
    return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }
 
@@ -774,15 +918,16 @@ template < typename DataType, typename PrimitiveType, typename DataHandlingType,
 inline void
     PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType >& dataHandling,
                                         const std::string& identifier, // TODO remark: identifier not used in this function
-                                        const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > >& primitives,
-                                        const PrimitiveDataID< DataType, PrimitiveType >&                        dataID )
+                                        const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                        const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
 {
-#ifndef NDEBUG
-   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
+   WALBERLA_DEBUG_SECTION()
    {
-      WALBERLA_ASSERT_GREATER( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+      for ( auto it = primitives.begin(); it != primitives.end(); it++ )
+      {
+         WALBERLA_ASSERT_GREATER( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+      }
    }
-#endif
 
    // Set up initialization, serialization and deserialization callbacks
    auto initCallback = [this, dataID, dataHandling]( const std::shared_ptr< PrimitiveType >& primitive ) -> void {
@@ -807,6 +952,66 @@ inline void
    for ( const auto& primitive : primitives )
    {
       initCallback( primitive.second );
+   }
+
+   wasModified();
+}
+
+// Deleting Primitive data
+
+template < typename DataType >
+void PrimitiveStorage::deletePrimitiveData( PrimitiveDataID< DataType, hyteg::Primitive >& dataID )
+{
+   dataID = generateDataID< DataType, Primitive >();
+   PrimitiveMap primitives;
+
+   auto vertices = getVertices();
+   auto edges    = getEdges();
+   auto faces    = getFaces();
+   auto cells    = getCells();
+
+   primitives.insert( vertices.begin(), vertices.end() );
+   primitives.insert( edges.begin(), edges.end() );
+   primitives.insert( faces.begin(), faces.end() );
+   primitives.insert( cells.begin(), cells.end() );
+
+   deletePrimitiveData( primitives, dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID )
+{
+   deletePrimitiveData( getVertices(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID )
+{
+   deletePrimitiveData( getEdges(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteFaceData( PrimitiveDataID< DataType, Face >& dataID )
+{
+   deletePrimitiveData( getFaces(), dataID );
+}
+
+template < typename DataType >
+void PrimitiveStorage::deleteCellData( PrimitiveDataID< DataType, Cell >& dataID )
+{
+   deletePrimitiveData( getCells(), dataID );
+}
+
+template < typename DataType, typename PrimitiveType, typename >
+void PrimitiveStorage::deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                            const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
+{
+   deleteDataHandlingCallbacks( dataID );
+
+   // initialize memory for all primitives in map
+   for ( const auto& primitive : primitives )
+   {
+      primitive.second->deleteData( dataID );
    }
 
    wasModified();

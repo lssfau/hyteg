@@ -23,6 +23,7 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -131,6 +132,11 @@ inline void applyDirichletBC( const dg::DGVectorFunction< idx_t >& numerator, st
    {
       applyDirichletBC( numerator[k], mat, level );
    }
+}
+
+inline void applyDirichletBC( const n1e1::N1E1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   applyDirichletBC( *numerator.getDoFs(), mat, level );
 }
 
 // ==================

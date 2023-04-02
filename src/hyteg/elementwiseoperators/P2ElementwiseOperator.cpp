@@ -179,7 +179,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
             }
          }
 
-         Matrix10r elMat;
+         Matrix10r elMat = Matrix10r::Zero();
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -225,10 +225,6 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       {
          Face& face = *it.second;
 
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
-
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
@@ -272,7 +268,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
             }
          }
 
-         Matrix6r elMat;
+         Matrix6r elMat = Matrix6r::Zero();
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -442,10 +438,6 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
          for ( auto& it : storage_->getFaces() )
          {
             Face& face = *it.second;
-
-            Point3D x0( face.getCoordinates()[0] );
-            Point3D x1( face.getCoordinates()[1] );
-            Point3D x2( face.getCoordinates()[2] );
 
             uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
             uint_t                   inner_rowsize = rowsize;
@@ -634,7 +626,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    }
 
    // assemble local element matrix
-   Matrix10r elMat;
+   Matrix10r elMat = Matrix10r::Zero();
    P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
@@ -647,13 +639,13 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    // add contributions for central stencil weights
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[k]] += elMat( k, k );
+      vertexData[vertexDoFIndices[uint_c(k)]] += elMat( k, k );
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      edgeData[edgeDoFIndices[k - 4]] += elMat( k, k );
+      edgeData[edgeDoFIndices[uint_c(k - 4)]] += elMat( k, k );
    }
 }
 template < class P2Form >
@@ -716,10 +708,6 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
       for ( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
-
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
@@ -888,7 +876,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( const std::shared_p
    }
 
    // assemble local element matrix
-   Matrix10r elMat;
+   Matrix10r elMat = Matrix10r::Zero();
    P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );

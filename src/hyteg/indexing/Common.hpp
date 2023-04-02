@@ -20,13 +20,37 @@
 
 #pragma once
 
-#include "hyteg/types/pointnd.hpp"
+#include "core/DataTypes.h"
+#include "core/debug/Debug.h"
+
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
+
+using walberla::uint_t;
 
 namespace hyteg {
 namespace indexing {
 
-using walberla::uint_t;
+/// Helper function to create a 'tuple' from two integers taking less than 5 bits of space.
+/// Allows for more readable switch statements in some cases.
+inline constexpr uint_t tup4( const uint_t& a, const uint_t& b )
+{
+#if 0
+   assert( a < ( 1 << 4 ) );
+   assert( b < ( 1 << 4 ) );
+#endif
+   return a << 4 | b;
+}
+
+inline constexpr uint_t tup4( const uint_t& a, const uint_t& b, const uint_t& c )
+{
+#if 0
+   assert( a < ( 1 << 4 ) );
+   assert( b < ( 1 << 4 ) );
+   assert( c < ( 1 << 4 ) );
+#endif
+   return a << 8 | b << 4 | c;
+}
 
 class IndexIncrement : public PointND< int, 3 >
 {
@@ -40,25 +64,25 @@ class IndexIncrement : public PointND< int, 3 >
 
    IndexIncrement( const int& x, const int& y, const int& z )
    {
-      x_[0] = x;
-      x_[1] = y;
-      x_[2] = z;
+      vector_[0] = x;
+      vector_[1] = y;
+      vector_[2] = z;
    }
 
-   const int& x() const { return x_[0]; }
-   int&       x() { return x_[0]; }
+   const int& x() const { return vector_[0]; }
+   int&       x() { return vector_[0]; }
 
-   const int& y() const { return x_[1]; }
-   int&       y() { return x_[1]; }
+   const int& y() const { return vector_[1]; }
+   int&       y() { return vector_[1]; }
 
-   const int& z() const { return x_[2]; }
-   int&       z() { return x_[2]; }
+   const int& z() const { return vector_[2]; }
+   int&       z() { return vector_[2]; }
 
    void setxyz( const int& x, const int& y, const int& z )
    {
-      x_[0] = x;
-      x_[1] = y;
-      x_[2] = z;
+      vector_[0] = x;
+      vector_[1] = y;
+      vector_[2] = z;
    }
 
    IndexIncrement& operator+=( const IndexIncrement& increment )
@@ -83,33 +107,34 @@ class Index : public PointND< idx_t, 3 >
 
    static Index max()
    {
-      return Index( std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max() );
+      return Index(
+          std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max(), std::numeric_limits< idx_t >::max() );
    }
 
    Index( const idx_t& x, const idx_t& y, const idx_t& z )
    {
-      x_[0] = x;
-      x_[1] = y;
-      x_[2] = z;
+      vector_[0] = x;
+      vector_[1] = y;
+      vector_[2] = z;
    }
 
-   const idx_t& x() const { return x_[0]; }
-   idx_t&       x() { return x_[0]; }
+   const idx_t& x() const { return vector_[0]; }
+   idx_t&       x() { return vector_[0]; }
 
-   const idx_t& y() const { return x_[1]; }
-   idx_t&       y() { return x_[1]; }
+   const idx_t& y() const { return vector_[1]; }
+   idx_t&       y() { return vector_[1]; }
 
-   const idx_t& z() const { return x_[2]; }
-   idx_t&       z() { return x_[2]; }
+   const idx_t& z() const { return vector_[2]; }
+   idx_t&       z() { return vector_[2]; }
 
-   const idx_t& col() const { return x_[0]; }
-   idx_t&       col() { return x_[0]; }
+   const idx_t& col() const { return vector_[0]; }
+   idx_t&       col() { return vector_[0]; }
 
-   const idx_t& row() const { return x_[1]; }
-   idx_t&       row() { return x_[1]; }
+   const idx_t& row() const { return vector_[1]; }
+   idx_t&       row() { return vector_[1]; }
 
-   const idx_t& dep() const { return x_[2]; }
-   idx_t&       dep() { return x_[2]; }
+   const idx_t& dep() const { return vector_[2]; }
+   idx_t&       dep() { return vector_[2]; }
 
    Index& operator+=( const IndexIncrement& increment )
    {
@@ -121,18 +146,32 @@ class Index : public PointND< idx_t, 3 >
       z() += increment.z();
       return *this;
    }
+
+   Index& operator+=( const Index& other )
+   {
+      x() += other.x();
+      y() += other.y();
+      z() += other.z();
+      return *this;
+   }
 };
 
 inline bool operator<( const Index& lhs, const Index& rhs )
 {
-   return lhs.x() < rhs.x() || ( lhs.x() == rhs.x() && lhs.y() < rhs.y() ) ||
-          ( lhs.x() == rhs.x() && lhs.y() == rhs.y() && lhs.z() < rhs.z() );
+   return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
+          ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
 }
 
 inline bool operator<( const IndexIncrement& lhs, const IndexIncrement& rhs )
 {
-   return lhs.x() < rhs.x() || ( lhs.x() == rhs.x() && lhs.y() < rhs.y() ) ||
-          ( lhs.x() == rhs.x() && lhs.y() == rhs.y() && lhs.z() < rhs.z() );
+   return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
+          ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
+}
+
+inline Index operator+( Index lhs, const Index& rhs )
+{
+   lhs += rhs;
+   return lhs;
 }
 
 inline Index operator+( Index lhs, const IndexIncrement& rhs )
@@ -169,9 +208,9 @@ inline Index operator*( const idx_t& scalar, Index rhs )
    return rhs;
 }
 
-inline IndexIncrement operator-( const Index& lhs, const Index& rhs )
+inline Index operator-( const Index& lhs, const Index& rhs )
 {
-   return IndexIncrement( (int) lhs.x() - (int) rhs.x(), (int) lhs.y() - (int) rhs.y(), (int) lhs.z() - (int) rhs.z() );
+   return Index( (idx_t) lhs.x() - (idx_t) rhs.x(), (idx_t) lhs.y() - (idx_t) rhs.y(), (idx_t) lhs.z() - (idx_t) rhs.z() );
 }
 
 inline IndexIncrement operator-( const IndexIncrement& lhs, const IndexIncrement& rhs )

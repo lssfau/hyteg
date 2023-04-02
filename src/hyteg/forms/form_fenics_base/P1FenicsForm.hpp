@@ -103,7 +103,7 @@ class P1FenicsForm : public P1Form
       {
          for ( int coordinate = 0; coordinate < 3; coordinate++ )
          {
-            geometricOffsetsArray[cellVertex * 3 + uint_c( coordinate )] = coords[cellVertex][coordinate];
+            geometricOffsetsArray[cellVertex * 3 + walberla::uint_c( coordinate )] = coords[cellVertex][coordinate];
          }
       }
 

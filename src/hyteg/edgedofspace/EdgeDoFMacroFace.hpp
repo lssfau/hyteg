@@ -124,8 +124,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    A( 0, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[0];
    A( 1, 0 ) = ( face.getCoordinates()[1] - face.getCoordinates()[0] )[1];
    A( 1, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[1];
-   transform = A.adj();
-   transform *= 1.0 / A.det();
+   transform = A.inverse();
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 
@@ -182,7 +181,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    auto srcData = face.getData( srcID )->getPointer( level );
 
    transform *= hInv;
-   transform = transform.transpose();
+   transform.transposeInPlace();
 
    // decide if up or down triangle
    // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
@@ -1108,6 +1107,30 @@ inline void applyDirichletBC( const uint_t&                                     
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
          mat.push_back( numerator[idx] );
       }
+   }
+}
+
+template < typename ValueType >
+inline void setBoundaryToZero( const uint_t&                                               level,
+                               const Face&                                                 face,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceDataID )
+{
+   real_t* data = face.getData( faceDataID )->getPointer( level );
+
+   for ( const auto& idx : edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT ) )
+   {
+      data[edgedof::macroface::horizontalIndex( level, idx.col(), idx.row() )] = 0;
+   }
+
+   for ( const auto& idx : edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP ) )
+   {
+      data[edgedof::macroface::verticalIndex( level, idx.col(), idx.row() )] = 0;
+   }
+
+   for ( const auto& idx :
+         edgedof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+   {
+      data[edgedof::macroface::diagonalIndex( level, idx.col(), idx.row() )] = 0;
    }
 }
 

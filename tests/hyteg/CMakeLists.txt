@@ -1,4 +1,3 @@
-
 waLBerla_link_files_to_builddir(*.msh)
 
 ## adaptive refinement ##
@@ -10,6 +9,7 @@ waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
 
 waLBerla_compile_test(FILES adaptiveRefinement/adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
+
 
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS hyteg core)
@@ -38,7 +38,7 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 
 waLBerla_compile_test(FILES convergence/P2GMGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMGConvergenceTest)
-waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P2GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGConvergenceTest> PROCESSES 2)
 
 waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
@@ -224,11 +224,20 @@ waLBerla_execute_test(NAME DGIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 
+waLBerla_compile_test(FILES Indexing/MicroCellFromMicroVerticesTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroCellFromMicroVerticesTest)
+
+waLBerla_compile_test(FILES Indexing/MicroVertexIdxMacroRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroVertexIdxMacroRefinementTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest>)
     waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3)
 endif ()
+
+waLBerla_compile_test(FILES Indexing/VolumeDoFIndexingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VolumeDoFIndexingTest)
 
 #if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 #  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
@@ -357,12 +366,12 @@ waLBerla_execute_test(NAME P1DataHandlingTest)
 waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1EvaluateTest)
 
-if( HYTEG_BUILD_WITH_PETSC )
-  waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest> )
-  waLBerla_execute_test(NAME P1PetscApplyTest2 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 2)
-  waLBerla_execute_test(NAME P1PetscApplyTest8 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 8)
-endif()
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest>)
+    waLBerla_execute_test(NAME P1PetscApplyTest2 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 2)
+    waLBerla_execute_test(NAME P1PetscApplyTest8 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 8)
+endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P1/P1PetscSolveTest.cpp DEPENDS hyteg core)
@@ -430,9 +439,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME P2PetscSolveTest1 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 1)
     waLBerla_execute_test(NAME P2PetscSolveTest2 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 2)
-if(NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM )
-    waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
-endif()
+    if (NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM)
+        waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
+    endif ()
 endif ()
 
 if (HYTEG_BUILD_WITH_PETSC)
@@ -558,8 +567,6 @@ waLBerla_execute_test(NAME DGCommTest)
 waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGEnumerateTest)
 
-
-
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveIDTest)
 
@@ -609,8 +616,8 @@ waLBerla_execute_test(NAME PrimitiveStorageCopyTest8 COMMAND $<TARGET_FILE:Primi
 
 waLBerla_compile_test(FILES adaptivity/AgglomerationMatMulTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AgglomerationMatMulTest1 COMMAND $<TARGET_FILE:AgglomerationMatMulTest>)
-#waLBerla_execute_test(NAME AgglomerationMatMulTest2 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 2)
-#waLBerla_execute_test(NAME AgglomerationMatMulTest3 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 3)
+waLBerla_execute_test(NAME AgglomerationMatMulTest2 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 2)
+waLBerla_execute_test(NAME AgglomerationMatMulTest3 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 3)
 #waLBerla_execute_test(NAME AgglomerationMatMulTest4 COMMAND $<TARGET_FILE:AgglomerationMatMulTest> PROCESSES 4 )
 
 waLBerla_compile_test(FILES adaptivity/AgglomerationConvergenceTest.cpp DEPENDS hyteg core)
@@ -665,29 +672,38 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 waLBerla_compile_test(FILES functions/FunctionMultiStoreTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultiStoreTest)
 
+waLBerla_compile_test(FILES functions/FunctionRuleOfThreeTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionRuleOfThreeTest1 COMMAND $<TARGET_FILE:FunctionRuleOfThreeTest>)
+waLBerla_execute_test(NAME FunctionRuleOfThreeTest2 COMMAND $<TARGET_FILE:FunctionRuleOfThreeTest> PROCESSES 2)
+waLBerla_execute_test(NAME FunctionRuleOfThreeTest8 COMMAND $<TARGET_FILE:FunctionRuleOfThreeTest> PROCESSES 8)
+
+## Blending ##
+waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest>)
+endif ()
+
+
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest>)
 
 waLBerla_compile_test(FILES blending/IcosahedralShellMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest>)
 
-waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest>)
-endif ()
+waLBerla_compile_test(FILES blending/InverseBlending+PrimitiveIDFindingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME InverseBlending+PrimitiveIDFindingTest)
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     if (NOT WALBERLA_CXX_COMPILER_IS_INTEL)
-        waLBerla_compile_test(FILES blending/P2P1StokesElementwiseAnnulusBlendingTest.cpp DEPENDS hyteg core)
         waLBerla_execute_test(NAME P2P1StokesElementwiseAnnulusBlendingTest COMMAND $<TARGET_FILE:P2P1StokesElementwiseAnnulusBlendingTest>)
     endif ()
 endif ()
 
-waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME TokamakMapTest)
-
 waLBerla_compile_test(FILES blending/PolygonDistanceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PolygonDistanceTest)
+
+waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TokamakMapTest)
 
 ## Elementwise Operators ##
 if (HYTEG_BUILD_WITH_PETSC)
@@ -706,6 +722,9 @@ waLBerla_execute_test(NAME FunctionPropertiesTest)
 
 waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
+
+waLBerla_compile_test(FILES functions/FunctionExtendedExpressionInterpolationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionExtendedExpressionInterpolationTest)
 
 ## numeric tools ##
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
@@ -766,6 +785,8 @@ endif ()
 ## BoundaryUID stuff ##
 waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BoundaryUIDTest)
+waLBerla_compile_test(FILES boundaryUID/HollowBodyUIDTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HollowBodyUIDTest)
 
 ## BlockFunctions + BlockOperators ##
 waLBerla_compile_test(FILES BlockFunctions/FunctionWrapperTest.cpp DEPENDS hyteg core)
@@ -793,6 +814,9 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Petsc/PetscMatrixAssemblyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest>)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest2 COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> PROCESSES 2)
+
+    waLBerla_compile_test(FILES Petsc/PetscCreateFromLinCombTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
 endif ()
 
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
@@ -804,9 +828,6 @@ waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTes
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES dg/DGPoisson2DConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPoisson2DConvergenceTest)
-
-   # waLBerla_compile_test(FILES dg/DGVectorTest.cpp DEPENDS hyteg core)
-   # waLBerla_execute_test(NAME DGVectorTest)
 
     waLBerla_compile_test(FILES dg/DGPoisson3DConvergenceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPoisson3DConvergenceTest)
@@ -841,12 +862,18 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 
-    waLBerla_compile_test(FILES egfunctionspace/EGApplyTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGApplyTest)
+    waLBerla_compile_test(FILES dg/DGGlobalRefinementGridConvTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGGlobalRefinementGridConvTest)
 
+    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementInterpolateEvaluateTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGAdaptiveRefinementInterpolateEvaluateTest)
 
-endif()
+    waLBerla_compile_test(FILES dg/DGAdaptiveRefinementGridConvTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGAdaptiveRefinementGridConvTest)
 
+    waLBerla_compile_test(FILES dg/DGProlongationTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME DGProlongationTest)
+endif ()
 
 ## Basic Smoothing and Solving
 waLBerla_compile_test(FILES smooth+solve/SmoothableTest.cpp DEPENDS hyteg core)
@@ -861,3 +888,97 @@ waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 ## Structural
 waLBerla_compile_test(FILES PrintInfoTest.cpp)
 waLBerla_execute_test(NAME PrintInfoTest)
+
+## adaptive refinement w/ hanging nodes
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/ARHangingNodesStorageTest.cpp)
+waLBerla_execute_test(NAME ARHangingNodesStorageTest)
+
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/P1AdaptiveRefinementEqualityTest.cpp)
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        waLBerla_execute_test(NAME P1AdaptiveRefinementEqualityTest)
+    endif()
+
+    waLBerla_compile_test(FILES adaptiverefinementhangingnodes/DGAdaptiveRefinementEqualityTest.cpp)
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        waLBerla_execute_test(NAME DGAdaptiveRefinementEqualityTest)
+    endif()
+endif ()
+
+waLBerla_compile_test(FILES adaptiverefinementhangingnodes/MacroVolumeRefinementMicroIdxConversionTest.cpp)
+waLBerla_execute_test(NAME MacroVolumeRefinementMicroIdxConversionTest)
+
+waLBerla_compile_test(FILES eigen/EigenBasicTest.cpp)
+waLBerla_execute_test(NAME EigenBasicTest)
+waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTest> PROCESSES 2)
+
+## N1E1 ##
+# For some reason executing some tests takes forever with clang and gcc in Debug mode.
+set(N1E1_CONDITIONAL_LONGRUN "")
+if (     CMAKE_BUILD_TYPE MATCHES "Debug"
+     AND (WALBERLA_CXX_COMPILER_IS_CLANG OR WALBERLA_CXX_COMPILER_IS_GNU)
+   )
+    set(N1E1_CONDITIONAL_LONGRUN "longrun")
+endif ()
+
+waLBerla_compile_test(FILES N1E1/N1E1AddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AddTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AssignTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AssignTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1EvaluateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1EvaluateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1InterpolateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1InterpolateTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1AdditiveCommunicationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1AdditiveCommunicationTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1CurlCurlNullSpaceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1CurlCurlNullSpaceTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1MassTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1MassTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1FormCurlCurlTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1FormCurlCurlTest)
+
+waLBerla_compile_test(FILES N1E1/N1E1CurlCurlConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1CurlCurlConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1CurlCurlConvergenceTest> LABELS longrun PROCESSES 4)
+
+waLBerla_compile_test(FILES N1E1/N1E1ProlongationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1ProlongationTest)
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1RestrictionTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1RestrictionTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+endif ()
+
+waLBerla_compile_test(FILES N1E1/P1toN1E1GradientTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1toN1E1GradientTest)
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1toP1LiftingTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1toP1LiftingTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+endif ()
+
+if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_compile_test(FILES N1E1/N1E1InverseDiagonalTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME N1E1InverseDiagonalTest)
+endif ()
+
+waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HybridSmootherTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
+
+waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1GMGhIndependenceTest LABELS longrun)
+
+waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1GMGConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1GMGConvergenceTest> LABELS longrun PROCESSES 4)
+
+## types ##
+waLBerla_compile_test(FILES types/MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MatrixConstructFromEigenTest)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,6 +21,7 @@
 
 #include "core/mpi/all.h"
 
+#include "hyteg/ReferenceCounter.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -52,9 +53,9 @@ uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive&
 
 uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const Primitive& primitive );
 
-unsigned long long edgeDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+unsigned long long edgeDoFLocalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage );
 
-unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage );
 
 ///@}
 
@@ -82,20 +83,30 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                     const uint_t&                              maxLevel,
                     const BoundaryCondition&                   boundaryCondition );
 
-   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
-   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+   ~EdgeDoFFunction();
 
-   void allocateMemory( const uint_t & level, const Vertex & vertex );
-   void allocateMemory( const uint_t & level, const Edge & edge );
-   void allocateMemory( const uint_t & level, const Face & face );
-   void allocateMemory( const uint_t & level, const Cell & cell );
+   /// Copy constructor
+   EdgeDoFFunction( const EdgeDoFFunction< ValueType >& other );
 
-   void deleteMemory( const uint_t & level, const Vertex & vertex );
-   void deleteMemory( const uint_t & level, const Edge & edge );
-   void deleteMemory( const uint_t & level, const Face & face );
-   void deleteMemory( const uint_t & level, const Cell & cell );
+   /// Copy assignment
+   EdgeDoFFunction& operator=( const EdgeDoFFunction< ValueType >& other );
+
+   virtual uint_t getDimension() const { return 1; }
+
+   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
+
+   void allocateMemory( const uint_t& level, const Vertex& vertex );
+   void allocateMemory( const uint_t& level, const Edge& edge );
+   void allocateMemory( const uint_t& level, const Face& face );
+   void allocateMemory( const uint_t& level, const Cell& cell );
+
+   void deleteMemory( const uint_t& level, const Vertex& vertex );
+   void deleteMemory( const uint_t& level, const Edge& edge );
+   void deleteMemory( const uint_t& level, const Face& face );
+   void deleteMemory( const uint_t& level, const Cell& cell );
 
    void swap( const EdgeDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -118,10 +129,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const EdgeDoFFunction< ValueType >&            other,
-                  const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+   void copyFrom( const EdgeDoFFunction< ValueType >&    other,
+                  const uint_t&                          level,
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void assign( const std::vector< ValueType >&                                                    scalars,
                 const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
@@ -141,10 +152,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
-                             uint_t                                                                               level,
-                             BoundaryUID boundaryUID ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                     uint_t                                                                               level,
+                     BoundaryUID                                                                          boundaryUID ) const;
    //@}
 
    /// @name Member functions for interpolation using DoFType flags
@@ -153,10 +164,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
-                             uint_t                                                                               level,
-                             DoFType flag = All ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                     uint_t                                                                               level,
+                     DoFType                                                                              flag = All ) const;
 
    void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
                      uint_t                                                             level,
@@ -165,6 +176,9 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
+
+   template < typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
    //@}
 
    /// Compute the product of several functions in an elementwise fashion
@@ -186,11 +200,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
    ValueType dotLocal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
-
-   /// @name Unimplemented methods (only dummys for inheritance)
-   /// @{
-   ValueType dotGlobal( const EdgeDoFFunction< ValueType >&, uint_t, DoFType ) const {
-       WALBERLA_ABORT( "EdgeDoFFunction::dotGlobal not implemented!" )} /// @}
+   ValueType dotGlobal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
@@ -212,10 +222,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
-   inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
+   inline void              setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
 
-   template< typename OtherFunctionValueType >
-   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType > & other )
+   template < typename OtherFunctionValueType >
+   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType >& other )
    {
       setBoundaryCondition( other.getBoundaryCondition() );
    }
@@ -251,7 +261,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// asynchronous tasks. endAdditiveCommunication has to be called manually!
    /// See communicateAdditively( const uint_t& ) const for more details
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -272,7 +282,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    inline void startAdditiveCommunication( const uint_t&           level,
                                            const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                            const PrimitiveStorage& primitiveStorage,
-                                           const bool & zeroOutDestination = true ) const
+                                           const bool&             zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -327,7 +337,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// \param zeroOutDestination if true, sets all values on the destination function to zero
    ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level, const bool & zeroOutDestination = true ) const
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
@@ -375,8 +385,13 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
-   template < typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
+   inline void deleteFunctionMemory()
+   {
+      this->storage_->deleteVertexData( vertexDataID_ );
+      this->storage_->deleteEdgeData( edgeDataID_ );
+      this->storage_->deleteFaceData( faceDataID_ );
+      this->storage_->deleteCellData( cellDataID_ );
+   }
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;
@@ -390,6 +405,13 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    /// friend P2Function for usage of enumerate
    friend class P2Function< ValueType >;
+
+   /// All functions that actually allocate data and are not composites are handles to the allocated memory.
+   /// This means the copy-ctor and copy-assignment only create a handle that is associated with the same memory.
+   /// Deep copies must be created explicitly.
+   /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
+   /// Once it drops to zero, we can deallocate the memory from the storage.
+   std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
 };
 
 // extern template class EdgeDoFFunction< double >;

@@ -22,6 +22,7 @@
 #cmakedefine HYTEG_BUILD_WITH_PETSC
 #cmakedefine HYTEG_BUILD_WITH_TRILINOS
 #cmakedefine HYTEG_USE_GENERATED_KERNELS
+#cmakedefine HYTEG_TERRANEO_MODULE
 
 #ifdef HYTEG_USE_GENERATED_KERNELS
 namespace hyteg {

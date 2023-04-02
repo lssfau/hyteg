@@ -53,6 +53,8 @@ class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
                         uint_t                                     maxLevel,
                         BoundaryCondition                          boundaryCondition );
 
+   virtual uint_t getDimension() const { return 1; }
+
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
@@ -140,8 +142,8 @@ class FaceDoFFunction_old : public Function< FaceDoFFunction_old< ValueType > >
 
    void copyFrom( const FaceDoFFunction_old< ValueType >&        other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = std::move( bc ); }
 

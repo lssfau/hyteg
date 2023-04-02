@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -194,6 +194,64 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microC
       break;
    }
    return std::array< Index, 4 >();
+}
+
+/// \brief Given four micro vertex indices, this function returns the corresponding cell idx and cell type.
+///
+/// Note that the vertices are sorted internally, so that the order in which they are input does not matter.
+///
+/// \param vertices micro vertex indices of the micro cell of interest
+/// \return pair of micro cell index and type
+inline std::pair< Index, CellType > getMicroCellFromMicroVertices( const std::array< Index, 4 >& vertices )
+{
+   auto v = vertices;
+   std::sort( v.begin(), v.end() );
+
+   auto v0 = v[0];
+   for ( uint_t i = 0; i < 4; i++ )
+   {
+      v[i] -= v0;
+   }
+
+   std::pair< Index, CellType > ret;
+
+   std::array< Index, 4 > white_up   = { { Index( 0, 0, 0 ), Index( 1, 0, 0 ), Index( 0, 1, 0 ), Index( 0, 0, 1 ) } };
+   std::array< Index, 4 > white_down = { { Index( 0, 0, 0 ), Index( 0, -1, 1 ), Index( -1, 0, 1 ), Index( 0, 0, 1 ) } };
+   std::array< Index, 4 > blue_up    = { { Index( 0, 0, 0 ), Index( -1, 1, 0 ), Index( 0, 1, 0 ), Index( 0, 0, 1 ) } };
+   std::array< Index, 4 > blue_down  = { { Index( 0, 0, 0 ), Index( 0, -1, 1 ), Index( 1, -1, 1 ), Index( 0, 0, 1 ) } };
+   std::array< Index, 4 > green_up   = { { Index( 0, 0, 0 ), Index( -1, 1, 0 ), Index( -1, 0, 1 ), Index( 0, 0, 1 ) } };
+   std::array< Index, 4 > green_down = { { Index( 0, 0, 0 ), Index( 1, 0, 0 ), Index( 1, -1, 1 ), Index( 0, 0, 1 ) } };
+
+   if ( v == white_up )
+   {
+      ret = { v0, CellType::WHITE_UP };
+   }
+   else if ( v == white_down )
+   {
+      ret = { v0 - Index( 1, 1, 0 ), CellType::WHITE_DOWN };
+   }
+   else if ( v == blue_up )
+   {
+      ret = { v0 - Index( 1, 0, 0 ), CellType::BLUE_UP };
+   }
+   else if ( v == blue_down )
+   {
+      ret = { v0 - Index( 0, 1, 0 ), CellType::BLUE_DOWN };
+   }
+   else if ( v == green_up )
+   {
+      ret = { v0 - Index( 1, 0, 0 ), CellType::GREEN_UP };
+   }
+   else if ( v == green_down )
+   {
+      ret = { v0 - Index( 0, 1, 0 ), CellType::GREEN_DOWN };
+   }
+   else
+   {
+      WALBERLA_ABORT( "This is not a valid micro tet: \n" << v[0] << "\n" << v[1] << "\n" << v[2] << "\n" << v[3] );
+   }
+
+   return ret;
 }
 
 // Iterators

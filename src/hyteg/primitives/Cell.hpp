@@ -24,7 +24,7 @@
 
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/primitives/Primitive.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {
@@ -33,6 +33,7 @@ class Cell : public Primitive
 {
  public:
    friend class SetupPrimitiveStorage;
+   friend class PrimitiveStorage;
    template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 
@@ -149,6 +150,15 @@ class Cell : public Primitive
    inline void addData( const PrimitiveDataID< DataType, Cell >& index, const std::shared_ptr< DataHandlingType >& dataHandling )
    {
       genericAddData( index, dataHandling, this );
+   }
+
+   /// Deletes the data that belongs to the passed \ref PrimitiveDataID.
+   /// Not public in order to guarantee that data is only deleted through the governing structure.
+   /// \param index the \ref PrimitiveDataID of the data that shall be deleted
+   template < typename DataType >
+   void deleteData( const PrimitiveDataID< DataType, Cell >& index )
+   {
+      return genericDeleteData< DataType >( index );
    }
 
    virtual void serializeSubclass( walberla::mpi::SendBuffer& sendBuffer ) const;

@@ -26,6 +26,8 @@
 #include "core/mpi/MPIWrapper.h"
 #include "core/mpi/Reduce.h"
 
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
@@ -79,105 +81,79 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
 }
 
 template < typename ValueType >
-bool DGFunction< ValueType >::evaluate( const Point3D& coordinates,
+bool DGFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                         uint_t         level,
                                         ValueType&     value,
                                         real_t         searchToleranceRadius ) const
 {
    if ( !this->storage_->hasGlobalCells() )
    {
-      // 2D
-
-      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
-      for ( auto& it : this->getStorage()->getFaces() )
+      auto [found, faceID, computationalCoords] =
+          mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
+      if ( found )
       {
-         PrimitiveID faceID = it.first;
-         Face&       face   = *it.second;
+         const auto        polyDegree = polyDegreesPerPrimitive_.at( faceID );
+         const auto        ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
+         indexing::Index   elementIndex;
+         facedof::FaceType faceType;
+         Point2D           coordinates2D( { computationalCoords[0], computationalCoords[1] } );
+         Point2D           localCoordinates;
 
-         const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
+         Face& face = *( this->getStorage()->getFace( faceID ) );
+         volumedofspace::getLocalElementFromCoordinates< ValueType >(
+             level, face, coordinates2D, elementIndex, faceType, localCoordinates );
 
-         Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-         Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-         Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
+         Eigen::Matrix< real_t, 2, 1 > refPos( localCoordinates[0], localCoordinates[1] );
 
-         if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) ||
-              ( searchToleranceRadius > 0 &&
-                circleTriangleIntersection(
-                    coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) ) )
+         std::vector< real_t > dofs( ndofs );
+         for ( uint_t i = 0; i < ndofs; i++ )
          {
-            indexing::Index   elementIndex;
-            facedof::FaceType faceType;
-            Point2D           localCoordinates;
-
-            volumedofspace::getLocalElementFromCoordinates< ValueType >(
-                level, face, coordinates2D, elementIndex, faceType, localCoordinates );
-
-            Eigen::Matrix< real_t, 2, 1 > refPos( localCoordinates[0], localCoordinates[1] );
-
-            std::vector< real_t > dofs( ndofs );
-            for ( uint_t i = 0; i < ndofs; i++ )
-            {
-               dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
-            }
-
-            real_t value_r;
-            basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-            value = ValueType( value_r );
-            return true;
+            dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
          }
+
+         real_t value_r;
+         basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+         value = ValueType( value_r );
+         return true;
       }
    }
    else
    {
       // 3D
 
-      for ( auto& it : this->getStorage()->getCells() )
+      auto [found, cellID, computationalCoords] =
+          mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
+
+      if ( found )
       {
-         PrimitiveID cellID = it.first;
-         Cell&       cell   = *it.second;
+         Cell& cell = *( this->getStorage()->getCell( cellID ) );
 
          const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
          const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
 
-         if ( isPointInTetrahedron( coordinates,
-                                    cell.getCoordinates()[0],
-                                    cell.getCoordinates()[1],
-                                    cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3] ) ||
-              ( searchToleranceRadius > 0 && sphereTetrahedronIntersection( coordinates,
-                                                                            searchToleranceRadius,
-                                                                            cell.getCoordinates()[0],
-                                                                            cell.getCoordinates()[1],
-                                                                            cell.getCoordinates()[2],
-                                                                            cell.getCoordinates()[3] ) ) )
+         indexing::Index   elementIndex;
+         celldof::CellType cellType;
+         Point3D           localCoordinates;
+
+         volumedofspace::getLocalElementFromCoordinates< ValueType >(
+             level, cell, computationalCoords, elementIndex, cellType, localCoordinates );
+
+         Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
+
+         std::vector< real_t > dofs( ndofs );
+         for ( uint_t i = 0; i < ndofs; i++ )
          {
-            indexing::Index   elementIndex;
-            celldof::CellType cellType;
-            Point3D           localCoordinates;
-
-            volumedofspace::getLocalElementFromCoordinates< ValueType >(
-                level, cell, coordinates, elementIndex, cellType, localCoordinates );
-
-            Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
-
-            std::vector< real_t > dofs( ndofs );
-            for ( uint_t i = 0; i < ndofs; i++ )
-            {
-               dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
-            }
-
-            real_t value_r;
-            basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-            value = ValueType( value_r );
-            return true;
+            dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
          }
+
+         real_t value_r;
+         basis_->evaluate( polyDegree, refPos, dofs, value_r );
+
+         value = ValueType( value_r );
+         return true;
       }
    }
-
    return false;
 }
 
@@ -244,7 +220,7 @@ void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coo
                                                       celldof::CellType      cellType,
                                                       ValueType&             value ) const
 {
-   // 2D
+   // 3D
 
    WALBERLA_ASSERT( storage_->hasGlobalCells() )
 

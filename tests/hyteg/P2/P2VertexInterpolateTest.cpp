@@ -65,7 +65,7 @@ int main( int argc, char* argv[] )
    // Vertex(0) --- EdgeDoF(0)
 
    // Get bottom left vertex
-   auto vertex = storage->getVertex( PrimitiveID( 0 ) );
+   auto vertex = storage->getVertex( PrimitiveID::create( 0 ) );
 
    // Get vertex values
    auto vertexEdgeData = vertex->getData( u.getEdgeDoFFunction().getVertexDataID() )->getPointer( level );

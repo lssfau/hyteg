@@ -38,17 +38,12 @@
 
 namespace hyteg {
 
-    // check for data member blockPrec
-    template<typename, typename = void>
-    constexpr bool hasBlockPrec = false;
-    template<typename T>
-    constexpr bool hasBlockPrec<T, std::void_t<decltype(std::declval<T>().blockPrec)> > = true;
-
-    template<class OperatorType>
-    class PETScBlockPreconditionedStokesSolver : public Solver<OperatorType> {
-    public:
-        typedef typename OperatorType::srcType FunctionType;
-        typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
+template < class OperatorType >
+class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
+{
+ public:
+   typedef typename OperatorType::srcType               FunctionType;
+   typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
 
         /// \brief PETSc-based block preconditioned Krylov solver for the Stokes problem.
@@ -211,42 +206,36 @@ namespace hyteg {
             }
 
 
-/*
-       std::string Pname;
-
-      Pname.append("FOR_MATLAB_PETSCBLOCKPREC_ORDERS_P");
-      Pname.append(std::to_string(level));
-      Pname.append(".m");
-      Pmat.print(Pname, false,PETSC_VIEWER_ASCII_MATLAB);
-      WALBERLA_ABORT("byse.")*/
             KSPSetOperators(ksp, Amat.get(), Pmat.get());
 
-            if (velocityPreconditionerType_ == 2) {
-                KSPGetPC(ksp, &pc);
-                PCSetType(pc, PCFIELDSPLIT);
-                PCFieldSplitSetType(pc, PC_COMPOSITE_SCHUR);
-                //  PCFieldSplitSetSchurFactType(pc, PC_FIELDSPLIT_SCHUR_FACT_DIAG);
-                PCFieldSplitSetSchurPre(pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr);
-                PCFieldSplitSetIS(pc, "0", is_[0]);
-                PCFieldSplitSetIS(pc, "1", is_[1]);
+      
+      if ( velocityPreconditionerType_ == 2 )
+      {
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCFIELDSPLIT );
+         PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
+         PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, nullptr );
+         PCFieldSplitSetIS( pc, "0", is_[0] );
+         PCFieldSplitSetIS( pc, "1", is_[1] );
+         
 
-                PetscInt numSubKsps;
+         PetscInt numSubKsps;
 
-                PCSetUp(pc);
-                PCFieldSplitSchurGetSubKSP(pc, &numSubKsps, &sub_ksps_);
+         PCSetUp( pc );
+         PCFieldSplitSchurGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
 
-                KSPSetType(sub_ksps_[0], KSPPREONLY);
-                KSPSetType(sub_ksps_[1], KSPPREONLY);
-                PC pc_u, pc_p;
-                KSPGetPC(sub_ksps_[0], &pc_u);
-                KSPGetPC(sub_ksps_[1], &pc_p);
-                PCSetType(pc_u, KSPCG);
-                PCSetType(pc_p, KSPCG);
-                KSPSetTolerances(sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
-                KSPSetTolerances(sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_);
-            } else if (velocityPreconditionerType_ == 5) {
-                // Original system matrix A is used for the GKB preconditioner
-                KSPSetOperators(ksp, Amat.get(), Amat.get());
+         KSPSetType( sub_ksps_[0], KSPCG );
+         KSPSetType( sub_ksps_[1], KSPCG );
+       
+         KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+         KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+      }
+      else if ( velocityPreconditionerType_ == 5 )
+      {
+
+          
+         // Original system matrix A is used for the GKB preconditioner
+         KSPSetOperators( ksp, Amat.get(), Amat.get() );
 
                 // preconditioner setup
                 KSPGetPC(ksp, &pc);

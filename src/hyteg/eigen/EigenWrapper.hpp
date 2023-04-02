@@ -19,6 +19,59 @@
  */
 #pragma once
 
+#include "core/DataTypes.h"
+
+namespace hyteg {
+template < typename T, size_t N >
+class PointND;
+}
+#define EIGEN_MATRIX_PLUGIN "hyteg/eigen/EigenMatrixPlugin.hpp"
+#include <Eigen/Dense>
+
+#include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
 #include "hyteg/HytegDefinitions.hpp"
 
-#include <Eigen/Dense>
+namespace walberla {
+namespace mpi {
+
+/// Serialisation of Eigen::DenseMatrix for MPI communication
+template < typename T, // Element type of SendBuffer
+           typename G, // Growth policy of SendBuffer
+           typename EigenScalarType,
+           int numRows,
+           int numCols >
+GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >&                                buffer,
+                                       const Eigen::Matrix< EigenScalarType, numRows, numCols >& eigenMatrix )
+{
+   for ( int rowIdx = 0; rowIdx < numRows; ++rowIdx )
+   {
+      for ( int colIdx = 0; colIdx < numCols; ++colIdx )
+      {
+         buffer << eigenMatrix( rowIdx, colIdx );
+      }
+   }
+   return buffer;
+}
+
+/// Deserialisation of Eigen::DenseMatrix for MPI communication
+template < typename T, // Element type of RecvBuffer
+           typename EigenScalarType,
+           int numRows,
+           int numCols >
+GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >&                             buffer,
+                                    Eigen::Matrix< EigenScalarType, numRows, numCols >& eigenMatrix )
+{
+   for ( int rowIdx = 0; rowIdx < numRows; ++rowIdx )
+   {
+      for ( int colIdx = 0; colIdx < numCols; ++colIdx )
+      {
+         buffer >> eigenMatrix( rowIdx, colIdx );
+      }
+   }
+   return buffer;
+}
+
+} // namespace mpi
+} // namespace walberla

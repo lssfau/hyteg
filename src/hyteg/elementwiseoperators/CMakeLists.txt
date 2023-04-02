@@ -16,6 +16,8 @@ target_sources( hyteg
     P1ToP2ElementwiseOperator.hpp
     P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp
     P1ElementwiseOperator.cpp
-    DiagonalNonConstantOperator.cpp     
+    DiagonalNonConstantOperator.cpp
+    N1E1ElementwiseOperator.hpp
+    N1E1ElementwiseOperator.cpp
 )
 

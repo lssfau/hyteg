@@ -10,7 +10,7 @@ Parameters
   maxMinResIterations 10;
 
   /// solver can be uzawa, minres
-  solver uzawa;
+  solver minres;
 
   /// output
   printGlobalStorageInfo true;

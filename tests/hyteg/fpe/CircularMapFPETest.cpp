@@ -51,7 +51,7 @@ int main( int argc, char** argv )
 
    Point3D circleCenter{ { -0.5, 0.5, 0 } };
    real_t  circleRadius = 0.25;
-   Face& face = *setupStorage.getFace( 14 );
+   Face& face = *setupStorage.getFace( PrimitiveID::create( 14 ) );
    CircularMap myMap( face, setupStorage, circleCenter, circleRadius );
 
    std::array< Point3D, 3 >coords = face.getCoordinates();

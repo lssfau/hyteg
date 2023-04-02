@@ -150,7 +150,7 @@ static void testPrimitiveData()
   storage.getPrimitiveIDs( primitiveIDs );
   for ( const auto & id : primitiveIDs )
   {
-    WALBERLA_LOG_PROGRESS( "Checking content of primitive with ID: " << id.getID() );
+    WALBERLA_LOG_PROGRESS( "Checking content of primitive with ID: " << id );
     auto primitive = storage.getPrimitive( id );
     TestData * testData = primitive->getData( testDataID );
     WALBERLA_CHECK_EQUAL( testData->i, 5555 );
@@ -159,7 +159,7 @@ static void testPrimitiveData()
   // Obtaining initialized vertex data from a vertex
   for ( const auto & it : storage.getVertices() )
   {
-    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it.second->getID().getID() );
+    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it.second->getID() );
     VertexTestData * vertexTestData = it.second->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( vertexTestData->i, 6666 );
   }
@@ -167,7 +167,7 @@ static void testPrimitiveData()
   // Obtaining initialized cell data from a cell
   for ( const auto & it : storage.getCells() )
   {
-    WALBERLA_LOG_PROGRESS( "Checking content of cell with ID: " << it.second->getID().getID() );
+    WALBERLA_LOG_PROGRESS( "Checking content of cell with ID: " << it.second->getID() );
     CellTestData * cellTestData = it.second->getData( cellTestDataID );
     WALBERLA_CHECK_EQUAL( cellTestData->i, 9999 );
   }

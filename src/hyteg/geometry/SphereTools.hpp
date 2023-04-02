@@ -5,13 +5,14 @@
 #include <map>
 #include <vector>
 
+#include "core/debug/CheckFunctions.h"
 #include "core/math/Constants.h"
 #include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/Gatherv.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

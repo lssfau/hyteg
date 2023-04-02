@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,6 +30,7 @@
 #include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFAdditivePackInfo.hpp"
@@ -78,18 +79,9 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
                                                    BoundaryCondition                          boundaryCondition )
-: VertexDoFFunction( name, storage, minLevel, maxLevel, boundaryCondition, false )
-{}
-
-template < typename ValueType >
-VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
-                                                   const std::shared_ptr< PrimitiveStorage >& storage,
-                                                   uint_t                                     minLevel,
-                                                   uint_t                                     maxLevel,
-                                                   BoundaryCondition                          boundaryCondition,
-                                                   bool                                       addVolumeGhostLayer )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
+, referenceCounter_( new internal::ReferenceCounter() )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
    auto faceVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
@@ -101,37 +93,6 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
    storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
    storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
    storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
-
-   if ( addVolumeGhostLayer )
-   {
-      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(),
-                                    1,
-                                    "You are trying to extend the ghost-layers to the neighbor volume interior for "
-                                    "VertexDoFFunctions. This requires an additional halo depth of at least 1 in the "
-                                    "PrimitiveStorage. This can be set in the PrimitiveStorage constructor. Bye." )
-
-      if ( !storage->hasGlobalCells() )
-      {
-         // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
-         const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
-
-         // Create three data IDs for all faces.
-         storage->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
-         storage->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
-         storage->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
-      }
-      else
-      {
-         // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
-         const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
-
-         // Create three data IDs for all faces.
-         storage->addCellData( cellGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroCellGL0Data" );
-         storage->addCellData( cellGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroCellGL1Data" );
-         storage->addCellData( cellGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroCellGL2Data" );
-         storage->addCellData( cellGhostLayerDataIDs_[3], dofDataHandlingGL, "VolumeDoFMacroCellGL3Data" );
-      }
-   }
 
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
@@ -152,17 +113,78 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
          allocateMemory( level, *it.second );
       }
 
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level,
-                                                                                              vertexDataID_,
-                                                                                              edgeDataID_,
-                                                                                              faceDataID_,
-                                                                                              cellDataID_,
-                                                                                              faceGhostLayerDataIDs_,
-                                                                                              cellGhostLayerDataIDs_,
-                                                                                              this->getStorage() ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
+          level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
+
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >::~VertexDoFFunction()
+{
+   referenceCounter_->decreaseRefs();
+   if ( referenceCounter_->refs() <= 0 )
+   {
+      // There are no copies of this handle left. We can delete the allocated DoFs.
+      deleteFunctionMemory();
+   }
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >::VertexDoFFunction( const VertexDoFFunction< ValueType >& other )
+: Function< VertexDoFFunction< ValueType > >( other )
+, vertexDataID_( other.vertexDataID_ )
+, edgeDataID_( other.edgeDataID_ )
+, faceDataID_( other.faceDataID_ )
+, cellDataID_( other.cellDataID_ )
+, boundaryCondition_( other.boundaryCondition_ )
+, referenceCounter_( other.referenceCounter_ )
+{
+   referenceCounter_->increaseRefs();
+}
+
+template < typename ValueType >
+VertexDoFFunction< ValueType >& VertexDoFFunction< ValueType >::operator=( const VertexDoFFunction< ValueType >& other )
+{
+   if ( this == &other )
+   {
+      return *this;
+   }
+   else if ( other.referenceCounter_ == referenceCounter_ )
+   {
+      WALBERLA_CHECK_EQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_EQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_EQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_EQUAL( cellDataID_, other.cellDataID_ )
+      WALBERLA_CHECK_EQUAL( boundaryCondition_, other.boundaryCondition_ )
+   }
+   else
+   {
+      WALBERLA_CHECK_UNEQUAL( vertexDataID_, other.vertexDataID_ )
+      WALBERLA_CHECK_UNEQUAL( edgeDataID_, other.edgeDataID_ )
+      WALBERLA_CHECK_UNEQUAL( faceDataID_, other.faceDataID_ )
+      WALBERLA_CHECK_UNEQUAL( cellDataID_, other.cellDataID_ )
+
+      referenceCounter_->decreaseRefs();
+
+      if ( referenceCounter_->refs() == 0 )
+      {
+         // There are no copies of this handle left. We can delete the allocated DoFs.
+         deleteFunctionMemory();
+      }
+
+      vertexDataID_      = other.vertexDataID_;
+      edgeDataID_        = other.edgeDataID_;
+      faceDataID_        = other.faceDataID_;
+      cellDataID_        = other.cellDataID_;
+      boundaryCondition_ = other.boundaryCondition_;
+      referenceCounter_  = other.referenceCounter_;
+      referenceCounter_->increaseRefs();
+   }
+   return *this;
 }
 
 template < typename ValueType >
@@ -221,14 +243,6 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const 
    if ( hasMemoryAllocated( level, face ) )
       return;
    face.getData( getFaceDataID() )->addData( level, vertexDoFMacroFaceFunctionMemorySize( level, face ), 0 );
-
-   if ( !this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
-   {
-      for ( uint_t glID = 0; glID < 3; glID++ )
-      {
-         face.getData( getFaceGLDataID( glID ) )->addData( level, levelinfo::num_microedges_per_edge( level ), 0 );
-      }
-   }
 }
 
 template < typename ValueType >
@@ -239,15 +253,6 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const 
    if ( hasMemoryAllocated( level, cell ) )
       return;
    cell.getData( getCellDataID() )->addData( level, vertexDoFMacroCellFunctionMemorySize( level, cell ), 0 );
-
-   if ( this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
-   {
-      for ( uint_t glID = 0; glID < 4; glID++ )
-      {
-         cell.getData( getCellGLDataID( glID ) )
-             ->addData( level, facedof::macroface::numMicroFacesPerMacroFace( level, facedof::FaceType::GRAY ), 0 );
-      }
-   }
 }
 
 template < typename ValueType >
@@ -554,143 +559,99 @@ void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
 }
 
 template < typename ValueType >
-bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
+bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                uint_t         level,
                                                ValueType&     value,
                                                real_t         searchToleranceRadius ) const
 {
-   WALBERLA_UNUSED( coordinates );
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( value );
-   WALBERLA_UNUSED( searchToleranceRadius );
-   WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
-}
-
-template <>
-bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
-                                            uint_t         level,
-                                            real_t&        value,
-                                            real_t         searchToleranceRadius ) const
-{
-   if ( !this->getStorage()->hasGlobalCells() )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      Point2D coordinates2D( { coordinates[0], coordinates[1] } );
-
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-         Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-         Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-         if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
-         {
-            value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
-            return true;
-         }
-      }
-
-      if ( searchToleranceRadius > 0 )
-      {
-         for ( auto& it : this->getStorage()->getFaces() )
-         {
-            Face& face = *it.second;
-
-            Point2D faceCoodinates0( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
-            Point2D faceCoodinates1( { face.getCoordinates()[1][0], face.getCoordinates()[1][1] } );
-            Point2D faceCoodinates2( { face.getCoordinates()[2][0], face.getCoordinates()[2][1] } );
-
-            if ( circleTriangleIntersection(
-                     coordinates2D, searchToleranceRadius, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
-            {
-               value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
-               return true;
-            }
-         }
-      }
+      WALBERLA_UNUSED( physicalCoords );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( value );
+      WALBERLA_UNUSED( searchToleranceRadius );
+      WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
+      return false;
    }
    else
    {
-      for ( auto& it : this->getStorage()->getCells() )
+      if ( !this->getStorage()->hasGlobalCells() )
       {
-         Cell& cell = *it.second;
-
-         if ( isPointInTetrahedron( coordinates,
-
-                                    cell.getCoordinates()[0],
-                                    cell.getCoordinates()[1],
-                                    cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3],
-                                    cell.getFaceInwardNormal( 0 ),
-                                    cell.getFaceInwardNormal( 1 ),
-                                    cell.getFaceInwardNormal( 2 ),
-                                    cell.getFaceInwardNormal( 3 ) ) )
+         auto [found, faceID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
+         if ( found )
          {
-            value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
+            value = vertexdof::macroface::evaluate(
+                level, *( this->getStorage()->getFace( faceID ) ), computationalCoords, faceDataID_ );
+            return true;
+         }
+      }
+      else
+      {
+         auto [found, cellID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
+         if ( found )
+         {
+            value = vertexdof::macrocell::evaluate(
+                level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, cellDataID_ );
             return true;
          }
       }
 
-      if ( searchToleranceRadius > 0 )
-      {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if ( sphereTetrahedronIntersection( coordinates,
-                                                searchToleranceRadius,
-                                                cell.getCoordinates()[0],
-                                                cell.getCoordinates()[1],
-                                                cell.getCoordinates()[2],
-                                                cell.getCoordinates()[3] ) )
-            {
-               value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
-               return true;
-            }
-         }
-      }
+      // no match found
+      return false;
    }
 
+   // will not be reached, but some compilers complain otherwise
    return false;
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
+void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const
 {
-   // Check if 2D or 3D function
-   if ( !this->getStorage()->hasGlobalCells() )
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( sphereTriangleIntersection(
-                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-         {
-            vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
-            return;
-         }
-      }
+      WALBERLA_UNUSED( physicalCoords );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( gradient );
+      WALBERLA_ABORT( "P1Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
    }
    else
    {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
+      // negative value would exclude this alternative feature in finding primitive ID
+      real_t searchToleranceRadius = real_c( 1e-12 );
 
-         if ( isPointInTetrahedron( coordinates,
-                                    cell.getCoordinates()[0],
-                                    cell.getCoordinates()[1],
-                                    cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3] ) )
+      // Check if 2D or 3D function
+      if ( !this->getStorage()->hasGlobalCells() )
+      {
+         auto [found, faceID, computationalCoords] =
+             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
+         if ( found )
          {
-            WALBERLA_ABORT( "Not implemented." )
+            Face& face = *( this->getStorage()->getFace( faceID ) );
+
+            // evaluate gradient on computational domain
+            vertexdof::macroface::evaluateGradient< ValueType >( level, face, computationalCoords, faceDataID_, gradient );
+
+            // transform gradient to physical coordinates
+            Matrix2r DFinv;
+            face.getGeometryMap()->evalDFinv( physicalCoords, DFinv );
+            real_t aux0 = gradient[0];
+            real_t aux1 = gradient[1];
+            gradient[0] = DFinv( 0, 0 ) * aux0 + DFinv( 0, 1 ) * aux1;
+            gradient[1] = DFinv( 1, 0 ) * aux0 + DFinv( 1, 1 ) * aux1;
+
+            return;
          }
       }
-   }
+      else
+      {
+         WALBERLA_ABORT( "VertexDoFFunction< real_t >::evaluateGradient() not implemented for 3D" )
+      }
 
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
+      WALBERLA_ABORT( "There is no local macro element including a point at the given mapped back coordinates for "
+                      << physicalCoords )
+   }
 }
 
 template < typename ValueType >
@@ -800,10 +761,10 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >&          other,
-                                               const uint_t&                                  level,
-                                               const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                                               const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >&  other,
+                                               const uint_t&                          level,
+                                               const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                                               const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
    if ( isDummy() )
    {
@@ -821,7 +782,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getVertices() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getVertexDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getVertexDataID() )->getSize( level );
@@ -835,7 +796,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getEdges() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getEdgeDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getEdgeDataID() )->getSize( level );
@@ -849,7 +810,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getFaces() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getFaceDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getFaceDataID() )->getSize( level );
@@ -863,7 +824,7 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
 
    for ( auto& it : other.getStorage()->getCells() )
    {
-      PrimitiveID::IDType otherPrimitiveID = it.first;
+      PrimitiveID otherPrimitiveID = it.first;
       WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
       auto otherData     = it.second->getData( other.getCellDataID() )->getPointer( level );
       auto otherDataSize = it.second->getData( other.getCellDataID() )->getSize( level );
@@ -881,11 +842,11 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
    {
       while ( !pkg.buffer().isEmpty() )
       {
-         PrimitiveID::IDType otherID;
-         uint_t              primitiveType = 4;
-         uint_t              dataSize      = 0;
-         ValueType           value;
-         ValueType*          dstPointer;
+         PrimitiveID otherID;
+         uint_t      primitiveType = 4;
+         uint_t      dataSize      = 0;
+         ValueType   value;
+         ValueType*  dstPointer;
 
          pkg.buffer() >> otherID;
          pkg.buffer() >> primitiveType;
@@ -970,10 +931,8 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION()
-      {
-         storage.getTimingTree()->stop( "2 RHS functions" );
-      }
+
+      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -990,10 +949,8 @@ void macroFaceAssign< double >( const uint_t&                                   
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION()
-      {
-         storage.getTimingTree()->stop( "3 RHS functions" );
-      }
+
+      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
    }
    else
    {
@@ -1497,10 +1454,145 @@ void VertexDoFFunction< ValueType >::multElementwise(
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
-   WALBERLA_UNUSED( level );
-   WALBERLA_UNUSED( flag );
-   WALBERLA_UNUSED( workOnHalos );
-   WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   {
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_UNUSED( workOnHalos );
+      WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+   }
+   else
+   {
+      this->startTiming( "Invert elementwise" );
+
+      if ( workOnHalos )
+      {
+         for ( const auto& it : this->getStorage()->getVertices() )
+         {
+            Vertex& vertex = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+                  // data[0]      = real_c( 1.0 ) / data[0];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getEdges() )
+         {
+            Edge& edge = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+               uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = face.getData( faceDataID_ )->getPointer( level );
+               uint_t  size = face.getData( faceDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+               uint_t  size = cell.getData( cellDataID_ )->getSize( level );
+               for ( uint_t k = 0; k < size; ++k )
+               {
+                  data[k] = real_c( 1.0 ) / data[k];
+               }
+            }
+         }
+      }
+
+      // do not work on halos
+      else
+      {
+         for ( const auto& it : this->getStorage()->getVertices() )
+         {
+            Vertex& vertex = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               data[0]      = real_c( 1.0 ) / data[0];
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getEdges() )
+         {
+            Edge& edge = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
+               {
+                  const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
+                  data[idx]        = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = face.getData( faceDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
+               {
+                  const uint_t idx =
+                      vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
+                  data[idx] = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+
+         for ( const auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+               for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
+               {
+                  const uint_t idx =
+                      vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
+                  data[idx] = real_c( 1.0 ) / data[idx];
+               }
+            }
+         }
+      }
+
+      this->stopTiming( "Invert elementwise" );
+   }
 }
 
 template < typename ValueType >
@@ -2186,153 +2278,11 @@ void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t 
    }
 }
 
-// =================
-//  specialisations
-// =================
-template <>
-void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-
-   this->startTiming( "Invert elementwise" );
-
-   if ( workOnHalos )
-   {
-      for ( const auto& it : this->getStorage()->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-            uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-               // data[0]      = real_c( 1.0 ) / data[0];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-            uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = face.getData( faceDataID_ )->getPointer( level );
-            uint_t  size = face.getData( faceDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-            uint_t  size = cell.getData( cellDataID_ )->getSize( level );
-            for ( uint_t k = 0; k < size; ++k )
-            {
-               data[k] = real_c( 1.0 ) / data[k];
-            }
-         }
-      }
-   }
-
-   // do not work on halos
-   else
-   {
-      for ( const auto& it : this->getStorage()->getVertices() )
-      {
-         Vertex& vertex = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-            data[0]      = real_c( 1.0 ) / data[0];
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
-            {
-               const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
-               data[idx]        = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = face.getData( faceDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
-            {
-               const uint_t idx =
-                   vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
-               data[idx] = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-         {
-            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-            for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
-            {
-               const uint_t idx =
-                   vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
-               data[idx] = real_c( 1.0 ) / data[idx];
-            }
-         }
-      }
-   }
-
-   this->stopTiming( "Invert elementwise" );
-}
-
 // ========================
 //  explicit instantiation
 // ========================
 template class VertexDoFFunction< double >;
-// template class VertexDoFFunction< float >;
+template class VertexDoFFunction< float >;
 template class VertexDoFFunction< int32_t >;
 template class VertexDoFFunction< int64_t >;
 

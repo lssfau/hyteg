@@ -34,7 +34,7 @@ namespace adaptiveRefinement {
    @return sub-elements
 */
 inline std::set< std::shared_ptr< Simplex3 > > refine_cell_red( std::vector< Point3D >&     vertices,
-                                                                std::vector< uint_t >&      geometryMap,
+                                                                std::vector< PrimitiveID >& geometryMap,
                                                                 std::vector< uint_t >&      boundaryFlag,
                                                                 std::shared_ptr< Simplex3 > cell )
 {

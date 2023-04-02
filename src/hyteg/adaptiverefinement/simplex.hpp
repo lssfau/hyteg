@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "hyteg/PrimitiveID.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 namespace adaptiveRefinement {
@@ -44,14 +44,14 @@ enum Color
 };
 
 // type of primitive
-   enum PrimitiveType
-   {
-      VTX  = 0,
-      EDGE = 1,
-      FACE = 2,
-      CELL = 3,
-      ALL  = 4
-   };
+enum PrimitiveType
+{
+   VTX  = 0,
+   EDGE = 1,
+   FACE = 2,
+   CELL = 3,
+   ALL  = 4
+};
 
 // sorted multi-index to identify a (K-1)-simplex by its vertices
 template < uint_t K >
@@ -81,12 +81,11 @@ class Simplex
    */
    Simplex( const std::array< uint_t, K + 1 >& vertices,
             std::shared_ptr< K_Simplex >       parent,
-            uint_t                             geometryMap  = std::numeric_limits< uint_t >::max(),
+            const PrimitiveID&                 geometryMap  = PrimitiveID(),
             uint_t                             boundaryFlag = 0 )
    : _vertices( vertices )
    , _parent( parent )
-   , _geometryMap( ( parent == nullptr || geometryMap != std::numeric_limits< uint_t >::max() ) ? geometryMap :
-                                                                                                  parent->getGeometryMap() )
+   , _geometryMap( ( parent == nullptr || geometryMap != PrimitiveID() ) ? geometryMap : parent->getGeometryMap() )
    , _boundaryFlag( ( parent == nullptr ) ? boundaryFlag : parent->getBoundaryFlag() )
    {}
 
@@ -146,11 +145,11 @@ class Simplex
    */
    void add_child( const std::shared_ptr< K_Simplex >& child );
 
-   const uint_t&      getGeometryMap() const { return _geometryMap; }
+   const PrimitiveID& getGeometryMap() const { return _geometryMap; }
    const uint_t&      getBoundaryFlag() const { return _boundaryFlag; }
    const PrimitiveID& getPrimitiveID() const { return _id; }
 
-   void setGeometryMap( const uint_t& geometryMap ) { _geometryMap = geometryMap; }
+   void setGeometryMap( const PrimitiveID& geometryMap ) { _geometryMap = geometryMap; }
    void setBoundaryFlag( const uint_t& boundaryFlag ) { _boundaryFlag = boundaryFlag; }
    void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
 
@@ -158,7 +157,7 @@ class Simplex
    std::array< uint_t, K + 1 >                 _vertices;
    std::shared_ptr< K_Simplex >                _parent;
    std::vector< std::shared_ptr< K_Simplex > > _children;
-   uint_t                                      _geometryMap;
+   PrimitiveID                                 _geometryMap;
    uint_t                                      _boundaryFlag;
    PrimitiveID                                 _id;
 };
@@ -178,7 +177,7 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
              uint_t                      p2,
              std::shared_ptr< Simplex1 > parent       = nullptr,
              Color                       c            = RED,
-             uint_t                      geometryMap  = std::numeric_limits< uint_t >::max(),
+             const PrimitiveID&          geometryMap  = PrimitiveID(),
              uint_t                      boundaryFlag = 0 )
    : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
    , _color( c )
@@ -227,7 +226,7 @@ class Simplex2 : public Simplex< FACE, Simplex2 >
    Simplex2( const std::array< uint_t, 3 >&                      vertices,
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent       = nullptr,
-             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
+             const PrimitiveID&                                  geometryMap  = PrimitiveID(),
              uint_t                                              boundaryFlag = 0 );
 
    /* count inner vertices on all edges
@@ -287,7 +286,7 @@ class Simplex3 : public Simplex< CELL, Simplex3 >
              const std::array< std::shared_ptr< Simplex1 >, 6 >& edges,
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent       = nullptr,
-             uint_t                                              geometryMap  = std::numeric_limits< uint_t >::max(),
+             const PrimitiveID&                                  geometryMap  = PrimitiveID(),
              uint_t                                              boundaryFlag = 0 );
 
    bool has_green_edge() const;

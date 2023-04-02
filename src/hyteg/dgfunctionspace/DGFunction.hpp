@@ -59,6 +59,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
+   virtual uint_t getDimension() const { return 1; }
+
    void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                          uint_t                                                                        level,
                          DoFType                                                                       flag = All ) const
@@ -174,13 +176,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// -> Does not need to be called collectively.
    /// -> Different values are returned on each process.
    ///
-   /// \param coordinates where the function shall be evaluated
+   /// \param physicalCoords coordinates in physical domain where the function is to be evaluated
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
    /// \brief Evaluate finite element function on a specific micro-face.
    ///
@@ -323,8 +325,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    void copyFrom( const DGFunction< ValueType >&                 other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
       WALBERLA_UNUSED( other );
       WALBERLA_UNUSED( level );

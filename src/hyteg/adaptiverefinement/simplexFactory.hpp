@@ -40,7 +40,7 @@ class SimplexFactory
    SimplexFactory( const std::shared_ptr< Simplex3 > parent, const std::vector< uint_t >& vertices )
    : _parent( parent )
    , _vertices( vertices )
-   , _geometryMap( ( parent == nullptr ) ? size_t( -1 ) : parent->getGeometryMap() )
+   , _geometryMap( ( parent == nullptr ) ? PrimitiveID() : parent->getGeometryMap() )
    , _boundaryFlag( ( parent == nullptr ) ? 0 : parent->getBoundaryFlag() )
    {}
 
@@ -88,7 +88,7 @@ class SimplexFactory
    std::vector< uint_t >             _vertices;
    EdgeMap                           _edges;
    FaceMap                           _faces;
-   uint_t                            _geometryMap;
+   PrimitiveID                       _geometryMap;
    uint_t                            _boundaryFlag;
 };
 

@@ -18,6 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "core/DataTypes.h"
+#include "core/debug/CheckFunctions.h"
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
@@ -60,6 +61,47 @@ static void test( const std::string& meshFile, const uint_t& level )
    WALBERLA_LOG_INFO_ON_ROOT( "DG Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
 }
 
+static void testAMR( const uint_t& level, uint_t numRefinements )
+{
+   using namespace dg;
+
+   for ( uint_t i = 0; i < numRefinements; i++ )
+   {
+      MeshInfo              mesh = MeshInfo::meshFaceChain( 1 );
+      SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+      for ( uint_t ii = 0; ii < i; ii++ )
+      {
+         auto                       faceIDs = storage->getFaceIDs();
+         auto                       faceID  = faceIDs[0];
+         std::vector< PrimitiveID > refine, coarsen;
+
+         refine.push_back( faceID );
+
+         storage->refinementAndCoarseningHanging( refine, coarsen );
+      }
+
+      auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
+      auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
+
+      DGFunction< idx_t > numerator( "numerator", storage, level, level, dgBasis, 1 );
+      DGOperator          L( storage, level, level, dgDiffusionForm );
+
+      numerator.enumerate( level );
+
+      hyteg::PETScSparseMatrix< DGOperator > Lpetsc;
+      Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+
+      Lpetsc.print( "/tmp/asdf.m", false, PETSC_VIEWER_ASCII_MATLAB );
+
+      WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
+                      "DG Laplacian _NOT_ symmetric for: level = " << level << ", num refinements: " << i );
+      WALBERLA_LOG_INFO_ON_ROOT( "DG Laplacian symmetric for: level = " << level << ", num refinements: " << i );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -73,6 +115,13 @@ int main( int argc, char* argv[] )
       hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
       hyteg::test( "../../data/meshes/bfs_126el.msh", level );
 
+      hyteg::testAMR( level, 4 );
+   }
+
+   // 3D
+
+   for ( uint_t level = 2; level <= 3; level++ )
+   {
       hyteg::test( "../../data/meshes/3D/tet_1el.msh", level );
       hyteg::test( "../../data/meshes/3D/pyramid_2el.msh", level );
       hyteg::test( "../../data/meshes/3D/pyramid_4el.msh", level );

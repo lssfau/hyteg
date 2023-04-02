@@ -86,12 +86,19 @@ add_subdirectory(ConvectionCell2D)
 add_subdirectory(2020-moc)
 add_subdirectory(2020-tme)
 add_subdirectory(2020-scaling-workshop)
-#add_subdirectory(2022-eg-varvisc)
-if( HYTEG_BUILD_WITH_PETSC )
-add_subdirectory(2021-tokamak)
-endif()
+add_subdirectory(GMRESTestApp)
 add_subdirectory(GKBTestProblemGeneration)
-add_subdirectory(SphericalHarmonics)
+
+if( HYTEG_BUILD_WITH_PETSC )
+  add_subdirectory(2021-tokamak)
+endif()
+
+if( HYTEG_TERRANEO_MODULE )
+  add_subdirectory(TerraNeo)
+endif()
+
+add_subdirectory(surfaces)
+
 add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)

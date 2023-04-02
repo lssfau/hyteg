@@ -28,7 +28,7 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

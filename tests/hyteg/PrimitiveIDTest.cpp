@@ -18,56 +18,41 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/PrimitiveID.hpp"
+
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-#include "hyteg/PrimitiveID.hpp"
+#include "core/mpi/SendBuffer.h"
 
 namespace hyteg {
 
 // to be removed when moving to walberla namespace
-using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
+using walberla::mpi::SendBuffer;
 
 static void testPrimitiveID()
 {
+   PrimitiveID id0;
+   PrimitiveID id1 = PrimitiveID::create( 42 );
+   PrimitiveID id2( id1 );
 
-  PrimitiveID id0;
-  PrimitiveID id1( 42 );
-  PrimitiveID id2( id1 );
+   SendBuffer sendBuffer;
 
-  WALBERLA_CHECK_EQUAL( id0.getID(), uint_t(0) );
-  WALBERLA_CHECK_EQUAL( id1.getID(), uint_t(42) );
-  WALBERLA_CHECK_EQUAL( id2.getID(), uint_t(42) );
+   PrimitiveID id3, id4, id5;
 
-  SendBuffer sendBuffer;
+   sendBuffer << id0 << id1 << id2;
 
-  PrimitiveID id3, id4, id5;
+   RecvBuffer recvBuffer( sendBuffer );
 
-  sendBuffer << id0 << id1 << id2;
+   recvBuffer >> id3 >> id4 >> id5;
 
-  RecvBuffer recvBuffer( sendBuffer );
-
-  recvBuffer >> id3 >> id4 >> id5;
-
-  WALBERLA_CHECK_EQUAL( id3.getID(), uint_t(0) );
-  WALBERLA_CHECK_EQUAL( id4.getID(), uint_t(42) );
-  WALBERLA_CHECK_EQUAL( id5.getID(), uint_t(42) );
-
-  PrimitiveID id6( uint_t(257) );
-
-  WALBERLA_CHECK_EQUAL( id3.getUsedBits(), 0 );
-  WALBERLA_CHECK_EQUAL( id4.getUsedBits(), 6 );
-  WALBERLA_CHECK_EQUAL( id6.getUsedBits(), 9 );
-
-  WALBERLA_CHECK_EQUAL( id3.getUsedBytes(), 0 );
-  WALBERLA_CHECK_EQUAL( id4.getUsedBytes(), 1 );
-  WALBERLA_CHECK_EQUAL( id6.getUsedBytes(), 2 );
+   WALBERLA_CHECK_EQUAL( id3, id0 );
+   WALBERLA_CHECK_EQUAL( id4, id1 );
+   WALBERLA_CHECK_EQUAL( id5, id2 );
 }
 
 } // namespace hyteg
-
 
 int main()
 {

@@ -30,6 +30,7 @@
 #endif
 
 #include "hyteg/forms/form_fenics_generated/p1_to_p2_divt.h"
+#include "hyteg/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -68,7 +69,7 @@ class P1ToP2FenicsForm : public Form
    {
       Matrixr< 10, 4 > elMat;
       computeLocalStiffnessMatrix( coords, elMat );
-      uint_t rowIdx = fenics::P2DoFMap[0][0];
+      int rowIdx = fenics::P2DoFMap[0][0];
       out[0]        = elMat( rowIdx, fenics::P2DoFMap[0][0] );
       out[1]        = elMat( rowIdx, fenics::P2DoFMap[1][1] );
       out[2]        = elMat( rowIdx, fenics::P2DoFMap[2][2] );
@@ -83,8 +84,8 @@ class P1ToP2FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
       WALBERLA_ASSERT_LESS( leafPos[0], 4 );
       WALBERLA_ASSERT_LESS( leafPos[1], 4 );
-      uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
-      uint_t colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
+      int rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+      int colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
 
       return real_c( elMat( rowIdx, colIdx ) );
    }

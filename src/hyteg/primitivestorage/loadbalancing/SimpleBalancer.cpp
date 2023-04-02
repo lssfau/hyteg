@@ -80,8 +80,8 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
    }
 
    // We calculate the mapping only on a subset of processes, and then broadcast them to all processes later on.
-   std::vector< PrimitiveID::IDType > globalPrimitiveIDs;
-   std::vector< uint_t >              globalRanks;
+   std::vector< PrimitiveID > globalPrimitiveIDs;
+   std::vector< uint_t >      globalRanks;
 
    if ( inSubCommunicator )
    {
@@ -152,7 +152,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       // Creating a mapping from PrimitiveIDs of local primitives to a consecutive chunk of parmetis indices.
       // The chunks correspond to [ vtxdist[rank], vtxdist[rank+1] ).
 
-      std::map< PrimitiveID::IDType, int64_t >
+      std::map< PrimitiveID, int64_t >
           localPrimitiveIDToGlobalParmetisIDMap; // contains all local PrimitiveIDs as keys and maps them to global parmetis IDs
       std::map< int64_t, PrimitiveID > globalParmetisIDToLocalPrimitiveIDMap; // reverse of the above map
 
@@ -175,7 +175,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       int64_t parmetisIDCounter = vtxdist[rank];
       for ( const auto& id : localPrimitiveIDs )
       {
-         localPrimitiveIDToGlobalParmetisIDMap[id.getID()] = parmetisIDCounter;
+         localPrimitiveIDToGlobalParmetisIDMap[id] = parmetisIDCounter;
          parmetisIDCounter++;
       }
 
@@ -195,7 +195,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       }
 
       // Mapping neighboring process ranks to their ID mapping
-      std::map< uint_t, std::map< PrimitiveID::IDType, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
+      std::map< uint_t, std::map< PrimitiveID, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
 
       walberla::mpi::BufferSystem bufferSystem( communicator );
       bufferSystem.setReceiverInfo( neighboringRanks, true );
@@ -258,7 +258,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
             int64_t neighborParmetisID;
 
             neighborRank       = setupStorage.getTargetRank( neighborID );
-            neighborParmetisID = neighboringPrimitiveIDToGlobalParmetisIDMaps[neighborRank][neighborID.getID()];
+            neighborParmetisID = neighboringPrimitiveIDToGlobalParmetisIDMaps[neighborRank][neighborID];
 
             // How are the neighboring volume primitives connected?
             // -> let's calculate number of common macro-vertices.
@@ -360,12 +360,19 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
          const int64_t parmetisID  = vtxdist[rank] + int64_c( partIdx );
          const auto    primitiveID = globalParmetisIDToLocalPrimitiveIDMap[int64_c( parmetisID )];
          const auto    targetRank  = part[partIdx];
-         globalPrimitiveIDs.push_back( primitiveID.getID() );
+         globalPrimitiveIDs.push_back( primitiveID );
          globalRanks.push_back( uint_c( targetRank ) );
       }
 
-      globalPrimitiveIDs = walberla::mpi::allGatherv( globalPrimitiveIDs, subCommunicator );
-      globalRanks        = walberla::mpi::allGatherv( globalRanks, subCommunicator );
+      walberla::mpi::SendBuffer sendBuffer;
+      walberla::mpi::RecvBuffer recvBuffer;
+
+      sendBuffer << globalPrimitiveIDs;
+      walberla::mpi::allGathervBuffer( sendBuffer, recvBuffer, subCommunicator );
+      globalPrimitiveIDs.clear();
+      recvBuffer >> globalPrimitiveIDs;
+
+      globalRanks = walberla::mpi::allGatherv( globalRanks, subCommunicator );
 
       WALBERLA_CHECK_EQUAL( globalPrimitiveIDs.size(), globalRanks.size() );
    }
@@ -657,8 +664,8 @@ void greedy( SetupPrimitiveStorage& storage )
       uint_t currentNumFaces    = 0;
       uint_t currentNumCells    = 0;
 
-      std::queue< PrimitiveID >             nextPrimitives;
-      std::map< PrimitiveID::IDType, bool > wasAddedToQueue;
+      std::queue< PrimitiveID >     nextPrimitives;
+      std::map< PrimitiveID, bool > wasAddedToQueue;
 
       while ( true )
       {
@@ -696,27 +703,27 @@ void greedy( SetupPrimitiveStorage& storage )
 
          // Set the target rank to the current process if the process does not already carry enough primitives of that type.
          // Then set the primitive to visited. Otherwise, the next primitive is pulled from the queue.
-         if ( storage.getTargetRank( currentPrimitive->getID().getID() ) == 0 )
+         if ( storage.getTargetRank( currentPrimitive->getID() ) == 0 )
          {
             // Check primitive type and assign rank
             if ( storage.vertexExists( currentPrimitive->getID() ) && currentNumVertices < maxVertices )
             {
-               storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+               storage.setTargetRank( currentPrimitive->getID(), rank );
                currentNumVertices++;
             }
             else if ( storage.edgeExists( currentPrimitive->getID() ) && currentNumEdges < maxEdges )
             {
-               storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+               storage.setTargetRank( currentPrimitive->getID(), rank );
                currentNumEdges++;
             }
             else if ( storage.faceExists( currentPrimitive->getID() ) && currentNumFaces < maxFaces )
             {
-               storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+               storage.setTargetRank( currentPrimitive->getID(), rank );
                currentNumFaces++;
             }
             else if ( storage.cellExists( currentPrimitive->getID() ) && currentNumCells < maxCells )
             {
-               storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+               storage.setTargetRank( currentPrimitive->getID(), rank );
                currentNumCells++;
             }
          }
@@ -727,10 +734,10 @@ void greedy( SetupPrimitiveStorage& storage )
 
          for ( const auto& neighborID : neighbors )
          {
-            if ( storage.getTargetRank( neighborID ) == 0 && !wasAddedToQueue[neighborID.getID()] )
+            if ( storage.getTargetRank( neighborID ) == 0 && !wasAddedToQueue[neighborID] )
             {
                nextPrimitives.push( neighborID );
-               wasAddedToQueue[neighborID.getID()] = true;
+               wasAddedToQueue[neighborID] = true;
             }
          }
       }

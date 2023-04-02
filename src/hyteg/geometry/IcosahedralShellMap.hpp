@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,6 +29,8 @@
 #define SHELL_MAP_LOG( STR )
 
 namespace hyteg {
+
+using walberla::real_c;
 
 /// Class providing geometry mapping for a facetted isosahedral shell
 ///
@@ -94,7 +96,7 @@ class IcosahedralShellMap : public GeometryMap
       recvBuffer >> radRayVertex_;
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const override
    {
       // determine barycentric coordinate w.r.t. vertex refVertex_
       real_t tmp0  = -rayVertex_[2];
@@ -133,7 +135,7 @@ class IcosahedralShellMap : public GeometryMap
       // SHELL_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override
    {
       // calculating the intersection point of the prism-parallel plane that contains xComp
       // with the line spanned by mu * xPhys
@@ -149,26 +151,26 @@ class IcosahedralShellMap : public GeometryMap
       // => mu = (norm(xPhys) / norm(A)) * ( (A * n) / (xPhys * n) )
       // let's do that
 
-      const auto A = refVertex_;
-      const auto mu = (xPhys.norm() / A.norm()) * (A.dot( prismNormal_ ) / xPhys.dot( prismNormal_ ));
-      xComp = mu * xPhys;
+      const auto A  = refVertex_;
+      const auto mu = ( xPhys.norm() / A.norm() ) * ( A.dot( prismNormal_ ) / xPhys.dot( prismNormal_ ) );
+      xComp         = mu * xPhys;
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const final override
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "IcosahedralMap::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final override
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );
       WALBERLA_ABORT( "IcosahedralMap::evalDFinv unimplemented for 2D!" );
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final override
    {
       // real_t tmp0 = pow(x[0], 2);
       real_t tmp0  = x[0] * x[0];
@@ -226,7 +228,7 @@ class IcosahedralShellMap : public GeometryMap
              DFx( 2, 0 ) * DFx( 0, 1 ) * DFx( 1, 2 ) - DFx( 2, 0 ) * DFx( 1, 1 ) * DFx( 0, 2 );
    };
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
                  << radRayVertex_;
@@ -254,12 +256,17 @@ class IcosahedralShellMap : public GeometryMap
    }
 
  private:
-   /// \name Classified vertices of macro triangle
+   /// \name Classified vertices of macro tetrahedron
    ///
-   /// Each macro triangle of the annulus has two vertices which lie on a ray coming from the origin and
-   /// two with the same distance from the origin. The vertex opposite to the edge formed by the latter
-   /// two is stored as rayVertex_, the one on the ray with the rayVertex_ is stored as refVertex_.
-   /// The third vertex then is stored as thrVertex_.
+   /// Each macro tetrahedron can be classified into one of three categories:
+   /// - TET_OUTWARDS: one vertex on outer layer, three on inner layer
+   /// - TET_INWARDS: one vertex on inner layer, three on outer layer
+   /// - TET_SKEW: two vertices on inner layer, two on outer layer
+   /// For the first two cases the single vertex and one of the other three are lying on a ray coming from the
+   /// origin. The single one will become the refVertex_, the other one the rayVertex_. The remaining two
+   /// two vertices become thrVertex_ and forVertex_.
+   /// In the case of TET_SKEW a neighbouring tetrahedron from the same prism that is non-skew is found and
+   /// its vertices used instead.
    ///@{
    Point3D refVertex_;
    Point3D rayVertex_;
@@ -306,10 +313,11 @@ class IcosahedralShellMap : public GeometryMap
       SHELL_MAP_LOG( "inner radius = " << innerRad );
 
       uint_t nOuterNodes = 0;
+      real_t eps         = ( outerRad - innerRad ) * real_c( 0.001 );
       for ( uint_t k = 0; k < 4; k++ )
       {
          SHELL_MAP_LOG( "radius[" << k << "] = " << radius[k] );
-         nOuterNodes += ( outerRad - radius[k] ) < tol ? 1 : 0;
+         nOuterNodes += ( outerRad - radius[k] ) < eps ? 1 : 0;
       }
 
       SHELL_MAP_LOG( "classifyTet: nOuterNodes = " << nOuterNodes );
@@ -344,10 +352,10 @@ class IcosahedralShellMap : public GeometryMap
 
       uint_t idxRefVertex = 0, idxRayVertex = 0, idxThrVertex = 0, idxForVertex = 0;
 
-      SHELL_MAP_LOG( "micro-vertex 0 = " << coords[0] );
-      SHELL_MAP_LOG( "micro-vertex 1 = " << coords[1] );
-      SHELL_MAP_LOG( "micro-vertex 2 = " << coords[2] );
-      SHELL_MAP_LOG( "micro-vertex 3 = " << coords[3] );
+      SHELL_MAP_LOG( "macro-vertex 0 = " << coords[0] );
+      SHELL_MAP_LOG( "macro-vertex 1 = " << coords[1] );
+      SHELL_MAP_LOG( "macro-vertex 2 = " << coords[2] );
+      SHELL_MAP_LOG( "macro-vertex 3 = " << coords[3] );
 
       // determine type of macro-tet
       std::array< real_t, 4 > radius;
@@ -362,17 +370,17 @@ class IcosahedralShellMap : public GeometryMap
 
             // x-component of cross-product
             aux = coords[k][1] * coords[j][2] - coords[k][2] * coords[j][1];
-            if ( std::abs( aux ) > tol )
+            if ( std::abs( aux ) / ( radius[k] * radius[j] ) > tol )
                continue;
 
             // y-component of cross-product
             aux = coords[k][2] * coords[j][0] - coords[k][0] * coords[j][2];
-            if ( std::abs( aux ) > tol )
+            if ( std::abs( aux ) / ( radius[k] * radius[j] ) > tol )
                continue;
 
             // z-component of cross-product
             aux = coords[k][0] * coords[j][1] - coords[k][1] * coords[j][0];
-            if ( std::abs( aux ) > tol )
+            if ( std::abs( aux ) / ( radius[k] * radius[j] ) > tol )
                continue;
 
             // still here, so we found the vertex pair (ordering does not matter)
@@ -456,7 +464,7 @@ class IcosahedralShellMap : public GeometryMap
 
          // calculate normal of prism
          // ray, thr, and for are the three vertices spanning either the outer or inner plane
-         prismNormal_ = crossProduct(thrVertex_ - rayVertex_, forVertex_ - rayVertex_);
+         prismNormal_ = crossProduct( thrVertex_ - rayVertex_, forVertex_ - rayVertex_ );
          prismNormal_ /= prismNormal_.norm();
       }
    }

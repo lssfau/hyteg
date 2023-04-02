@@ -278,9 +278,12 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
          std::vector< PrimitiveID > receivingNeighborhood;
          if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
          {
-            for ( const auto& [_, pid] : sender->getIndirectNeighborFaceIDsOverEdges() )
+            for ( const auto& [_, neighbors] : sender->getIndirectTopLevelNeighborFaceIDsOverEdges() )
             {
-               receivingNeighborhood.push_back( pid );
+               for ( const auto& nFacePID : neighbors )
+               {
+                  receivingNeighborhood.push_back( nFacePID );
+               }
             }
          }
          else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )
@@ -351,9 +354,12 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
          std::vector< PrimitiveID > sendingNeighborhood;
          if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
          {
-            for ( const auto& [_, pid] : receiver->getIndirectNeighborFaceIDsOverEdges() )
+            for ( const auto& [_, neighbors] : receiver->getIndirectTopLevelNeighborFaceIDsOverEdges() )
             {
-               sendingNeighborhood.push_back( pid );
+               for ( const auto& nFacePID : neighbors )
+               {
+                  sendingNeighborhood.push_back( nFacePID );
+               }
             }
          }
          else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )

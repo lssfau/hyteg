@@ -21,8 +21,8 @@
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 

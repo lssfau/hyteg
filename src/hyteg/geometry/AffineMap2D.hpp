@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <utility>
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -38,9 +39,9 @@ using walberla::real_c;
 class AffineMap2D : public GeometryMap
 {
  public:
-   AffineMap2D( const Matrix2r& mat, const Point2D& vec )
-   : mat_( mat )
-   , vec_( vec )
+   AffineMap2D( Matrix2r mat, Point2D vec )
+   : mat_( std::move( mat ) )
+   , vec_( std::move( vec ) )
    {
       // precompute Jacobian determinant
       real_t tmp1 = +mat_( 0, 0 ) * mat_( 1, 1 );
@@ -48,11 +49,11 @@ class AffineMap2D : public GeometryMap
       jacDet_     = tmp1 + tmp2;
    }
 
-   AffineMap2D( walberla::mpi::RecvBuffer& recvBuffer )
+   explicit AffineMap2D( walberla::mpi::RecvBuffer& recvBuffer )
    {
-      for ( uint_t i = 0; i < 2; i++ )
+      for ( int i = 0; i < 2; i++ )
       {
-         for ( uint_t j = 0; j < 2; j++ )
+         for ( int j = 0; j < 2; j++ )
          {
             recvBuffer >> mat_( i, j );
          }
@@ -61,19 +62,29 @@ class AffineMap2D : public GeometryMap
       recvBuffer >> vec_[1];
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const
+   void evalF( const Point3D& xold, Point3D& xnew ) const final
    {
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + vec_[1];
       xnew[2] = real_c( 0 );
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final
+   {
+      real_t tmp0 = real_c( 1 ) / jacDet_;
+      real_t tmp1 = tmp0 * ( -vec_[0] + xPhys[0] );
+      real_t tmp2 = tmp0 * ( -vec_[1] + xPhys[1] );
+
+      xComp[0] = -mat_( 0, 1 ) * tmp2 + mat_( 1, 1 ) * tmp1;
+      xComp[1] = mat_( 0, 0 ) * tmp2 - mat_( 1, 0 ) * tmp1;
+   }
+
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const final
    {
       sendBuffer << Type::AFFINE_2D;
-      for ( uint_t i = 0; i < 2; i++ )
+      for ( int i = 0; i < 2; i++ )
       {
-         for ( uint_t j = 0; j < 2; j++ )
+         for ( int j = 0; j < 2; j++ )
          {
             sendBuffer << mat_( i, j );
          }
@@ -83,25 +94,25 @@ class AffineMap2D : public GeometryMap
 
    static void setMap( SetupPrimitiveStorage& setupStorage, const Matrix2r& mat, const Point2D& vec )
    {
-      for ( auto it : setupStorage.getCells() )
+      for ( const auto& it : setupStorage.getCells() )
       {
          Cell& cell = *it.second;
          setupStorage.setGeometryMap( cell.getID(), std::make_shared< AffineMap2D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getFaces() )
+      for ( const auto& it : setupStorage.getFaces() )
       {
          Face& face = *it.second;
          setupStorage.setGeometryMap( face.getID(), std::make_shared< AffineMap2D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getEdges() )
+      for ( const auto& it : setupStorage.getEdges() )
       {
          Edge& edge = *it.second;
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< AffineMap2D >( mat, vec ) );
       }
 
-      for ( auto it : setupStorage.getVertices() )
+      for ( const auto& it : setupStorage.getVertices() )
       {
          Vertex& vertex = *it.second;
          setupStorage.setGeometryMap( vertex.getID(), std::make_shared< AffineMap2D >( mat, vec ) );
@@ -124,7 +135,7 @@ class AffineMap2D : public GeometryMap
       DFinvx( 0, 1 ) = -mat_( 0, 1 );
       DFinvx( 1, 0 ) = -mat_( 1, 0 );
       DFinvx( 1, 1 ) = +mat_( 0, 0 );
-      DFinvx *= real_c(1) / jacDet_;
+      DFinvx *= real_c( 1 ) / jacDet_;
    }
 
  private:
@@ -135,7 +146,7 @@ class AffineMap2D : public GeometryMap
    Point2D vec_;
 
    /// value of Jacobian determinant
-   real_t jacDet_;
+   real_t jacDet_{};
 };
 
 } // end of namespace hyteg

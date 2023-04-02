@@ -20,39 +20,22 @@
 #pragma once
 
 #include <functional>
+#include <array>
 
-#include "hyteg/primitives/Face.hpp"
-#include "hyteg/Levelinfo.hpp"
-#include "hyteg/types/matrix.hpp"
+#include "core/Abort.h"
+
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 namespace fenics {
 
 using walberla::real_c;
 
-enum ElementType {
-  GRAY,
-  BLUE
+enum ElementType
+{
+   GRAY,
+   BLUE
 };
-
-inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = (face.getCoordinates()[1] - face.getCoordinates()[0])/walberla::real_c((rowsize - 1));
-  Point3D d2 = (face.getCoordinates()[2] - face.getCoordinates()[0])/walberla::real_c((rowsize - 1));
-
-  real_t orientation = 1.0;
-
-  if (element_type==BLUE) {
-    orientation = -1.0;
-  }
-
-  coords[0] = 0.0;
-  coords[1] = 0.0;
-  coords[2] = orientation*d0[0];
-  coords[3] = orientation*d0[1];
-  coords[4] = orientation*d2[0];
-  coords[5] = orientation*d2[1];
-}
 
 /// Use this UFCOperator to assemble the zero-matrix.
 class NoAssemble {
@@ -77,8 +60,8 @@ class Dummy10x10Assembly
 {
 public:
 
-    Dummy10x10Assembly() : stiffnessMatrix_( real_c(0) ) {}
-    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( constant ) {}
+    Dummy10x10Assembly() : stiffnessMatrix_( Matrix10r::Zero() ) {}
+    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( Matrix10r::Constant(constant) ) {}
 
     void tabulate_tensor(real_t * A,
                          const real_t * const *,
@@ -134,7 +117,7 @@ typedef std::function<void(real_t *,
   /// P2DoFMap[3][3] = 3;
   // wait for C++17
   // constexpr static std::array< std::array<uint_t,4>, 4 > P2DoFMap =
-  const std::array< std::array<uint_t,4>, 4 > P2DoFMap =
+  const std::array< std::array<int,4>, 4 > P2DoFMap =
     { { { 0, 9, 8, 7 },
         { 9, 1, 6, 5 },
         { 8, 6, 2, 4 },
@@ -167,7 +150,7 @@ typedef std::function<void(real_t *,
   //
   // wait for C++17
   // constexpr static std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
-  const std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
+  const std::array< std::array<int,3>, 3 > P2DoFMapTriangle =
     { { { 0, 5, 4 },
         { 5, 1, 3 },
         { 4, 3, 2 } } };

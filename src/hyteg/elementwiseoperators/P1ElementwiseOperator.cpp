@@ -25,6 +25,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
 
 namespace hyteg {
 
@@ -124,7 +125,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
             }
          }
 
-         Matrix4r elMat;
+         Matrix4r elMat( Matrix4r::Zero() );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -161,10 +162,6 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       {
          Face& face = *it.second;
 
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
-
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
@@ -190,7 +187,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
             }
          }
 
-         Matrix3r elMat;
+         Matrix3r elMat( Matrix3r::Zero() );
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -368,10 +365,6 @@ void P1ElementwiseOperator< P1Form >::computeDiagonalOperatorValues( bool invert
          {
             Face& face = *it.second;
 
-            Point3D x0( face.getCoordinates()[0] );
-            Point3D x1( face.getCoordinates()[1] );
-            Point3D x2( face.getCoordinates()[2] );
-
             uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
             uint_t                   inner_rowsize = rowsize;
             idx_t                    xIdx, yIdx;
@@ -494,7 +487,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
                                                                            const P1Elements::P1Elements2D::P1Element& element,
                                                                            real_t* const dstVertexData )
 {
-   Matrix3r                 elMat;
+   Matrix3r                 elMat( Matrix3r::Zero() );
    indexing::Index          nodeIdx;
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
@@ -540,7 +533,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    }
 
    // assemble local element matrix
-   Matrix4r elMat;
+   Matrix4r elMat( Matrix4r::Zero() );
    P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
@@ -550,9 +543,9 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
 
    // add contributions for central stencil weights
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[k]] += elMat( k, k );
+      vertexData[vertexDoFIndices[uint_c(k)]] += elMat( k, k );
    }
 }
 
@@ -604,10 +597,6 @@ void P1ElementwiseOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMat
       {
          Face& face = *it.second;
 
-         Point3D x0( face.getCoordinates()[0] );
-         Point3D x1( face.getCoordinates()[1] );
-         Point3D x2( face.getCoordinates()[2] );
-
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
          idx_t                    xIdx, yIdx;
@@ -655,7 +644,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
                                                              const idx_t* const                          srcIdx,
                                                              const idx_t* const                          dstIdx ) const
 {
-   Matrix3r                 elMat;
+   Matrix3r                 elMat( Matrix3r::Zero() );
    indexing::Index          nodeIdx;
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
@@ -718,7 +707,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
    }
 
    // assemble local element matrix
-   Matrix4r elMat;
+   Matrix4r elMat( Matrix4r::Zero() );
    P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
@@ -817,5 +806,10 @@ template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
 
 template class P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >;
+
+// This is a slight misuse of the P1ElementwiseOperator class, since the spherical
+// elements are not P1. However, the SphericalElementFunction, like the P1Function
+// is only an alias for the VertexDoFFunction, so we can re-use this operator.
+template class P1ElementwiseOperator< SphericalElementFormMass >;
 
 } // namespace hyteg

@@ -164,7 +164,7 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
 
    VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
 
-   uint_t dim = write2D ? 2 : 3;
+   uint_t dim = function.getDimension();
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
 
    if ( write2D )
@@ -177,8 +177,10 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
 
          for ( size_t i = 0; i < len; ++i )
          {
-            streamWriter << face.getData( function[0].getFaceDataID() )->getPointer( level )[i];
-            streamWriter << face.getData( function[1].getFaceDataID() )->getPointer( level )[i];
+            for ( uint_t idx = 0; idx < dim; ++idx )
+            {
+               streamWriter << face.getData( function[idx].getFaceDataID() )->getPointer( level )[i];
+            }
             // streamWriter << real_t(0); Paraview needs 3D vector fields to form glyphs
          }
       }

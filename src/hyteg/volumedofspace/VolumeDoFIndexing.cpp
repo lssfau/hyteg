@@ -607,11 +607,10 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
    }
 }
 
-void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t                neighbor,
-                                                                    std::vector< Index >& neighborElementVertexIndices,
-                                                                    std::vector< Point >& neighborElementVertexCoords,
-                                                                    Point&                neighborOppositeVertexCoords ) const
+ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor ) const
 {
+   ElementNeighborInfo newInfo( *this );
+
    // Overwriting some stuff before computing the element matrix.
 
    // TODO: some of what follows can be precomputed
@@ -627,8 +626,12 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
 
    if ( storage_->hasGlobalCells() )
    {
-      neighborElementVertexCoords.clear();
-      neighborElementVertexCoords.resize( 4 );
+      //////////
+      /// 3D ///
+      //////////
+
+      newInfo.neighborElementVertexCoords_[neighbor].clear();
+      newInfo.neighborElementVertexCoords_[neighbor].resize( 4 );
 
       WALBERLA_ASSERT( storage_->cellExistsLocally( volumeID_ ) );
       const auto cell = storage_->getCell( volumeID_ );
@@ -716,8 +719,6 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
 
       const auto neighborElementVertexIndicesArr =
           celldof::macrocell::getMicroVerticesFromMicroCell( elementIdxNeighborMicro, nCellTypeLocalToNeighbor );
-      neighborElementVertexIndices.insert(
-          neighborElementVertexIndices.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
       // Find the idx of the opposing micro-vertex. It should not be located on the interface macro.
       Index opposingMicroVertexIdx;
@@ -734,21 +735,30 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       for ( uint_t i = 0; i < 4; i++ )
       {
          const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, neighborElementVertexIndices[i] );
-         neighborElementVertexCoords[i]( 0 ) = coord[0];
-         neighborElementVertexCoords[i]( 1 ) = coord[1];
-         neighborElementVertexCoords[i]( 2 ) = coord[2];
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 0 ) = coord[0];
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 1 ) = coord[1];
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 2 ) = coord[2];
       }
 
       const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, opposingMicroVertexIdx );
 
-      neighborOppositeVertexCoords( 0 ) = coord[0];
-      neighborOppositeVertexCoords( 1 ) = coord[1];
-      neighborOppositeVertexCoords( 2 ) = coord[2];
+      newInfo.neighborOppositeVertexIndex_[neighbor] = opposingMicroVertexIdx;
+
+      newInfo.neighborOppositeVertexCoords_[neighbor][0] = coord[0];
+      newInfo.neighborOppositeVertexCoords_[neighbor][1] = coord[1];
+      newInfo.neighborOppositeVertexCoords_[neighbor][2] = coord[2];
+
+      newInfo.neighborCellElementTypes_[neighbor] = nCellTypeLocalToNeighbor;
+      newInfo.neighborElementIndices_[neighbor]   = elementIdxNeighborMicro;
    }
    else
    {
-      neighborElementVertexCoords.clear();
-      neighborElementVertexCoords.resize( 3 );
+      //////////
+      /// 2D ///
+      //////////
+
+      newInfo.neighborElementVertexCoords_[neighbor].clear();
+      newInfo.neighborElementVertexCoords_[neighbor].resize( 3 );
 
       WALBERLA_ASSERT( storage_->faceExistsLocally( volumeID_ ) );
       const auto face = storage_->getFace( volumeID_ );
@@ -756,8 +766,11 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       WALBERLA_ASSERT_GREATER( face->getIndirectNeighborFaceIDsOverEdges().count( macroBoundaryID( neighbor ) ),
                                0,
                                "Neighbor face should exist but doesn't ..." );
-      const auto neighborFace =
-          storage_->getFace( face->getIndirectNeighborFaceIDsOverEdges().at( macroBoundaryID( neighbor ) ) );
+
+      const auto neighborFaceID = face->getIndirectNeighborFaceIDsOverEdges().at( macroBoundaryID( neighbor ) );
+      Face*      neighborFace   = storage_->getFace( neighborFaceID );
+
+      std::vector< uint_t > neighborMacroLocalVertexIndices;
 
       // PID of the opposite macro-vertex.
       const auto oppositeMacroVertexID =
@@ -799,10 +812,8 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       // In 2D the neighboring micro-face is always of type GRAY since only those are on the boundary.
       const auto nFaceTypeLocalToNeighbor = facedof::FaceType::GRAY;
 
-      const auto neighborElementVertexIndicesArr =
+      const auto neighborElementVertexIndices =
           facedof::macroface::getMicroVerticesFromMicroFace( elementIdxNeighborMicro, nFaceTypeLocalToNeighbor );
-      neighborElementVertexIndices.insert(
-          neighborElementVertexIndices.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
       // Eventually we need to know the coordinates of the micro-vertex that is opposite to the interface.
       // First find out what the local interface ID of the other macro-volume is.
@@ -823,17 +834,24 @@ void ElementNeighborInfo::macroBoundaryNeighborElementVertexCoords( uint_t      
       for ( uint_t i = 0; i < 3; i++ )
       {
          const auto coord = vertexdof::macroface::coordinateFromIndex( level_, *neighborFace, neighborElementVertexIndices[i] );
-         neighborElementVertexCoords[i]( 0 ) = coord[0];
-         neighborElementVertexCoords[i]( 1 ) = coord[1];
-         neighborElementVertexCoords[i]( 2 ) = 0;
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 0 ) = coord[0];
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 1 ) = coord[1];
+         newInfo.neighborElementVertexCoords_[neighbor][i]( 2 ) = 0;
       }
 
       const auto coord = vertexdof::macroface::coordinateFromIndex( level_, *neighborFace, opposingMicroVertexIdx );
 
-      neighborOppositeVertexCoords( 0 ) = coord[0];
-      neighborOppositeVertexCoords( 1 ) = coord[1];
-      neighborOppositeVertexCoords( 2 ) = 0;
+      newInfo.neighborOppositeVertexIndex_[neighbor] = opposingMicroVertexIdx;
+
+      newInfo.neighborOppositeVertexCoords_[neighbor][0] = coord[0];
+      newInfo.neighborOppositeVertexCoords_[neighbor][1] = coord[1];
+      newInfo.neighborOppositeVertexCoords_[neighbor][2] = 0;
+
+      newInfo.neighborFaceElementTypes_[neighbor] = nFaceTypeLocalToNeighbor;
+      newInfo.neighborElementIndices_[neighbor]   = elementIdxNeighborMicro;
    }
+
+   return newInfo;
 }
 
 } // namespace indexing

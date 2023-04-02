@@ -67,10 +67,10 @@ int main( int argc, char* argv[] )
    pM1.addValue( 1, 0, 3 );
    pM1.addValue( 1, 1, 4 );
 
-   pM2.addValue( 0, 0, 1 );
-   pM2.addValue( 0, 1, 2 );
-   pM2.addValue( 1, 0, 3 );
-   pM2.addValue( 1, 1, 4 );
+   pM2.addValue( 0, 0, 2 );
+   pM2.addValue( 0, 1, 4 );
+   pM2.addValue( 1, 0, 6 );
+   pM2.addValue( 1, 1, 8 );
 
    // petsc assembly stuff
    MatAssemblyBegin( M1, MAT_FINAL_ASSEMBLY );
@@ -78,21 +78,19 @@ int main( int argc, char* argv[] )
    MatAssemblyBegin( M2, MAT_FINAL_ASSEMBLY );
    MatAssemblyEnd( M2, MAT_FINAL_ASSEMBLY );
 
-     
    // M3 = 2*M1 - M2
    pM3.createFromMatrixLinComb(
        { 2, -1 }, { std::make_shared< PETScSparseMatrixProxy >( pM1 ), std::make_shared< PETScSparseMatrixProxy >( pM2 ) } );
 
    // check result
-   real_t val = 0;
+   PetscScalar val = 0;
    for ( int i = 0; i < 2; ++i )
    {
       for ( int j = 0; j < 2; ++j )
       {
          MatGetValue( M3, i, j, &val );
-         WALBERLA_CHECK_FLOAT_EQUAL( val, 0.0 );
+         WALBERLA_CHECK_FLOAT_EQUAL( (double)PetscRealPart(val), 0.0 );
       }
    }
-   
    return EXIT_SUCCESS;
 }

@@ -25,6 +25,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_div.h"
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_blending_q2.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -146,10 +147,10 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    {
       WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
       const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
-      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices2D_[face.getID().getID()][level][idx];
+      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
+      return localElementMatrices2D_[face.getID()][level][idx];
    }
 
    /// \brief Returns a const reference to the a precomputed element matrix of the specified micro face.
@@ -159,10 +160,10 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    {
       WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
       const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
-      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices2D_.at( face.getID().getID() ).at( level ).at( idx );
+      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
+      return localElementMatrices2D_.at( face.getID() ).at( level ).at( idx );
    }
 
    /// \brief Returns a reference to the a precomputed element matrix of the specified micro cell.
@@ -172,10 +173,10 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    {
       WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices3D_[cell.getID().getID()][level][idx];
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
+      return localElementMatrices3D_[cell.getID()][level][idx];
    }
 
    /// \brief Returns a const reference to the a precomputed element matrix of the specified micro cell.
@@ -185,21 +186,23 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    {
       WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
-      return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
+      return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
    }
 
    bool localElementMatricesPrecomputed_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices_[macroCellID][level][faceIdx] = mat3x6
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrixr< 3, 6 > > > > localElementMatrices2D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrixr< 3, 6 >, Eigen::aligned_allocator< Matrixr< 3, 6 > > > > >
+       localElementMatrices2D_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices_[macroCellID][level][cellIdx] = mat10x10
-   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrixr< 4, 10 > > > > localElementMatrices3D_;
+   std::map< PrimitiveID, std::map< uint_t, std::vector< Matrixr< 4, 10 >, Eigen::aligned_allocator< Matrixr< 4, 10 > > > > >
+       localElementMatrices3D_;
 };
 
 typedef P2ToP1ElementwiseOperator<

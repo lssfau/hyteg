@@ -31,7 +31,7 @@ real_t GeometryMap::evalDetDF( const Point3D& x )
 {
    Matrix2r DF;
    evalDF( x, DF );
-   return DF.det();
+   return DF.determinant();
 }
 
 void GeometryMap::serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer )
@@ -65,6 +65,15 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unknown Type" )
    }
+}
+
+bool GeometryMap::verifyPointPairing( const Point3D& computationalCoordinates,
+                                      const Point3D& physicalCoordinates,
+                                      real_t         threshold ) const
+{
+   Point3D mapped;
+   this->evalF( computationalCoordinates, mapped );
+   return ( mapped - physicalCoordinates ).norm() < threshold;
 }
 
 } // namespace hyteg

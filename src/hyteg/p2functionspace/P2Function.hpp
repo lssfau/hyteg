@@ -53,6 +53,8 @@ class P2Function final : public Function< P2Function< ValueType > >
                uint_t                                     maxLevel,
                BoundaryCondition                          boundaryCondition );
 
+   virtual uint_t getDimension() const { return 1; }
+
    inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
    inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
 
@@ -105,15 +107,15 @@ class P2Function final : public Function< P2Function< ValueType > >
    /// -> Does not need to be called collectively.
    /// -> Different values are returned on each process.
    ///
-   /// \param coordinates where the function shall be evaluated
+   /// \param physicalCoords coordinates in physical domain where the function is to be evaluated
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
-   inline void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+   inline void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
    //@{
@@ -168,8 +170,8 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///
    void copyFrom( const P2Function< ValueType >&                 other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
@@ -265,11 +267,6 @@ class P2Function final : public Function< P2Function< ValueType > >
    EdgeDoFFunction< ValueType >              edgeDoFFunction_;
 
 };
-
-template <>
-bool P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level, real_t& value, real_t searchToleranceRadius ) const;
-template <>
-void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
 extern template class P2Function< double >;
 extern template class P2Function< int >;

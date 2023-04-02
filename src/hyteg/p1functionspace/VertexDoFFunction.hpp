@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/ReferenceCounter.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -76,6 +77,20 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+   ~VertexDoFFunction();
+
+   /// Copy constructor
+   VertexDoFFunction( const VertexDoFFunction< ValueType >& other );
+
+   /// Copy assignment
+   VertexDoFFunction& operator=( const VertexDoFFunction< ValueType >& other );
+
+   virtual uint_t getDimension() const { return 1; }
+
+   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
+   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
    VertexDoFFunction( const std::string&                         name,
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       uint_t                                     minLevel,
@@ -139,10 +154,10 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const VertexDoFFunction< ValueType >&          other,
-                  const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+   void copyFrom( const VertexDoFFunction< ValueType >&  other,
+                  const uint_t&                          level,
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
@@ -169,15 +184,15 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// -> Does not need to be called collectively.
    /// -> Different values are returned on each process.
    ///
-   /// \param coordinates where the function shall be evaluated
+   /// \param physicalCoords coordinates in physical domain where the function is to be evaluated
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
-   void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+   void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
@@ -463,6 +478,14 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
+   inline void deleteFunctionMemory()
+   {
+      this->storage_->deleteVertexData( vertexDataID_ );
+      this->storage_->deleteEdgeData( edgeDataID_ );
+      this->storage_->deleteFaceData( faceDataID_ );
+      this->storage_->deleteCellData( cellDataID_ );
+   }
+
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -472,6 +495,13 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
+
+   /// All functions that actually allocate data and are not composites are handles to the allocated memory.
+   /// This means the copy-ctor and copy-assignment only create a handle that is associated with the same memory.
+   /// Deep copies must be created explicitly.
+   /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
+   /// Once it drops to zero, we can deallocate the memory from the storage.
+   std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
 
    /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
    /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.

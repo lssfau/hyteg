@@ -90,7 +90,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (-70 - 72);
   expected += (1./8.) * (-105 - 133 - 106 - 134);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(3))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[1], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID::create(3))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[1], expected);
 
 
   ///calculate expected entry for idx = 2 on edge 1
@@ -100,7 +100,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (- 115 - 122);
   expected += (1./8.) * (- 142 - 146 - 86 - 90);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[2], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID::create(5))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[2], expected);
 
   ///calculate expected entry for idx = 2 on edge 1
   expected = 16;
@@ -109,7 +109,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (- 148 - 153);
   expected += (1./8.) * (- 124 - 121 - 96 - 93);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(4))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID::create(4))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
 
   ///calculate expected entry for vertex dof on face at 4,2
   expected = 34;
@@ -128,7 +128,7 @@ static void testP2Restrict() {
   expected += (1./8.) * ( 3 * 109- 110);
   expected += (1./8.) * (- 102 - 103);
   WALBERLA_CHECK_FLOAT_EQUAL(storage->
-    getFace(PrimitiveID(6))->
+    getFace(PrimitiveID::create(6))->
     getData(x->getVertexDoFFunction().getFaceDataID())->
     getPointer(sourceLevel - 1)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,2,1,stencilDirection::VERTEX_C)], expected);
 
@@ -172,8 +172,8 @@ static void testP2Restrict2() {
 //    hyteg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
-  real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
-  real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
+  real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
+  real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -189,7 +189,7 @@ static void testP2Restrict2() {
         65.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_DI_NE)],
         65.,
@@ -205,8 +205,8 @@ static void testP2Restrict2() {
 
   restrictionOperator.restrict( *x, sourceLevel - 1, All );
 
-  edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
-  vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
+  edgeDoFCoarseData = storage->getFace(PrimitiveID::create(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
+  vertexDoFCoarseData = storage->getFace(PrimitiveID::create(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
 
   for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -222,7 +222,7 @@ static void testP2Restrict2() {
         273.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
+    if(it.col() + it.row() != idx_t( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
         edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_DI_NE)],
         273.,

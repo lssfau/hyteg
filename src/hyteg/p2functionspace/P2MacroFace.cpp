@@ -44,19 +44,22 @@ real_t evaluate( const uint_t&                                            level,
    vertexdof::macroface::getLocalElementDoFIndicesFromCoordinates< real_t >(
        level, face, coordinates, srcVertexDoFID, localCoordinates, transform, localVertexDoFs );
 
-   real_t x = localCoordinates[0];
-   real_t y = localCoordinates[1];
-
-   real_t value = ( 2.0 * pow( x, 2 ) + 4.0 * x * y - 3.0 * x + 2.0 * pow( y, 2 ) - 3.0 * y + 1.0 ) * localVertexDoFs[0];
-   value += ( 2.0 * pow( x, 2 ) - 1.0 * x ) * localVertexDoFs[1];
-   value += ( 2.0 * pow( y, 2 ) - 1.0 * y ) * localVertexDoFs[2];
-
    edgedof::macroface::getLocalElementDoFIndicesFromCoordinates< real_t >(
        level, face, coordinates, srcEdgeDoFID, localCoordinates, transform, localEdgeDoFs );
 
-   value += ( 4.0 * x * y ) * localEdgeDoFs[0];
-   value += ( -4.0 * x * y - 4.0 * pow( y, 2 ) + 4.0 * y ) * localEdgeDoFs[1];
-   value += ( -4.0 * pow( x, 2 ) - 4.0 * x * y + 4.0 * x ) * localEdgeDoFs[2];
+   real_t L2 = localCoordinates[0];
+   real_t L3 = localCoordinates[1];
+   real_t L1 = real_c( 1 ) - L2 - L3;
+
+   real_t value = real_c( 0 );
+
+   value += L1 * ( real_c( 2 ) * L1 - real_c( 1 ) ) * localVertexDoFs[0];
+   value += L2 * ( real_c( 2 ) * L2 - real_c( 1 ) ) * localVertexDoFs[1];
+   value += L3 * ( real_c( 2 ) * L3 - real_c( 1 ) ) * localVertexDoFs[2];
+
+   value += real_c( 4 ) * L2 * L3 * localEdgeDoFs[0];
+   value += real_c( 4 ) * L1 * L3 * localEdgeDoFs[1];
+   value += real_c( 4 ) * L1 * L2 * localEdgeDoFs[2];
 
    return value;
 }
@@ -297,7 +300,7 @@ void smoothSOR( const uint_t&                                            level,
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
-      if( !edgedof::macroface::isHorizontalEdgeOnBoundary( level, it ) )
+      if ( !edgedof::macroface::isHorizontalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeHO = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )];
          /// vertex to edge
@@ -318,7 +321,7 @@ void smoothSOR( const uint_t&                                            level,
              relax * invEdgeXCenter * tmpEdgeHO;
       }
       ////////// VERTICAL EDGE //////////
-      if( !edgedof::macroface::isVerticalEdgeOnBoundary( level, it ) )
+      if ( !edgedof::macroface::isVerticalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeVE = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )];
          /// vertex to edge
@@ -338,7 +341,7 @@ void smoothSOR( const uint_t&                                            level,
              relax * invEdgeYCenter * tmpEdgeVE;
       }
       ////////// DIAGONAL EDGE //////////
-      if( !edgedof::macroface::isDiagonalEdgeOnBoundary( level, it ) )
+      if ( !edgedof::macroface::isDiagonalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeDI = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )];
          /// vertex to edge
@@ -363,7 +366,7 @@ void smoothSOR( const uint_t&                                            level,
 void smoothSOR3D(
     const uint_t&                                                                                level,
     const PrimitiveStorage&                                                                      storage,
-    Face&                                                                                        face,
+    const Face&                                                                                  face,
     const real_t&                                                                                relax,
     const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& edgeToVertexOperatorId,
@@ -390,7 +393,7 @@ void smoothSOR3D(
    real_t centerWeight = real_c( 0 );
    for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
    {
-      centerWeight += v2v_operator[neighborCellIdx][{0, 0, 0}];
+      centerWeight += v2v_operator[neighborCellIdx][{ 0, 0, 0 }];
    }
 
    const real_t vertexDoFRelaxOverCenter = relax / centerWeight;
@@ -411,7 +414,7 @@ void smoothSOR3D(
              vertexdof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellIdx, storage, level );
          for ( const auto& stencilIt : v2v_operator[neighborCellIdx] )
          {
-            if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+            if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                continue;
 
             auto weight               = stencilIt.second;
@@ -593,16 +596,16 @@ void smoothSOR3D(
    }
 }
 
-void smoothGaussSeidel(const uint_t &level,
-                       const Face &face,
-                       const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexToVertexStencilID,
-                       const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeToVertexStencilID,
-                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
-                       const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexToEdgeStencilID,
-                       const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeToEdgeStencilID,
-                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
-                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID,
-                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsEdgeDoFID)
+void smoothGaussSeidel( const uint_t&                                            level,
+                        const Face&                                              face,
+                        const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexToVertexStencilID,
+                        const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeToVertexStencilID,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstVertexDoFID,
+                        const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexToEdgeStencilID,
+                        const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeToEdgeStencilID,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstEdgeDoFID,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsVertexDoFID,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsEdgeDoFID )
 {
    smoothSOR( level,
               face,

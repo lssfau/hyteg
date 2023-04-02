@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/types/matrix.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 class p1_tet_diffusion_cell_integral_0_otherwise;
 class p1_tet_div_tet_cell_integral_0_otherwise;
@@ -76,6 +76,22 @@ class p2_tet_stokes_full_tet_cell_integral_5_otherwise;
 class p2_tet_stokes_full_tet_cell_integral_6_otherwise;
 class p2_tet_stokes_full_tet_cell_integral_7_otherwise;
 class p2_tet_stokes_full_tet_cell_integral_8_otherwise;
+
+class p2_div_cell_integral_0_otherwise;
+class p2_div_cell_integral_1_otherwise;
+class p2_divt_cell_integral_0_otherwise;
+class p2_divt_cell_integral_1_otherwise;
+class p2_pspg_cell_integral_0_otherwise;
+class p2_stokes_epsilon_cell_integral_0_otherwise;
+class p2_stokes_epsilon_cell_integral_1_otherwise;
+class p2_stokes_epsilon_cell_integral_2_otherwise;
+class p2_stokes_epsilon_cell_integral_3_otherwise;
+class p2_stokes_full_cell_integral_0_otherwise;
+class p2_stokes_full_cell_integral_1_otherwise;
+class p2_stokes_full_cell_integral_2_otherwise;
+class p2_stokes_full_cell_integral_3_otherwise;
+class p2_mass_cell_integral_0_otherwise;
+class p2_diffusion_cell_integral_0_otherwise;
 
 class p2_to_p1_tet_div_tet_cell_integral_0_otherwise;
 class p2_to_p1_tet_div_tet_cell_integral_1_otherwise;

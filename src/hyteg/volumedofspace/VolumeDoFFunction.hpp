@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/ReferenceCounter.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/functions/Function.hpp"
@@ -84,6 +85,17 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                       uint_t                                     numScalars,
                       indexing::VolumeDoFMemoryLayout            memoryLayout );
 
+   /// Destructor
+   ~VolumeDoFFunction();
+
+   /// Copy constructor
+   VolumeDoFFunction( const VolumeDoFFunction< ValueType >& other );
+
+   /// Copy assignment
+   VolumeDoFFunction& operator=( const VolumeDoFFunction< ValueType >& other );
+
+   virtual uint_t getDimension() const { return 1; }
+
    /// \brief Updates ghost-layers.
    void communicate( uint_t level );
 
@@ -125,20 +137,20 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \return pointer to the array that stores the data
    ValueType* dofMemory( PrimitiveID primitiveID, uint_t level ) const
    {
-      if ( storage_->hasGlobalCells() )
+      if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
+         WALBERLA_CHECK( this->storage_->cellExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-cell does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem = storage_->getCell( primitiveID )->getData( cellInnerDataID_ );
+         FunctionMemory< ValueType >* fmem = this->storage_->getCell( primitiveID )->getData( cellInnerDataID_ );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          auto data = fmem->getPointer( level );
          return data;
       }
       else
       {
-         WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
+         WALBERLA_CHECK( this->storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem = storage_->getFace( primitiveID )->getData( faceInnerDataID_ );
+         FunctionMemory< ValueType >* fmem = this->storage_->getFace( primitiveID )->getData( faceInnerDataID_ );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          auto data = fmem->getPointer( level );
          return data;
@@ -153,20 +165,20 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \return pointer to the array that stores the data
    ValueType* glMemory( PrimitiveID primitiveID, uint_t level, uint_t glId ) const
    {
-      if ( storage_->hasGlobalCells() )
+      if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_CHECK( storage_->cellExistsLocally( primitiveID ),
+         WALBERLA_CHECK( this->storage_->cellExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-cell does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem = storage_->getCell( primitiveID )->getData( cellGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem = this->storage_->getCell( primitiveID )->getData( cellGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          ValueType* data = fmem->getPointer( level );
          return data;
       }
       else
       {
-         WALBERLA_CHECK( storage_->faceExistsLocally( primitiveID ),
+         WALBERLA_CHECK( this->storage_->faceExistsLocally( primitiveID ),
                          "Cannot read/write DoF since macro-face does not exists (locally)." );
-         FunctionMemory< ValueType >* fmem = storage_->getFace( primitiveID )->getData( faceGhostLayerDataIDs_.at( glId ) );
+         FunctionMemory< ValueType >* fmem = this->storage_->getFace( primitiveID )->getData( faceGhostLayerDataIDs_.at( glId ) );
          WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
          ValueType* data = fmem->getPointer( level );
          return data;
@@ -263,12 +275,25 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 
    void addPackInfos();
 
-   std::string name_;
-
-   std::shared_ptr< PrimitiveStorage > storage_;
-
-   uint_t minLevel_;
-   uint_t maxLevel_;
+   inline void deleteFunctionMemory()
+   {
+      if ( this->storage_->hasGlobalCells() )
+      {
+         this->storage_->deleteCellData( cellInnerDataID_ );
+         for ( auto it : cellGhostLayerDataIDs_ )
+         {
+            this->storage_->deleteCellData( it.second );
+         }
+      }
+      else
+      {
+         this->storage_->deleteFaceData( faceInnerDataID_ );
+         for ( auto it : faceGhostLayerDataIDs_ )
+         {
+            this->storage_->deleteFaceData( it.second );
+         }
+      }
+   }
 
    std::map< PrimitiveID, uint_t > numScalarsPerPrimitive_;
 
@@ -280,8 +305,18 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 
    /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
    /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.
+   /// Note that there is only a single ghost-layer structure per side of the volume, even if the neighboring volume is
+   /// on a different (macro-)refinement level.
+   /// That means that the sizes of the ghost-layer memory might be different than the "length" of a macro-boundary on the inside.
    std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
    std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
+
+   /// All functions that actually allocate data and are not composites are handles to the allocated memory.
+   /// This means the copy-ctor and copy-assignment only create a handle that is associated with the same memory.
+   /// Deep copies must be created explicitly.
+   /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
+   /// Once it drops to zero, we can deallocate the memory from the storage.
+   std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
 };
 
 /// \brief Given an affine coordinate (in computational space) this function locates the micro-element in the macro-face and
@@ -310,8 +345,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
    A( 0, 1 )          = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[0];
    A( 1, 0 )          = ( face.getCoordinates()[1] - face.getCoordinates()[0] )[1];
    A( 1, 1 )          = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[1];
-   Matrix2r transform = A.adj();
-   transform *= 1.0 / A.det();
+   Matrix2r transform = A.inverse();
 
    Point2D x( { coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1] } );
 

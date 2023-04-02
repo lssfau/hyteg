@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017-2020 Nils Kohl.
  *
@@ -153,7 +152,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
    void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
-      Mat            tmp;
+      Mat tmp;
+
       PetscErrorCode err;
 
       err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
@@ -233,6 +233,9 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
       WALBERLA_CHECK( !err );
 
+      MatScale( petscProxy->mat_, scalars.at( 0 ) );
+      WALBERLA_CHECK( !err );
+
       err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
       WALBERLA_CHECK( !err );
 
@@ -257,6 +260,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
          //mat_, petscProxy->mat_,
          err = MatCreateComposite( PETSC_COMM_WORLD, 2, mats, &tmp );
          WALBERLA_CHECK( !err );
+         err = MatCompositeMerge( tmp );
+         WALBERLA_CHECK( !err );
          err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
          WALBERLA_CHECK( !err );
 
@@ -272,6 +277,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       }
    }
 
+ private:
    Mat mat_;
 };
 

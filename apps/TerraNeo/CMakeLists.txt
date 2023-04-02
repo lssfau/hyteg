@@ -1,0 +1,2 @@
+add_subdirectory(PlateVelocities)
+add_subdirectory(SphericalHarmonics)

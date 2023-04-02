@@ -36,23 +36,6 @@ using walberla::int_c;
 using walberla::uint_c;
 using walberla::uint_t;
 
-/// Helper function to create a 'tuple' from two integers taking less than 5 bits of space.
-/// Allows for more readable switch statements in some cases.
-static constexpr uint_t tup( const uint_t& a, const uint_t& b )
-{
-   assert( a < ( 1 << 4 ) );
-   assert( b < ( 1 << 4 ) );
-   return a << 4 | b;
-}
-
-static constexpr uint_t tup( const uint_t& a, const uint_t& b, const uint_t& c )
-{
-   assert( a < ( 1 << 4 ) );
-   assert( b < ( 1 << 4 ) );
-   assert( c < ( 1 << 4 ) );
-   return a << 8 | b << 4 | c;
-}
-
 std::set< uint_t > isOnCellFace( const indexing::Index& index, const uint_t& width )
 {
    std::set< uint_t > cellFaceIndices;
@@ -223,61 +206,61 @@ CellBoundaryIterator::CellBoundaryIterator( const uint_t&                  width
       break;
    }
 
-   switch ( tup( vertices_[0], vertices_[1], vertices_[2] ) )
+   switch ( tup4( vertices_[0], vertices_[1], vertices_[2] ) )
    {
    // Front face
-   case tup( 0, 1, 2 ):
-   case tup( 0, 2, 1 ):
+   case tup4( 0, 1, 2 ):
+   case tup4( 0, 2, 1 ):
       coordinates_ += IndexIncrement( 0, 0, (int) offsetToCenter );
       break;
-   case tup( 1, 0, 2 ):
-   case tup( 1, 2, 0 ):
+   case tup4( 1, 0, 2 ):
+   case tup4( 1, 2, 0 ):
       coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, (int) offsetToCenter );
       break;
-   case tup( 2, 0, 1 ):
-   case tup( 2, 1, 0 ):
+   case tup4( 2, 0, 1 ):
+   case tup4( 2, 1, 0 ):
       coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, (int) offsetToCenter );
       break;
 
    // Bottom face
-   case tup( 0, 1, 3 ):
-   case tup( 0, 3, 1 ):
+   case tup4( 0, 1, 3 ):
+   case tup4( 0, 3, 1 ):
       coordinates_ += IndexIncrement( 0, (int) offsetToCenter, 0 );
       break;
-   case tup( 1, 0, 3 ):
-   case tup( 1, 3, 0 ):
+   case tup4( 1, 0, 3 ):
+   case tup4( 1, 3, 0 ):
       coordinates_ += IndexIncrement( -(int) offsetToCenter, (int) offsetToCenter, 0 );
       break;
-   case tup( 3, 0, 1 ):
-   case tup( 3, 1, 0 ):
+   case tup4( 3, 0, 1 ):
+   case tup4( 3, 1, 0 ):
       coordinates_ += IndexIncrement( 0, (int) offsetToCenter, -(int) offsetToCenter );
       break;
 
    // Left face
-   case tup( 0, 2, 3 ):
-   case tup( 0, 3, 2 ):
+   case tup4( 0, 2, 3 ):
+   case tup4( 0, 3, 2 ):
       coordinates_ += IndexIncrement( (int) offsetToCenter, 0, 0 );
       break;
-   case tup( 2, 0, 3 ):
-   case tup( 2, 3, 0 ):
+   case tup4( 2, 0, 3 ):
+   case tup4( 2, 3, 0 ):
       coordinates_ += IndexIncrement( (int) offsetToCenter, -(int) offsetToCenter, 0 );
       break;
-   case tup( 3, 0, 2 ):
-   case tup( 3, 2, 0 ):
+   case tup4( 3, 0, 2 ):
+   case tup4( 3, 2, 0 ):
       coordinates_ += IndexIncrement( (int) offsetToCenter, 0, -(int) offsetToCenter );
       break;
 
    // Back/diagonal face
-   case tup( 3, 1, 2 ):
-   case tup( 3, 2, 1 ):
+   case tup4( 3, 1, 2 ):
+   case tup4( 3, 2, 1 ):
       coordinates_ += IndexIncrement( 0, 0, -(int) offsetToCenter );
       break;
-   case tup( 1, 3, 2 ):
-   case tup( 1, 2, 3 ):
+   case tup4( 1, 3, 2 ):
+   case tup4( 1, 2, 3 ):
       coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, 0 );
       break;
-   case tup( 2, 3, 1 ):
-   case tup( 2, 1, 3 ):
+   case tup4( 2, 3, 1 ):
+   case tup4( 2, 1, 3 ):
       coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, 0 );
       break;
    }
@@ -335,31 +318,31 @@ IndexIncrement CellBoundaryIterator::calculateIncrement( const uint_t& vertex0, 
    WALBERLA_ASSERT_LESS_EQUAL( vertex0, 3 );
    WALBERLA_ASSERT_LESS_EQUAL( vertex1, 3 );
 
-   switch ( tup( vertex0, vertex1 ) )
+   switch ( tup4( vertex0, vertex1 ) )
    {
-   case tup( 0, 1 ):
+   case tup4( 0, 1 ):
       return IndexIncrement( 1, 0, 0 );
-   case tup( 1, 0 ):
+   case tup4( 1, 0 ):
       return IndexIncrement( -1, 0, 0 );
-   case tup( 0, 2 ):
+   case tup4( 0, 2 ):
       return IndexIncrement( 0, 1, 0 );
-   case tup( 2, 0 ):
+   case tup4( 2, 0 ):
       return IndexIncrement( 0, -1, 0 );
-   case tup( 1, 2 ):
+   case tup4( 1, 2 ):
       return IndexIncrement( -1, 1, 0 );
-   case tup( 2, 1 ):
+   case tup4( 2, 1 ):
       return IndexIncrement( 1, -1, 0 );
-   case tup( 0, 3 ):
+   case tup4( 0, 3 ):
       return IndexIncrement( 0, 0, 1 );
-   case tup( 3, 0 ):
+   case tup4( 3, 0 ):
       return IndexIncrement( 0, 0, -1 );
-   case tup( 1, 3 ):
+   case tup4( 1, 3 ):
       return IndexIncrement( -1, 0, 1 );
-   case tup( 3, 1 ):
+   case tup4( 3, 1 ):
       return IndexIncrement( 1, 0, -1 );
-   case tup( 2, 3 ):
+   case tup4( 2, 3 ):
       return IndexIncrement( 0, -1, 1 );
-   case tup( 3, 2 ):
+   case tup4( 3, 2 ):
       return IndexIncrement( 0, 1, -1 );
    default:
       WALBERLA_ASSERT( false, "Invalid tuple in increment calculation!" );
