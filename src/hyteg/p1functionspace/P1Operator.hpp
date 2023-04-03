@@ -694,21 +694,23 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                   assemble_stencil_edge_init( *edge, level );
                }
 
-               for ( auto idx : vertexdof::macroedge::Iterator( level ) )
+               const uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+               for ( uint_t i = 1; i < rowsize - 1; ++i )
                {
                   if ( variableStencil() )
                   {
                      if ( use_variable_stencil_assembly )
                      {
-                        assemble_variableStencil_edge( stencilMemory, idx.x() );
+                        assemble_variableStencil_edge( stencilMemory, i );
                      }
                      else
                      {
-                        assemble_stencil_edge( stencilMemory, idx.x() );
+                        assemble_stencil_edge( stencilMemory, i );
                      }
                   }
 
-                  targetMemory[vertexdof::macroedge::index( level, idx.x() )] =
+                  targetMemory[vertexdof::macroedge::index( level, i )] =
                       stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )];
                }
             }
@@ -1955,9 +1957,9 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       for ( uint_t neighborCellID = 0; neighborCellID < edge_->getNumNeighborCells(); ++neighborCellID )
       {
-         auto neighborCell = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
-         auto vertexAssemblyIndexInCell =
-             vertexdof::macroedge::getIndexInNeighboringMacroCell( { idx_t( i ), 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
+         auto neighborCell              = storage_->getCell( edge_->neighborCells().at( neighborCellID ) );
+         auto vertexAssemblyIndexInCell = vertexdof::macroedge::getIndexInNeighboringMacroCell(
+             { idx_t( i ), 0, 0 }, *edge_, neighborCellID, *storage_, level_ );
          edge_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
@@ -2072,9 +2074,9 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       for ( uint_t neighborCellID = 0; neighborCellID < face_->getNumNeighborCells(); ++neighborCellID )
       {
-         auto neighborCell = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
-         auto vertexAssemblyIndexInCell =
-             vertexdof::macroface::getIndexInNeighboringMacroCell( { idx_t( i ), idx_t( j ), 0 }, *face_, neighborCellID, *storage_, level_ );
+         auto neighborCell              = storage_->getCell( face_->neighborCells().at( neighborCellID ) );
+         auto vertexAssemblyIndexInCell = vertexdof::macroface::getIndexInNeighboringMacroCell(
+             { idx_t( i ), idx_t( j ), 0 }, *face_, neighborCellID, *storage_, level_ );
          face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
              storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }

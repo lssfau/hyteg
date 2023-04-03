@@ -29,6 +29,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divt_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_linear_form_blending_q6.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
 namespace hyteg {
@@ -140,5 +141,7 @@ typedef P1VariableOperator< forms::p1_div_1_blending_q1 > P1BlendingDivOperator_
 
 typedef P1VariableOperator< forms::p1_div_k_grad_blending_q3 > P1BlendingDivkGradOperator;
 typedef P1VariableOperator< forms::p1_div_k_grad_affine_q3 >   P1AffineDivkGradOperator;
+
+typedef P1VariableOperator< forms::p1_linear_form_blending_q6 > P1RHSOperator;
 
 } // namespace hyteg
