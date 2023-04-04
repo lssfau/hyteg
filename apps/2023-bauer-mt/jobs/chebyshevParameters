@@ -1,0 +1,13 @@
+#!/bin/bash -l
+#SBATCH --nodes=1 
+#SBATCH --ntasks-per-node=20
+#SBATCH --time=01:00:00
+#SBATCH --export=NONE
+
+unset SLURM_EXPORT_ENV
+module load gcc/12.1.0 openmpi/4.1.3-gcc12.1.0 cmake/3.23.1
+
+cd ~/hyteg-build/apps/2023-bauer-mt
+make -j 20 chebyshevParameters
+
+srun ./chebyshevParameters
