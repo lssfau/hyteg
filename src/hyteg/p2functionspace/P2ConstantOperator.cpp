@@ -273,10 +273,11 @@ void smooth_sor_macro_faces_impl(
       {
          if ( storage.hasGlobalCells() )
          {
-            if ( globalDefines::useGeneratedKernels )
+            if constexpr ( globalDefines::useGeneratedKernels )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                using edgedof::EdgeDoFOrientation;
-               using indexing::IndexIncrement;
+               using indexing::Index;
 
                auto v2v_operator = face->getData( v2VFaceStencil3DID )->getData( level );
                auto v2e_operator = face->getData( v2EFaceStencil3DID )->getData( level );
@@ -761,6 +762,7 @@ void smooth_sor_macro_faces_impl(
                          v2e_operator[0] );
                   }
                }
+#endif
             }
             else
             {
@@ -781,8 +783,9 @@ void smooth_sor_macro_faces_impl(
          }
          else
          {
-            if ( globalDefines::useGeneratedKernels )
+            if constexpr ( globalDefines::useGeneratedKernels )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                WALBERLA_CHECK( !backwards );
 
                real_t* v_dst_data = face->getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
@@ -825,6 +828,7 @@ void smooth_sor_macro_faces_impl(
                                                                               &v2e_opr_data[8],
                                                                               static_cast< int32_t >( level ),
                                                                               relax );
+#endif
             }
             else
             {
@@ -905,6 +909,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
       {
          if ( globalDefines::useGeneratedKernels )
          {
+#ifdef HYTEG_USE_GENERATED_KERNELS
             real_t* v_dst_data = cell.getData( dst.getVertexDoFFunction().getCellDataID() )->getPointer( level );
             real_t* v_rhs_data = cell.getData( rhs.getVertexDoFFunction().getCellDataID() )->getPointer( level );
 
@@ -1183,6 +1188,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 
                WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating EdgeDoFs" ); }
             }
+#endif
          }
          else
          {

@@ -96,7 +96,9 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
 // abort in case of common floating-point exceptions
 #ifndef _MSC_VER
+#ifndef __INTEL_LLVM_COMPILER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 #endif
    // environment stuff
@@ -104,12 +106,12 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
 
    std::array< Point3D, 3 > element2D = {
-       Point3D( { 0.1, 0.345, 0 } ), Point3D( { 0.2, 0.083745, 0 } ), Point3D( { 0.985, 0.3, 0 } ) };
+       Point3D(  0.1, 0.345, 0  ), Point3D(  0.2, 0.083745, 0  ), Point3D(  0.985, 0.3, 0  ) };
 
-   std::array< Point3D, 4 > element3D = { Point3D( { 0.1, 0.345, 0.3 } ),
-                                          Point3D( { 0.2, 0.083745, 0.9 } ),
-                                          Point3D( { 0.985, 0.3, 0.48 } ),
-                                          Point3D( { 0.23, 0.434, 0.0001 } ) };
+   std::array< Point3D, 4 > element3D = { Point3D(  0.1, 0.345, 0.3  ),
+                                          Point3D(  0.2, 0.083745, 0.9  ),
+                                          Point3D(  0.985, 0.3, 0.48  ),
+                                          Point3D(  0.23, 0.434, 0.0001  ) };
 
    auto coeff = []( const hyteg::Point3D& x ) { return x[0] * x[1] * x[2]; };
 
@@ -155,7 +157,7 @@ int main( int argc, char** argv )
    form_p2_full_stokesvar_2_1_blending_q3.setGeometryMap( identityMap );
    form_p2_full_stokesvar_2_2_blending_q3.setGeometryMap( identityMap );
 
-   const double eps = 1e-14;
+   const real_t eps = real_c( std::is_same< real_t, double >() ? 1e-14 : 4e-6 );
 
    compareRows< forms::p1_div_k_grad_affine_q3, 2, 3, 3 >( form_p1_div_k_grad_affine_q3, element2D, 0, eps );
    compareRows< forms::p1_div_k_grad_affine_q3, 3, 4, 4 >( form_p1_div_k_grad_affine_q3, element3D, 0, eps );

@@ -55,7 +55,7 @@ class EdgeDoFToVertexDoFOperator final : public Operator< hyteg::EdgeDoFFunction
    ~EdgeDoFToVertexDoFOperator() = default;
 
    void apply( const EdgeDoFFunction< real_t >& src,
-               const P1Function< double >&      dst,
+               const P1Function< real_t >&      dst,
                uint_t                           level,
                DoFType                          flag,
                UpdateType                       updateType ) const;

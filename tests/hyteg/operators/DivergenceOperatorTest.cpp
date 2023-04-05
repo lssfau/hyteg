@@ -55,8 +55,8 @@ void printTestHdr( std::string msg )
 template < typename divOp_t >
 void run_P2_P1_Test_in_3D()
 {
-   Point3D                             lowerLeftFront( {0.0, 0.0, 0.0} );
-   Point3D                             upperRightBack( {1.0, 1.0, 1.0} );
+   Point3D                             lowerLeftFront( 0.0, 0.0, 0.0 );
+   Point3D                             upperRightBack( 1.0, 1.0, 1.0 );
    MeshInfo                            meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, 1, 1, 1 );
    SetupPrimitiveStorage               setStore( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setStore );
@@ -157,8 +157,8 @@ void run_P2_P1_Test_in_2D()
 template < typename divOp_t >
 void run_P1_P1_Test_in_3D()
 {
-   Point3D                             lowerLeftFront( {0.0, 0.0, 0.0} );
-   Point3D                             upperRightBack( {1.0, 1.0, 1.0} );
+   Point3D                             lowerLeftFront( 0.0, 0.0, 0.0 );
+   Point3D                             upperRightBack( 1.0, 1.0, 1.0 );
    MeshInfo                            meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, 1, 1, 1 );
    SetupPrimitiveStorage               setStore( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setStore );

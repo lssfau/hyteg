@@ -31,7 +31,7 @@ namespace P2 {
 namespace macrocell {
 
 using edgedof::EdgeDoFOrientation;
-using indexing::IndexIncrement;
+using indexing::Index;
 
 void smoothSOR(
     const uint_t&                                                                                level,
@@ -61,19 +61,19 @@ void smoothSOR(
 
    std::map< EdgeDoFOrientation, real_t > edgeDoFRelaxOverCenter;
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::X] =
-       relax / e2e_operator[EdgeDoFOrientation::X][EdgeDoFOrientation::X][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::X][EdgeDoFOrientation::X][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::Y] =
-       relax / e2e_operator[EdgeDoFOrientation::Y][EdgeDoFOrientation::Y][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::Y][EdgeDoFOrientation::Y][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::Z] =
-       relax / e2e_operator[EdgeDoFOrientation::Z][EdgeDoFOrientation::Z][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::Z][EdgeDoFOrientation::Z][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::XY] =
-       relax / e2e_operator[EdgeDoFOrientation::XY][EdgeDoFOrientation::XY][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::XY][EdgeDoFOrientation::XY][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::XZ] =
-       relax / e2e_operator[EdgeDoFOrientation::XZ][EdgeDoFOrientation::XZ][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::XZ][EdgeDoFOrientation::XZ][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::YZ] =
-       relax / e2e_operator[EdgeDoFOrientation::YZ][EdgeDoFOrientation::YZ][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::YZ][EdgeDoFOrientation::YZ][Index( 0, 0, 0 )];
    edgeDoFRelaxOverCenter[EdgeDoFOrientation::XYZ] =
-       relax / e2e_operator[EdgeDoFOrientation::XYZ][EdgeDoFOrientation::XYZ][IndexIncrement( 0, 0, 0 )];
+       relax / e2e_operator[EdgeDoFOrientation::XYZ][EdgeDoFOrientation::XYZ][Index( 0, 0, 0 )];
 
    real_t tmp;
 
@@ -139,7 +139,7 @@ void smoothSOR(
             for ( const auto& neighbor : edgeDoFNeighbors )
             {
                // skip center
-               if ( centerOrientation == leafOrientation && neighbor == IndexIncrement( 0, 0, 0 ) )
+               if ( centerOrientation == leafOrientation && neighbor == Index( 0, 0, 0 ) )
                   continue;
 
                const auto   srcIdx      = it + neighbor;
@@ -178,7 +178,7 @@ void smoothSOR(
          for ( const auto& neighbor : edgeDoFNeighbors )
          {
             // skip center
-            if ( centerOrientation == leafOrientation && neighbor == IndexIncrement( 0, 0, 0 ) )
+            if ( centerOrientation == leafOrientation && neighbor == Index( 0, 0, 0 ) )
                continue;
 
             const auto   srcIdx        = it + neighbor;

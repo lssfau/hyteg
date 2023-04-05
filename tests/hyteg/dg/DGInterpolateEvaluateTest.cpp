@@ -44,10 +44,10 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
    walberla::math::seedRandomGenerator( 12345678 );
    const uint_t numRandomEvaluations = 1000;
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 2, 2 );
    if ( dim == 3 )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 2, 2, 2 );
+      meshInfo = MeshInfo::meshCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 2, 2, 2 );
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -82,10 +82,10 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      Point3D coordinates;
-      coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+      Point3D coordinates(Point3D::Zero());
+      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
       real_t     value;
       const bool success = u.evaluate( coordinates, level, value );

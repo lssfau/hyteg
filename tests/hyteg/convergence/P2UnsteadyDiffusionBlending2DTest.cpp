@@ -118,7 +118,7 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
                                       const uint_t timeSteppingScheme,
                                       const real_t discrL2Eps )
 {
-   const auto            meshInfo = MeshInfo::meshAnnulus( 0.35 * pi, pi, MeshInfo::CRISS, 8, 1 );
+   const auto            meshInfo = MeshInfo::meshAnnulus( real_c( 0.35 ) * pi, pi, MeshInfo::CRISS, 8, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    AnnulusMap::setMap( setupStorage );
@@ -231,12 +231,12 @@ int main( int argc, char* argv[] )
    real_t tMax           = 1;
    uint_t maxLevel       = 4;
    uint_t timeIntegrator = 0;
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 3.0e-03 );
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-03 );
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 7.5e-04 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 3.0e-03 ) );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 1.5e-03 ) );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 7.5e-04 ) );
 
    timeIntegrator = 1;
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 5.0e-05 );
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-05 );
-   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 4.1e-06 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 5.0e-05 ) );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 1.5e-05 ) );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 4.1e-06 ) );
 }

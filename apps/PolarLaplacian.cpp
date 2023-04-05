@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
   real_t rmin = 1.0;
   real_t rmax = 2.0;
 
-  Point2D cornerLL( { rmin, 0.0 } );
-  Point2D cornerUR( { rmax, 2.0*pi } );
+  Point2D cornerLL(  rmin, 0.0  );
+  Point2D cornerUR(  rmax, 2.0*pi  );
 
   MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 1, 6 );
   WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );
@@ -292,27 +292,27 @@ void linear_solve( OperatorType lap, P1Function< real_t >& u, P1Function< real_t
   std::string tag;
   uint_t cycle = 0;
 
-  if( solver_t.compare( "MG" ) == 0 ) {
-
+  if( solver_t.compare( "MG" ) == 0 )
+  {
     tag = "MG";
     WALBERLA_LOG_INFO_ON_ROOT( " *** MG: initial residual = " << res0 );
 
     // Setup geometric MG as solver
-    auto smoother = std::make_shared< GaussSeidelSmoother< OperatorType >  >();
-    auto coarseGridSolver = std::make_shared< CGSolver< OperatorType > >( storage, minLevel, minLevel );
-    auto restrictionOperator = std::make_shared< P1toP1LinearRestriction>();
-    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
+    auto smoother             = std::make_shared< GaussSeidelSmoother< OperatorType > >();
+    auto coarseGridSolver     = std::make_shared< CGSolver< OperatorType > >( storage, minLevel, minLevel );
+    auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
+    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 
-    auto solver = GeometricMultigridSolver< OperatorType >( storage, smoother, coarseGridSolver,
-                                                            restrictionOperator, prolongationOperator,
-                                                            minLevel, maxLevel, 3, 3 );
+    auto solver = GeometricMultigridSolver< OperatorType >(
+        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
     // Run MG cycles
-    for( cycle = 1; cycle <= maxCycles; ++cycle ) {
-      solver.solve( lap, u, rhs, maxLevel );
-      lap.apply( u, res, maxLevel, Inner );
-      resCycle = std::sqrt( res.dotGlobal( res, maxLevel, Inner ) );
-      if( resCycle < mgTol ) {
+    for ( cycle = 1; cycle <= maxCycles; ++cycle )
+    {
+       solver.solve( lap, u, rhs, maxLevel );
+       lap.apply( u, res, maxLevel, Inner );
+       resCycle = std::sqrt( res.dotGlobal( res, maxLevel, Inner ) );
+       if( resCycle < mgTol ) {
         solverConverged = true;
         break;
       }

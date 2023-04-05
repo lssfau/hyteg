@@ -131,13 +131,13 @@ static void vertIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jvert, uint_t& is1
 void findVertexOnArc( real_t* vL, real_t* vR, real_t& xpos, real_t& ypos, real_t& zpos, uint_t nPoints, uint_t idx )
 {
    // angle between left and right vertex
-   real_t alpha = acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
+   real_t alpha = std::acos( vL[0] * vR[0] + vL[1] * vR[1] + vL[2] * vR[2] );
 
    // weights for spherical interpolation
    real_t gamma = real_c( idx ) * ( alpha / real_c( nPoints - 1 ) );
    real_t beta  = alpha - gamma;
-   real_t omg1  = sin( beta ) / sin( alpha );
-   real_t omg2  = sin( gamma ) / sin( alpha );
+   real_t omg1  = std::sin( beta ) / std::sin( alpha );
+   real_t omg2  = std::sin( gamma ) / std::sin( alpha );
 
    // compute vertex coordinates
    xpos = omg1 * vL[0] + omg2 * vR[0];
@@ -328,7 +328,7 @@ static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t            
       real_t x = nodeCoords[is1][is2][id][0] * layers[ir];
       real_t y = nodeCoords[is1][is2][id][1] * layers[ir];
       real_t z = nodeCoords[is1][is2][id][2] * layers[ir];
-      vertex   = Point3D( { x, y, z } );
+      vertex   = Point3D( x, y, z );
       break;
    }
 
@@ -514,7 +514,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1][i2 - l2][id][1] + nodeCoords[i1][i2 + l2][id][1];
                z = nodeCoords[i1][i2 - l2][id][2] + nodeCoords[i1][i2 + l2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
@@ -536,7 +536,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1 - l2][i2][id][1] + nodeCoords[i1 + l2][i2][id][1];
                z = nodeCoords[i1 - l2][i2][id][2] + nodeCoords[i1 + l2][i2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
@@ -558,7 +558,7 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
                y = nodeCoords[i1 - l2][i2 + l2][id][1] + nodeCoords[i1 + l2][i2 - l2][id][1];
                z = nodeCoords[i1 - l2][i2 + l2][id][2] + nodeCoords[i1 + l2][i2 - l2][id][2];
 
-               scl = sqrt( x * x + y * y + z * z );
+               scl = std::sqrt( x * x + y * y + z * z );
 
                nodeCoords[i1][i2][id][0] = x / scl;
                nodeCoords[i1][i2][id][1] = y / scl;
@@ -785,8 +785,8 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // -----------------------------------------
 
    // the pentagonal nodes on each "ring" are given in anti-clockwise ordering
-   real_t fifthpi = 0.4 * std::asin( 1.0 );
-   real_t w       = 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) );
+   real_t fifthpi = real_c( 0.4 * std::asin( 1.0 ) );
+   real_t w       = real_c( 2.0 * std::acos( 1.0 / ( 2.0 * std::sin( fifthpi ) ) ) );
    real_t cosw    = std::cos( w );
    real_t sinw    = std::sin( w );
    real_t phi     = 0.0;
@@ -804,7 +804,7 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // upper ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi         = 2.0 * ( real_c( k ) - 0.5 ) * fifthpi;
+      phi         = real_c( 2.0 ) * ( real_c( k ) - real_c( 0.5 ) ) * fifthpi;
       iNode[k][0] = sinw * std::cos( phi );
       iNode[k][1] = sinw * std::sin( phi );
       iNode[k][2] = cosw;
@@ -813,7 +813,7 @@ void MeshInfo::computeSphericalShellVertices( uint_t ntan, const std::vector< re
    // lower ring
    for ( uint_t k = 1; k <= 5; k++ )
    {
-      phi             = 2.0 * ( real_c( k ) - 1 ) * fifthpi;
+      phi             = real_c( 2.0 ) * ( real_c( k ) - 1 ) * fifthpi;
       iNode[k + 5][0] = sinw * std::cos( phi );
       iNode[k + 5][1] = sinw * std::sin( phi );
       iNode[k + 5][2] = -cosw;

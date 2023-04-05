@@ -324,12 +324,12 @@ namespace forms {
 
    void p1_div_k_grad_affine_q1::Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const
    {
-      *out_0 = callback2D( Point3D( {in_0, in_1, 0} ) );
+      *out_0 = callback2D( Point3D( in_0, in_1, 0 ) );
    }
 
    void p1_div_k_grad_affine_q1::Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const
    {
-      *out_0 = callback3D( Point3D( {in_0, in_1, in_2} ) );
+      *out_0 = callback3D( Point3D( in_0, in_1, in_2 ) );
    }
 
 } // namespace forms

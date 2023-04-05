@@ -12,6 +12,9 @@ def main():
     client = InfluxDBClient('i10grafana.informatik.uni-erlangen.de', 8086,
                             'terraneo', write_user_pw, 'terraneo')
 
+    commit = os.environ["CI_COMMIT_SHA"]
+    commit_short = os.environ["CI_COMMIT_SHORT_SHA"]
+    branch = os.environ["CI_COMMIT_REF_NAME"]
 
     with open("./BuildTiming.txt") as f:
         s = f.read()
@@ -25,8 +28,11 @@ def main():
         {
             'measurement': 'Build Timing',
             'tags': {
-                'host'     : os.uname()[1],
-                'project'  : 'terraneo',
+                'host': os.uname()[1],
+                'project': 'terraneo',
+                'commit': commit,
+                'commit_short': commit_short,
+                'branch': branch,
             },
             'time': int(time.time()),
             'fields': {'hyteg_buildtime': float(hyteg.group(1)),

@@ -113,7 +113,7 @@ class P2Function final : public Function< P2Function< ValueType > >
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = real_c(1e-05) ) const;
 
    inline void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 

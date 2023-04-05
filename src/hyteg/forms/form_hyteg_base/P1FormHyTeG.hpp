@@ -32,32 +32,7 @@ class P1FormHyTeG : public P1Form
    // implemented here to allow using the forms in form_hyteg_generated with the P1ElementwiseOperator
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
-      Point3D                  matrixRow;
-      std::array< Point3D, 3 > vertexCoords( coords );
-
-      // integrate first row
-      this->integrate( vertexCoords, matrixRow );
-      elMat( 0, 0 ) = matrixRow[0];
-      elMat( 0, 1 ) = matrixRow[1];
-      elMat( 0, 2 ) = matrixRow[2];
-
-      // integrate second row
-      vertexCoords[0] = coords[1];
-      vertexCoords[1] = coords[2];
-      vertexCoords[2] = coords[0];
-      this->integrate( vertexCoords, matrixRow );
-      elMat( 1, 0 ) = matrixRow[2];
-      elMat( 1, 1 ) = matrixRow[0];
-      elMat( 1, 2 ) = matrixRow[1];
-
-      // integrate third row
-      vertexCoords[0] = coords[2];
-      vertexCoords[1] = coords[0];
-      vertexCoords[2] = coords[1];
-      this->integrate( vertexCoords, matrixRow );
-      elMat( 2, 0 ) = matrixRow[1];
-      elMat( 2, 1 ) = matrixRow[2];
-      elMat( 2, 2 ) = matrixRow[0];
+      WALBERLA_ABORT( "integrateAll() for 2D not implemented by current HyTeG form." );
    }
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override

@@ -122,25 +122,26 @@ void runTest0( std::string tag ) {
   }
 
   // setup a map for that face
-  PrimitiveStorage::FaceMap fMap = storage->getFaces();
-  AnnulusMap myMap = AnnulusMap( *fMap[faceID] );
+  PrimitiveStorage::FaceMap fMap  = storage->getFaces();
+  AnnulusMap                myMap = AnnulusMap( *fMap[faceID] );
 
   // start testing
-  real_t rMin = 1.0;
-  real_t rMax = 2.0;
-  real_t phiLeft = 80.0/180.0 * pi;
-  real_t phiRght = 60.0/180.0 * pi;
-  real_t phi = 0.0;
+  real_t rMin    = 1.0;
+  real_t rMax    = 2.0;
+  real_t phiLeft = real_c( 80.0 / 180.0 ) * pi;
+  real_t phiRght = real_c( 60.0 / 180.0 ) * pi;
+  real_t phi     = 0.0;
 
-  const uint_t nSamples = 10;
-  std::array<Point3D, nSamples> sample;
-  std::array<Point3D, nSamples> mapped;
+  const uint_t                    nSamples = 10;
+  std::array< Point3D, nSamples > sample;
+  std::array< Point3D, nSamples > mapped;
 
   // check 1
   WALBERLA_LOG_INFO_ON_ROOT( " Checking no radial change on [rayVertex,refVertex]:" );
 
-  if( tag.compare( "Outward" ) == 0 ) {
-    phi = phiRght;
+  if ( tag.compare( "Outward" ) == 0 )
+  {
+     phi = phiRght;
   }
   else if( tag.compare( "Inward" ) == 0 ) {
     phi = phiLeft;
@@ -152,29 +153,29 @@ void runTest0( std::string tag ) {
   real_t deltaRad = (rMax - rMin)/real_c(nSamples-1);
   for( uint_t k = 0; k < nSamples; k++ ) {
     real_t rad = rMin + real_c(k)*deltaRad;
-    sample[k] = Point3D( { rad*std::cos(phi), rad*std::sin(phi), 0.0 } );
+    sample[k] = Point3D(  rad*std::cos(phi), rad*std::sin(phi), 0.0  );
     myMap.evalF( sample[k], mapped[k] );
     WALBERLA_LOG_INFO_ON_ROOT( " " << k << std::scientific
-                               << ": " << std::sqrt(sample[k].normSq())
-                               << " -> " << std::sqrt(mapped[k].normSq()) );
-    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(sample[k].normSq()), std::sqrt(mapped[k].normSq()) );
+                               << ": " << std::sqrt(sample[k].squaredNorm())
+                               << " -> " << std::sqrt(mapped[k].squaredNorm()) );
+    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(sample[k].squaredNorm()), std::sqrt(mapped[k].squaredNorm()) );
   }
 
   // check 2
   WALBERLA_LOG_INFO_ON_ROOT( " Checking radius on [rayVertex,thrVertex]:" );
   real_t rad = tag.compare( "Outward" ) == 0 ? rMin : rMax;
 
-  Point3D v1 = Point3D( {rad*std::cos(phiLeft), rad*std::sin(phiLeft), 0.0 } );
-  Point3D v2 = Point3D( {rad*std::cos(phiRght), rad*std::sin(phiRght), 0.0 } );
-  Point3D delta = 1.0 / real_c(nSamples-1) * (v1 - v2);
+  Point3D v1 = Point3D( rad*std::cos(phiLeft), rad*std::sin(phiLeft), 0.0  );
+  Point3D v2    = Point3D(  rad * std::cos( phiRght ), rad * std::sin( phiRght ), 0.0  );
+  Point3D delta = real_c( 1.0 ) / real_c( nSamples - 1 ) * ( v1 - v2 );
 
   for( uint_t k = 0; k < nSamples; k++ ) {
     sample[k] = v2 + real_c(k) * delta;
     myMap.evalF( sample[k], mapped[k] );
     WALBERLA_LOG_INFO_ON_ROOT( " " << k << std::scientific
-                               << ": " << std::sqrt(sample[k].normSq())
-                               << " -> " << std::sqrt(mapped[k].normSq()) );
-    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(mapped[k].normSq()), rad );
+                               << ": " << std::sqrt(sample[k].squaredNorm())
+                               << " -> " << std::sqrt(mapped[k].squaredNorm()) );
+    WALBERLA_ASSERT_FLOAT_EQUAL( std::sqrt(mapped[k].squaredNorm()), rad );
   }
 
 }

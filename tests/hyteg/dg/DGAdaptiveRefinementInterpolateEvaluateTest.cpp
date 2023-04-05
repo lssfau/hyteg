@@ -51,7 +51,7 @@ void test( uint_t                                    dim,
            uint_t                                    level,
            uint_t                                    coarseRefinements,
            uint_t                                    degree,
-           std::function< real_t( const Point3D& ) > f,
+           const std::function< real_t( const Point3D& ) >& f,
            real_t                                    maxPointwiseError )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running interpolate + evaluate test with AMR." );
@@ -123,10 +123,10 @@ void test( uint_t                                    dim,
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      Point3D coordinates;
-      coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+      Point3D coordinates(Point3D::Zero());
+      coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
       real_t     value;
       const bool success = u.evaluate( coordinates, level, value, 1e-14 );

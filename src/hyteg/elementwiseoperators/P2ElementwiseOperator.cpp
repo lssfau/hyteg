@@ -71,26 +71,26 @@ void localMatrixVectorMultiply3D( uint_t                 level,
 
    // assemble local element vector
    Point10D elVecOld, elVecNew;
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 4 )]];
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
+      dstEdgeData[edgeDoFIndices[uint_c( k - 4 )]] += elVecNew[k];
    }
 }
 
@@ -227,7 +227,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< real_t >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
@@ -344,26 +344,26 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( uint_t       
 
    // assemble local element vector
    Point6D elVecOld, elVecNew;
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 3; k < 6; ++k )
+   for ( int k = 3; k < 6; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 3]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 3 )]];
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
-   for ( uint_t k = 3; k < 6; ++k )
+   for ( int k = 3; k < 6; ++k )
    {
-      dstEdgeData[edgeDoFIndices[k - 3]] += elVecNew[k];
+      dstEdgeData[edgeDoFIndices[uint_c( k - 3 )]] += elVecNew[k];
    }
 }
 
@@ -444,7 +444,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
             idx_t                    xIdx, yIdx;
             Point3D                  v0, v1, v2;
             indexing::Index          nodeIdx;
-            indexing::IndexIncrement offset;
+            indexing::Index offset;
 
             // get hold of the actual numerical data in the two functions
             PrimitiveDataID< FunctionMemory< real_t >, Face > vertexDoFIdx =
@@ -524,7 +524,7 @@ void P2ElementwiseOperator< P2Form >::computeAndStoreLocalElementMatrices()
                for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
                {
                   Matrix10r& elMat = localElementMatrix3D( *cell, level, micro, cType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
                }
             }
@@ -551,7 +551,7 @@ void P2ElementwiseOperator< P2Form >::computeAndStoreLocalElementMatrices()
                for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
                {
                   Matrix6r& elMat = localElementMatrix2D( *face, level, micro, fType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix2D( *face, level, micro, fType, form_, elMat );
                }
             }
@@ -573,7 +573,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
 {
    Matrix6r                 elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2Form                   form( form_ );
@@ -714,7 +714,7 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
          idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
@@ -801,7 +801,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
 {
    Matrix6r                 elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2Form                   form( form_ );

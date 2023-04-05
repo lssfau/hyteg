@@ -29,7 +29,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void prolongate_2D_macroface_P2_push_from_vertexdofs_level_any(double * RESTRICT _data_edgeFineDst_X, double * RESTRICT _data_edgeFineDst_XY, double * RESTRICT _data_edgeFineDst_Y, double * RESTRICT _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+static void prolongate_2D_macroface_P2_push_from_vertexdofs_level_any(real_t  * RESTRICT _data_edgeFineDst_X, real_t  * RESTRICT _data_edgeFineDst_XY, real_t  * RESTRICT _data_edgeFineDst_Y, real_t  * RESTRICT _data_vertexCoarseSrc, real_t  * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
    const double xi_56 = 1 / (num_neighbor_faces_edge0);
    const double xi_57 = 1 / (num_neighbor_faces_edge1);
@@ -297,7 +297,7 @@ static void prolongate_2D_macroface_P2_push_from_vertexdofs_level_any(double * R
 }
 
 
-void prolongate_2D_macroface_P2_push_from_vertexdofs(double * RESTRICT _data_edgeFineDst_X, double * RESTRICT _data_edgeFineDst_XY, double * RESTRICT _data_edgeFineDst_Y, double * RESTRICT _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
+void prolongate_2D_macroface_P2_push_from_vertexdofs(real_t  * RESTRICT _data_edgeFineDst_X, real_t  * RESTRICT _data_edgeFineDst_XY, real_t  * RESTRICT _data_edgeFineDst_Y, real_t  * RESTRICT _data_vertexCoarseSrc, real_t  * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2)
 {
     switch( coarse_level )
     {

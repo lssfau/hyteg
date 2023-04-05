@@ -141,7 +141,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.x(), itIdx.y() )];
             }
             break;
          }
@@ -149,7 +149,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.x(), itIdx.y() )];
             }
             break;
          }
@@ -157,7 +157,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
-                                   ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() )];
+                                   ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.x(), itIdx.y() )];
             }
             break;
          }

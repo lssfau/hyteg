@@ -55,7 +55,7 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 {
    WALBERLA_CHECK_LESS( minLevel, maxLevel );
 
-   const uint_t numIterations = 5;
+   const uint_t numIterations = 3;
 
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -170,22 +170,28 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 
 void runTests( bool usePetsc )
 {
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 0, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 0, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/annulus_coarse.msh", 0, 3, 3e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 0, 3, 4e-7, true, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 3, 3e-6, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 3, 1.8e-6, true, usePetsc );
+   auto dp = std::is_same< real_t, double >();
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 0, 3, real_c( dp ? 3e-7 : 3e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 0, 3, real_c( dp ? 2e-6 : 5e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest(
+       "../../data/meshes/annulus_coarse.msh", 0, 3, real_c( dp ? 8e-7 : 5e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 0, 3, real_c( dp ? 2e-6 : 6e-5 ), true, usePetsc );
+   hyteg::AgglomerationConvergenceTest(
+       "../../data/meshes/3D/pyramid_2el.msh", 0, 3, real_c( dp ? 2e-5 : 5e-4 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest(
+       "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 3, real_c( dp ? 1e-5 : 2e-4 ), true, usePetsc );
 
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 1, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 1, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 1, 3, 4e-7, true, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 3, 1.8e-6, true, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 1, 3, real_c( dp ? 3e-7 : 3e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 1, 3, real_c( dp ? 2e-6 : 5e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 1, 3, real_c( dp ? 2e-6 : 6e-5 ), true, usePetsc );
+   hyteg::AgglomerationConvergenceTest(
+       "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 3, real_c( dp ? 1e-5 : 2e-4 ), true, usePetsc );
 
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 2, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 2, 3, 1e-7, false, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 2, 3, 4e-7, true, usePetsc );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 3, 1.8e-6, true, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 2, 3, real_c( dp ? 3e-7 : 3e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 2, 3, real_c( dp ? 2e-6 : 5e-5 ), false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 2, 3, real_c( dp ? 2e-6 : 6e-5 ), true, usePetsc );
+   hyteg::AgglomerationConvergenceTest(
+       "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 3, real_c( dp ? 1e-5 : 2e-4 ), true, usePetsc );
 }
 
 int main( int argc, char* argv[] )

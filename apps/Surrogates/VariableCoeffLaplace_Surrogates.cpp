@@ -92,7 +92,7 @@ struct OperatorHandler
   }
 
   template <class OP>
-  static real_t setup(std::shared_ptr<OP>, const uint_t) {return 0;}
+  static double setup(std::shared_ptr<OP>, const uint_t) {return 0;}
 };
 
 template<>
@@ -106,15 +106,15 @@ std::shared_ptr<OP> OperatorHandler<StencilType::LSQP>::make_shared(
   return std::make_shared<OP>(storage, minLevel, maxLevel, interpolationLevel);
 }
 
-template<>
-template <class OP>
-real_t OperatorHandler<StencilType::LSQP>::setup(std::shared_ptr<OP> op, const uint_t polyDegree)
+template <>
+template < class OP >
+double OperatorHandler< StencilType::LSQP >::setup( std::shared_ptr< OP > op, const uint_t polyDegree )
 {
   auto start = walberla::timing::getWcTime();
-  op->interpolateStencils(polyDegree);
+  op->interpolateStencils( polyDegree );
   auto end = walberla::timing::getWcTime();
-  op->useDegree(polyDegree);
-  return (end - start);
+  op->useDegree( polyDegree );
+  return ( end - start );
 }
 
 template <ElementType P, StencilType T>
@@ -247,9 +247,9 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
 
     // solve iteratively
     uint_t iter = 0;
-    real_t res = 0, res_old, discr_l2_err;
-    real_t vCycleTime = 0, solveTime = 0;
-    real_t averageConvergenceRate = 0;
+    real_t       res        = 0, res_old, discr_l2_err;
+    double       vCycleTime = 0, solveTime = 0;
+    real_t       averageConvergenceRate = 0;
     const uint_t convergenceStartIter = 3;
 
     WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
@@ -369,7 +369,7 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
 
   P2Function<real_t> stencil("stencil", storage, level, level);
 
-  stencil.add(nan(""), level, All);
+  stencil.add( real_c( nan( "" ) ), level, All );
 
   auto vtxID  = stencil.getVertexDoFFunction().getFaceDataID();
   auto edgeID = stencil.getEdgeDoFFunction().getFaceDataID();
@@ -384,8 +384,8 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
     P2Form_divKgrad form;
     form.setGeometryMap(face.getGeometryMap());
 
-    Point3D x0(face.getCoordinates()[0]), x;
-    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+    Point3D x0( face.getCoordinates()[0] ), x;
+    real_t  h = real_c( 1.0 ) / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
 
     Point3D d0 = h * (face.getCoordinates()[1] - face.getCoordinates()[0]);
     Point3D d2 = h * (face.getCoordinates()[2] - face.getCoordinates()[0]);
@@ -408,12 +408,12 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
     // loop over all DOFs
     for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
     {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       P2::variablestencil::macroface::assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                                                       VtVStencil, EtVStencil, VtEStencil, EtEStencil);
-      idx_t i = it.col();
-      idx_t j = it.row();
+      idx_t i = it.x();
+      idx_t j = it.y();
 
       // VERTEX DoF
       if (!vertexdof::macroface::isVertexOnBoundary(level, it))
@@ -511,10 +511,10 @@ int main(int argc, char* argv[])
   c_function boundary = exact;
   c_function k = [alpha](const hyteg::Point3D& x) { return tanh(alpha*(x[0] - 0.5)) + 2; };
   c_function rhs = [phi,alpha](const hyteg::Point3D& x) {
-    real_t t0 = tanh(alpha*(x[0] - 0.5));
-    real_t t1 = phi*alpha * (t0*t0 - 1) * cos(phi*PI*x[0]);
-    real_t t2 = (phi*phi - 1) * PI * (t0 + 2) * sin(phi*PI*x[0]);
-    return PI * (t1 + t2) * sinh(PI*x[1]);
+     real_t t0 = tanh( alpha * ( x[0] - real_c( 0.5 ) ) );
+     real_t t1 = phi * alpha * ( t0 * t0 - real_c( 1 ) ) * cos( phi * PI * x[0] );
+     real_t t2 = ( phi * phi - real_c( 1 ) ) * PI * ( t0 + real_c( 2 ) ) * sin( phi * PI * x[0] );
+     return PI * ( t1 + t2 ) * sinh( PI * x[1] );
   };
 
   std::string msh = "../../data/meshes/tri_" + std::to_string(n_el) + "el.msh";

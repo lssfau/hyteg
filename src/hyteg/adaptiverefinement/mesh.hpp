@@ -41,8 +41,10 @@ struct RefinedElements
 
 enum Loadbalancing
 {
-   ROUND_ROBIN, // cheap loadbalancer
-   CLUSTERING   // assign clusters of primitives to each process
+   ROUND_ROBIN,  // cheap loadbalancer
+   GREEDY,       // assign elements to processes using greedy algorithm
+   SFC,          // use space filling curve for loadbalancing (NOT IMPLEMENTED YET)
+   SFC_VISUALIZE // use space filling curve for loadbalancing. Also export the sfc to vtk (NOT IMPLEMENTED YET)
 };
 
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
@@ -110,9 +112,14 @@ class K_Mesh
    std::pair< real_t, real_t > min_max_volume() const;
 
    /* construct PrimitiveStorage corresponding to current refinement
-      @param loadbalancing scheme used for load balancing
    */
-   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = ROUND_ROBIN );
+   std::shared_ptr< PrimitiveStorage > make_storage();
+
+   /* apply loadbalancing scheme to current refinement
+      @param lbScheme scheme used for load balancing
+      @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
+   */
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -121,8 +128,18 @@ class K_Mesh
    const std::set< std::shared_ptr< K_Simplex > >& get_elements() const { return _T; }
    // reference to list of vertex coordinates corresponding to current refinement
    const std::vector< Point3D >& get_vertices() const { return _vertices; }
+   // export mesh to gmsh file
+   void exportMesh( const std::string& filename ) const;
 
  private:
+   /* apply round robin loadbalancing to volume elements
+   */
+   void loadbalancing_roundRobin();
+
+   /* apply greedy loadbalancing to volume elements
+   */
+   void loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood );
+
    /* remove green edges from _T and replace them with their parents
    */
    void remove_green_edges();
@@ -163,26 +180,31 @@ class K_Mesh
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::vector< VertexData >&   vtxData,
-                      std::vector< EdgeData >&     edgeData,
-                      std::vector< FaceData >&     faceData,
-                      std::vector< CellData >&     cellData,
-                      std::vector< Neighborhood >& nbrHood ) const;
+   void extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
+                      std::map< PrimitiveID, EdgeData >&     edgeData,
+                      std::map< PrimitiveID, FaceData >&     faceData,
+                      std::map< PrimitiveID, CellData >&     cellData,
+                      std::map< PrimitiveID, Neighborhood >& nbrHood ) const;
+
+   /* update target rank for all primitives */
+   void update_targetRank( const std::map< PrimitiveID, VertexData >& vtxData,
+                           const std::map< PrimitiveID, EdgeData >&   edgeData,
+                           const std::map< PrimitiveID, FaceData >&   faceData,
+                           const std::map< PrimitiveID, CellData >&   cellData );
 
    /* create PrimitiveStorage from SimplexData */
-   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::vector< VertexData >& vtxs,
-                                                             std::vector< EdgeData >&   edges,
-                                                             std::vector< FaceData >&   faces,
-                                                             std::vector< CellData >&   cells );
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
+                                                             std::map< PrimitiveID, EdgeData >&   edges,
+                                                             std::map< PrimitiveID, FaceData >&   faces,
+                                                             std::map< PrimitiveID, CellData >&   cells );
 
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
-   uint_t                                                  _n_processes;        // number of processes
-   std::vector< Point3D >                                  _vertices;           // vertex coordinates
-   std::vector< PrimitiveID >                              _vertexGeometryMap;  // geometrymap for vertices
-   std::vector< uint_t >                                   _vertexBoundaryFlag; // boundaryFlag for vertices
-   std::set< std::shared_ptr< K_Simplex > >                _T;                  // set of elements of current refinement level
-   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap;        // geometrymaps of original mesh
+   uint_t                                                  _n_processes; // number of processes
+   std::vector< Point3D >                                  _vertices;    // vertex coordinates
+   std::vector< VertexData >                               _V;           // set of vertices of current refinement
+   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
+   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometrymaps of original mesh
 
    PrimitiveID _invalidID;
 };
@@ -334,19 +356,34 @@ class Mesh
    }
 
    /* construct PrimitiveStorage corresponding to current refinement
-      @param loadbalancing scheme used for load balancing
    */
-   std::shared_ptr< PrimitiveStorage > make_storage( const Loadbalancing& loadbalancing = ROUND_ROBIN )
+   std::shared_ptr< PrimitiveStorage > make_storage()
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->make_storage( loadbalancing );
+         return _mesh3D->make_storage();
       }
       else
       {
-         return _mesh2D->make_storage( loadbalancing );
+         return _mesh2D->make_storage();
       }
    };
+
+   /* apply loadbalancing scheme to current refinement
+      @param lbScheme scheme used for load balancing
+      @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
+   */
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->loadbalancing( lbScheme );
+      }
+      else
+      {
+         return _mesh2D->loadbalancing( lbScheme );
+      }
+   }
 
    // get number of elements in current refinement
    inline uint_t n_elements() const
@@ -375,6 +412,19 @@ class Mesh
    }
 
    inline uint_t dim() const { return _DIM; }
+
+   // export mesh to gmsh file
+   void exportMesh( const std::string& filename ) const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->exportMesh( filename );
+      }
+      else
+      {
+         return _mesh2D->exportMesh( filename );
+      }
+   }
 
  private:
    uint_t                    _DIM;    // spacial dimension

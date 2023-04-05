@@ -77,7 +77,7 @@ int main( int argc, char* argv[] )
 
   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
-    return walberla::math::realRandom( 0.0, 1.0 );
+    return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
   };
 
   hyteg::P1Function< real_t > res( "r", storage, lowerLevel, higherLevel );
@@ -141,10 +141,11 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
   WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );
 
+  auto dp = std::is_same< real_t, double >();
   if ( enableChecks )
   {
-    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 6.9e-17 );
-    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.88e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, dp ? 6.9e-17 : 5e-8 );
+    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, dp ? 3.88e-17 : 3e-8 );
 
     // L2 err higher level ~ 0.25 * L2 err lower level
     WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.4e-04 );

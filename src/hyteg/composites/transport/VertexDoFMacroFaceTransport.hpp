@@ -94,7 +94,7 @@ inline void apply( const uint_t&                                                
          {
             auto direction = stencilIt.first;
 
-            if ( direction == indexing::IndexIncrement( {0, 0, 0} ) )
+            if ( direction == indexing::Index( {0, 0, 0} ) )
                continue;
 
             auto weightX = xOperatorData[neighborCellIdx][direction];

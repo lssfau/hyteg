@@ -44,7 +44,7 @@ static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > >
 
   for ( const auto & it : indexing::FaceBoundaryIterator( width, faceBorderDirection, offsetToCenter, offsetFromVertices ) )
   {
-    iteratorResult.push_back( {{ it.col(), it.row() }} );
+    iteratorResult.push_back( {{ it.x(), it.y() }} );
   }
 
   WALBERLA_CHECK_EQUAL( iteratorResult.size(), expectedValues.size() );
@@ -62,7 +62,7 @@ static void testCellIterator( const std::vector< std::array< uint_t, 3 > > & exp
 
   for ( const auto & it : indexing::CellIterator( width, offsetToCenter ) )
   {
-    iteratorResult.push_back( {{ it.col(), it.row(), it.dep() }} );
+    iteratorResult.push_back( {{ it.x(), it.y(), it.z() }} );
   }
 
   WALBERLA_CHECK_EQUAL( iteratorResult.size(), expectedValues.size() );
@@ -82,7 +82,7 @@ static void testCellBorderIterator( const std::vector< std::array< uint_t, 3 > >
 
   for ( const auto & it : indexing::CellBoundaryIterator( width, vertices, offsetToCenter ) )
   {
-    iteratorResult.push_back( {{ it.col(), it.row(), it.dep() }} );
+    iteratorResult.push_back( {{ it.x(), it.y(), it.z() }} );
   }
 
   WALBERLA_CHECK_EQUAL( iteratorResult.size(), expectedValues.size() );
@@ -105,16 +105,16 @@ static void testCommonIndexing()
 
   for ( const auto & it : indexing::EdgeIterator( 8, 0 ) )
   {
-    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
-    WALBERLA_CHECK_EQUAL( 0,         it.row() );
+    WALBERLA_CHECK_EQUAL( testCol++, it.x() );
+    WALBERLA_CHECK_EQUAL( 0,         it.y() );
   }
   WALBERLA_CHECK_EQUAL( testCol, 8 );
 
   testCol = 1;
   for ( const auto & it : indexing::EdgeIterator( 8, 1 ) )
   {
-    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
-    WALBERLA_CHECK_EQUAL( 0,         it.row() );
+    WALBERLA_CHECK_EQUAL( testCol++, it.x() );
+    WALBERLA_CHECK_EQUAL( 0,         it.y() );
   }
   WALBERLA_CHECK_EQUAL( testCol, 7 );
 
@@ -124,8 +124,8 @@ static void testCommonIndexing()
   testRow = 0;
   for ( const auto & it : indexing::FaceIterator( 4, 0 ) )
   {
-    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
-    WALBERLA_CHECK_EQUAL( testRow  , it.row() );
+    WALBERLA_CHECK_EQUAL( testCol++, it.x() );
+    WALBERLA_CHECK_EQUAL( testRow  , it.y() );
 
     if ( testCol + testRow == 4 )
     {
@@ -142,8 +142,8 @@ static void testCommonIndexing()
   {
     testCol++;
     testRow++;
-    WALBERLA_CHECK_EQUAL( it.col(), 1 );
-    WALBERLA_CHECK_EQUAL( it.row(), 1 );
+    WALBERLA_CHECK_EQUAL( it.x(), 1 );
+    WALBERLA_CHECK_EQUAL( it.y(), 1 );
   }
   WALBERLA_CHECK_EQUAL( testRow, 2 );
   WALBERLA_CHECK_EQUAL( testCol, 2 );

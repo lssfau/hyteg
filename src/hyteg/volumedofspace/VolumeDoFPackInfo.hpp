@@ -124,6 +124,22 @@ class VolumeDoFPackInfo : public communication::PackInfo
    ///@}
 
  private:
+   /// This helper function does the busy work of preparing two iterators that can later be either used for direct
+   /// communication, packing, or unpacking in the respective functions.
+   void prepareFaceToFaceIterators( communication::PackType                                   packType,
+                                    PrimitiveID                                               senderFaceID,
+                                    PrimitiveID                                               receiverFaceID,
+                                    std::shared_ptr< hyteg::indexing::FaceBoundaryIterator >& faceIteratorSenderPtr,
+                                    std::shared_ptr< hyteg::indexing::FaceBoundaryIterator >& faceIteratorReceiverPtr,
+                                    hyteg::indexing::Index&                                   startSend,
+                                    hyteg::indexing::Index&                                   incrmSend,
+                                    hyteg::indexing::Index&                                   startRecv,
+                                    hyteg::indexing::Index&                                   incrmRecv,
+                                    uint_t&                                                   levelGl,
+                                    uint_t&                                                   receiverLocalEdgeID,
+                                    ValueType*&                                               glData,
+                                    uint_t&                                                   glDataSize ) const;
+
    std::shared_ptr< PrimitiveStorage > storage_;
    uint_t                              level_;
    std::map< PrimitiveID, uint_t >     numScalarsPerPrimitive_;
@@ -141,21 +157,6 @@ class VolumeDoFPackInfo : public communication::PackInfo
 
 /// @name Face to Face
 ///@{
-template < typename ValueType >
-void VolumeDoFPackInfo< ValueType >::packFaceForFace( const Face*                sender,
-                                                      const PrimitiveID&         receiver,
-                                                      walberla::mpi::SendBuffer& buffer ) const
-{
-   WALBERLA_ABORT( "Macro-face to macro-face packing not implemented!" );
-}
-
-template < typename ValueType >
-void VolumeDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                      receiver,
-                                                         const PrimitiveID&         sender,
-                                                         walberla::mpi::RecvBuffer& buffer ) const
-{
-   WALBERLA_ABORT( "Macro-face to macro-face packing not implemented!" );
-}
 
 static void
     startAndIncrm2D( uint_t idx0, uint_t idx1, uint_t width, hyteg::indexing::Index& start, hyteg::indexing::Index& incrX )
@@ -258,7 +259,20 @@ static void
 }
 
 template < typename ValueType >
-void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sender, Face* receiver ) const
+void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
+    communication::PackType                                   packType,
+    PrimitiveID                                               senderFaceID,
+    PrimitiveID                                               receiverFaceID,
+    std::shared_ptr< hyteg::indexing::FaceBoundaryIterator >& faceIteratorSenderPtr,
+    std::shared_ptr< hyteg::indexing::FaceBoundaryIterator >& faceIteratorReceiverPtr,
+    hyteg::indexing::Index&                                   startSend,
+    hyteg::indexing::Index&                                   incrmSend,
+    hyteg::indexing::Index&                                   startRecv,
+    hyteg::indexing::Index&                                   incrmRecv,
+    uint_t&                                                   levelGl,
+    uint_t&                                                   receiverLocalEdgeID,
+    ValueType*&                                               glData,
+    uint_t&                                                   glDataSize ) const
 {
    /// The idea is to first prepare two face boundary iterators: one that iterates on the sender side and one on the receiver
    /// side. These iterators are prepared for all three cases of refinement. A helper function yields the starting (micro-face)
@@ -268,15 +282,22 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
    using hyteg::indexing::Index;
    using hyteg::indexing::tup4;
 
-   this->storage_->getTimingTree()->start( "DG - Face to Face" );
+   WALBERLA_CHECK( this->storage_->faceExistsLocally( senderFaceID ) || this->storage_->faceExistsInNeighborhood( senderFaceID ),
+                   "Sender face could not be retrieved!" );
+
+   WALBERLA_CHECK( this->storage_->faceExistsLocally( receiverFaceID ) ||
+                       this->storage_->faceExistsInNeighborhood( receiverFaceID ),
+                   "Receiver face could not be retrieved!" );
+
+   Face* sender   = this->storage_->getFace( senderFaceID );
+   Face* receiver = this->storage_->getFace( receiverFaceID );
 
    WALBERLA_CHECK_GREATER(
        numScalarsPerPrimitive_.count( sender->getID() ), 0, "Don't know how many scalars there are to send per volume." );
 
    // Which local edges do we iterate on?
 
-   uint_t senderLocalEdgeID   = std::numeric_limits< uint_t >::max();
-   uint_t receiverLocalEdgeID = std::numeric_limits< uint_t >::max();
+   uint_t senderLocalEdgeID = std::numeric_limits< uint_t >::max();
 
    bool foundSender = false;
    for ( const auto& [edgeID, neighborFaces] : sender->getIndirectTopLevelNeighborFaceIDsOverEdges() )
@@ -321,11 +342,16 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
    WALBERLA_ASSERT_LESS_EQUAL( receiverLocalEdgeID, 2, "Couldn't find sender face in neighborhood." );
 
    const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
-   uint_t     width, widthGl, levelGl, levelIdxRecv;
+   uint_t     width, widthGl, levelIdxRecv;
 
-   const ValueType* faceData = sender->getData( faceInnerDataID_ )->getPointer( level_ );
-   uint_t           glDataSize;
-   ValueType*       glData;
+   ValueType* faceData = nullptr;
+   if ( packType == communication::PackType::PACK || packType == communication::PackType::DIRECT )
+   {
+      faceData = sender->getData( faceInnerDataID_ )->getPointer( level_ );
+   }
+
+   glDataSize = 0;
+   glData     = nullptr;
 
    // We now collect the PrimitiveIDs of the vertices that span the interface on the sender side.
    auto                  senderLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( senderLocalEdgeID );
@@ -339,10 +365,6 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
 
    // About to prepare the correct iterators depending on the neighboring primitive refinement level.
    // Sending only data that is required btw.
-   Index                                                    startSend, incrmSend;
-   Index                                                    startRecv, incrmRecv;
-   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorSenderPtr;
-   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorReceiverPtr;
 
    if ( storage_->getRefinementLevel( sender->getID() ) == storage_->getRefinementLevel( receiver->getID() ) )
    {
@@ -356,8 +378,11 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
       // which we can achieve via extended access by setting one of the logical cell indices to -1.
       // That index depends on the local face ID on the receiver side.
 
-      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ );
-      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ );
+      if ( packType == communication::PackType::UNPACK || packType == communication::PackType::DIRECT )
+      {
+         glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ );
+         glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ );
+      }
 
       levelGl      = level_;
       width        = levelinfo::num_microedges_per_edge( level_ );
@@ -370,7 +395,7 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
             WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
          }
       }
-      
+
       startAndIncrm2D( senderLocalVertexIDs[0], senderLocalVertexIDs[1], width, startSend, incrmSend );
 
       faceIteratorSenderPtr = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
@@ -397,8 +422,11 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
       // [localVertex0 = 0, localVertex1 = 1, localVertex2 = 2, localVertex3 = 3,  localEdge0 = 4, localEdge1 = 5,
       //  localEdge2 = 6, ..., localEdge5 = 9]
 
-      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ + 1 );
-      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ + 1 );
+      if ( packType == communication::PackType::UNPACK || packType == communication::PackType::DIRECT )
+      {
+         glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ + 1 );
+         glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ + 1 );
+      }
 
       std::vector< uint_t > receiverLocalPseudoVertexIDs;
       for ( auto vpid : vertexPIDs )
@@ -448,8 +476,11 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
       // Okay for this one we flip the calculation of the local pseudo vertex IDs. We fix the receiver side first, and _then_
       // permute the sender side pseudo vertices accordingly. That means that we already flip the DoFs around on the sender side.
 
-      glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ - 1 );
-      glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ - 1 );
+      if ( packType == communication::PackType::UNPACK || packType == communication::PackType::DIRECT )
+      {
+         glDataSize = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getSize( level_ - 1 );
+         glData     = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ - 1 );
+      }
 
       // We collect the PrimitiveIDs of the vertices that span the interface on the receiver side.
       auto receiverLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( receiverLocalEdgeID );
@@ -502,6 +533,179 @@ void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sen
    {
       WALBERLA_ABORT( "Seems like the 2:1 balance is not fulfilled ..." );
    }
+}
+
+template < typename ValueType >
+void VolumeDoFPackInfo< ValueType >::packFaceForFace( const Face*                sender,
+                                                      const PrimitiveID&         receiver,
+                                                      walberla::mpi::SendBuffer& buffer ) const
+{
+   using hyteg::indexing::Index;
+   using hyteg::indexing::tup4;
+
+   this->storage_->getTimingTree()->start( "DG - Face to Face" );
+
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorSenderPtr;
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorReceiverPtr;
+
+   Index startSend, incrmSend;
+   Index startRecv, incrmRecv;
+
+   uint_t levelGl, receiverLocalEdgeID;
+
+   const ValueType* faceData = sender->getData( faceInnerDataID_ )->getPointer( level_ );
+   ValueType*       glData;
+   uint_t           glDataSize;
+
+   prepareFaceToFaceIterators( communication::PackType::PACK,
+                               sender->getID(),
+                               receiver,
+                               faceIteratorSenderPtr,
+                               faceIteratorReceiverPtr,
+                               startSend,
+                               incrmSend,
+                               startRecv,
+                               incrmRecv,
+                               levelGl,
+                               receiverLocalEdgeID,
+                               glData,
+                               glDataSize );
+
+   const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
+
+   // Actual copy loop.
+
+   auto faceIteratorSender   = *faceIteratorSenderPtr;
+   auto faceIteratorReceiver = *faceIteratorReceiverPtr;
+
+   while ( faceIteratorSender != faceIteratorSender.end() )
+   {
+      const auto senderIdx   = startSend + faceIteratorSender->x() * incrmSend;
+      const auto receiverIdx = startRecv + faceIteratorReceiver->x() * incrmRecv;
+
+      for ( uint_t dof = 0; dof < ndofs; dof++ )
+      {
+         const auto senderArrayIdx = volumedofspace::indexing::index(
+             senderIdx.x(), senderIdx.y(), facedof::FaceType::GRAY, dof, ndofs, level_, memoryLayout_ );
+
+         const auto senderVal = faceData[senderArrayIdx];
+
+         buffer << senderVal;
+      }
+
+      faceIteratorSender++;
+      faceIteratorReceiver++;
+   }
+
+   this->storage_->getTimingTree()->stop( "DG - Face to Face" );
+}
+
+template < typename ValueType >
+void VolumeDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                      receiver,
+                                                         const PrimitiveID&         sender,
+                                                         walberla::mpi::RecvBuffer& buffer ) const
+{
+   using hyteg::indexing::Index;
+   using hyteg::indexing::tup4;
+
+   this->storage_->getTimingTree()->start( "DG - Face to Face" );
+
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorSenderPtr;
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorReceiverPtr;
+
+   Index startSend, incrmSend;
+   Index startRecv, incrmRecv;
+
+   uint_t levelGl, receiverLocalEdgeID;
+
+   ValueType* glData;
+   uint_t     glDataSize;
+
+   prepareFaceToFaceIterators( communication::PackType::UNPACK,
+                               sender,
+                               receiver->getID(),
+                               faceIteratorSenderPtr,
+                               faceIteratorReceiverPtr,
+                               startSend,
+                               incrmSend,
+                               startRecv,
+                               incrmRecv,
+                               levelGl,
+                               receiverLocalEdgeID,
+                               glData,
+                               glDataSize );
+
+   const auto ndofs = numScalarsPerPrimitive_.at( sender );
+
+   // Actual copy loop.
+
+   auto faceIteratorSender   = *faceIteratorSenderPtr;
+   auto faceIteratorReceiver = *faceIteratorReceiverPtr;
+
+   while ( faceIteratorSender != faceIteratorSender.end() )
+   {
+      const auto senderIdx   = startSend + faceIteratorSender->x() * incrmSend;
+      const auto receiverIdx = startRecv + faceIteratorReceiver->x() * incrmRecv;
+
+      for ( uint_t dof = 0; dof < ndofs; dof++ )
+      {
+         ValueType senderVal;
+
+         const auto receiverArrayIdx = indexing::indexNeighborInGhostLayer(
+             receiverLocalEdgeID, receiverIdx.x(), receiverIdx.y(), facedof::FaceType::GRAY, dof, ndofs, levelGl, memoryLayout_ );
+
+         WALBERLA_ASSERT_LESS( receiverArrayIdx,
+                               glDataSize,
+                               "Writing beyond allocated vector!\n"
+                                   << " levelGl:  " << levelGl << "\n"
+                                   << " log. idx: " << receiverIdx << "\n" );
+
+         buffer >> senderVal;
+         glData[receiverArrayIdx] = senderVal;
+      }
+
+      faceIteratorSender++;
+      faceIteratorReceiver++;
+   }
+
+   this->storage_->getTimingTree()->stop( "DG - Face to Face" );
+}
+
+template < typename ValueType >
+void VolumeDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sender, Face* receiver ) const
+{
+   using hyteg::indexing::Index;
+   using hyteg::indexing::tup4;
+
+   this->storage_->getTimingTree()->start( "DG - Face to Face" );
+
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorSenderPtr;
+   std::shared_ptr< hyteg::indexing::FaceBoundaryIterator > faceIteratorReceiverPtr;
+
+   Index startSend, incrmSend;
+   Index startRecv, incrmRecv;
+
+   uint_t levelGl, receiverLocalEdgeID;
+
+   const ValueType* faceData = sender->getData( faceInnerDataID_ )->getPointer( level_ );
+   ValueType*       glData;
+   uint_t           glDataSize;
+
+   prepareFaceToFaceIterators( communication::PackType::DIRECT,
+                               sender->getID(),
+                               receiver->getID(),
+                               faceIteratorSenderPtr,
+                               faceIteratorReceiverPtr,
+                               startSend,
+                               incrmSend,
+                               startRecv,
+                               incrmRecv,
+                               levelGl,
+                               receiverLocalEdgeID,
+                               glData,
+                               glDataSize );
+
+   const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
 
    // Actual copy loop.
 

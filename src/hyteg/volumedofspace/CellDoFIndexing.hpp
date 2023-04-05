@@ -207,7 +207,7 @@ inline std::pair< Index, CellType > getMicroCellFromMicroVertices( const std::ar
    auto v = vertices;
    std::sort( v.begin(), v.end() );
 
-   auto v0 = v[0];
+   Index v0( v[0] );
    for ( uint_t i = 0; i < 4; i++ )
    {
       v[i] -= v0;

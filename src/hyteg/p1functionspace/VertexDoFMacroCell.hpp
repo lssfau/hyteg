@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,6 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
@@ -39,6 +38,7 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg::vertexdof::macrocell {
 
@@ -67,7 +67,7 @@ inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index&  v
 
 inline Point3D coordinateFromIndex( const uint_t& level, const Cell& cell, const Index& index )
 {
-   const real_t  stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const real_t  stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
    const Point3D xStep         = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D zStep         = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
@@ -78,11 +78,12 @@ template < typename ValueType >
 inline void interpolate( const uint_t&                                               level,
                          const Cell&                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
-                         const ValueType&                                            scalar )
+                         const ValueType&                                            scalar,
+                         const uint_t&                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
       cellData[idx]    = scalar;
@@ -94,7 +95,8 @@ inline void interpolate( const uint_t&                                          
                          const Cell&                                                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                                 cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&                  srcIds,
-                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr,
+                         const uint_t&                                                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
@@ -108,7 +110,7 @@ inline void interpolate( const uint_t&                                          
 
    Point3D xBlend;
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const Point3D coordinate = coordinateFromIndex( level, cell, it );
       const uint_t  idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
@@ -177,7 +179,7 @@ inline Point3D transformToLocalTet( const Point3D& tet0,
    walberla::Vector3< real_t > x( globalPoint[0] - tet0[0], globalPoint[1] - tet0[1], globalPoint[2] - tet0[2] );
 
    auto result = A * x;
-   return Point3D( { result[0], result[1], result[2] } );
+   return Point3D( result[0], result[1], result[2] );
 }
 
 inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cell& cell, const Point3D& coordinates )
@@ -193,7 +195,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
    // 2. Find micro-cube in macro-cell. Each micro-cube is composed of 6 cells of all 6 cell-types.
 
    const int    numMicroEdges = (int) levelinfo::num_microedges_per_edge( level );
-   const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
+   const real_t microEdgeSize = real_c( 1.0 ) / real_c( numMicroEdges );
 
    int planeX = (int) ( xRelMacro[0] / microEdgeSize );
    int planeY = (int) ( xRelMacro[1] / microEdgeSize );
@@ -252,7 +254,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
          auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
          auto s  = xl[0] + xl[1] + xl[2];
 
-         Point4D rel( { xl[0], xl[1], xl[2], s } );
+         Point4D rel( xl[0], xl[1], xl[2], s );
 
          real_t distSum  = 0;
          bool   contains = true;
@@ -363,8 +365,8 @@ inline real_t evaluate( const uint_t&                                           
 
    auto xLocal = detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
-   auto value = valueTet0 * ( 1.0 - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1] +
-                valueTet3 * xLocal[2];
+   auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
+                valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
    return value;
 }

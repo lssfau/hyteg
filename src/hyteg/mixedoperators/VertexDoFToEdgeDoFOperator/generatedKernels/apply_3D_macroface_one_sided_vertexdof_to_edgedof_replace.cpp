@@ -28,7 +28,7 @@ namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    if (((0) == (neighbor_cell_local_vertex_id_0)) && ((1) == (neighbor_cell_local_vertex_id_1)) && ((2) == (neighbor_cell_local_vertex_id_2)))
    {
@@ -200,7 +200,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(double * RESTRICT
    } 
 }
 
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
@@ -341,7 +341,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -352,7 +352,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_012(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
@@ -493,7 +493,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -504,7 +504,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_013(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
@@ -645,7 +645,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -656,7 +656,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_021(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 1 }];
@@ -797,7 +797,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -808,7 +808,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_023(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
@@ -949,7 +949,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -960,7 +960,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_031(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 1 }];
@@ -1101,7 +1101,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1112,7 +1112,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_032(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 1, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
@@ -1253,7 +1253,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1264,7 +1264,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_102(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 1 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, 0 }];
@@ -1405,7 +1405,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1416,7 +1416,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_103(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 1, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
@@ -1557,7 +1557,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1568,7 +1568,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_120(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 1 }];
@@ -1709,7 +1709,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1720,7 +1720,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_123(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 1 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, 0 }];
@@ -1861,7 +1861,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -1872,7 +1872,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_130(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 1 }];
@@ -2013,7 +2013,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2024,7 +2024,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_132(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
@@ -2165,7 +2165,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2176,7 +2176,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_201(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 1 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
@@ -2317,7 +2317,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2328,7 +2328,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_203(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
@@ -2469,7 +2469,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2480,7 +2480,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_210(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
@@ -2621,7 +2621,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2632,7 +2632,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_213(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 1 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
@@ -2773,7 +2773,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2784,7 +2784,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_230(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
@@ -2925,7 +2925,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -2936,7 +2936,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_231(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
@@ -3077,7 +3077,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -3088,7 +3088,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_301(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 1 }];
@@ -3229,7 +3229,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -3240,7 +3240,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_302(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
@@ -3381,7 +3381,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -3392,7 +3392,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_310(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
@@ -3533,7 +3533,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -3544,7 +3544,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_312(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 1 }];
@@ -3685,7 +3685,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {
@@ -3696,7 +3696,7 @@ void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_320(double * REST
     }
 }
     
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_321_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_321_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
    const double xi_39 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
    const double xi_40 = v2e_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
@@ -3837,7 +3837,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_321_level_
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_321(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace_321(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > v2e_cell_stencil)
 {
     switch( level )
     {

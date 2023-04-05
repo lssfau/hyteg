@@ -50,8 +50,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
 {
-   Point2D left( { -channelLength / 2, 0 } );
-   Point2D right( { channelLength / 2, channelHeight } );
+   Point2D left(  real_c( -channelLength / 2 ), 0  );
+   Point2D right(  real_c( channelLength / 2 ), real_c( channelHeight )  );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -114,7 +114,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( 0, -1, 0 ); };
 
    auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
 
@@ -131,7 +131,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    }
    else
    {
-      solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >( storage, maxLevel, 1e-15, 2000 );
+      solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >( storage, maxLevel, real_c( 1e-15 ), 2000 );
    }
 
    solver->solve( L, u, f, maxLevel );
@@ -167,13 +167,13 @@ int main( int argc, char* argv[] )
    run< P1StokesFunction< real_t >, // function type
         P1BlendingStokesOperator,   // operator
         P1ProjectNormalOperator     // projection
-        >( 1e-1, false );
+        >( real_c( 1e-1 ), false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "free-slip P2-P1-TH test" );
    run< P2P1TaylorHoodFunction< real_t >, // function type
         P2P1TaylorHoodStokesOperator,     // operator
         P2ProjectNormalOperator           // projection
-        >( 1e-13, false );
+        >( real_c( std::is_same< real_t, double >() ? 1e-13 : 9e-7 ), false );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 

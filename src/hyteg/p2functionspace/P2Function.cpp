@@ -383,6 +383,7 @@ void P2Function< ValueType >::prolongateP1ToP2( const hyteg::P1Function< ValueTy
 
    p1Function.template startCommunication< Vertex, Edge >( level );
    p1Function.template startCommunication< Edge, Face >( level );
+   p1Function.template startCommunication< Face, Cell >( level );
 
    for ( const auto& it : this->getStorage()->getVertices() )
    {
@@ -427,6 +428,20 @@ void P2Function< ValueType >::prolongateP1ToP2( const hyteg::P1Function< ValueTy
       }
    }
 
+   p1Function.template endCommunication< Face, Cell >( level );
+
+   for ( const auto& it : this->getStorage()->getCells() )
+   {
+      const Cell& cell = *it.second;
+
+      const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+      if ( testFlag( cellBC, flag ) )
+      {
+         P2::macrocell::prolongateP1ToP2< ValueType >(
+             level, cell, vertexDoFFunction_.getCellDataID(), edgeDoFFunction_.getCellDataID(), p1Function.getCellDataID() );
+      }
+   }
+
    this->stopTiming( "Prolongate P1 -> P2" );
 }
 
@@ -435,6 +450,11 @@ void P2Function< ValueType >::restrictP2ToP1( const P1Function< ValueType >& p1F
                                               const uint_t&                  level,
                                               const DoFType&                 flag ) const
 {
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "See issue #205 at https://i10git.cs.fau.de/hyteg/hyteg/-/issues/205" );
+   }
+
    this->startTiming( "Restrict P2 -> P1" );
 
    vertexDoFFunction_.template startCommunication< Edge, Vertex >( level );
@@ -506,6 +526,11 @@ void P2Function< ValueType >::restrictP2ToP1( const P1Function< ValueType >& p1F
 template < typename ValueType >
 void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType flag ) const
 {
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "See issue #205 at https://i10git.cs.fau.de/hyteg/hyteg/-/issues/205" );
+   }
+
    for ( const auto& it : this->getStorage()->getFaces() )
    {
       const Face& face = *it.second;
@@ -651,7 +676,7 @@ void P2Function< ValueType >::setLocalCommunicationMode(
 //  explicit instantiation
 // ========================
 template class P2Function< double >;
-// template class P2Function< float >;
+template class P2Function< float >;
 template class P2Function< int32_t >;
 template class P2Function< int64_t >;
 

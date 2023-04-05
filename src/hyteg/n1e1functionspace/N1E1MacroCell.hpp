@@ -39,7 +39,7 @@ class N1E1VectorFunction;
 
 namespace macrocell {
 
-using indexing::IndexIncrement;
+using indexing::Index;
 using walberla::int_c;
 using walberla::uint_t;
 template < typename ValueType >
@@ -47,10 +47,10 @@ using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
 inline Eigen::Vector3r microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const real_t          stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
-   const Eigen::Vector3r xDir          = ( cell.getCoordinates()[1].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;
-   const Eigen::Vector3r yDir          = ( cell.getCoordinates()[2].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;
-   const Eigen::Vector3r zDir          = ( cell.getCoordinates()[3].vector_ - cell.getCoordinates()[0].vector_ ) * stepFrequency;
+   const real_t          stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const Eigen::Vector3r xDir          = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Eigen::Vector3r yDir          = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Eigen::Vector3r zDir          = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
 
    switch ( orientation )
    {
@@ -135,9 +135,9 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Eigen::Matrix3r A;
-   A.row( 0 ) = microTet1.vector_ - microTet0.vector_;
-   A.row( 1 ) = microTet2.vector_ - microTet0.vector_;
-   A.row( 2 ) = microTet3.vector_ - microTet0.vector_;
+   A.row( 0 ) = microTet1 - microTet0;
+   A.row( 1 ) = microTet2 - microTet0;
+   A.row( 2 ) = microTet3 - microTet0;
 
    return A.fullPivLu().solve( localValue );
 }

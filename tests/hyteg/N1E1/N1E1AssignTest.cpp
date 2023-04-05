@@ -31,7 +31,7 @@ using namespace hyteg;
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -47,10 +47,10 @@ void test3D()
    const Eigen::Vector3r                                    b         = { 4, 5, 6 };
    const Eigen::Vector3r                                    c         = { 7, 8, 9 };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFunc1 = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ a + b.cross( x.vector_ ) };
+      return Eigen::Vector3r{ a + b.cross( x ) };
    };
    const std::function< Eigen::Vector3r( const Point3D& ) > testFunc2 = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ b + c.cross( x.vector_ ) };
+      return Eigen::Vector3r{ b + c.cross( x ) };
    };
 
    n1e1::N1E1VectorFunction< real_t > f1( "f1", storage, minLevel, maxLevel );
@@ -66,9 +66,9 @@ void test3D()
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
          Point3D coordinates;
-         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
          Eigen::Vector3r exact = testFunc1( coordinates ) + 2 * testFunc2( coordinates );
          Eigen::Vector3r eval;

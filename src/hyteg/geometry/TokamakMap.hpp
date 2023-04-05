@@ -419,7 +419,7 @@ class TokamakMap : public GeometryMap
       poloidalAngleIncrement_ = 2 * pi / real_c( numPoloidalSlices_ );
 
       auto    coords = cell.getCoordinates();
-      Point3D centroid( { 0, 0, 0 } );
+      Point3D centroid( 0, 0, 0 );
       for ( uint_t i = 0; i < 4; i++ )
       {
          centroid += coords[i];
@@ -453,7 +453,7 @@ class TokamakMap : public GeometryMap
       // this way we can find the angle and therefore the prism ID via polar coordinates in the x-z-plane
 
       auto C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
-      auto centroidTrafoToOrigin = centroid - C;
+      Point3D centroidTrafoToOrigin = centroid - C;
       centroidTrafoToOrigin      = Point3D(
           { std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
             std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],

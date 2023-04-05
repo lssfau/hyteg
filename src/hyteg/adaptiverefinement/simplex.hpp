@@ -82,11 +82,13 @@ class Simplex
    Simplex( const std::array< uint_t, K + 1 >& vertices,
             std::shared_ptr< K_Simplex >       parent,
             const PrimitiveID&                 geometryMap  = PrimitiveID(),
-            uint_t                             boundaryFlag = 0 )
+            uint_t                             boundaryFlag = 0,
+            uint_t                             targetRank   = 0 )
    : _vertices( vertices )
    , _parent( parent )
    , _geometryMap( ( parent == nullptr || geometryMap != PrimitiveID() ) ? geometryMap : parent->getGeometryMap() )
    , _boundaryFlag( ( parent == nullptr ) ? boundaryFlag : parent->getBoundaryFlag() )
+   , _targetRank( ( parent == nullptr ) ? targetRank : parent->getTargetRank() )
    {}
 
    // return true if this has been refined
@@ -148,10 +150,12 @@ class Simplex
    const PrimitiveID& getGeometryMap() const { return _geometryMap; }
    const uint_t&      getBoundaryFlag() const { return _boundaryFlag; }
    const PrimitiveID& getPrimitiveID() const { return _id; }
+   const uint_t&      getTargetRank() const { return _targetRank; }
 
    void setGeometryMap( const PrimitiveID& geometryMap ) { _geometryMap = geometryMap; }
    void setBoundaryFlag( const uint_t& boundaryFlag ) { _boundaryFlag = boundaryFlag; }
    void setPrimitiveID( const PrimitiveID& id ) { _id = id; }
+   void setTargetRank( const uint_t& rank ) { _targetRank = rank; }
 
  protected:
    std::array< uint_t, K + 1 >                 _vertices;
@@ -160,6 +164,7 @@ class Simplex
    PrimitiveID                                 _geometryMap;
    uint_t                                      _boundaryFlag;
    PrimitiveID                                 _id;
+   uint_t                                      _targetRank;
 };
 
 // 1-simplex (edge)
@@ -178,8 +183,9 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
              std::shared_ptr< Simplex1 > parent       = nullptr,
              Color                       c            = RED,
              const PrimitiveID&          geometryMap  = PrimitiveID(),
-             uint_t                      boundaryFlag = 0 )
-   : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag )
+             uint_t                      boundaryFlag = 0,
+             uint_t                      targetRank   = 0 )
+   : Simplex< EDGE, Simplex1 >( { p1, p2 }, parent, geometryMap, boundaryFlag, targetRank )
    , _color( c )
    , _midpoint( -1 )
    {}
@@ -191,7 +197,11 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
    */
    void set_midpoint_idx( uint_t idx ) { _midpoint = int64_t( idx ); }
    // @return global id of the vertex on the edge midpoint or -1 if edge hasn't been refined
-   int64_t get_midpoint_idx() const { return _midpoint; }
+   uint_t get_midpoint_idx() const
+   {
+      WALBERLA_CHECK_GREATER(_midpoint, -1);
+      return uint_t(_midpoint);
+      }
 
    /* count number of vertices in the interior of this edge
       @return number of vertices on the interior of *this
@@ -227,7 +237,8 @@ class Simplex2 : public Simplex< FACE, Simplex2 >
              const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
              std::shared_ptr< Simplex2 >                         parent       = nullptr,
              const PrimitiveID&                                  geometryMap  = PrimitiveID(),
-             uint_t                                              boundaryFlag = 0 );
+             uint_t                                              boundaryFlag = 0,
+             uint_t                                              targetRank   = 0 );
 
    /* count inner vertices on all edges
       @return sum(edge->inner_vertices())
@@ -287,7 +298,8 @@ class Simplex3 : public Simplex< CELL, Simplex3 >
              const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
              std::shared_ptr< Simplex3 >                         parent       = nullptr,
              const PrimitiveID&                                  geometryMap  = PrimitiveID(),
-             uint_t                                              boundaryFlag = 0 );
+             uint_t                                              boundaryFlag = 0,
+             uint_t                                              targetRank   = 0 );
 
    bool has_green_edge() const;
 

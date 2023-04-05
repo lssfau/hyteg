@@ -22,7 +22,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
-#include "hyteg/mixedoperators/P1ToP2Operator.hpp"
+#include "hyteg/mixedoperators/P1ToP2ConstantOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2SurrogateOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

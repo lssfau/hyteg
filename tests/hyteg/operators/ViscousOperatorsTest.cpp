@@ -39,8 +39,8 @@ using namespace hyteg;
 // enforce VTK output?
 bool force_VTK = true; // false;
 
-uint_t theLevel = 4;
-real_t threshold = 0.5e-4;
+uint_t theLevel  = 4;
+real_t threshold = real_c( std::is_same< real_t, double >() ? 5e-5 : 7e-5 );
 
 void logSectionHeader( const char* header )
 {

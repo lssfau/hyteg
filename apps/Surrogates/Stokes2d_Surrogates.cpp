@@ -147,7 +147,7 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
    // solve iteratively
    uint_t       iter       = 0;
    real_t       res        = 0, res_old, discr_l2_err_uv, discr_l2_err_u, discr_l2_err_v, discr_l2_err_p;
-   real_t       vCycleTime = 0, solveTime = 0;
+   double       vCycleTime = 0, solveTime = 0;
    real_t       averageConvergenceRate = 0;
    const uint_t convergenceStartIter   = 3;
 
@@ -339,7 +339,7 @@ int main( int argc, char* argv[] )
    c_function rhs_x      = []( const hyteg::Point3D& ) { return 0; };
    c_function rhs_y      = [&]( const hyteg::Point3D& x ) { return T_field( x ); };
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, nX, nY );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, nX, nY );
 
    /// case annulus
    Point3D                                               circleCenter{ { 0, 0, 0 } };

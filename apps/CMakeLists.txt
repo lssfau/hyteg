@@ -14,8 +14,8 @@ waLBerla_add_executable( NAME Chorin
         FILES Chorin.cpp
         DEPENDS hyteg)
 
-waLBerla_add_executable( NAME dg0_transport
-        FILES dg0_transport.cpp
+waLBerla_add_executable( NAME p0p1Transport
+        FILES p0p1Transport.cpp
         DEPENDS hyteg)
 
 waLBerla_add_executable( NAME stokes_stab_uzawa

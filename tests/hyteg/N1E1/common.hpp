@@ -91,18 +91,18 @@ class System
              const real_t y = p[1];
              const real_t z = p[2];
              return Eigen::Vector3r{
-                 -sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                     5 * sin( y ) * sin( z ) * sin( x + y + z - 1 ) + sin( y ) * cos( x ) * cos( x + y + z - 1 ) -
-                     2 * sin( y ) * cos( z ) * cos( x + y + z - 1 ) + sin( z ) * cos( x ) * cos( x + y + z - 1 ) -
-                     2 * sin( z ) * cos( y ) * cos( x + y + z - 1 ),
-                 -sin( x ) * sin( y ) * sin( x + y + z - 1 ) + 5 * sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                     sin( x ) * cos( y ) * cos( x + y + z - 1 ) - 2 * sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                     sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( z ) * cos( x ) * cos( x + y + z - 1 ) +
-                     sin( z ) * cos( y ) * cos( x + y + z - 1 ),
-                 5 * sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) -
-                     2 * sin( x ) * cos( y ) * cos( x + y + z - 1 ) + sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                     sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( y ) * cos( x ) * cos( x + y + z - 1 ) +
-                     sin( y ) * cos( z ) * cos( x + y + z - 1 ) };
+                 real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
+                         5 * sin( y ) * sin( z ) * sin( x + y + z - 1 ) + sin( y ) * cos( x ) * cos( x + y + z - 1 ) -
+                         2 * sin( y ) * cos( z ) * cos( x + y + z - 1 ) + sin( z ) * cos( x ) * cos( x + y + z - 1 ) -
+                         2 * sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
+                 real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) + 5 * sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
+                         sin( x ) * cos( y ) * cos( x + y + z - 1 ) - 2 * sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
+                         sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( z ) * cos( x ) * cos( x + y + z - 1 ) +
+                         sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
+                 real_c( 5 * sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) -
+                         2 * sin( x ) * cos( y ) * cos( x + y + z - 1 ) + sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
+                         sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( y ) * cos( x ) * cos( x + y + z - 1 ) +
+                         sin( y ) * cos( z ) * cos( x + y + z - 1 ) ) };
           },
       };
    }
@@ -126,19 +126,19 @@ class System
              const real_t y = p[1];
              const real_t z = p[2];
              return Eigen::Vector3r{
-                 16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z - 8 * x * x * z -
-                     16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) - 8 * x * z * z - 40 * x * z +
-                     32 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z + 24 * y * y * z - 16 * y * y +
-                     4 * y * std::pow( z, 3 ) - 8 * y * z * z - 56 * y * z + 16 * y + std::pow( z, 5 ) - 4 * std::pow( z, 4 ) -
-                     8 * std::pow( z, 3 ) + 32 * z * z - 8,
-                 16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z + 24 * x * x * z -
-                     16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) - 8 * x * z * z - 56 * x * z +
-                     16 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z - 8 * y * y * z - 16 * y * y +
-                     4 * y * std::pow( z, 3 ) - 8 * y * z * z - 40 * y * z + 32 * y + std::pow( z, 5 ) - 4 * std::pow( z, 4 ) -
-                     8 * std::pow( z, 3 ) + 32 * z * z - 8,
-                 16 * x * x * y * y + 16 * x * x * y - 4 * x * x * z * z + 8 * x * x * z - 48 * x * x + 16 * x * y * y -
-                     48 * x * y - 20 * x * z * z + 24 * x * z + 48 * x - 4 * y * y * z * z + 8 * y * y * z - 48 * y * y -
-                     20 * y * z * z + 24 * y * z + 48 * y + std::pow( z, 4 ) - 4 * std::pow( z, 3 ) + 44 * z * z - 64 * z };
+                 real_c( 16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z -
+                         8 * x * x * z - 16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) -
+                         8 * x * z * z - 40 * x * z + 32 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z + 24 * y * y * z -
+                         16 * y * y + 4 * y * std::pow( z, 3 ) - 8 * y * z * z - 56 * y * z + 16 * y + std::pow( z, 5 ) -
+                         4 * std::pow( z, 4 ) - 8 * std::pow( z, 3 ) + 32 * z * z - 8 ),
+                 real_c( 16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z +
+                         24 * x * x * z - 16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) -
+                         8 * x * z * z - 56 * x * z + 16 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z - 8 * y * y * z -
+                         16 * y * y + 4 * y * std::pow( z, 3 ) - 8 * y * z * z - 40 * y * z + 32 * y + std::pow( z, 5 ) -
+                         4 * std::pow( z, 4 ) - 8 * std::pow( z, 3 ) + 32 * z * z - 8 ),
+                 real_c( 16 * x * x * y * y + 16 * x * x * y - 4 * x * x * z * z + 8 * x * x * z - 48 * x * x + 16 * x * y * y -
+                         48 * x * y - 20 * x * z * z + 24 * x * z + 48 * x - 4 * y * y * z * z + 8 * y * y * z - 48 * y * y -
+                         20 * y * z * z + 24 * y * z + 48 * y + std::pow( z, 4 ) - 4 * std::pow( z, 3 ) + 44 * z * z - 64 * z ) };
           },
       };
    }
@@ -146,7 +146,7 @@ class System
    static System polynomialOnCube()
    {
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -173,7 +173,7 @@ class System
       using walberla::math::pi;
 
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];

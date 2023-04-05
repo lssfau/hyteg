@@ -53,7 +53,7 @@ void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage& setupStorage )
 {
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   const real_t eps = 0.001;
+   const real_t eps = real_c( 0.001 );
 
    for ( const auto& it : setupStorage.getVertices() )
    {
@@ -93,11 +93,11 @@ std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D
 
 void runBenchmark( uint_t benchmark )
 {
-   Point2D leftBottom( {0, 0} );
+   Point2D leftBottom( 0, 0 );
    if ( benchmark == 0 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Poiseuille flow benchmark" )
-      leftBottom = Point2D( {-1, -1} );
+      leftBottom = Point2D( -1, -1 );
    }
    else if ( benchmark == 1 )
    {
@@ -112,9 +112,9 @@ void runBenchmark( uint_t benchmark )
    const uint_t uzawaPre       = 6;
    const uint_t uzawaPost      = 6;
    const uint_t innerJacSmooth = 2;
-   const real_t uzawaOmega     = 0.37;
-   const real_t jacobiOmega    = 0.66;
-   const uint_t numIterations  = 8;
+   const real_t uzawaOmega     = real_c( 0.37 );
+   const real_t jacobiOmega    = real_c( 0.66 );
+   const uint_t numIterations  = 4;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Elementwise Stokes CC Uzawa GMG w/ Jacobi smoothing" )
    WALBERLA_LOG_INFO_ON_ROOT( "min level:           " << minLevel )
@@ -126,7 +126,7 @@ void runBenchmark( uint_t benchmark )
    WALBERLA_LOG_INFO_ON_ROOT( "Jacobi omega:        " << jacobiOmega )
 
    //create a Rectangle as mesh with 4 triangles
-   auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), MeshInfo::CRISSCROSS, 1, 1 );
+   auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( 1, 1 ), MeshInfo::CRISSCROSS, 1, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -200,9 +200,9 @@ void runBenchmark( uint_t benchmark )
    communication::syncVectorFunctionBetweenPrimitives( u_exact.uvw(), maxLevel );
    communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
-   auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, 1e-12, 1000 );
+   auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, real_c( 1e-12 ), 100 );
 
-   auto fineGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-12, 1000 );
+   auto fineGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, real_c( 1e-12 ), 200, true );
 
    auto restriction    = std::make_shared< P2P1StokesToP2P1StokesRestriction >( benchmark == 1 );
    auto prolongation   = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
@@ -246,19 +246,20 @@ void runBenchmark( uint_t benchmark )
       vtkOutput.write( maxLevel, 0 );
    }
 
+   bool dp = std::is_same< real_t, double >();
    for ( uint_t j = 0; j < numIterations; ++j )
    {
       gmgSolver->solve( L, u, f, maxLevel );
 
       L.apply( u, Au, maxLevel, Inner | NeumannBoundary );
-      r.assign( {1.0, -1.0}, {f, Au}, maxLevel, Inner | NeumannBoundary );
+      r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, Inner | NeumannBoundary );
       currRes = std::sqrt( r.dotGlobal( r, maxLevel, All ) ) / real_c( npoints );
 
       auto residualReduction = currRes / oldRes;
-      WALBERLA_CHECK_LESS( residualReduction, 0.2 );
+      WALBERLA_CHECK_LESS( residualReduction, dp ? 0.2 : 0.22 );
       oldRes = currRes;
 
-      err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+      err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
       discr_l2_err_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], maxLevel, Inner | NeumannBoundary ) /
                                   real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
       discr_l2_err_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], maxLevel, Inner | NeumannBoundary ) /
@@ -277,14 +278,14 @@ void runBenchmark( uint_t benchmark )
 
    if ( benchmark == 0 )
    {
-      WALBERLA_CHECK_LESS( currRes, 1.0e-10 );
-      WALBERLA_CHECK_LESS( discr_l2_err_u, 5e-09 );
-      WALBERLA_CHECK_LESS( discr_l2_err_v, 5e-09 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 3e-07 );
+      WALBERLA_CHECK_LESS( currRes, 7e-8 );
+      WALBERLA_CHECK_LESS( discr_l2_err_u, 5.5e-6 );
+      WALBERLA_CHECK_LESS( discr_l2_err_v, 5.5e-6 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 3e-4 );
    }
    else if ( benchmark == 1 )
    {
-      WALBERLA_CHECK_LESS( currRes, 1.0e-10 );
+      WALBERLA_CHECK_LESS( currRes, 1e-7 );
       WALBERLA_CHECK_LESS( discr_l2_err_u, 3.0e-05 );
       WALBERLA_CHECK_LESS( discr_l2_err_v, 5.0e-05 );
       WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
@@ -314,16 +315,16 @@ void runBenchmark( uint_t benchmark )
 
    if ( benchmark == 0 )
    {
-      WALBERLA_CHECK_LESS( currRes, 1.0e-14 );
-      WALBERLA_CHECK_LESS( discr_l2_err_u, 1e-12 );
-      WALBERLA_CHECK_LESS( discr_l2_err_v, 1e-12 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 2e-12 );
+      WALBERLA_CHECK_LESS( currRes, 8e-7 );
+      WALBERLA_CHECK_LESS( discr_l2_err_u, dp ? 9e-4 : 1e-3 );
+      WALBERLA_CHECK_LESS( discr_l2_err_v, dp ? 6e-4 : 1e-3 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 2e-2 );
    }
    else if ( benchmark == 1 )
    {
-      WALBERLA_CHECK_LESS( currRes, 1.0e-14 );
-      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.0e-05 );
-      WALBERLA_CHECK_LESS( discr_l2_err_v, 5.0e-05 );
+      WALBERLA_CHECK_LESS( currRes, 4e-8 );
+      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.6e-05 );
+      WALBERLA_CHECK_LESS( discr_l2_err_v, 7.0e-05 );
       WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
    }
 

@@ -26,6 +26,7 @@
 namespace hyteg {
 
 using walberla::real_t;
+using walberla::uint_t;
 
 template < typename Function >
 class WeightedJacobiSmoothable
@@ -33,12 +34,12 @@ class WeightedJacobiSmoothable
  public:
    virtual ~WeightedJacobiSmoothable() = default;
 
-   virtual void smooth_jac( const Function& dst,
-                            const Function& rhs,
-                            const Function& tmp,
-                            real_t          relax,
-                            size_t          level,
-                            DoFType         flag ) const = 0;
+   virtual void smooth_jac( const Function&              dst,
+                            const Function&              rhs,
+                            const Function&              tmp,
+                            typename Function::valueType relax,
+                            size_t                       level,
+                            DoFType                      flag ) const = 0;
 };
 
 template < typename Function >
@@ -47,11 +48,7 @@ class ConstantJacobiSmoothable
  public:
    virtual ~ConstantJacobiSmoothable() = default;
 
-   virtual void smooth_jac( const Function& dst,
-                            const Function& rhs,
-                            const Function& tmp,
-                            size_t          level,
-                            DoFType         flag ) const = 0;
+   virtual void smooth_jac( const Function& dst, const Function& rhs, const Function& tmp, uint_t level, DoFType flag ) const = 0;
 };
 
 template < typename Function >
@@ -78,7 +75,11 @@ class SORSmoothable
  public:
    virtual ~SORSmoothable() = default;
 
-   virtual void smooth_sor( const Function& dst, const Function& rhs, real_t relax, size_t level, DoFType flag ) const = 0;
+   virtual void smooth_sor( const Function&              dst,
+                            const Function&              rhs,
+                            typename Function::valueType relax,
+                            size_t                       level,
+                            DoFType                      flag ) const = 0;
 };
 
 template < typename Function >
@@ -87,8 +88,11 @@ class SORBackwardsSmoothable
  public:
    virtual ~SORBackwardsSmoothable() = default;
 
-   virtual void
-       smooth_sor_backwards( const Function& dst, const Function& rhs, real_t relax, size_t level, DoFType flag ) const = 0;
+   virtual void smooth_sor_backwards( const Function&              dst,
+                                      const Function&              rhs,
+                                      typename Function::valueType relax,
+                                      size_t                       level,
+                                      DoFType                      flag ) const = 0;
 };
 
 template < typename Function >

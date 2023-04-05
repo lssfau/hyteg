@@ -66,7 +66,7 @@ class P1LinearCombinationForm : public P1Form
    // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -93,7 +93,7 @@ class P1LinearCombinationForm : public P1Form
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix3r tmpOut;
@@ -113,7 +113,7 @@ class P1LinearCombinationForm : public P1Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point4D tmpOut;
@@ -140,7 +140,7 @@ class P1LinearCombinationForm : public P1Form
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix4r tmpOut;

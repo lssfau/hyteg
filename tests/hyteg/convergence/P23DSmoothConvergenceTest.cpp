@@ -51,7 +51,7 @@ static void testP2SmoothConvergence( const uint_t & level, const std::string & m
 
   std::function< real_t( const Point3D & )> zeros = []( const Point3D & ) { return 0; };
   walberla::math::seedRandomGenerator( 0 );
-  std::function< real_t( const Point3D & )> rand  = []( const Point3D & ) { return walberla::math::realRandom( 0.0, 1.0 ); };
+  std::function< real_t( const Point3D & )> rand  = []( const Point3D & ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
 
   rhs.interpolate( zeros, level, All );
   x.interpolate( zeros, level, DirichletBoundary );

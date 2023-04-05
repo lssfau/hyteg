@@ -14,33 +14,46 @@ option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if avail
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
 option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for plates"  OFF)
+option ( HYTEG_BUILD_DOC              "Build Documentation"                           ON)
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
+set(WALBERLA_BUILD_TESTS            OFF )
+set(WALBERLA_BUILD_BENCHMARKS       OFF )
+set(WALBERLA_BUILD_TUTORIALS        OFF )
+set(WALBERLA_BUILD_SHOWCASES        OFF )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
-include_directories ( SYSTEM ${EIGEN_DIR} )
-link_directories    ( ${EIGEN_DIR} )
+include_directories(SYSTEM ${EIGEN_DIR})
+link_directories(${EIGEN_DIR})
 
-include_directories ( src )
+include_directories(src)
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 
-if ( HYTEG_USE_GENERATED_KERNELS )
-    message(STATUS "Using generated HyTeG kernels.")
-else()
-    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
-endif()
+find_package(waLBerla)
 
-find_package( waLBerla )
+if (NOT WALBERLA_DOUBLE_ACCURACY)
+   set(HYTEG_USE_GENERATED_KERNELS OFF)
+   message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF")
+endif ()
+
+if (HYTEG_USE_GENERATED_KERNELS)
+   message(STATUS "Using generated HyTeG kernels.")
+else ()
+   message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
+endif ()
 
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
     add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
+    if( NOT WALBERLA_DOUBLE_ACCURACY )
+       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=float-conversion" )
+    endif()
 endif()
 
 include(FetchContent)
@@ -81,6 +94,9 @@ endif()
 if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
     add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
+    if( NOT WALBERLA_DOUBLE_ACCURACY )
+       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=implicit-float-conversion" )
+    endif()
 endif()
 
 # MSVC generates so many warnings that the CI log gets too large to complete the job successfully
@@ -92,10 +108,12 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-    find_package( PETSc REQUIRED )
-    include_directories ( ${PETSC_INCLUDES} )
-    link_directories    ( ${PETSC_LIBRARIES} )
-    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    find_package(PETSc REQUIRED)
+    add_library(PETSc::PETSc INTERFACE IMPORTED)
+    set_target_properties(PETSc::PETSc PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES "${PETSC_INCLUDES}"
+          INTERFACE_LINK_LIBRARIES "${PETSC_LIBRARIES}"
+          )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
@@ -166,25 +184,28 @@ add_subdirectory( tutorials )
 #
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
-find_package ( Doxygen  )
-find_package ( HTMLHelp )
+if (HYTEG_BUILD_DOC)
 
-if ( HTML_HELP_COMPILER EQUAL "" )
-   set ( HTML_HELP_FOUND "NO" )
-else ( )
-   set ( HTML_HELP_FOUND "YES" )
-endif ( )
+  find_package ( Doxygen  )
+  find_package ( HTMLHelp )
 
-if ( DOXYGEN_FOUND )
-   set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
-   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
-   set ( DOXYGEN_HTML_OUTPUT "html" )
+  if ( HTML_HELP_COMPILER EQUAL "" )
+    set ( HTML_HELP_FOUND "NO" )
+  else ( )
+    set ( HTML_HELP_FOUND "YES" )
+  endif ( )
 
-   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
+  if ( DOXYGEN_FOUND )
+    set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
+    set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
+    set ( DOXYGEN_HTML_OUTPUT "html" )
 
-   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
-                       COMMENT "Generating API documentation with Doxygen" VERBATIM )
+    configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
+    add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
+      COMMENT "Generating API documentation with Doxygen" VERBATIM )
+
+  endif ( )
 endif ( )
 ############################################################################################################################
 
@@ -245,8 +266,9 @@ string( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER )
 
 set      ( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
 set      ( HYTEG_COMPILER_INFO   "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" )
-set      ( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}" )
-string   ( REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS} )
+set(HYTEG_COMPILER_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}")
+set(HYTEG_MPI_VERSION ${HYTEG_MPI_VERSION})
+string(REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS})
 
 configure_file(
         ${CMAKE_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp

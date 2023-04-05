@@ -148,7 +148,7 @@ std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
    const real_t          dx = ( xMax - xMin ) / real_c( numSamples - 1 );
    for ( uint_t sample = 0; sample < numSamples; sample++ )
    {
-      Point3D pos( {xMin + real_c( sample ) * dx, y, 0} );
+      Point3D pos( xMin + real_c( sample ) * dx, y, 0 );
       sampleLocallyAvailable[sample] = c.evaluate( pos, level, samples[sample], 1e-5 );
    }
 
@@ -245,7 +245,7 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( uint_t nx )
 {
    WALBERLA_CHECK_EQUAL( nx % 3, 0 );
 
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, ( nx / 3 ) * 2 );
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1.5, 1 ), MeshInfo::CROSS, nx, ( nx / 3 ) * 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -405,11 +405,11 @@ void runBenchmark( real_t      cflMax,
    auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
       if ( in[0] < 0.75 )
       {
-         out = Point3D( {-1, 0, 0} );
+         out = Point3D( -1, 0, 0 );
       }
       else
       {
-         out = Point3D( {1, 0, 0} );
+         out = Point3D( 1, 0, 0 );
       }
    };
 

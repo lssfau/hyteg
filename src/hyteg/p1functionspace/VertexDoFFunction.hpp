@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,6 +29,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
@@ -40,8 +41,6 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-template < typename ValueType >
-class FaceDoFFunction_old;
 template < typename ValueType >
 class FunctionMemory;
 template < typename DataType, typename PrimitiveType >
@@ -114,7 +113,8 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
    /// Both storages must have identical distribution.
    ///
-   void copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const;
+   template< typename otherValueType >
+   void copyFrom( const VertexDoFFunction< otherValueType >& other, const uint_t& level ) const;
 
    /// \brief Copies all values function data from other to this.
    ///
@@ -164,9 +164,14 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
+   /// \param id PrimitiveID of the cell/face where physicalCoords is located. If a valid id is provided, the loop over all local primitives is skipped.
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
+   bool evaluate( const Point3D& physicalCoords,
+                  uint_t         level,
+                  ValueType&     value,
+                  real_t         searchToleranceRadius = real_c(1e-05),
+                  PrimitiveID    id                    = PrimitiveID() ) const;
 
    void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
@@ -206,8 +211,6 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
-   void integrateDG( FaceDoFFunction_old< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
-
    /// @name Member functions for interpolation using BoundaryUID flags
    //@{
    void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
@@ -240,6 +243,13 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
    //@}
+
+   /// interpolate data from a coarser mesh.
+   ///
+   /// Note that this only works for adaptively refined meshes and only if the
+   /// child-primitives are located on the same processes as their parents!
+   /// Involves global communication!
+   void interpolate( const VertexDoFFunction< ValueType >& functionOnParentGrid, uint_t level, uint_t srcLevel );
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;
@@ -466,6 +476,59 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
 extern template class VertexDoFFunction< idx_t >;
+
+template < typename ValueType >
+template < typename otherValueType >
+void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< otherValueType >& other, const uint_t& level ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Copy" );
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getVertex( primitiveID )
+          ->getData( vertexDataID_ )
+          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getEdge( primitiveID )
+          ->getData( edgeDataID_ )
+          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getFace( primitiveID )
+          ->getData( faceDataID_ )
+          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
+   }
+
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getCell( primitiveID )
+          ->getData( cellDataID_ )
+          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
+   }
+
+   this->stopTiming( "Copy" );
+}
 
 } // namespace vertexdof
 } // namespace hyteg

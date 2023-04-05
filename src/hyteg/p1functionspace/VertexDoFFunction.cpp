@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,6 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/BlendingHelpers.hpp"
@@ -523,6 +522,106 @@ void VertexDoFFunction< ValueType >::interpolate(
 }
 
 template < typename ValueType >
+void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< ValueType >& functionOnParentGrid,
+                                                  uint_t                                level,
+                                                  uint_t                                srcLevel )
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+
+   auto storage       = this->getStorage();
+   auto parentStorage = functionOnParentGrid.getStorage();
+   auto threeD        = storage->hasGlobalCells();
+
+   auto getParentID = [&]( const PrimitiveID& id ) -> PrimitiveID {
+      // the element also exists on the coarse grid
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id ) )
+         return id;
+
+      // the parent element exits on the coarse grid
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent() ) )
+         return id.getParent();
+
+      // the grand-parent element exits on the coarse grid (may happen when element is subject to both red and green refinement)
+      if ( functionOnParentGrid.getStorage()->primitiveExistsLocally( id.getParent().getParent() ) )
+         return id.getParent().getParent();
+
+      // "pseudo-siblings" from a green refinement step exist on the coarse grid
+      for (auto& localID : functionOnParentGrid.getStorage()->getPrimitiveIDs())
+      {
+         if (localID.getParent() == id.getParent())
+            return PrimitiveID();
+      }
+
+      // parent element has "pseudo-siblings" on the coarse grid
+      for (auto& localID : functionOnParentGrid.getStorage()->getPrimitiveIDs())
+      {
+         if (localID.getParent() == id.getParent().getParent())
+            return PrimitiveID();
+      }
+
+      WALBERLA_ABORT( "Interpolation between parent and new grid failed: Primitive doesn't exist locally on parentStorage!" );
+      return PrimitiveID();
+   };
+
+   // update ghostlayers on source
+   functionOnParentGrid.communicate< Vertex, Edge >( srcLevel );
+   functionOnParentGrid.communicate< Edge, Face >( srcLevel );
+   functionOnParentGrid.communicate< Face, Cell >( srcLevel );
+
+   // interpolate function on volume elements, i.e., cells or faces
+   auto primitiveIDs = threeD ? storage->getCellIDs() : storage->getFaceIDs();
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
+   for ( int i = 0; i < int_c( primitiveIDs.size() ); i++ )
+   {
+      const auto& id       = primitiveIDs[uint_c( i )];
+      const auto  parentID = getParentID( id );
+
+      // if the element also exists in the coarser mesh, we simply copy the data
+      if ( parentID == id && srcLevel == level )
+      {
+         if ( threeD )
+         {
+            storage->getCell( id )
+                ->getData( cellDataID_ )
+                ->copyFrom( *parentStorage->getCell( id )->getData( functionOnParentGrid.getCellDataID() ), level );
+         }
+         else
+         {
+            storage->getFace( id )
+                ->getData( faceDataID_ )
+                ->copyFrom( *parentStorage->getFace( id )->getData( functionOnParentGrid.getFaceDataID() ), level );
+         }
+      }
+      // otherwise, we evaluate the coarse function at each point
+      else
+      {
+         auto expr = [&]( const Point3D& x, const std::vector< ValueType >& ) {
+            ValueType value;
+            functionOnParentGrid.evaluate( x, srcLevel, value, 0, parentID );
+            return value;
+         };
+         if ( threeD )
+            vertexdof::macrocell::interpolate< ValueType >( level, *storage->getCell( id ), cellDataID_, {}, expr, 0 );
+         else
+            vertexdof::macroface::interpolate< ValueType >( level, *storage->getFace( id ), faceDataID_, {}, expr, 0 );
+      }
+   }
+
+   // update interface primitives
+   this->communicate< Cell, Face >( level );
+   this->communicate< Face, Edge >( level );
+   this->communicate< Edge, Vertex >( level );
+
+   this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
 void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
 {
    if ( isDummy() )
@@ -562,7 +661,8 @@ template < typename ValueType >
 bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                uint_t         level,
                                                ValueType&     value,
-                                               real_t         searchToleranceRadius ) const
+                                               real_t         searchToleranceRadius,
+                                               PrimitiveID    id ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
@@ -570,36 +670,41 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( value );
       WALBERLA_UNUSED( searchToleranceRadius );
+      WALBERLA_UNUSED( id );
       WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
       return false;
    }
    else
    {
-      if ( !this->getStorage()->hasGlobalCells() )
+      auto storage = this->getStorage();
+      auto threeD  = storage->hasGlobalCells();
+
+      auto    coordExists = threeD ? storage->cellExistsLocally( id ) : storage->faceExistsLocally( id );
+      Point3D computationalCoords;
+
+      if ( coordExists )
       {
-         auto [found, faceID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
-         if ( found )
-         {
-            value = vertexdof::macroface::evaluate(
-                level, *( this->getStorage()->getFace( faceID ) ), computationalCoords, faceDataID_ );
-            return true;
-         }
+         if ( threeD )
+            storage->getCell( id )->getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+         else
+            storage->getFace( id )->getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
       }
       else
       {
-         auto [found, cellID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
-         if ( found )
-         {
-            value = vertexdof::macrocell::evaluate(
-                level, *( this->getStorage()->getCell( cellID ) ), computationalCoords, cellDataID_ );
-            return true;
-         }
+         auto target         = threeD ? mapFromPhysicalToComputationalDomain3D( storage, physicalCoords, searchToleranceRadius ) :
+                                        mapFromPhysicalToComputationalDomain2D( storage, physicalCoords, searchToleranceRadius );
+         coordExists         = std::get< 0 >( target );
+         id                  = std::get< 1 >( target );
+         computationalCoords = std::get< 2 >( target );
       }
 
-      // no match found
-      return false;
+      if ( coordExists )
+      {
+         value = threeD ? vertexdof::macrocell::evaluate( level, *( storage->getCell( id ) ), computationalCoords, cellDataID_ ) :
+                          vertexdof::macroface::evaluate( level, *( storage->getFace( id ) ), computationalCoords, faceDataID_ );
+      }
+
+      return coordExists;
    }
 
    // will not be reached, but some compilers complain otherwise
@@ -706,58 +811,6 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType >&
    }
 
    this->stopTiming( "Swap" );
-}
-
-template < typename ValueType >
-void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-   this->startTiming( "Copy" );
-
-   for ( auto& it : this->getStorage()->getVertices() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getVertex( primitiveID )
-          ->getData( vertexDataID_ )
-          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getEdges() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getEdge( primitiveID )
-          ->getData( edgeDataID_ )
-          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getFaces() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getFace( primitiveID )
-          ->getData( faceDataID_ )
-          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
-   }
-
-   for ( auto& it : this->getStorage()->getCells() )
-   {
-      auto primitiveID = it.first;
-      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
-      this->getStorage()
-          ->getCell( primitiveID )
-          ->getData( cellDataID_ )
-          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
-   }
-
-   this->stopTiming( "Copy" );
 }
 
 template < typename ValueType >
@@ -889,18 +942,7 @@ void macroFaceAssign( const uint_t&                                             
                       const std::vector< ValueType >&                                            scalars,
                       const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
-                      const PrimitiveStorage& )
-{
-   vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
-}
-
-template <>
-void macroFaceAssign< double >( const uint_t&                                                           level,
-                                Face&                                                                   face,
-                                const std::vector< double >&                                            scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
-                                const PrimitiveStorage&                                                 storage )
+                      const PrimitiveStorage&                                                    storage )
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
@@ -932,7 +974,10 @@ void macroFaceAssign< double >( const uint_t&                                   
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -950,12 +995,37 @@ void macroFaceAssign< double >( const uint_t&                                   
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
-      vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+      vertexdof::macroface::assign( level, face, scalars, srcFaceIDs, dstFaceID );
    }
+}
+
+template <>
+void macroFaceAssign< int32_t >( const uint_t&                                                            level,
+                                 Face&                                                                    face,
+                                 const std::vector< int32_t >&                                            scalars,
+                                 const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
+                                 const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
+                                 const PrimitiveStorage& )
+{
+   vertexdof::macroface::assign< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAssign< int64_t >( const uint_t&                                                            level,
+                                 Face&                                                                    face,
+                                 const std::vector< int64_t >&                                            scalars,
+                                 const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
+                                 const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
+                                 const PrimitiveStorage& )
+{
+   vertexdof::macroface::assign< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
 template < typename ValueType >
@@ -1181,18 +1251,7 @@ void macroFaceAdd( const uint_t&                                                
                    const std::vector< ValueType >&                                            scalars,
                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
-                   const PrimitiveStorage& )
-{
-   vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
-}
-
-template <>
-void macroFaceAdd< double >( const uint_t&                                                           level,
-                             Face&                                                                   face,
-                             const std::vector< double >&                                            scalars,
-                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
-                             const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
-                             const PrimitiveStorage&                                                 storage )
+                   const PrimitiveStorage&                                                    storage )
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
@@ -1250,8 +1309,30 @@ void macroFaceAdd< double >( const uint_t&                                      
    }
    else
    {
-      vertexdof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+      vertexdof::macroface::add( level, face, scalars, srcFaceIDs, dstFaceID );
    }
+}
+
+template <>
+void macroFaceAdd< int32_t >( const uint_t&                                                            level,
+                              Face&                                                                    face,
+                              const std::vector< int32_t >&                                            scalars,
+                              const std::vector< PrimitiveDataID< FunctionMemory< int32_t >, Face > >& srcFaceIDs,
+                              const PrimitiveDataID< FunctionMemory< int32_t >, Face >&                dstFaceID,
+                              const PrimitiveStorage& )
+{
+   vertexdof::macroface::add< int32_t >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAdd< int64_t >( const uint_t&                                                            level,
+                              Face&                                                                    face,
+                              const std::vector< int64_t >&                                            scalars,
+                              const std::vector< PrimitiveDataID< FunctionMemory< int64_t >, Face > >& srcFaceIDs,
+                              const PrimitiveDataID< FunctionMemory< int64_t >, Face >&                dstFaceID,
+                              const PrimitiveStorage& )
+{
+   vertexdof::macroface::add< int64_t >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
 template < typename ValueType >
@@ -1568,7 +1649,7 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
                for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
                {
                   const uint_t idx =
-                      vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
+                      vertexdof::macroface::indexFromVertex( level, iter.x(), iter.y(), stencilDirection::VERTEX_C );
                   data[idx] = real_c( 1.0 ) / data[idx];
                }
             }
@@ -1809,74 +1890,8 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
       }
    }
 
-   /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
+   // in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    communication::syncFunctionBetweenPrimitives( *this, level );
-}
-
-template < typename ValueType >
-void VertexDoFFunction< ValueType >::integrateDG( FaceDoFFunction_old< ValueType >& rhs,
-                                                  VertexDoFFunction< ValueType >&   rhsP1,
-                                                  uint_t                            level,
-                                                  DoFType                           flag )
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-   this->startTiming( "integrateDG" );
-
-   rhsP1.startCommunication< Edge, Vertex >( level );
-   rhsP1.startCommunication< Face, Edge >( level );
-
-   rhs.template startCommunication< Face, Edge >( level );
-   rhs.template endCommunication< Face, Edge >( level );
-
-   rhs.template startCommunication< Edge, Vertex >( level );
-   rhs.template endCommunication< Edge, Vertex >( level );
-
-   rhsP1.endCommunication< Edge, Vertex >( level );
-
-   for ( auto& it : this->getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macrovertex::integrateDG< ValueType >(
-             vertex, this->getStorage(), rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level );
-      }
-   }
-
-   communicators_[level]->template startCommunication< Vertex, Edge >();
-   rhsP1.endCommunication< Face, Edge >( level );
-
-   for ( auto& it : this->getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macroedge::integrateDG< ValueType >(
-             level, edge, this->getStorage(), rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_ );
-      }
-   }
-
-   communicators_[level]->template endCommunication< Vertex, Edge >();
-   communicators_[level]->template startCommunication< Edge, Face >();
-
-   for ( auto& it : this->getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
-         vertexdof::macroface::integrateDG< ValueType >( level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_ );
-      }
-   }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
-
-   this->stopTiming( "integrateDG" );
 }
 
 template < typename ValueType >
@@ -2301,6 +2316,22 @@ template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Fa
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
                                                                                       uint_t        level,
                                                                                       DoFType       flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Vertex >( const float& constant,
+                                                                                       uint_t       level,
+                                                                                       DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Edge >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Face >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
+
+template void VertexDoFFunction< float >::interpolateByPrimitiveType< hyteg::Cell >( const float& constant,
+                                                                                     uint_t       level,
+                                                                                     DoFType      flag ) const;
 
 } // namespace vertexdof
 } // namespace hyteg

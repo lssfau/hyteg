@@ -29,16 +29,17 @@
 
 namespace hyteg {
 
-void P1toP1LinearProlongation::prolongate2D( const P1Function< real_t >& function,
-                                             const uint_t&               sourceLevel,
-                                             const DoFType&              flag ) const
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongate2D( const P1Function< ValueType >& function,
+                                                          const uint_t&                  sourceLevel,
+                                                          const DoFType&                 flag ) const
 {
    const uint_t destinationLevel = sourceLevel + 1;
 
-   function.communicate< Vertex, Edge >( sourceLevel );
-   function.communicate< Edge, Face >( sourceLevel );
-   function.communicate< Face, Edge >( sourceLevel );
-   function.communicate< Edge, Vertex >( sourceLevel );
+   function.template communicate< Vertex, Edge >( sourceLevel );
+   function.template communicate< Edge, Face >( sourceLevel );
+   function.template communicate< Face, Edge >( sourceLevel );
+   function.template communicate< Edge, Vertex >( sourceLevel );
 
    for ( const auto& it : function.getStorage()->getVertices() )
    {
@@ -77,52 +78,19 @@ void P1toP1LinearProlongation::prolongate2D( const P1Function< real_t >& functio
    }
 }
 
-static real_t calculateInverseFactorToScaleNeighborhoodContribution( const std::array< real_t, 4 >& invNumNeighborsOfVertex,
-                                                                     const std::array< real_t, 6 >& invNumNeighborsOfEdge,
-                                                                     const std::array< real_t, 4 >  invNumNeighborsOfFace,
-                                                                     const indexing::Index&         index,
-                                                                     const uint_t&                  level )
-{
-   const auto stencilLeafOnCellVertices = vertexdof::macrocell::isOnCellVertex( index, level );
-   const auto stencilLeafOnCellEdges    = vertexdof::macrocell::isOnCellEdge( index, level );
-   const auto stencilLeafOnCellFaces    = vertexdof::macrocell::isOnCellFace( index, level );
-
-   real_t invFactorDueToNeighborhood = real_c( 1 );
-
-   if ( stencilLeafOnCellVertices.size() > 0 )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellVertices.size(), 1 );
-      const auto localVertexID   = *stencilLeafOnCellVertices.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfVertex[localVertexID];
-   }
-   else if ( stencilLeafOnCellEdges.size() > 0 )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellEdges.size(), 1 );
-      const auto localEdgeID     = *stencilLeafOnCellEdges.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfEdge[localEdgeID];
-   }
-   else if ( stencilLeafOnCellFaces.size() > 0 )
-   {
-      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellFaces.size(), 1 );
-      const auto localFaceID     = *stencilLeafOnCellFaces.begin();
-      invFactorDueToNeighborhood = invNumNeighborsOfFace[localFaceID];
-   }
-
-   return invFactorDueToNeighborhood;
-}
-
-void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t >& function,
-                                                       const uint_t&               sourceLevel,
-                                                       const DoFType&              flag,
-                                                       const UpdateType&           updateType ) const
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongate2DAdditively( const P1Function< ValueType >& function,
+                                                                    const uint_t&                  sourceLevel,
+                                                                    const DoFType&                 flag,
+                                                                    const UpdateType&              updateType ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
    const DoFType excludeFlag = ( flag ^ All );
 
    const uint_t destinationLevel = sourceLevel + 1;
 
-   function.communicate< Vertex, Edge >( sourceLevel );
-   function.communicate< Edge, Face >( sourceLevel );
+   function.template communicate< Vertex, Edge >( sourceLevel );
+   function.template communicate< Edge, Face >( sourceLevel );
 
    auto storage = function.getStorage();
 
@@ -138,7 +106,7 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
          for ( const auto& dstIdx : vertexdof::macroface::Iterator( destinationLevel, 0 ) )
          {
             const auto arrayIdxDst = vertexdof::macroface::index( destinationLevel, dstIdx.x(), dstIdx.y() );
-            dstData[arrayIdxDst]   = real_c( 0 );
+            dstData[arrayIdxDst]   = static_cast< ValueType >( 0 );
          }
       }
       else if ( updateType == Add )
@@ -149,7 +117,7 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
             if ( vertexdof::macroface::isVertexOnBoundary( destinationLevel, dstIdx ) )
             {
                const auto arrayIdxDst = vertexdof::macroface::index( destinationLevel, dstIdx.x(), dstIdx.y() );
-               dstData[arrayIdxDst]   = real_c( 0 );
+               dstData[arrayIdxDst]   = static_cast< ValueType >( 0 );
             }
          }
       }
@@ -159,17 +127,17 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
       }
 
       const auto numNeighborFacesEdge0 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge1 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesEdge2 =
-          static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex0 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex1 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
       const auto numNeighborFacesVertex2 =
-          static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
+          static_cast< ValueType >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
 
       vertexdof::macroface::generated::prolongate_2D_macroface_P1_push_additive( srcData,
                                                                                  dstData,
@@ -182,29 +150,66 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
                                                                                  numNeighborFacesVertex2 );
    }
 
-   function.communicateAdditively< Face, Edge >( destinationLevel, excludeFlag, *storage, updateType == Replace );
-   function.communicateAdditively< Face, Vertex >( destinationLevel, excludeFlag, *storage, updateType == Replace );
+   function.template communicateAdditively< Face, Edge >( destinationLevel, excludeFlag, *storage, updateType == Replace );
+   function.template communicateAdditively< Face, Vertex >( destinationLevel, excludeFlag, *storage, updateType == Replace );
 }
 
-void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t >& function,
-                                                       const uint_t&               sourceLevel,
-                                                       const DoFType&              flag,
-                                                       const UpdateType&           updateType ) const
+
+template < typename ValueType >
+static ValueType calculateInverseFactorToScaleNeighborhoodContribution( const std::array< ValueType, 4 >& invNumNeighborsOfVertex,
+                                                                        const std::array< ValueType, 6 >& invNumNeighborsOfEdge,
+                                                                        const std::array< ValueType, 4 >  invNumNeighborsOfFace,
+                                                                        const indexing::Index&            index,
+                                                                        const uint_t&                     level )
+{
+   const auto stencilLeafOnCellVertices = vertexdof::macrocell::isOnCellVertex( index, level );
+   const auto stencilLeafOnCellEdges    = vertexdof::macrocell::isOnCellEdge( index, level );
+   const auto stencilLeafOnCellFaces    = vertexdof::macrocell::isOnCellFace( index, level );
+
+   auto invFactorDueToNeighborhood = ValueType( 1 );
+
+   if ( !stencilLeafOnCellVertices.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellVertices.size(), 1 );
+      const auto localVertexID   = *stencilLeafOnCellVertices.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfVertex[localVertexID];
+   }
+   else if ( !stencilLeafOnCellEdges.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellEdges.size(), 1 );
+      const auto localEdgeID     = *stencilLeafOnCellEdges.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfEdge[localEdgeID];
+   }
+   else if ( !stencilLeafOnCellFaces.empty() )
+   {
+      WALBERLA_ASSERT_EQUAL( stencilLeafOnCellFaces.size(), 1 );
+      const auto localFaceID     = *stencilLeafOnCellFaces.begin();
+      invFactorDueToNeighborhood = invNumNeighborsOfFace[localFaceID];
+   }
+
+   return invFactorDueToNeighborhood;
+}
+
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Function< ValueType >& function,
+                                                                    const uint_t&                  sourceLevel,
+                                                                    const DoFType&                 flag,
+                                                                    const UpdateType&              updateType ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
    const DoFType excludeFlag = ( flag ^ All );
 
    const uint_t destinationLevel = sourceLevel + 1;
 
-   function.communicate< Vertex, Edge >( sourceLevel );
-   function.communicate< Edge, Face >( sourceLevel );
-   function.communicate< Face, Cell >( sourceLevel );
+   function.template communicate< Vertex, Edge >( sourceLevel );
+   function.template communicate< Edge, Face >( sourceLevel );
+   function.template communicate< Face, Cell >( sourceLevel );
 
    for ( const auto& cellIt : function.getStorage()->getCells() )
    {
-      const auto cell    = cellIt.second;
-      const auto srcData = cell->getData( function.getCellDataID() )->getPointer( sourceLevel );
-      auto       dstData = cell->getData( function.getCellDataID() )->getPointer( destinationLevel );
+      const auto       cell    = cellIt.second;
+      const ValueType* srcData = cell->getData( function.getCellDataID() )->getPointer( sourceLevel );
+      ValueType*       dstData = cell->getData( function.getCellDataID() )->getPointer( destinationLevel );
 
       if ( updateType == Replace )
       {
@@ -212,7 +217,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
          for ( const auto& dstIdx : vertexdof::macrocell::Iterator( destinationLevel, 0 ) )
          {
             const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z() );
-            dstData[arrayIdxDst]   = real_c( 0 );
+            dstData[arrayIdxDst]   = static_cast< ValueType >( 0 );
          }
       }
       else if ( updateType == Add )
@@ -223,7 +228,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
             if ( !vertexdof::macrocell::isOnCellFace( dstIdx, destinationLevel ).empty() )
             {
                const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z() );
-               dstData[arrayIdxDst]   = real_c( 0 );
+               dstData[arrayIdxDst]   = static_cast< ValueType >( 0 );
             }
          }
       }
@@ -234,38 +239,39 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
 
       if ( globalDefines::useGeneratedKernels )
       {
+#ifdef HYTEG_USE_GENERATED_KERNELS
          auto storage = function.getStorage();
 
-         const double numNeighborCellsFace0 =
-             static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
-         const double numNeighborCellsFace1 =
-             static_cast< double >( storage->getFace( cell->neighborFaces().at( 1 ) )->getNumNeighborCells() );
-         const double numNeighborCellsFace2 =
-             static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
-         const double numNeighborCellsFace3 =
-             static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
+         auto numNeighborCellsFace0 =
+             static_cast< ValueType >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
+         auto numNeighborCellsFace1 =
+             static_cast< ValueType >( storage->getFace( cell->neighborFaces().at( 1 ) )->getNumNeighborCells() );
+         auto numNeighborCellsFace2 =
+             static_cast< ValueType >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
+         auto numNeighborCellsFace3 =
+             static_cast< ValueType >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
 
-         const double numNeighborCellsEdge0 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
-         const double numNeighborCellsEdge1 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1 ) )->getNumNeighborCells() );
-         const double numNeighborCellsEdge2 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
-         const double numNeighborCellsEdge3 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
-         const double numNeighborCellsEdge4 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
-         const double numNeighborCellsEdge5 =
-             static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge0 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge1 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 1 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge2 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge3 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge4 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
+         auto numNeighborCellsEdge5 =
+             static_cast< ValueType >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
 
-         const double numNeighborCellsVertex0 =
-             static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
-         const double numNeighborCellsVertex1 =
-             static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1 ) )->getNumNeighborCells() );
-         const double numNeighborCellsVertex2 =
-             static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
-         const double numNeighborCellsVertex3 =
-             static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
+         auto numNeighborCellsVertex0 =
+             static_cast< ValueType >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
+         auto numNeighborCellsVertex1 =
+             static_cast< ValueType >( storage->getVertex( cell->neighborVertices().at( 1 ) )->getNumNeighborCells() );
+         const auto numNeighborCellsVertex2 =
+             static_cast< ValueType >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
+         const auto numNeighborCellsVertex3 =
+             static_cast< ValueType >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
 
          vertexdof::macrocell::generated::prolongate_3D_macrocell_P1_push_additive( srcData,
                                                                                     dstData,
@@ -284,32 +290,36 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                                                                                     numNeighborCellsVertex1,
                                                                                     numNeighborCellsVertex2,
                                                                                     numNeighborCellsVertex3 );
+#endif
       }
       else
       {
          // Calculate inverse number of neighboring cells for each neighboring macro-primitive.
-         std::array< real_t, 4 > invNumNeighborsOfVertex;
-         std::array< real_t, 6 > invNumNeighborsOfEdge;
-         std::array< real_t, 4 > invNumNeighborsOfFace;
+         std::array< ValueType, 4 > invNumNeighborsOfVertex{};
+         std::array< ValueType, 6 > invNumNeighborsOfEdge{};
+         std::array< ValueType, 4 > invNumNeighborsOfFace{};
 
-         invNumNeighborsOfVertex.fill( real_c( 0 ) );
-         invNumNeighborsOfEdge.fill( real_c( 0 ) );
-         invNumNeighborsOfFace.fill( real_c( 0 ) );
+         invNumNeighborsOfVertex.fill( static_cast< ValueType >( 0 ) );
+         invNumNeighborsOfEdge.fill( static_cast< ValueType >( 0 ) );
+         invNumNeighborsOfFace.fill( static_cast< ValueType >( 0 ) );
 
          for ( const auto& neighborVertexID : cell->neighborVertices() )
          {
             invNumNeighborsOfVertex[cell->getLocalVertexID( neighborVertexID )] =
-                real_c( 1 ) / real_c( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells() );
+                static_cast< ValueType >( 1 ) /
+                static_cast< ValueType >( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells() );
          }
          for ( const auto& neighborEdgeID : cell->neighborEdges() )
          {
             invNumNeighborsOfEdge[cell->getLocalEdgeID( neighborEdgeID )] =
-                real_c( 1 ) / real_c( function.getStorage()->getEdge( neighborEdgeID )->getNumNeighborCells() );
+                static_cast< ValueType >( 1 ) /
+                static_cast< ValueType >( function.getStorage()->getEdge( neighborEdgeID )->getNumNeighborCells() );
          }
          for ( const auto& neighborFaceID : cell->neighborFaces() )
          {
             invNumNeighborsOfFace[cell->getLocalFaceID( neighborFaceID )] =
-                real_c( 1 ) / real_c( function.getStorage()->getFace( neighborFaceID )->getNumNeighborCells() );
+                static_cast< ValueType >( 1 ) /
+                static_cast< ValueType >( function.getStorage()->getFace( neighborFaceID )->getNumNeighborCells() );
          }
 
          for ( const auto& srcIdx : vertexdof::macrocell::Iterator( sourceLevel ) )
@@ -329,7 +339,7 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
             dstData[arrayIdxDstCenter] += invFactorToScaleContributionCenter * srcData[arrayIdxSrc];
 
             // update new points depending on location in macro-cell
-            if ( onCellVertices.size() > 0 )
+            if ( !onCellVertices.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
                const auto localVertexID = *onCellVertices.begin();
@@ -337,16 +347,16 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                for ( const auto& dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
 
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
-            else if ( onCellEdges.size() > 0 )
+            else if ( !onCellEdges.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
                const auto localEdgeID = *onCellEdges.begin();
@@ -354,15 +364,15 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                for ( const auto& dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx.cast<idx_t>() + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
-            else if ( onCellFaces.size() > 0 )
+            else if ( !onCellFaces.empty() )
             {
                WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
                const auto localFaceID = *onCellFaces.begin();
@@ -370,12 +380,12 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                for ( const auto& dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment;
+                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
                       vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-                  dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * invFactorToScaleContribution * srcData[arrayIdxSrc];
                }
             }
             else
@@ -384,27 +394,34 @@ void P1toP1LinearProlongation::prolongate3DAdditively( const P1Function< real_t 
                {
                   const auto arrayIdxDst =
                       vertexdof::macrocell::indexFromVertex( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z(), dir );
-                  dstData[arrayIdxDst] += 0.5 * srcData[arrayIdxSrc];
+                  dstData[arrayIdxDst] += static_cast< ValueType >( 0.5 ) * srcData[arrayIdxSrc];
                }
             }
          }
       }
    }
 
-   function.communicateAdditively< Cell, Vertex >( destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
-   function.communicateAdditively< Cell, Edge >( destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
-   function.communicateAdditively< Cell, Face >( destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.template communicateAdditively< Cell, Vertex >(
+       destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.template communicateAdditively< Cell, Edge >(
+       destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.template communicateAdditively< Cell, Face >(
+       destinationLevel, excludeFlag, *function.getStorage(), updateType == Replace );
 }
 
-void P1toP1LinearProlongation::prolongateMacroVertex2D( const real_t* src, real_t* dst, const uint_t& ) const
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongateMacroVertex2D( const ValueType* src, ValueType* dst, const uint_t& ) const
 {
    dst[0] = src[0];
 }
 
-void P1toP1LinearProlongation::prolongateMacroEdge2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongateMacroEdge2D( const ValueType* src,
+                                                                   ValueType*       dst,
+                                                                   const uint_t&    sourceLevel ) const
 {
    uint_t rowsize_c = levelinfo::num_microvertices_per_edge( sourceLevel );
-   idx_t i_c;
+   idx_t  i_c;
 
    for ( i_c = 1; i_c < idx_t( rowsize_c ) - 1; ++i_c )
    {
@@ -412,16 +429,21 @@ void P1toP1LinearProlongation::prolongateMacroEdge2D( const real_t* src, real_t*
           src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )];
 
       dst[vertexdof::macroedge::indexFromVertex( sourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )] =
-          0.5 * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
-                  src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
+          static_cast< ValueType >( 0.5 ) *
+          ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
+            src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
    }
 
    dst[vertexdof::macroedge::indexFromVertex( sourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )] =
-       0.5 * ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
-               src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
+       static_cast< ValueType >( 0.5 ) *
+       ( src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c - 1, stencilDirection::VERTEX_C )] +
+         src[vertexdof::macroedge::indexFromVertex( sourceLevel, i_c, stencilDirection::VERTEX_C )] );
 }
 
-void P1toP1LinearProlongation::prolongateMacroFace2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
+template < typename ValueType >
+void P1toP1LinearProlongation< ValueType >::prolongateMacroFace2D( const ValueType* src,
+                                                                   ValueType*       dst,
+                                                                   const uint_t&    sourceLevel ) const
 {
    typedef stencilDirection SD;
    using namespace vertexdof::macroface;
@@ -438,28 +460,32 @@ void P1toP1LinearProlongation::prolongateMacroFace2D( const real_t* src, real_t*
          dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j, SD::VERTEX_C )] =
              src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )];
          dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j - 1, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+             static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
+                                                 src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
          dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
+             static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                                                 src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
          dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j - 1, SD::VERTEX_C )] =
-             0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                     src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+             static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                                                 src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
       }
 
       dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j - 1, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+          static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] +
+                                              src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
       dst[indexFromVertex( sourceLevel + 1, 2 * i - 1, 2 * j, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
+          static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                                              src[indexFromVertex( sourceLevel, i - 1, j, SD::VERTEX_C )] );
       dst[indexFromVertex( sourceLevel + 1, 2 * i, 2 * j - 1, SD::VERTEX_C )] =
-          0.5 * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
-                  src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
+          static_cast< ValueType >( 0.5 ) * ( src[indexFromVertex( sourceLevel, i, j, SD::VERTEX_C )] +
+                                              src[indexFromVertex( sourceLevel, i, j - 1, SD::VERTEX_C )] );
 
       --N_c_i;
    }
 }
+
+
+template class P1toP1LinearProlongation< double >;
+template class P1toP1LinearProlongation< float >;
 
 } // namespace hyteg

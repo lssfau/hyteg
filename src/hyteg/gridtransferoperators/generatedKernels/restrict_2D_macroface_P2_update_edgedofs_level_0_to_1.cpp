@@ -29,7 +29,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_0_to_1_level_any(double * RESTRICT _data_edgeCoarseDst_X, double * RESTRICT _data_edgeCoarseDst_XY, double * RESTRICT _data_edgeCoarseDst_Y, double * RESTRICT _data_edgeFineSrc_X, double * RESTRICT _data_edgeFineSrc_XY, double * RESTRICT _data_edgeFineSrc_Y, double * RESTRICT _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_0_to_1_level_any(real_t * RESTRICT _data_edgeCoarseDst_X, real_t * RESTRICT _data_edgeCoarseDst_XY, real_t * RESTRICT _data_edgeCoarseDst_Y, real_t * RESTRICT _data_edgeFineSrc_X, real_t * RESTRICT _data_edgeFineSrc_XY, real_t * RESTRICT _data_edgeFineSrc_Y, real_t * RESTRICT _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_6 = 1 / (num_neighbor_faces_edge0);
    const double xi_7 = 1 / (num_neighbor_faces_edge1);
@@ -54,15 +54,15 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_0_to_1_level_any(doub
          const double xi_19 = 1.0*xi_8*_data_vertexFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1];
          const double xi_20 = xi_8*0.75*_data_edgeFineSrc_XY[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          const double xi_21 = xi_8*0.75*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         _data_edgeCoarseDst_X[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_10 + xi_13 + xi_14 + xi_15 + xi_18 + xi_23;
-         _data_edgeCoarseDst_XY[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_16 + xi_18 + xi_19 + xi_20 + xi_21 + xi_24;
-         _data_edgeCoarseDst_Y[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_22 + xi_23 + xi_24 + xi_25 + xi_26 + xi_27;
+         _data_edgeCoarseDst_X[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = real_c( xi_10 + xi_13 + xi_14 + xi_15 + xi_18 + xi_23 );
+         _data_edgeCoarseDst_XY[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = real_c( xi_16 + xi_18 + xi_19 + xi_20 + xi_21 + xi_24 );
+         _data_edgeCoarseDst_Y[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = real_c( xi_22 + xi_23 + xi_24 + xi_25 + xi_26 + xi_27 );
       }
    }
 }
 
 
-void restrict_2D_macroface_P2_update_edgedofs_level_0_to_1(double * RESTRICT _data_edgeCoarseDst_X, double * RESTRICT _data_edgeCoarseDst_XY, double * RESTRICT _data_edgeCoarseDst_Y, double * RESTRICT _data_edgeFineSrc_X, double * RESTRICT _data_edgeFineSrc_XY, double * RESTRICT _data_edgeFineSrc_Y, double * RESTRICT _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+void restrict_2D_macroface_P2_update_edgedofs_level_0_to_1(real_t * RESTRICT _data_edgeCoarseDst_X, real_t * RESTRICT _data_edgeCoarseDst_XY, real_t * RESTRICT _data_edgeCoarseDst_Y, real_t * RESTRICT _data_edgeFineSrc_X, real_t * RESTRICT _data_edgeFineSrc_XY, real_t * RESTRICT _data_edgeFineSrc_Y, real_t * RESTRICT _data_vertexFineSrc, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
     switch( coarse_level )
     {

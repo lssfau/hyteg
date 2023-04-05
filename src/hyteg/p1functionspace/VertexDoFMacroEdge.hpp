@@ -24,7 +24,6 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -552,88 +551,6 @@ inline void enumerate( const uint_t&                                            
 }
 
 template < typename ValueType >
-inline void integrateDG( const uint_t&                                               level,
-                         Edge&                                                       edge,
-                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsP1Id,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
-{
-   typedef stencilDirection sD;
-
-   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-
-   auto rhs   = edge.getData( rhsId )->getPointer( level );
-   auto rhsP1 = edge.getData( rhsP1Id )->getPointer( level );
-   auto dst   = edge.getData( dstId )->getPointer( level );
-
-   real_t tmp;
-
-   Face* face = storage->getFace( edge.neighborFaces()[0] );
-
-   real_t weightedFaceArea0 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
-   real_t weightedFaceArea1 = real_c( 0 );
-
-   if ( edge.getNumNeighborFaces() == 2 )
-   {
-      face              = storage->getFace( edge.neighborFaces()[1] );
-      weightedFaceArea1 = std::pow( 4.0, -walberla::real_c( level ) ) * face->getArea() / 3.0;
-   }
-
-   for ( size_t i = 1; i < rowsize - 1; ++i )
-   {
-      tmp = weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_SW )] *
-            ( 0.5 * 0.5 *
-                  ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                    rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )] ) +
-              0.5 * 0.5 *
-                  ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                    rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ) );
-      tmp += weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_BLUE_SE )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ) );
-      tmp += weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_SE )] *
-             ( 0.5 * 0.5 *
-                   ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ) +
-               0.5 * 0.5 *
-                   ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )] ) );
-
-      if ( edge.getNumNeighborFaces() == 2 )
-      {
-         tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_NW )] *
-                ( 0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )] ) +
-                  0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )] ) );
-         tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_BLUE_NW )] *
-                ( 0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )] ) +
-                  0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )] ) );
-         tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_NE )] *
-                ( 0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )] ) +
-                  0.5 * 0.5 *
-                      ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                        rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )] ) );
-      }
-
-      dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = ValueType( tmp );
-   }
-}
-
-template < typename ValueType >
 inline void printFunctionMemory( const uint_t&                                               level,
                                  const Edge&                                                 edge,
                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
@@ -717,10 +634,11 @@ inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDa
    return localMin;
 }
 
+template< typename ValueType >
 inline void saveOperator( const uint_t&                                           level,
                           Edge&                                                   edge,
                           const PrimitiveStorage&                                 storage,
-                          const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
+                          const PrimitiveDataID< StencilMemory< ValueType >, Edge >& operatorId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
                           const std::shared_ptr< SparseMatrixProxy >&             mat )

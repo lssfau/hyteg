@@ -122,7 +122,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW,
                       vertexToVertexStencil, edgeToVertexStencil);
@@ -253,7 +253,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
-      uint_t i = it.col();
+      uint_t i = it.x();
       x = x0 + walberla::real_c(i) * dx;
       assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil);
 
@@ -585,7 +585,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                       vertexToVertexStencil, vertexToEdgeStencil);
@@ -722,7 +722,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
-      uint_t i = it.col();
+      uint_t i = it.x();
       x = x0 + walberla::real_c(i) * dx;
       assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, vertexToEdgeStencil);
 

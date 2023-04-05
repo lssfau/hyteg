@@ -48,12 +48,11 @@ MeshInfo MeshInfo::meshAnnulus( const real_t      rhoMin,
    WALBERLA_ASSERT_GREATER( nRad, 0 );
 
    // mesh partial annulus in polar coordinates
-   MeshInfo meshInfo =
-       MeshInfo::meshRectangle( Point2D( {rhoMin, phiLeft} ), Point2D( {rhoMax, phiRight} ), flavour, nRad, nTan );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( rhoMin, phiLeft ), Point2D( rhoMax, phiRight ), flavour, nRad, nTan );
 
    // map vertex coordinates to cartesian domain
    Point3D node;
-   node[2] = 0.0;
+   node[2] = real_c( 0.0 );
    uint_t boundaryFlag;
    real_t rho, phi;
    for ( size_t id = 0; id < meshInfo.vertices_.size(); ++id )
@@ -78,13 +77,13 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
    WALBERLA_ASSERT_GREATER( nRad, 0 );
 
    // mesh a rectangle representing the annulus in polar coordinates
-   MeshInfo meshInfo = MeshInfo::meshRectangle(
-       Point2D( {rhoMin, real_c( 0.0 )} ), Point2D( {rhoMax, real_c( 2.0 ) * pi} ), flavour, nRad, nTan );
+   MeshInfo meshInfo =
+       MeshInfo::meshRectangle( Point2D( rhoMin, real_c( 0.0 ) ), Point2D( rhoMax, real_c( 2.0 ) * pi ), flavour, nRad, nTan );
 
    // determine some tolerances for further operations
-   const real_t tolFactor  = 0.1;
+   const real_t tolFactor  = real_c( 0.1 );
    const real_t xTolerance = ( ( rhoMax - rhoMin ) / real_c( nRad ) ) * tolFactor;
-   const real_t yTolerance = ( 2.0 * pi / real_c( nTan ) ) * tolFactor;
+   const real_t yTolerance = ( real_c( 2.0 ) * pi / real_c( nTan ) ) * tolFactor;
 
    // set boundary flags for vertices;
    // note that the interior of the left and right edge of the rectangle will be glued together
@@ -123,7 +122,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
    {
       auto vertex = it.second;
 
-      if ( std::abs( vertex.getCoordinates()[1] - 2.0 * pi ) < yTolerance )
+      if ( std::abs( vertex.getCoordinates()[1] - real_c( 2.0 ) * pi ) < yTolerance )
       {
          for ( const auto& itInner : meshInfo.vertices_ )
          {
@@ -146,8 +145,8 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
       auto v0   = meshInfo.vertices_[edge.getVertices()[0]];
       auto v1   = meshInfo.vertices_[edge.getVertices()[1]];
 
-      if ( std::abs( v0.getCoordinates()[1] - 2.0 * pi ) < yTolerance &&
-           std::abs( v1.getCoordinates()[1] - 2.0 * pi ) < yTolerance )
+      if ( std::abs( v0.getCoordinates()[1] - real_c( 2.0 ) * pi ) < yTolerance &&
+           std::abs( v1.getCoordinates()[1] - real_c( 2.0 ) * pi ) < yTolerance )
       {
          topBoundaryEdges.push_back( {edge.getVertices()} );
       }
@@ -244,7 +243,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, const 
 
    // map vertex coordinates to cartesian domain
    Point3D node;
-   node[2] = 0.0;
+   node[2] = real_c( 0.0 );
    uint_t boundaryFlag;
    real_t rho, phi;
    for ( size_t id = 0; id < meshInfo.vertices_.size(); ++id )

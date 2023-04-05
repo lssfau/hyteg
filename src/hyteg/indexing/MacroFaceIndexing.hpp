@@ -82,10 +82,10 @@ class FaceIterator
    {
       WALBERLA_ASSERT_LESS_EQUAL( offsetToCenter, width, "Offset to center is beyond face width!" );
 
-      coordinates_.dep() = 0;
+      coordinates_.z() = 0;
 
-      coordinates_.col() = offsetToCenter;
-      coordinates_.row() = offsetToCenter;
+      coordinates_.x() = offsetToCenter;
+      coordinates_.y() = offsetToCenter;
 
       if ( end )
       {
@@ -109,19 +109,19 @@ class FaceIterator
 
       step_++;
 
-      const uint_t currentRow = coordinates_.row();
-      const uint_t currentCol = coordinates_.col();
+      const uint_t currentRow = coordinates_.y();
+      const uint_t currentCol = coordinates_.x();
 
       const uint_t lengthOfCurrentRowWithoutOffset = width_ - currentRow;
 
       if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter_ - 1 )
       {
-         coordinates_.col()++;
+         coordinates_.x()++;
       }
       else
       {
-         coordinates_.row()++;
-         coordinates_.col() = offsetToCenter_;
+         coordinates_.y()++;
+         coordinates_.x() = offsetToCenter_;
       }
 
       return *this;
@@ -221,7 +221,7 @@ inline FaceBoundaryDirection getFaceBoundaryDirectionFromLocalVertexPair( uint_t
 ///
 ///   for ( const auto & it : FaceBorderIterator( 9, FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
 ///   {
-///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
+///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.x() << ", row = " << it.y() );
 ///   }
 ///
 /// \param width width of one edge of the face
@@ -275,33 +275,33 @@ class FaceBoundaryIterator
    {
       WALBERLA_ASSERT_GREATER( width, 0, "Size of face must be larger than zero!" );
 
-      coordinates_.dep() = 0;
+      coordinates_.z() = 0;
 
       switch ( direction )
       {
       case FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT:
-         coordinates_.col() = 0 + offsetFromVertices;
-         coordinates_.row() = 0 + offsetToCenter;
+         coordinates_.x() = 0 + offsetFromVertices;
+         coordinates_.y() = 0 + offsetToCenter;
          break;
       case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
-         coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
-         coordinates_.row() = 0 + offsetToCenter;
+         coordinates_.x() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.y() = 0 + offsetToCenter;
          break;
       case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
-         coordinates_.col() = 0 + offsetToCenter;
-         coordinates_.row() = 0 + offsetFromVertices;
+         coordinates_.x() = 0 + offsetToCenter;
+         coordinates_.y() = 0 + offsetFromVertices;
          break;
       case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
-         coordinates_.col() = 0 + offsetToCenter;
-         coordinates_.row() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.x() = 0 + offsetToCenter;
+         coordinates_.y() = width - 1 - offsetToCenter - offsetFromVertices;
          break;
       case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
-         coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
-         coordinates_.row() = 0 + offsetFromVertices;
+         coordinates_.x() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.y() = 0 + offsetFromVertices;
          break;
       case FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM:
-         coordinates_.col() = 0 + offsetFromVertices;
-         coordinates_.row() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.x() = 0 + offsetFromVertices;
+         coordinates_.y() = width - 1 - offsetToCenter - offsetFromVertices;
          break;
       default:
          WALBERLA_ASSERT( false, "Invalid direction in face border iterator" );
@@ -341,24 +341,24 @@ class FaceBoundaryIterator
       switch ( direction_ )
       {
       case FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT:
-         coordinates_.col()++;
+         coordinates_.x()++;
          break;
       case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
-         coordinates_.col()--;
+         coordinates_.x()--;
          break;
       case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
-         coordinates_.row()++;
+         coordinates_.y()++;
          break;
       case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
-         coordinates_.row()--;
+         coordinates_.y()--;
          break;
       case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
-         coordinates_.col()--;
-         coordinates_.row()++;
+         coordinates_.x()--;
+         coordinates_.y()++;
          break;
       case FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM:
-         coordinates_.col()++;
-         coordinates_.row()--;
+         coordinates_.x()++;
+         coordinates_.y()--;
          break;
       default:
          WALBERLA_ASSERT( false, "Invalid direction in face border iterator" );
@@ -388,8 +388,8 @@ template < uint_t width >
 inline Index getFaceBottomLeftCorner()
 {
    Index idx;
-   idx.col() = 0;
-   idx.row() = 0;
+   idx.x() = 0;
+   idx.y() = 0;
    return idx;
 }
 
@@ -397,8 +397,8 @@ template < uint_t width >
 inline Index getFaceBottomRightCorner()
 {
    Index idx;
-   idx.col() = width - 1;
-   idx.row() = 0;
+   idx.x() = width - 1;
+   idx.y() = 0;
    return idx;
 }
 
@@ -406,8 +406,8 @@ template < uint_t width >
 inline Index getFaceTopLeftCorner()
 {
    Index idx;
-   idx.col() = 0;
-   idx.row() = width - 1;
+   idx.x() = 0;
+   idx.y() = width - 1;
    return idx;
 }
 

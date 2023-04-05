@@ -178,15 +178,15 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
       if( edgeIndexOnFace == 0 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 2 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )];
       } else if( edgeIndexOnFace == 1 )
       {
          buffer >>
-             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )];
+             faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )];
       } else
       {
          WALBERLA_ABORT( "Wrong edgeIndexOnFace" )
@@ -210,15 +210,15 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
    {
       if( edgeIndexOnFace == 0 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_HO_C )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 2 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_DI_N )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else if( edgeIndexOnFace == 1 )
       {
-         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
+         faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), stencilDirection::EDGE_VE_NW )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, idx_t( indexOnEdge ), stencilDirection::EDGE_HO_C )];
       } else
       {
@@ -285,15 +285,15 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 1 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirOne )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirOne )];
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirTwo )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirTwo )];
    }
    for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
-      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirThree )];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.x(), it.y(), faceDirThree )];
    }
 
    //// DoFs on neighboring cells /////
@@ -481,7 +481,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, idx_t( edgeIndexCounter ), edgeLocalFaceID, edgeOriOnReferenceEdge );
-         uint_t idxOnFace    = edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace );
+         uint_t idxOnFace    = edgedof::macroface::index( level_, it.x(), it.y(), edgeOrientationOnFace );
          edgeData[idxOnEdge] = faceData[idxOnFace];
          ++edgeIndexCounter;
       }
@@ -496,7 +496,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, idx_t( edgeIndexCounter ), edgeLocalFaceID, edgeOriOnReferenceEdge );
-         edgeData[idxOnEdge] = faceData[edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace )];
+         edgeData[idxOnEdge] = faceData[edgedof::macroface::index( level_, it.x(), it.y(), edgeOrientationOnFace )];
          ++edgeIndexCounter;
       }
    }
@@ -627,6 +627,7 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
    this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Face to Cell (pack)" );
    if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
+#ifdef HYTEG_USE_GENERATED_KERNELS
       auto         cell             = storage_.lock()->getCell( receiver );
       const uint_t localFaceID      = cell->getLocalFaceID( sender->getID() );
       const uint_t iterationVertex0 = cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
@@ -649,6 +650,7 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
                                                                                 static_cast< int >( iterationVertex1 ),
                                                                                 static_cast< int >( iterationVertex2 ),
                                                                                 0 );
+#endif
    }
    else
    {
@@ -712,6 +714,7 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
 
    if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
+#ifdef HYTEG_USE_GENERATED_KERNELS
       const uint_t requiredBufferElements = levelinfo::num_microedges_per_face( level_ );
       auto         buffer_ptr             = (real_t*) ( buffer.skip( requiredBufferElements * sizeof( real_t ) ) );
 
@@ -732,6 +735,7 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
           static_cast< int >( iterationVertex1 ),
           static_cast< int >( iterationVertex2 ),
           0 );
+#endif
    }
    else
    {
@@ -810,6 +814,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalFaceToCell( const Face* sender, 
 
   if ( globalDefines::useGeneratedKernels && level_ >= 1 )
   {
+#ifdef HYTEG_USE_GENERATED_KERNELS
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxFace;
     for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
       firstIdxFace[e] = edgedof::macroface::index( level_, 0, 0, e );
@@ -833,6 +838,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalFaceToCell( const Face* sender, 
       static_cast< int >( iterationVertex1 ),
       static_cast< int >( iterationVertex2 )
     );
+#endif
   }
   else
   {
@@ -1046,6 +1052,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
 
   if ( level_ >= 1 && globalDefines::useGeneratedKernels )
   {
+#ifdef HYTEG_USE_GENERATED_KERNELS
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxCell;
     for ( auto e : edgedof::allEdgeDoFOrientations )
       firstIdxCell[e] = edgedof::macrocell::index( level_, 0, 0, 0, e );
@@ -1092,6 +1099,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
       static_cast< int >( iterationVertex1 ),
       static_cast< int >( iterationVertex2 )
     );
+#endif
   }
   else
   {

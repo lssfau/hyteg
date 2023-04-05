@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"

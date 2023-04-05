@@ -138,7 +138,7 @@ std::shared_ptr< Solver< P1ConstantLaplaceOperator > > setupSmoother( const std:
    {
       laplaceOperator.computeInverseDiagonalOperatorValues();
       auto smoother = std::make_shared< P1JacobiSmoother >( storage, minLevel, maxLevel );
-      smoother->setWeight( 2. / 3. );
+      smoother->setWeight( real_c( 2. / 3. ) );
       return smoother;
    }
    else if ( smootherType == "chebyshev" )
@@ -190,7 +190,7 @@ int main( int argc, char** argv )
 
    const std::string smootherType = parameters.getParameter< std::string >( "smootherType" );
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {1., 1.} ), MeshInfo::CRISSCROSS, 4, 4 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 4, 4 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -234,8 +234,8 @@ int main( int argc, char** argv )
 
    auto coarseGridSolver = std::make_shared< CGSolver< P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
-   auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
+   auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 
    auto multiGridSolver = GeometricMultigridSolver< P1ConstantLaplaceOperator >( storage,
                                                                                     smoother,

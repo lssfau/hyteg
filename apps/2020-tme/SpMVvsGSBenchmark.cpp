@@ -79,7 +79,7 @@ void run()
    WALBERLA_LOG_INFO_ON_ROOT( " - num iterations: " << numIterations );
 
    auto meshInfo = MeshInfo::meshSymmetricCuboid(
-       Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
    auto setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

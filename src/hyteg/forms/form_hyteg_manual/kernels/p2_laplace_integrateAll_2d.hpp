@@ -21,7 +21,7 @@
 
 // Internal Documentation: This is variant V3_star
 
-elMat.setAll( real_c( 0 ) );
+elMat.setZero();
 
 const auto coords_0_0 = coords[0][0];
 const auto coords_0_1 = coords[0][1];

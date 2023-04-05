@@ -94,8 +94,8 @@ void N1E1toN1E1Prolongation::prolongateMacroEdge( const real_t* src, real_t* dst
 
    for ( idx_t i = 0; i < idx_t( n ); ++i )
    {
-      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i )] += 0.5 * src[edgedof::macroedge::index( sourceLevel, i )];
-      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i + 1 )] += 0.5 * src[edgedof::macroedge::index( sourceLevel, i )];
+      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i )] += real_c( 0.5 ) * src[edgedof::macroedge::index( sourceLevel, i )];
+      dst[edgedof::macroedge::index( sourceLevel + 1, 2 * i + 1 )] += real_c( 0.5 ) * src[edgedof::macroedge::index( sourceLevel, i )];
    }
 }
 
@@ -105,60 +105,60 @@ void N1E1toN1E1Prolongation::prolongateMacroFace( const real_t* src, real_t* dst
 
    for ( auto it : edgedof::macroface::Iterator( sourceLevel ) )
    {
-      const idx_t row = it.row();
-      const idx_t col = it.col();
+      const idx_t row = it.y();
+      const idx_t col = it.x();
 
       // horizontal edges
       real_t src_val = src[edgedof::macroface::horizontalIndex( sourceLevel, col, row )];
 
-      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col, 2 * row )] += 0.5 * src_val;
-      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += 0.5 * src_val;
+      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col, 2 * row )] += real_c( 0.5 ) * src_val;
+      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += real_c( 0.5 ) * src_val;
 
-      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += 0.25 * src_val;
-      dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col + 1, 2 * row, sD::EDGE_VE_NW )] += 0.25 * src_val;
-      dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_DI_N )] += -0.25 * src_val;
+      dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col + 1, 2 * row, sD::EDGE_VE_NW )] += real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_DI_N )] += -real_c( 0.25 ) * src_val;
 
       if ( row > 0 )
       {
-         dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col + 1, 2 * row - 1 )] += 0.25 * src_val;
-         dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_VE_SE )] += 0.25 * src_val;
+         dst[edgedof::macroface::horizontalIndex( sourceLevel + 1, 2 * col + 1, 2 * row - 1 )] += real_c( 0.25 ) * src_val;
+         dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_VE_SE )] += real_c( 0.25 ) * src_val;
          dst[edgedof::macroface::indexFromHorizontalEdge( sourceLevel + 1, 2 * col + 1, 2 * row, sD::EDGE_DI_S )] +=
-             -0.25 * src_val;
+             -real_c( 0.25 ) * src_val;
       }
 
       // vertical edges
       src_val = src[edgedof::macroface::verticalIndex( sourceLevel, col, row )];
 
-      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col, 2 * row )] += 0.5 * src_val;
-      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += 0.5 * src_val;
+      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col, 2 * row )] += real_c( 0.5 ) * src_val;
+      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += real_c( 0.5 ) * src_val;
 
-      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += 0.25 * src_val;
-      dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_HO_SE )] += 0.25 * src_val;
-      dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_DI_E )] += 0.25 * src_val;
+      dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_HO_SE )] += real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_DI_E )] += real_c( 0.25 ) * src_val;
 
       if ( col > 0 )
       {
-         dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col - 1, 2 * row + 1 )] += 0.25 * src_val;
-         dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_HO_NW )] += 0.25 * src_val;
-         dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_DI_W )] += 0.25 * src_val;
+         dst[edgedof::macroface::verticalIndex( sourceLevel + 1, 2 * col - 1, 2 * row + 1 )] += real_c( 0.25 ) * src_val;
+         dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_HO_NW )] += real_c( 0.25 ) * src_val;
+         dst[edgedof::macroface::indexFromVerticalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_DI_W )] += real_c( 0.25 ) * src_val;
       }
 
       // diagonal edges
       src_val = src[edgedof::macroface::diagonalIndex( sourceLevel, col, row )];
 
-      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += 0.5 * src_val;
-      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += 0.5 * src_val;
+      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col, 2 * row + 1 )] += real_c( 0.5 ) * src_val;
+      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col + 1, 2 * row )] += real_c( 0.5 ) * src_val;
 
-      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col, 2 * row )] += 0.25 * src_val;
-      dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_HO_N )] += -0.25 * src_val;
-      dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_VE_E )] += 0.25 * src_val;
+      dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col, 2 * row )] += real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_HO_N )] += -real_c( 0.25 ) * src_val;
+      dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row, sD::EDGE_VE_E )] += real_c( 0.25 ) * src_val;
 
       if ( row + col < idx_t( levelinfo::num_microedges_per_edge( sourceLevel ) - 1 ) )
       {
-         dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col + 1, 2 * row + 1 )] += 0.25 * src_val;
+         dst[edgedof::macroface::diagonalIndex( sourceLevel + 1, 2 * col + 1, 2 * row + 1 )] += real_c( 0.25 ) * src_val;
          dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col + 1, 2 * row, sD::EDGE_HO_N )] +=
-             -0.25 * src_val;
-         dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_VE_E )] += 0.25 * src_val;
+             -real_c( 0.25 ) * src_val;
+         dst[edgedof::macroface::indexFromDiagonalEdge( sourceLevel + 1, 2 * col, 2 * row + 1, sD::EDGE_VE_E )] += real_c( 0.25 ) * src_val;
       }
    }
 }
@@ -190,206 +190,206 @@ void N1E1toN1E1Prolongation::prolongateMacroCell( const real_t* src, real_t* dst
 
       // clang-format off
       if ( isValid   (dstLvl, 2*x -1, 2*y +0, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
-         dst[ xyIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
-         dst[ xzIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
-         dst[  yIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → green up (1, 3, 4, 5)
-         dst[  zIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
+         dst[  xIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
+         dst[ xyIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
+         dst[ xzIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
+         dst[  yIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → green up (1, 3, 4, 5)
+         dst[  zIndex(dstLvl, 2*x -1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 4, 5), (2, 6) → (2, 7, 6)
       }
       if ( isValid   (dstLvl, 2*x -1, 2*y +1, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
-         dst[ xyIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.0000 * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → blue up (1, 3, 2, 5)
-         dst[  yIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → blue up (1, 3, 2, 5)
-         dst[ yzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
-         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → blue up (1, 3, 2, 5)
-         dst[  zIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
+         dst[  xIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
+         dst[ xyIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.0000 ) * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → blue up (1, 3, 2, 5)
+         dst[  yIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (1, 2) → (1, 3, 2), (5, 6) → (5, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → blue up (1, 3, 2, 5)
+         dst[ yzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
+         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → blue up (1, 3, 2, 5)
+         dst[  zIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
       }
       if ( isValid   (dstLvl, 2*x -1, 2*y +1, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
-         dst[ xyIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
-         dst[  yIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → green down (3, 2, 5, 7)
-         dst[ yzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
+         dst[  xIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
+         dst[ xyIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
+         dst[  yIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → green down (3, 2, 5, 7)
+         dst[ yzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 7)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y -1, 2*z +1) ) {
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → blue down (3, 4, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → blue down (3, 4, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → (2, 5, 6), (3, 7) → (3, 4, 7)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y +0, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.5000 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1), (3, 2), (4, 5), (7, 6)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.5000 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3), (1, 2), (4, 7), (5, 6)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.5000 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4), (1, 5), (2, 6), (3, 7)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1), (3, 2), (4, 5), (7, 6)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3), (1, 2), (4, 7), (5, 6)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4), (1, 5), (2, 6), (3, 7)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y +0, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.5000 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4), (2, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.5000 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5), (3, 4)
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.5000 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4), (1, 5), (2, 6), (3, 7)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.5000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4), (2, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.5000 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5), (3, 4)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.5000 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4), (1, 5), (2, 6), (3, 7)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y +1, 2*z -1) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → blue down (3, 4, 5, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → blue down (3, 4, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.0000 * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → blue down (3, 4, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → blue down (3, 4, 5, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → blue down (3, 4, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.0000 ) * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → blue down (3, 4, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (4, 7) → (3, 4, 7), (5, 6) → (2, 5, 6)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y +1, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.5000 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3), (5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.5000 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3), (1, 2), (4, 7), (5, 6)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.5000 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5), (3, 4)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.5000 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3), (5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.5000 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3), (1, 2), (4, 7), (5, 6)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 3, 4), (1, 2) → (1, 2, 5)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.5000 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5), (3, 4)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (1, 2, 5), (3, 4) → (0, 3, 4)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 3, 4), (1, 5) → (1, 2, 5)
       }
       if ( isValid   (dstLvl, 2*x +0, 2*y +1, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → blue down (3, 4, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
-         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
-         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → blue down (3, 4, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
+         dst[ yzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
+         dst[  zIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (2, 5, 6), (3, 4) → (3, 4, 7)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y -1, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → blue up (1, 3, 2, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → blue up (1, 3, 2, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (1, 3, 2), (7, 6) → (5, 7, 6)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y -1, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → green down (3, 2, 5, 7)
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.0000 * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → green down (3, 2, 5, 7)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → green down (3, 2, 5, 7)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → green down (3, 2, 5, 7)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.0000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → green down (3, 2, 5, 7)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → (2, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → green down (3, 2, 5, 7)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +0, 2*z -1) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → green up (1, 3, 4, 5)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] += -0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → green up (1, 3, 4, 5)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] += -real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (1, 4, 5), (7, 6) → (2, 7, 6)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +0, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.5000 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1), (3, 2), (4, 5), (7, 6)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.5000 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3), (5, 7)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.5000 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4), (2, 7)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1), (3, 2), (4, 5), (7, 6)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 3), (4, 5) → (4, 5, 7)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → (0, 1, 4), (3, 2) → (3, 2, 7)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3), (5, 7)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (0, 1, 3), (5, 7) → (4, 5, 7)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 4)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.5000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4), (2, 7)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 3, 4)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (0, 1, 4), (2, 7) → (3, 2, 7)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → (0, 1, 3), (4, 7) → (4, 5, 7)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (1, 3, 4)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → (0, 1, 4), (3, 7) → (3, 2, 7)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +0, 2*z +1) ) {
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → green up (1, 3, 4, 5)
-         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.0000 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → green up (1, 3, 4, 5)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → green up (1, 3, 4, 5)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → green up (1, 3, 4, 5)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.0000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → green up (1, 3, 4, 5)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → (1, 4, 5), (2, 7) → (2, 7, 6)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → green up (1, 3, 4, 5)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +1, 2*z -1) ) {
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → green down (3, 2, 5, 7)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → green down (3, 2, 5, 7)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (2, 5, 7)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +1, 2*z +0) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → blue up (1, 3, 2, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → blue up (1, 3, 2, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 2), (5, 7) → (5, 7, 6)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x -1, 2*y -1, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x -1, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x -1, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (2, 6) → white down (2, 5, 7, 6)
       }
       if ( isValidXYZ(dstLvl, 2*x -1, 2*y +0, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x -1, 2*y +0, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
+         dst[xyzIndex(dstLvl, 2*x -1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (1, 5) → (1, 3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x -1, 2*y +1, 2*z -1) ) {
-         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z -1)] +=  0.0000 * src[  yIndex(srcLvl, x, y, z)]; // (5, 6) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z -1)] +=  real_c( 0.0000 ) * src[  yIndex(srcLvl, x, y, z)]; // (5, 6) → white down (2, 5, 7, 6)
       }
       if ( isValidXYZ(dstLvl, 2*x -1, 2*y +1, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
+         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → (3, 2, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x -1, 2*y +1, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x -1, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (2, 5) → white down (2, 5, 7, 6)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y -1, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y -1, 2*z +1)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (3, 7) → (3, 5, 7)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +0, 2*z -1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (4, 5) → (3, 4, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +0, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → white up (0, 1, 3, 4)
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → white up (0, 1, 3, 4)
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.0000 * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → white up (0, 1, 3, 4)
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.0000 * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → white up (0, 1, 3, 4)
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → white up (0, 1, 3, 4)
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  0.2500 * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (0, 1) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.0000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (1, 4) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.0000 ) * src[  yIndex(srcLvl, x, y, z)]; // (0, 3) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → white up (0, 1, 3, 4)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[  zIndex(srcLvl, x, y, z)]; // (0, 4) → white up (0, 1, 3, 4)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +0, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[ yzIndex(srcLvl, x, y, z)]; // (3, 4) → (3, 4, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +1, 2*z -1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z -1)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → (3, 5, 7)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y -1, 2*z -1) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z -1)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (7, 6) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z -1)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (7, 6) → white down (2, 5, 7, 6)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y -1, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  0.2500 * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +0)] +=  real_c( 0.2500 ) * src[  xIndex(srcLvl, x, y, z)]; // (3, 2) → (3, 2, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y -1, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  0.0000 * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y -1, 2*z +1)] +=  real_c( 0.0000 ) * src[ xzIndex(srcLvl, x, y, z)]; // (2, 7) → white down (2, 5, 7, 6)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y +0, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (1, 3) → (1, 3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y +1, 2*z -1) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] += -0.2500 * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → white down (2, 5, 7, 6)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y +1, 2*z -1)] += -real_c( 0.2500 ) * src[ xyIndex(srcLvl, x, y, z)]; // (5, 7) → white down (2, 5, 7, 6)
       }
       // clang-format on
    }
@@ -402,42 +402,42 @@ void N1E1toN1E1Prolongation::prolongateMacroCell( const real_t* src, real_t* dst
 
       // clang-format off
       if ( isValid   (dstLvl, 2*x +0, 2*y +1, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
-         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
-         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.0000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → blue down (3, 4, 5, 7)
+         dst[  xIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
+         dst[ xyIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] += -real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
+         dst[ xzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.0000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → blue down (3, 4, 5, 7)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +0, 2*z +1) ) {
-         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.0000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → green up (1, 3, 4, 5)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
+         dst[ xyIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] += -real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.0000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → green up (1, 3, 4, 5)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +1, 2*z +0) ) {
-         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.0000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → blue up (1, 3, 2, 5)
-         dst[ yzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
+         dst[ xzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.0000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → blue up (1, 3, 2, 5)
+         dst[ yzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
       }
       if ( isValid   (dstLvl, 2*x +1, 2*y +1, 2*z +1) ) {
-         dst[  xIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
-         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  0.0000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → green down (3, 2, 5, 7)
-         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
+         dst[  xIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
+         dst[  yIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  real_c( 0.0000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → green down (3, 2, 5, 7)
+         dst[  zIndex(dstLvl, 2*x +1, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +0, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +0, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 4, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +1, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  0.5000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +0)] +=  real_c( 0.5000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +0, 2*y +1, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
+         dst[xyzIndex(dstLvl, 2*x +0, 2*y +1, 2*z +1)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 5, 7)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y +0, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +0)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (1, 3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y +0, 2*z +1) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  0.5000 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y +0, 2*z +1)] +=  real_c( 0.5000 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5)
       }
       if ( isValidXYZ(dstLvl, 2*x +1, 2*y +1, 2*z +0) ) {
-         dst[xyzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  0.2500 * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
+         dst[xyzIndex(dstLvl, 2*x +1, 2*y +1, 2*z +0)] +=  real_c( 0.2500 ) * src[xyzIndex(srcLvl, x, y, z)]; // (3, 5) → (3, 2, 5)
       }
       // clang-format on
    }

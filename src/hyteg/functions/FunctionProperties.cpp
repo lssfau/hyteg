@@ -79,14 +79,14 @@ void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t&
 
    // memory per DoF
    const uint_t vertexdofBytes = sizeRealT * numVertexDoFs;
-   const real_t vertexdofGB    = real_c( vertexdofBytes ) / 1e+09;
+   const double vertexdofGB    = real_c( vertexdofBytes ) / 1e+09;
    const uint_t edgedofBytes   = sizeRealT * numEdgeDoFs;
-   const real_t edgedofGB      = real_c( edgedofBytes ) / 1e+09;
+   const double edgedofGB      = real_c( edgedofBytes ) / 1e+09;
 
    // calculate actual allocated memory
-   const real_t globalActualAllocatedMemory = double( FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes() ) / 1e+09;
-   const real_t minActualAllocatedMemory    = double( FunctionMemory< real_t >::getMinLocalAllocatedMemoryInBytes() ) / 1e+09;
-   const real_t maxActualAllocatedMemory    = double( FunctionMemory< real_t >::getMaxLocalAllocatedMemoryInBytes() ) / 1e+09;
+   const double globalActualAllocatedMemory = double( FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes() ) / 1e+09;
+   const double minActualAllocatedMemory    = double( FunctionMemory< real_t >::getMinLocalAllocatedMemoryInBytes() ) / 1e+09;
+   const double maxActualAllocatedMemory    = double( FunctionMemory< real_t >::getMaxLocalAllocatedMemoryInBytes() ) / 1e+09;
 
    if ( verbosityLevel == 0 )
    {

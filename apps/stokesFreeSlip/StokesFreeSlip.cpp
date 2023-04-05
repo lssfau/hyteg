@@ -49,10 +49,10 @@ using walberla::uint_t;
 using namespace hyteg;
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
+    setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
-   Point2D left( {-channelLength / 2, 0} );
-   Point2D right( {channelLength / 2, channelHeight} );
+   Point2D left( -channelLength / 2, 0 );
+   Point2D right( channelLength / 2, channelHeight );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -88,7 +88,7 @@ void applyDirichletBCRectangle( const double channelLength, const double channel
 }
 
 std::shared_ptr< SetupPrimitiveStorage >
-    setupStorageAnnulus( const double rmin, const double rmax, const uint_t nTan, const uint_t nRad )
+    setupStorageAnnulus( const real_t rmin, const real_t rmax, const uint_t nTan, const uint_t nRad )
 {
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshAnnulus( rmin, rmax, MeshInfo::CRISS, nTan, nRad );
 
@@ -101,13 +101,13 @@ std::shared_ptr< SetupPrimitiveStorage >
 
    // Boundaries
    auto inflow = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rminSq - 1e-12 < normSq && normSq < rminSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rminSq - 1e-12 < squaredNorm && squaredNorm < rminSq + 1e-12;
    };
 
    auto freeslip = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rmaxSq - 1e-12 < normSq && normSq < rmaxSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rmaxSq - 1e-12 < squaredNorm && squaredNorm < rmaxSq + 1e-12;
    };
 
    setupStorage->setMeshBoundaryFlagsOnBoundary( 0, 0, true );
@@ -126,8 +126,8 @@ void applyDirichletBCAnnulus( const double rmin, const double, const uint_t leve
 
    // Boundaries
    auto inflow = [=]( auto p ) {
-      auto normSq = p.normSq();
-      return rminSq - 1e-12 < normSq && normSq < rminSq + 1e-12;
+      auto squaredNorm = p.squaredNorm();
+      return rminSq - 1e-12 < squaredNorm && squaredNorm < rminSq + 1e-12;
    };
 
    auto dirichletInterpolantX = [=]( auto p ) { return inflow( p ) ? -p[1] / rmin : 0; };
@@ -225,8 +225,8 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
    // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };
-   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( {p[0] / rmax, p[1] / rmax} ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( 0, -1, 0 ); };
+   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( p[0] / rmax, p[1] / rmax, 0.0 ); };
 
    std::shared_ptr< ProjectNormalOperatorType > projection = nullptr;
    if ( useRectangleScenario )

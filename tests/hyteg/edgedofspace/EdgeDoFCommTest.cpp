@@ -327,20 +327,20 @@ void checkComm3d( const uint_t level )
       int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
       for( const auto& it : BoundaryIterator( level , indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT, 0 ) )
       {
-         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 14);
-         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 26);
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )], 26);
       }
 
       for( const auto& it : BoundaryIterator( level , indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 0 ) )
       {
-         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 14);
-         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 26);
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )], 26);
       }
 
       for( const auto& it : BoundaryIterator( level , indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP, 0 ) )
       {
-         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 14);
-         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 26);
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )], 26);
       }
    }
 
@@ -432,8 +432,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
-      , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
+      , "it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter)
       idxCounter++;
       numberOfChecks++;
     }
@@ -443,8 +443,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-              faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
-            ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+              faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
+            ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
 
@@ -455,8 +455,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -466,8 +466,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -480,8 +480,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
-      , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )]
+      , "it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter)
       idxCounter++;
       numberOfChecks++;
     }
@@ -491,8 +491,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -502,8 +502,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)) {
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )],
-        "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )],
+        "it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -513,8 +513,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
       for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
         WALBERLA_CHECK_EQUAL(
           edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-          faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
-        ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+          faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
+        ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
         idxCounter++;
         numberOfChecks++;
       }
@@ -527,8 +527,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, idxCounter, stencilDirection::EDGE_HO_C )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
-      , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )]
+      , "it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter)
       idxCounter++;
       numberOfChecks++;
     }
@@ -538,8 +538,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_VE_NW )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -549,8 +549,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }
@@ -560,8 +560,8 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     for(const auto& it : BoundaryIterator(level, indexing::getFaceBoundaryDirection( localEdgeIdOnFace, face.getEdgeOrientation()[localEdgeIdOnFace] ),0)){
       WALBERLA_CHECK_EQUAL(
         edgeData[edgedof::macroedge::indexFromVertex( level, idxCounter, edgeDir )],
-        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )]
-      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+        faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.x(), it.y(), stencilDirection::EDGE_DI_N )]
+      ,"it.x(): " << it.x() << " it.y(): " << it.y() << " idxCounter: " << idxCounter);
       idxCounter++;
       numberOfChecks++;
     }

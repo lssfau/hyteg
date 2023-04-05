@@ -102,7 +102,7 @@ void P1toP1InjectionRestriction::restrictMacroEdge( const real_t* src, real_t* d
    for ( i_c = 1; i_c < idx_t( rowsize_c ) - 1; ++i_c )
    {
       dst[vertexdof::macroedge::indexFromVertex( sourceLevel - 1, i_c, stencilDirection::VERTEX_C )] =
-          1.0 * src[vertexdof::macroedge::indexFromVertex( sourceLevel, 2 * i_c, stencilDirection::VERTEX_C )];
+          real_c( 1.0 ) * src[vertexdof::macroedge::indexFromVertex( sourceLevel, 2 * i_c, stencilDirection::VERTEX_C )];
    }
 }
 

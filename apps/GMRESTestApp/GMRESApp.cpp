@@ -41,7 +41,7 @@ int main( int argc, char** argv )
    const real_t doubleOrthoTOL = parameters.getParameter< real_t >( "doubleOrthoTOL" );
 
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle(
-       hyteg::Point2D( { 0.0, 0.0 } ), hyteg::Point2D( { 1.0, 1.0 } ), hyteg::MeshInfo::CRISS, 20, 20 );
+       hyteg::Point2D(  0.0, 0.0  ), hyteg::Point2D(  1.0, 1.0  ), hyteg::MeshInfo::CRISS, 20, 20 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    hyteg::loadbalancing::roundRobin( setupStorage, numProcesses );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );

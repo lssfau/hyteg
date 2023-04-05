@@ -87,7 +87,7 @@ std::shared_ptr< RestrictionOperator< FunctionType > > getRestrictionOperator()
 template <>
 std::shared_ptr< RestrictionOperator< P1Function< real_t > > > getRestrictionOperator()
 {
-   return std::make_shared< P1toP1LinearRestriction >();
+   return std::make_shared< P1toP1LinearRestriction<> >();
 }
 
 template <>
@@ -105,7 +105,7 @@ std::shared_ptr< ProlongationOperator< FunctionType > > getProlongationOperator(
 template <>
 std::shared_ptr< ProlongationOperator< P1Function< real_t > > > getProlongationOperator()
 {
-   return std::make_shared< P1toP1LinearProlongation >();
+   return std::make_shared< P1toP1LinearProlongation<> >();
 }
 
 template <>
@@ -132,8 +132,8 @@ int main( int argc, char* argv[] )
 
    // Generate unit square mesh
    WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );
-   Point2D  cornerLL( {real_c( 0 ), real_c( 0 )} );
-   Point2D  cornerUR( {real_c( 1 ), real_c( 1 )} );
+   Point2D  cornerLL( real_c( 0 ), real_c( 0 ) );
+   Point2D  cornerUR( real_c( 1 ), real_c( 1 ) );
    MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 2, 2 );
 
    // extract steering parameters

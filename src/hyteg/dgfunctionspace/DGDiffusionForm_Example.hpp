@@ -160,12 +160,12 @@ class DGDiffusionForm_Example : public DGForm
  private:
    void Scalar_Variable_Coefficient_2D_g( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_2D_g( Point3D( { in_0, in_1, 0 } ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_2D_g( Point3D( in_0, in_1, 0 ) );
    }
 
    void Scalar_Variable_Coefficient_3D_g( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
    {
-      *out_0 = callback_Scalar_Variable_Coefficient_3D_g( Point3D( { in_0, in_1, in_2 } ) );
+      *out_0 = callback_Scalar_Variable_Coefficient_3D_g( Point3D( in_0, in_1, in_2 ) );
    }
 
    std::function< real_t( const Point3D& ) > callback_Scalar_Variable_Coefficient_2D_g;

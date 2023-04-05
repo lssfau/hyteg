@@ -74,7 +74,7 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
    const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
 
-   if( mainConf.getParameter< bool >( "printParameters" ) )
+   if ( mainConf.getParameter< bool >( "printParameters" ) )
    {
       mainConf.listParameters();
       WALBERLA_LOG_INFO_ON_ROOT( "Layers: " );
@@ -82,24 +82,24 @@ int main( int argc, char* argv[] )
    }
 
    const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
-   std::vector< double > layers;
-   for( auto it : layersParam )
+   std::vector< real_t > layers;
+   for ( const auto& it : layersParam )
    {
-      layers.push_back( layersParam.getParameter< double >( it.first ) );
+      layers.push_back( layersParam.getParameter< real_t >( it.first ) );
    }
 
-   const double rmin = layers.front();
-   const double rmax = layers.back();
+   const real_t rmin = layers.front();
+   const real_t rmax = layers.back();
 
-   const Point3D sourcePoint  = Point3D( {rmin, 0, 0} ) + 0.5 * Point3D( {rmax - rmin, 0, 0} );
-   const real_t  sourceRadius = 0.5;
+   const Point3D sourcePoint  = Point3D(  rmin, 0, 0  ) + real_c( 0.5 ) * Point3D(  rmax - rmin, 0, 0  );
+   const real_t  sourceRadius = real_c( 0.5 );
 
    const uint_t minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t numVCycle           = mainConf.getParameter< uint_t >( "numVCycle" );
    const uint_t maxMinResIterations = mainConf.getParameter< uint_t >( "maxMinResIterations" );
 
-   const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
+   const real_t uzawaTolerance = mainConf.getParameter< real_t >( "uzawaTolerance" );
    //const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
 
    //////////////////////////////////////////
@@ -160,7 +160,7 @@ int main( int argc, char* argv[] )
       if( distToSourcePoint < sourceRadius )
          return x[0] * ( sourceRadius - distToSourcePoint );
       else
-         return 0.0;
+         return real_c( 0.0 );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
@@ -168,7 +168,7 @@ int main( int argc, char* argv[] )
       if( distToSourcePoint < sourceRadius )
          return x[1] * ( sourceRadius - distToSourcePoint );
       else
-         return 0.0;
+         return real_c( 0.0 );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
@@ -176,7 +176,7 @@ int main( int argc, char* argv[] )
       if( distToSourcePoint < sourceRadius )
          return x[2] * ( sourceRadius - distToSourcePoint );
       else
-         return 0.0;
+         return real_c( 0.0 );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
@@ -198,18 +198,18 @@ int main( int argc, char* argv[] )
       auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
 
       ///// Geometric Multigrid A block preconditioner for MinRes /////
-      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >GMGSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > GMGSolver_T;
 
       auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
       //auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
-      auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+      auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
-
-      auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+      auto gmgSolver = std::make_shared< GMGSolver_T >(
+          storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
 
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
 

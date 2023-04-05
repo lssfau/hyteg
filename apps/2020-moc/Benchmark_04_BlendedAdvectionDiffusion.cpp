@@ -140,7 +140,7 @@ void benchmark( int argc, char** argv )
       meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
    }
 
-   const Point3D p0( {0, 1, 0} );
+   const Point3D p0( 0, 1, 0 );
 
    const real_t tStart = INITIAL_DIFFUSIVITY_TIME_PRODUCT / diffusivity;
    const real_t tEnd   = tStart + 2.0 * pi;

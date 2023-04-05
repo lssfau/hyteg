@@ -176,13 +176,11 @@ static void exportIntegerFunctions()
    P1Function< value_t >       p1Enumerator( "P1", storage, minLevel, maxLevel );
    P2Function< value_t >       p2Enumerator( "P2", storage, minLevel, maxLevel );
    EdgeDoFFunction< value_t >  edEnumerator( "EdgeDoF", storage, minLevel, maxLevel );
-   FaceDoFFunction_old< value_t >       dgEnumerator( "DGDoF", storage, minLevel, maxLevel );
    P2VectorFunction< value_t > v2Enumerator( "P2Vector", storage, minLevel, maxLevel );
 
    // Fill with values
    p1Enumerator.enumerate( maxLevel );
    p2Enumerator.enumerate( maxLevel );
-   dgEnumerator.enumerate( maxLevel );
    edEnumerator.enumerate( maxLevel );
    v2Enumerator.enumerate( maxLevel );
 
@@ -196,7 +194,6 @@ static void exportIntegerFunctions()
       VTKOutput vtkOutput( fPath, fName, storage );
       vtkOutput.add( p1Enumerator );
       vtkOutput.add( p2Enumerator );
-      vtkOutput.add( dgEnumerator );
       vtkOutput.add( edEnumerator );
       vtkOutput.add( v2Enumerator );
       vtkOutput.write( maxLevel );

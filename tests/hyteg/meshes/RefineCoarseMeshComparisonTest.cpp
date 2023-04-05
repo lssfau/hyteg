@@ -21,18 +21,20 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 #include "array"
 namespace hyteg {
+using walberla::realIsEqual;
+
 bool sortVertices( Point3D& iCoord, Point3D& nCoord )
 {
-   if ( walberla::floatIsEqual( iCoord[0], nCoord[0] ) )
+   if ( walberla::realIsEqual( iCoord[0], nCoord[0] ) )
    {
-      if ( walberla::floatIsEqual( iCoord[1], nCoord[1] ) )
+      if ( walberla::realIsEqual( iCoord[1], nCoord[1] ) )
       {
          return iCoord[2] < nCoord[2];
       }
@@ -49,11 +51,11 @@ bool sortVertices( Point3D& iCoord, Point3D& nCoord )
 
 bool sortVerticesArray( std::array< Point3D, 4 >& first, std::array< Point3D, 4 >& second )
 {
-   if ( toVec3( first[0] ) == toVec3( second[0] ) )
+   if ( realIsEqual(first[0][0],second[0][0]) && realIsEqual(first[0][1],second[0][1]) && realIsEqual(first[0][2],second[0][2]))
    {
-      if ( toVec3( first[1] ) == toVec3( second[1] ) )
+      if ( realIsEqual(first[1][0],second[1][0]) && realIsEqual(first[1][1],second[1][1]) && realIsEqual(first[1][2],second[1][2]))
       {
-         if ( toVec3( first[2] ) == toVec3( second[2] ) )
+         if ( realIsEqual(first[2][0],second[2][0]) && realIsEqual(first[2][1],second[2][1]) && realIsEqual(first[2][2],second[2][2]))
          {
             if ( sortVertices( first[3], second[3] ) )
             {
@@ -127,30 +129,36 @@ std::vector< std::array< Point3D, 4 > > createVertexVector( std::shared_ptr< Pri
    return normalVertexVector;
 }
 
-void runtest( uint_t coarseRefinements, uint_t level, const MeshInfo& originalMeshInfo )
+void runtest( uint_t coarseRefinements, uint_t level, const std::string& meshFile )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "Running: coarseRef:" << coarseRefinements << "Level:" << level << "Mesh:" << meshFile )
+   auto originalMeshInfo =
+       meshFile == "TORUS" ?
+           hyteg::MeshInfo::meshTorus(
+               4, 3, real_c( 6.2 ), { 3 }, real_c(0.0), real_c( 2.0 * walberla::math::pi / walberla::real_c( 2 * 6 ) ) ) :
+           hyteg::MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage6el( originalMeshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage6el = std::make_shared< PrimitiveStorage >( setupStorage6el );
 
-   auto                  meshInfoCoarsen = MeshInfo::refinedCoarseMesh( originalMeshInfo, coarseRefinements );
-   SetupPrimitiveStorage setupStorageCoarsen( meshInfoCoarsen, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storageCoarsen = std::make_shared< PrimitiveStorage >( setupStorageCoarsen );
+   auto                  meshInfoRefined = MeshInfo::refinedCoarseMesh( originalMeshInfo, coarseRefinements );
+   SetupPrimitiveStorage setupStorageCoarsen( meshInfoRefined, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storageRefined = std::make_shared< PrimitiveStorage >( setupStorageCoarsen );
 
    //celldof::allCellTypes
    auto normalVertexVector  = createVertexVector( storage6el, level );
-   auto coarsenVertexVector = createVertexVector( storageCoarsen, level - coarseRefinements );
-   WALBERLA_CHECK_EQUAL( normalVertexVector.size(), coarsenVertexVector.size() )
+   auto refinedVertexVector = createVertexVector( storageRefined, level - coarseRefinements );
+   WALBERLA_CHECK_EQUAL( normalVertexVector.size(), refinedVertexVector.size() )
 
    for ( uint_t i = 0; i < normalVertexVector.size(); i++ )
    {
       for ( uint_t n = 0; n < 4; n++ )
       {
-         WALBERLA_CHECK_EQUAL( toVec3( normalVertexVector[i][n] ),
-                               toVec3( coarsenVertexVector[i][n] ),
+         WALBERLA_CHECK_FLOAT_EQUAL( toVec3( normalVertexVector[i][n] ),
+                               toVec3( refinedVertexVector[i][n] ),
                                normalVertexVector[i][0] << " " << normalVertexVector[i][1] << " " << normalVertexVector[i][2]
                                                         << " " << normalVertexVector[i][3] << "\n"
-                                                        << coarsenVertexVector[i][0] << " " << coarsenVertexVector[i][1] << " "
-                                                        << coarsenVertexVector[i][2] << " " << coarsenVertexVector[i][3] )
+                                                        << refinedVertexVector[i][0] << " " << refinedVertexVector[i][1] << " "
+                                                        << refinedVertexVector[i][2] << " " << refinedVertexVector[i][3] )
       }
    }
 }
@@ -161,12 +169,9 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runtest( 1, 1, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ) );
-   hyteg::runtest( 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ) );
-   hyteg::runtest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ) );
-   hyteg::runtest( 2, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ) );
-   hyteg::runtest( 1,
-                   2,
-                   hyteg::MeshInfo::meshTorus(
-                       4, 3, 6.2, { 3 }, 0.0, 2.0 * walberla::math::pi / walberla::real_c( 2 * 6 ) ) );
+   hyteg::runtest( 1, 1, "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 2, "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 3, "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 2, 2, "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 2, "TORUS" );
 }

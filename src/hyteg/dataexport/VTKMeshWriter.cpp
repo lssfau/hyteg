@@ -19,7 +19,6 @@
  */
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKFaceDoFWriter.hpp"
 #include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
@@ -173,8 +172,8 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D horizontalMicroEdgePosition =
-                   faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset +
-                                            real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
+                   faceBottomLeftCoords + ( real_c( itIdx.x() * 2 + 1 ) * horizontalMicroEdgeOffset +
+                                            real_c( itIdx.y() * 2 ) * verticalMicroEdgeOffset );
                face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
                streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
             }
@@ -184,8 +183,8 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D verticalMicroEdgePosition =
-                   faceBottomLeftCoords + ( real_c( itIdx.col() * 2 ) * horizontalMicroEdgeOffset +
-                                            real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+                   faceBottomLeftCoords + ( real_c( itIdx.x() * 2 ) * horizontalMicroEdgeOffset +
+                                            real_c( itIdx.y() * 2 + 1 ) * verticalMicroEdgeOffset );
                face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
                streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
             }
@@ -195,8 +194,8 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
                const Point3D horizontalMicroEdgePosition =
-                   faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset +
-                                            real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
+                   faceBottomLeftCoords + ( real_c( itIdx.x() * 2 + 1 ) * horizontalMicroEdgeOffset +
+                                            real_c( itIdx.y() * 2 ) * verticalMicroEdgeOffset );
                const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
                face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
                streamWriter << xBlend[0] << xBlend[1] << xBlend[2];

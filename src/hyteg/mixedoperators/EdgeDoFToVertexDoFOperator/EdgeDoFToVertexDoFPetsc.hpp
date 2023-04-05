@@ -162,17 +162,17 @@ inline void saveEdgeOperator( const uint_t&                                     
 
    for ( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
    {
-      dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C )];
+      dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.x(), stencilDirection::VERTEX_C )];
 
       for ( const auto& neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
       {
-         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
 
       for ( const auto& neighbor : edgedof::macroedge::neighborsOnSouthFaceFromVertex )
       {
-         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+         srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
 
@@ -180,7 +180,7 @@ inline void saveEdgeOperator( const uint_t&                                     
       {
          for ( const auto& neighbor : edgedof::macroedge::neighborsOnNorthFaceFromVertex )
          {
-            srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
+            srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.x(), neighbor )];
             mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
          }
       }
@@ -240,7 +240,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
 
                uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
-               const auto cellLocalIDsOfNeighborFaces =
+               const auto& cellLocalIDsOfNeighborFaces =
                    indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
                std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
                std::set_intersection( cellLocalIDsOfNeighborFaces.begin(),
@@ -249,7 +249,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                                       onCellFacesSet.end(),
                                       std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
 
-               if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
+               if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.empty() )
                {
                   // leaf in macro-cell
                   leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell(
@@ -266,8 +266,8 @@ inline void saveEdgeOperator3D( const uint_t&                                   
 
                   // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
                   // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
-                  const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
-                  std::array< uint_t, 4 > faceBasisInCell;
+                  const auto& spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
+                  std::array< uint_t, 4 > faceBasisInCell{};
                   if ( spanningCellLocalVertices.count( basisInCell.at( 2 ) ) == 1 )
                   {
                      faceBasisInCell = basisInCell;
@@ -322,11 +322,11 @@ inline void saveFaceOperator( const uint_t&                                     
 
    for ( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
    {
-      dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )];
+      dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C )];
 
       for ( const auto& neighbor : edgedof::macroface::neighborsFromVertex )
       {
-         srcInt = src[edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor )];
+         srcInt = src[edgedof::macroface::indexFromVertex( Level, it.x(), it.y(), neighbor )];
          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVertex( neighbor )] );
       }
    }

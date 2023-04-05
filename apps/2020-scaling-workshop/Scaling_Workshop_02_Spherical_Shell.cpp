@@ -157,7 +157,7 @@ void benchmark( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 1: Stokeslet, f = (1, 1, 1), initial guess 0 " );
 
       solutionU = []( const hyteg::Point3D& p ) -> real_t {
-        const Point3D fDirection( {1, 1, 1} );
+        const Point3D fDirection( 1, 1, 1 );
         const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
 
         const uint_t i = 0;
@@ -166,7 +166,7 @@ void benchmark( int argc, char** argv )
 
          Point3D q;
 
-         for ( uint_t j = 0; j < 3; j++ )
+         for ( int j = 0; j < 3; j++ )
          {
             q[j] = p[i] * p[j] * rInv * rInv * rInv;
          }
@@ -177,7 +177,7 @@ void benchmark( int argc, char** argv )
       };
 
       solutionV = []( const hyteg::Point3D& p ) -> real_t {
-        const Point3D fDirection( {1, 1, 1} );
+        const Point3D fDirection( 1, 1, 1 );
         const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
 
         const uint_t i = 1;
@@ -186,7 +186,7 @@ void benchmark( int argc, char** argv )
 
         Point3D q;
 
-        for ( uint_t j = 0; j < 3; j++ )
+        for ( int j = 0; j < 3; j++ )
         {
            q[j] = p[i] * p[j] * rInv * rInv * rInv;
         }
@@ -197,7 +197,7 @@ void benchmark( int argc, char** argv )
       };
 
       solutionW = []( const hyteg::Point3D& p ) -> real_t {
-        const Point3D fDirection( {1, 1, 1} );
+        const Point3D fDirection( 1, 1, 1 );
         const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
 
         const uint_t i = 2;
@@ -206,7 +206,7 @@ void benchmark( int argc, char** argv )
 
         Point3D q;
 
-        for ( uint_t j = 0; j < 3; j++ )
+        for ( int j = 0; j < 3; j++ )
         {
            q[j] = p[i] * p[j] * rInv * rInv * rInv;
         }
@@ -217,7 +217,7 @@ void benchmark( int argc, char** argv )
       };
 
       solutionP = []( const hyteg::Point3D& p ) -> real_t {
-        const Point3D fDirection( {1, 1, 1} );
+        const Point3D fDirection( 1, 1, 1 );
         const real_t factorP = 1.0 / (4.0 * walberla::math::pi );
 
         const auto r    = p.norm();
