@@ -27,15 +27,15 @@ void N1E1Form_mass_BInv_fp32::integrateAll( const std::array< PointND< float, 3 
                                             const std::array< walberla::int16_t, 6 >&   edgeDirections,
                                             Matrix< float, 6, 6 >&                      elMat ) const
 {
-   elMat.setAll( 0.0f );
+   elMat.setZero();
 
    // F maps from reference tet K' to affine tet K
    // K = F(K') = Bx' + b
    // B is the Jacobian of the transformation
    Eigen::Matrix< float, 3, 3 > B;
-   B.col( 0 ) = coords[1].vector_ - coords[0].vector_;
-   B.col( 1 ) = coords[2].vector_ - coords[0].vector_;
-   B.col( 2 ) = coords[3].vector_ - coords[0].vector_;
+   B.col( 0 ) = coords[1] - coords[0];
+   B.col( 1 ) = coords[2] - coords[0];
+   B.col( 2 ) = coords[3] - coords[0];
 
    const float absDetB = std::abs( B.determinant() );
 

@@ -44,7 +44,7 @@ PointND< float, 3 > rndOnUnitSphere()
 
    const float rInv = 1.0f / std::sqrt( x * x + y * y + z * z );
 
-   return { { x * rInv, y * rInv, z * rInv } };
+   return { x * rInv, y * rInv, z * rInv };
 }
 
 void testUnitSphere()
@@ -79,7 +79,7 @@ void testUnitSphere()
       std::array< PointND< double, 3 >, 4 > coords64;
       for ( uint_t i = 0; i < coords32.size(); ++i )
       {
-         coords64[i].vector_ = coords32[i].vector_.cast< double >();
+         coords64[i] = coords32[i].cast< double >();
       }
 
       const std::array< walberla::int16_t, 6 > edgeDirections{ 1, 1, 1, 1, 1, 1 };
@@ -129,7 +129,7 @@ void testTime()
    std::array< PointND< double, 3 >, 4 > coords64;
    for ( uint_t i = 0; i < coords32.size(); ++i )
    {
-      coords64[i].vector_ = coords32[i].vector_.cast< double >();
+      coords64[i] = coords32[i].cast< double >();
    }
 
    const std::array< walberla::int16_t, 6 > edgeDirections{ 1, 1, 1, 1, 1, 1 };

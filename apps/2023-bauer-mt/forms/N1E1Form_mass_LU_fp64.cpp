@@ -27,15 +27,15 @@ void N1E1Form_mass_LU_fp64::integrateAll( const std::array< PointND< double, 3 >
                                           const std::array< walberla::int16_t, 6 >&    edgeDirections,
                                           Matrix< double, 6, 6 >&                      elMat ) const
 {
-   elMat.setAll( 0.0 );
+   elMat.setZero();
 
    // F maps from reference tet K' to affine tet K
    // K = F(K') = Bx' + b
    // B is the Jacobian of the transformation
    Eigen::Matrix< double, 3, 3 > BT;
-   BT.row( 0 ) = coords[1].vector_ - coords[0].vector_;
-   BT.row( 1 ) = coords[2].vector_ - coords[0].vector_;
-   BT.row( 2 ) = coords[3].vector_ - coords[0].vector_;
+   BT.row( 0 ) = coords[1] - coords[0];
+   BT.row( 1 ) = coords[2] - coords[0];
+   BT.row( 2 ) = coords[3] - coords[0];
 
    const double                                      absDetB  = std::abs( BT.determinant() );
    Eigen::FullPivLU< Eigen::Matrix< double, 3, 3 > > luDecomp = BT.fullPivLu();

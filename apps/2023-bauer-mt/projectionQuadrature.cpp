@@ -74,9 +74,9 @@ class Quadrature
 
 inline Eigen::Vector3r edgeTangent( const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const Eigen::Vector3r xDir = ( cell.getCoordinates()[1].vector_ - cell.getCoordinates()[0].vector_ );
-   const Eigen::Vector3r yDir = ( cell.getCoordinates()[2].vector_ - cell.getCoordinates()[0].vector_ );
-   const Eigen::Vector3r zDir = ( cell.getCoordinates()[3].vector_ - cell.getCoordinates()[0].vector_ );
+   const Eigen::Vector3r xDir = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] );
+   const Eigen::Vector3r yDir = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] );
+   const Eigen::Vector3r zDir = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] );
 
    switch ( orientation )
    {
@@ -110,27 +110,27 @@ void interpolate( const Quadrature&                                             
    for ( const auto& it : edgedof::macrocell::Iterator( level ) )
    {
       const Point3D v0 = vertexdof::macrocell::coordinateFromIndex( level, cell, it );
-      const Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::IndexIncrement{ 1, 0, 0 } );
-      const Point3D v2 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::IndexIncrement{ 0, 1, 0 } );
-      const Point3D v3 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::IndexIncrement{ 0, 0, 1 } );
+      const Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 1, 0, 0 } );
+      const Point3D v2 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 0, 1, 0 } );
+      const Point3D v3 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 0, 0, 1 } );
 
       // x ↦ ∫ₑ x·t dΓ
-      const real_t dofScalarX  = quadrature.integrate( v0.vector_, v1.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarX  = quadrature.integrate( v0, v1, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::X ) );
       } );
-      const real_t dofScalarY  = quadrature.integrate( v0.vector_, v2.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarY  = quadrature.integrate( v0, v2, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Y ) );
       } );
-      const real_t dofScalarZ  = quadrature.integrate( v0.vector_, v3.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarZ  = quadrature.integrate( v0, v3, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Z ) );
       } );
-      const real_t dofScalarXY = quadrature.integrate( v1.vector_, v2.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarXY = quadrature.integrate( v1, v2, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XY ) );
       } );
-      const real_t dofScalarXZ = quadrature.integrate( v1.vector_, v3.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarXZ = quadrature.integrate( v1, v3, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XZ ) );
       } );
-      const real_t dofScalarYZ = quadrature.integrate( v2.vector_, v3.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarYZ = quadrature.integrate( v2, v3, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::YZ ) );
       } );
 
@@ -144,10 +144,10 @@ void interpolate( const Quadrature&                                             
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( level ) )
    {
-      const Point3D v0 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::IndexIncrement{ 0, 1, 0 } );
-      const Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::IndexIncrement{ 1, 0, 1 } );
+      const Point3D v0 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 0, 1, 0 } );
+      const Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 1, 0, 1 } );
 
-      const real_t dofScalarXYZ = quadrature.integrate( v0.vector_, v1.vector_, [&]( const Eigen::Vector3r x ) {
+      const real_t dofScalarXYZ = quadrature.integrate( v0, v1, [&]( const Eigen::Vector3r x ) {
          return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XYZ ) );
       } );
 
@@ -205,7 +205,7 @@ real_t test( const Quadrature&                                               qua
       auto            success = u.evaluate( coordinates, level, eval );
       WALBERLA_CHECK( success );
 
-      error += ( eval - expr( coordinates.vector_ ) ).norm();
+      error += ( eval - expr( coordinates ) ).norm();
    }
 
    return error / numRandomEvaluations;

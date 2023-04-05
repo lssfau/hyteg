@@ -22,6 +22,7 @@
 
 // This file contains some common functions and definitions used in the N1E1 tests
 
+#include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/eigen/typeAliases.hpp"
@@ -73,6 +74,7 @@ class System
    static System sinusoidalOnSingleTet()
    {
       using std::sin;
+      using walberla::real_c;
 
       return System{
           MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
@@ -109,6 +111,8 @@ class System
 
    static System polynomialOnPyramid()
    {
+      using walberla::real_c;
+
       return System{
           MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
 
@@ -146,7 +150,7 @@ class System
    static System polynomialOnCube()
    {
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -173,7 +177,7 @@ class System
       using walberla::math::pi;
 
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
