@@ -77,6 +77,15 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+
+
+    VertexDoFFunction( const std::string&                         name,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       uint_t                                     minLevel,
+                       uint_t                                     maxLevel,
+                       BoundaryCondition                          boundaryCondition,
+                       bool                                       addVolumeGhostLayer );
+
    ~VertexDoFFunction();
 
    /// Copy constructor
@@ -91,17 +100,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
    bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
-   VertexDoFFunction( const std::string&                         name,
-                      const std::shared_ptr< PrimitiveStorage >& storage,
-                      uint_t                                     minLevel,
-                      uint_t                                     maxLevel,
-                      BoundaryCondition                          boundaryCondition,
-                      bool                                       addVolumeGhostLayer );
 
-   bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
-   bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
-   bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
-   bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
 
    void allocateMemory( const uint_t& level, const Vertex& vertex );
    void allocateMemory( const uint_t& level, const Edge& edge );

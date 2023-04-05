@@ -59,7 +59,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
-   virtual uint_t getDimension() const { return 1; }
 
    void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                          uint_t                                                                        level,

@@ -103,8 +103,8 @@ namespace hyteg {
 
         void copyFrom(const EGFunction<ValueType> &other,
                       const uint_t &level,
-                      const std::map<PrimitiveID::IDType, uint_t> &localPrimitiveIDsToRank,
-                      const std::map<PrimitiveID::IDType, uint_t> &otherPrimitiveIDsToRank) const {
+                      const std::map<PrimitiveID, uint_t> &localPrimitiveIDsToRank,
+                      const std::map<PrimitiveID, uint_t> &otherPrimitiveIDsToRank) const {
             u_conforming_->copyFrom(*other.getConformingPart(), level, localPrimitiveIDsToRank,
                                     otherPrimitiveIDsToRank);
             u_discontinuous_->copyFrom(*other.getDiscontinuousPart(), level, localPrimitiveIDsToRank,

@@ -41,8 +41,7 @@ enum class DoFType
    EDGE_XYZ,
    DG,
    P2,
-   N1E1
-   P2,
+   N1E1,
    P1DGE
 };
 

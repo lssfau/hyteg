@@ -431,23 +431,16 @@ namespace hyteg {
                                         // i) micro-interface on macro-macro-boundary //
                                         ////////////////////////////////////////////////
 
-                                        // The neighboring micro-element coords have to be computed since they are now different as for an
-                                        // element on the same macro-volume.
-                                        std::vector<Index> neighborElementVertexIndices;
-                                        std::vector<Eigen::Matrix<real_t, 3, 1> > neighborElementVertexCoords;
-                                        Eigen::Matrix<real_t, 3, 1> neighborOppositeVertexCoords;
 
-                                        neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                                                n, neighborElementVertexIndices, neighborElementVertexCoords,
-                                                neighborOppositeVertexCoords);
+                                        neighborInfo = neighborInfo.updateForMacroBoundary(n);
 
                                         localMat.setZero();
                                         form_->integrateFacetCoupling(dim,
                                                                       neighborInfo.elementVertexCoords(),
-                                                                      neighborElementVertexCoords,
+                                                                      neighborInfo.neighborElementVertexCoords( n ),
                                                                       neighborInfo.interfaceVertexCoords(n),
                                                                       neighborInfo.oppositeVertexCoords(n),
-                                                                      neighborOppositeVertexCoords,
+                                                                      neighborInfo.neighborOppositeVertexCoords( n ),
                                                                       neighborInfo.outwardNormal(n),
                                                                       *src.getDGFunction()->basis(),
                                                                       dstBasis,

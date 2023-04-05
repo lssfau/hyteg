@@ -443,7 +443,123 @@ void VolumeDoFFunction< ValueType >::assign(
    }
 }
 
-/// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
+
+/// \brief Adds a scalar to this VolumeDoFFunction.
+    template < typename ValueType >
+    void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
+    {
+        WALBERLA_UNUSED( flag );
+        if ( this->storage_->hasGlobalCells() )
+        {
+            for ( const auto& cellIt : this->getStorage()->getCells() )
+            {
+                const auto cellId = cellIt.first;
+                const auto cell   = *cellIt.second;
+
+                const auto mem     = dofMemory( cellId, level );
+                const auto layout  = memoryLayout_;
+                const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+                for ( auto cellType : celldof::allCellTypes )
+                {
+                    for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+                    {
+                        for ( uint_t dof = 0; dof < numDofs; dof++ )
+                        {
+                            const auto idx =
+                                    indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                            mem[idx] +=scalar;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for ( const auto& faceIt : this->getStorage()->getFaces() )
+            {
+                const auto faceId = faceIt.first;
+                const auto face   = *faceIt.second;
+
+                auto       mem     = dofMemory( faceId, level );
+                const auto layout  = memoryLayout_;
+                const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+                for ( auto faceType : facedof::allFaceTypes )
+                {
+                    for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+                    {
+                        for ( uint_t dof = 0; dof < numDofs; dof++ )
+                        {
+                            const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                            mem[idx] += scalar;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+/// \brief Adds a linear combination of multiple VolumeDoFFunctions to this.
+    template < typename ValueType >
+    void VolumeDoFFunction< ValueType >::add(
+            const std::vector< ValueType >&                                                      scalars,
+            const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+            uint_t                                                                               level )
+    {
+        WALBERLA_CHECK_EQUAL( scalars.size(),
+                              functions.size(),
+                              "VolumeDoFFunction< ValueType >::add(): must pass same number of scalars and functions." )
+
+        if ( this->storage_->hasGlobalCells() )
+        {
+            WALBERLA_ABORT( "Not implemented" );
+        }
+        else
+        {
+            for ( const auto& faceIt : this->getStorage()->getFaces() )
+            {
+                const auto faceId = faceIt.first;
+                const auto face   = *faceIt.second;
+
+                std::vector< ValueType* >                      srcPtrs( functions.size() );
+                std::vector< indexing::VolumeDoFMemoryLayout > srcLayouts( functions.size() );
+                for ( uint_t i = 0; i < functions.size(); i++ )
+                {
+                    const auto f  = functions.at( i );
+                    srcPtrs[i]    = f.get().dofMemory( faceId, level );
+                    srcLayouts[i] = f.get().memoryLayout();
+                }
+
+                auto dstMem    = dofMemory( faceId, level );
+                auto dstLayout = memoryLayout_;
+                auto numDofs   = this->numScalarsPerPrimitive_.at( faceId );
+
+                for ( auto faceType : facedof::allFaceTypes )
+                {
+                    for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+                    {
+                        for ( uint_t dof = 0; dof < numDofs; dof++ )
+                        {
+                            ValueType sum = 0;
+                            for ( uint_t i = 0; i < functions.size(); i++ )
+                            {
+                                const auto s = scalars.at( i );
+
+                                sum += s * srcPtrs[i][indexing::index(
+                                        elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, srcLayouts[i] )];
+                            }
+                            dstMem[indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, dstLayout )] += sum;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
 /// process.
 template < typename ValueType >
 ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
@@ -519,7 +635,7 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
     template < typename ValueType >
     void VolumeDoFFunction< ValueType >::swap( VolumeDoFFunction< ValueType >& rhs, uint_t level )
     {
-        if ( storage_->hasGlobalCells() )
+        if ( this->storage_->hasGlobalCells() )
         {
             for ( const auto& cellIt : this->getStorage()->getCells() )
             {
@@ -596,7 +712,7 @@ ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
 {
    ValueType sum = ValueType( 0 );
 
-   if ( storage_->hasGlobalCells() )
+   if ( this->storage_->hasGlobalCells() )
    {
       for ( const auto& cellIt : this->getStorage()->getCells() )
       {

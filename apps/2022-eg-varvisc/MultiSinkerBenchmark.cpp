@@ -42,7 +42,7 @@ namespace hyteg {
 
 
     template<typename StokesOperatorType>
-    real_t MultiSinker(const std::string &name,
+    void MultiSinker(const std::string &name,
                      const uint_t &level,
                      const uint_t &nxy,
                      const uint_t &nSinkers,

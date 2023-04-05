@@ -416,20 +416,18 @@ namespace hyteg {
                                         // The neighboring micro-element coords have to be computed since they are now different as for an
                                         // element on the same macro-volume.
                                         std::vector<Index> neighborElementVertexIndices;
-                                        std::vector<Eigen::Matrix<real_t, 3, 1> > neighborElementVertexCoords;
-                                        Eigen::Matrix<real_t, 3, 1> neighborOppositeVertexCoords;
 
-                                        neighborInfo.macroBoundaryNeighborElementVertexCoords(
-                                                n, neighborElementVertexIndices, neighborElementVertexCoords,
-                                                neighborOppositeVertexCoords);
+                                        neighborInfo = neighborInfo.updateForMacroBoundary(n);
+
+                                        neighborElementVertexIndices = neighborInfo.neighborElementVertexIndices();
 
                                         localMat.setZero();
                                         form_->integrateFacetCoupling(dim,
                                                                       neighborInfo.elementVertexCoords(),
-                                                                      neighborElementVertexCoords,
+                                                                      neighborInfo.neighborElementVertexCoords( n ),
                                                                       neighborInfo.interfaceVertexCoords(n),
                                                                       neighborInfo.oppositeVertexCoords(n),
-                                                                      neighborOppositeVertexCoords,
+                                                                      neighborInfo.neighborOppositeVertexCoords( n ),
                                                                       neighborInfo.outwardNormal(n),
                                                                       srcBasis,
                                                                       *dst.getDGFunction()->basis(),
@@ -678,13 +676,12 @@ namespace hyteg {
                                                 if (!onGhostLayer[srcDofIdx]) {
                                                     globalColIdx = srcDofMemory[nSrcDoFArrIndices[srcDofIdx]];
                                                 } else {
-                                                    globalColIdx = glMemory[neighborInfo.macroBoundaryID(
-                                                            n)][nSrcDoFArrIndices[srcDofIdx]];
+                                                    auto tmp = neighborInfo.macroBoundaryID(n);
+                                                    globalColIdx = glMemory[tmp][nSrcDoFArrIndices[srcDofIdx]];
                                                 }
 
                                                 mat->addValue(globalRowIdx, globalColIdx, localMat(0, srcDofIdx));
                                             }
-                                            //std::cout << "end assembly macromacro boundary " << std::endl;
                                         }
                                     } else {
                                         /////////////////////////////////////////

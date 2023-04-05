@@ -128,13 +128,7 @@ namespace hyteg {
 
         // u.getDiscontinuousPart()->interpolate( 0, level, DirichletBoundary );
         err.assign({1.0, -1.0}, {sol, u}, level, All);
-        /* WALBERLA_LOG_INFO_ON_ROOT( "||e_disc|| = "
-                                   << sqrt( err.getDiscontinuousPart()->dotGlobal( *err.getDiscontinuousPart(), level, Inner ) /
-                                            real_c( numberOfGlobalDoFs( *err.getDiscontinuousPart(), level ) ) )
-                                   << ", ||e_conf|| = "
-                                   << sqrt( err.getConformingPart()->dotGlobal( *err.getConformingPart(), level, Inner ) /
-                                            real_c( numberOfGlobalDoFs( *err.getConformingPart(), level ) ) ) );
-     */
+
         // calculate the error in the L2 norm
         M_EG.apply(err, Merr, level, Inner, Replace);
         auto discrL2 = sqrt(err.dotGlobal(Merr, level, Inner));

@@ -53,18 +53,24 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
-                     BoundaryCondition                          bc,
-                     uint_t                                     vectorDim = 0)
-   : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, false, vectorDim )
+                     BoundaryCondition                          bc)
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, false, 0 )
    {}
-
+    P1VectorFunction( const std::string&                         _name,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      size_t                                     minLevel,
+                      size_t                                     maxLevel,
+                      BoundaryCondition                          bc,
+                      bool                                       addVolumeGhostLayer)
+            : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, addVolumeGhostLayer, 0 )
+    {}
    P1VectorFunction( const std::string&                         _name,
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
                      BoundaryCondition                          bc,
                      bool                                       addVolumeGhostLayer,
-                     uint_t                                     vectorDim = 0 )
+                     uint_t                                     vectorDim )
    : CSFVectorFunction< P1VectorFunction< ValueType > >( _name )
    {
       WALBERLA_ASSERT( vectorDim == 0 || vectorDim == 2 || vectorDim == 3, "P1Vectorfunction: vectorDim arg must be from {0,2,3}" );

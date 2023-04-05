@@ -166,7 +166,6 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
 
-      WALBERLA_CHECK( updateType == Replace );
 
       if ( !form_->onlyVolumeIntegrals() )
       {

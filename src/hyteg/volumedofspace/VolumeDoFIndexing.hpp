@@ -570,6 +570,8 @@ class ElementNeighborInfo
 
    Index neighborElementIndices( uint_t neighbor ) const { return neighborElementIndices_[neighbor]; }
 
+   std::vector<Index> neighborElementVertexIndices( ) const { return neighborElementVertexIndices_; }
+
    [[nodiscard]] const std::vector< Point >& neighborElementVertexCoords( uint_t neighbor ) const
    {
       return neighborElementVertexCoords_[neighbor];
@@ -669,6 +671,8 @@ class ElementNeighborInfo
 
    /// Stores the DoFType (think boundary condition) for each element interface.
    std::vector< DoFType > neighborBoundaryType_;
+
+    std::vector< Index > neighborElementVertexIndices_;
 };
 
 // TODO: move some of these functions to some other file(s) ...

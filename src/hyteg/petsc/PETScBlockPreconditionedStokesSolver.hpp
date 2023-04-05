@@ -37,8 +37,14 @@
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
+    // check for data member blockPrec
+    template<typename, typename = void>
+    constexpr bool hasBlockPrec = false;
+    template<typename T>
+    constexpr bool hasBlockPrec<T, std::void_t<decltype(std::declval<T>().blockPrec)> > = true;
 
-template < class OperatorType >
+
+    template < class OperatorType >
 class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 {
  public:

@@ -186,7 +186,7 @@ void VertexDoFPackInfo< ValueType >::unpackEdgeFromVertex( Edge*                
    }
    else
    {
-      WALBERLA_LOG_WARNING( "Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver )
+      WALBERLA_LOG_WARNING( "Vertex with ID: " << sender << " is not in Edge: " << receiver )
    }
    buffer >> edgeData[vertexdof::macroedge::indexFromVertex( level_, pos, stencilDirection::VERTEX_C )];
 }

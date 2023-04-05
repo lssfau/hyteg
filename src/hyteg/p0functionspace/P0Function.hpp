@@ -54,7 +54,6 @@ class P0Function : public Function< P0Function< ValueType > >
    : P0Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   virtual uint_t getDimension() const { return dgFunction_->getDimension(); }
 
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
