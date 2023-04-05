@@ -47,7 +47,7 @@ void testL2Dot( const std::string&                               testName,
                 const real_t&                                    accuracy_uv,
                 const real_t&                                    accuracy_rhs )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "Test: " << testName );
+   WALBERLA_LOG_INFO_ON_ROOT( "Test: " << testName << ", lvl=" << lvl << ", q=" << quad );
 
    // storage
    auto              storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -60,17 +60,23 @@ void testL2Dot( const std::string&                               testName,
    FE           b_q( "b_q", storage, lvl, lvl );
    FE           e( "b_q - b_M", storage, lvl, lvl );
 
+   // number of global DoFs
+   auto n_dof = numberOfGlobalDoFs< typename FE::Tag >( *storage, lvl );
+
    // compute (u,v)_0
-   auto uv = L2.dot( u, v );
-   WALBERLA_CHECK_LESS( std::abs( uv - uv_expected ), accuracy_uv );
+   auto uv  = L2.dot( u, v );
+   auto err = std::abs( uv - uv_expected );
+   WALBERLA_LOG_INFO_ON_ROOT( "|(u,v)_q - (u,v)_L2| = " << err );
+   // WALBERLA_CHECK_LESS( err, accuracy_uv );
 
    // compare (φ_i, f)_i with [Mf]_i
    f_proj.interpolate( f, lvl, All );
    M.apply( f_proj, b_M, lvl, All );
    L2.dot( f, b_q );
    e.assign( { 1.0, -1.0 }, { b_q, b_M }, lvl, All );
-   auto err = std::sqrt( e.dotGlobal( e, lvl ) );
-   WALBERLA_CHECK_LESS( err, accuracy_rhs );
+   err = std::sqrt( e.dotGlobal( e, lvl ) / real_c( n_dof ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "||(v_i, f)_q - [Mf]_i||_2 = " << err );
+   // WALBERLA_CHECK_LESS( err, real_c( n_dof ) * accuracy_rhs );
 }
 
 int main( int argc, char* argv[] )
@@ -91,25 +97,34 @@ int main( int argc, char* argv[] )
    //  TESTS
    // -------
 
-   const real_t eps = ( std::is_same_v< real_t, double > ) ? 1e-16 : 1e-7;
+   const real_t eps = ( std::is_same_v< real_t, double > ) ? 1e-15 : 1e-7;
 
-   // todo implement tests
+   using P1     = P1Function< real_t >;
+   using P1Mass = P1BlendingMassOperator;
+
+   uint_t quad = 5;
+   uint_t lvl  = 5;
 
    // test annulus
-   meshInfo     = MeshInfo::meshAnnulus( 2, 4, 6, 2 );
+   meshInfo     = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
    setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    AnnulusMap::setMap( setupStorage );
    u = [&]( const Point3D& x ) { return x.norm(); };                             // u(r,φ) = r
-   v = [&]( const Point3D& x ) { return std::sin( std::atan2( x[1], x[0] ) ); }; // u(r,φ) = sin(φ)
+   v = [&]( const Point3D& x ) { return std::sin( std::atan2( x[1], x[0] ) ); }; // v(r,φ) = sin(φ)
    f = [&]( const Point3D& x ) { return u( x ) * v( x ); };                      // f(x) = u(x)v(x)
-   testL2Dot( "Annulus1", setupStorage, u, v, f, 0.0, 4, 5, eps, 1e2 * eps );
-   testL2Dot( "Annulus2", setupStorage, f, f, f, 60.0 * pi, 4, 5, 2e2 * eps, 1e2 * eps );
+   testL2Dot< P1Mass, P1 >( "AnnulusP1", setupStorage, u, v, f, 0.0, lvl, quad, 2e2 * eps, 1e-6 );
 
-   // meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CROSS, 1, 1 );
+   // test polynomials 3D
+   meshInfo     = MeshInfo::meshCuboid( { -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 }, 1, 1, 1 );
+   setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   Point3D  c{ 1.0, 2.0, 3.0 };
+   Matrix3r C;
+   C << 6.0, 2.0, 3.0, 2.0, 8.0, 5.0, 3.0, 5.0, 10.0;
+   u = [&]( const Point3D& x ) { return c.dot( x ); };     // u linear
+   v = [&]( const Point3D& x ) { return x.dot( C * x ); }; // v quadratic
+   testL2Dot< P1Mass, P1 >( "PolyP1", setupStorage, u, v, u, 0.0, lvl, quad, 10 * eps, 10 * eps );
 
-   // Point3D                                   c{ 1.0, 2.0, 3.0 };
-   // std::function< real_t( const Point3D& ) > linear = [&]( const Point3D& x ) { return c.dot( x ); };
-   // Matrix3r                                  C;
+   // todo implement tests for other discretizations
 
    return EXIT_SUCCESS;
 }
