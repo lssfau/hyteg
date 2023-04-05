@@ -720,6 +720,10 @@ waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyte
 waLBerla_execute_test(NAME SpectrumEstimationTest)
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3)
 
+waLBerla_compile_test(FILES numerictools/L2Test.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME L2Test)
+waLBerla_execute_test(NAME L2TestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3)
+
 ## Form Evaluation ##
 if(WALBERLA_DOUBLE_ACCURACY)
     waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
