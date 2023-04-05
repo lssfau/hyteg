@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 
+#include "core/debug/CheckFunctions.h"
 #include "core/Abort.h"
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/types/Matrix.hpp"
