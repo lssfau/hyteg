@@ -27,7 +27,7 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
-#include "hyteg/forms/form_hyteg_base/P0FormHyTeG.hpp"
+#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
@@ -35,19 +35,19 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p0_linear_form_blending_q6
+/// - name:        p1_linear_form_blending_q5
 /// - description: Implements a linear form of type: (k(x), psi) where psi a test function and k = k(x) a scalar, external function.
-/// - trial space: Lagrange, degree: 0
-/// - test space:  Lagrange, degree: 0
+/// - trial space: Lagrange, degree: 1
+/// - test space:  Lagrange, degree: 1
 ///
-class p0_linear_form_blending_q6 : public P0FormHyTeG
+class p1_linear_form_blending_q5 : public P1FormHyTeG
 {
 
  public:
 
-   p0_linear_form_blending_q6() { WALBERLA_ABORT("Not implemented."); }
+   p1_linear_form_blending_q5() { WALBERLA_ABORT("Not implemented."); }
 
-   p0_linear_form_blending_q6( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
+   p1_linear_form_blending_q5( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
    : callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
    , callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
    {}
@@ -63,50 +63,50 @@ class p0_linear_form_blending_q6 : public P0FormHyTeG
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
-   /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Griener-Schmid 1 | points: 10, degree: 6, test tolerance: 3.886e-16
+   /// - element matrix dimensions (rows, cols): (3, 3)
+   /// - quadrature rule:                        Walkington p5 | points: 7, degree: 5, test tolerance: 2.637e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              104     176       0       0     11             79                30
+   ///                                               86     146       0       0      8             81                21
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
-   /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Griener-Schmid 1 | points: 10, degree: 6, test tolerance: 3.886e-16
+   /// - element matrix dimensions (rows, cols): (3, 3)
+   /// - quadrature rule:                        Walkington p5 | points: 7, degree: 5, test tolerance: 2.637e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              104     176       0       0     11             79                30
+   ///                                               74     125       0       0      8             62                21
    ///
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
-   /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Xiao-Gimbutas 6 | points: 23, degree: 6, test tolerance: 7.137e-17
+   /// - element matrix dimensions (rows, cols): (4, 4)
+   /// - quadrature rule:                        Witherden-Vincent 5 | points: 14, degree: 5, test tolerance: 1.332e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              574     933       0       0     24            326                69
+   ///                                              397     638       0       0     15            253                42
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
-   /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Xiao-Gimbutas 6 | points: 23, degree: 6, test tolerance: 7.137e-17
+   /// - element matrix dimensions (rows, cols): (4, 4)
+   /// - quadrature rule:                        Witherden-Vincent 5 | points: 14, degree: 5, test tolerance: 1.332e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              574     933       0       0     24            326                69
+   ///                                              358     582       0       0     15            215                42
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
  private:
 

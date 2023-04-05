@@ -35,27 +35,27 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p0_linear_form_blending_q1
+/// - name:        p0_linear_form_blending_q5
 /// - description: Implements a linear form of type: (k(x), psi) where psi a test function and k = k(x) a scalar, external function.
 /// - trial space: Lagrange, degree: 0
 /// - test space:  Lagrange, degree: 0
 ///
-class p0_linear_form_blending_q1 : public P0FormHyTeG
+class p0_linear_form_blending_q5 : public P0FormHyTeG
 {
 
  public:
 
-   p0_linear_form_blending_q1() { WALBERLA_ABORT("Not implemented."); }
+   p0_linear_form_blending_q5() { WALBERLA_ABORT("Not implemented."); }
 
-   p0_linear_form_blending_q1( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k )
-   : callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
-   , callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   p0_linear_form_blending_q5( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
+   : callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   , callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
    std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
 
 
  public:
@@ -64,11 +64,11 @@ class p0_linear_form_blending_q1 : public P0FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Walkington p5 | points: 7, degree: 5, test tolerance: 2.637e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               14      23       0       0      2             15                 3
+   ///                                               74     125       0       0      8             58                21
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
 
@@ -76,11 +76,11 @@ class p0_linear_form_blending_q1 : public P0FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Walkington p5 | points: 7, degree: 5, test tolerance: 2.637e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               14      23       0       0      2             15                 3
+   ///                                               74     125       0       0      8             58                21
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
 
@@ -88,11 +88,11 @@ class p0_linear_form_blending_q1 : public P0FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Witherden-Vincent 5 | points: 14, degree: 5, test tolerance: 1.332e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               46      75       0       0      2             39                 3
+   ///                                              358     582       0       0     15            209                42
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
 
@@ -100,11 +100,11 @@ class p0_linear_form_blending_q1 : public P0FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (1, 1)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Witherden-Vincent 5 | points: 14, degree: 5, test tolerance: 1.332e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               46      75       0       0      2             39                 3
+   ///                                              358     582       0       0     15            209                42
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 1 >& elMat ) const override;
 

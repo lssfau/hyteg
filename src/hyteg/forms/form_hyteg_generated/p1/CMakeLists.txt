@@ -51,7 +51,7 @@ target_sources( hyteg
     p1_full_stokescc_affine_q1.cpp
     p1_divdiv_affine_q2.cpp
     p1_divdiv_affine_q2.hpp
-    p1_linear_form_blending_q6.hpp
-    p1_linear_form_blending_q6.cpp
+    p1_linear_form_blending_q5.hpp
+    p1_linear_form_blending_q5.cpp
 )
 
