@@ -26,8 +26,9 @@
 # include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 # include "hyteg/dgfunctionspace/DGForm.hpp"
 # include "hyteg/dgfunctionspace/DGForm2D.hpp"
-# include "hyteg/types/matrix.hpp"
-# include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
+
 
 # include "Eigen/Eigen"
 
@@ -14272,7 +14273,7 @@ void integrateFacetDirichletBoundary3D(
 
 class EGConstEpsilonFormEE : public hyteg::dg::DGForm
 {
- protected:
+ public:
   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,

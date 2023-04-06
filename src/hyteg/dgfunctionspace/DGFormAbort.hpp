@@ -24,8 +24,8 @@
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 
 #include "Eigen/Eigen"
 

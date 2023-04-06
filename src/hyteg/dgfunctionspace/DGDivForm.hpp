@@ -26,8 +26,9 @@
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
 #include "hyteg/dgfunctionspace/DGForm2D.hpp"
-#include "hyteg/types/matrix.hpp"
-#include "hyteg/types/pointnd.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
+
 
 #include "Eigen/Eigen"
 
@@ -2233,7 +2234,7 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
 
 class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
 {
- protected:
+public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
@@ -2832,7 +2833,7 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
 
 class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
 {
- protected:
+public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,

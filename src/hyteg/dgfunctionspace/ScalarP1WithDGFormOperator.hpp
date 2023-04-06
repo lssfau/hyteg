@@ -39,8 +39,6 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
-
-
 #include "DGOperator.hpp"
 
 namespace hyteg {

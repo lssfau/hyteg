@@ -36,7 +36,7 @@ namespace dg {
 
 class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
 {
- protected:
+public:
    void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
