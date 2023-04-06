@@ -27,7 +27,7 @@ void N1E1Form_mass_BInv_fp64::integrateAll( const std::array< PointND< double, 3
                                             const std::array< walberla::int16_t, 6 >&    edgeDirections,
                                             Matrix< double, 6, 6 >&                      elMat ) const
 {
-   elMat.setZero(  );
+   elMat.setZero();
 
    // F maps from reference tet K' to affine tet K
    // K = F(K') = Bx' + b

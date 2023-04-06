@@ -20,6 +20,7 @@
 
 #include <cmath>
 
+#include "core/DataTypes.h"
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
 #include "core/mpi/Environment.h"
@@ -32,6 +33,7 @@
 #include "common.hpp"
 
 using namespace hyteg;
+using walberla::real_c;
 
 void smoothingFactor( const uint_t n1e1SmoothSteps,
                       const uint_t p1SmoothSteps,
@@ -74,7 +76,7 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
       const real_t y = p[1];
       const real_t z = p[2];
 
-      const real_t val = std::sin( k * x * pi ) * std::sin( k * y * pi ) * std::sin( k * z * pi );
+      const real_t val = std::sin( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi );
       return Eigen::Vector3r{ val, val, val };
    };
 
@@ -83,15 +85,16 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
       const real_t y = p[1];
       const real_t z = p[2];
 
-      return Eigen::Vector3r{ std::cos( k * x * pi ) * std::sin( k * y * pi ) * std::sin( k * z * pi ),
-                              std::sin( k * x * pi ) * std::cos( k * y * pi ) * std::sin( k * z * pi ),
-                              std::sin( k * x * pi ) * std::sin( k * y * pi ) * std::cos( k * z * pi ) };
+      return Eigen::Vector3r{
+          std::cos( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
+          std::sin( real_c( k ) * x * pi ) * std::cos( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
+          std::sin( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::cos( real_c( k ) * z * pi ) };
    };
 
    auto divFreeMode = []( const int k, const Point3D& p ) {
       using std::sin;
       using std::cos;
-      const real_t kp = k * pi;
+      const real_t kp = real_c( k ) * pi;
 
       const real_t x = p[0];
       const real_t y = p[1];

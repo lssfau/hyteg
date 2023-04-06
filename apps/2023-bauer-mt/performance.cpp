@@ -18,6 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "core/DataTypes.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
@@ -28,6 +29,7 @@
 #include "common.hpp"
 
 using namespace hyteg;
+using walberla::real_c;
 
 /// Returns the sum of total times of all timers below `root` with the given `name`.
 real_t sumRec( const walberla::WcTimingNode& root, const std::string& name )
@@ -135,9 +137,9 @@ void performance( const std::string& name, const bool computeAndStoreLocalElemen
    Params params{ name };
    params.system                              = system;
    params.initialGuess                        = { []( const Point3D& ) {
-      return Eigen::Vector3r{ walberla::math::realRandom( -1.0, 1.0 ),
-                              walberla::math::realRandom( -1.0, 1.0 ),
-                              walberla::math::realRandom( -1.0, 1.0 ) };
+      return Eigen::Vector3r{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
    } };
    params.minLevel                            = 2;
    params.maxLevel                            = 5;
