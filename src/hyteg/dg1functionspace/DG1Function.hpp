@@ -107,8 +107,8 @@ class DG1Function : public Function< DG1Function< ValueType > >
 
    void copyFrom( const DG1Function< ValueType >&                other,
                   const uint_t&                                  level,
-                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
-                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
       WALBERLA_ABORT( "Not implemented." );
    };
